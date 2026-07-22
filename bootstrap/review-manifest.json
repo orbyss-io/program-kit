@@ -1,0 +1,56 @@
+{
+  "manifestKind": "program-kit-bootstrap-review",
+  "manifestVersion": 1,
+  "reviewSetId": "pkid:approval:program-kit:bootstrap-review-set",
+  "owner": "human-led-program-kit-bootstrap",
+  "reviewState": "awaiting-human-approval",
+  "implementationStatus": "scaffolded",
+  "bootstrapException": true,
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf",
+    "attributes": "/.gitattributes"
+  },
+  "artifacts": [
+    {
+      "artifactId": "pkid:design:program-kit:baseline",
+      "artifactVersion": "0.1.0",
+      "intendedContract": "pkid:schema:program-kit:architecture-design",
+      "intendedContractVersion": 1,
+      "path": "program-kit/bootstrap/architecture-design.md",
+      "sha256": "3c753a417a13f577c588551dbba38d96a18049e34941d8f83cb72e8631630751"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:baseline",
+      "artifactVersion": "0.1.0",
+      "intendedContract": "pkid:schema:program-kit:implementation-plan",
+      "intendedContractVersion": 1,
+      "designId": "pkid:design:program-kit:baseline",
+      "designVersion": "0.1.0",
+      "designSha256": "3c753a417a13f577c588551dbba38d96a18049e34941d8f83cb72e8631630751",
+      "path": "program-kit/bootstrap/implementation-plan.md",
+      "sha256": "89a4426a9532e0a21008a4395cdc512a5972e6363a5f0307df6b2914c2d2fc87"
+    }
+  ],
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-both-exact-digests",
+    "acceptedScope": "the Program Kit architecture and implementation outcomes bounded by the two review artifacts",
+    "includesBootstrapReceiptException": true,
+    "doesNotAuthorize": [
+      "Domain Semantic Engine domain design or behavior",
+      "a CShells adapter without verified source truth",
+      "React or another later language or platform kit",
+      "Release Cycle behavior or capability registration",
+      "artifact-feed publication",
+      "a material deviation from the reviewed design or plan"
+    ]
+  },
+  "provenance": {
+    "createdDate": "2026-07-22",
+    "source": "human-authored bootstrap exception",
+    "details": "The consulted source set is enumerated in architecture-design.md; this manifest binds review bytes and is not a Program Kit-generated artifact."
+  }
+}
