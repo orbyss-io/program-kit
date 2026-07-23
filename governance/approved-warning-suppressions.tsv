@@ -1,0 +1,10 @@
+# Program Kit approved warning suppressions v4
+# diagnostic-id<TAB>project-name<TAB>project-relative-source-path<TAB>suppression-kind<TAB>target<TAB>approval-id<TAB>approval-date<TAB>rationale
+# suppression-kind: SuppressMessageAttribute, UnconditionalSuppressMessageAttribute, PragmaWarningDisable, or CompilerNoWarn
+# target: attributes use <symbol>|attribute-target:<kind>|scope:<scope>|message-id:<id-or->; pragmas use lines:<disable>-<restore>
+# CompilerNoWarn uses source path - and binds an exact SDK, lock-file digest, assembly-set identity, and work-unit expiry
+# approval-id must start with human-approval: and approval-date must use yyyy-MM-dd
+# This is the one canonical ledger. Project-local or alternate ledgers fail the build.
+# Compiler-level entries are applied only after independent MSBuild validation of the canonical project, package closure, and assembly identities.
+CS1701	Orbyss.ProgramKit.UnitTests	-	CompilerNoWarn	mstest-sdk:4.3.2|lock-sha256:02caa0699454f291dc0462ebe4d40e8f9b2c00d287d3a2ede83dc5e2aef1d789|assembly-set:cs1701-mstest-sdk-4.3.2-v1|expires-before:PK-W020	human-approval:active-session:temporary-cs1701	2026-07-23	Temporary MSTest SDK compatibility exception; remove or replace before PK-W020 begins.
+CS1701	Orbyss.ProgramKit.ConformanceTests	-	CompilerNoWarn	mstest-sdk:4.3.2|lock-sha256:d82ab6f57d33c8857b26ac85267f808bb0e0dd2242cfc5d34e727941f1d6f2bc|assembly-set:cs1701-mstest-sdk-4.3.2-v1|expires-before:PK-W020	human-approval:active-session:temporary-cs1701	2026-07-23	Temporary MSTest SDK compatibility exception; remove or replace before PK-W020 begins.

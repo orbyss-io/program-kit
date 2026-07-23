@@ -1,0 +1,45 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                        '$(TemporaryCs1701ApprovalMutation)' == 'RawLowerTargetReference'">
+    <Reference Include="$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net9.0\Microsoft.Testing.Platform.dll" />
+  </ItemGroup>
+
+  <Target Name="ExpireTemporaryCs1701Approval"
+          BeforeTargets="ValidateProgramKitTemporaryCompilerWarningApprovals"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                     '$(TemporaryCs1701ApprovalMutation)' == 'ExpiredWorkUnit'">
+    <PropertyGroup>
+      <ProgramKitCurrentWorkUnit>PK-W020</ProgramKitCurrentWorkUnit>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ChangeTemporaryCs1701PackageVersion"
+          BeforeTargets="ValidateProgramKitTemporaryCompilerWarningApprovals"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                     '$(TemporaryCs1701ApprovalMutation)' == 'WrongPackageVersion'">
+    <PropertyGroup>
+      <MSTestVersion>4.3.1</MSTestVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ChangeTemporaryCs1701Diagnostic"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                     '$(TemporaryCs1701ApprovalMutation)' == 'WrongDiagnostic'">
+    <PropertyGroup>
+      <NoWarn>1702</NoWarn>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ForgeTemporaryCs1701ApprovalForWrongProject"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(MSBuildProjectName)' == 'CSharpGateProbe' and
+                     '$(TemporaryCs1701ApprovalMutation)' == 'WrongProject'">
+    <PropertyGroup>
+      <_ProgramKitTemporaryCs1701Approved>true</_ProgramKitTemporaryCs1701Approved>
+      <NoWarn>1701</NoWarn>
+    </PropertyGroup>
+  </Target>
+</Project>

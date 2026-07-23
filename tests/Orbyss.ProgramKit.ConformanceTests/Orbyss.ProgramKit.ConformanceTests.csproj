@@ -7,12 +7,15 @@
     <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Fixtures\UniversalContractConsumer\**\*.cs" />
+    <Compile Remove="Fixtures\**\*.cs" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity\Orbyss.ProgramKit.Modularity.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity.InProcess\Orbyss.ProgramKit.Modularity.InProcess.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj" />
     <ProjectReference Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -34,19 +37,32 @@
     <None Include="..\..\ProgramKit.sln"
           Link="ConformanceInputs/ProgramKit.sln"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\bootstrap\architecture-design.md"
+          Link="ConformanceInputs/Bootstrap/architecture-design.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\bootstrap\implementation-plan.md"
+          Link="ConformanceInputs/Bootstrap/implementation-plan.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\bootstrap\review-manifest.json"
+          Link="ConformanceInputs/Bootstrap/review-manifest.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\bootstrap\bootstrap-approval-record.json"
+          Link="ConformanceInputs/Bootstrap/bootstrap-approval-record.json"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\TargetProfileProbe.csproj"
           Link="ConformanceInputs/TargetProfileProbe.csproj"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj"
           Link="ConformanceInputs/UniversalContractConsumer/UniversalContractConsumer.csproj"
           CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.cs"
-          Link="ConformanceInputs/UniversalContractConsumer/UniversalContractConsumer.cs"
+    <None Include="Fixtures\UniversalContractConsumer\Consumers\UniversalContractConsumer.cs"
+          Link="ConformanceInputs/UniversalContractConsumer/Consumers/UniversalContractConsumer.cs"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\**\*.csproj"
           Link="ConformanceInputs/Projects/%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\**\*.cs"
+          Exclude="..\..\src\**\obj\**\*.cs;..\..\src\**\bin\**\*.cs"
           Link="ConformanceInputs/Source/%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\schemas\**\*.json"

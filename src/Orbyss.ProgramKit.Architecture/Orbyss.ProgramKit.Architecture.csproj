@@ -4,6 +4,25 @@
     <Description>Universal architecture, operation, extension, artifact-decision, and structural-pattern contracts for Orbyss Program Kit.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <Using Include="Orbyss.ProgramKit.Architecture.Decisions" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Designs" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Diagnostics" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Extensions" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Operations" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Ownership" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Patterns" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Schemas" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Targeting" />
+    <Using Include="Orbyss.ProgramKit.Architecture.Validation" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Compatibility" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Diagnostics" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Envelopes" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Primitives" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.References" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Schemas" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Validation" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
   </ItemGroup>
   <ItemGroup>

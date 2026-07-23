@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/serialization/1.0.0/profile-source.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:json-profile-source",
+  "x-program-kit-version": "1.0.0",
+  "title": "Digest-bound JSON profile source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "identity",
+    "version",
+    "profileKind",
+    "canonicalizationProfile",
+    "extensibility",
+    "rules",
+    "maximumLimits",
+    "builtInMetadataTargets",
+    "builtInConverterTargets",
+    "ownedMechanicsSources",
+    "digestRule"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.orbyss.io/program-kit/serialization/1.0.0/profile-source.schema.json"
+    },
+    "identity": {
+      "$ref": "definitions.schema.json#/$defs/programKitIdentifier"
+    },
+    "version": {
+      "$ref": "definitions.schema.json#/$defs/semanticVersion"
+    },
+    "profileKind": {
+      "enum": [
+        "serialization",
+        "canonicalization"
+      ]
+    },
+    "canonicalizationProfile": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "definitions.schema.json#/$defs/profileReference"
+        }
+      ]
+    },
+    "extensibility": {
+      "enum": [
+        "none",
+        "explicit-contributions"
+      ]
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "source-generated-metadata-only",
+          "schema-declared-property-names",
+          "case-sensitive-reads",
+          "comments-disallowed",
+          "trailing-commas-disallowed",
+          "unmapped-members-disallowed",
+          "null-properties-written",
+          "strict-numbers",
+          "reference-preservation-disallowed",
+          "nfc-strings-required",
+          "rfc8785-member-order-and-binary64-format",
+          "duplicate-member-names-rejected",
+          "invalid-unicode-rejected",
+          "negative-zero-rejected",
+          "non-finite-numbers-rejected",
+          "unsafe-canonical-integer-results-rejected",
+          "excess-decimal-precision-rejected",
+          "utf8-bom-rejected",
+          "bounded-object-member-buffers"
+        ]
+      }
+    },
+    "maximumLimits": {
+      "$ref": "definitions.schema.json#/$defs/limits"
+    },
+    "builtInMetadataTargets": {
+      "description": "Exact JsonTargetTypeIdentity values in profile-owned source-generated declaration order.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "builtInConverterTargets": {
+      "description": "Exact JsonTargetTypeIdentity values in fixed first-match converter order.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "ownedMechanicsSources": {
+      "description": "Exact source-byte digests whose mechanics are owned by this profile revision.",
+      "x-program-kit-unique-by": "relativePath",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relativePath",
+          "digest"
+        ],
+        "properties": {
+          "relativePath": {
+            "type": "string",
+            "allOf": [
+              {
+                "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$"
+              },
+              {
+                "not": {
+                  "pattern": "(^|/)\\.{1,2}(/|$)"
+                }
+              }
+            ]
+          },
+          "digest": {
+            "$ref": "definitions.schema.json#/$defs/sha256Digest"
+          }
+        }
+      }
+    },
+    "digestRule": {
+      "const": "sha256-of-exact-utf8-source-bytes-with-lf-and-no-bom"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "profileKind": {
+            "const": "serialization"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "canonicalizationProfile": {
+            "$ref": "definitions.schema.json#/$defs/profileReference"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "profileKind": {
+            "const": "canonicalization"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "canonicalizationProfile": {
+            "type": "null"
+          },
+          "extensibility": {
+            "const": "none"
+          }
+        }
+      }
+    }
+  ]
+}
