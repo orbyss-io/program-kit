@@ -1,11 +1,17 @@
 {
   "manifestKind": "program-kit-bootstrap-review",
-  "manifestVersion": "1.0.0",
+  "manifestVersion": "1.1.0",
   "reviewSetId": "pkid:approval:program-kit:bootstrap-review-set",
   "reviewSetVersion": "0.3.0",
   "owner": "human-led-program-kit-bootstrap",
-  "reviewState": "awaiting-human-approval",
+  "reviewState": "approved",
   "implementationStatus": "scaffolded",
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:bootstrap-review-set:0.3.0",
+    "recordVersion": "1.0.0",
+    "path": "program-kit/bootstrap/bootstrap-approval-record.json",
+    "sha256": "c5b037e391191ab4d5623a8e8fe20e41b58b6b0c50d02425423e95c465087509"
+  },
   "bootstrapException": true,
   "digestProfile": {
     "algorithm": "sha256",
