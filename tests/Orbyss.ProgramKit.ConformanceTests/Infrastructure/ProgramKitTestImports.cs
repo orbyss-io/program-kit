@@ -27,3 +27,4 @@ global using Orbyss.ProgramKit.Quality.Execution;
 global using Orbyss.ProgramKit.Quality.Reviews;
 global using Orbyss.ProgramKit.Quality.Specifications;
 global using Orbyss.ProgramKit.ConformanceTests.Infrastructure;
+global using Orbyss.ProgramKit.Workbench.Operations.Diagnostics;

@@ -19,6 +19,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Planning",
         "Orbyss.ProgramKit.Quality",
         "Orbyss.ProgramKit.Serialization.JSON",
+        "Orbyss.ProgramKit.Workbench",
     ];
 
     [TestMethod]
@@ -43,7 +44,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W015");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W020");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -172,7 +173,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void SolutionContainsTheApprovedW015PackagesTwoTestProjectsAndTheCSharpGate()
+    public void SolutionContainsTheApprovedW020PackagesTwoTestProjectsAndTheCSharpGate()
     {
         var solution = ConformanceInputs.Read("ProgramKit.sln");
         var projectLines = solution
@@ -181,7 +182,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(11, projectLines);
+        Assert.HasCount(12, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -209,7 +210,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(8, projectFiles);
+        Assert.HasCount(9, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -249,7 +250,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(11, projectFiles);
+        Assert.HasCount(12, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -315,6 +316,15 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Modularity"],
                 ["Orbyss.ProgramKit.Serialization.JSON"] =
                 ["Orbyss.ProgramKit.Artifacts"],
+                ["Orbyss.ProgramKit.Workbench"] =
+                [
+                    "Orbyss.ProgramKit.Artifacts",
+                    "Orbyss.ProgramKit.Architecture",
+                    "Orbyss.ProgramKit.Development",
+                    "Orbyss.ProgramKit.Planning",
+                    "Orbyss.ProgramKit.Quality",
+                    "Orbyss.ProgramKit.Serialization.JSON",
+                ],
             };
         var expectedPackages =
             new Dictionary<string, ImmutableHashSet<string>>(StringComparer.Ordinal)
@@ -328,6 +338,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Modularity.InProcess"] = [],
                 ["Orbyss.ProgramKit.Serialization.JSON"] =
                 ["Microsoft.Extensions.DependencyInjection.Abstractions"],
+                ["Orbyss.ProgramKit.Workbench"] = ["JsonSchema.Net"],
             };
 
         foreach (var projectFile in ConformanceInputs.Files("Projects", "*.csproj"))
@@ -392,6 +403,12 @@ public sealed class BuildSpineConformanceTests
                 ],
             ["Orbyss.ProgramKit.Serialization.JSON"] =
                 ["Orbyss.ProgramKit.Artifacts"],
+            ["Orbyss.ProgramKit.Workbench"] =
+                [
+                    "Orbyss.ProgramKit.Architecture",
+                    "Orbyss.ProgramKit.Artifacts",
+                    "Orbyss.ProgramKit.Serialization.JSON",
+                ],
         };
 
         foreach (var pair in allowed)
@@ -427,6 +444,7 @@ public sealed class BuildSpineConformanceTests
         foreach (var sourceFile in ConformanceInputs.Files("Source", "*.cs"))
         {
             var source = File.ReadAllText(sourceFile);
+            var normalizedSourceFile = sourceFile.Replace('\\', '/');
             foreach (var token in forbidden)
             {
                 Assert.DoesNotContain(
@@ -435,14 +453,38 @@ public sealed class BuildSpineConformanceTests
                     $"{sourceFile} contains forbidden token {token}.");
             }
 
-            if (!sourceFile.Contains(
+            if (!normalizedSourceFile.Contains(
                     "Orbyss.ProgramKit.Serialization.JSON",
                     StringComparison.Ordinal))
             {
-                Assert.DoesNotContain(
-                    "JsonSerializer",
-                    source,
-                    $"{sourceFile} calls JsonSerializer outside Serialization.JSON.");
+                string[] forbiddenSerializerMechanics =
+                [
+                    "JsonSerializer.Serialize",
+                    "JsonSerializer.Deserialize",
+                    "JsonSerializerOptions",
+                    "JsonSerializerContext",
+                ];
+                foreach (var token in forbiddenSerializerMechanics)
+                {
+                    Assert.DoesNotContain(
+                        token,
+                        source,
+                        $"{sourceFile} uses {token} outside Serialization.JSON.");
+                }
+            }
+
+            if ((source.Contains("JsonElement", StringComparison.Ordinal) ||
+                 source.Contains("JsonDocument", StringComparison.Ordinal) ||
+                 source.Contains("JsonNode", StringComparison.Ordinal)) &&
+                !normalizedSourceFile.Contains(
+                    "Orbyss.ProgramKit.Serialization.JSON",
+                    StringComparison.Ordinal) &&
+                !normalizedSourceFile.Contains(
+                    "Orbyss.ProgramKit.Workbench/Operations/Schemas/",
+                    StringComparison.Ordinal))
+            {
+                Assert.Fail(
+                    $"{sourceFile} exposes or uses a JSON DOM outside the exact Workbench schema adapter exception.");
             }
         }
     }

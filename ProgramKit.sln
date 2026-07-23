@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Modularit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Serialization.JSON", "src\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj", "{E3C508CB-6204-4112-BD11-6D9B16C97780}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Workbench", "src\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj", "{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.UnitTests", "tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj", "{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.ConformanceTests", "tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj", "{91AF93E5-B37C-46A6-B926-E8765DA39359}"
@@ -133,6 +135,18 @@ Global
 		{E3C508CB-6204-4112-BD11-6D9B16C97780}.Release|x64.Build.0 = Release|Any CPU
 		{E3C508CB-6204-4112-BD11-6D9B16C97780}.Release|x86.ActiveCfg = Release|Any CPU
 		{E3C508CB-6204-4112-BD11-6D9B16C97780}.Release|x86.Build.0 = Release|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Debug|x64.Build.0 = Debug|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Debug|x86.Build.0 = Debug|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Release|x64.ActiveCfg = Release|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Release|x64.Build.0 = Release|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA56ED99-3B9C-42AB-9CB8-B5168DCDAE85}.Release|x86.Build.0 = Release|Any CPU
 		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|x64.ActiveCfg = Debug|Any CPU

@@ -125,23 +125,26 @@ The following rules are mandatory:
    and `MessageId` as well as the symbol target. Pragma approvals bind both the
    active disable and matching active restore line, so deleting, deactivating,
    or widening the restore invalidates the approval.
-   The human in the active implementation session approved one temporary
-   compiler-level exception on 2026-07-23: `CS1701` only, for the exact
+   The human in the active implementation session approved one quarantined
+   compiler-level compatibility exception on 2026-07-23: `CS1701` only, for the exact
    canonical `Orbyss.ProgramKit.UnitTests` and
    `Orbyss.ProgramKit.ConformanceTests` projects, while they resolve the exact
    `MSTest.Sdk` `4.3.2` closure recorded in their lock files. The compiler-level
-   ledger records bind the SDK version, each lock-file SHA-256 digest, the exact
+   ledger records bind the SDK version, the exact locked package-content hashes,
    warning-producing assembly set, the .NET 10 `System.Runtime` identity, the
-   active human-session authority, and expiry before `PK-W020`. The work-unit
-   marker is repository-owned and cannot be replaced by a command-line global
-   property. The gate rejects any additional raw assembly reference before
+   absence of .NET 10 assets in that closure, the active human-session
+   authority, and mandatory review on every test-toolchain change. The gate
+   rejects any additional raw assembly reference before
    package resolution, including a lower-target assembly whose own `CS1701`
    would otherwise be hidden by the global suppression. It revalidates the
-   compiler receipt and lock digest after compilation. Changing the project,
+   compiler receipt and rejects lock mutation during compilation. Unrelated
+   product dependencies may evolve without widening the quarantined test-toolchain
+   closure. Changing the project,
    diagnostic, package selection, closure, assembly identity, raw-reference
-   inventory, or work unit fails closed. Removing this exception or replacing
-   the incompatible test SDK closure is the first required correction in
-   `PK-W020`; it is not authority to build later work on a suppressed warning.
+   inventory, runtime identity, or .NET 10 asset availability fails closed.
+   A newly created test project does not inherit this exception. The quarantine
+   must be removed as soon as the selected test toolchain supplies a compatible
+   .NET 10 closure; it is not general authority to build on suppressed warnings.
    Every other compiler `/nowarn` remains forbidden.
    For projects without that exact active approval, the compiler command line
    may not contain `/nowarn`, including suppressions that the pinned SDK would

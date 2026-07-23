@@ -3467,8 +3467,9 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             if (!IsValidCompilerNoWarnTarget(target))
             {
                 return "compiler suppression target must bind MSTest.Sdk 4.3.2, " +
-                    "a lowercase SHA-256 lock digest, the approved assembly set, " +
-                    "and expiry before PK-W020";
+                    "the approved locked package closure and assembly set, " +
+                    "the .NET 10 runtime identity, absent .NET 10 assets, and " +
+                    "mandatory test-toolchain review";
             }
         }
         else if (suppressionKind == "PragmaWarningDisable" &&
@@ -3514,24 +3515,18 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
     private static bool IsValidCompilerNoWarnTarget(string target)
     {
         var components = target.Split('|');
-        if (components.Length != 4 ||
+        if (components.Length != 6 ||
             components[0] != "mstest-sdk:4.3.2" ||
+            components[1] != "closure:cs1701-mstest-sdk-4.3.2-v1" ||
             components[2] != "assembly-set:cs1701-mstest-sdk-4.3.2-v1" ||
-            components[3] != "expires-before:PK-W020")
+            components[3] != "system-runtime:10.0.0.0" ||
+            components[4] != "net10-assets:absent" ||
+            components[5] != "review-on:test-toolchain-change")
         {
             return false;
         }
 
-        const string digestPrefix = "lock-sha256:";
-        if (!components[1].StartsWith(digestPrefix, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        var digest = components[1][digestPrefix.Length..];
-        return digest.Length == 64 &&
-            digest.All(character =>
-                character is >= '0' and <= '9' or >= 'a' and <= 'f');
+        return true;
     }
 
     private static bool IsValidPragmaRangeTarget(string target)
@@ -3832,6 +3827,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Quality",
                 "Serialization",
                 "TestSupport",
+                "Workbench",
             ],
             "Orbyss.ProgramKit.ConformanceTests" =>
             [
@@ -3949,6 +3945,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             "Modularity" => "Orbyss.ProgramKit.Modularity",
             "Planning" => "Orbyss.ProgramKit.Planning",
             "Quality" => "Orbyss.ProgramKit.Quality",
+            "Workbench" => "Orbyss.ProgramKit.Workbench",
             _ => null,
         };
         return productProject is not null &&

@@ -712,7 +712,7 @@ public sealed class CSharpGateConformanceTests
     }
 
     [TestMethod]
-    public async Task TemporaryCompilerWarningApprovalIsExactAndExpiresBeforeNextWorkUnit()
+    public async Task Cs1701CompatibilityQuarantineIsExactAndRejectsToolchainDrift()
     {
         var unitTestProject = GetUnitTestProjectPath();
         var valid = await BuildProjectAsync(
@@ -721,10 +721,10 @@ public sealed class CSharpGateConformanceTests
             "--no-incremental");
         Assert.AreEqual(0, valid.ExitCode, valid.Output);
 
-        var tamperingTargets = GetTemporaryCs1701TamperingTargetsPath();
+        var tamperingTargets = GetCs1701CompatibilityTamperingTargetsPath();
         foreach (var mutation in new[]
                  {
-                     "ExpiredWorkUnit",
+                      "WrongRuntimeIdentity",
                      "WrongPackageVersion",
                      "RawLowerTargetReference",
                  })
@@ -734,7 +734,7 @@ public sealed class CSharpGateConformanceTests
                 "--no-restore",
                 "--no-incremental",
                 $"--property:CustomAfterMicrosoftCommonTargets={tamperingTargets}",
-                $"--property:TemporaryCs1701ApprovalMutation={mutation}");
+                $"--property:Cs1701CompatibilityMutation={mutation}");
             Assert.AreNotEqual(
                 0,
                 result.ExitCode,
@@ -747,7 +747,7 @@ public sealed class CSharpGateConformanceTests
             "--no-restore",
             "--no-incremental",
             $"--property:CustomAfterMicrosoftCommonTargets={tamperingTargets}",
-            "--property:TemporaryCs1701ApprovalMutation=WrongDiagnostic");
+            "--property:Cs1701CompatibilityMutation=WrongDiagnostic");
         Assert.AreNotEqual(0, wrongDiagnostic.ExitCode, wrongDiagnostic.Output);
         Assert.Contains("CS1701", wrongDiagnostic.Output);
 
@@ -757,7 +757,7 @@ public sealed class CSharpGateConformanceTests
             "--no-incremental",
             "--property:GateCase=Valid",
             $"--property:CustomAfterMicrosoftCommonTargets={tamperingTargets}",
-            "--property:TemporaryCs1701ApprovalMutation=WrongProject");
+            "--property:Cs1701CompatibilityMutation=WrongProject");
         Assert.AreNotEqual(0, wrongProject.ExitCode, wrongProject.Output);
         Assert.Contains("PKCS174", wrongProject.Output);
     }
@@ -1363,7 +1363,7 @@ public sealed class CSharpGateConformanceTests
             "program-kit",
             "ProgramKit.sln");
 
-    private static string GetTemporaryCs1701TamperingTargetsPath() =>
+    private static string GetCs1701CompatibilityTamperingTargetsPath() =>
         Path.Combine(
             ConformanceInputs.RepositoryRoot,
             "program-kit",
@@ -1372,7 +1372,7 @@ public sealed class CSharpGateConformanceTests
             "Fixtures",
             "CSharpGate",
             "Configurations",
-            "TemporaryCs1701ApprovalTampering.targets");
+            "Cs1701CompatibilityQuarantineTampering.targets");
 
     private static string GetProbeProjectPath() =>
         Path.Combine(

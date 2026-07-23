@@ -29,10 +29,10 @@
                                _ProgramKitSelfValidationInvocationDirectory;
                                _ProgramKitSelfValidationInvocationFile;
                                _ProgramKitSelfValidationInvocationToken;
-                               _ProgramKitTemporaryCs1701Approved;
-                               _ProgramKitTemporaryCs1701ExpectedApproval;
-                               _ProgramKitTemporaryCs1701ExpectedLockHash;
-                               _ProgramKitTemporaryCs1701ExpectedProjectPath;
+                               _ProgramKitCs1701CompatibilityApproved;
+                               _ProgramKitCs1701CompatibilityExpectedApproval;
+                               _ProgramKitCs1701CompatibilityExpectedProjectPath;
+                               _ProgramKitCs1701CompatibilityPreCompilerLockHash;
                                _ProgramKitOriginalBuildingInsideVisualStudio;
                                _ProgramKitOriginalTargetFrameworkIdentifier;
                                _ProgramKitOriginalTargetFrameworkVersion;
@@ -408,8 +408,35 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="ValidateProgramKitResolvedAnalyzerSet"
+  <Target Name="RemoveProgramKitUnselectedHumanizerAnalyzer"
           DependsOnTargets="ResolveProjectReferences"
+          BeforeTargets="ValidateProgramKitResolvedAnalyzerSet">
+    <PropertyGroup>
+      <_ProgramKitExpectedHumanizerAnalyzerPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)humanizer.core\3.0.10\analyzers\dotnet\roslyn4.14\cs\Humanizer.Analyzers.dll'))</_ProgramKitExpectedHumanizerAnalyzerPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProgramKitAllHumanizerAnalyzer Remove="@(_ProgramKitAllHumanizerAnalyzer)" />
+      <_ProgramKitUnselectedHumanizerAnalyzer Remove="@(_ProgramKitUnselectedHumanizerAnalyzer)" />
+      <_ProgramKitAllHumanizerAnalyzer
+        Include="@(Analyzer)"
+        Condition="'%(Analyzer.Filename)%(Analyzer.Extension)' == 'Humanizer.Analyzers.dll'" />
+      <_ProgramKitUnselectedHumanizerAnalyzer
+        Include="@(_ProgramKitAllHumanizerAnalyzer)"
+        Condition="'%(_ProgramKitAllHumanizerAnalyzer.FullPath)' == '$(_ProgramKitExpectedHumanizerAnalyzerPath)' and
+                   '%(_ProgramKitAllHumanizerAnalyzer.NuGetPackageId)' == 'Humanizer.Core' and
+                   '%(_ProgramKitAllHumanizerAnalyzer.NuGetPackageVersion)' == '3.0.10'" />
+    </ItemGroup>
+    <Error Condition="'@(_ProgramKitAllHumanizerAnalyzer->Count())' != '@(_ProgramKitUnselectedHumanizerAnalyzer->Count())' or
+                      '@(_ProgramKitUnselectedHumanizerAnalyzer->Count())' &gt; '1'"
+           Code="PKCS178"
+           Text="Only the exact unselected Humanizer.Core 3.0.10 analyzer transitively contributed by JsonSchema.Net 9.3.0 may be removed; observed @(_ProgramKitAllHumanizerAnalyzer->'%(FullPath)|%(NuGetPackageId)|%(NuGetPackageVersion)')." />
+    <ItemGroup>
+      <Analyzer Remove="@(_ProgramKitUnselectedHumanizerAnalyzer)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ValidateProgramKitResolvedAnalyzerSet"
+          DependsOnTargets="ResolveProjectReferences;RemoveProgramKitUnselectedHumanizerAnalyzer"
           BeforeTargets="CoreCompile">
     <PropertyGroup>
       <_ProgramKitNetAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\analyzers\Microsoft.CodeAnalysis.NetAnalyzers.dll'))</_ProgramKitNetAnalyzerPath>
@@ -546,45 +573,45 @@
            Text="Every physical owned C# source must remain in Compile; missing @(_ProgramKitMissingOwnedSource)." />
   </Target>
 
-  <Target Name="ValidateProgramKitTemporaryCompilerWarningRawReferences"
+  <Target Name="ValidateProgramKitCs1701CompatibilityRawReferences"
           BeforeTargets="ResolvePackageAssets">
     <PropertyGroup>
-      <_ProgramKitTemporaryCs1701RawReferenceUnitTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj'))</_ProgramKitTemporaryCs1701RawReferenceUnitTestProjectPath>
-      <_ProgramKitTemporaryCs1701RawReferenceConformanceTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'))</_ProgramKitTemporaryCs1701RawReferenceConformanceTestProjectPath>
-      <_ProgramKitTemporaryCs1701MSTestFrameworkTargetsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testframework\4.3.2\buildTransitive\net9.0\MSTest.TestFramework.targets'))</_ProgramKitTemporaryCs1701MSTestFrameworkTargetsPath>
-      <_ProgramKitTemporaryCs1701MSTestAdapterTargetsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTest.TestAdapter.targets'))</_ProgramKitTemporaryCs1701MSTestAdapterTargetsPath>
-      <_ProgramKitTemporaryCs1701MSTestFrameworkExtensionsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testframework\4.3.2\buildTransitive\net9.0\MSTest.TestFramework.Extensions.dll'))</_ProgramKitTemporaryCs1701MSTestFrameworkExtensionsPath>
-      <_ProgramKitTemporaryCs1701MSTestAdapterPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTest.TestAdapter.dll'))</_ProgramKitTemporaryCs1701MSTestAdapterPath>
-      <_ProgramKitTemporaryCs1701MSTestPlatformServicesPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTestAdapter.PlatformServices.dll'))</_ProgramKitTemporaryCs1701MSTestPlatformServicesPath>
-      <_ProgramKitTemporaryCs1701CanonicalProject
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701RawReferenceUnitTestProjectPath)' or
-                   '$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701RawReferenceConformanceTestProjectPath)'">true</_ProgramKitTemporaryCs1701CanonicalProject>
+      <_ProgramKitCs1701CompatibilityRawReferenceUnitTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj'))</_ProgramKitCs1701CompatibilityRawReferenceUnitTestProjectPath>
+      <_ProgramKitCs1701CompatibilityRawReferenceConformanceTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'))</_ProgramKitCs1701CompatibilityRawReferenceConformanceTestProjectPath>
+      <_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testframework\4.3.2\buildTransitive\net9.0\MSTest.TestFramework.targets'))</_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath>
+      <_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTest.TestAdapter.targets'))</_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath>
+      <_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testframework\4.3.2\buildTransitive\net9.0\MSTest.TestFramework.Extensions.dll'))</_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath>
+      <_ProgramKitCs1701CompatibilityMSTestAdapterPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTest.TestAdapter.dll'))</_ProgramKitCs1701CompatibilityMSTestAdapterPath>
+      <_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTestAdapter.PlatformServices.dll'))</_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath>
+      <_ProgramKitCs1701CompatibilityCanonicalProject
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityRawReferenceUnitTestProjectPath)' or
+                   '$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityRawReferenceConformanceTestProjectPath)'">true</_ProgramKitCs1701CompatibilityCanonicalProject>
     </PropertyGroup>
-    <ItemGroup Condition="'$(_ProgramKitTemporaryCs1701CanonicalProject)' == 'true'">
-      <_ProgramKitTemporaryCs1701ApprovedRawReference
+    <ItemGroup Condition="'$(_ProgramKitCs1701CompatibilityCanonicalProject)' == 'true'">
+      <_ProgramKitCs1701CompatibilityApprovedRawReference
         Include="@(Reference)"
         Condition="('%(Reference.Identity)' == 'MSTest.TestFramework.Extensions' and
-                    '%(Reference.HintPath)' == '$(_ProgramKitTemporaryCs1701MSTestFrameworkExtensionsPath)' and
-                    '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitTemporaryCs1701MSTestFrameworkTargetsPath)') or
+                    '%(Reference.HintPath)' == '$(_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath)' and
+                    '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath)') or
                    ('%(Reference.Identity)' == 'MSTest.TestAdapter' and
-                    '%(Reference.HintPath)' == '$(_ProgramKitTemporaryCs1701MSTestAdapterPath)' and
-                    '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitTemporaryCs1701MSTestAdapterTargetsPath)') or
+                    '%(Reference.HintPath)' == '$(_ProgramKitCs1701CompatibilityMSTestAdapterPath)' and
+                    '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath)') or
                    ('%(Reference.Identity)' == 'MSTestAdapter.PlatformServices' and
-                    '%(Reference.HintPath)' == '$(_ProgramKitTemporaryCs1701MSTestPlatformServicesPath)' and
-                    '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitTemporaryCs1701MSTestAdapterTargetsPath)')" />
+                    '%(Reference.HintPath)' == '$(_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath)' and
+                    '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath)')" />
     </ItemGroup>
-    <Error Condition="'$(_ProgramKitTemporaryCs1701CanonicalProject)' == 'true' and
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityCanonicalProject)' == 'true' and
                       '@(Reference->Count())' != '3'"
            Code="PKCS174"
-           Text="The temporary CS1701 approval forbids every raw assembly reference except the exact three imported by MSTest SDK 4.3.2; observed @(Reference->'%(Identity)')." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701CanonicalProject)' == 'true' and
-                      '@(_ProgramKitTemporaryCs1701ApprovedRawReference->Count())' != '3'"
+           Text="The CS1701 compatibility quarantine forbids every raw assembly reference except the exact three imported by MSTest SDK 4.3.2; observed @(Reference->'%(Identity)')." />
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityCanonicalProject)' == 'true' and
+                      '@(_ProgramKitCs1701CompatibilityApprovedRawReference->Count())' != '3'"
            Code="PKCS174"
            Text="The exact raw MSTest SDK 4.3.2 reference identities or their import provenance changed." />
   </Target>
 
   <Target Name="ValidateProgramKitDeclaredReferenceInputs"
-          DependsOnTargets="ValidateProgramKitTemporaryCompilerWarningRawReferences"
+          DependsOnTargets="ValidateProgramKitCs1701CompatibilityRawReferences"
           BeforeTargets="ResolvePackageAssets">
     <PropertyGroup>
       <_ProgramKitCSharpGateRawReferenceProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tools\Orbyss.ProgramKit.CSharpGate\Orbyss.ProgramKit.CSharpGate.csproj'))</_ProgramKitCSharpGateRawReferenceProjectPath>
@@ -610,9 +637,9 @@
                     '%(Reference.Aliases)' == '' and
                     '%(Reference.EmbedInteropTypes)' != 'true')" />
       <_ProgramKitApprovedRawReference
-        Include="@(_ProgramKitTemporaryCs1701ApprovedRawReference)"
-        Condition="'%(_ProgramKitTemporaryCs1701ApprovedRawReference.Aliases)' == '' and
-                   '%(_ProgramKitTemporaryCs1701ApprovedRawReference.EmbedInteropTypes)' != 'true'" />
+        Include="@(_ProgramKitCs1701CompatibilityApprovedRawReference)"
+        Condition="'%(_ProgramKitCs1701CompatibilityApprovedRawReference.Aliases)' == '' and
+                   '%(_ProgramKitCs1701CompatibilityApprovedRawReference.EmbedInteropTypes)' != 'true'" />
       <_ProgramKitReferenceWithAlias
         Include="@(Reference)"
         Condition="'%(Reference.Aliases)' != ''" />
@@ -624,7 +651,7 @@
                       '@(_ProgramKitReferenceWithAlias)' != '' or
                       '@(_ProgramKitReferenceWithEmbeddedInterop)' != ''"
            Code="PKCS176"
-           Text="Raw assembly references are forbidden except the exact repository-approved Roslyn tool references and temporary MSTest imports; aliases and embedded interop are forbidden. Observed @(Reference->'%(Identity)')." />
+           Text="Raw assembly references are forbidden except the exact repository-approved Roslyn tool references and quarantined MSTest imports; aliases and embedded interop are forbidden. Observed @(Reference->'%(Identity)')." />
     <Error Condition="'@(COMReference)' != '' or
                       '@(COMFileReference)' != '' or
                       '@(AddModules)' != ''"
@@ -632,106 +659,120 @@
            Text="COM references, COM file references, and added compiler modules are forbidden." />
   </Target>
 
-  <Target Name="ValidateProgramKitTemporaryCompilerWarningApprovals"
+  <Target Name="ValidateProgramKitCs1701CompatibilityApproval"
           DependsOnTargets="ResolveReferences"
           BeforeTargets="CoreCompile">
     <PropertyGroup>
-      <_ProgramKitTemporaryCs1701UnitTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj'))</_ProgramKitTemporaryCs1701UnitTestProjectPath>
-      <_ProgramKitTemporaryCs1701ConformanceTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'))</_ProgramKitTemporaryCs1701ConformanceTestProjectPath>
-      <_ProgramKitTemporaryCs1701UnitTestApproval>CS1701&#x9;Orbyss.ProgramKit.UnitTests&#x9;-&#x9;CompilerNoWarn&#x9;mstest-sdk:4.3.2|lock-sha256:02caa0699454f291dc0462ebe4d40e8f9b2c00d287d3a2ede83dc5e2aef1d789|assembly-set:cs1701-mstest-sdk-4.3.2-v1|expires-before:PK-W020&#x9;human-approval:active-session:temporary-cs1701&#x9;2026-07-23&#x9;Temporary MSTest SDK compatibility exception; remove or replace before PK-W020 begins.</_ProgramKitTemporaryCs1701UnitTestApproval>
-      <_ProgramKitTemporaryCs1701ConformanceTestApproval>CS1701&#x9;Orbyss.ProgramKit.ConformanceTests&#x9;-&#x9;CompilerNoWarn&#x9;mstest-sdk:4.3.2|lock-sha256:d82ab6f57d33c8857b26ac85267f808bb0e0dd2242cfc5d34e727941f1d6f2bc|assembly-set:cs1701-mstest-sdk-4.3.2-v1|expires-before:PK-W020&#x9;human-approval:active-session:temporary-cs1701&#x9;2026-07-23&#x9;Temporary MSTest SDK compatibility exception; remove or replace before PK-W020 begins.</_ProgramKitTemporaryCs1701ConformanceTestApproval>
-      <_ProgramKitTemporaryCs1701ExpectedProjectPath></_ProgramKitTemporaryCs1701ExpectedProjectPath>
-      <_ProgramKitTemporaryCs1701ExpectedLockHash></_ProgramKitTemporaryCs1701ExpectedLockHash>
-      <_ProgramKitTemporaryCs1701ExpectedApproval></_ProgramKitTemporaryCs1701ExpectedApproval>
-      <_ProgramKitTemporaryCs1701ExpectedProjectPath
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701UnitTestProjectPath)'">$(_ProgramKitTemporaryCs1701UnitTestProjectPath)</_ProgramKitTemporaryCs1701ExpectedProjectPath>
-      <_ProgramKitTemporaryCs1701ExpectedLockHash
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701UnitTestProjectPath)'">02caa0699454f291dc0462ebe4d40e8f9b2c00d287d3a2ede83dc5e2aef1d789</_ProgramKitTemporaryCs1701ExpectedLockHash>
-      <_ProgramKitTemporaryCs1701ExpectedApproval
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701UnitTestProjectPath)'">$(_ProgramKitTemporaryCs1701UnitTestApproval)</_ProgramKitTemporaryCs1701ExpectedApproval>
-      <_ProgramKitTemporaryCs1701ExpectedProjectPath
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701ConformanceTestProjectPath)'">$(_ProgramKitTemporaryCs1701ConformanceTestProjectPath)</_ProgramKitTemporaryCs1701ExpectedProjectPath>
-      <_ProgramKitTemporaryCs1701ExpectedLockHash
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701ConformanceTestProjectPath)'">d82ab6f57d33c8857b26ac85267f808bb0e0dd2242cfc5d34e727941f1d6f2bc</_ProgramKitTemporaryCs1701ExpectedLockHash>
-      <_ProgramKitTemporaryCs1701ExpectedApproval
-        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitTemporaryCs1701ConformanceTestProjectPath)'">$(_ProgramKitTemporaryCs1701ConformanceTestApproval)</_ProgramKitTemporaryCs1701ExpectedApproval>
-      <_ProgramKitTemporaryCs1701Approved>false</_ProgramKitTemporaryCs1701Approved>
+      <_ProgramKitCs1701CompatibilityUnitTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj'))</_ProgramKitCs1701CompatibilityUnitTestProjectPath>
+      <_ProgramKitCs1701CompatibilityConformanceTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'))</_ProgramKitCs1701CompatibilityConformanceTestProjectPath>
+      <_ProgramKitCs1701CompatibilityUnitTestApproval>CS1701&#x9;Orbyss.ProgramKit.UnitTests&#x9;-&#x9;CompilerNoWarn&#x9;mstest-sdk:4.3.2|closure:cs1701-mstest-sdk-4.3.2-v1|assembly-set:cs1701-mstest-sdk-4.3.2-v1|system-runtime:10.0.0.0|net10-assets:absent|review-on:test-toolchain-change&#x9;human-approval:active-session:cs1701-compatibility-quarantine&#x9;2026-07-23&#x9;MSTest SDK 4.3.2 compatibility quarantine for its exact lower-target dependency closure; self-invalidates when the toolchain, closure, assembly identities, runtime identity, or .NET 10 asset availability changes.</_ProgramKitCs1701CompatibilityUnitTestApproval>
+      <_ProgramKitCs1701CompatibilityConformanceTestApproval>CS1701&#x9;Orbyss.ProgramKit.ConformanceTests&#x9;-&#x9;CompilerNoWarn&#x9;mstest-sdk:4.3.2|closure:cs1701-mstest-sdk-4.3.2-v1|assembly-set:cs1701-mstest-sdk-4.3.2-v1|system-runtime:10.0.0.0|net10-assets:absent|review-on:test-toolchain-change&#x9;human-approval:active-session:cs1701-compatibility-quarantine&#x9;2026-07-23&#x9;MSTest SDK 4.3.2 compatibility quarantine for its exact lower-target dependency closure; self-invalidates when the toolchain, closure, assembly identities, runtime identity, or .NET 10 asset availability changes.</_ProgramKitCs1701CompatibilityConformanceTestApproval>
+      <_ProgramKitCs1701CompatibilityExpectedProjectPath></_ProgramKitCs1701CompatibilityExpectedProjectPath>
+      <_ProgramKitCs1701CompatibilityExpectedApproval></_ProgramKitCs1701CompatibilityExpectedApproval>
+      <_ProgramKitCs1701CompatibilityExpectedProjectPath
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityUnitTestProjectPath)'">$(_ProgramKitCs1701CompatibilityUnitTestProjectPath)</_ProgramKitCs1701CompatibilityExpectedProjectPath>
+      <_ProgramKitCs1701CompatibilityExpectedApproval
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityUnitTestProjectPath)'">$(_ProgramKitCs1701CompatibilityUnitTestApproval)</_ProgramKitCs1701CompatibilityExpectedApproval>
+      <_ProgramKitCs1701CompatibilityExpectedProjectPath
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityConformanceTestProjectPath)'">$(_ProgramKitCs1701CompatibilityConformanceTestProjectPath)</_ProgramKitCs1701CompatibilityExpectedProjectPath>
+      <_ProgramKitCs1701CompatibilityExpectedApproval
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityConformanceTestProjectPath)'">$(_ProgramKitCs1701CompatibilityConformanceTestApproval)</_ProgramKitCs1701CompatibilityExpectedApproval>
+      <_ProgramKitCs1701CompatibilityApproved>false</_ProgramKitCs1701CompatibilityApproved>
     </PropertyGroup>
     <ItemGroup>
-      <_ProgramKitTemporaryWarningApprovalLedgerLine
-        Remove="@(_ProgramKitTemporaryWarningApprovalLedgerLine)" />
-      <_ProgramKitTemporaryCompilerWarningApproval
-        Remove="@(_ProgramKitTemporaryCompilerWarningApproval)" />
-      <_ProgramKitExpectedTemporaryCompilerWarningApproval
-        Remove="@(_ProgramKitExpectedTemporaryCompilerWarningApproval)" />
-      <_ProgramKitCurrentTemporaryCompilerWarningApproval
-        Remove="@(_ProgramKitCurrentTemporaryCompilerWarningApproval)" />
-      <_ProgramKitTemporaryCs1701Reference
-        Remove="@(_ProgramKitTemporaryCs1701Reference)" />
-      <_ProgramKitTemporaryCs1701SystemRuntimeReference
-        Remove="@(_ProgramKitTemporaryCs1701SystemRuntimeReference)" />
+      <_ProgramKitCs1701CompatibilityLedgerLine Remove="@(_ProgramKitCs1701CompatibilityLedgerLine)" />
+      <_ProgramKitCompilerWarningApproval Remove="@(_ProgramKitCompilerWarningApproval)" />
+      <_ProgramKitExpectedCs1701CompatibilityApproval Remove="@(_ProgramKitExpectedCs1701CompatibilityApproval)" />
+      <_ProgramKitCurrentCs1701CompatibilityApproval Remove="@(_ProgramKitCurrentCs1701CompatibilityApproval)" />
+      <_ProgramKitCs1701CompatibilityReference Remove="@(_ProgramKitCs1701CompatibilityReference)" />
+      <_ProgramKitCs1701CompatibilitySystemRuntimeReference Remove="@(_ProgramKitCs1701CompatibilitySystemRuntimeReference)" />
+      <_ProgramKitCs1701AvailableNet10Asset Remove="@(_ProgramKitCs1701AvailableNet10Asset)" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine Remove="@(_ProgramKitCs1701CompatibilityPackageContentHashLine)" />
     </ItemGroup>
     <ReadLinesFromFile File="$(ProgramKitWarningApprovalLedgerPath)">
       <Output TaskParameter="Lines"
-              ItemName="_ProgramKitTemporaryWarningApprovalLedgerLine" />
+              ItemName="_ProgramKitCs1701CompatibilityLedgerLine" />
     </ReadLinesFromFile>
     <ItemGroup>
-      <_ProgramKitTemporaryCompilerWarningApproval
-        Include="@(_ProgramKitTemporaryWarningApprovalLedgerLine)"
+      <_ProgramKitCompilerWarningApproval
+        Include="@(_ProgramKitCs1701CompatibilityLedgerLine)"
         Condition="$([System.String]::Copy('%(Identity)').Contains('&#x9;CompilerNoWarn&#x9;'))" />
-      <_ProgramKitExpectedTemporaryCompilerWarningApproval
-        Include="@(_ProgramKitTemporaryCompilerWarningApproval)"
-        Condition="'%(Identity)' == '$(_ProgramKitTemporaryCs1701UnitTestApproval)' or
-                   '%(Identity)' == '$(_ProgramKitTemporaryCs1701ConformanceTestApproval)'" />
-      <_ProgramKitCurrentTemporaryCompilerWarningApproval
-        Include="@(_ProgramKitTemporaryCompilerWarningApproval)"
-        Condition="'$(_ProgramKitTemporaryCs1701ExpectedApproval)' != '' and
-                   '%(Identity)' == '$(_ProgramKitTemporaryCs1701ExpectedApproval)'" />
+      <_ProgramKitExpectedCs1701CompatibilityApproval
+        Include="@(_ProgramKitCompilerWarningApproval)"
+        Condition="'%(Identity)' == '$(_ProgramKitCs1701CompatibilityUnitTestApproval)' or
+                   '%(Identity)' == '$(_ProgramKitCs1701CompatibilityConformanceTestApproval)'" />
+      <_ProgramKitCurrentCs1701CompatibilityApproval
+        Include="@(_ProgramKitCompilerWarningApproval)"
+        Condition="'$(_ProgramKitCs1701CompatibilityExpectedApproval)' != '' and
+                   '%(Identity)' == '$(_ProgramKitCs1701CompatibilityExpectedApproval)'" />
     </ItemGroup>
-    <Error Condition="'@(_ProgramKitTemporaryCompilerWarningApproval->Count())' != '2' or
-                      '@(_ProgramKitExpectedTemporaryCompilerWarningApproval->Count())' != '2'"
+    <Error Condition="'@(_ProgramKitCompilerWarningApproval->Count())' != '2' or
+                      '@(_ProgramKitExpectedCs1701CompatibilityApproval->Count())' != '2'"
            Code="PKCS174"
-           Text="The canonical compiler-warning approval ledger must contain exactly the two human-approved, exact CS1701 records for the current MSTest SDK closure." />
-    <Error Condition="'@(_ProgramKitTemporaryCompilerWarningApproval)' != '' and
-                      '$(ProgramKitCurrentWorkUnit)' != 'PK-W015'"
-           Code="PKCS174"
-           Text="The temporary CS1701 approval expired before PK-W020 and cannot be used by work unit $(ProgramKitCurrentWorkUnit)." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != '' and
-                      ('$(MSBuildProjectFullPath)' != '$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' or
+           Text="The canonical compiler-warning approval ledger must contain exactly the two human-approved CS1701 compatibility records for the current MSTest SDK closure." />
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
+                      ('$(MSBuildProjectFullPath)' != '$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' or
                        '$(IsTestProject)' != 'true' or
                        '$(MSTestVersion)' != '4.3.2' or
                        '$(TargetFramework)' != 'net10.0' or
-                       '@(_ProgramKitCurrentTemporaryCompilerWarningApproval->Count())' != '1')"
+                       '@(_ProgramKitCurrentCs1701CompatibilityApproval->Count())' != '1')"
            Code="PKCS174"
-           Text="The temporary CS1701 approval is valid only for the exact canonical test project, MSTest SDK 4.3.2, net10.0, and its exact ledger record." />
+           Text="The CS1701 compatibility quarantine is valid only for the exact canonical test project, MSTest SDK 4.3.2, net10.0, and its exact ledger record." />
     <PropertyGroup>
-      <_ProgramKitTemporaryCs1701LockFile
-        Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != ''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\packages.lock.json'))</_ProgramKitTemporaryCs1701LockFile>
-      <_ProgramKitTemporaryCs1701GlobalJson>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\global.json'))</_ProgramKitTemporaryCs1701GlobalJson>
+      <_ProgramKitCs1701CompatibilityLockFile
+        Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\packages.lock.json'))</_ProgramKitCs1701CompatibilityLockFile>
+      <_ProgramKitCs1701CompatibilityGlobalJson>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\global.json'))</_ProgramKitCs1701CompatibilityGlobalJson>
     </PropertyGroup>
-    <Error Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != '' and
-                      (!Exists('$(_ProgramKitTemporaryCs1701LockFile)') or
-                       !Exists('$(_ProgramKitTemporaryCs1701GlobalJson)'))"
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
+                      (!Exists('$(_ProgramKitCs1701CompatibilityLockFile)') or
+                       !Exists('$(_ProgramKitCs1701CompatibilityGlobalJson)'))"
            Code="PKCS174"
-           Text="The temporary CS1701 approval requires the canonical lock file and repository global.json." />
-    <GetFileHash Files="$(_ProgramKitTemporaryCs1701LockFile)"
+           Text="The CS1701 compatibility quarantine requires the canonical lock file and repository global.json." />
+    <GetFileHash Files="$(_ProgramKitCs1701CompatibilityLockFile)"
                  Algorithm="SHA256"
-                 Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != '' and
-                            Exists('$(_ProgramKitTemporaryCs1701LockFile)')">
+                 Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
+                            Exists('$(_ProgramKitCs1701CompatibilityLockFile)')">
       <Output TaskParameter="Items"
-              ItemName="_ProgramKitTemporaryCs1701LockFileHash" />
+              ItemName="_ProgramKitCs1701CompatibilityLockFileHash" />
     </GetFileHash>
-    <ReadLinesFromFile File="$(_ProgramKitTemporaryCs1701GlobalJson)"
-                       Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != '' and
-                                  Exists('$(_ProgramKitTemporaryCs1701GlobalJson)')">
+    <ReadLinesFromFile File="$(_ProgramKitCs1701CompatibilityLockFile)"
+                       Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
+                                  Exists('$(_ProgramKitCs1701CompatibilityLockFile)')">
       <Output TaskParameter="Lines"
-              ItemName="_ProgramKitTemporaryCs1701GlobalJsonLine" />
+              ItemName="_ProgramKitCs1701CompatibilityLockFileLine" />
     </ReadLinesFromFile>
-    <ItemGroup Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != ''">
-      <_ProgramKitTemporaryCs1701SdkSelection
-        Include="@(_ProgramKitTemporaryCs1701GlobalJsonLine)"
+    <ReadLinesFromFile File="$(_ProgramKitCs1701CompatibilityGlobalJson)"
+                       Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
+                                  Exists('$(_ProgramKitCs1701CompatibilityGlobalJson)')">
+      <Output TaskParameter="Lines"
+              ItemName="_ProgramKitCs1701CompatibilityGlobalJsonLine" />
+    </ReadLinesFromFile>
+    <ItemGroup Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">
+      <_ProgramKitCs1701CompatibilitySdkSelection
+        Include="@(_ProgramKitCs1701CompatibilityGlobalJsonLine)"
         Condition="$([System.String]::Copy('%(Identity)').Trim().Equals('&quot;MSTest.Sdk&quot;: &quot;4.3.2&quot;', System.StringComparison.Ordinal))" />
-      <_ProgramKitTemporaryCs1701Reference
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('uqpjJqQ3ws5z7Pq6BfMFpuqdrN2YIfe0Gfww91LRVXwxBdLqUaJd4JbHUImOSQvmK5m3PqW285kPjKbb69QFoA=='))" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('Vlj3THt/BcOV/93k0Cdq29RNEsrY3TvUV6mF13rOuY8Gx7Ltd+LrOYId8AYu0cH9ioCYY/Sx1hppfI9p/vP+aw=='))" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('FuJgIEfNU+rFHJYGhuqA8uup+3cryJ1N67Tijqo01Jd5xAr28ptz0aXkFfSqK3MhAUmGsrPpgQ92+3+0oXv8AA=='))" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('guFvvaE8FGUlB6h24jN+P+NBz/P5x4On9sk4n5UapUAPq4fr0y1AgUe4sXmItp7r2NMe3rhZYLE1teP9T9sVbg=='))" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('Q1iapTk1DwFFT9aPtv4wxJHe22++NLxsg7IekEujac9RDAugxGQdCN0SQ1b9ryF78cdidhSBB17pHdCANurOyQ=='))" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('JzCtiOAmIfkPP2PpAKZeiH1hVYIVC9jMhsPWrd6PnH/Wtuct1UMuxpKi2F1cmXgfokc/HOadC6HOO1qzI23tnA=='))" />
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('Odp8djWEUFTJoRV02y0zJaAwAHF31CtNaDgnKKM+8dBHbbaH7Ee0oo9gweLpbzjI7UrtMUzH6xLJSrICZw+Nwg=='))" />
+      <_ProgramKitCs1701CompatibilityReference
         Include="@(ReferencePathWithRefAssemblies)"
         Condition="('%(ReferencePathWithRefAssemblies.Filename)' == 'MSTest.TestFramework' and
                     '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'MSTest.TestFramework' and
@@ -769,25 +810,50 @@
                     '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '2.3.2' and
                     '%(ReferencePathWithRefAssemblies.PathInPackage)' == 'lib/net9.0/Microsoft.Testing.Platform.dll' and
                     '%(ReferencePathWithRefAssemblies.FusionName)' == 'Microsoft.Testing.Platform, Version=2.3.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a')" />
-      <_ProgramKitTemporaryCs1701SystemRuntimeReference
+      <_ProgramKitCs1701CompatibilitySystemRuntimeReference
         Include="@(ReferencePathWithRefAssemblies)"
         Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime' and
                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.NETCore.App.Ref' and
                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '10.0.10' and
                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'" />
     </ItemGroup>
-    <PropertyGroup Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != ''">
-      <_ProgramKitTemporaryCs1701ObservedLockHash>@(_ProgramKitTemporaryCs1701LockFileHash->'%(FileHash)')</_ProgramKitTemporaryCs1701ObservedLockHash>
+    <ItemGroup Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)mstest.testframework\4.3.2\lib\net10.0\MSTest.TestFramework.dll"
+        Condition="Exists('$(NuGetPackageRoot)mstest.testframework\4.3.2\lib\net10.0\MSTest.TestFramework.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net10.0\MSTest.TestAdapter.dll"
+        Condition="Exists('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net10.0\MSTest.TestAdapter.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll')" />
+    </ItemGroup>
+    <PropertyGroup Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">
+      <_ProgramKitCs1701CompatibilityPreCompilerLockHash>@(_ProgramKitCs1701CompatibilityLockFileHash->'%(FileHash)')</_ProgramKitCs1701CompatibilityPreCompilerLockHash>
     </PropertyGroup>
-    <Error Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != '' and
-                      ('$(_ProgramKitTemporaryCs1701ObservedLockHash)' != '$(_ProgramKitTemporaryCs1701ExpectedLockHash)' or
-                       '@(_ProgramKitTemporaryCs1701SdkSelection->Count())' != '1' or
-                       '@(_ProgramKitTemporaryCs1701Reference->Count())' != '8' or
-                       '@(_ProgramKitTemporaryCs1701SystemRuntimeReference->Count())' != '1')"
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
+                      ('$(_ProgramKitCs1701CompatibilityPreCompilerLockHash)' == '' or
+                       '@(_ProgramKitCs1701CompatibilitySdkSelection->Count())' != '1' or
+                       '@(_ProgramKitCs1701CompatibilityPackageContentHashLine->Count())' != '7' or
+                       '@(_ProgramKitCs1701CompatibilityReference->Count())' != '8' or
+                       '@(_ProgramKitCs1701CompatibilitySystemRuntimeReference->Count())' != '1' or
+                       '@(_ProgramKitCs1701AvailableNet10Asset)' != '')"
            Code="PKCS174"
-           Text="The temporary CS1701 approval is stale: the exact MSTest SDK selection, locked package closure, warning-producing assembly identities, or net10.0 System.Runtime reference changed. Observed lock=$(_ProgramKitTemporaryCs1701ObservedLockHash), SDK lines=@(_ProgramKitTemporaryCs1701SdkSelection->Count()), assemblies=@(_ProgramKitTemporaryCs1701Reference->Count()), runtime=@(_ProgramKitTemporaryCs1701SystemRuntimeReference->Count())." />
-    <PropertyGroup Condition="'$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' != ''">
-      <_ProgramKitTemporaryCs1701Approved>true</_ProgramKitTemporaryCs1701Approved>
+           Text="The CS1701 compatibility quarantine self-invalidated: the exact MSTest SDK selection, locked package content closure, warning-producing assembly identities, net10.0 System.Runtime reference, or .NET 10 asset availability changed. Observed lock=$(_ProgramKitCs1701CompatibilityPreCompilerLockHash), SDK lines=@(_ProgramKitCs1701CompatibilitySdkSelection->Count()), package hashes=@(_ProgramKitCs1701CompatibilityPackageContentHashLine->Count()), assemblies=@(_ProgramKitCs1701CompatibilityReference->Count()), runtime=@(_ProgramKitCs1701CompatibilitySystemRuntimeReference->Count()), net10-assets=@(_ProgramKitCs1701AvailableNet10Asset)." />
+    <PropertyGroup Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">
+      <_ProgramKitCs1701CompatibilityApproved>true</_ProgramKitCs1701CompatibilityApproved>
       <NoWarn>1701</NoWarn>
     </PropertyGroup>
   </Target>
@@ -859,7 +925,7 @@
                              ValidateProgramKitOwnedSourceInventory;
                              ValidateProgramKitCSharpGateBootstrapConfiguration;
                              ValidateProgramKitCSharpGateSelfValidationInvocation;
-                             ValidateProgramKitTemporaryCompilerWarningApprovals;
+                             ValidateProgramKitCs1701CompatibilityApproval;
                              ValidateProgramKitResolvedReferenceSet"
           BeforeTargets="CoreCompile">
     <PropertyGroup>
@@ -1003,12 +1069,12 @@
       <Output TaskParameter="Lines"
               ItemName="_ProgramKitCompilerExecutionReceiptLine" />
     </ReadLinesFromFile>
-    <GetFileHash Files="$(_ProgramKitTemporaryCs1701LockFile)"
+    <GetFileHash Files="$(_ProgramKitCs1701CompatibilityLockFile)"
                  Algorithm="SHA256"
-                 Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
-                            Exists('$(_ProgramKitTemporaryCs1701LockFile)')">
+                 Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
+                            Exists('$(_ProgramKitCs1701CompatibilityLockFile)')">
       <Output TaskParameter="Items"
-              ItemName="_ProgramKitTemporaryCs1701PostCompilerLockFileHash" />
+              ItemName="_ProgramKitCs1701CompatibilityPostCompilerLockFileHash" />
     </GetFileHash>
     <GetFileHash Files="@(_ProgramKitCompilerInputForHash)"
                  Algorithm="SHA256"
@@ -1016,8 +1082,8 @@
       <Output TaskParameter="Items"
               ItemName="_ProgramKitPostCompilerInputContent" />
     </GetFileHash>
-    <PropertyGroup Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true'">
-      <_ProgramKitTemporaryCs1701PostCompilerObservedLockHash>@(_ProgramKitTemporaryCs1701PostCompilerLockFileHash->'%(FileHash)')</_ProgramKitTemporaryCs1701PostCompilerObservedLockHash>
+    <PropertyGroup Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true'">
+      <_ProgramKitCs1701CompatibilityPostCompilerObservedLockHash>@(_ProgramKitCs1701CompatibilityPostCompilerLockFileHash->'%(FileHash)')</_ProgramKitCs1701CompatibilityPostCompilerObservedLockHash>
     </PropertyGroup>
     <ItemGroup>
       <_ProgramKitCompilerAnalyzerArgument Remove="@(_ProgramKitCompilerAnalyzerArgument)" />
@@ -1183,13 +1249,13 @@
         Condition="$([System.String]::Copy('%(Identity)').StartsWith('/nowarn:', System.StringComparison.OrdinalIgnoreCase))" />
       <_ProgramKitCompilerApprovedNoWarnArgument
         Include="@(_ProgramKitCompilerNoWarnArgument)"
-        Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
+        Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
                    '%(Identity)' == '/nowarn:1701'" />
       <_ProgramKitForbiddenCompilerPolicyArgument
         Include="@(CscCommandLineArgs)"
         Condition="$([System.String]::Copy('%(Identity)').StartsWith('/warnaserror-', System.StringComparison.OrdinalIgnoreCase)) or
                    ($([System.String]::Copy('%(Identity)').StartsWith('/nowarn:', System.StringComparison.OrdinalIgnoreCase)) and
-                    !('$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
+                    !('$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
                       '%(Identity)' == '/nowarn:1701')) or
                    $([System.String]::Copy('%(Identity)').StartsWith('/ruleset:', System.StringComparison.OrdinalIgnoreCase)) or
                    $([System.String]::Copy('%(Identity)').StartsWith('/skipanalyzers', System.StringComparison.OrdinalIgnoreCase)) or
@@ -1250,35 +1316,31 @@
                        '$(BuildingInsideVisualStudio)' != 'false')"
            Code="PKCS167"
            Text="A non-producing compiler invocation changed a validated compiler control after CoreCompile. Observed skip-analyzers=$(_SkipAnalyzers), response=$(CompilerResponseFile), response-items=@(CompilerResponseFile), csc-path=$(CscToolPath), csc-exe=$(CscToolExe), shared=$(UseSharedCompilation), host=$(UseHostCompilerIfAvailable), hooks=$(TargetsTriggeredByCompilation), generated=$(EmitCompilerGeneratedFiles), analyzers=$(RunAnalyzers), nonce=$(ProgramKitCompilerInvocationNonce), expected-nonce=$(_ProgramKitExpectedCompilerInvocationNonce), output=$(ProgramKitCompilerGeneratedFilesOutputPath), compiler-output=$(CompilerGeneratedFilesOutputPath), expected-output=$(_ProgramKitExpectedCompilerGeneratedFilesOutputPath), framework=$(TargetFramework), framework-version=$(TargetFrameworkVersion), framework-identifier=$(TargetFrameworkIdentifier), visual-studio=$(BuildingInsideVisualStudio)." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
-                      '$(_ProgramKitTemporaryCs1701ExpectedProjectPath)' == ''"
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
+                      '$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' == ''"
            Code="PKCS174"
            Text="The compiler warning suppression did not match an approved canonical test project." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
-                      '$(ProgramKitCurrentWorkUnit)' != 'PK-W015'"
-           Code="PKCS174"
-           Text="The compiler warning suppression was used after its PK-W015 expiry boundary." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
                       '$(IsTestProject)' != 'true'"
            Code="PKCS174"
            Text="The compiler warning suppression was used by a non-test project." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
                       '$(MSTestVersion)' != '4.3.2'"
            Code="PKCS174"
            Text="The compiler warning suppression was used with an unapproved MSTest SDK version." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
-                      '$(_ProgramKitTemporaryCs1701PostCompilerObservedLockHash)' != '$(_ProgramKitTemporaryCs1701ExpectedLockHash)'"
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
+                      '$(_ProgramKitCs1701CompatibilityPostCompilerObservedLockHash)' != '$(_ProgramKitCs1701CompatibilityPreCompilerLockHash)'"
            Code="PKCS174"
            Text="The compiler warning suppression was used after the approved package closure changed." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
                       '@(_ProgramKitCompilerApprovedNoWarnArgument->Count())' != '1'"
            Code="PKCS174"
            Text="The compiler invocation did not contain exactly one approved /nowarn:1701 argument." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' == 'true' and
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' == 'true' and
                       '@(_ProgramKitCompilerNoWarnArgument->Count())' != '1'"
            Code="PKCS174"
            Text="The compiler invocation contained an additional warning suppression." />
-    <Error Condition="'$(_ProgramKitTemporaryCs1701Approved)' != 'true' and
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityApproved)' != 'true' and
                       '@(_ProgramKitCompilerNoWarnArgument)' != ''"
            Code="PKCS174"
            Text="A compiler warning suppression was used without an active exact human approval." />
