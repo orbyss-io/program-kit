@@ -44,5 +44,6 @@ status. Current capability availability is owned only by
 | Universal contracts, domainless modularity, model-first System.Text.Json-only serialization with deny-by-default DOM use, tasks/schedules, version topology and migration, deterministic tooling, direct CShells composition, .NET 10 API/Console/Worker generation, health composition, local package preparation/application publish, CLI, fixture, tests, and packages | `aspirational` |
 | `develop-software`, `design-software`, and `implement-software-plan` | `deferred` pending their backing contracts and tools |
 | Repository-local `publish-dotnet-application-locally` capability | `deferred` pending its backing local-publish operation; it is not part of the three-capability distribution bundle |
+| Public `Orbyss.ProgramKit.DotNet.Metadata` package and Program Kit attributes | `deferred` until repeated concrete generator use cases justify an owned public surface |
 | Release Cycle capabilities and behavior | `deferred` outside Program Kit scope |
 | Domain Semantic Engine domains and features | `deferred`; `core/` and `features/` remain README-only |

@@ -1,7 +1,7 @@
 ---
 artifact-kind: bootstrap-architecture-design
 artifact-id: pkid:design:program-kit:baseline
-artifact-version: 0.2.0
+artifact-version: 0.3.0
 intended-contract: pkid:schema:program-kit:architecture-design
 intended-contract-version: 1.0.0
 review-state: awaiting-human-approval
@@ -49,8 +49,7 @@ conformance evidence while keeping human architectural judgment explicit.
   diagnostics;
 - an explicit, registered extension seam and an initial C#/.NET language kit;
 - domain-neutral modularity contracts for contributions and middleware, a
-  deterministic in-process publisher/pipeline, and explicit metadata primitives
-  for consumer-owned code and artifact generation;
+  deterministic in-process publisher/pipeline;
 - domain-neutral immediate, background, and scheduled-task contracts, bounded
   in-process defaults, Generic Host integration, and pure schedule calculators;
 - a scriptable CLI separated from the contract and workbench libraries;
@@ -199,6 +198,9 @@ conformance evidence while keeping human architectural judgment explicit.
 
 - the React and desktop language/platform kits;
 - richer API, Console, or Worker profiles beyond the approved baseline;
+- a public `Orbyss.ProgramKit.DotNet.Metadata` package, consumer attributes, or
+  compiler-symbol adapter; these require concrete repeated generator use cases
+  and a separately approved ownership/versioning design;
 - durable/distributed task execution and scheduler providers, rich calendar
   dialects, workflow/orchestration, and task administration surfaces;
 - transport for an artifact feed;
@@ -450,7 +452,7 @@ state problem, applicability criteria, trade-offs, examples, mechanical checks,
 and human checks. Revisions require an explicit design decision and migration;
 the catalog is guidance, not doctrine.
 
-#### 4.4.1 Domain-neutral modularity and metadata
+#### 4.4.1 Domain-neutral modularity
 
 `Orbyss.ProgramKit.Modularity` owns dependency-light contracts for
 `IDomainContribution`, typed contribution handlers and publisher, generic
@@ -467,15 +469,17 @@ inventing domain outcomes. Domain `.Core` packages may reference Modularity and
 publish contributions; concrete hosts choose the in-process implementation or
 another explicitly compatible implementation.
 
-`Orbyss.ProgramKit.DotNet.Metadata` owns primitive C# attributes and normalized
-metadata descriptors that consumers may deliberately apply for Workbench code
-or artifact generation. The baseline consumes explicitly supplied, dependency-
-free `DotNetSourceDescriptor` values; it exposes no Roslyn type and takes no
-`Microsoft.CodeAnalysis` dependency. A later compiler adapter may translate
-compiler symbols only after its exact package/version is reviewed. Metadata code
-never loads arbitrary consumer assemblies or scans output folders. Attributes
-describe identity and generation intent but never become a second owner of
-operation, schema, task, or domain semantics.
+The baseline deliberately creates no `Orbyss.ProgramKit.DotNet.Metadata`
+package and no Program Kit C# attributes. Every current generator already has a
+canonical explicit input—operation/task contracts, `shell.json`, integrator
+documents, or serialization contributions—so an attribute would duplicate its
+owner and invite stale or implicit discovery. DotNet may normalize those exact
+inputs into private immutable implementation records, but they are neither a
+public contract nor independently versioned metadata. Extracting a public
+package requires at least two proven generators needing the same consumer-
+authored annotation, with the annotation remaining only a reference to an
+existing semantic owner. Roslyn/compiler adapters and assembly/output scanning
+remain deferred.
 
 #### 4.4.2 Domain-neutral JSON serialization
 
@@ -803,7 +807,7 @@ conflicts/prerequisites, culture-invariant typed conversion, stable diagnostics,
 and exhaustive exit-code mapping. Parsing, help, completion, and
 `OpenConsoleDocument` are generated from the same frozen command descriptors so
 they cannot acquire independent semantics. Published Console dependency graphs
-must exclude Workbench, DotNet.Metadata, DotNet, and CommandLine assemblies.
+must exclude Workbench, DotNet, and CommandLine assemblies.
 
 `OpenWorkerDocument` remains deliberately small: document/info/host versions
 and worker entries containing stable operation identity, feature/activation
@@ -928,7 +932,7 @@ provenance, consumers and migration; and redaction/ephemeral state.
 | Architecture design, separate implementation plan, approval, and receipts — exact schema instances | Code validates, compares, digests, and renders values; approval decision is supplied, never computed | Design/plan Markdown and approval/receipt summaries support review; design capability supplies bounded judgment | Markdown, graphs, execution packets, and indexes are projections | Each lifecycle/version is separate; changed digest requires new plan/approval; principal, time and correlation are supplied values |
 | Structural-pattern catalog — `pkid:catalog:program-kit:structural-patterns` | A schema instance owns entries/criteria/trade-offs/check classes; validators enforce shape only | Human architectural decision owns revisions and semantic fitness | Markdown navigation/catalog is generated | Versioned and digest-bound; explicit decision/migration for revision; not a frozen doctrine |
 | Version topology and migration — component manifests, exact selections, Version Map, impact assessment, and migration definitions | Workbench constructs typed-edge graphs, computes reverse fixed-point closure, validates terminal dispositions/ordered actions, and verifies migration paths | Humans classify unknown semantic consequences and approve target selection/coexistence | Graphs, migration waves, and compatibility reports are projections | Independent version clocks and exact digests; no mutable current/latest labels; scoped external-consumer boundary is explicit |
-| Domain-neutral modularity and metadata — Modularity contracts and metadata descriptors | In-process publisher/pipeline execute; dependency-free `DotNetSourceDescriptor` inputs and primitive annotation values produce normalized descriptors | Domain code owns contribution meaning and consumer annotations | Contribution/metadata catalogs are generated from explicit registration/source inputs | No Roslyn type/dependency, implicit discovery, transport, persistence, replay, transaction, or domain policy claim |
+| Domain-neutral modularity — Modularity contracts | In-process publisher/pipeline execute | Domain code owns contribution meaning | Contribution catalogs are generated from explicit registrations | No implicit discovery, transport, persistence, replay, transaction, or domain policy claim |
 | Domain-neutral JSON mechanics — Serialization.JSON profiles and contributions | Frozen System.Text.Json profiles read/write typed models and canonicalize strict JSON; custom converters/type metadata are explicit registrations | Consumers own their model/wire meaning and justify any untyped boundary | Profile/contribution catalogs and diagnostics are generated | Profile/contribution versions and digests enter the Version Map; no Newtonsoft, ambient options, public DOM state, or converter-defined canonicalization |
 | Domain-neutral tasks and schedules — Tasks.Core definitions plus selected runtime/schedule contracts | Immediate/volatile background execution and the volatile scheduler execute; Tasks.Schedules calculators return occurrences but are not a scheduler | Consumers own task meaning, handler behavior, schedules, authority and effect safety | Task/schedule catalogs and lifecycle summaries are generated | Definition/request/instance/attempt/binding/schedule/occurrence versions remain distinct; no durability/exactly-once/distributed claim; payloads and secrets excluded from observations |
 | .NET rules, selection, generated hosts, and packages — DotNet profile, `shell.json`, and generated-source provenance | DotNet code validates exact CShells selection and generates `net10.0` API, Console, and Worker composition roots; generated source is an output, not a second rule owner | Human .NET guide explains consequences and direct CShells ABI exposure | Project/package/reference maps, hosts, OpenAPI/Open Console/Open Worker, health config, SemVer report, and package catalog are generated | Profile/package/CShells/feature versions bind outputs and lock; exact package digests; build folders remain ephemeral |
@@ -953,8 +957,7 @@ provenance, consumers and migration; and redaction/ephemeral state.
 | Modularity contracts/defaults | contribution and middleware contracts plus deterministic in-process behavior | domain meaning, durable messaging, transactions, or provider discovery |
 | JSON serialization | exact immutable System.Text.Json profiles, explicit typed converter/type-metadata contributions, strict reads, and canonical bytes | consumer data meaning, schema ownership, ambient/global options, or a general-purpose mutable JSON DOM |
 | Task contracts/defaults | task definitions, requests, instances, attempts, activation bindings, schedule definitions, occurrences, explicit registries, volatile execution, and pure schedule calculation | consumer task meaning, durable/distributed scheduling, workflows, or exactly-once effects |
-| .NET metadata | primitive annotations and normalized explicit-source descriptors | consumer semantics, assembly scanning, or runtime activation |
-| .NET language kit | C#/.NET project/package/reference/CShells composition/host/source guidance | universal semantics or a duplicate feature ABI |
+| .NET language kit | C#/.NET project/package/reference/CShells composition/host/source guidance and private generator implementation records derived from explicit canonical inputs | universal semantics, a duplicate feature ABI, or a public metadata/attribute surface without proven use cases |
 | Command-line host | argument/file transport, explicit extension registration, exit codes | semantic policy |
 | `.agents/` | canonical human-session capability procedures and availability index | runtime inputs |
 | Capability bundle | digest-bound packaging of exact `.agents/` bytes | editable procedure copies or mandatory provider wrappers |
@@ -981,9 +984,8 @@ The proposed source projects and public packages are:
 | `Orbyss.ProgramKit.Tasks.Hosting` | Generic Host lifecycle, per-attempt scopes, registrations, health contributors | Tasks; exact Microsoft.Extensions DI/Hosting and Diagnostics.HealthChecks 10.0.10 packages |
 | `Orbyss.ProgramKit.Tasks.Schedules` | provider-neutral pure delay/interval descriptors, factories, and calculators | Tasks.Core |
 | `Orbyss.ProgramKit.Tasks.Schedules.Cronos` | optional source-verified Cronos dialect and occurrence calculator | Tasks.Schedules; `Cronos` `0.13.0` |
-| `Orbyss.ProgramKit.DotNet.Metadata` | primitive annotations and normalized explicit-source metadata | Artifacts |
 | `Orbyss.ProgramKit.Workbench` | platform-neutral deterministic services, diagnostics, extension registry, Version Map/migration analysis | Artifacts, Architecture, Quality, Planning, Development, Serialization.JSON; `JsonSchema.Net` `9.3.0` |
-| `Orbyss.ProgramKit.DotNet` | .NET language kit, fixed DotNet-shell JSON profile, descriptor-driven console parser-source generation, CShells-aware generated composition glue, and API/Console/Worker generators | Architecture, Planning, Quality, Workbench, DotNet.Metadata, Serialization.JSON, Tasks.Core, Tasks, Tasks.Schedules |
+| `Orbyss.ProgramKit.DotNet` | .NET language kit, private explicit-input generation records, fixed DotNet-shell JSON profile, descriptor-driven console parser-source generation, CShells-aware generated composition glue, and API/Console/Worker generators | Architecture, Planning, Quality, Workbench, Serialization.JSON, Tasks.Core, Tasks, Tasks.Schedules |
 | `Orbyss.ProgramKit.CommandLine` | scriptable transport and explicit built-in registration | Workbench, DotNet |
 | `Orbyss.ProgramKit.CapabilityBundle` | content-only exact-byte capability distribution | canonical `.agents/` source bytes; no assembly dependency |
 
@@ -995,8 +997,9 @@ Quality; plan/approval schemas in Planning; routing/receipt schemas in
 Development; serialization-profile/contribution schemas in Serialization.JSON;
 task and schedule schemas in their named task owner packages.
 Workbench carries no duplicate schema authority or compile-time reference to
-Modularity, Tasks, DotNet.Metadata, or a host. It accepts explicitly supplied
-schema/descriptor modules through the Artifacts extension contract; DotNet/CLI
+Modularity, Tasks, a future language-metadata package, or a host. It accepts
+explicitly supplied schema/descriptor modules through the Artifacts extension
+contract; DotNet/CLI
 composition registers the exact selected package modules. CommandLine is packed as a .NET tool whose command is
 `program-kit`. CapabilityBundle is content-only. Product packing uses an explicit
 `program-kit/build/ProgramKit.Pack.proj` allow-list rather than packing the
@@ -1016,12 +1019,11 @@ Tasks.InProcess -> Tasks
 Tasks.Hosting -> Tasks, selected Microsoft.Extensions.* 10.0.10 hosting/health packages
 Tasks.Schedules -> Tasks.Core
 Tasks.Schedules.Cronos -> Tasks.Schedules, Cronos 0.13.0
-DotNet.Metadata -> Artifacts
 Workbench -> Artifacts, Architecture, Quality, Planning, Development,
              Serialization.JSON
 Workbench -> JsonSchema.Net 9.3.0
-DotNet -> Architecture, Quality, Planning, Workbench, DotNet.Metadata,
-          Serialization.JSON, Tasks.Core, Tasks, Tasks.Schedules
+DotNet -> Architecture, Quality, Planning, Workbench, Serialization.JSON,
+          Tasks.Core, Tasks, Tasks.Schedules
 CommandLine -> Workbench, DotNet
 CapabilityBundle -> canonical .agents bytes (content input only)
 
@@ -1102,7 +1104,8 @@ is created.
   assembly/namespace, `.agents/`, or `.codex/` at runtime;
 - universal contracts -> Workbench, DotNet, CLI, capability bundle, CShells,
   provider, host, or platform package;
-- Workbench -> Modularity, Tasks, DotNet.Metadata, CShells, or any host/provider
+- Workbench -> Modularity, Tasks, any future language-metadata package, CShells,
+  or any host/provider
   implementation; package-specific schemas/descriptors enter through explicit
   registered Artifacts modules;
 - Modularity, Tasks.Core, Tasks, Tasks.Schedules, or
@@ -1191,7 +1194,7 @@ The .NET kit translates approved universal entities into deterministic
   disposal, cancellation, diagnostics, serialization, error contracts, and
   configuration ownership;
 - stable feature/extension IDs and selected composition;
-- domain contributions, middleware, metadata, and task definition/handler
+- domain contributions, middleware, and task definition/handler
   registration without assembly or output-folder scanning;
 - approved package-folder manifests naming exact package ID, version, SHA-256,
   activation ID, and compatibility rather than scanning a directory;
@@ -1285,7 +1288,7 @@ The three baseline profiles are:
   registration, DotNet-owned descriptor-driven parser source/configuration
   bindings, exhaustive exit-code mapping, help/completion projection, and
   `OpenConsoleDocument`; the generated project does not reference DotNet,
-  Workbench, DotNet.Metadata, or CommandLine at runtime; and
+  Workbench, DotNet, or CommandLine at runtime; and
 - **Worker:** generates a Generic Host/CShells composition root, selected hosted
   and task-runtime components, cancellation/shutdown behavior, configuration
   validation, optional explicitly configured operational health listener, and
@@ -1402,7 +1405,7 @@ The fixture proves:
 3. a default scheduling feature implementing the accepted CShells ABI;
 4. a replaceable visibility-forecast provider and an ordered additive planning
    constraint;
-5. domain contribution publication, ordered middleware, metadata extraction,
+5. domain contribution publication, ordered middleware,
    an explicitly registered typed JSON converter/source-generation contribution,
    and one immediate, one volatile background, and one in-process scheduled-task
    path with controlled time;
@@ -1570,6 +1573,7 @@ claim states.
 | Three development capabilities and capability bundle | `deferred` | Must wait for working backing contracts/tools |
 | Repository local-publish capability | `deferred` | Must wait for the backed local-publish operation and remains outside the initial bundle |
 | Direct CShells feature ABI and generated composition | `aspirational` | Accepted exact packages/source model; implementation awaits approval |
+| Public DotNet metadata/attribute package | `deferred` | No baseline use case justifies a public annotation/versioning surface; DotNet keeps only private explicit-input generation records |
 | Durable/distributed tasks and scheduler | `deferred` | Baseline provides volatile execution/scheduling and pure calculation only |
 | React, desktop, and richer platform kits | `deferred` | Approved baseline includes only API/Console/Worker profiles |
 | Release Cycle behavior and capabilities | `deferred` | Owned outside Program Kit |

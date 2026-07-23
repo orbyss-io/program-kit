@@ -1,12 +1,12 @@
 ---
 artifact-kind: bootstrap-implementation-plan
 artifact-id: pkid:plan:program-kit:baseline
-artifact-version: 0.2.0
+artifact-version: 0.3.0
 intended-contract: pkid:schema:program-kit:implementation-plan
 intended-contract-version: 1.0.0
 design-ref-id: pkid:design:program-kit:baseline
-design-ref-version: 0.2.0
-design-digest: sha256:829407d25e7cb637d036031134989095308c0ee31b600523982c4a9252048d5e
+design-ref-version: 0.3.0
+design-digest: sha256:dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9
 review-state: awaiting-human-approval
 implementation-status: scaffolded
 bootstrap-exception: true
@@ -49,8 +49,8 @@ fixture scope, or the Release Cycle boundary.
 | Human mission and accepted review comments | Primary requested outcomes and non-negotiable boundaries, including `.NET 10` only, domainless modularity, System.Text.Json-only serialization and tasks, direct CShells feature ABI, all three host generators, local publish, and migration closure |
 | Repository `AGENTS.md` and boundary README files | Workspace rules, ownership, and dependency source truth |
 | `.agents/capabilities/INDEX.md` | Sole authority for capability availability once capability work begins |
-| Final approved `architecture-design.md` `0.2.0` exact digest | Architecture implemented by this plan |
-| Final approved `implementation-plan.md` `0.2.0` exact digest | Exact work authorization and trace |
+| Final approved `architecture-design.md` `0.3.0` exact digest | Architecture implemented by this plan |
+| Final approved `implementation-plan.md` `0.3.0` exact digest | Exact work authorization and trace |
 | Human bootstrap approval record | Authority to begin only the accepted scope |
 | .NET SDK `10.0.302` | Pinned build SDK; every Program Kit-owned and generated project targets only `net10.0` |
 | Canonical DotNet target profile | `pkid:profile:program-kit:dotnet-10` version `1.0.0`, binding SDK `10.0.302`, `rollForward: disable`, `allowPrerelease: false`, TFM `net10.0`, and C# 14 |
@@ -81,7 +81,6 @@ roots and digests are named by the operation.
 | Version topology and selection | `VersionedComponentManifest`, `VersionMapDocument`, and `VersionSelectionDocument` | Compatibility classification, reverse-impact closure, migration plan, and `shell.lock.json` |
 | Domainless contribution and middleware semantics | `Orbyss.ProgramKit.Modularity` | Deterministic in-process implementation in `.Modularity.InProcess` |
 | Domainless JSON mechanics | `Orbyss.ProgramKit.Serialization.JSON` owns model-first System.Text.Json operations, frozen versioned profiles, explicit converter/source-generation contributions, strict reads, and RFC 8785-compatible canonical bytes | Typed/contribution/canonicalization fixtures plus model-first and forbidden-dependency/API scans |
-| Primitive generator metadata | `Orbyss.ProgramKit.DotNet.Metadata` attributes and dependency-free descriptors derived from explicit `DotNetSourceDescriptor` values | Generator inputs and conformance evidence; never Roslyn/assembly/output scanning |
 | Task meaning and public execution contracts | `Orbyss.ProgramKit.Tasks.Core` owns definitions, request/response contracts, instances, attempts, activation bindings, schedules, occurrences, and every public handler/runner/dispatcher/scheduler/occurrence-calculator/status/cancel interface | Typed artifacts, lifecycle projections, fixture instances, and compatibility evidence |
 | Task registration and common coordination | `Orbyss.ProgramKit.Tasks` | Explicit registration extensions, frozen registries, middleware, retry/idempotency coordination, and contribution integration |
 | Volatile task execution and host integration | `.Tasks.InProcess` and `.Tasks.Hosting` respectively | Controlled-time lifecycle tests and task health checks |
@@ -112,11 +111,10 @@ Tasks.InProcess -> Tasks
 Tasks.Hosting -> Tasks, selected Microsoft.Extensions.* 10.0.10 hosting/health packages
 Tasks.Schedules -> Tasks.Core
 Tasks.Schedules.Cronos -> Tasks.Schedules, Cronos 0.13.0
-DotNet.Metadata -> Artifacts
 Workbench -> Artifacts, Architecture, Quality, Planning, Development,
              Serialization.JSON, JsonSchema.Net 9.3.0
-DotNet -> Architecture, Quality, Planning, Workbench, DotNet.Metadata,
-          Serialization.JSON, Tasks.Core, Tasks, Tasks.Schedules
+DotNet -> Architecture, Quality, Planning, Workbench, Serialization.JSON,
+          Tasks.Core, Tasks, Tasks.Schedules
 CommandLine -> Workbench, DotNet
 CapabilityBundle -> canonical .agents bytes (content input only)
 
@@ -172,7 +170,7 @@ later closure units may add proof but may not move ownership.
 | `PK-R022` | OpenAPI 3.2.0, `pkid:schema:program-kit:open-console@1.0.0`, and `pkid:schema:program-kit:open-worker@1.0.0` are deterministic projections of owned operation identities; DotNet owns descriptor-driven Console parser-source generation | `PK-W040` | Official/internal-schema, parser/help/completion, provenance, identity, golden, migration, and published-dependency-closure tests pass |
 | `PK-R023` | Domainless contribution, typed publisher, middleware pipeline, immutable registry, ordering, and identity contracts live in Modularity | `PK-W015` | Zero/many-handler, ordering, cancellation, reentrancy, aggregation, and registration tests define the contract |
 | `PK-R024` | Deterministic default contribution publisher and middleware runner live only in Modularity.InProcess | `PK-W015` | Fail-fast/continue and short-circuit tests pass without persistence, queue, retry, outbox, transaction, or cross-process claims |
-| `PK-R025` | Primitive attributes and normalized dependency-free metadata descriptors for generation live in DotNet.Metadata | `PK-W015` | Explicit descriptor-input tests prove deterministic results and reject Roslyn, assembly, or output discovery |
+| `PK-R025` | No public `Orbyss.ProgramKit.DotNet.Metadata` package or Program Kit attribute surface exists without proven repeated generator use cases; DotNet may use only private immutable records derived from explicit canonical inputs | `PK-W040` | Package/API scans find no DotNet.Metadata assembly or public Program Kit annotations; generator tests prove explicit operation/task/shell/document inputs and reject Roslyn, assembly, output-folder, or attribute discovery |
 | `PK-R026` | Local application publish accepts exact shell/host/artifact-manifest/package-manifest/output inputs and emits deterministic, collision-safe manifests | `PK-W065` | Source-mapped locked restore through a fresh operation-local package cache plus project-level `dotnet publish --no-restore` for API, Console, and Worker produces the required rooted layout, hashes every application output, and gives each manifest a non-self-referential envelope digest |
 | `PK-R027` | The Version Map/Selection contracts and engine represent every approved boundary kind and typed dependency edge with exact revision/digest selections | `PK-W020` | Boundary-kind, edge-kind, exact-selection, digest, compatibility, and stale-lock engine fixtures pass |
 | `PK-R028` | The migration engine computes fixed-point reverse impact, atomic cycle cohorts, causal paths, one terminal disposition, and ordered required actions per impacted node | `PK-W020` | Synthetic engine fixtures prove every terminal/action class and reject incomplete, ambiguous, contradictory, or unknown closure |
@@ -234,14 +232,13 @@ later closure units may add proof but may not move ownership.
 This is the first coherent implementation slice. It creates working contracts
 and validation tests, not empty project shells.
 
-### `PK-W015` Implement domainless modularity, JSON mechanics, and generator metadata
+### `PK-W015` Implement domainless modularity and JSON mechanics
 
 - **Depends on:** `PK-W010`.
 - **Allowed edits:** `program-kit/ProgramKit.sln`;
   `program-kit/src/Orbyss.ProgramKit.Modularity/`;
   `program-kit/src/Orbyss.ProgramKit.Modularity.InProcess/`;
   `program-kit/src/Orbyss.ProgramKit.Serialization.JSON/`;
-  `program-kit/src/Orbyss.ProgramKit.DotNet.Metadata/`;
   `program-kit/schemas/serialization/`; matching unit/conformance tests and
   contract fixtures.
 - **Modularity outputs:** `IDomainContribution`, typed contribution handlers and
@@ -252,11 +249,6 @@ and validation tests, not empty project shells.
 - **In-process outputs:** deterministic publisher/pipeline behavior for zero or
   many handlers, explicit ordering, reentrancy, short-circuit, cancellation,
   result aggregation, and fail-fast/continue policies.
-- **Metadata outputs:** primitive attributes and normalized immutable descriptors
-  based only on explicitly supplied `DotNetSourceDescriptor` values. The package
-  exposes no Roslyn type/dependency and performs no assembly, `bin/`/`obj/`,
-  output-folder, or ambient AppDomain scanning; any compiler-symbol adapter is a
-  later separately reviewed package.
 - **JSON outputs:** `IProgramKitJsonSerializer`, exact
   `JsonSerializationProfileRef`, immutable profile registry/builder, explicit
   stable `IJsonSerializationContribution` support for typed converters,
@@ -325,8 +317,9 @@ and validation tests, not empty project shells.
   profiles. Workbench references only Artifacts, Architecture, Quality, Planning,
   Development, Serialization.JSON, and JsonSchema.Net; it accepts explicitly
   supplied schema/descriptor modules through the Artifacts extension contract
-  and has no compile-time Modularity, Tasks, DotNet.Metadata, CShells, or host
-  dependency. Failure or cancellation publishes no partial declared output.
+  and has no compile-time Modularity, Tasks, future language-metadata, CShells,
+  or host dependency. Failure or cancellation publishes no partial declared
+  output.
 - **Version outputs:**
   `VersionedComponentManifest` for every selected, persisted, generated, or
   consumed boundary; typed `VersionMapDocument` edges; exact observed/target
@@ -525,6 +518,13 @@ and validation tests, not empty project shells.
   Serialization.JSON, Tasks.Schedules, and Tasks.Schedules.Cronos remain
   CShells-free. Only concrete feature packages and generated composition hosts
   acquire the relevant CShells dependencies.
+- **Private generation records:** DotNet may normalize exact operation, task,
+  shell, integrator-document, and serialization inputs into private immutable
+  implementation records. It exposes no Program Kit annotation API, public
+  source-metadata model, Roslyn dependency, compiler-symbol adapter, assembly
+  scan, or output-folder discovery. A public metadata package is deferred until
+  at least two proven generators require the same consumer-authored annotation
+  without making it a second semantic owner.
 - **`shell.json`:** owns exact immutable input Version Map/Selection identity,
   version, and digest references, shared exact CShells provider/ABI/shell and feature
   package/activation selections, exact JSON serialization profiles/contributions,
@@ -581,8 +581,8 @@ and validation tests, not empty project shells.
   arity and occurrence, defaults, conflicts/prerequisites, culture-invariant
   typed conversion, stable diagnostics, and exhaustive exit-code mapping.
   Parsing, help, completion, and Open Console are generated from the same frozen
-  descriptors. Published Console dependency graphs exclude Workbench,
-  DotNet.Metadata, DotNet, and CommandLine assemblies.
+  descriptors. Published Console dependency graphs exclude Workbench, DotNet,
+  and CommandLine assemblies.
 - **Worker generator:** emits a Generic Host/CShells composition root, selected
   hosted/task runtime and schedules, and a deliberately small Open Worker
   document conforming to `pkid:schema:program-kit:open-worker@1.0.0`, with
@@ -836,8 +836,8 @@ W000 -> W010 -> +-> W015 -> +-> W020 --+
 
 `W015` and `W025` may proceed in parallel only after W010 fixes identity,
 envelope, target-framework, and package conventions. W020 follows W015 only for
-Serialization.JSON and remains generic; it consumes Modularity/task/metadata
-modules only through the Artifacts extension contract at composition. W030
+Serialization.JSON and remains generic; it consumes Modularity/task modules
+only through the Artifacts extension contract at composition. W030
 follows W015 and W025 without waiting for W020. W040 is the explicit join after
 both W020 and W030, owns shell locks/OpenAPI schema provenance, and adds the
 .NET/task registrations to the generic Workbench. CLI parser/diagnostic transport
@@ -1014,7 +1014,7 @@ The conformance closure also:
   conflict/prerequisite rules, invariant conversion, stable errors/exit codes,
   help, and completion all share the same descriptors with no shell-string or
   external-parser path; published Console dependency graphs contain no
-  Workbench, DotNet.Metadata, DotNet, or CommandLine assembly;
+  Workbench, DotNet, or CommandLine assembly;
 - prepares packages only from the explicit workspace-manifest allow-list,
   verifies exact `0.1.0-alpha.1`/`0.1.0-fixture.1` identities and every package
   hash/content/dependency report, rejects ambient solution/current-directory/
@@ -1114,9 +1114,10 @@ Completion requires one human-readable report with:
    genuine comparison findings;
 4. the Observatory fixture design, separate plan, shell/lock, API/Console/Worker
    sources, and all three integrator documents;
-5. contribution/middleware/metadata, Serialization.JSON model-first/profile/
-   converter/canonicalization mechanics, and Tasks.Core/Tasks/runtime/schedule
-   ownership demonstrated by package graphs and behavioral evidence;
+5. contribution/middleware, Serialization.JSON model-first/profile/
+   converter/canonicalization mechanics, the absence of a public DotNet metadata/
+   attribute surface, and Tasks.Core/Tasks/runtime/schedule ownership demonstrated
+   by package graphs and behavioral evidence;
 6. the real v1-to-v2 Version Map, complete final causal closure through
    packages/publishes/capabilities, migration waves, terminal dispositions,
    ordered required actions, and pending task/schedule outcome;
@@ -1146,9 +1147,10 @@ Completion requires one human-readable report with:
 
 ## 11. Human decision requested
 
-This restored `0.2.0` plan incorporates the accepted direction: `.NET 10` only;
-domainless modularity, model-first System.Text.Json serialization, metadata, and
-task facilities; Tasks.Core as the only task
+This `0.3.0` plan incorporates the accepted direction: `.NET 10` only;
+domainless modularity, model-first System.Text.Json serialization, and
+the deliberate deferral of a public DotNet metadata/attribute package; task
+facilities; Tasks.Core as the only task
 dependency required by domain cores; direct transitive CShells abstractions for
 feature libraries; full API/Console/Worker generation and integrator documents;
 explicit health exposure; local package/publish testing; and fixed-point
