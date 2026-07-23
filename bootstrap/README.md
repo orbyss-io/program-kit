@@ -17,6 +17,11 @@ SHA-256 bindings remain stable across checkouts. It contains:
 
 `awaiting-human-approval`
 
+The revised architectural direction is accepted in principle. Its exact design
+and plan bytes remain unapproved until the human explicitly approves the new
+review-set version and both SHA-256 digests in `review-manifest.json`. This
+README is navigation and a status projection; it is not approval authority.
+
 No Program Kit source project, schema, generated artifact, fixture, capability,
 or provider wrapper may be implemented from this review set until the human
 explicitly approves the exact design and plan digests in the review manifest.
@@ -36,7 +41,8 @@ status. Current capability availability is owned only by
 | Claim | Implementation claim state |
 | --- | --- |
 | Bootstrap architecture and plan are available for review | `scaffolded` |
-| Universal contracts, deterministic tooling, .NET kit, CLI, fixture, tests, and packages | `aspirational` |
+| Universal contracts, domainless modularity, model-first System.Text.Json-only serialization with deny-by-default DOM use, tasks/schedules, version topology and migration, deterministic tooling, direct CShells composition, .NET 10 API/Console/Worker generation, health composition, local package preparation/application publish, CLI, fixture, tests, and packages | `aspirational` |
 | `develop-software`, `design-software`, and `implement-software-plan` | `deferred` pending their backing contracts and tools |
+| Repository-local `publish-dotnet-application-locally` capability | `deferred` pending its backing local-publish operation; it is not part of the three-capability distribution bundle |
 | Release Cycle capabilities and behavior | `deferred` outside Program Kit scope |
 | Domain Semantic Engine domains and features | `deferred`; `core/` and `features/` remain README-only |
