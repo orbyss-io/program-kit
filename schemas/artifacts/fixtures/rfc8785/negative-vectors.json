@@ -1,0 +1,81 @@
+{
+  "profile": "pkid:profile:program-kit:canonical-json-rfc8785@1.0.0",
+  "source": "https://www.rfc-editor.org/rfc/rfc8785.html",
+  "vectors": [
+    {
+      "id": "duplicate-property",
+      "kind": "json",
+      "sourceSection": "RFC 8785 Section 3.1",
+      "inputJson": "{\"value\":1,\"value\":2}",
+      "expectedFailure": "duplicate-property"
+    },
+    {
+      "id": "lone-surrogate",
+      "kind": "json",
+      "sourceSection": "RFC 8785 Section 3.2.2.2",
+      "inputJson": "{\"value\":\"\\udead\"}",
+      "expectedFailure": "invalid-unicode"
+    },
+    {
+      "id": "nan",
+      "kind": "binary64",
+      "sourceSection": "RFC 8785 Sections 3.2.2.3 and Appendix B",
+      "inputBinary64Hex": "7fffffffffffffff",
+      "expectedFailure": "non-finite-number"
+    },
+    {
+      "id": "positive-infinity",
+      "kind": "binary64",
+      "sourceSection": "RFC 8785 Sections 3.2.2.3 and Appendix B",
+      "inputBinary64Hex": "7ff0000000000000",
+      "expectedFailure": "non-finite-number"
+    },
+    {
+      "id": "negative-zero-profile-subset",
+      "kind": "binary64",
+      "sourceSection": "RFC 8785 Appendix B; Program Kit strict-subset rule",
+      "inputBinary64Hex": "8000000000000000",
+      "expectedFailure": "negative-zero",
+      "profileRule": "Program Kit rejects negative zero rather than canonicalizing it to zero."
+    },
+    {
+      "id": "non-nfc-profile-subset",
+      "kind": "json",
+      "sourceSection": "RFC 8785 Section 3.1; Program Kit strict-subset rule",
+      "inputJson": "{\"value\":\"é\"}",
+      "expectedFailure": "non-nfc-string",
+      "profileRule": "Program Kit canonical artifact strings must already be NFC and are never normalized by the canonicalizer."
+    },
+    {
+      "id": "unsafe-integer-profile-subset",
+      "kind": "json",
+      "sourceSection": "RFC 8785 Appendix B note 1; Program Kit strict-subset rule",
+      "inputJson": "{\"value\":9007199254740992}",
+      "expectedFailure": "unsafe-integer",
+      "profileRule": "Integer-valued numbers must remain in the interoperably exact range -9007199254740991 through 9007199254740991."
+    },
+    {
+      "id": "excess-number-precision-profile-subset",
+      "kind": "json",
+      "sourceSection": "RFC 8785 Sections 3.1 and Appendix D; Program Kit strict-subset rule",
+      "inputJson": "{\"value\":0.123456789012345678901234567890}",
+      "expectedFailure": "excess-number-precision",
+      "profileRule": "Numbers requiring greater precision than IEEE 754 binary64 must be modeled as schema-constrained strings."
+    },
+    {
+      "id": "utf8-bom-profile-subset",
+      "kind": "utf8",
+      "sourceSection": "RFC 8785 Section 3.2.4; Program Kit strict-subset rule",
+      "inputUtf8Hex": "efbbbf7b7d",
+      "expectedFailure": "utf8-bom",
+      "profileRule": "Program Kit canonical input and output use UTF-8 without a BOM."
+    },
+    {
+      "id": "invalid-utf8",
+      "kind": "utf8",
+      "sourceSection": "RFC 8785 Sections 3.1 and 3.2.4",
+      "inputUtf8Hex": "ff",
+      "expectedFailure": "invalid-utf8"
+    }
+  ]
+}

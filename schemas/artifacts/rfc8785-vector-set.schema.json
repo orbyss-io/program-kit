@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/rfc8785-vector-set.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:rfc8785-vector-set",
+  "x-program-kit-version": "1.0.0",
+  "title": "RFC 8785 canonicalization vector set",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "source",
+    "vectors"
+  ],
+  "properties": {
+    "profile": {
+      "type": "string",
+      "enum": [
+        "rfc8785",
+        "pkid:profile:program-kit:canonical-json-rfc8785@1.0.0"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/vector"
+      }
+    }
+  },
+  "$defs": {
+    "vector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "sourceSection"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "json",
+            "binary64",
+            "utf8"
+          ]
+        },
+        "sourceSection": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputJson": {
+          "type": "string"
+        },
+        "inputBinary64Hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "inputUtf8Hex": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{2})+$"
+        },
+        "expectedCanonicalJson": {
+          "type": "string"
+        },
+        "expectedFailure": {
+          "type": "string",
+          "enum": [
+            "duplicate-property",
+            "invalid-unicode",
+            "invalid-utf8",
+            "non-finite-number",
+            "negative-zero",
+            "non-nfc-string",
+            "unsafe-integer",
+            "excess-number-precision",
+            "utf8-bom"
+          ]
+        },
+        "profileRule": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "kind": {
+                  "const": "json"
+                }
+              },
+              "required": [
+                "inputJson"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "inputBinary64Hex"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "inputUtf8Hex"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "binary64"
+                }
+              },
+              "required": [
+                "inputBinary64Hex"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "inputJson"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "inputUtf8Hex"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "utf8"
+                }
+              },
+              "required": [
+                "inputUtf8Hex"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "inputJson"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "inputBinary64Hex"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "required": [
+                "expectedCanonicalJson"
+              ],
+              "not": {
+                "required": [
+                  "expectedFailure"
+                ]
+              }
+            },
+            {
+              "required": [
+                "expectedFailure"
+              ],
+              "not": {
+                "required": [
+                  "expectedCanonicalJson"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

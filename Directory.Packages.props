@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="MSTest.Sdk" Version="[4.3.2]" />
+    <PackageVersion Include="JsonSchema.Net" Version="[9.3.0]" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="[10.0.10]" />
+    <PackageVersion Include="CShells.Abstractions" Version="[0.0.28]" />
+    <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="[0.0.28]" />
+    <PackageVersion Include="CShells" Version="[0.0.28]" />
+    <PackageVersion Include="CShells.AspNetCore" Version="[0.0.28]" />
+    <PackageVersion Include="Cronos" Version="[0.13.0]" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Quality</PackageId>
+    <Description>Reusable test specification, execution profile, evidence, and independent-review contracts for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\quality\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Quality.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\quality\**\*.json"
+          Pack="true"
+          PackagePath="schemas/quality/%(RecursiveDir)"
+          Link="Schemas/Quality/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

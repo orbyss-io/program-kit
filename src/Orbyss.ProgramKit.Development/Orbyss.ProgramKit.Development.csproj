@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Development</PackageId>
+    <Description>Human-led development routing, capability availability, and evidence-only receipt contracts for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\development\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Development.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\development\**\*.json"
+          Pack="true"
+          PackagePath="schemas/development/%(RecursiveDir)"
+          Link="Schemas/Development/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

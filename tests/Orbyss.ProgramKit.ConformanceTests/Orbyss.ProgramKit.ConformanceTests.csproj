@@ -1,0 +1,56 @@
+<Project Sdk="MSTest.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <PackageId>Orbyss.ProgramKit.ConformanceTests</PackageId>
+    <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Fixtures\UniversalContractConsumer\**\*.cs" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
+    <ProjectReference Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\global.json"
+          Link="ConformanceInputs/global.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Directory.Build.props"
+          Link="ConformanceInputs/Directory.Build.props"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Directory.Build.targets"
+          Link="ConformanceInputs/Directory.Build.targets"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Directory.Packages.props"
+          Link="ConformanceInputs/Directory.Packages.props"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\NuGet.Config"
+          Link="ConformanceInputs/NuGet.Config"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\ProgramKit.sln"
+          Link="ConformanceInputs/ProgramKit.sln"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\TargetProfileProbe.csproj"
+          Link="ConformanceInputs/TargetProfileProbe.csproj"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj"
+          Link="ConformanceInputs/UniversalContractConsumer/UniversalContractConsumer.csproj"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.cs"
+          Link="ConformanceInputs/UniversalContractConsumer/UniversalContractConsumer.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\**\*.csproj"
+          Link="ConformanceInputs/Projects/%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\**\*.cs"
+          Link="ConformanceInputs/Source/%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\schemas\**\*.json"
+          Link="ConformanceInputs/Schemas/%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,49 @@
+<Project>
+  <Target Name="ValidateProgramKitTargetProfile"
+          BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(TargetFrameworks)' != ''"
+           Code="PKNET001"
+           Text="Program Kit projects must not use TargetFrameworks or multitargeting." />
+    <Error Condition="'$(TargetFramework)' != 'net10.0'"
+           Code="PKNET002"
+           Text="Program Kit projects must target exactly net10.0; observed $(TargetFramework)." />
+    <Error Condition="'$(LangVersion)' != '14.0'"
+           Code="PKNET003"
+           Text="Program Kit projects must use C# 14.0; observed $(LangVersion)." />
+    <Error Condition="'$(NETCoreSdkVersion)' != '10.0.302'"
+           Code="PKNET004"
+           Text="Program Kit projects must use SDK 10.0.302; observed $(NETCoreSdkVersion)." />
+    <Error Condition="'$(ProgramKitTargetProfileId)' != 'pkid:profile:program-kit:dotnet-10'"
+           Code="PKNET005"
+           Text="The Program Kit target-profile identity is invalid." />
+    <Error Condition="'$(ProgramKitTargetProfileVersion)' != '1.0.0'"
+           Code="PKNET006"
+           Text="The Program Kit target-profile version is invalid." />
+    <Error Condition="'$(ProgramKitSdkRollForward)' != 'disable'"
+           Code="PKNET007"
+           Text="SDK roll-forward must remain disabled." />
+    <Error Condition="'$(ProgramKitAllowPrereleaseSdk)' != 'false'"
+           Code="PKNET008"
+           Text="Prerelease SDK selection must remain disabled." />
+  </Target>
+
+  <Target Name="ValidateProgramKitPackageVersion"
+          BeforeTargets="Pack"
+          Condition="'$(IsPackable)' == 'true'">
+    <Error Condition="'$(PackageVersion)' != '0.1.0-alpha.1'"
+           Code="PKPUB001"
+           Text="Baseline Program Kit packages must use exact version 0.1.0-alpha.1." />
+  </Target>
+
+  <Target Name="PinProgramKitProjectReferenceVersionsExactly"
+          AfterTargets="_GetProjectReferenceVersions"
+          BeforeTargets="GenerateNuspec"
+          Condition="'$(IsPackable)' == 'true'">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)"
+                                      Condition="'%(_ProjectReferencesWithVersions.ProjectVersion)' != ''">
+        <ProjectVersion>[%(_ProjectReferencesWithVersions.ProjectVersion)]</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/version-selection.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:version-selection",
+  "x-program-kit-version": "1.0.0",
+  "title": "VersionSelectionDocument",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "inputVersionMap",
+    "selections"
+  ],
+  "properties": {
+    "inputVersionMap": {
+      "allOf": [
+        {
+          "$ref": "definitions.schema.json#/$defs/artifactReference"
+        },
+        {
+          "properties": {
+            "identity": {
+              "pattern": "^pkid:version-map:"
+            }
+          }
+        }
+      ]
+    },
+    "selections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/selection"
+      }
+    }
+  },
+  "$defs": {
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "observed",
+        "target",
+        "ownerId"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "definitions.schema.json#/$defs/programKitIdentifier"
+        },
+        "observed": {
+          "$ref": "definitions.schema.json#/$defs/artifactReference"
+        },
+        "target": {
+          "$ref": "definitions.schema.json#/$defs/artifactReference"
+        },
+        "ownerId": {
+          "$ref": "definitions.schema.json#/$defs/programKitIdentifier"
+        }
+      }
+    }
+  }
+}

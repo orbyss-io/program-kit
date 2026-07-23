@@ -1,0 +1,57 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Artifacts", "src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj", "{E7608243-FC41-4596-9B35-165027517C20}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Architecture", "src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj", "{D1666A51-653E-4B4C-8E59-2FEB1B9CBFC5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Quality", "src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj", "{CAB85C2C-0598-4DA8-9641-8BF3D56266FD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Planning", "src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj", "{D00FD7E8-4EC3-4422-9514-2680677FCFF5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Development", "src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj", "{788D425D-9DE4-4F2A-8792-D9FB3E695425}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.UnitTests", "tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj", "{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.ConformanceTests", "tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj", "{91AF93E5-B37C-46A6-B926-E8765DA39359}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E7608243-FC41-4596-9B35-165027517C20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7608243-FC41-4596-9B35-165027517C20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7608243-FC41-4596-9B35-165027517C20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7608243-FC41-4596-9B35-165027517C20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1666A51-653E-4B4C-8E59-2FEB1B9CBFC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1666A51-653E-4B4C-8E59-2FEB1B9CBFC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1666A51-653E-4B4C-8E59-2FEB1B9CBFC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1666A51-653E-4B4C-8E59-2FEB1B9CBFC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAB85C2C-0598-4DA8-9641-8BF3D56266FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAB85C2C-0598-4DA8-9641-8BF3D56266FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAB85C2C-0598-4DA8-9641-8BF3D56266FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAB85C2C-0598-4DA8-9641-8BF3D56266FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D00FD7E8-4EC3-4422-9514-2680677FCFF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D00FD7E8-4EC3-4422-9514-2680677FCFF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D00FD7E8-4EC3-4422-9514-2680677FCFF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D00FD7E8-4EC3-4422-9514-2680677FCFF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{788D425D-9DE4-4F2A-8792-D9FB3E695425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{788D425D-9DE4-4F2A-8792-D9FB3E695425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{788D425D-9DE4-4F2A-8792-D9FB3E695425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{788D425D-9DE4-4F2A-8792-D9FB3E695425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91AF93E5-B37C-46A6-B926-E8765DA39359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91AF93E5-B37C-46A6-B926-E8765DA39359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91AF93E5-B37C-46A6-B926-E8765DA39359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91AF93E5-B37C-46A6-B926-E8765DA39359}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

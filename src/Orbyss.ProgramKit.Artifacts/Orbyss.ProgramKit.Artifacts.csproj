@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Artifacts</PackageId>
+    <Description>Universal artifact identity, integrity, provenance, compatibility, version, and migration contracts for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\artifacts\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Artifacts.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\artifacts\**\*.json"
+          Pack="true"
+          PackagePath="schemas/artifacts/%(RecursiveDir)"
+          Link="Schemas/Artifacts/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>
