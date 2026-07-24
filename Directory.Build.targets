@@ -148,6 +148,7 @@
       <_ProgramKitSdkRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks'))</_ProgramKitSdkRoot>
       <_ProgramKitManagedCoreTargetsPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Roslyn\Microsoft.Managed.Core.targets'))</_ProgramKitManagedCoreTargetsPath>
       <_ProgramKitNetAnalyzersTargetsPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\analyzers\build\Microsoft.CodeAnalysis.NetAnalyzers.targets'))</_ProgramKitNetAnalyzersTargetsPath>
+      <_ProgramKitExpectedGeneratedEditorConfigPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig'))</_ProgramKitExpectedGeneratedEditorConfigPath>
       <_ProgramKitApprovedMSTestAnalyzerConfigPath></_ProgramKitApprovedMSTestAnalyzerConfigPath>
       <_ProgramKitApprovedMSTestAnalyzerTargetsPath></_ProgramKitApprovedMSTestAnalyzerTargetsPath>
       <_ProgramKitApprovedMSTestAnalyzerConfigPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\globalconfigs\mstest-all.globalconfig'))</_ProgramKitApprovedMSTestAnalyzerConfigPath>
@@ -182,7 +183,8 @@
                    ('%(ProjectReference.SkipGetTargetFrameworkProperties)' == '' or
                     '%(ProjectReference.SkipGetTargetFrameworkProperties)' == 'false') and
                    '%(ProjectReference.AdditionalProperties)' == '' and
-                   '%(ProjectReference.GlobalPropertiesToRemove)' == ''" />
+                   ('%(ProjectReference.GlobalPropertiesToRemove)' == '' or
+                    '%(ProjectReference.GlobalPropertiesToRemove)' == ';WebPublishProfileFile')" />
       <_ProgramKitAllCSharpGateProjectReference
         Include="@(ProjectReference)"
         Condition="'%(ProjectReference.FullPath)' == '$(_ProgramKitExpectedCSharpGateProjectPath)'" />
@@ -217,7 +219,8 @@
       <_ProgramKitUnapprovedEditorConfig
         Include="@(EditorConfigFiles)"
         Condition="Exists('%(EditorConfigFiles.FullPath)') and
-                   !(($([System.String]::Copy('%(EditorConfigFiles.FullPath)').StartsWith('$(_ProgramKitIntermediateRoot)', System.StringComparison.OrdinalIgnoreCase)) and
+                   !(('%(EditorConfigFiles.FullPath)' == '$(_ProgramKitExpectedGeneratedEditorConfigPath)') or
+                     ($([System.String]::Copy('%(EditorConfigFiles.FullPath)').StartsWith('$(_ProgramKitIntermediateRoot)', System.StringComparison.OrdinalIgnoreCase)) and
                       '%(EditorConfigFiles.DefiningProjectFullPath)' == '$(_ProgramKitManagedCoreTargetsPath)') or
                      ($([System.String]::Copy('%(EditorConfigFiles.FullPath)').StartsWith('$(_ProgramKitSdkRoot)', System.StringComparison.OrdinalIgnoreCase)) and
                       '%(EditorConfigFiles.DefiningProjectFullPath)' == '$(_ProgramKitNetAnalyzersTargetsPath)') or
@@ -381,10 +384,11 @@
     <Error Condition="$([System.String]::Copy('$(Features)').ToLowerInvariant().Contains('run-nullable-analysis=never'))"
            Code="PKCS135"
            Text="The run-nullable-analysis=never compiler feature is forbidden." />
-    <Error Condition="$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('Tests', System.StringComparison.Ordinal)) and
+    <Error Condition="('$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' or
+                      '$(MSBuildProjectName)' == 'Orbyss.ProgramKit.ConformanceTests') and
                       '$(MSTestAnalysisMode)' != 'All'"
            Code="PKCS125"
-           Text="MSTestAnalysisMode must remain All for test projects; observed $(MSTestAnalysisMode)." />
+           Text="MSTestAnalysisMode must remain All for the two legacy MSTest projects; observed $(MSTestAnalysisMode)." />
     <Error Condition="'$(CompilerResponseFile)' != '' or
                       '@(CompilerResponseFile)' != ''"
            Code="PKCS145"
@@ -449,11 +453,19 @@
       <_ProgramKitMSTestCodeFixAnalyzerPath></_ProgramKitMSTestCodeFixAnalyzerPath>
       <_ProgramKitMSTestAnalyzerPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\analyzers\dotnet\cs\MSTest.Analyzers.dll'))</_ProgramKitMSTestAnalyzerPath>
       <_ProgramKitMSTestCodeFixAnalyzerPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll'))</_ProgramKitMSTestCodeFixAnalyzerPath>
+      <_ProgramKitTUnitAssertionsAnalyzerRoot Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)tunit.assertions\1.60.0\analyzers\dotnet\cs'))\</_ProgramKitTUnitAssertionsAnalyzerRoot>
+      <_ProgramKitTUnitCoreAnalyzerRoot Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)tunit.core\1.60.0\analyzers\dotnet'))\</_ProgramKitTUnitCoreAnalyzerRoot>
+      <_ProgramKitLegacyMSTestProject
+        Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' or
+                   '$(MSBuildProjectName)' == 'Orbyss.ProgramKit.ConformanceTests'">true</_ProgramKitLegacyMSTestProject>
       <_ProgramKitLoggingGeneratorPath></_ProgramKitLoggingGeneratorPath>
       <_ProgramKitOptionsGeneratorPath></_ProgramKitOptionsGeneratorPath>
       <_ProgramKitLoggingGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.logging.abstractions\10.0.10\analyzers\dotnet\roslyn4.4\cs\Microsoft.Extensions.Logging.Generators.dll'))</_ProgramKitLoggingGeneratorPath>
       <_ProgramKitOptionsGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.options\10.0.10\analyzers\dotnet\roslyn4.4\cs\Microsoft.Extensions.Options.SourceGeneration.dll'))</_ProgramKitOptionsGeneratorPath>
       <_ProgramKitFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.NETCore.App.Ref'))\</_ProgramKitFrameworkAnalyzerRoot>
+      <_ProgramKitAspNetFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.AspNetCore.App.Ref\10.0.10\analyzers\dotnet\cs'))\</_ProgramKitAspNetFrameworkAnalyzerRoot>
+      <_ProgramKitWebSdkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Web\analyzers\cs'))\</_ProgramKitWebSdkAnalyzerRoot>
+      <_ProgramKitRazorGeneratorRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Razor\source-generators'))\</_ProgramKitRazorGeneratorRoot>
       <_ProgramKitExpectedGeneratedSourceProbeProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\CSharpGate\GeneratedSource\Generator\GeneratedSourceProbe.csproj'))</_ProgramKitExpectedGeneratedSourceProbeProjectPath>
       <_ProgramKitResolvedGeneratedSourceProbeProjectPath></_ProgramKitResolvedGeneratedSourceProbeProjectPath>
       <_ProgramKitGeneratedSourceProbeAnalyzerPath></_ProgramKitGeneratedSourceProbeAnalyzerPath>
@@ -470,6 +482,9 @@
       <_ProgramKitResolvedCodeStyleAnalyzer Remove="@(_ProgramKitResolvedCodeStyleAnalyzer)" />
       <_ProgramKitResolvedCSharpCodeStyleAnalyzer Remove="@(_ProgramKitResolvedCSharpCodeStyleAnalyzer)" />
       <_ProgramKitResolvedMSTestAnalyzer Remove="@(_ProgramKitResolvedMSTestAnalyzer)" />
+      <_ProgramKitResolvedTUnitAnalyzer Remove="@(_ProgramKitResolvedTUnitAnalyzer)" />
+      <_ProgramKitResolvedTUnitAssertionsAnalyzer Remove="@(_ProgramKitResolvedTUnitAssertionsAnalyzer)" />
+      <_ProgramKitResolvedTUnitCoreAnalyzer Remove="@(_ProgramKitResolvedTUnitCoreAnalyzer)" />
       <_ProgramKitApprovedResolvedAnalyzer Remove="@(_ProgramKitApprovedResolvedAnalyzer)" />
       <_ProgramKitResolvedNetAnalyzer
         Include="@(Analyzer)"
@@ -488,6 +503,23 @@
         Condition="'%(FullPath)' == '$(_ProgramKitMSTestAnalyzerPath)' and
                    '%(Analyzer.NuGetPackageId)' == 'MSTest.Analyzers' and
                    '%(Analyzer.NuGetPackageVersion)' == '4.3.2'" />
+      <_ProgramKitResolvedTUnitAssertionsAnalyzer
+        Include="@(Analyzer)"
+        Condition="(('%(FullPath)' == '$(_ProgramKitTUnitAssertionsAnalyzerRoot)TUnit.Assertions.Analyzers.CodeFixers.dll') or
+                    ('%(FullPath)' == '$(_ProgramKitTUnitAssertionsAnalyzerRoot)TUnit.Assertions.Analyzers.dll') or
+                    ('%(FullPath)' == '$(_ProgramKitTUnitAssertionsAnalyzerRoot)TUnit.Assertions.SourceGenerator.dll')) and
+                   '%(Analyzer.NuGetPackageId)' == 'TUnit.Assertions' and
+                   '%(Analyzer.NuGetPackageVersion)' == '1.60.0'" />
+      <_ProgramKitResolvedTUnitCoreAnalyzer
+        Include="@(Analyzer)"
+        Condition="(('%(FullPath)' == '$(_ProgramKitTUnitCoreAnalyzerRoot)cs\TUnit.Analyzers.CodeFixers.dll') or
+                    ('%(FullPath)' == '$(_ProgramKitTUnitCoreAnalyzerRoot)roslyn4.14\cs\TUnit.Analyzers.dll') or
+                    ('%(FullPath)' == '$(_ProgramKitTUnitCoreAnalyzerRoot)roslyn4.14\cs\TUnit.Core.SourceGenerator.dll')) and
+                   '%(Analyzer.NuGetPackageId)' == 'TUnit.Core' and
+                   '%(Analyzer.NuGetPackageVersion)' == '1.60.0'" />
+      <_ProgramKitResolvedTUnitAnalyzer
+        Include="@(_ProgramKitResolvedTUnitAssertionsAnalyzer);
+                 @(_ProgramKitResolvedTUnitCoreAnalyzer)" />
       <_ProgramKitApprovedResolvedAnalyzer
         Include="@(Analyzer)"
         Condition="'%(FullPath)' == '$(_ProgramKitNetAnalyzerPath)' or
@@ -507,13 +539,30 @@
                     '%(Analyzer.NuGetPackageVersion)' == '10.0.10') or
                    ('$(_ProgramKitGeneratedSourceProbeAnalyzerPath)' != '' and
                     '%(FullPath)' == '$(_ProgramKitGeneratedSourceProbeAnalyzerPath)') or
-                   ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitFrameworkAnalyzerRoot)', System.StringComparison.OrdinalIgnoreCase)) and
-                    ('%(Filename)%(Extension)' == 'Microsoft.Interop.ComInterfaceGenerator.dll' or
-                     '%(Filename)%(Extension)' == 'Microsoft.Interop.JavaScript.JSImportGenerator.dll' or
-                     '%(Filename)%(Extension)' == 'Microsoft.Interop.LibraryImportGenerator.dll' or
-                     '%(Filename)%(Extension)' == 'Microsoft.Interop.SourceGeneration.dll' or
-                     '%(Filename)%(Extension)' == 'System.Text.Json.SourceGeneration.dll' or
-                     '%(Filename)%(Extension)' == 'System.Text.RegularExpressions.Generator.dll'))" />
+                    ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitFrameworkAnalyzerRoot)', System.StringComparison.OrdinalIgnoreCase)) and
+                     ('%(Filename)%(Extension)' == 'Microsoft.Interop.ComInterfaceGenerator.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Interop.JavaScript.JSImportGenerator.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Interop.LibraryImportGenerator.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Interop.SourceGeneration.dll' or
+                      '%(Filename)%(Extension)' == 'System.Text.Json.SourceGeneration.dll' or
+                      '%(Filename)%(Extension)' == 'System.Text.RegularExpressions.Generator.dll')) or
+                    ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitAspNetFrameworkAnalyzerRoot)', System.StringComparison.OrdinalIgnoreCase)) and
+                     ('%(Filename)%(Extension)' == 'Microsoft.AspNetCore.App.Analyzers.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.AspNetCore.App.CodeFixes.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.AspNetCore.App.SourceGenerators.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.AspNetCore.Components.Analyzers.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Extensions.Validation.ValidationsGenerator.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Extensions.Logging.Generators.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Extensions.Options.SourceGeneration.dll')) or
+                    ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitWebSdkAnalyzerRoot)', System.StringComparison.OrdinalIgnoreCase)) and
+                     ('%(Filename)%(Extension)' == 'Microsoft.AspNetCore.Analyzers.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.AspNetCore.Mvc.Analyzers.dll')) or
+                    ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitRazorGeneratorRoot)', System.StringComparison.OrdinalIgnoreCase)) and
+                     ('%(Filename)%(Extension)' == 'Microsoft.AspNetCore.Razor.Utilities.Shared.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Razor.Compiler.dll' or
+                      '%(Filename)%(Extension)' == 'Microsoft.Extensions.ObjectPool.dll'))" />
+      <_ProgramKitApprovedResolvedAnalyzer
+        Include="@(_ProgramKitResolvedTUnitAnalyzer)" />
     </ItemGroup>
     <Error Condition="'@(_ProgramKitResolvedNetAnalyzer->Count())' != '1' or
                       '@(_ProgramKitResolvedCSharpNetAnalyzer->Count())' != '1' or
@@ -521,10 +570,16 @@
                       '@(_ProgramKitResolvedCSharpCodeStyleAnalyzer->Count())' != '1'"
            Code="PKCS141"
            Text="The exact SDK .NET, C# .NET, CodeStyle, and C# CodeStyle analyzers must all remain attached once; observed counts @(_ProgramKitResolvedNetAnalyzer->Count()), @(_ProgramKitResolvedCSharpNetAnalyzer->Count()), @(_ProgramKitResolvedCodeStyleAnalyzer->Count()), @(_ProgramKitResolvedCSharpCodeStyleAnalyzer->Count())." />
-    <Error Condition="$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('Tests', System.StringComparison.Ordinal)) and
+    <Error Condition="'$(_ProgramKitLegacyMSTestProject)' == 'true' and
                       '@(_ProgramKitResolvedMSTestAnalyzer->Count())' != '1'"
            Code="PKCS142"
-           Text="Test projects must attach exactly MSTest.Analyzers.dll 4.3.2." />
+           Text="The two legacy MSTest projects must attach exactly MSTest.Analyzers.dll 4.3.2." />
+    <Error Condition="'$(IsTestProject)' == 'true' and
+                      '$(_ProgramKitLegacyMSTestProject)' != 'true' and
+                      ('@(_ProgramKitResolvedTUnitAnalyzer->Count())' != '6' or
+                       '@(_ProgramKitResolvedMSTestAnalyzer)' != '')"
+           Code="PKCS142"
+           Text="New test projects must attach exactly the six source-verified TUnit 1.60.0 analyzer/generator inputs and no MSTest analyzer." />
     <Error Condition="'@(Analyzer->Count())' != '@(_ProgramKitApprovedResolvedAnalyzer->Count())'"
            Code="PKCS148"
            Text="Every resolved analyzer or generator must be on the central exact-path allowlist; observed @(Analyzer->'%(FullPath)')." />
@@ -675,9 +730,11 @@
     <PropertyGroup>
       <_ProgramKitCs1701CompatibilityUnitTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj'))</_ProgramKitCs1701CompatibilityUnitTestProjectPath>
       <_ProgramKitCs1701CompatibilityConformanceTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'))</_ProgramKitCs1701CompatibilityConformanceTestProjectPath>
+      <_ProgramKitCs1701CompatibilityTUnitProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)fixtures\observatory-scheduling\tests\ObservatoryScheduling.Tests\ObservatoryScheduling.Tests.csproj'))</_ProgramKitCs1701CompatibilityTUnitProjectPath>
       <_ProgramKitCs1701CompatibilityCronosProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)src\Orbyss.ProgramKit.Tasks.Schedules.Cronos\Orbyss.ProgramKit.Tasks.Schedules.Cronos.csproj'))</_ProgramKitCs1701CompatibilityCronosProjectPath>
       <_ProgramKitCs1701CompatibilityUnitTestApproval>CS1701&#x9;Orbyss.ProgramKit.UnitTests&#x9;-&#x9;CompilerNoWarn&#x9;mstest-sdk:4.3.2|closure:cs1701-mstest-sdk-4.3.2-v1|assembly-set:cs1701-mstest-sdk-4.3.2-v1|system-runtime:10.0.0.0|net10-assets:absent|review-on:test-toolchain-change&#x9;human-approval:active-session:cs1701-compatibility-quarantine&#x9;2026-07-23&#x9;MSTest SDK 4.3.2 compatibility quarantine for its exact lower-target dependency closure; self-invalidates when the toolchain, closure, assembly identities, runtime identity, or .NET 10 asset availability changes.</_ProgramKitCs1701CompatibilityUnitTestApproval>
       <_ProgramKitCs1701CompatibilityConformanceTestApproval>CS1701&#x9;Orbyss.ProgramKit.ConformanceTests&#x9;-&#x9;CompilerNoWarn&#x9;mstest-sdk:4.3.2|closure:cs1701-mstest-sdk-4.3.2-v1|assembly-set:cs1701-mstest-sdk-4.3.2-v1|system-runtime:10.0.0.0|net10-assets:absent|review-on:test-toolchain-change&#x9;human-approval:active-session:cs1701-compatibility-quarantine&#x9;2026-07-23&#x9;MSTest SDK 4.3.2 compatibility quarantine for its exact lower-target dependency closure; self-invalidates when the toolchain, closure, assembly identities, runtime identity, or .NET 10 asset availability changes.</_ProgramKitCs1701CompatibilityConformanceTestApproval>
+      <_ProgramKitCs1701CompatibilityTUnitApproval>CS1701&#x9;ObservatoryScheduling.Tests&#x9;-&#x9;CompilerNoWarn&#x9;tunit:1.60.0|closure:cs1701-tunit-1.60.0-v1|assembly-set:cs1701-tunit-1.60.0-v1|system-runtime:10.0.0.0|net10-framework-assets:present|net10-supporting-assets:absent|review-on:test-toolchain-change&#x9;human-approval:active-session:w060-tunit-compatibility&#x9;2026-07-24&#x9;TUnit 1.60.0 supplies net10.0 framework, assertions, core, and engine assets; its exact lower-target Microsoft Testing Platform, telemetry, TRX, and code-coverage support closure is accepted until matching net10.0 supporting assets exist, and self-invalidates on any closure, identity, or asset-availability change.</_ProgramKitCs1701CompatibilityTUnitApproval>
       <_ProgramKitCs1701CompatibilityCronosApproval>CS1701&#x9;Orbyss.ProgramKit.Tasks.Schedules.Cronos&#x9;-&#x9;CompilerNoWarn&#x9;cronos:0.13.0|asset:lib/net6.0/Cronos.dll|sha256:e0ad7c799904f1b663ab090b32665e0e90ede27699937588900845383064ba03|system-runtime:10.0.0.0|net10-assets:absent|review-on:provider-change&#x9;human-approval:approved-program-kit-baseline-0.3.0&#x9;2026-07-23&#x9;Approved Cronos 0.13 provider selection uses its exact dependency-free net6.0 asset under net10.0; self-invalidates on package, asset, runtime, or net10-asset availability change.</_ProgramKitCs1701CompatibilityCronosApproval>
       <_ProgramKitCs1701CompatibilityKind></_ProgramKitCs1701CompatibilityKind>
       <_ProgramKitCs1701CompatibilityExpectedProjectPath></_ProgramKitCs1701CompatibilityExpectedProjectPath>
@@ -690,6 +747,12 @@
         Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityConformanceTestProjectPath)'">$(_ProgramKitCs1701CompatibilityConformanceTestProjectPath)</_ProgramKitCs1701CompatibilityExpectedProjectPath>
       <_ProgramKitCs1701CompatibilityExpectedApproval
         Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityConformanceTestProjectPath)'">$(_ProgramKitCs1701CompatibilityConformanceTestApproval)</_ProgramKitCs1701CompatibilityExpectedApproval>
+      <_ProgramKitCs1701CompatibilityExpectedProjectPath
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityTUnitProjectPath)'">$(_ProgramKitCs1701CompatibilityTUnitProjectPath)</_ProgramKitCs1701CompatibilityExpectedProjectPath>
+      <_ProgramKitCs1701CompatibilityExpectedApproval
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityTUnitProjectPath)'">$(_ProgramKitCs1701CompatibilityTUnitApproval)</_ProgramKitCs1701CompatibilityExpectedApproval>
+      <_ProgramKitCs1701CompatibilityKind
+        Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityTUnitProjectPath)'">TUnit</_ProgramKitCs1701CompatibilityKind>
       <_ProgramKitCs1701CompatibilityExpectedProjectPath
         Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityCronosProjectPath)'">$(_ProgramKitCs1701CompatibilityCronosProjectPath)</_ProgramKitCs1701CompatibilityExpectedProjectPath>
       <_ProgramKitCs1701CompatibilityExpectedApproval
@@ -709,6 +772,7 @@
       <_ProgramKitCs1701CompatibilityReference Remove="@(_ProgramKitCs1701CompatibilityReference)" />
       <_ProgramKitCs1701CompatibilitySystemRuntimeReference Remove="@(_ProgramKitCs1701CompatibilitySystemRuntimeReference)" />
       <_ProgramKitCs1701AvailableNet10Asset Remove="@(_ProgramKitCs1701AvailableNet10Asset)" />
+      <_ProgramKitCs1701TUnitNet10Reference Remove="@(_ProgramKitCs1701TUnitNet10Reference)" />
       <_ProgramKitCs1701CompatibilityPackageContentHashLine Remove="@(_ProgramKitCs1701CompatibilityPackageContentHashLine)" />
     </ItemGroup>
     <ReadLinesFromFile File="$(ProgramKitWarningApprovalLedgerPath)">
@@ -730,11 +794,14 @@
       <_ProgramKitExpectedCs1701CompatibilityApproval
         Include="@(_ProgramKitCompilerWarningApproval)"
         Condition="'%(Identity)' == '$(_ProgramKitCs1701CompatibilityCronosApproval)'" />
+      <_ProgramKitExpectedCs1701CompatibilityApproval
+        Include="@(_ProgramKitCompilerWarningApproval)"
+        Condition="'%(Identity)' == '$(_ProgramKitCs1701CompatibilityTUnitApproval)'" />
     </ItemGroup>
-    <Error Condition="'@(_ProgramKitCompilerWarningApproval->Count())' != '3' or
-                      '@(_ProgramKitExpectedCs1701CompatibilityApproval->Count())' != '3'"
+    <Error Condition="'@(_ProgramKitCompilerWarningApproval->Count())' != '4' or
+                      '@(_ProgramKitExpectedCs1701CompatibilityApproval->Count())' != '4'"
            Code="PKCS174"
-           Text="The canonical compiler-warning approval ledger must contain exactly the three human-approved CS1701 compatibility records." />
+           Text="The canonical compiler-warning approval ledger must contain exactly the four human-approved CS1701 compatibility records." />
     <Error Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != '' and
                       '$(_ProgramKitCs1701CompatibilityKind)' == 'MSTest' and
                       ('$(MSBuildProjectFullPath)' != '$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' or
@@ -751,6 +818,13 @@
                        '@(_ProgramKitCurrentCs1701CompatibilityApproval->Count())' != '1')"
            Code="PKCS174"
            Text="The Cronos CS1701 quarantine is valid only for the exact provider project, net10.0, and its exact ledger record." />
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityKind)' == 'TUnit' and
+                      ('$(MSBuildProjectFullPath)' != '$(_ProgramKitCs1701CompatibilityTUnitProjectPath)' or
+                       '$(IsTestProject)' != 'true' or
+                       '$(TargetFramework)' != 'net10.0' or
+                       '@(_ProgramKitCurrentCs1701CompatibilityApproval->Count())' != '1')"
+           Code="PKCS174"
+           Text="The TUnit CS1701 quarantine is valid only for the exact Observatory fixture test project, net10.0, and its exact ledger record." />
     <PropertyGroup>
       <_ProgramKitCs1701CompatibilityLockFile
         Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\packages.lock.json'))</_ProgramKitCs1701CompatibilityLockFile>
@@ -885,6 +959,89 @@
                        '@(_ProgramKitCs1701AvailableNet10Asset)' != '')"
            Code="PKCS174"
            Text="The CS1701 compatibility quarantine self-invalidated: the exact MSTest SDK selection, locked package content closure, warning-producing assembly identities, net10.0 System.Runtime reference, or .NET 10 asset availability changed. Observed lock=$(_ProgramKitCs1701CompatibilityPreCompilerLockHash), SDK lines=@(_ProgramKitCs1701CompatibilitySdkSelection->Count()), package hashes=@(_ProgramKitCs1701CompatibilityPackageContentHashLine->Count()), assemblies=@(_ProgramKitCs1701CompatibilityReference->Count()), runtime=@(_ProgramKitCs1701CompatibilitySystemRuntimeReference->Count()), net10-assets=@(_ProgramKitCs1701AvailableNet10Asset)." />
+    <ItemGroup Condition="'$(_ProgramKitCs1701CompatibilityKind)' == 'TUnit'">
+      <_ProgramKitCs1701CompatibilityPackageContentHashLine
+        Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
+        Condition="$([System.String]::Copy('%(Identity)').Contains('o4158h0UzfvAWDkASgVv90IWJcUNwGo3nfl0HnD5aeAqt4k9DCojGl9SheEijCqGL+0f/P6cAw4IP+HPIf2UfA==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('EepOp9wR/0M1UPqyrm7NFduGcKinedafNiexm2tGD/j1tgDCXAK4k6MpbjlfaJIYTLPDXK3ke03pFAWDy14eLA==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('VAd+jtsJ80J9O/nRptOiufqrtmpysBWrSpr7MjC/QR+aISSuGxBdMrV3rANMPUs2Q2s/JB5SWdevilogiUZ5hg==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('9GDO/wHoCxHY78wHB6Sox9Tz/wpILpXsx5LgwMe5fFRL2y5t3O9+QG6TIbX541SmBUV8VzL+al5IFgv1RJ8Qlw==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('KlbpupRCz3Kf+P7gsiDvFXJ980i/9lfihMZFmmxIk0Gf6mopEjy74OTJZmdaKDQpE29eQDBnMZB5khyW3eugrg==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('nWArUZTdU7iqZLycLKWe0TDms48KKGE6pONH2terYNa8REXiqixrMOkf1sk5DHGMaUTqONU2YkS4SAXBhLStgw==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('WLbDc/W9XkHpGVtd1L6Vml8W6+PaaYZZTJASHjHF7W2WX/hld6bfNK102Ui+I3a6zIdx4+oKRJtMgHz44JmBfw==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('vLyZVpxmduO2jx+76ggqnsA3m81kwMY3NkWciNTj5E+Nvqb0VihqCvQP89QsGONWp0AJwMZG+u9GzaCjDdFGNw==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('Odp8djWEUFTJoRV02y0zJaAwAHF31CtNaDgnKKM+8dBHbbaH7Ee0oo9gweLpbzjI7UrtMUzH6xLJSrICZw+Nwg==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('Q1iapTk1DwFFT9aPtv4wxJHe22++NLxsg7IekEujac9RDAugxGQdCN0SQ1b9ryF78cdidhSBB17pHdCANurOyQ==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('JzCtiOAmIfkPP2PpAKZeiH1hVYIVC9jMhsPWrd6PnH/Wtuct1UMuxpKi2F1cmXgfokc/HOadC6HOO1qzI23tnA==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('frw+Qa6gUxOZSw2Mw6SPtJT9gPzcP4nS9TfQhS0cHXKL6Rcp/CqLG+o4Psc1bHAhxW04rpzTBhjpNMnw2L7BuQ==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('FuJgIEfNU+rFHJYGhuqA8uup+3cryJ1N67Tijqo01Jd5xAr28ptz0aXkFfSqK3MhAUmGsrPpgQ92+3+0oXv8AA==')) or
+                   $([System.String]::Copy('%(Identity)').Contains('guFvvaE8FGUlB6h24jN+P+NBz/P5x4On9sk4n5UapUAPq4fr0y1AgUe4sXmItp7r2NMe3rhZYLE1teP9T9sVbg=='))" />
+      <_ProgramKitCs1701CompatibilityReference
+        Include="@(ReferencePathWithRefAssemblies)"
+        Condition="('%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Extensions.CodeCoverage' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.Testing.Extensions.CodeCoverage' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '18.9.0' and
+                    '%(ReferencePathWithRefAssemblies.PathInPackage)' == 'lib/net8.0/Microsoft.Testing.Extensions.CodeCoverage.dll' and
+                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'Microsoft.Testing.Extensions.CodeCoverage, Version=18.9.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a') or
+                   ('%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Extensions.MSBuild' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.Testing.Platform.MSBuild' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '2.3.2' and
+                    '%(ReferencePathWithRefAssemblies.PathInPackage)' == 'lib/net9.0/Microsoft.Testing.Extensions.MSBuild.dll' and
+                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'Microsoft.Testing.Extensions.MSBuild, Version=2.3.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a') or
+                   ('%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Extensions.Telemetry' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.Testing.Extensions.Telemetry' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '2.3.2' and
+                    '%(ReferencePathWithRefAssemblies.PathInPackage)' == 'lib/net9.0/Microsoft.Testing.Extensions.Telemetry.dll' and
+                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'Microsoft.Testing.Extensions.Telemetry, Version=2.3.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a') or
+                   ('%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Extensions.TrxReport' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.Testing.Extensions.TrxReport' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '2.3.2' and
+                    '%(ReferencePathWithRefAssemblies.PathInPackage)' == 'lib/net9.0/Microsoft.Testing.Extensions.TrxReport.dll' and
+                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'Microsoft.Testing.Extensions.TrxReport, Version=2.3.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a') or
+                   ('%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Platform' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.Testing.Platform' and
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '2.3.2' and
+                    '%(ReferencePathWithRefAssemblies.PathInPackage)' == 'lib/net9.0/Microsoft.Testing.Platform.dll' and
+                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'Microsoft.Testing.Platform, Version=2.3.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a')" />
+      <_ProgramKitCs1701CompatibilitySystemRuntimeReference
+        Include="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime' and
+                   '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'Microsoft.NETCore.App.Ref' and
+                   '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '10.0.10' and
+                   '%(ReferencePathWithRefAssemblies.FusionName)' == 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'" />
+      <_ProgramKitCs1701TUnitNet10Reference
+        Include="@(ReferencePathWithRefAssemblies)"
+        Condition="('%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'TUnit' or
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'TUnit.Assertions' or
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'TUnit.Core' or
+                    '%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'TUnit.Engine') and
+                   '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '1.60.0' and
+                   $([System.String]::Copy('%(ReferencePathWithRefAssemblies.PathInPackage)').StartsWith('lib/net10.0/', System.StringComparison.Ordinal))" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll')" />
+      <_ProgramKitCs1701AvailableNet10Asset
+        Include="$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll"
+        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll')" />
+    </ItemGroup>
+    <Error Condition="'$(_ProgramKitCs1701CompatibilityKind)' == 'TUnit' and
+                      ('$(_ProgramKitCs1701CompatibilityPreCompilerLockHash)' == '' or
+                       '@(_ProgramKitCs1701CompatibilityPackageContentHashLine->Count())' != '14' or
+                       '@(_ProgramKitCs1701CompatibilityReference->Count())' != '5' or
+                       '@(_ProgramKitCs1701CompatibilitySystemRuntimeReference->Count())' != '1' or
+                       '@(_ProgramKitCs1701TUnitNet10Reference->Count())' != '4' or
+                       '@(_ProgramKitCs1701AvailableNet10Asset)' != '')"
+           Code="PKCS174"
+           Text="The TUnit CS1701 quarantine self-invalidated: its fourteen compatibility-sensitive package hashes, four net10.0 framework assets, five lower-target warning-producing support assemblies, net10.0 System.Runtime reference, or replacement-asset availability changed. Observed lock=$(_ProgramKitCs1701CompatibilityPreCompilerLockHash), package hashes=@(_ProgramKitCs1701CompatibilityPackageContentHashLine->Count()), assemblies=@(_ProgramKitCs1701CompatibilityReference->Count()), TUnit net10 assets=@(_ProgramKitCs1701TUnitNet10Reference->Count()), runtime=@(_ProgramKitCs1701CompatibilitySystemRuntimeReference->Count()), replacement assets=@(_ProgramKitCs1701AvailableNet10Asset)." />
     <ItemGroup Condition="'$(_ProgramKitCs1701CompatibilityKind)' == 'Cronos'">
       <_ProgramKitCs1701CompatibilityPackageContentHashLine
         Include="@(_ProgramKitCs1701CompatibilityLockFileLine)"
@@ -1452,9 +1609,9 @@
                       '@(_ProgramKitMissingCompilerAnalyzerConfig)' != '' or
                       '@(_ProgramKitUnexpectedCompilerAnalyzerConfig)' != '' or
                       '@(_ProgramKitCompilerSdkAnalyzerConfig->Count())' != '1' or
-                      ($([System.String]::Copy('$(MSBuildProjectName)').EndsWith('Tests', System.StringComparison.Ordinal)) and
+                      ('$(_ProgramKitLegacyMSTestProject)' == 'true' and
                        '@(_ProgramKitCompilerMSTestAnalyzerConfig->Count())' != '1') or
-                      (!$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('Tests', System.StringComparison.Ordinal)) and
+                      ('$(_ProgramKitLegacyMSTestProject)' != 'true' and
                        '@(_ProgramKitCompilerMSTestAnalyzerConfig)' != '')"
            Code="PKCS164"
            Text="The additional files and analyzer configurations passed to C# must exactly match the validated sets. Missing additional @(_ProgramKitMissingCompilerAdditionalFile->'%(NormalizedPath)'); unexpected additional @(_ProgramKitUnexpectedCompilerAdditionalFile->'%(NormalizedPath)'); missing configuration @(_ProgramKitMissingCompilerAnalyzerConfig->'%(NormalizedPath)'); unexpected configuration @(_ProgramKitUnexpectedCompilerAnalyzerConfig->'%(NormalizedPath)')." />

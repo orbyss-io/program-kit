@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>ObservatoryScheduling.Constraints.DarknessWindow</PackageId>
+    <RootNamespace>ObservatoryScheduling.Constraints.DarknessWindow</RootNamespace>
+    <Version>0.1.0-fixture.1</Version>
+    <PackageVersion>0.1.0-fixture.1</PackageVersion>
+    <Description>Fictional darkness-window constraint used only by the Program Kit vertical proof.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ObservatoryScheduling.Core\ObservatoryScheduling.Core.csproj" />
+    <PackageReference Include="CShells.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

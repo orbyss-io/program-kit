@@ -1,0 +1,58 @@
+{
+  "identity": "pkid:design:fixture:observatory-scheduling",
+  "version": "2.0.0",
+  "domain": "observatory-scheduling",
+  "features": [
+    {
+      "id": "first-available",
+      "owns": ["selection middleware", "scheduler", "task handler", "task and schedule registrations"]
+    },
+    {
+      "id": "static-visibility",
+      "owns": ["fictional visibility forecast"]
+    },
+    {
+      "id": "darkness-window",
+      "owns": ["fictional observing constraint"]
+    },
+    {
+      "id": "scheduling-api",
+      "owns": ["POST /viewing-sessions endpoint mapping"],
+      "serviceRegistrations": []
+    }
+  ],
+  "hosts": [
+    {
+      "id": "observatory-api",
+      "kind": "api",
+      "taskActivationShell": "observatory-api",
+      "health": ["/health/ready", "/health/live"]
+    },
+    {
+      "id": "observatory-console",
+      "kind": "console",
+      "taskActivationShell": "observatory-console",
+      "health": ["/health/ready"]
+    },
+    {
+      "id": "observatory-worker",
+      "kind": "worker",
+      "taskActivationShell": "observatory-worker",
+      "health": ["/health/ready"]
+    }
+  ],
+  "serialization": {
+    "profile": "pkid:profile:fixture:observatory-json-v2@2.0.0",
+    "contributions": ["observatory-window-converter", "observatory-model-context"],
+    "domContracts": false
+  },
+  "taskLifecycle": [
+    "definition",
+    "request",
+    "instance",
+    "attempt",
+    "activation-binding",
+    "schedule-definition",
+    "occurrence"
+  ]
+}

@@ -62,6 +62,45 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="ChangeTUnitCs1701CompatibilityRuntimeIdentity"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'ObservatoryScheduling.Tests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongTUnitRuntimeIdentity'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime'">
+        <FusionName>System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</FusionName>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeTUnitCs1701CompatibilityReference"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'ObservatoryScheduling.Tests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongTUnitReference'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Platform'">
+        <NuGetPackageVersion>2.3.1</NuGetPackageVersion>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeTUnitNet10FrameworkAsset"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'ObservatoryScheduling.Tests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongTUnitFrameworkAsset'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'TUnit.Engine'">
+        <PathInPackage>lib/net9.0/TUnit.Engine.dll</PathInPackage>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
   <Target Name="ForgeCs1701CompatibilityApprovalForWrongProject"
           DependsOnTargets="PrepareProgramKitCompilerInvocation"
           BeforeTargets="CoreCompile"

@@ -32,6 +32,19 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Workbench",
     ];
 
+    private static readonly ImmutableArray<string> ObservatoryFixtureProjectNames =
+    [
+        "ObservatoryScheduling.Api",
+        "ObservatoryScheduling.Console",
+        "ObservatoryScheduling.Constraints.DarknessWindow",
+        "ObservatoryScheduling.Core",
+        "ObservatoryScheduling.Scheduling.Api",
+        "ObservatoryScheduling.Scheduling.FirstAvailable",
+        "ObservatoryScheduling.Tests",
+        "ObservatoryScheduling.Visibility.Static",
+        "ObservatoryScheduling.Worker",
+    ];
+
     [TestMethod]
     public void GlobalJsonPinsTheApprovedSdkWithoutFallback()
     {
@@ -54,7 +67,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W050");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W060");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -154,6 +167,7 @@ public sealed class BuildSpineConformanceTests
             ["CShells"] = "[0.0.28]",
             ["CShells.AspNetCore"] = "[0.0.28]",
             ["Cronos"] = "[0.13.0]",
+            ["TUnit"] = "[1.60.0]",
         };
 
         Assert.AreSequenceEqual(
@@ -183,7 +197,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void SolutionContainsTheApprovedW050PackagesTwoTestProjectsAndTheCSharpGate()
+    public void SolutionContainsTheApprovedW060PackagesFixtureTestsAndCSharpGate()
     {
         var solution = ConformanceInputs.Read("ProgramKit.sln");
         var projectLines = solution
@@ -192,7 +206,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(20, projectLines);
+        Assert.HasCount(29, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -201,13 +215,24 @@ public sealed class BuildSpineConformanceTests
                     StringComparison.Ordinal)));
         }
 
+        foreach (var fixtureProjectName in ObservatoryFixtureProjectNames)
+        {
+            Assert.ContainsSingle(
+                projectLines.Where(line => line.Contains(
+                    $"\"{fixtureProjectName}\"",
+                    StringComparison.Ordinal)));
+        }
+
         Assert.HasCount(
-            2,
+            3,
             projectLines.Where(line => line.Contains(
                 "Orbyss.ProgramKit.UnitTests",
                 StringComparison.Ordinal)
                 || line.Contains(
                     "Orbyss.ProgramKit.ConformanceTests",
+                    StringComparison.Ordinal)
+                || line.Contains(
+                    "ObservatoryScheduling.Tests",
                     StringComparison.Ordinal)));
         Assert.ContainsSingle(
             projectLines.Where(line => line.Contains(

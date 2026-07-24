@@ -1,0 +1,23 @@
+{
+  "identity": "pkid:intent:fixture:observatory-scheduling",
+  "version": "2.0.0",
+  "statement": "Schedule the first observable target window through immediate, background, or bounded nightly work.",
+  "callerOutcomes": [
+    "An API caller receives one typed viewing session or stable typed diagnostics.",
+    "A console caller can describe the same request with explicit commands, arguments, options, streams, and exit codes.",
+    "A worker host can activate accepted task requests and a bounded UTC schedule."
+  ],
+  "constraints": [
+    "All projects target .NET 10.",
+    "Features implement direct CShells contracts.",
+    "JSON contracts use System.Text.Json with explicit typed metadata and converters.",
+    "Health exposure is loopback-only in this fixture.",
+    "A pending v1 task never runs against a v2 handler."
+  ],
+  "nonGoals": [
+    "Production astronomy accuracy.",
+    "Distributed task durability.",
+    "Package-feed publication.",
+    "Deployment."
+  ]
+}

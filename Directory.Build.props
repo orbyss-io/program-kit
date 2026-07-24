@@ -11,7 +11,7 @@
 
     <ProgramKitTargetProfileId>pkid:profile:program-kit:dotnet-10</ProgramKitTargetProfileId>
     <ProgramKitTargetProfileVersion>1.0.0</ProgramKitTargetProfileVersion>
-    <ProgramKitCurrentWorkUnit>PK-W050</ProgramKitCurrentWorkUnit>
+    <ProgramKitCurrentWorkUnit>PK-W060</ProgramKitCurrentWorkUnit>
     <ProgramKitSdkVersion>10.0.302</ProgramKitSdkVersion>
     <ProgramKitSdkRollForward>disable</ProgramKitSdkRollForward>
     <ProgramKitAllowPrereleaseSdk>false</ProgramKitAllowPrereleaseSdk>
@@ -67,7 +67,9 @@
     <ProgramKitGeneratedSourceRoot>ProgramKitGenerated</ProgramKitGeneratedSourceRoot>
     <ProgramKitCSharpGateProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tools\Orbyss.ProgramKit.CSharpGate\Orbyss.ProgramKit.CSharpGate.csproj'))</ProgramKitCSharpGateProjectPath>
     <ProgramKitWarningApprovalLedgerPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)governance\approved-warning-suppressions.tsv'))</ProgramKitWarningApprovalLedgerPath>
-    <MSTestAnalysisMode Condition="$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('Tests', System.StringComparison.Ordinal))">All</MSTestAnalysisMode>
+    <MSTestAnalysisMode
+      Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' or
+                 '$(MSBuildProjectName)' == 'Orbyss.ProgramKit.ConformanceTests'">All</MSTestAnalysisMode>
 
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>

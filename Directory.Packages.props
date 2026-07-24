@@ -16,5 +16,6 @@
     <PackageVersion Include="CShells" Version="[0.0.28]" />
     <PackageVersion Include="CShells.AspNetCore" Version="[0.0.28]" />
     <PackageVersion Include="Cronos" Version="[0.13.0]" />
+    <PackageVersion Include="TUnit" Version="[1.60.0]" />
   </ItemGroup>
 </Project>

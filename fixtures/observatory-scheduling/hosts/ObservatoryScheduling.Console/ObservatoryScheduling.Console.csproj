@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>ObservatoryScheduling.Console</RootNamespace>
+    <AssemblyName>ObservatoryScheduling.Console</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Core\ObservatoryScheduling.Core.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Scheduling.FirstAvailable\ObservatoryScheduling.Scheduling.FirstAvailable.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Visibility.Static\ObservatoryScheduling.Visibility.Static.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Constraints.DarknessWindow\ObservatoryScheduling.Constraints.DarknessWindow.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Modularity.InProcess\Orbyss.ProgramKit.Modularity.InProcess.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Tasks.Hosting\Orbyss.ProgramKit.Tasks.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Tasks.InProcess\Orbyss.ProgramKit.Tasks.InProcess.csproj" />
+    <PackageReference Include="CShells.AspNetCore" />
+    <PackageReference Include="Microsoft.Extensions.Options" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

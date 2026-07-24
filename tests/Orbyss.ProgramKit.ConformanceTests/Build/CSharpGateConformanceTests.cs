@@ -724,7 +724,7 @@ public sealed class CSharpGateConformanceTests
         var tamperingTargets = GetCs1701CompatibilityTamperingTargetsPath();
         foreach (var mutation in new[]
                  {
-                      "WrongRuntimeIdentity",
+                     "WrongRuntimeIdentity",
                      "WrongPackageVersion",
                      "RawLowerTargetReference",
                  })
@@ -775,6 +775,32 @@ public sealed class CSharpGateConformanceTests
         {
             var result = await BuildProjectAsync(
                 cronosProject,
+                "--no-restore",
+                "--no-incremental",
+                $"--property:CustomAfterMicrosoftCommonTargets={tamperingTargets}",
+                $"--property:Cs1701CompatibilityMutation={mutation}");
+            Assert.AreNotEqual(
+                0,
+                result.ExitCode,
+                $"{mutation} unexpectedly passed.{Environment.NewLine}{result.Output}");
+            Assert.Contains("PKCS174", result.Output);
+        }
+
+        var tUnitProject = GetObservatoryTestProjectPath();
+        var validTUnit = await BuildProjectAsync(
+            tUnitProject,
+            "--no-restore",
+            "--no-incremental");
+        Assert.AreEqual(0, validTUnit.ExitCode, validTUnit.Output);
+        foreach (var mutation in new[]
+                 {
+                     "WrongTUnitRuntimeIdentity",
+                     "WrongTUnitReference",
+                     "WrongTUnitFrameworkAsset",
+                 })
+        {
+            var result = await BuildProjectAsync(
+                tUnitProject,
                 "--no-restore",
                 "--no-incremental",
                 $"--property:CustomAfterMicrosoftCommonTargets={tamperingTargets}",
@@ -1389,6 +1415,16 @@ public sealed class CSharpGateConformanceTests
             "src",
             "Orbyss.ProgramKit.Tasks.Schedules.Cronos",
             "Orbyss.ProgramKit.Tasks.Schedules.Cronos.csproj");
+
+    private static string GetObservatoryTestProjectPath() =>
+        Path.Combine(
+            ConformanceInputs.RepositoryRoot,
+            "program-kit",
+            "fixtures",
+            "observatory-scheduling",
+            "tests",
+            "ObservatoryScheduling.Tests",
+            "ObservatoryScheduling.Tests.csproj");
 
     private static string GetSolutionPath() =>
         Path.Combine(

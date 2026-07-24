@@ -3519,6 +3519,14 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             components[3] == "system-runtime:10.0.0.0" &&
             components[4] == "net10-assets:absent" &&
             components[5] == "review-on:test-toolchain-change";
+        var isTUnit = components.Length == 7 &&
+            components[0] == "tunit:1.60.0" &&
+            components[1] == "closure:cs1701-tunit-1.60.0-v1" &&
+            components[2] == "assembly-set:cs1701-tunit-1.60.0-v1" &&
+            components[3] == "system-runtime:10.0.0.0" &&
+            components[4] == "net10-framework-assets:present" &&
+            components[5] == "net10-supporting-assets:absent" &&
+            components[6] == "review-on:test-toolchain-change";
         var isCronos = components.Length == 6 &&
             components[0] == "cronos:0.13.0" &&
             components[1] == "asset:lib/net6.0/Cronos.dll" &&
@@ -3527,7 +3535,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             components[3] == "system-runtime:10.0.0.0" &&
             components[4] == "net10-assets:absent" &&
             components[5] == "review-on:provider-change";
-        return isMstest || isCronos;
+        return isMstest || isTUnit || isCronos;
     }
 
     private static bool IsValidPragmaRangeTarget(string target)
