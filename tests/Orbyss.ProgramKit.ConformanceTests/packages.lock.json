@@ -176,6 +176,18 @@
           "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.tasks.core": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
+      "Orbyss.ProgramKit.TasksCoreDomainConsumerFixture": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.1, )"
+        }
+      },
       "Orbyss.ProgramKit.UniversalContractConsumerFixture": {
         "type": "Project",
         "dependencies": {

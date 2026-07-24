@@ -61,6 +61,15 @@ public sealed class SchemaModelConformanceTests
             "development/development-routing-result.schema.json"),
         Root<DevelopmentReceipt>(
             "development/development-receipt.schema.json"),
+        Root<TaskDefinition>("tasks/task-definition.schema.json"),
+        Root<TaskRequest<string>>("tasks/task-request.schema.json"),
+        Root<TaskInstance>("tasks/task-instance.schema.json"),
+        Root<TaskAttempt>("tasks/task-attempt.schema.json"),
+        Root<TaskActivationBinding>(
+            "tasks/task-activation-binding.schema.json"),
+        Root<TaskScheduleDefinition>(
+            "tasks/task-schedule-definition.schema.json"),
+        Root<TaskOccurrence>("tasks/task-occurrence.schema.json"),
     ];
 
     [TestMethod]

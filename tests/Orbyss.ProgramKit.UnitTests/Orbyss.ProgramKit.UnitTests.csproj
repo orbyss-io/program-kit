@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity\Orbyss.ProgramKit.Modularity.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity.InProcess\Orbyss.ProgramKit.Modularity.InProcess.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Tasks.Core\Orbyss.ProgramKit.Tasks.Core.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
   </ItemGroup>
 </Project>

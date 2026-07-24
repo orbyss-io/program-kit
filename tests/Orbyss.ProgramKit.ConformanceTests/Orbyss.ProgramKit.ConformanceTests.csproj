@@ -16,7 +16,9 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity\Orbyss.ProgramKit.Modularity.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity.InProcess\Orbyss.ProgramKit.Modularity.InProcess.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Tasks.Core\Orbyss.ProgramKit.Tasks.Core.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
+    <ProjectReference Include="Fixtures\TasksCoreDomainConsumer\TasksCoreDomainConsumer.csproj" />
     <ProjectReference Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +60,12 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\UniversalContractConsumer\Consumers\UniversalContractConsumer.cs"
           Link="ConformanceInputs/UniversalContractConsumer/Consumers/UniversalContractConsumer.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\TasksCoreDomainConsumer\TasksCoreDomainConsumer.csproj"
+          Link="ConformanceInputs/TasksCoreDomainConsumer/TasksCoreDomainConsumer.csproj"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\TasksCoreDomainConsumer\Contracts\*.cs"
+          Link="ConformanceInputs/TasksCoreDomainConsumer/Contracts/%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\**\*.csproj"
           Link="ConformanceInputs/Projects/%(RecursiveDir)%(Filename)%(Extension)"

@@ -3817,6 +3817,22 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Schemas",
                 "Serialization",
             ],
+            "Orbyss.ProgramKit.Tasks.Core" =>
+            [
+                "Attempts",
+                "Bindings",
+                "Cancellation",
+                "Definitions",
+                "Diagnostics",
+                "Dispatching",
+                "Execution",
+                "Instances",
+                "Requests",
+                "Results",
+                "Schedules",
+                "Schemas",
+                "Validation",
+            ],
             "Orbyss.ProgramKit.UnitTests" =>
             [
                 "Architecture",
@@ -3826,6 +3842,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Planning",
                 "Quality",
                 "Serialization",
+                "Tasks",
                 "TestSupport",
                 "Workbench",
             ],
@@ -3840,6 +3857,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Modularity",
                 "Schemas",
                 "Serialization",
+                "Tasks",
                 "Targeting",
             ],
             "CSharpGateProbe" =>
@@ -3945,6 +3963,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             "Modularity" => "Orbyss.ProgramKit.Modularity",
             "Planning" => "Orbyss.ProgramKit.Planning",
             "Quality" => "Orbyss.ProgramKit.Quality",
+            "Tasks" => "Orbyss.ProgramKit.Tasks.Core",
             "Workbench" => "Orbyss.ProgramKit.Workbench",
             _ => null,
         };

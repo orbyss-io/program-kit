@@ -19,6 +19,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Planning",
         "Orbyss.ProgramKit.Quality",
         "Orbyss.ProgramKit.Serialization.JSON",
+        "Orbyss.ProgramKit.Tasks.Core",
         "Orbyss.ProgramKit.Workbench",
     ];
 
@@ -44,7 +45,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W020");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W025");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -173,7 +174,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void SolutionContainsTheApprovedW020PackagesTwoTestProjectsAndTheCSharpGate()
+    public void SolutionContainsTheApprovedW025PackagesTwoTestProjectsAndTheCSharpGate()
     {
         var solution = ConformanceInputs.Read("ProgramKit.sln");
         var projectLines = solution
@@ -182,7 +183,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(12, projectLines);
+        Assert.HasCount(13, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -210,7 +211,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(9, projectFiles);
+        Assert.HasCount(10, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -250,7 +251,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(12, projectFiles);
+        Assert.HasCount(13, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -316,6 +317,8 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Modularity"],
                 ["Orbyss.ProgramKit.Serialization.JSON"] =
                 ["Orbyss.ProgramKit.Artifacts"],
+                ["Orbyss.ProgramKit.Tasks.Core"] =
+                ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Workbench"] =
                 [
                     "Orbyss.ProgramKit.Artifacts",
@@ -338,6 +341,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Modularity.InProcess"] = [],
                 ["Orbyss.ProgramKit.Serialization.JSON"] =
                 ["Microsoft.Extensions.DependencyInjection.Abstractions"],
+                ["Orbyss.ProgramKit.Tasks.Core"] = [],
                 ["Orbyss.ProgramKit.Workbench"] = ["JsonSchema.Net"],
             };
 
@@ -402,6 +406,8 @@ public sealed class BuildSpineConformanceTests
                     "Orbyss.ProgramKit.Modularity",
                 ],
             ["Orbyss.ProgramKit.Serialization.JSON"] =
+                ["Orbyss.ProgramKit.Artifacts"],
+            ["Orbyss.ProgramKit.Tasks.Core"] =
                 ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Workbench"] =
                 [

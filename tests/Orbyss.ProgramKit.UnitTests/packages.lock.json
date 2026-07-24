@@ -176,6 +176,12 @@
           "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.tasks.core": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.workbench": {
         "type": "Project",
         "dependencies": {
