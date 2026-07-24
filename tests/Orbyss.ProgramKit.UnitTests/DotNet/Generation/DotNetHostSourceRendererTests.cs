@@ -33,9 +33,13 @@ public sealed class DotNetHostSourceRendererTests
                 : null;
             var outputs = sut.Render(host, hostLock, shell.Features, console);
             var project = Text(outputs, "GeneratedHost.csproj");
+            var buildTargets = Text(outputs, "Directory.Build.targets");
+            var packagePolicy = Text(outputs, "Directory.Packages.props");
             var program = Text(outputs, "ProgramKitGenerated/Composition/Program.cs");
 
             Assert.Contains("Version=\"[0.0.28]\"", project);
+            Assert.AreEqual("<Project />", buildTargets.Trim());
+            Assert.AreEqual("<Project />", packagePolicy.Trim());
             Assert.Contains("typeof(global::Fixtures.SampleFeature)", program);
             Assert.IsFalse(project.Contains("Orbyss.ProgramKit.DotNet", StringComparison.Ordinal));
             Assert.IsFalse(project.Contains("Orbyss.ProgramKit.Workbench", StringComparison.Ordinal));

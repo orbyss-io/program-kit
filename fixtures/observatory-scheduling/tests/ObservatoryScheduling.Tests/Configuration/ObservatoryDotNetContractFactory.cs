@@ -68,8 +68,8 @@ internal static class ObservatoryDotNetContractFactory
         return new DotNetShellDocument(
             "pkid:schema:program-kit:dotnet-shell@1.0.0",
             new SemanticVersion("1.0.0"),
-            Ref("version-map", "observatory-v2"),
-            Ref("version-selection", "observatory-v2"),
+            VersionMapInputRevision(),
+            VersionSelectionInputRevision(),
             new DotNetShellComposition(
                 "cshells",
                 new SemanticVersion("0.0.28"),
@@ -338,7 +338,25 @@ internal static class ObservatoryDotNetContractFactory
     }
 
     internal static ArtifactReference ShellRevision() =>
-        Ref("shell", "observatory-scheduling-v2");
+        new(
+            Id("shell", "observatory-scheduling-v2"),
+            new SemanticVersion("2.0.0"),
+            new Sha256Digest(
+                "sha256:87e700b361625e78730e77f0287cd31d4da8645bd071af50981773553b3b6893"));
+
+    internal static ArtifactReference VersionMapInputRevision() =>
+        new(
+            Id("version-map", "observatory-v2-input"),
+            new SemanticVersion("2.0.0"),
+            new Sha256Digest(
+                "sha256:d0c3e2caaf4322a861c4f3859435f60eef250286a5dc960ceafbd99b7ed3e40c"));
+
+    internal static ArtifactReference VersionSelectionInputRevision() =>
+        new(
+            Id("version-selection", "observatory-v2-input"),
+            new SemanticVersion("2.0.0"),
+            new Sha256Digest(
+                "sha256:f9df715f82efdfbbdfc692c1aefeff7b2a1a9c9292b522ea6dc9c34d9dbc2612"));
 
     internal static ArtifactReference Ref(string kind, string name) =>
         ObservatoryRevisions.Reference(
@@ -530,7 +548,15 @@ internal static class ObservatoryDotNetContractFactory
             new SemanticVersion(version),
             ObservatoryRevisions.Reference(
                 string.Concat(
-                    "pkid:package:fixture:",
+                    id.StartsWith(
+                        "Orbyss.ProgramKit.",
+                        StringComparison.Ordinal)
+                        ? "pkid:package:program-kit:"
+                        : id.StartsWith(
+                            "ObservatoryScheduling.",
+                            StringComparison.Ordinal)
+                            ? "pkid:package:fixture:"
+                            : "pkid:package:external:",
                     id.Replace('.', '-').ToLowerInvariant()),
                 version).Digest);
 

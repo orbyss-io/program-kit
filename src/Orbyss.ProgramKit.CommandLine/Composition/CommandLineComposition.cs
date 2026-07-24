@@ -1,6 +1,7 @@
 using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.Schemas;
 using Orbyss.ProgramKit.Artifacts.Validation;
+using Orbyss.ProgramKit.Artifacts.Versioning;
 using Orbyss.ProgramKit.Architecture.Schemas;
 using Orbyss.ProgramKit.CommandLine.Commands.Parsing;
 using Orbyss.ProgramKit.CommandLine.Contracts.Descriptors;
@@ -10,6 +11,9 @@ using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet;
+using Orbyss.ProgramKit.CommandLine.Operations.Packages;
+using Orbyss.ProgramKit.CommandLine.Operations.Processes;
+using Orbyss.ProgramKit.CommandLine.Operations.Publishing;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
 using Orbyss.ProgramKit.CommandLine.Operations.Validation;
 using Orbyss.ProgramKit.Development.Schemas;
@@ -59,6 +63,8 @@ public static class CommandLineComposition
                 CommandDiagnosticJsonContext.Default));
         DotNetJsonProfileRegistration dotNetJson = new();
         dotNetJson.Register(jsonBuilder);
+        LocalOperationsJsonProfileRegistration localOperationsJson = new();
+        localOperationsJson.Register(jsonBuilder);
         var canonicalizer = new ProgramKitJsonCanonicalizer();
         var serializer = new ProgramKitJsonSerializer(
             jsonBuilder.Freeze(),
@@ -77,6 +83,7 @@ public static class CommandLineComposition
         IProgramKitJsonSerializer serializer)
     {
         ICommandFileSystem fileSystem = new CommandFileSystem();
+        CommandProcessRunner processRunner = new();
         ICommandSchemaSelector schemaSelector = new CommandSchemaSelector(
             new ArtifactsSchemaModule(),
             new ArchitectureSchemaModule(),
@@ -94,9 +101,10 @@ public static class CommandLineComposition
             new ArtifactReferenceValidator());
         IDotNetShellLockBuilder lockBuilder =
             new DotNetShellLockBuilder(shellValidator);
+        DotNetHostLockSelector hostLockSelector = new();
         var coordinator = new DotNetHostGenerationCoordinator(
             shellValidator,
-            new DotNetHostLockSelector(),
+            hostLockSelector,
             new DotNetHostSourceRenderer(),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
@@ -116,14 +124,38 @@ public static class CommandLineComposition
             new WorkbenchGenerationService<DotNetHostGenerationInput>(
                 new WorkerHostGenerator(coordinator),
                 outputWorkspace);
-        ICommandOperation dotNetGeneration = new DotNetGenerateHostCommandOperation(
+        DotNetHostGenerationCommandService hostGeneration = new(
             fileSystem,
             serializer,
             new FileSystemDotNetArtifactInputResolver(),
             lockBuilder,
+            hostLockSelector,
             apiGeneration,
             consoleGeneration,
             workerGeneration);
+        ICommandOperation dotNetGeneration =
+            new DotNetGenerateHostCommandOperation(hostGeneration);
+        IArtifactEnvelopeValidator artifactEnvelopeValidator =
+            new DefaultArtifactEnvelopeValidator();
+        LocalPackagePreparationService packagePreparation = new(
+            fileSystem,
+            processRunner,
+            new PackageArchiveInspector(),
+            serializer,
+            new VersionMapDocumentValidator(artifactEnvelopeValidator),
+            new VersionSelectionDocumentValidator(artifactEnvelopeValidator));
+        ICommandOperation packagePreparationOperation =
+            new PrepareLocalPackagesCommandOperation(packagePreparation);
+        LocalApplicationPublisher localPublisher = new(
+            fileSystem,
+            processRunner,
+            hostGeneration,
+            new LocalPackageRootVerifier(fileSystem, serializer),
+            new NuGetSourceConfigurationWriter(),
+            new NuGetLockVerifier(serializer),
+            serializer);
+        ICommandOperation localPublishOperation =
+            new PublishLocalApplicationCommandOperation(localPublisher);
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {
@@ -140,6 +172,8 @@ public static class CommandLineComposition
                     fileSystem,
                     canonicalizer),
                 "dotnet.generate-host" => dotNetGeneration,
+                "packages.prepare-local" => packagePreparationOperation,
+                "dotnet.publish-local" => localPublishOperation,
                 _ => new UnavailableCommandOperation(
                     descriptor.Key,
                     BackingWorkUnit(descriptor.Key)),

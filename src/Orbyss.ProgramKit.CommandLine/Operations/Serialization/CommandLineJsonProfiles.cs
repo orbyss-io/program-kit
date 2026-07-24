@@ -29,4 +29,30 @@ public static class CommandLineJsonProfiles
                 DisallowReferencePreservation: true,
                 RequireNfcStrings: true),
             JsonSerializationLimits.Default);
+
+    /// <summary>
+    /// Gets the fixed profile for workspace-package, package-root, and local-publish manifests.
+    /// </summary>
+    public static JsonSerializationProfile LocalOperations { get; } =
+        new(
+            new JsonSerializationProfileRef(
+                new ProgramKitIdentifier(
+                    "pkid:profile:program-kit:json-local-operations"),
+                new SemanticVersion("1.0.0"),
+                new Sha256Digest(
+                    "sha256:a467fa50254b61031d95f671ad08d9e74101a856118826489a2c51dfe90525ce")),
+            ProgramKitJsonProfiles.CanonicalJsonRfc8785,
+            JsonProfileExtensibility.None,
+            new JsonSerializationRules(
+                SourceGeneratedMetadataOnly: true,
+                SchemaDeclaredPropertyNames: true,
+                CaseSensitiveReads: true,
+                DisallowComments: true,
+                DisallowTrailingCommas: true,
+                DisallowUnmappedMembers: true,
+                WriteNullProperties: true,
+                StrictNumbers: true,
+                DisallowReferencePreservation: true,
+                RequireNfcStrings: true),
+            JsonSerializationLimits.Default);
 }

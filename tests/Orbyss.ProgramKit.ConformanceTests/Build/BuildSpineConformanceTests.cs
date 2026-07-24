@@ -67,7 +67,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W060");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W065");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");

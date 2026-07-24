@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ProgramKit.IsolatedConsumers.DotNet</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Orbyss.ProgramKit.DotNet" Version="[0.1.0-alpha.1]" />
+  </ItemGroup>
+</Project>

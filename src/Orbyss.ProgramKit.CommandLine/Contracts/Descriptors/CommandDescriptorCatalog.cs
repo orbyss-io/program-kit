@@ -89,6 +89,27 @@ public static class CommandDescriptorCatalog
                 Diagnostics(),
             ]),
         Create(
+            "packages.prepare-local",
+            ["packages", "prepare-local"],
+            [],
+            [
+                new("workspace-manifest", true, true),
+                new("output", true, true),
+                Diagnostics(),
+            ]),
+        Create(
+            "dotnet.publish-local",
+            ["dotnet", "publish-local"],
+            [],
+            [
+                new("shell", true, true),
+                new("host", true, true),
+                new("artifact-manifest", true, true),
+                new("package-manifest", true, true),
+                new("output", true, true),
+                Diagnostics(),
+            ]),
+        Create(
             "capabilities.render-catalog",
             ["capabilities", "render-catalog"],
             [new("index", true, false)],

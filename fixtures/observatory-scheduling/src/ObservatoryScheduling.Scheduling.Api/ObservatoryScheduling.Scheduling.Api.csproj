@@ -4,6 +4,7 @@
     <RootNamespace>ObservatoryScheduling.Scheduling.Api</RootNamespace>
     <Version>0.1.0-fixture.1</Version>
     <PackageVersion>0.1.0-fixture.1</PackageVersion>
+    <ProgramKitPackageRole>fixture</ProgramKitPackageRole>
     <Description>Fictional API endpoint feature used only by the Program Kit vertical proof.</Description>
   </PropertyGroup>
   <ItemGroup>

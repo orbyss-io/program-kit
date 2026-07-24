@@ -23,6 +23,8 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         var outputs = ImmutableArray.CreateBuilder<GeneratedOutput>();
         outputs.Add(new GeneratedOutput("global.json", DotNetSourceText.Utf8(RenderGlobalJson())));
         outputs.Add(new GeneratedOutput("Directory.Build.props", DotNetSourceText.Utf8(RenderBuildPolicy())));
+        outputs.Add(new GeneratedOutput("Directory.Build.targets", DotNetSourceText.Utf8(RenderBuildTargets())));
+        outputs.Add(new GeneratedOutput("Directory.Packages.props", DotNetSourceText.Utf8(RenderPackagePolicy())));
         outputs.Add(new GeneratedOutput("GeneratedHost.csproj", DotNetSourceText.Utf8(RenderProject(host, hostLock))));
         outputs.Add(new GeneratedOutput(
             "ProgramKitGenerated/Composition/Program.cs",
@@ -68,6 +70,16 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             <TargetFrameworks></TargetFrameworks>
           </PropertyGroup>
         </Project>
+        """;
+
+    private static string RenderBuildTargets() =>
+        """
+        <Project />
+        """;
+
+    private static string RenderPackagePolicy() =>
+        """
+        <Project />
         """;
 
     private static string RenderProject(

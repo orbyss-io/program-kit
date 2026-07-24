@@ -7,6 +7,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Deterministic scriptable command transport for Orbyss Program Kit operations.</Description>
     <StartupObject>Orbyss.ProgramKit.CommandLine.Hosting.ProgramKitTool</StartupObject>
+    <BaseOutputPath
+      Condition="'$(ProgramKitCommandLineSelfPack)' == 'true'">bin\ProgramKitSelfPack\</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
@@ -14,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
+    <EmbeddedResource Include="Operations\Serialization\Profiles\json-local-operations-1.0.0.json" />
   </ItemGroup>
 </Project>

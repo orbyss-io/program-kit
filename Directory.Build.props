@@ -11,7 +11,7 @@
 
     <ProgramKitTargetProfileId>pkid:profile:program-kit:dotnet-10</ProgramKitTargetProfileId>
     <ProgramKitTargetProfileVersion>1.0.0</ProgramKitTargetProfileVersion>
-    <ProgramKitCurrentWorkUnit>PK-W060</ProgramKitCurrentWorkUnit>
+    <ProgramKitCurrentWorkUnit>PK-W065</ProgramKitCurrentWorkUnit>
     <ProgramKitSdkVersion>10.0.302</ProgramKitSdkVersion>
     <ProgramKitSdkRollForward>disable</ProgramKitSdkRollForward>
     <ProgramKitAllowPrereleaseSdk>false</ProgramKitAllowPrereleaseSdk>
@@ -29,6 +29,7 @@
     <RepositoryUrl>https://github.com/orbyss-io/domain-semantic-engine</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <ProgramKitPackageRole>program-kit</ProgramKitPackageRole>
 
     <Deterministic>true</Deterministic>
     <DeterministicSourcePaths>true</DeterministicSourcePaths>

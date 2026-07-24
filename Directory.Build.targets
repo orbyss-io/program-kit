@@ -1937,9 +1937,18 @@
                       '$(SkipCompilerExecution)' == 'true'"
            Code="PKCS172"
            Text="Pack requires a producing compiler invocation; design-time and compiler-skipping modes are forbidden." />
-    <Error Condition="'$(PackageVersion)' != '0.1.0-alpha.1'"
+    <Error Condition="'$(ProgramKitPackageRole)' == 'program-kit' and
+                      '$(PackageVersion)' != '0.1.0-alpha.1'"
            Code="PKPUB001"
            Text="Baseline Program Kit packages must use exact version 0.1.0-alpha.1." />
+    <Error Condition="'$(ProgramKitPackageRole)' == 'fixture' and
+                      '$(PackageVersion)' != '0.1.0-fixture.1'"
+           Code="PKPUB002"
+           Text="Selected fixture packages must use exact version 0.1.0-fixture.1." />
+    <Error Condition="'$(ProgramKitPackageRole)' != 'program-kit' and
+                      '$(ProgramKitPackageRole)' != 'fixture'"
+           Code="PKPUB003"
+           Text="ProgramKitPackageRole must be exactly program-kit or fixture." />
   </Target>
 
   <Target Name="RequireProgramKitCurrentBuildForPackage"

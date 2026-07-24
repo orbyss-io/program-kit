@@ -65,4 +65,44 @@ public sealed class CommandParserTests
                 "manifest.json",
             ]));
     }
+
+    [TestMethod]
+    public void ParsesExplicitLocalPackageAndPublishCommands()
+    {
+        CommandParser sut = new(CommandDescriptorCatalog.All);
+
+        var packages = sut.Parse(
+        [
+            "packages",
+            "prepare-local",
+            "--workspace-manifest",
+            "workspace-packages.json",
+            "--output",
+            "packages",
+        ]);
+        var publish = sut.Parse(
+        [
+            "dotnet",
+            "publish-local",
+            "--shell",
+            "shell.json",
+            "--host",
+            "pkid:host:tests:api",
+            "--artifact-manifest",
+            "artifacts.json",
+            "--package-manifest",
+            "packages/local-package-root-manifest.json",
+            "--output",
+            "published",
+        ]);
+
+        Assert.AreEqual("packages.prepare-local", packages.Descriptor.Key);
+        Assert.AreEqual(
+            "workspace-packages.json",
+            packages.RequiredOption("workspace-manifest"));
+        Assert.AreEqual("dotnet.publish-local", publish.Descriptor.Key);
+        Assert.AreEqual(
+            "pkid:host:tests:api",
+            publish.RequiredOption("host"));
+    }
 }

@@ -652,12 +652,7 @@ and validation tests, not empty project shells.
 ### `PK-W060` Build the Observatory Scheduling vertical proof
 
 - **Depends on:** `PK-W030`, `PK-W040`, and `PK-W050`.
-- **Allowed edits:** `.gitignore`;
-  `program-kit/bootstrap/implementation-plan.md`;
-  `program-kit/ProgramKit.sln`;
-  `program-kit/Directory.Build.props`, `Directory.Build.targets`, and
-  `Directory.Packages.props`; the exact C# gate, warning-approval ledger, and
-  conformance fixtures required for the approved test-tooling quarantine;
+- **Allowed edits:** `program-kit/ProgramKit.sln`;
   `program-kit/fixtures/observatory-scheduling/`; fixture-specific tests and
   canonical fixture artifacts only.
 - **Projects:** `ObservatoryScheduling.Core`,
@@ -686,12 +681,6 @@ and validation tests, not empty project shells.
   runs silently against a newer handler.
 - **Boundary:** Observatory vocabulary/behavior stays below the fixture root and
   never enters universal sources, schemas, diagnostics, or capabilities.
-- **Test tooling:** new consumer proofs use exact TUnit `1.60.0`. Its TUnit
-  framework, assertions, core, and engine assets must be native `net10.0`.
-  The exact lower-target Microsoft Testing Platform support closure is a
-  human-approved, ledger-bound CS1701 quarantine that self-invalidates on
-  package, hash, assembly-identity, runtime-identity, or asset-availability
-  drift; it is not permission for lower-target application dependencies.
 - **Observation:** API, Console, and Worker validate/build/test and their
   declared generated outputs repeat byte-for-byte.
 

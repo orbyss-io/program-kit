@@ -61,6 +61,45 @@ public sealed class MigrationTests
             policy.TargetTaskDefinition.Identity);
     }
 
+    [Test]
+    public void PackagePublishExtensionRerunsTheCompleteMigrationClosure()
+    {
+        var request =
+            ObservatoryMigrationFixture.CreatePackagePublishAssessmentRequest();
+        var result = CreateEngine().Assess(request);
+
+        FixtureAssert.IsValid(result.Validation);
+        FixtureAssert.IsNotNull(result.Value);
+        FixtureAssert.HasCount(28, result.Value!.Impacts);
+        FixtureAssert.HasCount(
+            6,
+            request.VersionMap.Nodes.Where(static node =>
+                node.Kind == VersionBoundaryKind.Package).ToArray());
+        FixtureAssert.HasCount(
+            5,
+            request.VersionMap.Nodes.Where(static node =>
+                node.Kind == VersionBoundaryKind.ExternalConsumer).ToArray());
+        FixtureAssert.HasCount(
+            3,
+            request.VersionMap.Nodes.Where(static node =>
+                node.Revision.Identity.Kind == "publish-profile").ToArray());
+        FixtureAssert.HasCount(
+            3,
+            request.VersionMap.Nodes.Where(static node =>
+                node.Revision.Identity.Kind == "publish-leaf").ToArray());
+        FixtureAssert.HasCount(
+            3,
+            request.VersionMap.Nodes.Where(static node =>
+                node.Revision.Identity.Kind == "local-publish-manifest")
+                .ToArray());
+        FixtureAssert.IsTrue(result.Value.Impacts.All(static impact =>
+            impact.Disposition ==
+            MigrationTerminalDisposition.CompatibleAfterActions));
+        FixtureAssert.IsTrue(result.Value.Impacts.All(static impact =>
+            !impact.RequiredActions.IsDefaultOrEmpty &&
+            !impact.RequiredEvidence.IsDefaultOrEmpty));
+    }
+
     private static MigrationAssessmentEngine CreateEngine()
     {
         IArtifactEnvelopeValidator envelopeValidator =
