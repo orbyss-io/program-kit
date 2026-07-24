@@ -15,7 +15,8 @@ public sealed class FileSystemDotNetArtifactInputResolverTests
         var manifest = new DotNetArtifactInputManifest(
             "pkid:schema:program-kit:dotnet-artifact-input-manifest@1.0.0",
             new SemanticVersion("1.0.0"),
-            [new DotNetArtifactInputEntry(revision, "../outside.json")]);
+            [new DotNetArtifactInputEntry(revision, "../outside.json")],
+            []);
         FileSystemDotNetArtifactInputResolver sut = new();
 
         var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(async () =>
@@ -36,7 +37,8 @@ public sealed class FileSystemDotNetArtifactInputResolverTests
         var manifest = new DotNetArtifactInputManifest(
             "pkid:schema:program-kit:dotnet-artifact-input-manifest@1.0.0",
             new SemanticVersion("1.0.0"),
-            [new DotNetArtifactInputEntry(listed, "listed.json")]);
+            [new DotNetArtifactInputEntry(listed, "listed.json")],
+            []);
         FileSystemDotNetArtifactInputResolver sut = new();
 
         var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(async () =>

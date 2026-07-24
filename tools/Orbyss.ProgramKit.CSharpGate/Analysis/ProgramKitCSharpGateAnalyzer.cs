@@ -3909,6 +3909,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             [
                 "Architecture",
                 "Artifacts",
+                "CommandLine",
                 "Development",
                 "DotNet",
                 "Modularity",
@@ -3923,6 +3924,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             [
                 "Artifacts",
                 "Build",
+                "CommandLine",
                 "Dependencies",
                 "Diagnostics",
                 "DotNet",
@@ -4104,6 +4106,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
         {
             "Architecture" => "Orbyss.ProgramKit.Architecture",
             "Artifacts" => "Orbyss.ProgramKit.Artifacts",
+            "CommandLine" => "Orbyss.ProgramKit.CommandLine",
             "Development" => "Orbyss.ProgramKit.Development",
             "Modularity" => "Orbyss.ProgramKit.Modularity",
             "Planning" => "Orbyss.ProgramKit.Planning",

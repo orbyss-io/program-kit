@@ -15,6 +15,7 @@ public sealed class BuildSpineConformanceTests
     [
         "Orbyss.ProgramKit.Architecture",
         "Orbyss.ProgramKit.Artifacts",
+        "Orbyss.ProgramKit.CommandLine",
         "Orbyss.ProgramKit.Development",
         "Orbyss.ProgramKit.DotNet",
         "Orbyss.ProgramKit.Modularity",
@@ -53,7 +54,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W040");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W050");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -182,7 +183,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void SolutionContainsTheApprovedW040PackagesTwoTestProjectsAndTheCSharpGate()
+    public void SolutionContainsTheApprovedW050PackagesTwoTestProjectsAndTheCSharpGate()
     {
         var solution = ConformanceInputs.Read("ProgramKit.sln");
         var projectLines = solution
@@ -191,7 +192,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(19, projectLines);
+        Assert.HasCount(20, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -219,7 +220,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(16, projectFiles);
+        Assert.HasCount(17, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -259,7 +260,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(19, projectFiles);
+        Assert.HasCount(20, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -320,6 +321,11 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Quality"],
                 ["Orbyss.ProgramKit.Development"] =
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
+                ["Orbyss.ProgramKit.CommandLine"] =
+                [
+                    "Orbyss.ProgramKit.DotNet",
+                    "Orbyss.ProgramKit.Workbench",
+                ],
                 ["Orbyss.ProgramKit.DotNet"] =
                 [
                     "Orbyss.ProgramKit.Architecture",
@@ -369,6 +375,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Quality"] = [],
                 ["Orbyss.ProgramKit.Planning"] = [],
                 ["Orbyss.ProgramKit.Development"] = [],
+                ["Orbyss.ProgramKit.CommandLine"] = [],
                 ["Orbyss.ProgramKit.DotNet"] = [],
                 ["Orbyss.ProgramKit.Modularity"] = [],
                 ["Orbyss.ProgramKit.Modularity.InProcess"] = [],
@@ -444,6 +451,19 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Quality"],
             ["Orbyss.ProgramKit.Development"] =
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
+            ["Orbyss.ProgramKit.CommandLine"] =
+                [
+                    "Orbyss.ProgramKit.Architecture",
+                    "Orbyss.ProgramKit.Artifacts",
+                    "Orbyss.ProgramKit.Development",
+                    "Orbyss.ProgramKit.DotNet",
+                    "Orbyss.ProgramKit.Planning",
+                    "Orbyss.ProgramKit.Quality",
+                    "Orbyss.ProgramKit.Serialization.JSON",
+                    "Orbyss.ProgramKit.Tasks.Core",
+                    "Orbyss.ProgramKit.Tasks.Schedules",
+                    "Orbyss.ProgramKit.Workbench",
+                ],
             ["Orbyss.ProgramKit.DotNet"] =
                 [
                     "Orbyss.ProgramKit.Artifacts",
@@ -577,6 +597,9 @@ public sealed class BuildSpineConformanceTests
                     StringComparison.Ordinal) &&
                 !normalizedSourceFile.Contains(
                     "Orbyss.ProgramKit.DotNet/Composition/",
+                    StringComparison.Ordinal) &&
+                !normalizedSourceFile.Contains(
+                    "Orbyss.ProgramKit.CommandLine/Operations/Serialization/",
                     StringComparison.Ordinal))
             {
                 string[] forbiddenSerializerMechanics =

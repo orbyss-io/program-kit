@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Inputs;
@@ -18,6 +19,7 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
 [JsonSerializable(typeof(DotNetShellDocument))]
 [JsonSerializable(typeof(DotNetArtifactInputManifest))]
 [JsonSerializable(typeof(DotNetShellLockDocument))]
+[JsonSerializable(typeof(OpenApiDocumentProjection))]
 [JsonSerializable(typeof(OpenConsoleDocument))]
 [JsonSerializable(typeof(OpenWorkerDocument))]
 internal sealed partial class DotNetShellJsonContext : JsonSerializerContext;

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>program-kit</ToolCommandName>
+    <PackageId>Orbyss.ProgramKit.CommandLine</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Deterministic scriptable command transport for Orbyss Program Kit operations.</Description>
+    <StartupObject>Orbyss.ProgramKit.CommandLine.Hosting.ProgramKitTool</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

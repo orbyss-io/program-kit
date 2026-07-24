@@ -6,7 +6,7 @@
   "title": "Program Kit .NET Artifact Input Manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "version", "inputs"],
+  "required": ["$schema", "version", "inputs", "hostDocuments"],
   "properties": {
     "$schema": {
       "const": "pkid:schema:program-kit:dotnet-artifact-input-manifest@1.0.0"
@@ -26,6 +26,18 @@
             "type": "string",
             "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(/|$))(?!.*\\\\)[^/]+(?:/[^/]+)*$"
           }
+        }
+      }
+    },
+    "hostDocuments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hostIdentity", "documentRevision"],
+        "properties": {
+          "hostIdentity": {"type": "string", "minLength": 1},
+          "documentRevision": {"$ref": "#/$defs/reference"}
         }
       }
     }

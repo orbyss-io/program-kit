@@ -59,7 +59,8 @@ public sealed class DotNetSchemaModuleTests
                 new DotNetArtifactInputEntry(
                     shell.InputVersionSelectionRevision,
                     "versions/selection.json"),
-            ]);
+            ],
+            []);
         ProgramKitJsonRegistryFactory registryFactory = new();
         ProgramKitJsonBuilder builder = new(registryFactory);
         DotNetJsonProfileRegistration registration = new();

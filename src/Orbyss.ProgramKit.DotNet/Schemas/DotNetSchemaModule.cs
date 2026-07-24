@@ -43,7 +43,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "dotnet-artifact-input-manifest",
             "artifact-input-manifest.schema.json",
             "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/artifact-input-manifest.schema.json",
-            "cb32c2514dbe38bc5d00f055418ee29b301fd1cb3d8edc42c21cb75233b0eed3"),
+            "f639632bc7f7770847521ffde74f71b1b787e1b357fdaaadc1e98c598ba27929"),
         Create(
             "dotnet-shell-lock",
             "dotnet-shell-lock.schema.json",
