@@ -7,6 +7,8 @@ using Orbyss.ProgramKit.CommandLine.Commands.Parsing;
 using Orbyss.ProgramKit.CommandLine.Contracts.Descriptors;
 using Orbyss.ProgramKit.CommandLine.Hosting.IO;
 using Orbyss.ProgramKit.CommandLine.Operations;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
@@ -156,6 +158,15 @@ public static class CommandLineComposition
             serializer);
         ICommandOperation localPublishOperation =
             new PublishLocalApplicationCommandOperation(localPublisher);
+        ICommandOperation capabilityCatalogOperation =
+            new RenderCapabilityCatalogCommandOperation(
+                new CapabilityCatalogRenderer(
+                    fileSystem,
+                    new CapabilityIndexParser()));
+        ICommandOperation capabilityBundleOperation =
+            new VerifyCapabilityBundleCommandOperation(
+                new CapabilityBundleVerifier(
+                    new CapabilityBundleManifestReader()));
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {
@@ -174,6 +185,8 @@ public static class CommandLineComposition
                 "dotnet.generate-host" => dotNetGeneration,
                 "packages.prepare-local" => packagePreparationOperation,
                 "dotnet.publish-local" => localPublishOperation,
+                "capabilities.render-catalog" => capabilityCatalogOperation,
+                "capabilities.verify-bundle" => capabilityBundleOperation,
                 _ => new UnavailableCommandOperation(
                     descriptor.Key,
                     BackingWorkUnit(descriptor.Key)),

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.CapabilityBundle</PackageId>
+    <Description>Exact-byte content bundle for the three distributable Orbyss Program Kit development capabilities.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="capability-bundle-manifest.json"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.program-kit/" />
+    <None Include="..\..\..\.agents\capabilities\develop-software\CAPABILITY.md"
+          Link="Payload\.agents\capabilities\develop-software\CAPABILITY.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agents/capabilities/develop-software/" />
+    <None Include="..\..\..\.agents\capabilities\design-software\CAPABILITY.md"
+          Link="Payload\.agents\capabilities\design-software\CAPABILITY.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agents/capabilities/design-software/" />
+    <None Include="..\..\..\.agents\capabilities\implement-software-plan\CAPABILITY.md"
+          Link="Payload\.agents\capabilities\implement-software-plan\CAPABILITY.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agents/capabilities/implement-software-plan/" />
+    <None Include="..\..\..\.codex\skills\develop-software\SKILL.md"
+          Link="Payload\.codex\skills\develop-software\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.codex/skills/develop-software/" />
+    <None Include="..\..\..\.codex\skills\design-software\SKILL.md"
+          Link="Payload\.codex\skills\design-software\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.codex/skills/design-software/" />
+    <None Include="..\..\..\.codex\skills\implement-software-plan\SKILL.md"
+          Link="Payload\.codex\skills\implement-software-plan\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.codex/skills/implement-software-plan/" />
+  </ItemGroup>
+</Project>

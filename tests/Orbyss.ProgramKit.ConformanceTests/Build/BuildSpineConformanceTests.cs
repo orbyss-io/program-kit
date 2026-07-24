@@ -15,6 +15,7 @@ public sealed class BuildSpineConformanceTests
     [
         "Orbyss.ProgramKit.Architecture",
         "Orbyss.ProgramKit.Artifacts",
+        "Orbyss.ProgramKit.CapabilityBundle",
         "Orbyss.ProgramKit.CommandLine",
         "Orbyss.ProgramKit.Development",
         "Orbyss.ProgramKit.DotNet",
@@ -67,7 +68,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W065");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W070");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -206,7 +207,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(29, projectLines);
+        Assert.HasCount(30, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -245,7 +246,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(17, projectFiles);
+        Assert.HasCount(18, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -285,7 +286,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(20, projectFiles);
+        Assert.HasCount(21, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -340,6 +341,7 @@ public sealed class BuildSpineConformanceTests
             new Dictionary<string, ImmutableHashSet<string>>(StringComparer.Ordinal)
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
+                ["Orbyss.ProgramKit.CapabilityBundle"] = [],
                 ["Orbyss.ProgramKit.Architecture"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Quality"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Planning"] =
@@ -396,6 +398,7 @@ public sealed class BuildSpineConformanceTests
             new Dictionary<string, ImmutableHashSet<string>>(StringComparer.Ordinal)
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
+                ["Orbyss.ProgramKit.CapabilityBundle"] = [],
                 ["Orbyss.ProgramKit.Architecture"] = [],
                 ["Orbyss.ProgramKit.Quality"] = [],
                 ["Orbyss.ProgramKit.Planning"] = [],
@@ -470,6 +473,7 @@ public sealed class BuildSpineConformanceTests
         var allowed = new Dictionary<string, ImmutableHashSet<string>>(StringComparer.Ordinal)
         {
             ["Orbyss.ProgramKit.Artifacts"] = [],
+            ["Orbyss.ProgramKit.CapabilityBundle"] = [],
             ["Orbyss.ProgramKit.Architecture"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Quality"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Planning"] =

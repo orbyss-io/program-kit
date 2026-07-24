@@ -11,7 +11,7 @@ public sealed class CommandApplicationTests
     public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
-    public async Task DeferredBackendFailsClosedWithCanonicalJsonDiagnostic()
+    public async Task CapabilityBackendFailsWithCanonicalJsonDiagnostic()
     {
         TestCommandConsole console = new();
         var sut = CommandLineComposition.CreateDefault(console);
@@ -26,10 +26,10 @@ public sealed class CommandApplicationTests
         ],
         TestContext.CancellationToken);
 
-        Assert.AreEqual(CommandExitCode.UsageOrInputFailure, exitCode);
+        Assert.AreEqual(CommandExitCode.ConformanceFailure, exitCode);
         Assert.IsEmpty(console.StandardOutput);
         Assert.AreEqual(
-            "{\"diagnostics\":[{\"id\":\"PKCLI004\",\"message\":\"The operation backend is owned by PK-W070 and is not registered.\",\"path\":\"/command\",\"severity\":\"error\"}],\"exitCode\":2}",
+            "{\"diagnostics\":[{\"id\":\"PKCLI007\",\"message\":\"The capability bundle must be supplied as one .nupkg file.\",\"path\":\"/bundle\",\"severity\":\"error\"}],\"exitCode\":1}",
             Encoding.UTF8.GetString(console.StandardError));
     }
 

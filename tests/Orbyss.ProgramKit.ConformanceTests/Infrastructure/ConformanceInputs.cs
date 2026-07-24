@@ -16,6 +16,12 @@ internal static class ConformanceInputs
         return File.ReadAllText(Path.Combine(Root, relativePath));
     }
 
+    public static byte[] ReadBytes(string relativePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(relativePath);
+        return File.ReadAllBytes(Path.Combine(Root, relativePath));
+    }
+
     public static ImmutableArray<string> Files(string relativeDirectory, string pattern)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(relativeDirectory);

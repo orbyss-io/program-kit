@@ -105,4 +105,35 @@ public sealed class CommandParserTests
             "pkid:host:tests:api",
             publish.RequiredOption("host"));
     }
+
+    [TestMethod]
+    public void ParsesExplicitCapabilityCatalogAndBundleCommands()
+    {
+        CommandParser sut = new(CommandDescriptorCatalog.All);
+
+        var catalog = sut.Parse(
+        [
+            "capabilities",
+            "render-catalog",
+            ".agents/capabilities/INDEX.md",
+            "--output",
+            ".agents/capabilities/README.md",
+        ]);
+        var bundle = sut.Parse(
+        [
+            "capabilities",
+            "verify-bundle",
+            "Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.1.nupkg",
+        ]);
+
+        Assert.AreEqual(
+            "capabilities.render-catalog",
+            catalog.Descriptor.Key);
+        Assert.AreEqual(
+            ".agents/capabilities/INDEX.md",
+            catalog.Arguments[0]);
+        Assert.AreEqual(
+            "capabilities.verify-bundle",
+            bundle.Descriptor.Key);
+    }
 }

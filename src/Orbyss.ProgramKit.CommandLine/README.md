@@ -4,7 +4,7 @@
 Kit operations. It never scans the current directory, a solution, assemblies,
 or package feeds.
 
-The W050 grammar is:
+The frozen command grammar is:
 
 ```text
 program-kit validate <artifact...> | --manifest <artifact-manifest>
@@ -28,10 +28,16 @@ Operation adapters are registered from an explicit finite sequence. Duplicate
 exact command keys fail before a dictionary can erase the conflict. Commands
 without a selected operation adapter fail closed with `PKCLI004`.
 
-The standalone W050 composition backs exact-schema validation, model-less
+The standalone composition backs exact-schema validation, model-less
 canonical normalization/digest, and API/Console/Worker host generation.
 Manifest validation awaits the W060 workspace-artifact model; package/publish
-operations are added by W065 and capability catalog/bundle operations by W070.
+operations are backed by W065. W070 backs capability catalog rendering and
+exact `.nupkg` bundle verification. Catalog rendering accepts only the canonical
+`.agents/capabilities/INDEX.md` path, preserves `available`/`unavailable`
+values, and includes the exact source SHA-256. Bundle verification requires the
+three distributable canonical definitions and their separately listed optional
+Codex wrappers; it rejects the index, the authoring capability, the
+repository-only local-publish capability, unlisted bytes, and tampering.
 Host generation requires `hostDocuments[]` in the artifact manifest, binding
 each selected host identity to one exact integrator-document revision. This
 keeps shell and document digests independently verifiable and avoids inferred
