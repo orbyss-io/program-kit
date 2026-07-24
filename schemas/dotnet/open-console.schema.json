@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/open-console.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:open-console",
+  "x-program-kit-version": "1.0.0",
+  "title": "Open Console 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "documentVersion",
+    "info",
+    "hostRevision",
+    "parsing",
+    "globalOptions",
+    "commands",
+    "help",
+    "completion",
+    "compatibility",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": {"const": "pkid:schema:program-kit:open-console@1.0.0"},
+    "documentVersion": {"const": "1.0.0"},
+    "info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "summary", "version"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1},
+        "version": {"$ref": "#/$defs/version"}
+      }
+    },
+    "hostRevision": {"$ref": "#/$defs/reference"},
+    "parsing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "consumesOperatingSystemTokenArray",
+        "optionTerminator",
+        "supportsLongEqualsSyntax",
+        "caseSensitive",
+        "conversionCulture",
+        "duplicateOptionPolicy"
+      ],
+      "properties": {
+        "consumesOperatingSystemTokenArray": {"const": true},
+        "optionTerminator": {"const": "--"},
+        "supportsLongEqualsSyntax": {"const": true},
+        "caseSensitive": {"const": true},
+        "conversionCulture": {"const": "invariant"},
+        "duplicateOptionPolicy": {"enum": ["reject", "bounded-by-occurrence"]}
+      }
+    },
+    "globalOptions": {"type": "array", "items": {"$ref": "#/$defs/option"}},
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationRevision",
+          "path",
+          "aliases",
+          "summary",
+          "arguments",
+          "options",
+          "standardInput",
+          "standardOutput",
+          "standardError",
+          "exitCodes",
+          "authorityRevision",
+          "examples",
+          "deprecation"
+        ],
+        "properties": {
+          "operationRevision": {"$ref": "#/$defs/reference"},
+          "path": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}
+            }
+          },
+          "summary": {"type": "string", "minLength": 1},
+          "arguments": {"type": "array", "items": {"$ref": "#/$defs/argument"}},
+          "options": {"type": "array", "items": {"$ref": "#/$defs/option"}},
+          "standardInput": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "#/$defs/stream"}
+            ]
+          },
+          "standardOutput": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "#/$defs/stream"}
+            ]
+          },
+          "standardError": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "#/$defs/stream"}
+            ]
+          },
+          "exitCodes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"$ref": "#/$defs/exitCode"}
+          },
+          "authorityRevision": {"$ref": "#/$defs/reference"},
+          "examples": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/example"}
+          },
+          "deprecation": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "help": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["longOption", "shortOption", "exitCode"],
+      "properties": {
+        "longOption": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "shortOption": {"type": "string", "pattern": "^[A-Za-z0-9]$"},
+        "exitCode": {"type": "integer", "minimum": 0}
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["longOption", "includesAliases", "includesValueHints"],
+      "properties": {
+        "longOption": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "includesAliases": {"type": "boolean"},
+        "includesValueHints": {"type": "boolean"}
+      }
+    },
+    "compatibility": {"$ref": "#/$defs/compatibility"},
+    "provenance": {"$ref": "#/$defs/provenance"}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^pkid:[a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "digest"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {"$ref": "#/$defs/version"},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "arity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": {"type": "integer", "minimum": 0},
+        "maximum": {"type": "integer", "minimum": 0}
+      }
+    },
+    "argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "name",
+        "valueType",
+        "valueArity",
+        "occurrence",
+        "required",
+        "defaultValue",
+        "valueSchemaRevision",
+        "summary"
+      ],
+      "properties": {
+        "position": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "valueType": {"enum": ["string", "boolean", "int32", "int64", "decimal", "guid", "date-time"]},
+        "valueArity": {"$ref": "#/$defs/arity"},
+        "occurrence": {"$ref": "#/$defs/arity"},
+        "required": {"type": "boolean"},
+        "defaultValue": {"type": ["string", "null"]},
+        "valueSchemaRevision": {"$ref": "#/$defs/reference"},
+        "summary": {"type": "string", "minLength": 1}
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "longName",
+        "shortName",
+        "aliases",
+        "kind",
+        "valueType",
+        "valueArity",
+        "occurrence",
+        "required",
+        "defaultValue",
+        "valueSchemaRevision",
+        "configurationBinding",
+        "conflicts",
+        "prerequisites",
+        "summary"
+      ],
+      "properties": {
+        "longName": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "shortName": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9]$"},
+        "aliases": {"type": "array", "items": {"type": "string"}},
+        "kind": {"enum": ["flag", "value"]},
+        "valueType": {"enum": ["string", "boolean", "int32", "int64", "decimal", "guid", "date-time"]},
+        "valueArity": {"$ref": "#/$defs/arity"},
+        "occurrence": {"$ref": "#/$defs/arity"},
+        "required": {"type": "boolean"},
+        "defaultValue": {"type": ["string", "null"]},
+        "valueSchemaRevision": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/reference"}
+          ]
+        },
+        "configurationBinding": {"type": ["string", "null"]},
+        "conflicts": {"type": "array", "items": {"type": "string"}},
+        "prerequisites": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string", "minLength": 1}
+      }
+    },
+    "stream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "mediaType", "schemaRevision", "required"],
+      "properties": {
+        "name": {"enum": ["stdin", "stdout", "stderr"]},
+        "mediaType": {"type": "string", "minLength": 1},
+        "schemaRevision": {"$ref": "#/$defs/reference"},
+        "required": {"type": "boolean"}
+      }
+    },
+    "exitCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "meaning", "diagnosticSchemaRevisions"],
+      "properties": {
+        "code": {"type": "integer", "minimum": 0, "maximum": 255},
+        "meaning": {"type": "string", "minLength": 1},
+        "diagnosticSchemaRevisions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"}
+        }
+      }
+    },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokens", "summary"],
+      "properties": {
+        "tokens": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string", "minLength": 1}
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "dimensions",
+        "readerRange",
+        "writerRange",
+        "migrationReferences"
+      ],
+      "properties": {
+        "policy": {"$ref": "#/$defs/identifier"},
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dimension", "classification", "conditions"],
+            "properties": {
+              "dimension": {
+                "enum": [
+                  "semantic-behavior",
+                  "wire-read",
+                  "wire-write",
+                  "source-api",
+                  "binary-abi",
+                  "configuration",
+                  "persisted-artifacts",
+                  "generated-artifacts",
+                  "command-line",
+                  "host-composition"
+                ]
+              },
+              "classification": {
+                "enum": [
+                  "editorial",
+                  "compatible-additive",
+                  "conditionally-compatible",
+                  "breaking",
+                  "unknown"
+                ]
+              },
+              "conditions": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "readerRange": {"type": "string", "minLength": 1},
+        "writerRange": {"type": "string", "minLength": 1},
+        "migrationReferences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shellRevision",
+        "generatorRevision",
+        "operationRevisions"
+      ],
+      "properties": {
+        "shellRevision": {"$ref": "#/$defs/reference"},
+        "generatorRevision": {"$ref": "#/$defs/reference"},
+        "operationRevisions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"}
+        }
+      }
+    }
+  }
+}

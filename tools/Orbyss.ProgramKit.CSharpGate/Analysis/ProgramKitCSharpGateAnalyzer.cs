@@ -3888,11 +3888,29 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "TimeZones",
                 "Validation",
             ],
+            "Orbyss.ProgramKit.DotNet" =>
+            [
+                "Composition",
+                "Configuration",
+                "Diagnostics",
+                "Documentation",
+                "Generation",
+                "Health",
+                "Inputs",
+                "Locks",
+                "Operations",
+                "Packages",
+                "Schemas",
+                "Shells",
+                "Targeting",
+                "Validation",
+            ],
             "Orbyss.ProgramKit.UnitTests" =>
             [
                 "Architecture",
                 "Artifacts",
                 "Development",
+                "DotNet",
                 "Modularity",
                 "Planning",
                 "Quality",
@@ -3907,6 +3925,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Build",
                 "Dependencies",
                 "Diagnostics",
+                "DotNet",
                 "Governance",
                 "Infrastructure",
                 "Modularity",
@@ -4003,6 +4022,19 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 IsAllowedIntentRoot(
                     "Orbyss.ProgramKit.Serialization.JSON",
                     folderSegments[2]);
+        }
+
+        if (domain == "DotNet")
+        {
+            if (folderSegments.Length == 1)
+            {
+                return isTypeFree;
+            }
+
+            return folderSegments[1] == "TestSupport" ||
+                IsAllowedIntentRoot(
+                    "Orbyss.ProgramKit.DotNet",
+                    folderSegments[1]);
         }
 
         if (domain == "Tasks")

@@ -1,0 +1,13 @@
+{
+  "evidenceVersion": "1.0.0",
+  "specification": "OpenAPI 3.2.0",
+  "specificationUrl": "https://spec.openapis.org/oas/v3.2.0.html",
+  "schemaUrl": "https://spec.openapis.org/oas/3.2/schema/2025-11-23",
+  "schemaSha256": "7d48f01f37eeae4799041b371ad5f533f9f533fd2b0caa1011a8ba27c5b48b70",
+  "license": "Apache-2.0",
+  "licenseUrl": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/3.2.0/LICENSE",
+  "licenseSha256": "4948367c65e1ce06690e2cadc6e86fce1a6a6db55ef874ce4b78c0f472ce5f13",
+  "classification": "informational-json-schema",
+  "normativeAuthority": "The OpenAPI 3.2.0 specification prose is normative when it differs from the informational schema.",
+  "verifiedAt": "2026-07-24"
+}

@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -14,6 +16,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Architecture",
         "Orbyss.ProgramKit.Artifacts",
         "Orbyss.ProgramKit.Development",
+        "Orbyss.ProgramKit.DotNet",
         "Orbyss.ProgramKit.Modularity",
         "Orbyss.ProgramKit.Modularity.InProcess",
         "Orbyss.ProgramKit.Planning",
@@ -50,7 +53,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W030");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W040");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -179,7 +182,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void SolutionContainsTheApprovedW030PackagesTwoTestProjectsAndTheCSharpGate()
+    public void SolutionContainsTheApprovedW040PackagesTwoTestProjectsAndTheCSharpGate()
     {
         var solution = ConformanceInputs.Read("ProgramKit.sln");
         var projectLines = solution
@@ -188,7 +191,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(18, projectLines);
+        Assert.HasCount(19, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -216,7 +219,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(15, projectFiles);
+        Assert.HasCount(16, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -256,7 +259,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(18, projectFiles);
+        Assert.HasCount(19, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -317,6 +320,17 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Quality"],
                 ["Orbyss.ProgramKit.Development"] =
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
+                ["Orbyss.ProgramKit.DotNet"] =
+                [
+                    "Orbyss.ProgramKit.Architecture",
+                    "Orbyss.ProgramKit.Planning",
+                    "Orbyss.ProgramKit.Quality",
+                    "Orbyss.ProgramKit.Serialization.JSON",
+                    "Orbyss.ProgramKit.Tasks",
+                    "Orbyss.ProgramKit.Tasks.Core",
+                    "Orbyss.ProgramKit.Tasks.Schedules",
+                    "Orbyss.ProgramKit.Workbench",
+                ],
                 ["Orbyss.ProgramKit.Modularity"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Modularity.InProcess"] =
                 ["Orbyss.ProgramKit.Modularity"],
@@ -355,6 +369,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Quality"] = [],
                 ["Orbyss.ProgramKit.Planning"] = [],
                 ["Orbyss.ProgramKit.Development"] = [],
+                ["Orbyss.ProgramKit.DotNet"] = [],
                 ["Orbyss.ProgramKit.Modularity"] = [],
                 ["Orbyss.ProgramKit.Modularity.InProcess"] = [],
                 ["Orbyss.ProgramKit.Serialization.JSON"] =
@@ -429,6 +444,12 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Quality"],
             ["Orbyss.ProgramKit.Development"] =
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
+            ["Orbyss.ProgramKit.DotNet"] =
+                [
+                    "Orbyss.ProgramKit.Artifacts",
+                    "Orbyss.ProgramKit.Serialization.JSON",
+                    "Orbyss.ProgramKit.Workbench",
+                ],
             ["Orbyss.ProgramKit.Modularity"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Modularity.InProcess"] =
                 [
@@ -478,26 +499,21 @@ public sealed class BuildSpineConformanceTests
 
         foreach (var pair in allowed)
         {
-            var assembly = pair.Key ==
+            var references = pair.Key ==
                 "Orbyss.ProgramKit.Tasks.Schedules.Cronos"
-                    ? Assembly.LoadFrom(
+                    ? ReadProgramKitAssemblyReferences(
                         Path.Combine(
-                            ConformanceInputs.RepositoryRoot,
-                            "program-kit",
-                            "src",
-                            pair.Key,
-                            "bin",
-                            "Release",
-                            "net10.0",
+                            AppContext.BaseDirectory,
                             string.Concat(pair.Key, ".dll")))
-                    : Assembly.Load(pair.Key);
-            var references = assembly
-                .GetReferencedAssemblies()
-                .Select(reference => reference.Name)
-                .Where(name => name is not null &&
-                    name.StartsWith("Orbyss.ProgramKit.", StringComparison.Ordinal))
-                .Cast<string>()
-                .ToImmutableHashSet(StringComparer.Ordinal);
+                    : Assembly.Load(pair.Key)
+                        .GetReferencedAssemblies()
+                        .Select(reference => reference.Name)
+                        .Where(name => name is not null &&
+                            name.StartsWith(
+                                "Orbyss.ProgramKit.",
+                                StringComparison.Ordinal))
+                        .Cast<string>()
+                        .ToImmutableHashSet(StringComparer.Ordinal);
 
             Assert.AreSequenceEqual(
                 pair.Value.Order(StringComparer.Ordinal),
@@ -507,12 +523,27 @@ public sealed class BuildSpineConformanceTests
         }
     }
 
+    private static ImmutableHashSet<string> ReadProgramKitAssemblyReferences(
+        string assemblyPath)
+    {
+        using var stream = File.OpenRead(assemblyPath);
+        using var peReader = new PEReader(stream);
+        var metadata = peReader.GetMetadataReader();
+        return metadata
+            .AssemblyReferences
+            .Select(handle => metadata.GetAssemblyReference(handle))
+            .Select(reference => metadata.GetString(reference.Name))
+            .Where(name => name.StartsWith(
+                "Orbyss.ProgramKit.",
+                StringComparison.Ordinal))
+            .ToImmutableHashSet(StringComparer.Ordinal);
+    }
+
     [TestMethod]
     public void ProductSourceContainsNoForbiddenRuntimeOrSerializationDependency()
     {
         var forbidden = new[]
         {
-            "CShells",
             "Newtonsoft.Json",
             "Orbyss.DomainSemanticEngine",
             "ReleaseCycle",
@@ -522,6 +553,9 @@ public sealed class BuildSpineConformanceTests
         {
             var source = File.ReadAllText(sourceFile);
             var normalizedSourceFile = sourceFile.Replace('\\', '/');
+            var isDotNetSource = normalizedSourceFile.Contains(
+                "Orbyss.ProgramKit.DotNet/",
+                StringComparison.Ordinal);
             foreach (var token in forbidden)
             {
                 Assert.DoesNotContain(
@@ -530,8 +564,19 @@ public sealed class BuildSpineConformanceTests
                     $"{sourceFile} contains forbidden token {token}.");
             }
 
+            if (!isDotNetSource)
+            {
+                Assert.DoesNotContain(
+                    "CShells",
+                    source,
+                    $"{sourceFile} uses CShells outside the DotNet host-generation package.");
+            }
+
             if (!normalizedSourceFile.Contains(
                     "Orbyss.ProgramKit.Serialization.JSON",
+                    StringComparison.Ordinal) &&
+                !normalizedSourceFile.Contains(
+                    "Orbyss.ProgramKit.DotNet/Composition/",
                     StringComparison.Ordinal))
             {
                 string[] forbiddenSerializerMechanics =
@@ -604,7 +649,11 @@ public sealed class BuildSpineConformanceTests
     public void EveryOwnedSchemaDeclaresDraft202012AndAnExactProgramKitIdentity()
     {
         var schemaFiles = ConformanceInputs
-            .Files("Schemas", "*.schema.json");
+            .Files("Schemas", "*.schema.json")
+            .Where(schemaFile => !schemaFile
+                .Replace('\\', '/')
+                .Contains("/vendor/", StringComparison.Ordinal))
+            .ToImmutableArray();
 
         Assert.IsGreaterThanOrEqualTo(5, schemaFiles.Length);
         foreach (var schemaFile in schemaFiles)

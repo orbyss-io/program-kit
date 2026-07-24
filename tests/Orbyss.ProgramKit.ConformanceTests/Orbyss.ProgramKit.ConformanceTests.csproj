@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity\Orbyss.ProgramKit.Modularity.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity.InProcess\Orbyss.ProgramKit.Modularity.InProcess.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj" />
@@ -21,6 +22,7 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Tasks.InProcess\Orbyss.ProgramKit.Tasks.InProcess.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Tasks.Hosting\Orbyss.ProgramKit.Tasks.Hosting.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Tasks.Schedules\Orbyss.ProgramKit.Tasks.Schedules.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Tasks.Schedules.Cronos\Orbyss.ProgramKit.Tasks.Schedules.Cronos.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
     <ProjectReference Include="Fixtures\TasksCoreDomainConsumer\TasksCoreDomainConsumer.csproj" />
     <ProjectReference Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj" />

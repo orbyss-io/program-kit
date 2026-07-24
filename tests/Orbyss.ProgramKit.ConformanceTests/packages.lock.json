@@ -191,6 +191,19 @@
           "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.dotnet": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Architecture": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Serialization.JSON": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Workbench": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.modularity": {
         "type": "Project",
         "dependencies": {
@@ -259,6 +272,13 @@
           "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.tasks.schedules.cronos": {
+        "type": "Project",
+        "dependencies": {
+          "Cronos": "[0.13.0, 0.13.0]",
+          "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.1, )"
+        }
+      },
       "Orbyss.ProgramKit.TasksCoreDomainConsumerFixture": {
         "type": "Project",
         "dependencies": {
@@ -286,6 +306,12 @@
           "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Serialization.JSON": "[0.1.0-alpha.1, )"
         }
+      },
+      "Cronos": {
+        "type": "CentralTransitive",
+        "requested": "[0.13.0, 0.13.0]",
+        "resolved": "0.13.0",
+        "contentHash": "Nkve+Yi0+ol3ntSBRHeW0ka9cJQ8vndSUvvkXqF9LVqwpoqWueyxu/HS275r98RDOmF7/mzRnZW5XXUBXob+TA=="
       },
       "JsonSchema.Net": {
         "type": "CentralTransitive",

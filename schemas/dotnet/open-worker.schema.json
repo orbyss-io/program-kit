@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/open-worker.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:open-worker",
+  "x-program-kit-version": "1.0.0",
+  "title": "Open Worker 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "documentVersion",
+    "info",
+    "hostRevision",
+    "workers",
+    "compatibility",
+    "provenance"
+  ],
+  "properties": {
+    "$schema": {"const": "pkid:schema:program-kit:open-worker@1.0.0"},
+    "documentVersion": {"const": "1.0.0"},
+    "info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "summary", "version"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1},
+        "version": {"$ref": "#/$defs/version"}
+      }
+    },
+    "hostRevision": {"$ref": "#/$defs/reference"},
+    "workers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationRevision",
+          "featureIdentity",
+          "activationIdentity",
+          "taskDefinitionRevision",
+          "triggerKind",
+          "triggerConfigurationSchemaRevision",
+          "inputSchemaRevisions",
+          "outputSchemaRevisions",
+          "errorSchemaRevisions",
+          "authorityRevision",
+          "cancellationRevision",
+          "deprecation",
+          "compatibility"
+        ],
+        "properties": {
+          "operationRevision": {"$ref": "#/$defs/reference"},
+          "featureIdentity": {"$ref": "#/$defs/identifier"},
+          "activationIdentity": {"$ref": "#/$defs/identifier"},
+          "taskDefinitionRevision": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "#/$defs/reference"}
+            ]
+          },
+          "triggerKind": {"type": "string", "minLength": 1},
+          "triggerConfigurationSchemaRevision": {"$ref": "#/$defs/reference"},
+          "inputSchemaRevisions": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/reference"}
+          },
+          "outputSchemaRevisions": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/reference"}
+          },
+          "errorSchemaRevisions": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/reference"}
+          },
+          "authorityRevision": {"$ref": "#/$defs/reference"},
+          "cancellationRevision": {"$ref": "#/$defs/reference"},
+          "deprecation": {"type": ["string", "null"]},
+          "compatibility": {"$ref": "#/$defs/compatibility"}
+        }
+      }
+    },
+    "compatibility": {"$ref": "#/$defs/compatibility"},
+    "provenance": {"$ref": "#/$defs/provenance"}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^pkid:[a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "digest"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {"$ref": "#/$defs/version"},
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "dimensions",
+        "readerRange",
+        "writerRange",
+        "migrationReferences"
+      ],
+      "properties": {
+        "policy": {"$ref": "#/$defs/identifier"},
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dimension", "classification", "conditions"],
+            "properties": {
+              "dimension": {
+                "enum": [
+                  "semantic-behavior",
+                  "wire-read",
+                  "wire-write",
+                  "source-api",
+                  "binary-abi",
+                  "configuration",
+                  "persisted-artifacts",
+                  "generated-artifacts",
+                  "command-line",
+                  "host-composition"
+                ]
+              },
+              "classification": {
+                "enum": [
+                  "editorial",
+                  "compatible-additive",
+                  "conditionally-compatible",
+                  "breaking",
+                  "unknown"
+                ]
+              },
+              "conditions": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "readerRange": {"type": "string", "minLength": 1},
+        "writerRange": {"type": "string", "minLength": 1},
+        "migrationReferences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shellRevision",
+        "generatorRevision",
+        "operationRevisions"
+      ],
+      "properties": {
+        "shellRevision": {"$ref": "#/$defs/reference"},
+        "generatorRevision": {"$ref": "#/$defs/reference"},
+        "operationRevisions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"}
+        }
+      }
+    }
+  }
+}

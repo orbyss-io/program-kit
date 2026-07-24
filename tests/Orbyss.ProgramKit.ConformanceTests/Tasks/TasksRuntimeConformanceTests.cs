@@ -237,13 +237,7 @@ public sealed class TasksRuntimeConformanceTests
     {
         var provider = Assembly.LoadFrom(
             Path.Combine(
-                ConformanceInputs.RepositoryRoot,
-                "program-kit",
-                "src",
-                "Orbyss.ProgramKit.Tasks.Schedules.Cronos",
-                "bin",
-                "Release",
-                "net10.0",
+                AppContext.BaseDirectory,
                 "Orbyss.ProgramKit.Tasks.Schedules.Cronos.dll"));
         var factoryType = provider.GetType(
             "Orbyss.ProgramKit.Tasks.Schedules.Cronos.Factories.CronosScheduleDescriptorFactory",

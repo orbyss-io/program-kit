@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.DotNet</PackageId>
+    <Description>.NET 10 shell intent, exact CShells composition, integrator-document projection, and deterministic host generation for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Tasks.Core\Orbyss.ProgramKit.Tasks.Core.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Tasks\Orbyss.ProgramKit.Tasks.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Tasks.Schedules\Orbyss.ProgramKit.Tasks.Schedules.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Orbyss.ProgramKit.Artifacts.Compatibility" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Diagnostics" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Envelopes" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Primitives" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.References" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Schemas" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Validation" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="System.Text.Json.Serialization" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\dotnet\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.DotNet.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\dotnet\**\*.json"
+          Pack="true"
+          PackagePath="schemas/dotnet/"
+          Link="Schemas/DotNet/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\dotnet\vendor\openapi\LICENSE.txt"
+          Pack="true"
+          PackagePath="schemas/dotnet/vendor/openapi/"
+          Link="Schemas/DotNet/vendor/openapi/LICENSE.txt" />
+    <EmbeddedResource Include="Evidence\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.DotNet.Evidence.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="Evidence\**\*.json"
+          Pack="true"
+          PackagePath="evidence/dotnet/%(RecursiveDir)"
+          Link="Evidence/DotNet/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

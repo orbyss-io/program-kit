@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Tasks.Sch
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.Tasks.Schedules.Cronos", "src\Orbyss.ProgramKit.Tasks.Schedules.Cronos\Orbyss.ProgramKit.Tasks.Schedules.Cronos.csproj", "{F94A85D4-0250-4469-B783-B49A0F611094}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.DotNet", "src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj", "{A4A16695-6C4A-4E4D-923E-99B4DB36E018}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.UnitTests", "tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj", "{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orbyss.ProgramKit.ConformanceTests", "tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj", "{91AF93E5-B37C-46A6-B926-E8765DA39359}"
@@ -231,6 +233,18 @@ Global
 		{F94A85D4-0250-4469-B783-B49A0F611094}.Release|x64.Build.0 = Release|Any CPU
 		{F94A85D4-0250-4469-B783-B49A0F611094}.Release|x86.ActiveCfg = Release|Any CPU
 		{F94A85D4-0250-4469-B783-B49A0F611094}.Release|x86.Build.0 = Release|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Debug|x64.Build.0 = Debug|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Debug|x86.Build.0 = Debug|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Release|x64.ActiveCfg = Release|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Release|x64.Build.0 = Release|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Release|x86.ActiveCfg = Release|Any CPU
+		{A4A16695-6C4A-4E4D-923E-99B4DB36E018}.Release|x86.Build.0 = Release|Any CPU
 		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4B6E4A6-068E-42C3-861D-4FE0C2D57EF2}.Debug|x64.ActiveCfg = Debug|Any CPU
