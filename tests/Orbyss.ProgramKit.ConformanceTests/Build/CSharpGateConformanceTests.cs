@@ -1,11 +1,15 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace Orbyss.ProgramKit.ConformanceTests.Build;
 
 [TestClass]
+[TestCategory("ProgramKitGateExhaustive")]
 [DoNotParallelize]
 public sealed class CSharpGateConformanceTests
 {
+    private const int MatrixLaneCount = 4;
+
     private static readonly string[] ValidSourceCases =
     [
         "Valid",
@@ -163,6 +167,7 @@ public sealed class CSharpGateConformanceTests
             ("CscToolExe", "fake-csc.exe", "PKCS147"),
             ("BuildProjectReferences", "false", "PKCS151"),
             ("ProgramKitGeneratedSourceProbeProject", "CSharpGateProbe.csproj", "PKCS155"),
+            ("ProgramKitConformanceValidatedGateDigest", "invalid", "PKCS118"),
             ("_SkipAnalyzers", "true", "PKCS159"),
             (
                 "ResolvedCodeAnalysisRuleSet",
@@ -249,12 +254,42 @@ public sealed class CSharpGateConformanceTests
             ("RestoreIgnoreFailedSources", "true", "PKCS139"),
         ];
 
+    [ClassInitialize]
+    public static async Task PrepareValidatedGateConfigurations(TestContext _)
+    {
+        var restore = await RestoreProjectAsync(GetProbeProjectPath());
+        Assert.AreEqual(0, restore.ExitCode, restore.Output);
+
+        foreach (var configuration in GateConfigurations())
+        {
+            var gateBuild = await BuildProjectAsync(
+                GetGateProjectPath(),
+                configuration,
+                ["--no-restore"]);
+            Assert.AreEqual(0, gateBuild.ExitCode, gateBuild.Output);
+
+            var gateAssembly = GetGateAssemblyPath(configuration);
+            Assert.IsTrue(File.Exists(gateAssembly), gateAssembly);
+            using var stream = File.OpenRead(gateAssembly);
+            var digest = Convert.ToHexString(SHA256.HashData(stream));
+            var receipt = GetValidatedGateReceiptPath(configuration);
+            Directory.CreateDirectory(Path.GetDirectoryName(receipt)!);
+            File.WriteAllText(receipt, digest);
+        }
+    }
+
     [TestMethod]
     public async Task ValidIntentGroupedSourcePassesTheGate()
     {
-        foreach (var gateCase in ValidSourceCases)
+        var results = await RunBuildMatrixAsync(
+            ValidSourceCases,
+            static (gateCase, configuration) =>
+                BuildProbeAsync(gateCase, configuration));
+
+        for (var index = 0; index < ValidSourceCases.Length; index++)
         {
-            var result = await BuildProbeAsync(gateCase);
+            var gateCase = ValidSourceCases[index];
+            var result = results[index];
 
             Assert.AreEqual(
                 0,
@@ -463,9 +498,15 @@ public sealed class CSharpGateConformanceTests
     [TestMethod]
     public async Task EverySourceRuleFailsWithItsStableDiagnostic()
     {
-        foreach (var (gateCase, diagnostic) in SourceCases)
+        var results = await RunBuildMatrixAsync(
+            SourceCases,
+            static (sourceCase, configuration) =>
+                BuildProbeAsync(sourceCase.Case, configuration));
+
+        for (var index = 0; index < SourceCases.Length; index++)
         {
-            var result = await BuildProbeAsync(gateCase);
+            var (gateCase, diagnostic) = SourceCases[index];
+            var result = results[index];
 
             Assert.AreNotEqual(
                 0,
@@ -478,9 +519,22 @@ public sealed class CSharpGateConformanceTests
     [TestMethod]
     public async Task EveryWarningPolicyOverrideFailsClosed()
     {
-        foreach (var (property, value, diagnostic) in PolicyOverrides)
+        var results = await RunBuildMatrixAsync(
+            PolicyOverrides,
+            static (policyOverride, configuration) =>
+                BuildProbeAsync(
+                    "Valid",
+                    configuration,
+                    policyOverride.Property,
+                    policyOverride.Value,
+                    reuseValidatedGate:
+                        policyOverride.Property ==
+                        "ProgramKitConformanceValidatedGateDigest"));
+
+        for (var index = 0; index < PolicyOverrides.Length; index++)
         {
-            var result = await BuildProbeAsync("Valid", property, value);
+            var (property, _, diagnostic) = PolicyOverrides[index];
+            var result = results[index];
 
             Assert.AreNotEqual(
                 0,
@@ -493,9 +547,15 @@ public sealed class CSharpGateConformanceTests
     [TestMethod]
     public async Task ProjectLocalOverridesAndAnalyzerDetachmentFailClosed()
     {
-        foreach (var (mutation, diagnostic) in LocalMutations)
+        var results = await RunBuildMatrixAsync(
+            LocalMutations,
+            static (mutation, configuration) =>
+                BuildProbeMutationAsync(mutation.Mutation, configuration));
+
+        for (var index = 0; index < LocalMutations.Length; index++)
         {
-            var result = await BuildProbeMutationAsync(mutation);
+            var (mutation, diagnostic) = LocalMutations[index];
+            var result = results[index];
 
             Assert.AreNotEqual(
                 0,
@@ -1126,30 +1186,95 @@ public sealed class CSharpGateConformanceTests
 
     private static async Task<GateBuildResult> BuildProbeAsync(
         string gateCase,
+        string configuration = "Release",
         string? property = null,
-        string? value = null)
+        string? value = null,
+        bool reuseValidatedGate = true)
     {
         var project = GetProbeProjectPath();
         Assert.IsTrue(File.Exists(project), project);
 
         var arguments = new List<string>
         {
+            "--no-restore",
             $"--property:GateCase={gateCase}",
         };
+        if (reuseValidatedGate)
+        {
+            arguments.Add(
+                $"--property:ProgramKitConformanceValidatedGateDigest={ReadValidatedGateDigest(configuration)}");
+        }
         if (property is not null)
         {
             arguments.Add($"--property:{property}={value}");
         }
 
-        return await BuildProjectAsync(project, [.. arguments]);
+        return await BuildProjectAsync(
+            project,
+            configuration,
+            [.. arguments]);
     }
 
     private static Task<GateBuildResult> BuildProbeMutationAsync(
-        string mutation) =>
+        string mutation,
+        string configuration = "Release") =>
         BuildProjectAsync(
             GetProbeProjectPath(),
-            "--property:GateCase=Valid",
-            $"--property:GateMutation={mutation}");
+            configuration,
+            [
+                "--no-restore",
+                "--property:GateCase=Valid",
+                $"--property:GateMutation={mutation}",
+                .. ConformanceGateReuseArguments(mutation, configuration),
+            ]);
+
+    private static string[] ConformanceGateReuseArguments(
+        string mutation,
+        string configuration) =>
+        mutation is "BuildReferenceFalse" or "TargetsGetTargetPath"
+            ? []
+            :
+            [
+                $"--property:ProgramKitConformanceValidatedGateDigest={ReadValidatedGateDigest(configuration)}",
+            ];
+
+    private static string ReadValidatedGateDigest(string configuration)
+    {
+        var receipt = GetValidatedGateReceiptPath(configuration);
+        Assert.IsTrue(File.Exists(receipt), receipt);
+        return File.ReadAllText(receipt);
+    }
+
+    private static IEnumerable<string> GateConfigurations()
+    {
+        yield return "Release";
+        for (var lane = 0; lane < MatrixLaneCount; lane++)
+        {
+            yield return $"GateMatrix{lane}";
+        }
+    }
+
+    private static async Task<GateBuildResult[]> RunBuildMatrixAsync<T>(
+        IReadOnlyList<T> cases,
+        Func<T, string, Task<GateBuildResult>> build)
+    {
+        var results = new GateBuildResult[cases.Count];
+        var lanes = Enumerable
+            .Range(0, Math.Min(MatrixLaneCount, cases.Count))
+            .Select(RunLaneAsync);
+
+        await Task.WhenAll(lanes);
+        return results;
+
+        async Task RunLaneAsync(int lane)
+        {
+            var configuration = $"GateMatrix{lane}";
+            for (var index = lane; index < cases.Count; index += MatrixLaneCount)
+            {
+                results[index] = await build(cases[index], configuration);
+            }
+        }
+    }
 
     private static async Task<GateBuildResult> BuildLedgerProbeAsync(
         string ledgerCase)
@@ -1392,6 +1517,21 @@ public sealed class CSharpGateConformanceTests
             "Orbyss.ProgramKit.CSharpGate",
             "Orbyss.ProgramKit.CSharpGate.csproj");
 
+    private static string GetGateAssemblyPath(string configuration) =>
+        Path.Combine(
+            Path.GetDirectoryName(GetGateProjectPath())!,
+            "bin",
+            configuration,
+            "net10.0",
+            "Orbyss.ProgramKit.CSharpGate.dll");
+
+    private static string GetValidatedGateReceiptPath(string configuration) =>
+        Path.Combine(
+            Path.GetDirectoryName(GetProbeProjectPath())!,
+            "obj",
+            "conformance",
+            $"validated-gate.{configuration}.sha256");
+
     private static string GetArtifactsProjectPath() =>
         Path.Combine(
             ConformanceInputs.RepositoryRoot,
@@ -1489,11 +1629,21 @@ public sealed class CSharpGateConformanceTests
     private static Task<GateBuildResult> BuildProjectAsync(
         string project,
         params string[] additionalArguments)
+        =>
+        BuildProjectAsync(
+            project,
+            "Release",
+            additionalArguments);
+
+    private static Task<GateBuildResult> BuildProjectAsync(
+        string project,
+        string configuration,
+        IReadOnlyCollection<string> additionalArguments)
     {
         var arguments = new List<string>
         {
             "--configuration",
-            "Release",
+            configuration,
             "--nologo",
         };
         arguments.AddRange(additionalArguments);

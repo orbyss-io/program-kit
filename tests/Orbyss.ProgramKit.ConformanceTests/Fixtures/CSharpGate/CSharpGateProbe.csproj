@@ -57,6 +57,10 @@
     <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
                       BuildReference="false" />
   </ItemGroup>
+  <ItemGroup Condition="'$(ProgramKitConformanceValidatedGateDigest)' != ''">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      Targets="GetTargetPath" />
+  </ItemGroup>
   <ItemGroup Condition="'$(GateMutation)' == 'TargetsGetTargetPath'">
     <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
                       Targets="GetTargetPath" />

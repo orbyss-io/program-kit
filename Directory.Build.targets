@@ -51,6 +51,7 @@
       <_ProgramKitExpectedCSharpGateProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tools\Orbyss.ProgramKit.CSharpGate\Orbyss.ProgramKit.CSharpGate.csproj'))</_ProgramKitExpectedCSharpGateProjectPath>
       <_ProgramKitExpectedCSharpGateAssemblyPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tools\Orbyss.ProgramKit.CSharpGate\bin\$(Configuration)\$(TargetFramework)\Orbyss.ProgramKit.CSharpGate.dll'))</_ProgramKitExpectedCSharpGateAssemblyPath>
       <_ProgramKitExpectedWarningApprovalLedgerPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)governance\approved-warning-suppressions.tsv'))</_ProgramKitExpectedWarningApprovalLedgerPath>
+      <_ProgramKitExpectedConformanceGateProbePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\CSharpGate\CSharpGateProbe.csproj'))</_ProgramKitExpectedConformanceGateProbePath>
     </PropertyGroup>
     <Error Condition="'$(ProgramKitCSharpGateProjectPath)' != '$(_ProgramKitExpectedCSharpGateProjectPath)'"
            Code="PKCS127"
@@ -61,6 +62,24 @@
     <Error Condition="'$(ProgramKitWarningApprovalLedgerPath)' != '$(_ProgramKitExpectedWarningApprovalLedgerPath)'"
            Code="PKCS129"
            Text="ProgramKitWarningApprovalLedgerPath must remain the repository-owned canonical ledger at $(_ProgramKitExpectedWarningApprovalLedgerPath)." />
+    <Error Condition="'$(ProgramKitConformanceValidatedGateDigest)' != '' and
+                      ('$(MSBuildProjectFullPath)' != '$(_ProgramKitExpectedConformanceGateProbePath)' or
+                       '$(IsPackable)' != 'false' or
+                       !Exists('$(_ProgramKitExpectedCSharpGateAssemblyPath)') or
+                       !$([System.Text.RegularExpressions.Regex]::IsMatch('$(ProgramKitConformanceValidatedGateDigest)', '^[0-9A-F]{64}$')))"
+           Code="PKCS118"
+           Text="Validated gate reuse is restricted to the exact non-packable CSharpGateProbe project, an existing current-configuration analyzer, and an uppercase SHA-256 digest." />
+    <GetFileHash Files="$(_ProgramKitExpectedCSharpGateAssemblyPath)"
+                 Algorithm="SHA256"
+                 Condition="'$(ProgramKitConformanceValidatedGateDigest)' != '' and
+                            Exists('$(_ProgramKitExpectedCSharpGateAssemblyPath)')">
+      <Output TaskParameter="Items"
+              ItemName="_ProgramKitConformanceValidatedGateAssemblyHash" />
+    </GetFileHash>
+    <Error Condition="'$(ProgramKitConformanceValidatedGateDigest)' != '' and
+                      '@(_ProgramKitConformanceValidatedGateAssemblyHash->'%(FileHash)')' != '$(ProgramKitConformanceValidatedGateDigest)'"
+           Code="PKCS118"
+           Text="The CSharpGateProbe validated-gate digest does not match the current-configuration analyzer assembly." />
   </Target>
 
   <Target Name="ValidateProgramKitBuildCompilerDependencyChain"
@@ -179,7 +198,10 @@
                    '%(ProjectReference.PrivateAssets)' == 'all' and
                    ('%(ProjectReference.BuildReference)' == '' or
                     '%(ProjectReference.BuildReference)' == 'true') and
-                   '%(ProjectReference.Targets)' == '' and
+                   (('%(ProjectReference.Targets)' == '' and
+                     '$(ProgramKitConformanceValidatedGateDigest)' == '') or
+                    ('%(ProjectReference.Targets)' == 'GetTargetPath' and
+                     '$(ProgramKitConformanceValidatedGateDigest)' != '')) and
                    ('%(ProjectReference.SkipGetTargetFrameworkProperties)' == '' or
                     '%(ProjectReference.SkipGetTargetFrameworkProperties)' == 'false') and
                    '%(ProjectReference.AdditionalProperties)' == '' and
@@ -263,9 +285,6 @@
     <Error Condition="'$(NoWarn)' != '__ProgramKitNoWarningSuppression__'"
            Code="PKCS103"
            Text="Project-level NoWarn is forbidden; observed $(NoWarn)." />
-    <Error Condition="'$(WarningsNotAsErrors)' != '__ProgramKitNoWarningDemotion__'"
-           Code="PKCS104"
-           Text="WarningsNotAsErrors is forbidden; observed $(WarningsNotAsErrors)." />
     <Error Condition="'$(MSBuildWarningsAsMessages)' != '__ProgramKitNoMSBuildWarningDemotion__;__ProgramKitNoWarningSuppression__'"
            Code="PKCS111"
            Text="MSBuildWarningsAsMessages is forbidden; observed $(MSBuildWarningsAsMessages)." />
@@ -339,6 +358,9 @@
                        '$(MicrosoftCodeAnalysisNetAnalyzersRulesVersion)' != '10')"
            Code="PKCS117"
            Text="Analyzer mode, level, effective severity, and global-configuration overrides are forbidden." />
+    <Error Condition="'$(WarningsNotAsErrors)' != '__ProgramKitNoWarningDemotion__'"
+           Code="PKCS104"
+           Text="WarningsNotAsErrors is forbidden; observed $(WarningsNotAsErrors)." />
     <Error Condition="'@(_ProgramKitCSharpGateProjectReference->Count())' != '1' or
                       '@(_ProgramKitAllCSharpGateProjectReference->Count())' != '1'"
            Code="PKCS118"
@@ -1651,9 +1673,6 @@
     <Error Condition="'$(NoWarn)' != '__ProgramKitNoWarningSuppression__'"
            Code="PKCS103"
            Text="NoWarn is forbidden for the C# gate; observed $(NoWarn)." />
-    <Error Condition="'$(WarningsNotAsErrors)' != '__ProgramKitNoWarningDemotion__'"
-           Code="PKCS104"
-           Text="WarningsNotAsErrors is forbidden for the C# gate; observed $(WarningsNotAsErrors)." />
     <Error Condition="'$(MSBuildWarningsAsMessages)' != '__ProgramKitNoMSBuildWarningDemotion__;__ProgramKitNoWarningSuppression__'"
            Code="PKCS111"
            Text="MSBuildWarningsAsMessages is forbidden for the C# gate; observed $(MSBuildWarningsAsMessages)." />
@@ -1727,6 +1746,9 @@
                        '$(MicrosoftCodeAnalysisNetAnalyzersRulesVersion)' != '10')"
            Code="PKCS117"
            Text="Analyzer mode, level, effective severity, and global-configuration overrides are forbidden for the C# gate. Observed prefix=$(AnalysisLevelPrefix), suffix=$(AnalysisLevelSuffix), effective=$(EffectiveAnalysisLevel), skip-global=$(SkipGlobalAnalyzerConfigForPackage), effective-errors=$(EffectiveCodeAnalysisTreatWarningsAsErrors), rules=$(MicrosoftCodeAnalysisNetAnalyzersRulesVersion), style=$(AnalysisLevelStyle), design=$(AnalysisLevelDesign), documentation=$(AnalysisLevelDocumentation), globalization=$(AnalysisLevelGlobalization), interoperability=$(AnalysisLevelInteroperability), maintainability=$(AnalysisLevelMaintainability), naming=$(AnalysisLevelNaming), performance=$(AnalysisLevelPerformance), reliability=$(AnalysisLevelReliability), security=$(AnalysisLevelSecurity), usage=$(AnalysisLevelUsage)." />
+    <Error Condition="'$(WarningsNotAsErrors)' != '__ProgramKitNoWarningDemotion__'"
+           Code="PKCS104"
+           Text="WarningsNotAsErrors is forbidden for the C# gate; observed $(WarningsNotAsErrors)." />
     <Error Condition="'$(DisabledWarnings)' != ''"
            Code="PKCS123"
            Text="DisabledWarnings is forbidden for the C# gate." />
@@ -1925,6 +1947,8 @@
              Importance="high" />
     <Exec Command="&quot;$(_ProgramKitDotNetHostPath)&quot; build &quot;$(MSBuildProjectFullPath)&quot; --configuration &quot;$(Configuration)&quot; --no-restore --no-incremental --property:ProgramKitSelfValidate=true --property:ProgramKitSelfValidationAnalyzerPath=&quot;$(_ProgramKitSelfValidationAnalyzerPath)&quot; --property:ProgramKitSelfValidationInvocationToken=&quot;$(_ProgramKitSelfValidationInvocationToken)&quot; --property:ProgramKitSelfValidationInvocationFile=&quot;$(_ProgramKitSelfValidationInvocationFile)&quot; --property:RootNamespace=&quot;$(RootNamespace)&quot; --property:BaseOutputPath=&quot;$(_ProgramKitSelfValidationBaseOutputPath)&quot; --property:IntermediateOutputPath=&quot;$(_ProgramKitSelfValidationIntermediateOutputPath)&quot; --property:UseSharedCompilation=false"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <RemoveDir Directories="$(_ProgramKitSelfValidationBaseOutputPath);
+                            $(_ProgramKitSelfValidationIntermediateOutputPath)" />
   </Target>
 
   <Target Name="ValidateProgramKitPackageVersion"
