@@ -760,6 +760,31 @@ public sealed class CSharpGateConformanceTests
             "--property:Cs1701CompatibilityMutation=WrongProject");
         Assert.AreNotEqual(0, wrongProject.ExitCode, wrongProject.Output);
         Assert.Contains("PKCS174", wrongProject.Output);
+
+        var cronosProject = GetCronosProjectPath();
+        var validCronos = await BuildProjectAsync(
+            cronosProject,
+            "--no-restore",
+            "--no-incremental");
+        Assert.AreEqual(0, validCronos.ExitCode, validCronos.Output);
+        foreach (var mutation in new[]
+                 {
+                     "WrongCronosRuntimeIdentity",
+                     "WrongCronosReference",
+                 })
+        {
+            var result = await BuildProjectAsync(
+                cronosProject,
+                "--no-restore",
+                "--no-incremental",
+                $"--property:CustomAfterMicrosoftCommonTargets={tamperingTargets}",
+                $"--property:Cs1701CompatibilityMutation={mutation}");
+            Assert.AreNotEqual(
+                0,
+                result.ExitCode,
+                $"{mutation} unexpectedly passed.{Environment.NewLine}{result.Output}");
+            Assert.Contains("PKCS174", result.Output);
+        }
     }
 
     [TestMethod]
@@ -1356,6 +1381,14 @@ public sealed class CSharpGateConformanceTests
             "tests",
             "Orbyss.ProgramKit.UnitTests",
             "Orbyss.ProgramKit.UnitTests.csproj");
+
+    private static string GetCronosProjectPath() =>
+        Path.Combine(
+            ConformanceInputs.RepositoryRoot,
+            "program-kit",
+            "src",
+            "Orbyss.ProgramKit.Tasks.Schedules.Cronos",
+            "Orbyss.ProgramKit.Tasks.Schedules.Cronos.csproj");
 
     private static string GetSolutionPath() =>
         Path.Combine(

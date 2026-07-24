@@ -145,6 +145,13 @@ The following rules are mandatory:
    A newly created test project does not inherit this exception. The quarantine
    must be removed as soon as the selected test toolchain supplies a compatible
    .NET 10 closure; it is not general authority to build on suppressed warnings.
+   The approved Program Kit baseline also selects Cronos `0.13.0` for the
+   optional `Orbyss.ProgramKit.Tasks.Schedules.Cronos` provider. Its exact
+   dependency-free `lib/net6.0/Cronos.dll` asset produces `CS1701` when consumed
+   by `net10.0`. A separate project-specific quarantine binds the package,
+   content hash, assembly identity and digest, .NET 10 runtime identity, absence
+   of a `net10.0` asset, and mandatory provider review. It does not authorize
+   any other warning or project.
    Every other compiler `/nowarn` remains forbidden.
    For projects without that exact active approval, the compiler command line
    may not contain `/nowarn`, including suppressions that the pinned SDK would

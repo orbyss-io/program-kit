@@ -36,6 +36,32 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="ChangeCronosCs1701CompatibilityRuntimeIdentity"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.Tasks.Schedules.Cronos' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongCronosRuntimeIdentity'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime'">
+        <FusionName>System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</FusionName>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeCronosCs1701CompatibilityReference"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.Tasks.Schedules.Cronos' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongCronosReference'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'Cronos'">
+        <NuGetPackageVersion>0.12.0</NuGetPackageVersion>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
   <Target Name="ForgeCs1701CompatibilityApprovalForWrongProject"
           DependsOnTargets="PrepareProgramKitCompilerInvocation"
           BeforeTargets="CoreCompile"

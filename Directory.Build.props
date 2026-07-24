@@ -11,7 +11,7 @@
 
     <ProgramKitTargetProfileId>pkid:profile:program-kit:dotnet-10</ProgramKitTargetProfileId>
     <ProgramKitTargetProfileVersion>1.0.0</ProgramKitTargetProfileVersion>
-    <ProgramKitCurrentWorkUnit>PK-W025</ProgramKitCurrentWorkUnit>
+    <ProgramKitCurrentWorkUnit>PK-W030</ProgramKitCurrentWorkUnit>
     <ProgramKitSdkVersion>10.0.302</ProgramKitSdkVersion>
     <ProgramKitSdkRollForward>disable</ProgramKitSdkRollForward>
     <ProgramKitAllowPrereleaseSdk>false</ProgramKitAllowPrereleaseSdk>

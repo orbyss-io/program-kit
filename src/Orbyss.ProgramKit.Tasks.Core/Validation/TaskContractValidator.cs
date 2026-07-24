@@ -526,12 +526,15 @@ public sealed class TaskContractValidator : ITaskContractValidator
                 "/state");
         }
         if (value.AttemptCount < 0 ||
-            (value.IsTerminal != (value.TerminalOutcomeRevision is not null)))
+            (value.IsTerminal != (value.TerminalOutcomeRevision is not null)) ||
+            (value.IsTerminal !=
+                (value.TerminalCompletionInstant is not null)) ||
+            value.TerminalCompletionInstant > value.ObservedAt)
         {
             AddError(
                 diagnostics,
                 TasksCoreDiagnosticIds.InvalidTaskLifecycleView,
-                "Status requires a non-negative attempt count and exactly terminal states require an outcome.",
+                "Status requires a non-negative attempt count; exactly terminal states require an outcome and completion instant no later than observation.",
                 "/state");
         }
 

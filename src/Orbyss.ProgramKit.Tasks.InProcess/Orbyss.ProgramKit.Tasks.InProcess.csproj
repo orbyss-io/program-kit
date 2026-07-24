@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Tasks.InProcess</PackageId>
+    <Description>Bounded volatile in-process task execution, dispatch, lifecycle state, and scheduling for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Tasks\Orbyss.ProgramKit.Tasks.csproj" />
+  </ItemGroup>
+</Project>

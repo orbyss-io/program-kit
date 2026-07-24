@@ -8,7 +8,8 @@ public sealed record TaskInstanceStatus(
     bool CancellationRequested,
     DateTimeOffset ObservedAt,
     ArtifactReference? LatestAttemptRevision,
-    ArtifactReference? TerminalOutcomeRevision)
+    ArtifactReference? TerminalOutcomeRevision,
+    DateTimeOffset? TerminalCompletionInstant)
 {
     /// <summary>Gets whether the observed lifecycle state is terminal.</summary>
     public bool IsTerminal =>

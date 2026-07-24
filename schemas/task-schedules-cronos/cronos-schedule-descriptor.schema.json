@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/task-schedules-cronos/1.0.0/cronos-schedule-descriptor.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:cronos-schedule-descriptor",
+  "x-program-kit-version": "1.0.0",
+  "title": "CronosScheduleDescriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "expression",
+    "format",
+    "timeZoneId",
+    "profile",
+    "timeZoneEvidence"
+  ],
+  "properties": {
+    "expression": {
+      "type": "string",
+      "minLength": 1
+    },
+    "format": {
+      "enum": [
+        "standard",
+        "include-seconds"
+      ]
+    },
+    "stableJitterSeed": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": -2147483648,
+      "maximum": 2147483647
+    },
+    "timeZoneId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/artifact-reference.schema.json"
+    },
+    "timeZoneEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataSource",
+        "dataVersion",
+        "horizonStart",
+        "horizonEnd",
+        "zoneRuleFingerprint"
+      ],
+      "properties": {
+        "dataSource": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizonStart": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "horizonEnd": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "zoneRuleFingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

@@ -3466,10 +3466,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
 
             if (!IsValidCompilerNoWarnTarget(target))
             {
-                return "compiler suppression target must bind MSTest.Sdk 4.3.2, " +
-                    "the approved locked package closure and assembly set, " +
-                    "the .NET 10 runtime identity, absent .NET 10 assets, and " +
-                    "mandatory test-toolchain review";
+                return "compiler suppression target must bind one approved exact compatibility quarantine";
             }
         }
         else if (suppressionKind == "PragmaWarningDisable" &&
@@ -3515,18 +3512,22 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
     private static bool IsValidCompilerNoWarnTarget(string target)
     {
         var components = target.Split('|');
-        if (components.Length != 6 ||
-            components[0] != "mstest-sdk:4.3.2" ||
-            components[1] != "closure:cs1701-mstest-sdk-4.3.2-v1" ||
-            components[2] != "assembly-set:cs1701-mstest-sdk-4.3.2-v1" ||
-            components[3] != "system-runtime:10.0.0.0" ||
-            components[4] != "net10-assets:absent" ||
-            components[5] != "review-on:test-toolchain-change")
-        {
-            return false;
-        }
-
-        return true;
+        var isMstest = components.Length == 6 &&
+            components[0] == "mstest-sdk:4.3.2" &&
+            components[1] == "closure:cs1701-mstest-sdk-4.3.2-v1" &&
+            components[2] == "assembly-set:cs1701-mstest-sdk-4.3.2-v1" &&
+            components[3] == "system-runtime:10.0.0.0" &&
+            components[4] == "net10-assets:absent" &&
+            components[5] == "review-on:test-toolchain-change";
+        var isCronos = components.Length == 6 &&
+            components[0] == "cronos:0.13.0" &&
+            components[1] == "asset:lib/net6.0/Cronos.dll" &&
+            components[2] ==
+                "sha256:e0ad7c799904f1b663ab090b32665e0e90ede27699937588900845383064ba03" &&
+            components[3] == "system-runtime:10.0.0.0" &&
+            components[4] == "net10-assets:absent" &&
+            components[5] == "review-on:provider-change";
+        return isMstest || isCronos;
     }
 
     private static bool IsValidPragmaRangeTarget(string target)
@@ -3833,6 +3834,60 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Schemas",
                 "Validation",
             ],
+            "Orbyss.ProgramKit.Tasks" =>
+            [
+                "Activation",
+                "Composition",
+                "Coordination",
+                "Diagnostics",
+                "Idempotency",
+                "Middleware",
+                "Observability",
+                "Policies",
+                "Registration",
+                "Retry",
+                "Scheduling",
+            ],
+            "Orbyss.ProgramKit.Tasks.InProcess" =>
+            [
+                "Cancellation",
+                "Composition",
+                "Coordination",
+                "Diagnostics",
+                "Dispatching",
+                "Execution",
+                "Idempotency",
+                "Observability",
+                "Scheduling",
+                "State",
+            ],
+            "Orbyss.ProgramKit.Tasks.Hosting" =>
+            [
+                "Composition",
+                "Health",
+                "Hosting",
+                "Lifecycle",
+                "Scopes",
+            ],
+            "Orbyss.ProgramKit.Tasks.Schedules" =>
+            [
+                "Calculation",
+                "Descriptors",
+                "Diagnostics",
+                "Factories",
+                "Schemas",
+            ],
+            "Orbyss.ProgramKit.Tasks.Schedules.Cronos" =>
+            [
+                "Calculation",
+                "Descriptors",
+                "Diagnostics",
+                "Evidence",
+                "Factories",
+                "Schemas",
+                "TimeZones",
+                "Validation",
+            ],
             "Orbyss.ProgramKit.UnitTests" =>
             [
                 "Architecture",
@@ -3950,6 +4005,64 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                     folderSegments[2]);
         }
 
+        if (domain == "Tasks")
+        {
+            if (folderSegments.Length < 2)
+            {
+                return isTypeFree;
+            }
+
+            var family = folderSegments[1];
+            if (family == "Core")
+            {
+                return folderSegments.Length == 2
+                    ? isTypeFree
+                    : folderSegments[2] == "TestSupport" ||
+                        IsAllowedIntentRoot(
+                            "Orbyss.ProgramKit.Tasks.Core",
+                            folderSegments[2]);
+            }
+
+            if (family == "InProcess" || family == "Hosting")
+            {
+                return folderSegments.Length == 2
+                    ? isTypeFree
+                    : folderSegments[2] == "TestSupport" ||
+                        IsAllowedIntentRoot(
+                            string.Concat(
+                                "Orbyss.ProgramKit.Tasks.",
+                                family),
+                            folderSegments[2]);
+            }
+
+            if (family == "Schedules")
+            {
+                if (folderSegments.Length == 2)
+                {
+                    return isTypeFree;
+                }
+
+                if (folderSegments[2] == "Cronos")
+                {
+                    return folderSegments.Length == 3
+                        ? isTypeFree
+                        : folderSegments[3] == "TestSupport" ||
+                            IsAllowedIntentRoot(
+                                "Orbyss.ProgramKit.Tasks.Schedules.Cronos",
+                                folderSegments[3]);
+                }
+
+                return folderSegments[2] == "TestSupport" ||
+                    IsAllowedIntentRoot(
+                        "Orbyss.ProgramKit.Tasks.Schedules",
+                        folderSegments[2]);
+            }
+
+            return IsAllowedIntentRoot(
+                "Orbyss.ProgramKit.Tasks",
+                family);
+        }
+
         if (folderSegments.Length == 1)
         {
             return isTypeFree;
@@ -3963,7 +4076,6 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             "Modularity" => "Orbyss.ProgramKit.Modularity",
             "Planning" => "Orbyss.ProgramKit.Planning",
             "Quality" => "Orbyss.ProgramKit.Quality",
-            "Tasks" => "Orbyss.ProgramKit.Tasks.Core",
             "Workbench" => "Orbyss.ProgramKit.Workbench",
             _ => null,
         };
