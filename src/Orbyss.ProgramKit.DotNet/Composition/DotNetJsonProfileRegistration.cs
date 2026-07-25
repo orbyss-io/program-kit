@@ -7,7 +7,9 @@ using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.Operations.Contracts;
+using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.SecretResolution.Contracts;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
@@ -63,6 +65,10 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetTelemetrySamplerKind>(),
             CreateEnumConverter<DotNetOtlpProtocol>(),
             CreateEnumConverter<DotNetTelemetryFailureDisposition>(),
+            CreateEnumConverter<DotNetHandledExceptionDiagnostics>(),
+            CreateEnumConverter<DotNetResponseStartedDisposition>(),
+            CreateEnumConverter<DotNetClientDisconnectDisposition>(),
+            CreateEnumConverter<TransportFailureDisclosure>(),
             CreateEnumConverter<ConsoleOptionKind>(),
             CreateEnumConverter<OperationResultDisposition>(),
             CreateEnumConverter<OperationExpectedRevisionPolicy>(),

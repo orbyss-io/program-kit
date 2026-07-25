@@ -9,9 +9,11 @@ using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
+using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Operations.Contracts;
+using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Contributions;
 using ObservatoryScheduling.Core.Configuration;
@@ -67,8 +69,8 @@ internal static class ObservatoryDotNetContractFactory
             [Ref("schedule-provider", "cronos-0-13")]);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@5.0.0",
-            new SemanticVersion("5.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@6.0.0",
+            new SemanticVersion("6.0.0"),
             VersionMapInputRevision(),
             VersionSelectionInputRevision(),
             new DotNetShellComposition(
@@ -171,7 +173,8 @@ internal static class ObservatoryDotNetContractFactory
                     schedule.GetInputSchemaRevisions(),
                     schedule.GetResultSchemaRevisions(),
                     schedule.GetDiagnosticSchemaRevisions(),
-                    schedule.GetRelatedOperationRevisions()),
+                    schedule.GetRelatedOperationRevisions(),
+                    ProblemResponses(host)),
                 new OpenApiOperationProjection(
                     "/health/ready",
                     "GET",
@@ -181,7 +184,8 @@ internal static class ObservatoryDotNetContractFactory
                     health.GetInputSchemaRevisions(),
                     health.GetResultSchemaRevisions(),
                     health.GetDiagnosticSchemaRevisions(),
-                    health.GetRelatedOperationRevisions()),
+                    health.GetRelatedOperationRevisions(),
+                    ProblemResponses(host)),
             ],
             Provenance(
                 host,
@@ -427,7 +431,64 @@ internal static class ObservatoryDotNetContractFactory
             [],
             taskRequirements,
             health,
-            Compatibility());
+            Compatibility(),
+            null,
+            kind == DotNetHostKind.Api ? TransportFailures() : null);
+
+    private static DotNetTransportFailureConfiguration TransportFailures()
+    {
+        var generic = Failure(
+            "internal",
+            500,
+            "Unexpected failure",
+            "The request could not be completed.",
+            "The local fixture request failed.");
+        var conflict = Failure(
+            "conflict",
+            409,
+            "Scheduling conflict",
+            "The scheduling request conflicts with the current state.",
+            "The declared scheduling conflict occurred.");
+        return new DotNetTransportFailureConfiguration(
+            new TransportFailureProfile(
+                Ref("profile", "transport-failures"),
+                generic.Identity,
+                [generic, conflict]),
+            [new DotNetExceptionFailureMapping(
+                10,
+                "System.InvalidOperationException",
+                conflict.Identity)],
+            true,
+            DotNetHandledExceptionDiagnostics.SuppressFrameworkAndEmitSanitizedOnce,
+            DotNetResponseStartedDisposition.LeaveUnhandled,
+            DotNetClientDisconnectDisposition.AbortWithoutResponse);
+    }
+
+    private static TransportFailureContract Failure(
+        string name,
+        int statusCode,
+        string title,
+        string productionDetail,
+        string developmentDetail) =>
+        new(
+            Id("failure", name),
+            statusCode,
+            new Uri(string.Concat("https://errors.orbyss.test/", name)),
+            title,
+            productionDetail,
+            developmentDetail,
+            Ref("schema", "problem-details"),
+            TransportFailureDisclosure.Public);
+
+    private static ImmutableArray<OpenApiProblemDetailsResponseProjection> ProblemResponses(
+        DotNetHostDefinition host) =>
+        host.TransportFailures?.Profile.Failures.Select(static failure =>
+            new OpenApiProblemDetailsResponseProjection(
+                failure.StatusCode,
+                failure.Identity,
+                failure.Type,
+                failure.Title,
+                failure.ProblemSchemaRevision)).ToImmutableArray() ?? [];
 
     private static ImmutableArray<DotNetPackageReference> HostPackages(
         DotNetHostKind kind)

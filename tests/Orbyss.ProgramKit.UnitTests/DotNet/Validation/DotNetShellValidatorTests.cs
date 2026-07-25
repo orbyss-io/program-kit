@@ -18,6 +18,7 @@ public sealed class DotNetShellValidatorTests
         DotNetShellValidator sut = new(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(DotNetTestContractFactory.Shell());
@@ -39,6 +40,7 @@ public sealed class DotNetShellValidatorTests
         DotNetShellValidator sut = new(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(shell);
@@ -64,6 +66,7 @@ public sealed class DotNetShellValidatorTests
         DotNetShellValidator sut = new(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(shell);
@@ -483,6 +486,7 @@ public sealed class DotNetShellValidatorTests
         new(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
     private static DotNetShellDocument ReplaceHost(

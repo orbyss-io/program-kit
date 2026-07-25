@@ -102,6 +102,11 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
                     host.Telemetry.SpecificationRevision,
                     host.Telemetry.SemanticConventionRevision,
                 ])
+            .Concat(host.TransportFailures is null
+                ? []
+                : host.TransportFailures.Profile.Failures
+                    .Select(static failure => failure.ProblemSchemaRevision)
+                    .Prepend(host.TransportFailures.Profile.ProfileRevision))
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ThenBy(static reference => reference.Version.Value, StringComparer.Ordinal)

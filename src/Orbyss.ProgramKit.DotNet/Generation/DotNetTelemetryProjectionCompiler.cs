@@ -93,7 +93,7 @@ public sealed class DotNetTelemetryProjectionCompiler :
             .Append(DotNetSourceText.CSharpLiteral(telemetry.Resource.ServiceVersion.Value))
             .AppendLine("))");
         RenderTracing(builder, telemetry);
-        RenderMetrics(builder, telemetry);
+        RenderMetrics(builder, telemetry, host.TransportFailures is not null);
         RenderLogging(builder, telemetry);
         builder.AppendLine(";");
         builder.AppendLine("_ = openTelemetry;");
@@ -159,7 +159,8 @@ public sealed class DotNetTelemetryProjectionCompiler :
 
     private static void RenderMetrics(
         StringBuilder builder,
-        DotNetTelemetryConfiguration telemetry)
+        DotNetTelemetryConfiguration telemetry,
+        bool includeTransportFailures)
     {
         builder.AppendLine("    .WithMetrics(metrics =>");
         builder.AppendLine("    {");
@@ -172,6 +173,10 @@ public sealed class DotNetTelemetryProjectionCompiler :
                 .Append("        metrics.AddMeter(")
                 .Append(DotNetSourceText.CSharpLiteral(meter))
                 .AppendLine(");");
+        }
+        if (includeTransportFailures)
+        {
+            builder.AppendLine("        metrics.AddMeter(\"Orbyss.ProgramKit.TransportFailures\");");
         }
 
         foreach (var instrumentation in telemetry.Instrumentations

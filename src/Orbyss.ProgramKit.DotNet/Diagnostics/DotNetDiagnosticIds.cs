@@ -47,4 +47,16 @@ public static class DotNetDiagnosticIds
 
     /// <summary>Telemetry could disclose sensitive or unbounded data.</summary>
     public const string UnsafeTelemetryData = "PKNET015";
+
+    /// <summary>ASP.NET Core transport-failure composition is invalid.</summary>
+    public const string InvalidTransportFailureConfiguration = "PKNET016";
+
+    /// <summary>An exception mapping is ambiguous, inferred, or unsafe.</summary>
+    public const string InvalidExceptionFailureMapping = "PKNET017";
+
+    /// <summary>Transport failure detail could expose runtime material.</summary>
+    public const string UnsafeTransportFailureDisclosure = "PKNET018";
+
+    /// <summary>OpenAPI failure responses do not match runtime declarations.</summary>
+    public const string TransportFailureOpenApiMismatch = "PKNET019";
 }

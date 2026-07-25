@@ -228,7 +228,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         return requiredKind switch
         {
             DotNetHostKind.Api => HasExactApiProjection(
-                host.OperationBindings,
+                host,
                 input.OpenApi!),
             DotNetHostKind.Console =>
                 input.OpenConsole!.HostRevision.Identity == host.Identity &&
@@ -247,9 +247,10 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
     }
 
     private static bool HasExactApiProjection(
-        ImmutableArray<Operations.DotNetOperationBinding> bindings,
+        DotNetHostDefinition host,
         Documentation.Api.OpenApiDocumentProjection document)
     {
+        var bindings = host.OperationBindings;
         if (bindings.Length != document.Operations.Length)
         {
             return false;
@@ -271,13 +272,51 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                     operation.DiagnosticSchemaRevisions) ||
                 !ExactSet(
                     matches[0].GetRelatedOperationRevisions(),
-                    operation.RelatedOperationRevisions))
+                    operation.RelatedOperationRevisions) ||
+                !HasExactProblemDetailsProjection(host, operation))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static bool HasExactProblemDetailsProjection(
+        DotNetHostDefinition host,
+        Documentation.Api.OpenApiOperationProjection operation)
+    {
+        if (operation.ProblemDetailsResponses.IsDefault)
+        {
+            return false;
+        }
+
+        var expected = host.TransportFailures?.Profile.Failures
+            .Select(static failure => string.Concat(
+                failure.StatusCode,
+                "|",
+                failure.Identity.Value,
+                "|",
+                failure.Type.AbsoluteUri,
+                "|",
+                failure.Title,
+                "|",
+                Exact(failure.ProblemSchemaRevision)))
+            .ToHashSet(StringComparer.Ordinal) ?? [];
+        var actual = operation.ProblemDetailsResponses
+            .Select(static response => string.Concat(
+                response.StatusCode,
+                "|",
+                response.FailureIdentity.Value,
+                "|",
+                response.Type.AbsoluteUri,
+                "|",
+                response.Title,
+                "|",
+                Exact(response.ProblemSchemaRevision)))
+            .ToHashSet(StringComparer.Ordinal);
+        return expected.SetEquals(actual) &&
+               expected.Count == operation.ProblemDetailsResponses.Length;
     }
 
     private static bool HasExactConsoleProjection(

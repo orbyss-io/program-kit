@@ -154,5 +154,6 @@ public sealed class DotNetTelemetryValidationTests
         new(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 }

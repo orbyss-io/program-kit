@@ -25,6 +25,8 @@ public static class OperationsDiagnosticIds
     public const string InvalidResult = "PKOPS010";
     /// <summary>Progress carriage does not match bounded progress policy.</summary>
     public const string InvalidProgress = "PKOPS011";
+    /// <summary>A transport-failure contract is unsafe or inconsistent.</summary>
+    public const string InvalidTransportFailure = "PKOPS012";
 
     /// <summary>Gets every owned diagnostic identifier in stable order.</summary>
     public static ImmutableArray<string> All { get; } =
@@ -40,5 +42,6 @@ public static class OperationsDiagnosticIds
         InvalidInvocation,
         InvalidResult,
         InvalidProgress,
+        InvalidTransportFailure,
     ];
 }

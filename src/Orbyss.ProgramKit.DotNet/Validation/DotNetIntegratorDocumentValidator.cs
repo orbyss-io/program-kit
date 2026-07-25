@@ -42,6 +42,24 @@ public sealed class DotNetIntegratorDocumentValidator : IDotNetIntegratorDocumen
             {
                 Error(diagnostics, "OpenAPI operations require unique method/path pairs, absolute paths, and stable operation IDs.", "/operations");
             }
+
+            if (operation.ProblemDetailsResponses.IsDefault ||
+                operation.ProblemDetailsResponses.Any(static response =>
+                    response.StatusCode is < 400 or > 599 ||
+                    response.Type is null ||
+                    !response.Type.IsAbsoluteUri ||
+                    response.Type.Scheme != Uri.UriSchemeHttps ||
+                    string.IsNullOrWhiteSpace(response.Title)) ||
+                operation.ProblemDetailsResponses
+                    .Select(static response => response.FailureIdentity.Value)
+                    .Distinct(StringComparer.Ordinal)
+                    .Count() != operation.ProblemDetailsResponses.Length)
+            {
+                Error(
+                    diagnostics,
+                    "Problem Details responses must be initialized, unique, explicit HTTP failures with absolute HTTPS types.",
+                    "/operations/problemDetailsResponses");
+            }
         }
 
         return ProgramKitValidationResult.From(diagnostics);

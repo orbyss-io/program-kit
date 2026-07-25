@@ -42,6 +42,7 @@ public sealed class NuGetLockVerifierTests
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
+                new TransportFailureProfileValidator(),
                 DotNetTestContractFactory.ProviderCatalog()));
         var document = builder.Build(
             shell,

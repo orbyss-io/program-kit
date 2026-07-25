@@ -10,4 +10,5 @@ public sealed record OpenApiOperationProjection(
     ImmutableArray<ArtifactReference> InputSchemaRevisions,
     ImmutableArray<ArtifactReference> ResultSchemaRevisions,
     ImmutableArray<ArtifactReference> DiagnosticSchemaRevisions,
-    ImmutableArray<ArtifactReference> RelatedOperationRevisions);
+    ImmutableArray<ArtifactReference> RelatedOperationRevisions,
+    ImmutableArray<OpenApiProblemDetailsResponseProjection> ProblemDetailsResponses = default);

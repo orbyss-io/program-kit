@@ -17,7 +17,7 @@ public sealed class OperationsSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(6, module.Resources);
+        Assert.HasCount(7, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);

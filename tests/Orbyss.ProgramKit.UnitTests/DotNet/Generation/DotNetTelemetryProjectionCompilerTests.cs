@@ -55,7 +55,7 @@ public sealed class DotNetTelemetryProjectionCompilerTests
         Assert.DoesNotContain("BaggagePropagator", registration);
         Assert.AreEqual(2, Count(registration, "AddAspNetCoreInstrumentation"));
         Assert.AreEqual(2, Count(registration, "AddHttpClientInstrumentation"));
-        Assert.Contains("options.RecordException = true", registration);
+        Assert.Contains("options.RecordException = false", registration);
         Assert.Contains("ParentBasedSampler", registration);
         Assert.Contains("BatchExportProcessorOptions.MaxQueueSize = 2048", registration);
         Assert.Contains("AddOptions<global::GeneratedHost.Hosting.ProgramKitTelemetryOptions>()", registration);

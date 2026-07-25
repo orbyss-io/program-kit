@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.SecretResolution.Contracts;
 
 namespace Orbyss.ProgramKit.DotNet.Composition;
@@ -22,6 +23,7 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
 [JsonSerializable(typeof(DotNetShellDocument))]
 [JsonSerializable(typeof(DotNetConfigurationProviderCatalogDocument))]
 [JsonSerializable(typeof(DotNetTelemetryConfiguration))]
+[JsonSerializable(typeof(DotNetTransportFailureConfiguration))]
 [JsonSerializable(typeof(DotNetArtifactInputManifest))]
 [JsonSerializable(typeof(DotNetShellLockDocument))]
 [JsonSerializable(typeof(OpenApiDocumentProjection))]

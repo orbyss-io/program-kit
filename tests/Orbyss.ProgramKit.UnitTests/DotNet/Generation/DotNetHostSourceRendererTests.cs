@@ -20,6 +20,7 @@ public sealed class DotNetHostSourceRendererTests
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
+                new TransportFailureProfileValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var lockDocument = lockBuilder.Build(
@@ -28,7 +29,8 @@ public sealed class DotNetHostSourceRendererTests
         DotNetHostSourceRenderer sut =
             new(new DotNetConfigurationProjectionCompiler(
                     DotNetTestContractFactory.ProviderRegistry()),
-                new DotNetTelemetryProjectionCompiler());
+                new DotNetTelemetryProjectionCompiler(),
+                new DotNetTransportFailureProjectionCompiler());
 
         foreach (var host in shell.Hosts)
         {
@@ -105,6 +107,7 @@ public sealed class DotNetHostSourceRendererTests
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
+                new TransportFailureProfileValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var locks = lockBuilder.Build(
@@ -116,7 +119,8 @@ public sealed class DotNetHostSourceRendererTests
         DotNetHostSourceRenderer sut =
             new(new DotNetConfigurationProjectionCompiler(
                     DotNetTestContractFactory.ProviderRegistry()),
-                new DotNetTelemetryProjectionCompiler());
+                new DotNetTelemetryProjectionCompiler(),
+                new DotNetTransportFailureProjectionCompiler());
 
         var outputs = sut.Render(host, hostLock, shell.Features, document);
         var parser = Text(

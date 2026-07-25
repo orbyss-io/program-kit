@@ -13,16 +13,20 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
 {
     private readonly IDotNetConfigurationProjectionCompiler configurationCompiler;
     private readonly IDotNetTelemetryProjectionCompiler telemetryCompiler;
+    private readonly IDotNetTransportFailureProjectionCompiler transportFailureCompiler;
 
     /// <summary>Initializes the renderer with the reusable configuration compiler.</summary>
     public DotNetHostSourceRenderer(
         IDotNetConfigurationProjectionCompiler configurationCompiler,
-        IDotNetTelemetryProjectionCompiler telemetryCompiler)
+        IDotNetTelemetryProjectionCompiler telemetryCompiler,
+        IDotNetTransportFailureProjectionCompiler transportFailureCompiler)
     {
         this.configurationCompiler = configurationCompiler ??
             throw new ArgumentNullException(nameof(configurationCompiler));
         this.telemetryCompiler = telemetryCompiler ??
             throw new ArgumentNullException(nameof(telemetryCompiler));
+        this.transportFailureCompiler = transportFailureCompiler ??
+            throw new ArgumentNullException(nameof(transportFailureCompiler));
     }
 
     /// <inheritdoc />
@@ -47,9 +51,12 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
                 features,
                 configurationCompiler.RenderRegistration(host),
                 telemetryCompiler.RenderRegistration(host),
-                telemetryCompiler.RenderMiddleware(host)))));
+                telemetryCompiler.RenderMiddleware(host),
+                transportFailureCompiler.RenderRegistration(host),
+                transportFailureCompiler.RenderMiddleware(host)))));
         outputs.AddRange(configurationCompiler.Compile(host));
         outputs.AddRange(telemetryCompiler.Compile(host));
+        outputs.AddRange(transportFailureCompiler.Compile(host));
         if (host.Kind == DotNetHostKind.Console && consoleDocument is not null)
         {
             outputs.Add(new GeneratedOutput(
@@ -139,7 +146,9 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         ImmutableArray<DotNetFeatureSelection> features,
         string configurationRegistration,
         string telemetryRegistration,
-        string telemetryMiddleware)
+        string telemetryMiddleware,
+        string transportFailureRegistration,
+        string transportFailureMiddleware)
     {
         var web = host.Kind == DotNetHostKind.Api || host.Health is not null;
         var builder = new StringBuilder();
@@ -207,6 +216,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             : "var builder = Host.CreateApplicationBuilder(args);");
         builder.Append(configurationRegistration);
         builder.Append(telemetryRegistration);
+        builder.Append(transportFailureRegistration);
         if (host.Telemetry?.HttpDiagnostics.Enabled == true)
         {
             RenderHttpLoggingRegistration(builder);
@@ -227,6 +237,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             : "using var host = builder.Build();");
         if (web)
         {
+            builder.Append(transportFailureMiddleware);
             builder.Append(telemetryMiddleware);
             RenderHealthMappings(builder, host.Health);
             builder.AppendLine("app.MapShells();");

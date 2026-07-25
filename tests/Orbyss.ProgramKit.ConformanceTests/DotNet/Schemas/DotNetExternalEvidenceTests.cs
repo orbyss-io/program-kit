@@ -112,4 +112,43 @@ public sealed class DotNetExternalEvidenceTests
                 packageId);
         }
     }
+
+    [TestMethod]
+    public void TransportFailureEvidenceBindsExactFrameworkOnlyBehavior()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(static name =>
+            name.EndsWith(
+                "dotnet-transport-failure-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using MemoryStream bytes = new();
+        stream.CopyTo(bytes);
+        Assert.AreEqual(
+            "91f6f01a88f40bbbf21ee68b690f07c1a8d02a62aab3803b7b4442f8224b6218",
+            Convert.ToHexString(SHA256.HashData(bytes.ToArray())).ToLowerInvariant());
+        bytes.Position = 0;
+        using var document = JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+        var selection = root.GetProperty("selection");
+
+        Assert.AreEqual("net10.0", selection.GetProperty("targetFramework").GetString());
+        Assert.AreEqual(
+            "Microsoft.AspNetCore.App",
+            selection.GetProperty("runtimeSurface").GetString());
+        Assert.IsEmpty(selection.GetProperty("externalPackages").EnumerateArray());
+        Assert.HasCount(
+            7,
+            selection.GetProperty("frameworkApis").EnumerateArray().ToArray());
+        Assert.AreEqual(
+            "leave unhandled; never rewrite",
+            root.GetProperty("policies")
+                .GetProperty("responseStarted")
+                .GetString());
+        Assert.AreEqual(
+            "fixed reviewed contract text; never Exception.Message",
+            root.GetProperty("policies")
+                .GetProperty("developmentDisclosure")
+                .GetString());
+    }
 }

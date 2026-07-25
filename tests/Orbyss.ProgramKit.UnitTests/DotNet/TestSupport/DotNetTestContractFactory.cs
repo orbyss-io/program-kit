@@ -11,16 +11,53 @@ using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Generation.ConfigurationProviders;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
+using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Operations.Contracts;
+using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 
 namespace Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
 
 internal static class DotNetTestContractFactory
 {
+    internal static DotNetTransportFailureConfiguration TransportFailures()
+    {
+        var generic = new TransportFailureContract(
+            Id("failure", "internal"),
+            500,
+            new Uri("https://errors.orbyss.test/internal"),
+            "Unexpected failure",
+            "The request could not be completed.",
+            "The request failed in the local development host.",
+            Ref("schema", "problem-details", 'a'),
+            TransportFailureDisclosure.Public);
+        var conflict = new TransportFailureContract(
+            Id("failure", "conflict"),
+            409,
+            new Uri("https://errors.orbyss.test/conflict"),
+            "Conflict",
+            "The request conflicts with the current state.",
+            "The declared operation conflict occurred.",
+            Ref("schema", "problem-details", 'a'),
+            TransportFailureDisclosure.Public);
+        return new DotNetTransportFailureConfiguration(
+            new TransportFailureProfile(
+                Ref("profile", "transport-failures", 'b'),
+                generic.Identity,
+                [generic, conflict]),
+            [new DotNetExceptionFailureMapping(
+                10,
+                "System.InvalidOperationException",
+                conflict.Identity)],
+            true,
+            DotNetHandledExceptionDiagnostics.SuppressFrameworkAndEmitSanitizedOnce,
+            DotNetResponseStartedDisposition.LeaveUnhandled,
+            DotNetClientDisconnectDisposition.AbortWithoutResponse);
+    }
+
     internal static DotNetShellDocument Shell()
     {
         var shellIdentity = Id("shell", "main");
@@ -215,8 +252,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@5.0.0",
-            new SemanticVersion("5.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@6.0.0",
+            new SemanticVersion("6.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -397,7 +434,8 @@ internal static class DotNetTestContractFactory
                     binding.GetInputSchemaRevisions(),
                     binding.GetResultSchemaRevisions(),
                     binding.GetDiagnosticSchemaRevisions(),
-                    binding.GetRelatedOperationRevisions()),
+                    binding.GetRelatedOperationRevisions(),
+                    ProblemResponses(host)),
             ],
             Provenance(host, binding.OperationContract.OperationRevision));
     }
@@ -442,7 +480,18 @@ internal static class DotNetTestContractFactory
             [],
             health,
             Compatibility(),
-            Telemetry(name, kind));
+            Telemetry(name, kind),
+            kind == DotNetHostKind.Api ? TransportFailures() : null);
+
+    private static ImmutableArray<OpenApiProblemDetailsResponseProjection> ProblemResponses(
+        DotNetHostDefinition host) =>
+        host.TransportFailures?.Profile.Failures.Select(static failure =>
+            new OpenApiProblemDetailsResponseProjection(
+                failure.StatusCode,
+                failure.Identity,
+                failure.Type,
+                failure.Title,
+                failure.ProblemSchemaRevision)).ToImmutableArray() ?? [];
 
     internal static DotNetTelemetryConfiguration Telemetry(
         string hostName = "api",
@@ -507,7 +556,7 @@ internal static class DotNetTestContractFactory
                         DotNetTelemetryInstrumentationKind.AspNetCore,
                         true,
                         true,
-                        true),
+                        false),
                     new DotNetTelemetryInstrumentation(
                         DotNetTelemetryInstrumentationKind.HttpClient,
                         true,

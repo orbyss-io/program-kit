@@ -27,7 +27,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(18, module.Resources);
+        Assert.HasCount(21, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -46,6 +46,7 @@ public sealed class DotNetSchemaModuleTests
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
+                new TransportFailureProfileValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(shellValidator);
         var shellRevision = DotNetTestContractFactory.Ref(
@@ -128,7 +129,7 @@ public sealed class DotNetSchemaModuleTests
             var schema = module.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
                 (document.Name != "dotnet-shell" ||
-                 resource.SchemaReference.Version.Value == "5.0.0"));
+                 resource.SchemaReference.Version.Value == "6.0.0"));
 
             var result = validator.Validate(
                 document.Content,

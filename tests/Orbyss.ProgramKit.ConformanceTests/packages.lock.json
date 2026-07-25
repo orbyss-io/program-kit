@@ -528,6 +528,9 @@
           "OpenTelemetry.Instrumentation.Http": "[1.17.0, 1.17.0]"
         }
       },
+      "Orbyss.ProgramKit.TransportFailureConsumerFixture": {
+        "type": "Project"
+      },
       "Orbyss.ProgramKit.UniversalContractConsumerFixture": {
         "type": "Project",
         "dependencies": {

@@ -102,6 +102,7 @@ public sealed class DotNetHostGenerationCoordinatorTests
         var validator = new DotNetShellValidator(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder builder = new(validator);
         return builder.Build(shell, shellRevision);
@@ -125,12 +126,14 @@ public sealed class DotNetHostGenerationCoordinatorTests
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
+                new TransportFailureProfileValidator(),
                 DotNetTestContractFactory.ProviderCatalog()),
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(
                 new DotNetConfigurationProjectionCompiler(
                     DotNetTestContractFactory.ProviderRegistry()),
-                new DotNetTelemetryProjectionCompiler()),
+                new DotNetTelemetryProjectionCompiler(),
+                new DotNetTransportFailureProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

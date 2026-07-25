@@ -80,6 +80,11 @@ public sealed class OperationsSchemaModule : IProgramKitSchemaModule
             "operation-result.schema.json",
             "https://schemas.orbyss.io/program-kit/operations/operation-result/1.0.0/schema.json",
             "16597c530c191945bc3999050d7491b21ced8ead9659b7f5d17fb8cb095f0517"),
+        Create(
+            "transport-failure-profile",
+            "transport-failure-profile.schema.json",
+            "https://schemas.orbyss.io/program-kit/operations/transport-failure-profile/1.0.0/schema.json",
+            "31d131cf1677327f7b8ba0a8546224eaae31cb954ce13310053cfe8b87631269"),
     ];
 
     /// <inheritdoc />

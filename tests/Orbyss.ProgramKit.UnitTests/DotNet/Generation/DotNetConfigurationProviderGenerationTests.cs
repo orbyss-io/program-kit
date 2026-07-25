@@ -36,6 +36,7 @@ public sealed class DotNetConfigurationProviderGenerationTests
         DotNetShellValidator validator = new(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             DotNetTestContractFactory.ProviderCatalog());
         DotNetConfigurationProjectionCompiler compiler = new(
             DotNetTestContractFactory.ProviderRegistry());

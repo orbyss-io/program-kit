@@ -107,6 +107,7 @@ public static class CommandLineComposition
         var shellValidator = new DotNetShellValidator(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             providerCatalog);
         IDotNetShellLockBuilder lockBuilder =
             new DotNetShellLockBuilder(shellValidator);
@@ -117,7 +118,8 @@ public static class CommandLineComposition
             new DotNetHostSourceRenderer(
                 new DotNetConfigurationProjectionCompiler(
                     providerComposition.CreateBuiltInRegistry()),
-                new DotNetTelemetryProjectionCompiler()),
+                new DotNetTelemetryProjectionCompiler(),
+                new DotNetTransportFailureProjectionCompiler()),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),

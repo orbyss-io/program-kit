@@ -99,6 +99,45 @@ public sealed class OpenApiDocumentWriter : IOpenApiDocumentWriter
             writer.WriteEndObject();
         }
 
+        var problemDetailsResponses = operation.ProblemDetailsResponses.IsDefault
+            ? []
+            : operation.ProblemDetailsResponses;
+        foreach (var group in problemDetailsResponses
+                     .OrderBy(static item => item.StatusCode)
+                     .ThenBy(static item => item.FailureIdentity.Value, StringComparer.Ordinal)
+                     .GroupBy(static item => item.StatusCode))
+        {
+            writer.WriteStartObject(group.Key.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            writer.WriteString("description", "Declared Problem Details response");
+            writer.WriteStartObject("content");
+            writer.WriteStartObject("application/problem+json");
+            writer.WriteStartObject("schema");
+            writer.WriteStartArray("oneOf");
+            foreach (var response in group)
+            {
+                writer.WriteStartObject();
+                writer.WriteString(
+                    "x-orbyss-failure-identity",
+                    response.FailureIdentity.Value);
+                writer.WriteString(
+                    "x-orbyss-problem-type",
+                    response.Type.AbsoluteUri);
+                writer.WriteString(
+                    "x-orbyss-problem-title",
+                    response.Title);
+                writer.WriteString(
+                    "x-orbyss-schema-revision",
+                    Exact(response.ProblemSchemaRevision));
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+        }
+
         writer.WriteEndObject();
         writer.WriteEndObject();
     }

@@ -3,6 +3,7 @@ using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
+using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 
 namespace Orbyss.ProgramKit.DotNet.Shells;
 
@@ -22,4 +23,5 @@ public sealed record DotNetHostDefinition(
     [property: JsonPropertyName("taskRuntimeRequirements")] ImmutableArray<DotNetTaskRuntimeRequirement> TaskRuntimeRequirements,
     [property: JsonPropertyName("health")] DotNetHealthConfiguration? Health,
     [property: JsonPropertyName("compatibility")] ArtifactCompatibility Compatibility,
-    [property: JsonPropertyName("telemetry")] DotNetTelemetryConfiguration? Telemetry = null);
+    [property: JsonPropertyName("telemetry")] DotNetTelemetryConfiguration? Telemetry = null,
+    [property: JsonPropertyName("transportFailures")] DotNetTransportFailureConfiguration? TransportFailures = null);

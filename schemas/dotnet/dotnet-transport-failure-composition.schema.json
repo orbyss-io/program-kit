@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/transport-failure-composition/1.0.0/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-transport-failure-composition",
+  "x-program-kit-version": "1.0.0",
+  "title": "Program Kit .NET transport-failure composition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "exceptionMappings",
+    "statusCodePages",
+    "handledExceptionDiagnostics",
+    "responseStartedDisposition",
+    "clientDisconnectDisposition"
+  ],
+  "properties": {
+    "profile": {
+      "$ref": "https://schemas.orbyss.io/program-kit/operations/transport-failure-profile/1.0.0/schema.json"
+    },
+    "exceptionMappings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "exceptionType", "failureIdentity"],
+        "properties": {
+          "order": {"type": "integer", "minimum": 0},
+          "exceptionType": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+            "not": {
+              "enum": [
+                "System.Exception",
+                "System.OperationCanceledException",
+                "System.Threading.Tasks.TaskCanceledException"
+              ]
+            }
+          },
+          "failureIdentity": {
+            "$ref": "https://schemas.orbyss.io/program-kit/operations/1.0.0/definitions.schema.json#/$defs/identifier"
+          }
+        }
+      }
+    },
+    "statusCodePages": {"type": "boolean"},
+    "handledExceptionDiagnostics": {"const": "suppress-framework-and-emit-sanitized-once"},
+    "responseStartedDisposition": {"const": "leave-unhandled"},
+    "clientDisconnectDisposition": {"const": "abort-without-response"}
+  }
+}

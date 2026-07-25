@@ -7,6 +7,8 @@ using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
+using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
 
 namespace Orbyss.ProgramKit.DotNet.Validation;
@@ -17,18 +19,23 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
     private readonly IProgramKitSemanticValidator<ArtifactReference> referenceValidator;
     private readonly IProgramKitSemanticValidator<OperationContractDescriptor>
         operationValidator;
+    private readonly IProgramKitSemanticValidator<TransportFailureProfile>
+        transportFailureValidator;
     private readonly IDotNetConfigurationProviderCatalog providerCatalog;
 
     /// <summary>Initializes the validator with an explicit provider catalog.</summary>
     public DotNetShellValidator(
         IProgramKitSemanticValidator<ArtifactReference> referenceValidator,
         IProgramKitSemanticValidator<OperationContractDescriptor> operationValidator,
+        IProgramKitSemanticValidator<TransportFailureProfile> transportFailureValidator,
         IDotNetConfigurationProviderCatalog providerCatalog)
     {
         this.referenceValidator = referenceValidator ??
             throw new ArgumentNullException(nameof(referenceValidator));
         this.operationValidator = operationValidator ??
             throw new ArgumentNullException(nameof(operationValidator));
+        this.transportFailureValidator = transportFailureValidator ??
+            throw new ArgumentNullException(nameof(transportFailureValidator));
         this.providerCatalog = providerCatalog ??
             throw new ArgumentNullException(nameof(providerCatalog));
     }
@@ -43,14 +50,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@5.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@6.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "5.0.0")
+        if (value.Version.Value != "6.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 5.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 6.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -205,9 +212,92 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             ValidateTaskRuntime(host.TaskRuntimeRequirements, diagnostics);
             ValidateHealth(host.Health, host.OperationBindings, diagnostics);
             ValidateTelemetry(host, diagnostics);
+            ValidateTransportFailures(host, diagnostics);
             ValidateCompatibility(host.Compatibility, "/hosts/compatibility", diagnostics);
         }
     }
+
+    private void ValidateTransportFailures(
+        DotNetHostDefinition host,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var configuration = host.TransportFailures;
+        if (configuration is null)
+        {
+            return;
+        }
+
+        if (host.Kind != DotNetHostKind.Api ||
+            !Enum.IsDefined(configuration.HandledExceptionDiagnostics) ||
+            !Enum.IsDefined(configuration.ResponseStartedDisposition) ||
+            !Enum.IsDefined(configuration.ClientDisconnectDisposition))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidTransportFailureConfiguration,
+                "Transport-failure handling is available only to API hosts and requires the exact reviewed dispositions.",
+                "/hosts/transportFailures");
+        }
+
+        if (host.Telemetry?.Instrumentations.Any(static instrumentation =>
+                instrumentation.Kind ==
+                    DotNetTelemetryInstrumentationKind.AspNetCore &&
+                instrumentation.RecordExceptions) == true)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeTransportFailureDisclosure,
+                "Generated transport-failure handling owns sanitized exception observation; ASP.NET Core raw exception recording must be disabled.",
+                "/hosts/telemetry/instrumentations/recordExceptions");
+        }
+
+        foreach (var diagnostic in transportFailureValidator
+                     .Validate(configuration.Profile).Diagnostics)
+        {
+            diagnostics.Add(diagnostic with
+            {
+                Path = string.Concat("/hosts/transportFailures/profile", diagnostic.Path),
+            });
+        }
+
+        RequireInitializedUnique(
+            configuration.ExceptionMappings,
+            static item => item.Order.ToString(CultureInfo.InvariantCulture),
+            "/hosts/transportFailures/exceptionMappings/order",
+            diagnostics);
+        var failureIdentities = configuration.Profile.Failures.IsDefault
+            ? []
+            : configuration.Profile.Failures
+                .Select(static failure => failure.Identity.Value)
+                .ToHashSet(StringComparer.Ordinal);
+        var exceptionTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var mapping in configuration.ExceptionMappings)
+        {
+            if (mapping.Order < 0 ||
+                !exceptionTypes.Add(mapping.ExceptionType) ||
+                !IsQualifiedTypeName(mapping.ExceptionType) ||
+                IsReservedExceptionType(mapping.ExceptionType) ||
+                !failureIdentities.Contains(mapping.FailureIdentity.Value) ||
+                mapping.FailureIdentity == configuration.Profile.GenericFallbackIdentity)
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.InvalidExceptionFailureMapping,
+                    "Mappings require a unique explicit order and qualified exception type, cannot claim generic or cancellation types, and must target one declared non-generic failure.",
+                    "/hosts/transportFailures/exceptionMappings");
+            }
+        }
+    }
+
+    private static bool IsQualifiedTypeName(string value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Contains('.', StringComparison.Ordinal) &&
+        value.Split('.').All(IsStableIdentifier);
+
+    private static bool IsReservedExceptionType(string value) =>
+        value is "System.Exception" or
+            "System.OperationCanceledException" or
+            "System.Threading.Tasks.TaskCanceledException";
 
     private static void ValidateHostPackages(
         DotNetHostDefinition host,

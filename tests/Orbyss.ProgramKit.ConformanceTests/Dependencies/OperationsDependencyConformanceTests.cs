@@ -51,7 +51,6 @@ public sealed class OperationsDependencyConformanceTests
             "Identity",
             "Provider",
             "Tasks",
-            "Transport",
         };
         var surface = assembly.GetExportedTypes()
             .Select(static type => type.FullName!)
@@ -64,5 +63,24 @@ public sealed class OperationsDependencyConformanceTests
                 surface,
                 token);
         }
+    }
+
+    [TestMethod]
+    public void OperationsTransportSurfaceContainsContractsAndValidationOnly()
+    {
+        var surface = typeof(OperationContractCatalog).Assembly
+            .GetExportedTypes()
+            .Where(static type =>
+                type.FullName!.Contains(".Transport", StringComparison.Ordinal))
+            .Select(static type => type.FullName!)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.IsNotEmpty(surface);
+        Assert.IsTrue(surface.All(static type =>
+            type.StartsWith(
+                "Orbyss.ProgramKit.Operations.Contracts.Transport.",
+                StringComparison.Ordinal) ||
+            type == "Orbyss.ProgramKit.Operations.Contracts.Validation.TransportFailureProfileValidator"));
     }
 }

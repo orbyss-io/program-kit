@@ -24,6 +24,7 @@ public sealed class GeneratedHostArtifactTests
         var shellValidator = new DotNetShellValidator(
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
             providerComposition.CreateBuiltInCatalog());
         var lockBuilder = new DotNetShellLockBuilder(shellValidator);
         var shellLock = lockBuilder.Build(shell, shellRevision);
@@ -115,12 +116,14 @@ public sealed class GeneratedHostArtifactTests
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
+                new TransportFailureProfileValidator(),
                 providerComposition.CreateBuiltInCatalog()),
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(
                 new DotNetConfigurationProjectionCompiler(
                     providerComposition.CreateBuiltInRegistry()),
-                new DotNetTelemetryProjectionCompiler()),
+                new DotNetTelemetryProjectionCompiler(),
+                new DotNetTransportFailureProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }
