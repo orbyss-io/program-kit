@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />

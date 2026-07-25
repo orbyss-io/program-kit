@@ -43,6 +43,12 @@
           "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.operations": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.planning": {
         "type": "Project",
         "dependencies": {

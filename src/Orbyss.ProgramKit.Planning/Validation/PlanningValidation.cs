@@ -3,6 +3,7 @@ using Orbyss.ProgramKit.Artifacts.Diagnostics;
 using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.References;
 using Orbyss.ProgramKit.Planning.Diagnostics;
+using Orbyss.ProgramKit.Planning.Plans;
 
 namespace Orbyss.ProgramKit.Planning.Validation;
 
@@ -106,6 +107,80 @@ internal static class PlanningValidation
             if (value is not null && !seen.Add(value))
             {
                 diagnostics.Add(Error(PlanningDiagnosticIds.Pkpln010, "Exact artifact references must be unique.", $"{path}[{index}]"));
+            }
+        }
+    }
+
+    internal static void ValidatePlannedArtifacts(
+        ImmutableArray<PlannedArtifactReference> values,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (values.IsDefault)
+        {
+            diagnostics.Add(Error(
+                PlanningDiagnosticIds.Pkpln017,
+                "The planned-output collection must be initialized.",
+                path));
+            return;
+        }
+
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var index = 0; index < values.Length; index++)
+        {
+            var value = values[index];
+            var itemPath = $"{path}[{index}]";
+            if (value is null)
+            {
+                diagnostics.Add(Error(
+                    PlanningDiagnosticIds.Pkpln018,
+                    "A planned output cannot be null.",
+                    itemPath));
+                continue;
+            }
+
+            RequireIdentifier(value.Identity, $"{itemPath}.identity", diagnostics);
+            if (string.IsNullOrWhiteSpace(value.Version.Value))
+            {
+                diagnostics.Add(Error(
+                    PlanningDiagnosticIds.Pkpln004,
+                    "An exact semantic version is required.",
+                    $"{itemPath}.version"));
+            }
+
+            if (!Enum.IsDefined(value.State))
+            {
+                diagnostics.Add(Error(
+                    PlanningDiagnosticIds.Pkpln019,
+                    "Planned-output state must be a defined value.",
+                    $"{itemPath}.state"));
+            }
+            else if (value.State == PlannedArtifactState.Prospective &&
+                     value.IntegrityDigest is not null)
+            {
+                diagnostics.Add(Error(
+                    PlanningDiagnosticIds.Pkpln020,
+                    "A prospective output cannot assert integrity for bytes that do not exist.",
+                    $"{itemPath}.integrityDigest"));
+            }
+            else if (value.State == PlannedArtifactState.Materialized &&
+                     value.IntegrityDigest is null)
+            {
+                diagnostics.Add(Error(
+                    PlanningDiagnosticIds.Pkpln021,
+                    "A materialized output requires an exact SHA-256 integrity digest.",
+                    $"{itemPath}.integrityDigest"));
+            }
+
+            var key = string.Concat(value.Identity.Value, "@", value.Version.Value);
+            if (!string.IsNullOrWhiteSpace(value.Identity.Value) &&
+                !string.IsNullOrWhiteSpace(value.Version.Value) &&
+                !seen.Add(key))
+            {
+                diagnostics.Add(Error(
+                    PlanningDiagnosticIds.Pkpln010,
+                    "Planned output identities and versions must be unique.",
+                    itemPath));
             }
         }
     }

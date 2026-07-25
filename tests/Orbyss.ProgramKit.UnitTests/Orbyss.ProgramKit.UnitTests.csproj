@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CommandLine\Orbyss.ProgramKit.CommandLine.csproj" />

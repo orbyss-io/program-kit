@@ -17,7 +17,7 @@ public sealed class DomainSchemaModuleTests
             (
                 new PlanningSchemaModule(),
                 "pkid:package:program-kit:planning",
-                3),
+                5),
             (
                 new DevelopmentSchemaModule(),
                 "pkid:package:program-kit:development",

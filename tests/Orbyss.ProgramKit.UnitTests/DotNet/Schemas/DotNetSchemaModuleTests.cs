@@ -18,15 +18,15 @@ namespace Orbyss.ProgramKit.UnitTests.DotNet.Schemas;
 public sealed class DotNetSchemaModuleTests
 {
     [TestMethod]
-    public void ModuleRegistersSixExactReadableDigestBoundResources()
+    public void ModuleRegistersOwnedAndOperationDependencySchemas()
     {
-        DotNetSchemaModule module = new();
+        DotNetSchemaModule module = new(new OperationsSchemaModule());
         ProgramKitSchemaModuleValidator validator = new();
 
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(6, module.Resources);
+        Assert.HasCount(13, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -42,7 +42,9 @@ public sealed class DotNetSchemaModuleTests
     {
         var shell = DotNetTestContractFactory.Shell();
         IDotNetShellValidator shellValidator =
-            new DotNetShellValidator(new ArtifactReferenceValidator());
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator());
         DotNetShellLockBuilder lockBuilder = new(shellValidator);
         var shellRevision = DotNetTestContractFactory.Ref(
             "shell",
@@ -103,7 +105,7 @@ public sealed class DotNetSchemaModuleTests
                     profile.Reference,
                     profile.MaximumLimits).ToArray()),
         };
-        DotNetSchemaModule module = new();
+        DotNetSchemaModule module = new(new OperationsSchemaModule());
         JsonSchemaWorkbenchValidator validator = new(
             canonicalizer,
             new ProgramKitSchemaModuleValidator());
@@ -111,7 +113,9 @@ public sealed class DotNetSchemaModuleTests
         foreach (var document in documents)
         {
             var schema = module.Resources.Single(resource =>
-                resource.SchemaReference.Identity.Name == document.Name);
+                resource.SchemaReference.Identity.Name == document.Name &&
+                (document.Name != "dotnet-shell" ||
+                 resource.SchemaReference.Version.Value == "2.0.0"));
 
             var result = validator.Validate(
                 document.Content,

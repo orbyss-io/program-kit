@@ -5,7 +5,7 @@
   "reviewSetVersion": "1.3.0",
   "owner": "human-led-program-kit-extension",
   "reviewState": "approved",
-  "implementationStatus": "not-started",
+  "implementationStatus": "in-progress",
   "approvalRecord": {
     "recordId": "pkid:approval-record:program-kit:host-tooling-review-set-1-3-0",
     "recordVersion": "1.0.0",
@@ -95,6 +95,7 @@
     "approvalValidation": "passed: design-plan-approval@1.0.0 schema, DesignPlanApprovalRecordValidator semantics, exact design/plan digest binding, approved decision, empty conditions, and active supersession",
     "focusedArchitectureTests": "passed: the exact 1.3.0 host-tooling architecture JSON passed JsonSchemaWorkbenchValidator against the composite Program Kit schema set and ArchitectureDesignValidator through a temporary review-only test harness; the harness was removed after execution",
     "fullSuiteFinding": "The clean Orbyss.ProgramKit.UnitTests assembly passed 293 of 293 tests after the temporary exact-design harness was removed. A prior bounded full-solution run exceeded 120 seconds and a no-restore attempt stopped at existing PKCS174 raw-reference import validation; no gate was weakened, and broader solution closure remains implementation evidence.",
+    "w010Implementation": "passed: PKHT-W010 materializes the approved plan without invented output digests, adds the Artifacts-only Operations contract and isolated consumer, and migrates DotNet operation bindings through explicit v1-to-v2 version and migration artifacts; the final solution build, 303 unit tests, 81 conformance tests, and 15 Observatory fixture tests passed.",
     "reviewBinding": "all artifact digests and the plan-to-design digest binding were recomputed from repository bytes",
     "commandLineFinding": "The current validate command requires a top-level $schema selector while architecture-design.schema.json forbids that undeclared property. Validation therefore used the same direct Workbench schema validator and semantic validator exercised by repository conformance tests; PKHT-W010 must close the CLI/schema-selection inconsistency rather than weakening the schema."
   },

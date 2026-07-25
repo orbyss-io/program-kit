@@ -115,7 +115,7 @@ public sealed class JsonSchemaWorkbenchValidator : IWorkbenchSchemaValidator
             [
                 WorkbenchDiagnostics.Error(
                     WorkbenchDiagnosticIds.SchemaValidationFailed,
-                    exception.Message,
+                    exception.GetBaseException().Message,
                     string.Empty),
             ]);
         }

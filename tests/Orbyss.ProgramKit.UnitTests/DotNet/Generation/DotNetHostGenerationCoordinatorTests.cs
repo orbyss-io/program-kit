@@ -100,7 +100,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
         ArtifactReference shellRevision)
     {
         var validator = new DotNetShellValidator(
-            new ArtifactReferenceValidator());
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator());
         DotNetShellLockBuilder builder = new(validator);
         return builder.Build(shell, shellRevision);
     }
@@ -120,7 +121,9 @@ public sealed class DotNetHostGenerationCoordinatorTests
             openApiWriter,
             serializer);
         return new DotNetHostGenerationCoordinator(
-            new DotNetShellValidator(new ArtifactReferenceValidator()),
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator()),
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(),
             documentWriter,

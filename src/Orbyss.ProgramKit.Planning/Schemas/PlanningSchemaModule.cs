@@ -14,8 +14,9 @@ namespace Orbyss.ProgramKit.Planning.Schemas;
 public sealed class PlanningSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Planning.Schemas.";
-    private static readonly SemanticVersion SchemaVersion = new("1.0.0");
-    private static readonly SemanticVersionRange ExactSchemaVersion = new("[1.0.0]");
+    private static readonly SemanticVersion CatalogVersion = new("2.0.0");
+    private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
+    private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:planning");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -39,23 +40,22 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:planning"),
             "pk-w010-approved-review-set-0-3-0");
-    private static readonly ArtifactCompatibility SchemaCompatibility =
+    private static readonly ArtifactProvenance HostToolingSchemaProvenance =
         new(
-            new ProgramKitIdentifier(
-                "pkid:contract:program-kit:schema-compatibility-policy"),
             [
-                new CompatibilityClaim(
-                    CompatibilityDimension.WireRead,
-                    CompatibilityClassification.Unknown,
-                    []),
-                new CompatibilityClaim(
-                    CompatibilityDimension.WireWrite,
-                    CompatibilityClassification.Unknown,
-                    []),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
             ],
-            ExactSchemaVersion,
-            ExactSchemaVersion,
-            []);
+            new ProgramKitIdentifier("pkid:project:program-kit:planning"),
+            "pkht-w010-approved-review-set-1-3-0");
 
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
@@ -63,17 +63,37 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             "planning-definitions",
             "definitions.schema.json",
             "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json",
-            "14398b35cb4eda7f59ba04c8c91056d0e84dc6895c31f22a4446bc370bfb00f9"),
+            "14398b35cb4eda7f59ba04c8c91056d0e84dc6895c31f22a4446bc370bfb00f9",
+            SchemaVersionV1,
+            SchemaProvenance),
         Create(
             "design-plan-approval",
             "design-plan-approval.schema.json",
             "https://schemas.orbyss.io/program-kit/planning/design-plan-approval/1.0.0/schema.json",
-            "58adfa2eff4a8276c9ca1687db8fb44beb899819fa356468d37c05bd664f2014"),
+            "58adfa2eff4a8276c9ca1687db8fb44beb899819fa356468d37c05bd664f2014",
+            SchemaVersionV1,
+            SchemaProvenance),
         Create(
             "implementation-plan",
             "implementation-plan.schema.json",
             "https://schemas.orbyss.io/program-kit/planning/implementation-plan/1.0.0/schema.json",
-            "b0d87ae0dca8ba075f79deb22e11ada54c0b74483b89dc19ac021a9d30f64423"),
+            "b0d87ae0dca8ba075f79deb22e11ada54c0b74483b89dc19ac021a9d30f64423",
+            SchemaVersionV1,
+            SchemaProvenance),
+        Create(
+            "planning-definitions",
+            "definitions-2.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/2.0.0/definitions.schema.json",
+            "32e505c59c5adff33bdd34e4e53084111a042d200b0c0dbfc09c9c696633f8cd",
+            SchemaVersionV2,
+            HostToolingSchemaProvenance),
+        Create(
+            "implementation-plan",
+            "implementation-plan-2.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/implementation-plan/2.0.0/schema.json",
+            "119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d",
+            SchemaVersionV2,
+            HostToolingSchemaProvenance),
     ];
 
     /// <summary>Initializes an explicitly composed schema module.</summary>
@@ -86,7 +106,7 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
         new("pkid:catalog:program-kit:planning-schemas");
 
     /// <inheritdoc />
-    public SemanticVersion Version => SchemaVersion;
+    public SemanticVersion Version => CatalogVersion;
 
     /// <inheritdoc />
     public ImmutableArray<ProgramKitSchemaResource> Resources => SchemaResources;
@@ -117,11 +137,13 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
         string name,
         string resourceName,
         string canonicalUri,
-        string digest) =>
+        string digest,
+        SemanticVersion version,
+        ArtifactProvenance provenance) =>
         new(
             new ArtifactReference(
                 new ProgramKitIdentifier(string.Concat("pkid:schema:program-kit:", name)),
-                SchemaVersion,
+                version,
                 new Sha256Digest(string.Concat("sha256:", digest))),
             new Uri(canonicalUri, UriKind.Absolute),
             resourceName,
@@ -129,8 +151,26 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             SchemaOwner,
             ArtifactStatus.Implemented,
             SchemaConsumers,
-            SchemaProvenance,
-            SchemaCompatibility);
+            provenance,
+            Compatibility(version));
+
+    private static ArtifactCompatibility Compatibility(SemanticVersion version) =>
+        new(
+            new ProgramKitIdentifier(
+                "pkid:contract:program-kit:schema-compatibility-policy"),
+            [
+                new CompatibilityClaim(
+                    CompatibilityDimension.WireRead,
+                    CompatibilityClassification.Unknown,
+                    []),
+                new CompatibilityClaim(
+                    CompatibilityDimension.WireWrite,
+                    CompatibilityClassification.Unknown,
+                    []),
+            ],
+            new SemanticVersionRange(string.Concat("[", version.Value, "]")),
+            new SemanticVersionRange(string.Concat("[", version.Value, "]")),
+            []);
 
     private static string ExactKey(ArtifactReference reference) =>
         string.Concat(

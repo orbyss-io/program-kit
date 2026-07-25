@@ -1,0 +1,28 @@
+{
+  "operationRevision": {
+    "identity": "pkid:operation:fixture:sample",
+    "version": "1.0.0",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "projectionRevision": {
+    "identity": "pkid:projection:fixture:sample",
+    "version": "1.0.0",
+    "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "inputSchemaRevisions": [
+    {
+      "identity": "pkid:schema:fixture:sample-request",
+      "version": "1.0.0",
+      "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    }
+  ],
+  "resultSchemaRevisions": [
+    {
+      "identity": "pkid:schema:fixture:sample-result",
+      "version": "1.0.0",
+      "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    }
+  ],
+  "diagnosticSchemaRevisions": [],
+  "relatedOperationRevisions": []
+}

@@ -3803,6 +3803,10 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Schemas",
                 "Validation",
             ],
+            "Orbyss.ProgramKit.Operations" =>
+            [
+                "Contracts",
+            ],
             "Orbyss.ProgramKit.Quality" =>
             [
                 "Diagnostics",
@@ -3921,6 +3925,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Development",
                 "DotNet",
                 "Modularity",
+                "Operations",
                 "Planning",
                 "Quality",
                 "Serialization",
@@ -4118,6 +4123,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             "Development" => "Orbyss.ProgramKit.Development",
             "Modularity" => "Orbyss.ProgramKit.Modularity",
             "Planning" => "Orbyss.ProgramKit.Planning",
+            "Operations" => "Orbyss.ProgramKit.Operations",
             "Quality" => "Orbyss.ProgramKit.Quality",
             "Workbench" => "Orbyss.ProgramKit.Workbench",
             _ => null,

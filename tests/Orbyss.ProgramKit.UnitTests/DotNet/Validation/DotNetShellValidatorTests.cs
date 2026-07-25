@@ -14,7 +14,9 @@ public sealed class DotNetShellValidatorTests
     [TestMethod]
     public void ValidReviewedShellPasses()
     {
-        DotNetShellValidator sut = new(new ArtifactReferenceValidator());
+        DotNetShellValidator sut = new(
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator());
 
         var result = sut.Validate(DotNetTestContractFactory.Shell());
 
@@ -32,7 +34,9 @@ public sealed class DotNetShellValidatorTests
                 AbiVersion = new SemanticVersion("0.0.29"),
             },
         };
-        DotNetShellValidator sut = new(new ArtifactReferenceValidator());
+        DotNetShellValidator sut = new(
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator());
 
         var result = sut.Validate(shell);
 
@@ -54,7 +58,9 @@ public sealed class DotNetShellValidatorTests
             Hosts = shell.Hosts.Select(host =>
                 host.Kind == DotNetHostKind.Api ? api : host).ToImmutableArray(),
         };
-        DotNetShellValidator sut = new(new ArtifactReferenceValidator());
+        DotNetShellValidator sut = new(
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator());
 
         var result = sut.Validate(shell);
 

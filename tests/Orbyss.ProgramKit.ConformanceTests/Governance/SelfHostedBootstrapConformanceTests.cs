@@ -28,7 +28,7 @@ public sealed class SelfHostedBootstrapConformanceTests
             ["implementation-plan.md"] =
                 "b1e60623624ced9ede4c529d1c6d80022a6894923425d384c5863c22db5f595b",
             ["dependency-graph.dot"] =
-                "ebad9f30b666d2a037dd4a9d2d699fefae86e8a6324c6f6e23aad9b4dc035f9f",
+                "b7d0f07ddc05a43d5b39a0d603598b6b74f7a8b89c9a5fa5897b2e8769828fc4",
             ["forbidden-reference-graph.dot"] =
                 "194a8498eb3d68a76cd32700acfaa4f7959fa003daba029d2db4cfff5c818ed9",
             ["version-map-graph.dot"] =
@@ -180,6 +180,10 @@ public sealed class SelfHostedBootstrapConformanceTests
             string.Equals(
                 resource.SchemaReference.Identity.Name,
                 schemaName,
+                StringComparison.Ordinal) &&
+            string.Equals(
+                resource.SchemaReference.Version.Value,
+                "1.0.0",
                 StringComparison.Ordinal)).SchemaReference;
         var result = validator.Validate(
             ConformanceInputs.ReadBytes(

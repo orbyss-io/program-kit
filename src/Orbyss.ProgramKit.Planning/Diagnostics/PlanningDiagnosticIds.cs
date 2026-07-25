@@ -37,6 +37,16 @@ public static class PlanningDiagnosticIds
     public const string Pkpln015 = "PKPLN015";
     /// <summary>Diagnostic PKPLN016.</summary>
     public const string Pkpln016 = "PKPLN016";
+    /// <summary>Diagnostic PKPLN017.</summary>
+    public const string Pkpln017 = "PKPLN017";
+    /// <summary>Diagnostic PKPLN018.</summary>
+    public const string Pkpln018 = "PKPLN018";
+    /// <summary>Diagnostic PKPLN019.</summary>
+    public const string Pkpln019 = "PKPLN019";
+    /// <summary>Diagnostic PKPLN020.</summary>
+    public const string Pkpln020 = "PKPLN020";
+    /// <summary>Diagnostic PKPLN021.</summary>
+    public const string Pkpln021 = "PKPLN021";
     /// <summary>Diagnostic PKPLN101.</summary>
     public const string Pkpln101 = "PKPLN101";
     /// <summary>Diagnostic PKPLN103.</summary>
@@ -179,7 +189,7 @@ public static class PlanningDiagnosticIds
     [
         Pkpln001, Pkpln002, Pkpln003, Pkpln004, Pkpln005, Pkpln006, Pkpln007, Pkpln008,
         Pkpln009, Pkpln010, Pkpln011, Pkpln012, Pkpln013, Pkpln014,
-        Pkpln015, Pkpln016,
+        Pkpln015, Pkpln016, Pkpln017, Pkpln018, Pkpln019, Pkpln020, Pkpln021,
         Pkpln101, Pkpln103, Pkpln104, Pkpln105, Pkpln106, Pkpln107, Pkpln108, Pkpln109,
         Pkpln110, Pkpln111, Pkpln112, Pkpln113, Pkpln114, Pkpln115, Pkpln116, Pkpln117,
         Pkpln118, Pkpln119, Pkpln120, Pkpln121, Pkpln122, Pkpln123, Pkpln124, Pkpln125,

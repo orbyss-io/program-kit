@@ -271,6 +271,64 @@ public sealed class ApprovalGateTests
             diagnostic.Id == PlanningDiagnosticIds.Pkpln016));
     }
 
+    [TestMethod]
+    public void ProspectiveOutputsDoNotInventIntegrityEvidence()
+    {
+        var plan = CreatePlan();
+        IArtifactEnvelopeValidator envelopeValidator =
+            new DefaultArtifactEnvelopeValidator();
+        ImplementationPlanDocumentValidator validator =
+            new(envelopeValidator);
+
+        var validation = validator.Validate(plan);
+
+        Assert.IsTrue(validation.IsValid);
+        Assert.IsNull(plan.WorkUnits[0].Outputs[0].IntegrityDigest);
+        Assert.AreEqual(
+            PlannedArtifactState.Prospective,
+            plan.WorkUnits[0].Outputs[0].State);
+    }
+
+    [TestMethod]
+    public void PlannedOutputIntegrityRulesFailClosed()
+    {
+        var plan = CreatePlan();
+        var output = plan.WorkUnits[0].Outputs[0];
+        var invalid = plan with
+        {
+            WorkUnits =
+            [
+                plan.WorkUnits[0] with
+                {
+                    Outputs =
+                    [
+                        output with
+                        {
+                            IntegrityDigest = TestContractValues.Digest,
+                        },
+                        new PlannedArtifactReference(
+                            ProgramKitIdentifier.Parse(
+                                "pkid:contract:program-kit:missing-integrity"),
+                            new SemanticVersion("1.0.0"),
+                            PlannedArtifactState.Materialized,
+                            null),
+                    ],
+                },
+            ],
+        };
+        IArtifactEnvelopeValidator envelopeValidator =
+            new DefaultArtifactEnvelopeValidator();
+        ImplementationPlanDocumentValidator validator =
+            new(envelopeValidator);
+
+        var validation = validator.Validate(invalid);
+
+        Assert.IsTrue(validation.Diagnostics.Any(diagnostic =>
+            diagnostic.Id == PlanningDiagnosticIds.Pkpln020));
+        Assert.IsTrue(validation.Diagnostics.Any(diagnostic =>
+            diagnostic.Id == PlanningDiagnosticIds.Pkpln021));
+    }
+
     private static ArtifactReference PlanReference =>
         TestContractValues.Reference("pkid:plan:program-kit:test-plan");
 
@@ -284,6 +342,11 @@ public sealed class ApprovalGateTests
             "pkid:domain:program-kit:planning");
         var output = TestContractValues.Reference(
             "pkid:contract:program-kit:test-output");
+        var plannedOutput = new PlannedArtifactReference(
+            output.Identity,
+            output.Version,
+            PlannedArtifactState.Prospective,
+            null);
 
         return new ImplementationPlanDocument(
             designReference,
@@ -298,7 +361,7 @@ public sealed class ApprovalGateTests
                     null,
                     [],
                     [designReference],
-                    [output],
+                    [plannedOutput],
                     ["program-kit/"],
                     [],
                     [],

@@ -10,6 +10,7 @@ using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.Operations.Contracts;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 
 namespace Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
@@ -30,12 +31,31 @@ internal static class DotNetTestContractFactory
             "Fixtures.SampleFeature",
             Package("Fixtures.SampleFeature", "1.0.0", '3'));
         var operationBinding = new DotNetOperationBinding(
-            operation,
-            Ref("generator", "operation-projection", '4'),
-            [schema],
-            [schema],
-            [schema],
-            [Ref("operation", "continue", '5')]);
+            new OperationContractDescriptor(
+                operation,
+                [schema],
+                [
+                    new OperationResultContract(
+                        schema,
+                        OperationResultDisposition.Terminal),
+                ],
+                [schema],
+                [],
+                [
+                    new RelatedOperationContract(
+                        Id("relation", "additional-input"),
+                        Ref("operation", "continue", '5'),
+                        schema),
+                ],
+                null,
+                null,
+                OperationExpectedRevisionPolicy.Unsupported,
+                OperationIdempotencyPolicy.Unsupported,
+                OperationCancellationPolicy.Cooperative,
+                OperationProgressPolicy.Unsupported,
+                Compatibility(),
+                new OperationDeprecation(false, null)),
+            Ref("generator", "operation-projection", '4'));
         var healthListener = new DotNetHealthListener(
             Id("listener", "management"),
             "http",
@@ -117,8 +137,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@1.0.0",
-            new SemanticVersion("1.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@2.0.0",
+            new SemanticVersion("2.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -142,8 +162,8 @@ internal static class DotNetTestContractFactory
         DotNetShellDocument shell)
     {
         var host = shell.Hosts.Single(static item => item.Kind == DotNetHostKind.Console);
-        var operation = host.OperationBindings[0].OperationRevision;
-        var schema = host.OperationBindings[0].ResultSchemaRevisions[0];
+        var operation = host.OperationBindings[0].OperationContract.OperationRevision;
+        var schema = host.OperationBindings[0].GetResultSchemaRevisions()[0];
         var command = new OpenConsoleCommand(
             operation,
             ["observe", "run"],
@@ -236,9 +256,9 @@ internal static class DotNetTestContractFactory
         DotNetShellDocument shell)
     {
         var host = shell.Hosts.Single(static item => item.Kind == DotNetHostKind.Worker);
-        var operation = host.OperationBindings[0].OperationRevision;
+        var operation = host.OperationBindings[0].OperationContract.OperationRevision;
         var feature = shell.Features[0];
-        var schema = host.OperationBindings[0].ResultSchemaRevisions[0];
+        var schema = host.OperationBindings[0].GetResultSchemaRevisions()[0];
         var worker = new OpenWorkerEntry(
             operation,
             feature.FeatureIdentity,
@@ -278,13 +298,13 @@ internal static class DotNetTestContractFactory
                     "POST",
                     "run",
                     "Runs the operation.",
-                    binding.OperationRevision,
-                    binding.InputSchemaRevisions,
-                    binding.ResultSchemaRevisions,
-                    binding.DiagnosticSchemaRevisions,
-                    binding.RelatedOperationRevisions),
+                    binding.OperationContract.OperationRevision,
+                    binding.GetInputSchemaRevisions(),
+                    binding.GetResultSchemaRevisions(),
+                    binding.GetDiagnosticSchemaRevisions(),
+                    binding.GetRelatedOperationRevisions()),
             ],
-            Provenance(host, binding.OperationRevision));
+            Provenance(host, binding.OperationContract.OperationRevision));
     }
 
     internal static ArtifactReference Ref(

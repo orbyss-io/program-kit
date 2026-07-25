@@ -41,6 +41,7 @@
         "type": "Project",
         "dependencies": {
           "Orbyss.ProgramKit.Architecture": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.Operations": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Serialization.JSON": "[0.1.0-alpha.1, )",
@@ -51,6 +52,12 @@
         }
       },
       "orbyss.programkit.modularity": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
+      "orbyss.programkit.operations": {
         "type": "Project",
         "dependencies": {
           "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"

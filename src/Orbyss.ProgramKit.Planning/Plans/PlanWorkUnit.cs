@@ -12,7 +12,7 @@ public sealed record PlanWorkUnit(
     string? ParallelGroupId,
     ImmutableArray<string> DependsOn,
     ImmutableArray<ArtifactReference> Inputs,
-    ImmutableArray<ArtifactReference> Outputs,
+    ImmutableArray<PlannedArtifactReference> Outputs,
     ImmutableArray<string> AllowedEdits,
     ImmutableArray<PlanDependency> SourceDependencies,
     ImmutableArray<PlanDependency> ExternalDependencies,

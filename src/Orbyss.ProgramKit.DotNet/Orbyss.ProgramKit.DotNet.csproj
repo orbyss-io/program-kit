@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
@@ -21,6 +22,7 @@
     <Using Include="Orbyss.ProgramKit.Artifacts.References" />
     <Using Include="Orbyss.ProgramKit.Artifacts.Schemas" />
     <Using Include="Orbyss.ProgramKit.Artifacts.Validation" />
+    <Using Include="Orbyss.ProgramKit.Operations.Contracts" />
     <Using Include="System.Collections.Immutable" />
     <Using Include="System.Text.Json.Serialization" />
   </ItemGroup>

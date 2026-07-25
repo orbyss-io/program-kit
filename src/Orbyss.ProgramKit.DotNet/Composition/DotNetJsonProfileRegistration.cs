@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.DotNet.Composition.Converters;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.Operations.Contracts;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 
@@ -38,7 +39,12 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetHealthDocumentationDisposition>(),
             CreateEnumConverter<DotNetHealthExposure>(),
             CreateEnumConverter<DotNetHealthEndpointKind>(),
-            CreateEnumConverter<ConsoleOptionKind>());
+            CreateEnumConverter<ConsoleOptionKind>(),
+            CreateEnumConverter<OperationResultDisposition>(),
+            CreateEnumConverter<OperationExpectedRevisionPolicy>(),
+            CreateEnumConverter<OperationIdempotencyPolicy>(),
+            CreateEnumConverter<OperationCancellationPolicy>(),
+            CreateEnumConverter<OperationProgressPolicy>());
         builder.AddOwnedProfile(profile, mechanics);
     }
 

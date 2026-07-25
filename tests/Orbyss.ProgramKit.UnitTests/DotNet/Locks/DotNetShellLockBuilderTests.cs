@@ -17,7 +17,9 @@ public sealed class DotNetShellLockBuilderTests
     {
         var shell = DotNetTestContractFactory.Shell();
         IDotNetShellValidator validator =
-            new DotNetShellValidator(new ArtifactReferenceValidator());
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator());
         DotNetShellLockBuilder sut = new(validator);
         var shellRevision = DotNetTestContractFactory.Ref("shell", "reviewed", '7');
 
@@ -49,7 +51,9 @@ public sealed class DotNetShellLockBuilderTests
     {
         var shell = DotNetTestContractFactory.Shell();
         IDotNetShellValidator validator =
-            new DotNetShellValidator(new ArtifactReferenceValidator());
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var document = lockBuilder.Build(
             shell,
@@ -111,7 +115,9 @@ public sealed class DotNetShellLockBuilderTests
             },
         };
         IDotNetShellValidator validator =
-            new DotNetShellValidator(new ArtifactReferenceValidator());
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator());
         DotNetShellLockBuilder sut = new(validator);
 
         var document = sut.Build(

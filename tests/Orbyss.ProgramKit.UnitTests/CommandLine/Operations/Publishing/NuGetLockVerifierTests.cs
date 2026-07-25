@@ -39,7 +39,9 @@ public sealed class NuGetLockVerifierTests
     {
         var shell = DotNetTestContractFactory.Shell();
         DotNetShellLockBuilder builder = new(
-            new DotNetShellValidator(new ArtifactReferenceValidator()));
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator()));
         var document = builder.Build(
             shell,
             DotNetTestContractFactory.Ref("shell", "reviewed", '7'));

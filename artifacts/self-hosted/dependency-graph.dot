@@ -4,10 +4,12 @@ digraph ProgramKitDependencies {
 
   "Architecture" -> "Artifacts";
   "CommandLine" -> "DotNet";
+  "CommandLine" -> "Operations";
   "CommandLine" -> "Workbench";
   "Development" -> "Artifacts";
   "Development" -> "Planning";
   "DotNet" -> "Architecture";
+  "DotNet" -> "Operations";
   "DotNet" -> "Planning";
   "DotNet" -> "Quality";
   "DotNet" -> "Serialization.JSON";
@@ -17,6 +19,7 @@ digraph ProgramKitDependencies {
   "DotNet" -> "Workbench";
   "Modularity" -> "Artifacts";
   "Modularity.InProcess" -> "Modularity";
+  "Operations" -> "Artifacts";
   "Planning" -> "Artifacts";
   "Planning" -> "Quality";
   "Quality" -> "Artifacts";

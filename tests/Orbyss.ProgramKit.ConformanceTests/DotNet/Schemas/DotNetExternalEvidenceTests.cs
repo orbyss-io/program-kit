@@ -10,7 +10,7 @@ public sealed class DotNetExternalEvidenceTests
     [TestMethod]
     public void VendoredOpenApiSchemaMatchesFrozenOfficialBytes()
     {
-        DotNetSchemaModule module = new();
+        DotNetSchemaModule module = new(new OperationsSchemaModule());
         var resource = module.Resources.Single(static item =>
             item.ResourceName == "openapi-3.2.0-2025-11-23.schema.json");
         using var stream = module.OpenRead(resource.SchemaReference);

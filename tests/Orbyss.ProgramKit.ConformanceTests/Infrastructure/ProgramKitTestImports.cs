@@ -22,6 +22,8 @@ global using Orbyss.ProgramKit.Development.Receipts;
 global using Orbyss.ProgramKit.Development.Routing;
 global using Orbyss.ProgramKit.Planning.Approvals;
 global using Orbyss.ProgramKit.Planning.Plans;
+global using Orbyss.ProgramKit.Operations.Contracts;
+global using Orbyss.ProgramKit.Operations.Contracts.Schemas;
 global using Orbyss.ProgramKit.Quality.Evidence;
 global using Orbyss.ProgramKit.Quality.Execution;
 global using Orbyss.ProgramKit.Quality.Reviews;

@@ -52,9 +52,43 @@ public sealed class SchemaModelConformanceTests
         Root<TestEvidence>("quality/test-evidence.schema.json"),
         Root<IndependentReview>("quality/independent-review.schema.json"),
         Root<ImplementationPlanDocument>(
-            "planning/implementation-plan.schema.json"),
+            "planning/implementation-plan-2.0.0.schema.json"),
+        Nested<PlanWorkUnit>(
+            "planning/definitions-2.0.0.schema.json",
+            "$defs",
+            "planWorkUnit"),
+        Nested<PlannedArtifactReference>(
+            "planning/definitions-2.0.0.schema.json",
+            "$defs",
+            "plannedArtifactReference"),
         Root<DesignPlanApprovalRecord>(
             "planning/design-plan-approval.schema.json"),
+        Root<OperationContractDescriptor>(
+            "operations/operation-contract-descriptor.schema.json"),
+        Root<OperationContractCatalog>(
+            "operations/operation-contract-catalog.schema.json"),
+        Root<OperationInvocationDocument>(
+            "operations/operation-invocation.schema.json"),
+        Root<OperationProgressDocument>(
+            "operations/operation-progress.schema.json"),
+        Root<OperationResultDocument>(
+            "operations/operation-result.schema.json"),
+        Nested<OperationResultContract>(
+            "operations/definitions.schema.json",
+            "$defs",
+            "resultContract"),
+        Nested<RelatedOperationContract>(
+            "operations/definitions.schema.json",
+            "$defs",
+            "relatedOperationContract"),
+        Nested<OperationDeprecation>(
+            "operations/definitions.schema.json",
+            "$defs",
+            "deprecation"),
+        Nested<OperationDiagnosticDocument>(
+            "operations/definitions.schema.json",
+            "$defs",
+            "operationDiagnosticDocument"),
         Root<CapabilityAvailabilitySnapshot>(
             "development/capability-availability-snapshot.schema.json"),
         Root<DevelopmentRoutingResult>(

@@ -215,7 +215,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         }
 
         var bindingKeys = host.OperationBindings
-            .Select(static binding => Exact(binding.OperationRevision))
+            .Select(static binding => Exact(binding.OperationContract.OperationRevision))
             .ToHashSet(StringComparer.Ordinal);
         var provenanceKeys = provenance.OperationRevisions
             .Select(Exact)
@@ -258,19 +258,19 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         foreach (var operation in document.Operations)
         {
             var matches = bindings.Where(binding =>
-                binding.OperationRevision == operation.OperationRevision).ToArray();
+                binding.OperationContract.OperationRevision == operation.OperationRevision).ToArray();
             if (matches.Length != 1 ||
                 !ExactSet(
-                    matches[0].InputSchemaRevisions,
+                    matches[0].GetInputSchemaRevisions(),
                     operation.InputSchemaRevisions) ||
                 !ExactSet(
-                    matches[0].ResultSchemaRevisions,
+                    matches[0].GetResultSchemaRevisions(),
                     operation.ResultSchemaRevisions) ||
                 !ExactSet(
-                    matches[0].DiagnosticSchemaRevisions,
+                    matches[0].GetDiagnosticSchemaRevisions(),
                     operation.DiagnosticSchemaRevisions) ||
                 !ExactSet(
-                    matches[0].RelatedOperationRevisions,
+                    matches[0].GetRelatedOperationRevisions(),
                     operation.RelatedOperationRevisions))
             {
                 return false;
@@ -292,7 +292,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         foreach (var command in document.Commands)
         {
             var matches = bindings.Where(binding =>
-                binding.OperationRevision == command.OperationRevision).ToArray();
+                binding.OperationContract.OperationRevision == command.OperationRevision).ToArray();
             var inputSchemas = command.Arguments
                 .Select(static argument => argument.ValueSchemaRevision)
                 .Concat(
@@ -311,13 +311,13 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                     : [command.StandardError.SchemaRevision]);
             if (matches.Length != 1 ||
                 !ExactDeclaredSet(
-                    matches[0].InputSchemaRevisions,
+                    matches[0].GetInputSchemaRevisions(),
                     inputSchemas) ||
                 !ContainsOrAbsent(
-                    matches[0].ResultSchemaRevisions,
+                    matches[0].GetResultSchemaRevisions(),
                     command.StandardOutput) ||
                 !ExactDeclaredSet(
-                    matches[0].DiagnosticSchemaRevisions,
+                    matches[0].GetDiagnosticSchemaRevisions(),
                     diagnosticSchemas))
             {
                 return false;
@@ -339,16 +339,16 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         foreach (var worker in document.Workers)
         {
             var matches = bindings.Where(binding =>
-                binding.OperationRevision == worker.OperationRevision).ToArray();
+                binding.OperationContract.OperationRevision == worker.OperationRevision).ToArray();
             if (matches.Length != 1 ||
                 !ExactSet(
-                    matches[0].InputSchemaRevisions,
+                    matches[0].GetInputSchemaRevisions(),
                     worker.InputSchemaRevisions) ||
                 !ExactSet(
-                    matches[0].ResultSchemaRevisions,
+                    matches[0].GetResultSchemaRevisions(),
                     worker.OutputSchemaRevisions) ||
                 !ExactSet(
-                    matches[0].DiagnosticSchemaRevisions,
+                    matches[0].GetDiagnosticSchemaRevisions(),
                     worker.ErrorSchemaRevisions))
             {
                 return false;

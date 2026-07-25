@@ -11,6 +11,7 @@ using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.Operations.Contracts;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Contributions;
 using ObservatoryScheduling.Core.Configuration;
@@ -48,26 +49,26 @@ internal static class ObservatoryDotNetContractFactory
             constraintFeature,
             apiFeature);
         var operation = new DotNetOperationBinding(
-            Ref("operation", "schedule-viewing"),
-            Ref("projection", "schedule-viewing"),
-            [Ref("schema", "viewing-request-v2")],
-            [Ref("schema", "viewing-session-v2")],
-            [Ref("schema", "scheduling-diagnostic-v2")],
-            []);
+            Operation(
+                Ref("operation", "schedule-viewing"),
+                [Ref("schema", "viewing-request-v2")],
+                Ref("schema", "viewing-session-v2"),
+                [Ref("schema", "scheduling-diagnostic-v2")]),
+            Ref("projection", "schedule-viewing"));
         var healthOperation = new DotNetOperationBinding(
-            Ref("operation", "health-readiness"),
-            Ref("projection", "health-readiness"),
-            [],
-            [Ref("schema", "health-response")],
-            [],
-            []);
+            Operation(
+                Ref("operation", "health-readiness"),
+                [],
+                Ref("schema", "health-response"),
+                []),
+            Ref("projection", "health-readiness"));
         var taskRequirement = new DotNetTaskRuntimeRequirement(
             Ref("runtime", "tasks-in-process"),
             [Ref("schedule-provider", "cronos-0-13")]);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@1.0.0",
-            new SemanticVersion("1.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@2.0.0",
+            new SemanticVersion("2.0.0"),
             VersionMapInputRevision(),
             VersionSelectionInputRevision(),
             new DotNetShellComposition(
@@ -117,16 +118,41 @@ internal static class ObservatoryDotNetContractFactory
             Compatibility());
     }
 
+    private static OperationContractDescriptor Operation(
+        ArtifactReference revision,
+        ImmutableArray<ArtifactReference> requests,
+        ArtifactReference result,
+        ImmutableArray<ArtifactReference> diagnostics) =>
+        new(
+            revision,
+            requests,
+            [
+                new OperationResultContract(
+                    result,
+                    OperationResultDisposition.Terminal),
+            ],
+            diagnostics,
+            [],
+            [],
+            null,
+            null,
+            OperationExpectedRevisionPolicy.Unsupported,
+            OperationIdempotencyPolicy.Unsupported,
+            OperationCancellationPolicy.Cooperative,
+            OperationProgressPolicy.Unsupported,
+            Compatibility(),
+            new OperationDeprecation(false, null));
+
     internal static OpenApiDocumentProjection CreateApiDocument(
         DotNetShellDocument shell)
     {
         var host = SelectHost(shell, DotNetHostKind.Api);
         var schedule = host.OperationBindings.Single(static binding =>
-            binding.OperationRevision.Identity.Value.EndsWith(
+            binding.OperationContract.OperationRevision.Identity.Value.EndsWith(
                 ":schedule-viewing",
                 StringComparison.Ordinal));
         var health = host.OperationBindings.Single(static binding =>
-            binding.OperationRevision.Identity.Value.EndsWith(
+            binding.OperationContract.OperationRevision.Identity.Value.EndsWith(
                 ":health-readiness",
                 StringComparison.Ordinal));
         return new OpenApiDocumentProjection(
@@ -141,36 +167,39 @@ internal static class ObservatoryDotNetContractFactory
                     "POST",
                     "scheduleViewing",
                     "Schedules the first valid viewing session.",
-                    schedule.OperationRevision,
-                    schedule.InputSchemaRevisions,
-                    schedule.ResultSchemaRevisions,
-                    schedule.DiagnosticSchemaRevisions,
-                    schedule.RelatedOperationRevisions),
+                    schedule.OperationContract.OperationRevision,
+                    schedule.GetInputSchemaRevisions(),
+                    schedule.GetResultSchemaRevisions(),
+                    schedule.GetDiagnosticSchemaRevisions(),
+                    schedule.GetRelatedOperationRevisions()),
                 new OpenApiOperationProjection(
                     "/health/ready",
                     "GET",
                     "getReadiness",
                     "Reports whether the generated host is ready.",
-                    health.OperationRevision,
-                    health.InputSchemaRevisions,
-                    health.ResultSchemaRevisions,
-                    health.DiagnosticSchemaRevisions,
-                    health.RelatedOperationRevisions),
+                    health.OperationContract.OperationRevision,
+                    health.GetInputSchemaRevisions(),
+                    health.GetResultSchemaRevisions(),
+                    health.GetDiagnosticSchemaRevisions(),
+                    health.GetRelatedOperationRevisions()),
             ],
             Provenance(
                 host,
-                [schedule.OperationRevision, health.OperationRevision]));
+                [
+                    schedule.OperationContract.OperationRevision,
+                    health.OperationContract.OperationRevision,
+                ]));
     }
 
     internal static OpenConsoleDocument CreateConsoleDocument(
         DotNetShellDocument shell)
     {
         var host = SelectHost(shell, DotNetHostKind.Console);
-        var operation = host.OperationBindings[0].OperationRevision;
-        var inputSchema = host.OperationBindings[0].InputSchemaRevisions[0];
-        var resultSchema = host.OperationBindings[0].ResultSchemaRevisions[0];
+        var operation = host.OperationBindings[0].OperationContract.OperationRevision;
+        var inputSchema = host.OperationBindings[0].GetInputSchemaRevisions()[0];
+        var resultSchema = host.OperationBindings[0].GetResultSchemaRevisions()[0];
         var diagnosticSchema =
-            host.OperationBindings[0].DiagnosticSchemaRevisions[0];
+            host.OperationBindings[0].GetDiagnosticSchemaRevisions()[0];
         return new OpenConsoleDocument(
             "pkid:schema:program-kit:open-console@1.0.0",
             new SemanticVersion("1.0.0"),
@@ -305,7 +334,7 @@ internal static class ObservatoryDotNetContractFactory
         DotNetShellDocument shell)
     {
         var host = SelectHost(shell, DotNetHostKind.Worker);
-        var operation = host.OperationBindings[0].OperationRevision;
+        var operation = host.OperationBindings[0].OperationContract.OperationRevision;
         var binding = host.OperationBindings[0];
         var schedulingFeature = shell.Features.Single(static feature =>
             feature.FeatureIdentity.Name == "first-available");
@@ -325,9 +354,9 @@ internal static class ObservatoryDotNetContractFactory
                     Ref("task-definition", "schedule-viewing-v2"),
                     "schedule",
                     Ref("schema", "cronos-schedule-descriptor"),
-                    binding.InputSchemaRevisions,
-                    binding.ResultSchemaRevisions,
-                    binding.DiagnosticSchemaRevisions,
+                    binding.GetInputSchemaRevisions(),
+                    binding.GetResultSchemaRevisions(),
+                    binding.GetDiagnosticSchemaRevisions(),
                     Ref("policy", "observatory-authority"),
                     Ref("policy", "observatory-cancellation"),
                     null,

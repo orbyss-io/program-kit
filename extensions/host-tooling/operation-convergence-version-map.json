@@ -1,0 +1,169 @@
+{
+  "nodes": [
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "1.0.0",
+        "digest": "sha256:b0d87ae0dca8ba075f79deb22e11ada54c0b74483b89dc19ac021a9d30f64423"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "2.0.0",
+        "digest": "sha256:119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "1.0.0",
+        "digest": "sha256:6d79fb385d2fa623a69fa528b23135c0ffd8ac550023ee3d5b177d3b65b5db04"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "2.0.0",
+        "digest": "sha256:8f167365be99654e234674f55b95f749f3246aa1371be8a7f5e3294bf9c4d3e9"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:operation-contract-descriptor",
+        "version": "1.0.0",
+        "digest": "sha256:033977338937a007abc2dce36ede6b2037c92f947d315b8155f1e6c1bc613d94"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "pkid:edge:program-kit:planning-v2-migrates-v1",
+      "source": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "2.0.0",
+        "digest": "sha256:119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d"
+      },
+      "targetIdentity": "pkid:schema:program-kit:implementation-plan",
+      "kind": "migrates",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "1.0.0",
+        "digest": "sha256:b0d87ae0dca8ba075f79deb22e11ada54c0b74483b89dc19ac021a9d30f64423"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:dotnet-shell-v2-migrates-v1",
+      "source": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "2.0.0",
+        "digest": "sha256:8f167365be99654e234674f55b95f749f3246aa1371be8a7f5e3294bf9c4d3e9"
+      },
+      "targetIdentity": "pkid:schema:program-kit:dotnet-shell",
+      "kind": "migrates",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "1.0.0",
+        "digest": "sha256:6d79fb385d2fa623a69fa528b23135c0ffd8ac550023ee3d5b177d3b65b5db04"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:guidance:program-kit:dotnet-operation-binding-v1-to-v2",
+          "version": "1.0.0",
+          "digest": "sha256:66c0487caa140ca0c64b29c5ac25a959ee54ec19aa1253cbf942ec03b3bc9b1a"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:dotnet-shell-v2-uses-operations",
+      "source": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "2.0.0",
+        "digest": "sha256:8f167365be99654e234674f55b95f749f3246aa1371be8a7f5e3294bf9c4d3e9"
+      },
+      "targetIdentity": "pkid:schema:program-kit:operation-contract-descriptor",
+      "kind": "uses-contract",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:operation-contract-descriptor",
+        "version": "1.0.0",
+        "digest": "sha256:033977338937a007abc2dce36ede6b2037c92f947d315b8155f1e6c1bc613d94"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "source-api"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    }
+  ]
+}

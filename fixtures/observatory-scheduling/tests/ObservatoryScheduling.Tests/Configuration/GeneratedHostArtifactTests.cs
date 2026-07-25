@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.Operations.Contracts.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
@@ -19,7 +20,8 @@ public sealed class GeneratedHostArtifactTests
         var shell = ObservatoryDotNetContractFactory.CreateShell();
         var shellRevision = ObservatoryDotNetContractFactory.ShellRevision();
         var shellValidator = new DotNetShellValidator(
-            new ArtifactReferenceValidator());
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator());
         var lockBuilder = new DotNetShellLockBuilder(shellValidator);
         var shellLock = lockBuilder.Build(shell, shellRevision);
         var documentValidator = new DotNetIntegratorDocumentValidator();
@@ -105,7 +107,9 @@ public sealed class GeneratedHostArtifactTests
             openApiWriter,
             serializer);
         return new DotNetHostGenerationCoordinator(
-            new DotNetShellValidator(new ArtifactReferenceValidator()),
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator()),
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(),
             documentWriter,

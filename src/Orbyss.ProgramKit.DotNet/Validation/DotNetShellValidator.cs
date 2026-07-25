@@ -4,6 +4,7 @@ using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.Operations.Contracts.Validation;
 
 namespace Orbyss.ProgramKit.DotNet.Validation;
 
@@ -11,13 +12,18 @@ namespace Orbyss.ProgramKit.DotNet.Validation;
 public sealed class DotNetShellValidator : IDotNetShellValidator
 {
     private readonly IProgramKitSemanticValidator<ArtifactReference> referenceValidator;
+    private readonly IProgramKitSemanticValidator<OperationContractDescriptor>
+        operationValidator;
 
     /// <summary>Initializes the validator with exact-reference behavior.</summary>
     public DotNetShellValidator(
-        IProgramKitSemanticValidator<ArtifactReference> referenceValidator)
+        IProgramKitSemanticValidator<ArtifactReference> referenceValidator,
+        IProgramKitSemanticValidator<OperationContractDescriptor> operationValidator)
     {
         this.referenceValidator = referenceValidator ??
             throw new ArgumentNullException(nameof(referenceValidator));
+        this.operationValidator = operationValidator ??
+            throw new ArgumentNullException(nameof(operationValidator));
     }
 
     /// <inheritdoc />
@@ -30,14 +36,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@1.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@2.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "1.0.0")
+        if (value.Version.Value != "2.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 1.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 2.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -296,7 +302,7 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
 
         var operationKeys = operations.IsDefault
             ? []
-            : operations.Select(static operation => DotNetContractKeys.Exact(operation.OperationRevision)).ToHashSet(StringComparer.Ordinal);
+            : operations.Select(static operation => DotNetContractKeys.Exact(operation.OperationContract.OperationRevision)).ToHashSet(StringComparer.Ordinal);
         foreach (var endpoint in health.Endpoints)
         {
             ValidateReference(
@@ -382,34 +388,23 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
         RequireInitializedUnique(
             operations,
             static operation =>
-                DotNetContractKeys.Exact(operation.OperationRevision),
+                DotNetContractKeys.Exact(operation.OperationContract.OperationRevision),
             "/hosts/operationBindings",
             diagnostics);
         foreach (var operation in operations)
         {
-            ValidateReference(
-                operation.OperationRevision,
-                "/hosts/operationBindings/operationRevision",
-                diagnostics);
+            var operationValidation =
+                operationValidator.Validate(operation.OperationContract);
+            diagnostics.AddRange(operationValidation.Diagnostics.Select(diagnostic =>
+                diagnostic with
+                {
+                    Path = string.Concat(
+                        "/hosts/operationBindings/operationContract",
+                        diagnostic.Path.TrimStart('$')),
+                }));
             ValidateReference(
                 operation.ProjectionRevision,
                 "/hosts/operationBindings/projectionRevision",
-                diagnostics);
-            ValidateReferenceSet(
-                operation.InputSchemaRevisions,
-                "/hosts/operationBindings/inputSchemaRevisions",
-                diagnostics);
-            ValidateReferenceSet(
-                operation.ResultSchemaRevisions,
-                "/hosts/operationBindings/resultSchemaRevisions",
-                diagnostics);
-            ValidateReferenceSet(
-                operation.DiagnosticSchemaRevisions,
-                "/hosts/operationBindings/diagnosticSchemaRevisions",
-                diagnostics);
-            ValidateReferenceSet(
-                operation.RelatedOperationRevisions,
-                "/hosts/operationBindings/relatedOperationRevisions",
                 diagnostics);
         }
     }

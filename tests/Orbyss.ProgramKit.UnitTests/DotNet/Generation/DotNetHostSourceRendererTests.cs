@@ -17,7 +17,9 @@ public sealed class DotNetHostSourceRendererTests
     {
         var shell = DotNetTestContractFactory.Shell();
         IDotNetShellValidator validator =
-            new DotNetShellValidator(new ArtifactReferenceValidator());
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var lockDocument = lockBuilder.Build(
             shell,
@@ -61,7 +63,9 @@ public sealed class DotNetHostSourceRendererTests
     {
         var shell = DotNetTestContractFactory.Shell();
         IDotNetShellValidator validator =
-            new DotNetShellValidator(new ArtifactReferenceValidator());
+            new DotNetShellValidator(
+                new ArtifactReferenceValidator(),
+                new OperationContractDescriptorValidator());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var locks = lockBuilder.Build(
             shell,

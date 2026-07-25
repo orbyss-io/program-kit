@@ -27,6 +27,8 @@ using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Schemas;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Planning.Schemas;
+using Orbyss.ProgramKit.Operations.Contracts.Schemas;
+using Orbyss.ProgramKit.Operations.Contracts.Validation;
 using Orbyss.ProgramKit.Quality.Schemas;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
@@ -95,12 +97,13 @@ public static class CommandLineComposition
             new SerializationJsonSchemaModule(),
             new TasksCoreSchemaModule(),
             new TaskSchedulesSchemaModule(),
-            new DotNetSchemaModule());
+            new DotNetSchemaModule(new OperationsSchemaModule()));
         var moduleValidator = new ProgramKitSchemaModuleValidator();
         IWorkbenchSchemaValidator schemaValidator =
             new JsonSchemaWorkbenchValidator(canonicalizer, moduleValidator);
         var shellValidator = new DotNetShellValidator(
-            new ArtifactReferenceValidator());
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator());
         IDotNetShellLockBuilder lockBuilder =
             new DotNetShellLockBuilder(shellValidator);
         DotNetHostLockSelector hostLockSelector = new();

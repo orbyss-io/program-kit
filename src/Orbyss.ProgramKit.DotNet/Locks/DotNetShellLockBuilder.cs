@@ -70,11 +70,11 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
         var packageDigest = HashPackages(packages);
         var contracts = host.OperationBindings
             .SelectMany(static operation =>
-                operation.InputSchemaRevisions
-                    .AddRange(operation.ResultSchemaRevisions)
-                    .AddRange(operation.DiagnosticSchemaRevisions)
-                    .AddRange(operation.RelatedOperationRevisions)
-                    .Add(operation.OperationRevision))
+                operation.GetInputSchemaRevisions()
+                    .AddRange(operation.GetResultSchemaRevisions())
+                    .AddRange(operation.GetDiagnosticSchemaRevisions())
+                    .AddRange(operation.GetRelatedOperationRevisions())
+                    .Add(operation.OperationContract.OperationRevision))
             .Concat(host.ConfigurationBindings.Select(static binding => binding.SchemaRevision))
             .Concat(
                 host.TaskRuntimeRequirements.SelectMany(static requirement =>

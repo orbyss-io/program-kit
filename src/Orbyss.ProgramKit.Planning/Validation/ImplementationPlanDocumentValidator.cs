@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Orbyss.ProgramKit.Artifacts.Diagnostics;
 using Orbyss.ProgramKit.Artifacts.Envelopes;
+using Orbyss.ProgramKit.Artifacts.References;
 using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.Planning.Diagnostics;
 using Orbyss.ProgramKit.Planning.Plans;
@@ -97,7 +98,7 @@ public sealed class ImplementationPlanDocumentValidator :
                 workUnit.Inputs,
                 string.Concat(path, "/inputs"),
                 diagnostics);
-            PlanningEnvelopeValidation.RejectAll(
+            RejectMaterializedOutputs(
                 selfReference,
                 workUnit.Outputs,
                 string.Concat(path, "/outputs"),
@@ -190,7 +191,10 @@ public sealed class ImplementationPlanDocumentValidator :
 
             PlanningValidation.ValidateTextArray(value.DependsOn, $"{path}.dependsOn", diagnostics);
             PlanningValidation.ValidateReferences(value.Inputs, $"{path}.inputs", diagnostics);
-            PlanningValidation.ValidateReferences(value.Outputs, $"{path}.outputs", diagnostics);
+            PlanningValidation.ValidatePlannedArtifacts(
+                value.Outputs,
+                $"{path}.outputs",
+                diagnostics);
             PlanningValidation.RequireUniqueText(
                 value.AllowedEdits,
                 $"{path}.allowedEdits",
@@ -231,6 +235,38 @@ public sealed class ImplementationPlanDocumentValidator :
         }
 
         return result;
+    }
+
+    private static void RejectMaterializedOutputs(
+        ArtifactReference selfReference,
+        ImmutableArray<PlannedArtifactReference> outputs,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (outputs.IsDefault)
+        {
+            return;
+        }
+
+        for (var index = 0; index < outputs.Length; index++)
+        {
+            var output = outputs[index];
+            if (output is null ||
+                output.State != PlannedArtifactState.Materialized ||
+                output.IntegrityDigest is null)
+            {
+                continue;
+            }
+
+            PlanningEnvelopeValidation.Reject(
+                selfReference,
+                new ArtifactReference(
+                    output.Identity,
+                    output.Version,
+                    output.IntegrityDigest.Value),
+                string.Concat(path, "/", index),
+                diagnostics);
+        }
     }
 
     private static void ValidateDependencies(
