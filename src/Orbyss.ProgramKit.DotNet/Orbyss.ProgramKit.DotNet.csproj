@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />

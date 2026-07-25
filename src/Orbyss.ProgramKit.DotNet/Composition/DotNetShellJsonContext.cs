@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.SecretResolution.Contracts;
 
 namespace Orbyss.ProgramKit.DotNet.Composition;
 
@@ -22,4 +23,7 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
 [JsonSerializable(typeof(OpenApiDocumentProjection))]
 [JsonSerializable(typeof(OpenConsoleDocument))]
 [JsonSerializable(typeof(OpenWorkerDocument))]
+[JsonSerializable(typeof(SecretResolutionContract))]
+[JsonSerializable(typeof(SecretChangeSignal))]
+[JsonSerializable(typeof(SecretReactionResult))]
 internal sealed partial class DotNetShellJsonContext : JsonSerializerContext;

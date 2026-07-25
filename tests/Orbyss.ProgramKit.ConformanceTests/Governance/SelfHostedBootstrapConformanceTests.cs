@@ -28,7 +28,7 @@ public sealed class SelfHostedBootstrapConformanceTests
             ["implementation-plan.md"] =
                 "b1e60623624ced9ede4c529d1c6d80022a6894923425d384c5863c22db5f595b",
             ["dependency-graph.dot"] =
-                "b7d0f07ddc05a43d5b39a0d603598b6b74f7a8b89c9a5fa5897b2e8769828fc4",
+                "bf4bd73a52e5ca3fdf1274947f06303c121a65a13750db52b30ee781638def64",
             ["forbidden-reference-graph.dot"] =
                 "194a8498eb3d68a76cd32700acfaa4f7959fa003daba029d2db4cfff5c818ed9",
             ["version-map-graph.dot"] =
@@ -40,7 +40,7 @@ public sealed class SelfHostedBootstrapConformanceTests
             ["request-evidence.md"] =
                 "f0bd9c1aab4b78c82345dfa7c6714e3df59cb540aa66454121cc701893afec30",
             ["development-receipt.json"] =
-                "7e01e32cbd4daa25874b8357d3247b7873c3c9adc5952dc21d9ca6353c1c2381",
+                "b78da75091750d1be3f120272a111c55f3b4d7e65d9dfeecd339d568855f0bbe",
         };
 
     [TestMethod]

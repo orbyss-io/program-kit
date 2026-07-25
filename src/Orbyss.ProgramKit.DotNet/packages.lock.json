@@ -62,6 +62,12 @@
           "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.secretresolution": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.serialization.json": {
         "type": "Project",
         "dependencies": {

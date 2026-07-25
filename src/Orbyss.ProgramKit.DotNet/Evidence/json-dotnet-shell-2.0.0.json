@@ -23,7 +23,10 @@
       "Orbyss.ProgramKit.DotNet.Locks.DotNetShellLockDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Api.OpenApiDocumentProjection",
       "Orbyss.ProgramKit.DotNet.Documentation.Console.OpenConsoleDocument",
-      "Orbyss.ProgramKit.DotNet.Documentation.Worker.OpenWorkerDocument"
+      "Orbyss.ProgramKit.DotNet.Documentation.Worker.OpenWorkerDocument",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretResolutionContract",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretChangeSignal",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretReactionResult"
     ],
     "converters": [
       "Orbyss.ProgramKit.Artifacts.References.ArtifactReference",
@@ -31,6 +34,7 @@
       "Orbyss.ProgramKit.Artifacts.Compatibility.ArtifactCompatibility",
       "Orbyss.ProgramKit.Serialization.Json.Profiles.JsonSerializationProfileRef",
       "Orbyss.ProgramKit.Serialization.Json.Contributions.JsonSerializationContributionRef",
+      "System.DateTimeOffset",
       "Orbyss.ProgramKit.Artifacts.Compatibility.CompatibilityDimension",
       "Orbyss.ProgramKit.Artifacts.Compatibility.CompatibilityClassification",
       "Orbyss.ProgramKit.DotNet.Shells.DotNetHostKind",
@@ -53,7 +57,16 @@
       "Orbyss.ProgramKit.Operations.Contracts.OperationExpectedRevisionPolicy",
       "Orbyss.ProgramKit.Operations.Contracts.OperationIdempotencyPolicy",
       "Orbyss.ProgramKit.Operations.Contracts.OperationCancellationPolicy",
-      "Orbyss.ProgramKit.Operations.Contracts.OperationProgressPolicy"
+      "Orbyss.ProgramKit.Operations.Contracts.OperationProgressPolicy",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretReferenceClassification",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretResultKind",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretResultLifetime",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretRotationCapability",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretConsumptionShape",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretConsumerReaction",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretResolutionStatus",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretChangeKind",
+      "Orbyss.ProgramKit.SecretResolution.Contracts.SecretReactionStatus"
     ]
   }
 }

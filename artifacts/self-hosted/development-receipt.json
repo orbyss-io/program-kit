@@ -53,7 +53,7 @@
       {
         "identity": "pkid:ai-artifact:program-kit:self-hosted-dependency-graph",
         "version": "1.0.0",
-        "digest": "sha256:ebad9f30b666d2a037dd4a9d2d699fefae86e8a6324c6f6e23aad9b4dc035f9f"
+        "digest": "sha256:bf4bd73a52e5ca3fdf1274947f06303c121a65a13750db52b30ee781638def64"
       },
       {
         "identity": "pkid:ai-artifact:program-kit:self-hosted-forbidden-reference-graph",

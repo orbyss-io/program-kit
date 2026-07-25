@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Operations.Contracts;
+using Orbyss.ProgramKit.SecretResolution.Contracts;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 
@@ -34,6 +35,8 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
                 new JsonSerializationProfileRefJsonConverter()),
             new JsonProfileOwnedConverter(
                 new JsonSerializationContributionRefJsonConverter()),
+            new JsonProfileOwnedConverter(
+                new SecretLifecycleDateTimeOffsetJsonConverter()),
             CreateEnumConverter<CompatibilityDimension>(),
             CreateEnumConverter<CompatibilityClassification>(),
             CreateEnumConverter<DotNetHostKind>(),
@@ -56,7 +59,16 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<OperationExpectedRevisionPolicy>(),
             CreateEnumConverter<OperationIdempotencyPolicy>(),
             CreateEnumConverter<OperationCancellationPolicy>(),
-            CreateEnumConverter<OperationProgressPolicy>());
+            CreateEnumConverter<OperationProgressPolicy>(),
+            CreateEnumConverter<SecretReferenceClassification>(),
+            CreateEnumConverter<SecretResultKind>(),
+            CreateEnumConverter<SecretResultLifetime>(),
+            CreateEnumConverter<SecretRotationCapability>(),
+            CreateEnumConverter<SecretConsumptionShape>(),
+            CreateEnumConverter<SecretConsumerReaction>(),
+            CreateEnumConverter<SecretResolutionStatus>(),
+            CreateEnumConverter<SecretChangeKind>(),
+            CreateEnumConverter<SecretReactionStatus>());
         builder.AddOwnedProfile(profile, mechanics);
     }
 

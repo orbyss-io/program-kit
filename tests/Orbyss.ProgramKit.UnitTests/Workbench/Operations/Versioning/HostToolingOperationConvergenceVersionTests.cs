@@ -3,6 +3,7 @@ using System.Text.Json;
 using Orbyss.ProgramKit.Artifacts.Migrations;
 using Orbyss.ProgramKit.Artifacts.Versioning;
 using Orbyss.ProgramKit.DotNet.Schemas;
+using Orbyss.ProgramKit.SecretResolution.Contracts.Schemas;
 
 namespace Orbyss.ProgramKit.UnitTests.Workbench.Operations.Versioning;
 
@@ -172,6 +173,39 @@ public sealed class HostToolingOperationConvergenceVersionTests
                 fixture.Digest.Value,
                 string.Concat("sha256:", HashRaw(fixturePath)));
         }
+    }
+
+    [TestMethod]
+    public void SecretResolutionVersionMapBindsAllInitialSchemaRevisions()
+    {
+        var programKitRoot = FindProgramKitRoot();
+        using var mapJson = JsonDocument.Parse(File.ReadAllBytes(
+            Path.Combine(
+                programKitRoot,
+                "extensions",
+                "host-tooling",
+                "secret-resolution-version-map.json")));
+        var map = ReadVersionMap(mapJson.RootElement);
+        IArtifactEnvelopeValidator envelopeValidator =
+            new DefaultArtifactEnvelopeValidator();
+        VersionMapDocumentValidator validator =
+            new(envelopeValidator);
+        SecretResolutionSchemaModule module = new();
+
+        var validation = validator.Validate(map);
+
+        Assert.IsTrue(validation.IsValid, Format(validation));
+        Assert.HasCount(3, map.Nodes);
+        Assert.IsEmpty(map.Edges);
+        Assert.AreSequenceEqual(
+            module.Resources
+                .Select(static resource => resource.SchemaReference)
+                .OrderBy(static reference => reference.Identity.Value)
+                .ToArray(),
+            map.Nodes
+                .Select(static node => node.Revision)
+                .OrderBy(static reference => reference.Identity.Value)
+                .ToArray());
     }
 
     private static VersionMapDocument ReadVersionMap(JsonElement root) =>

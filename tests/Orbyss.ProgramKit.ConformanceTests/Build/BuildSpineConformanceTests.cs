@@ -24,6 +24,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Operations",
         "Orbyss.ProgramKit.Planning",
         "Orbyss.ProgramKit.Quality",
+        "Orbyss.ProgramKit.SecretResolution",
         "Orbyss.ProgramKit.Serialization.JSON",
         "Orbyss.ProgramKit.Tasks",
         "Orbyss.ProgramKit.Tasks.Core",
@@ -212,7 +213,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(31, projectLines);
+        Assert.HasCount(32, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -251,7 +252,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(19, projectFiles);
+        Assert.HasCount(20, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -291,7 +292,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(22, projectFiles);
+        Assert.HasCount(23, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -348,6 +349,8 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
                 ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
+                ["Orbyss.ProgramKit.SecretResolution"] =
+                ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Architecture"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Quality"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Planning"] =
@@ -366,6 +369,7 @@ public sealed class BuildSpineConformanceTests
                     "Orbyss.ProgramKit.Operations",
                     "Orbyss.ProgramKit.Planning",
                     "Orbyss.ProgramKit.Quality",
+                    "Orbyss.ProgramKit.SecretResolution",
                     "Orbyss.ProgramKit.Serialization.JSON",
                     "Orbyss.ProgramKit.Tasks",
                     "Orbyss.ProgramKit.Tasks.Core",
@@ -408,6 +412,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
                 ["Orbyss.ProgramKit.Operations"] = [],
+                ["Orbyss.ProgramKit.SecretResolution"] = [],
                 ["Orbyss.ProgramKit.Architecture"] = [],
                 ["Orbyss.ProgramKit.Quality"] = [],
                 ["Orbyss.ProgramKit.Planning"] = [],
@@ -484,6 +489,8 @@ public sealed class BuildSpineConformanceTests
             ["Orbyss.ProgramKit.Artifacts"] = [],
             ["Orbyss.ProgramKit.CapabilityBundle"] = [],
             ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
+            ["Orbyss.ProgramKit.SecretResolution"] =
+                ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Architecture"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Quality"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.Planning"] =
@@ -508,6 +515,7 @@ public sealed class BuildSpineConformanceTests
                 [
                     "Orbyss.ProgramKit.Artifacts",
                     "Orbyss.ProgramKit.Operations",
+                    "Orbyss.ProgramKit.SecretResolution",
                     "Orbyss.ProgramKit.Serialization.JSON",
                     "Orbyss.ProgramKit.Workbench",
                 ],

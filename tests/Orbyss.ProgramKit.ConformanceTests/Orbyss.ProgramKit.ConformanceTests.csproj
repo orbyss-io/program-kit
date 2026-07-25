@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CommandLine\Orbyss.ProgramKit.CommandLine.csproj" />
@@ -31,6 +32,7 @@
     <ProjectReference Include="Fixtures\UniversalContractConsumer\UniversalContractConsumer.csproj" />
     <ProjectReference Include="Fixtures\OperationsConsumer\OperationsConsumer.csproj" />
     <ProjectReference Include="Fixtures\ConfigurationConsumer\ConfigurationConsumer.csproj" />
+    <ProjectReference Include="Fixtures\SecretResolutionConsumer\SecretResolutionConsumer.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\global.json"

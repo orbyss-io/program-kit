@@ -12,6 +12,7 @@ digraph ProgramKitDependencies {
   "DotNet" -> "Operations";
   "DotNet" -> "Planning";
   "DotNet" -> "Quality";
+  "DotNet" -> "SecretResolution";
   "DotNet" -> "Serialization.JSON";
   "DotNet" -> "Tasks";
   "DotNet" -> "Tasks.Core";
@@ -23,6 +24,7 @@ digraph ProgramKitDependencies {
   "Planning" -> "Artifacts";
   "Planning" -> "Quality";
   "Quality" -> "Artifacts";
+  "SecretResolution" -> "Artifacts";
   "Serialization.JSON" -> "Artifacts";
   "Tasks" -> "Modularity";
   "Tasks" -> "Tasks.Core";

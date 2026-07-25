@@ -3845,6 +3845,10 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             [
                 "Contracts",
             ],
+            "Orbyss.ProgramKit.SecretResolution" =>
+            [
+                "Contracts",
+            ],
             "Orbyss.ProgramKit.Quality" =>
             [
                 "Diagnostics",
@@ -3967,6 +3971,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Planning",
                 "Quality",
                 "Serialization",
+                "SecretResolution",
                 "Tasks",
                 "TestSupport",
                 "Workbench",
@@ -4163,6 +4168,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             "Planning" => "Orbyss.ProgramKit.Planning",
             "Operations" => "Orbyss.ProgramKit.Operations",
             "Quality" => "Orbyss.ProgramKit.Quality",
+            "SecretResolution" => "Orbyss.ProgramKit.SecretResolution",
             "Workbench" => "Orbyss.ProgramKit.Workbench",
             _ => null,
         };
