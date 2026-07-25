@@ -1,0 +1,59 @@
+{
+  "profile": {
+    "identity": "pkid:profile:program-kit:json-dotnet-shell",
+    "version": "2.0.0",
+    "canonicalization": "pkid:canonicalization:program-kit:rfc-8785",
+    "extensibility": "none",
+    "sourceGeneratedMetadataOnly": true,
+    "schemaDeclaredPropertyNames": true,
+    "caseSensitiveReads": true,
+    "disallowComments": true,
+    "disallowTrailingCommas": true,
+    "disallowUnmappedMembers": true,
+    "writeNullProperties": true,
+    "strictNumbers": true,
+    "disallowReferencePreservation": true,
+    "requireNfcStrings": true
+  },
+  "ownedMechanics": {
+    "context": "Orbyss.ProgramKit.DotNet.Composition.DotNetShellJsonContext",
+    "wireTypes": [
+      "Orbyss.ProgramKit.DotNet.Inputs.DotNetArtifactInputManifest",
+      "Orbyss.ProgramKit.DotNet.Shells.DotNetShellDocument",
+      "Orbyss.ProgramKit.DotNet.Locks.DotNetShellLockDocument",
+      "Orbyss.ProgramKit.DotNet.Documentation.Api.OpenApiDocumentProjection",
+      "Orbyss.ProgramKit.DotNet.Documentation.Console.OpenConsoleDocument",
+      "Orbyss.ProgramKit.DotNet.Documentation.Worker.OpenWorkerDocument"
+    ],
+    "converters": [
+      "Orbyss.ProgramKit.Artifacts.References.ArtifactReference",
+      "Orbyss.ProgramKit.Artifacts.Compatibility.CompatibilityClaim",
+      "Orbyss.ProgramKit.Artifacts.Compatibility.ArtifactCompatibility",
+      "Orbyss.ProgramKit.Serialization.Json.Profiles.JsonSerializationProfileRef",
+      "Orbyss.ProgramKit.Serialization.Json.Contributions.JsonSerializationContributionRef",
+      "Orbyss.ProgramKit.Artifacts.Compatibility.CompatibilityDimension",
+      "Orbyss.ProgramKit.Artifacts.Compatibility.CompatibilityClassification",
+      "Orbyss.ProgramKit.DotNet.Shells.DotNetHostKind",
+      "Orbyss.ProgramKit.DotNet.Health.DotNetHealthDocumentationDisposition",
+      "Orbyss.ProgramKit.DotNet.Health.DotNetHealthExposure",
+      "Orbyss.ProgramKit.DotNet.Health.DotNetHealthEndpointKind",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationProviderKind",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationReloadCapability",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationStartupDisposition",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationSecretClassification",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationFailureDisposition",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationOwnerKind",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationValueKind",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationValueClassification",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetOptionsConsumption",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetServiceLifetime",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationChangeReaction",
+      "Orbyss.ProgramKit.DotNet.Documentation.Console.ConsoleOptionKind",
+      "Orbyss.ProgramKit.Operations.Contracts.OperationResultDisposition",
+      "Orbyss.ProgramKit.Operations.Contracts.OperationExpectedRevisionPolicy",
+      "Orbyss.ProgramKit.Operations.Contracts.OperationIdempotencyPolicy",
+      "Orbyss.ProgramKit.Operations.Contracts.OperationCancellationPolicy",
+      "Orbyss.ProgramKit.Operations.Contracts.OperationProgressPolicy"
+    ]
+  }
+}

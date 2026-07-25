@@ -11,9 +11,9 @@ public static class DotNetJsonProfiles
             new JsonSerializationProfileRef(
                 new ProgramKitIdentifier(
                     "pkid:profile:program-kit:json-dotnet-shell"),
-                new SemanticVersion("1.0.0"),
+                new SemanticVersion("2.0.0"),
                 new Sha256Digest(
-                    "sha256:77d5606872fc230b9dfd9145b34f07d1ceb049455ee539b9f1c94b064807c0f1")),
+                    "sha256:9315fe8d20d1755448cfeb053217045c4830ec28f76d575047855fe93ea9ec9f")),
             ProgramKitJsonProfiles.CanonicalJsonRfc8785,
             JsonProfileExtensibility.None,
             new JsonSerializationRules(

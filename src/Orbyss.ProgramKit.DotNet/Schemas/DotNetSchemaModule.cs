@@ -5,9 +5,10 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
 {
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("2.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("3.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
+    private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:dotnet");
     private static readonly ArtifactProvenance Provenance =
@@ -40,6 +41,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w010-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance ConfigurationProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w020-approved-review-set-1-3-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -70,6 +87,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "8f167365be99654e234674f55b95f749f3246aa1371be8a7f5e3294bf9c4d3e9",
             SchemaVersionV2,
             HostToolingProvenance),
+        Create(
+            "dotnet-shell",
+            "dotnet-shell-3.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/3.0.0/dotnet-shell.schema.json",
+            "6f3d60cee34c8baf00f27940790a1220676b452f8bf027eeaafdf8c5ab83d60e",
+            SchemaVersionV3,
+            ConfigurationProvenance),
         Create(
             "open-console",
             "open-console.schema.json",
@@ -180,8 +204,9 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new SemanticVersionRange(string.Concat("[", version.Value, "]")),
             new SemanticVersionRange(string.Concat("[", version.Value, "]")),
-            version == SchemaVersionV2
-                ?
+            version switch
+            {
+                _ when version == SchemaVersionV2 =>
                 [
                     new ArtifactReference(
                         new ProgramKitIdentifier(
@@ -189,8 +214,18 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:a394d9ff69fe3f1f3d2f0941518ca81c9a79cb0ae092e1ba5579655b016a12b4")),
-                ]
-                : []);
+                ],
+                _ when version == SchemaVersionV3 =>
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-configuration-v2-to-v3"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:518c2c4d061a1407e205d6961689574e1e9139be9a68ba8fdab66ddbc9893565")),
+                ],
+                _ => [],
+            });
 
     private static string ExactKey(ArtifactReference reference) =>
         string.Concat(

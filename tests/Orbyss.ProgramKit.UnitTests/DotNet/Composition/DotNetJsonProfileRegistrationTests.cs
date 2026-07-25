@@ -49,7 +49,7 @@ public sealed class DotNetJsonProfileRegistrationTests
         var assembly = typeof(DotNetJsonProfiles).Assembly;
         var resource = assembly.GetManifestResourceNames().Single(name =>
             name.EndsWith(
-                "json-dotnet-shell-1.0.0.json",
+                "json-dotnet-shell-2.0.0.json",
                 StringComparison.Ordinal));
         using var stream = assembly.GetManifestResourceStream(resource) ??
             throw new InvalidOperationException(

@@ -8,7 +8,11 @@
     <PackageVersion Include="JsonSchema.Net" Version="[9.3.0]" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="[10.0.10]" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="[10.0.10]" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="[10.0.10]" />
+    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="[10.0.10]" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="[10.0.10]" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="[10.0.10]" />
     <PackageVersion Include="CShells.Abstractions" Version="[0.0.28]" />

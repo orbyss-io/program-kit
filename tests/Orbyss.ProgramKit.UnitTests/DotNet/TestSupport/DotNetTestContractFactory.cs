@@ -6,6 +6,7 @@ using Orbyss.ProgramKit.DotNet.Documentation;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
+using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
@@ -100,6 +101,62 @@ internal static class DotNetTestContractFactory
             new DotNetHealthDocumentationSelection(
                 DotNetHealthDocumentationDisposition.Excluded,
                 null));
+        var configurationSource = new DotNetConfigurationSource(
+            Id("configuration-source", "appsettings"),
+            0,
+            DotNetConfigurationProviderKind.JsonFile,
+            Ref("provider", "json-configuration", '7'),
+            Package(
+                "Microsoft.Extensions.Configuration.Json",
+                "10.0.10",
+                'd'),
+            "appsettings.json",
+            null,
+            false,
+            DotNetConfigurationStartupDisposition.Required,
+            new DotNetConfigurationReload(
+                true,
+                DotNetConfigurationReloadCapability.ChangeToken,
+                null,
+                null),
+            DotNetConfigurationSecretClassification.PublicOnly,
+            DotNetConfigurationFailureDisposition.Fail);
+        var configurationDefinition = new DotNetConfigurationDefinition(
+            Id("configuration", "sample-client"),
+            new SemanticVersion("1.0.0"),
+            Id("component", "sample-client"),
+            DotNetConfigurationOwnerKind.External,
+            "GeneratedHost.Configuration",
+            "SampleClientOptions",
+            "SampleClient",
+            Ref("schema", "sample-client-configuration", '8'),
+            [
+                new DotNetConfigurationProperty(
+                    "Endpoint",
+                    "Endpoint",
+                    DotNetConfigurationValueKind.AbsoluteUri,
+                    true,
+                    "https://localhost:7443",
+                    "https://localhost:7443",
+                    DotNetConfigurationValueClassification.Public,
+                    new DotNetConfigurationPropertyValidation(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null)),
+            ],
+            Compatibility());
+        var configurationBinding = new DotNetConfigurationBinding(
+            configurationDefinition,
+            string.Empty,
+            [configurationSource.Identity],
+            DotNetOptionsConsumption.Fixed,
+            DotNetServiceLifetime.Singleton,
+            true,
+            false,
+            DotNetConfigurationChangeReaction.None,
+            false);
         var api = Host(
             "api",
             DotNetHostKind.Api,
@@ -109,7 +166,14 @@ internal static class DotNetTestContractFactory
             [
                 Package("CShells", "0.0.28", '8'),
                 Package("CShells.AspNetCore", "0.0.28", '9'),
+                Package("Microsoft.Extensions.Configuration.Json", "10.0.10", 'd'),
+                Package("Microsoft.Extensions.Configuration.Binder", "10.0.10", 'c'),
+                Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
+                Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
+                Package("Microsoft.Extensions.Options.DataAnnotations", "10.0.10", 'f'),
             ],
+            configurationSource,
+            configurationBinding,
             new DotNetHealthConfiguration(
                 [healthEndpoint, livenessEndpoint],
                 [healthListener, livenessListener]));
@@ -122,7 +186,14 @@ internal static class DotNetTestContractFactory
             [
                 Package("CShells", "0.0.28", '8'),
                 Package("Microsoft.Extensions.Hosting", "10.0.10", 'a'),
+                Package("Microsoft.Extensions.Configuration.Json", "10.0.10", 'd'),
+                Package("Microsoft.Extensions.Configuration.Binder", "10.0.10", 'c'),
+                Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
+                Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
+                Package("Microsoft.Extensions.Options.DataAnnotations", "10.0.10", 'f'),
             ],
+            configurationSource,
+            configurationBinding,
             null);
         var worker = Host(
             "worker",
@@ -133,12 +204,19 @@ internal static class DotNetTestContractFactory
             [
                 Package("CShells", "0.0.28", '8'),
                 Package("Microsoft.Extensions.Hosting", "10.0.10", 'a'),
+                Package("Microsoft.Extensions.Configuration.Json", "10.0.10", 'd'),
+                Package("Microsoft.Extensions.Configuration.Binder", "10.0.10", 'c'),
+                Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
+                Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
+                Package("Microsoft.Extensions.Options.DataAnnotations", "10.0.10", 'f'),
             ],
+            configurationSource,
+            configurationBinding,
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@2.0.0",
-            new SemanticVersion("2.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@3.0.0",
+            new SemanticVersion("3.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -329,6 +407,8 @@ internal static class DotNetTestContractFactory
         ProgramKitIdentifier activationIdentity,
         DotNetOperationBinding operation,
         ImmutableArray<DotNetPackageReference> packages,
+        DotNetConfigurationSource configurationSource,
+        DotNetConfigurationBinding configurationBinding,
         DotNetHealthConfiguration? health) =>
         new(
             Id("host", name),
@@ -340,7 +420,8 @@ internal static class DotNetTestContractFactory
             [activationIdentity],
             packages,
             [operation],
-            [],
+            [configurationSource],
+            [configurationBinding],
             [],
             health,
             Compatibility());

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/3.0.0/dotnet-shell.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-shell",
+  "x-program-kit-version": "3.0.0",
+  "title": "Program Kit .NET Shell with typed configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "inputVersionMapRevision",
+    "inputVersionSelectionRevision",
+    "composition",
+    "features",
+    "jsonSerialization",
+    "hosts",
+    "compatibility"
+  ],
+  "properties": {
+    "$schema": {"const": "pkid:schema:program-kit:dotnet-shell@3.0.0"},
+    "version": {"const": "3.0.0"},
+    "inputVersionMapRevision": {"$ref": "#/$defs/reference"},
+    "inputVersionSelectionRevision": {"$ref": "#/$defs/reference"},
+    "composition": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/composition"
+    },
+    "features": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/features"
+    },
+    "jsonSerialization": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/jsonSerialization"
+    },
+    "hosts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/host"}
+    },
+    "compatibility": {"$ref": "#/$defs/compatibility"}
+  },
+  "$defs": {
+    "identifier": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/$defs/identifier"
+    },
+    "version": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/$defs/version"
+    },
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/$defs/reference"
+    },
+    "package": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/$defs/package"
+    },
+    "compatibility": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/$defs/compatibility"
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "version",
+        "kind",
+        "dotNetTargetProfileRevision",
+        "generatorProfileRevision",
+        "shellIdentities",
+        "featureActivationIdentities",
+        "hostPackages",
+        "operationBindings",
+        "configurationSources",
+        "configurationBindings",
+        "taskRuntimeRequirements",
+        "health",
+        "compatibility"
+      ],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {"$ref": "#/$defs/version"},
+        "kind": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/hosts/items/properties/kind"
+        },
+        "dotNetTargetProfileRevision": {"$ref": "#/$defs/reference"},
+        "generatorProfileRevision": {"$ref": "#/$defs/reference"},
+        "shellIdentities": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/hosts/items/properties/shellIdentities"
+        },
+        "featureActivationIdentities": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/hosts/items/properties/featureActivationIdentities"
+        },
+        "hostPackages": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/package"}
+        },
+        "operationBindings": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/hosts/items/properties/operationBindings"
+        },
+        "configurationSources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/configurationSource"}
+        },
+        "configurationBindings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/configurationBinding"}
+        },
+        "taskRuntimeRequirements": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/hosts/items/properties/taskRuntimeRequirements"
+        },
+        "health": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/2.0.0/dotnet-shell.schema.json#/properties/hosts/items/properties/health"
+        },
+        "compatibility": {"$ref": "#/$defs/compatibility"}
+      }
+    },
+    "configurationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "order",
+        "providerKind",
+        "providerRevision",
+        "package",
+        "path",
+        "prefix",
+        "optional",
+        "startupDisposition",
+        "reload",
+        "secretClassification",
+        "failureDisposition"
+      ],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "order": {"type": "integer", "minimum": 0},
+        "providerKind": {
+          "enum": ["json-file", "environment-variables", "command-line", "key-per-file"]
+        },
+        "providerRevision": {"$ref": "#/$defs/reference"},
+        "package": {"$ref": "#/$defs/package"},
+        "path": {
+          "oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]
+        },
+        "prefix": {
+          "oneOf": [{"type": "null"}, {"type": "string"}]
+        },
+        "optional": {"type": "boolean"},
+        "startupDisposition": {"enum": ["required", "optional"]},
+        "reload": {"$ref": "#/$defs/configurationReload"},
+        "secretClassification": {
+          "enum": ["public-only", "references-only", "provider-owned"]
+        },
+        "failureDisposition": {"enum": ["fail", "continue-without-source"]}
+      }
+    },
+    "configurationReload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "capability",
+        "pollIntervalSeconds",
+        "refreshRevision"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "capability": {"enum": ["none", "change-token", "explicit-refresh"]},
+        "pollIntervalSeconds": {
+          "oneOf": [{"type": "null"}, {"type": "integer", "minimum": 1}]
+        },
+        "refreshRevision": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/reference"}]
+        }
+      }
+    },
+    "configurationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "definition",
+        "optionsName",
+        "sourceIdentities",
+        "consumption",
+        "consumerLifetime",
+        "validateOnStart",
+        "securityCritical",
+        "changeReaction",
+        "restartRequired"
+      ],
+      "properties": {
+        "definition": {"$ref": "#/$defs/configurationDefinition"},
+        "optionsName": {"type": "string"},
+        "sourceIdentities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "consumption": {"enum": ["fixed", "snapshot", "monitor"]},
+        "consumerLifetime": {"enum": ["singleton", "scoped", "transient"]},
+        "validateOnStart": {"type": "boolean"},
+        "securityCritical": {"type": "boolean"},
+        "changeReaction": {
+          "enum": ["none", "redacted-diagnostic", "consumer-owned-queue"]
+        },
+        "restartRequired": {"type": "boolean"}
+      }
+    },
+    "configurationDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "version",
+        "ownerIdentity",
+        "ownerKind",
+        "namespace",
+        "typeName",
+        "section",
+        "schemaRevision",
+        "properties",
+        "compatibility"
+      ],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {"$ref": "#/$defs/version"},
+        "ownerIdentity": {"$ref": "#/$defs/identifier"},
+        "ownerKind": {"enum": ["program-kit", "external"]},
+        "namespace": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*$"
+        },
+        "typeName": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "section": {"type": "string", "minLength": 1},
+        "schemaRevision": {"$ref": "#/$defs/reference"},
+        "properties": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/configurationProperty"}
+        },
+        "compatibility": {"$ref": "#/$defs/compatibility"}
+      }
+    },
+    "configurationProperty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "propertyName",
+        "key",
+        "valueKind",
+        "required",
+        "defaultValue",
+        "exampleValue",
+        "classification",
+        "validation"
+      ],
+      "properties": {
+        "propertyName": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^[^:]+$"
+        },
+        "valueKind": {
+          "enum": [
+            "text",
+            "boolean",
+            "whole-number32",
+            "whole-number64",
+            "decimal-number",
+            "floating-point",
+            "absolute-uri",
+            "duration"
+          ]
+        },
+        "required": {"type": "boolean"},
+        "defaultValue": {
+          "oneOf": [{"type": "null"}, {"type": "string"}]
+        },
+        "exampleValue": {
+          "oneOf": [{"type": "null"}, {"type": "string"}]
+        },
+        "classification": {"enum": ["public", "sensitive", "secret-reference"]},
+        "validation": {"$ref": "#/$defs/configurationValidation"}
+      }
+    },
+    "configurationValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimumLength",
+        "maximumLength",
+        "minimumValue",
+        "maximumValue",
+        "regularExpression"
+      ],
+      "properties": {
+        "minimumLength": {
+          "oneOf": [{"type": "null"}, {"type": "integer", "minimum": 0}]
+        },
+        "maximumLength": {
+          "oneOf": [{"type": "null"}, {"type": "integer", "minimum": 0}]
+        },
+        "minimumValue": {
+          "oneOf": [{"type": "null"}, {"type": "string"}]
+        },
+        "maximumValue": {
+          "oneOf": [{"type": "null"}, {"type": "string"}]
+        },
+        "regularExpression": {
+          "oneOf": [{"type": "null"}, {"type": "string"}]
+        }
+      }
+    }
+  }
+}

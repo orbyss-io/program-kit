@@ -159,9 +159,13 @@ public sealed class BuildSpineConformanceTests
         {
             ["MSTest.Sdk"] = "[4.3.2]",
             ["JsonSchema.Net"] = "[9.3.0]",
+            ["Microsoft.Extensions.Configuration.Json"] = "[10.0.10]",
             ["Microsoft.Extensions.DependencyInjection"] = "[10.0.10]",
             ["Microsoft.Extensions.DependencyInjection.Abstractions"] = "[10.0.10]",
+            ["Microsoft.Extensions.Hosting"] = "[10.0.10]",
             ["Microsoft.Extensions.Hosting.Abstractions"] = "[10.0.10]",
+            ["Microsoft.Extensions.Options.ConfigurationExtensions"] = "[10.0.10]",
+            ["Microsoft.Extensions.Options.DataAnnotations"] = "[10.0.10]",
             ["Microsoft.Extensions.Diagnostics.HealthChecks"] = "[10.0.10]",
             ["Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions"] = "[10.0.10]",
             ["CShells.Abstractions"] = "[0.0.28]",

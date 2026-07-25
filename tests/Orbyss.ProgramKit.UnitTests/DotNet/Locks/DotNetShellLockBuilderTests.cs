@@ -92,10 +92,13 @@ public sealed class DotNetShellLockBuilderTests
         {
             ConfigurationBindings =
             [
-                new DotNetConfigurationBinding(
-                    "Api",
-                    configuration,
-                    true),
+                api.ConfigurationBindings[0] with
+                {
+                    Definition = api.ConfigurationBindings[0].Definition with
+                    {
+                        SchemaRevision = configuration,
+                    },
+                },
             ],
             TaskRuntimeRequirements =
             [

@@ -125,7 +125,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator()),
             new DotNetHostLockSelector(),
-            new DotNetHostSourceRenderer(),
+            new DotNetHostSourceRenderer(
+                new DotNetConfigurationProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

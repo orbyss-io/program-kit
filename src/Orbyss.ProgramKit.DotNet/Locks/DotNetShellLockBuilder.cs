@@ -55,6 +55,9 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
         var selectedActivations = host.FeatureActivationIdentities.ToHashSet();
         var packages = host.HostPackages
             .Concat(
+                host.ConfigurationSources
+                    .Select(static source => source.Package))
+            .Concat(
                 shell.Features
                     .Where(feature => selectedActivations.Contains(feature.ActivationIdentity))
                     .Select(static feature => feature.Package))
@@ -75,7 +78,18 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
                     .AddRange(operation.GetDiagnosticSchemaRevisions())
                     .AddRange(operation.GetRelatedOperationRevisions())
                     .Add(operation.OperationContract.OperationRevision))
-            .Concat(host.ConfigurationBindings.Select(static binding => binding.SchemaRevision))
+            .Concat(
+                host.ConfigurationSources.SelectMany(static source =>
+                    source.Reload.RefreshRevision is null
+                        ? [source.ProviderRevision]
+                        : new[]
+                        {
+                            source.ProviderRevision,
+                            source.Reload.RefreshRevision,
+                        }))
+            .Concat(
+                host.ConfigurationBindings.Select(static binding =>
+                    binding.Definition.SchemaRevision))
             .Concat(
                 host.TaskRuntimeRequirements.SelectMany(static requirement =>
                     requirement.ScheduleProviderRevisions.Add(requirement.RuntimeRevision)))

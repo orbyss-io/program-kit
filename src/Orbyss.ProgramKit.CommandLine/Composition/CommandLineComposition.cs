@@ -110,7 +110,8 @@ public static class CommandLineComposition
         var coordinator = new DotNetHostGenerationCoordinator(
             shellValidator,
             hostLockSelector,
-            new DotNetHostSourceRenderer(),
+            new DotNetHostSourceRenderer(
+                new DotNetConfigurationProjectionCompiler()),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),

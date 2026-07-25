@@ -482,8 +482,10 @@
                    '$(MSBuildProjectName)' == 'Orbyss.ProgramKit.ConformanceTests'">true</_ProgramKitLegacyMSTestProject>
       <_ProgramKitLoggingGeneratorPath></_ProgramKitLoggingGeneratorPath>
       <_ProgramKitOptionsGeneratorPath></_ProgramKitOptionsGeneratorPath>
+      <_ProgramKitConfigurationBinderGeneratorPath></_ProgramKitConfigurationBinderGeneratorPath>
       <_ProgramKitLoggingGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.logging.abstractions\10.0.10\analyzers\dotnet\roslyn4.4\cs\Microsoft.Extensions.Logging.Generators.dll'))</_ProgramKitLoggingGeneratorPath>
       <_ProgramKitOptionsGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.options\10.0.10\analyzers\dotnet\roslyn4.4\cs\Microsoft.Extensions.Options.SourceGeneration.dll'))</_ProgramKitOptionsGeneratorPath>
+      <_ProgramKitConfigurationBinderGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.configuration.binder\10.0.10\analyzers\dotnet\cs\Microsoft.Extensions.Configuration.Binder.SourceGeneration.dll'))</_ProgramKitConfigurationBinderGeneratorPath>
       <_ProgramKitFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.NETCore.App.Ref'))\</_ProgramKitFrameworkAnalyzerRoot>
       <_ProgramKitAspNetFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.AspNetCore.App.Ref\10.0.10\analyzers\dotnet\cs'))\</_ProgramKitAspNetFrameworkAnalyzerRoot>
       <_ProgramKitWebSdkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Web\analyzers\cs'))\</_ProgramKitWebSdkAnalyzerRoot>
@@ -556,9 +558,8 @@
                    ('%(FullPath)' == '$(_ProgramKitLoggingGeneratorPath)' and
                     '%(Analyzer.NuGetPackageId)' == 'Microsoft.Extensions.Logging.Abstractions' and
                     '%(Analyzer.NuGetPackageVersion)' == '10.0.10') or
-                   ('%(FullPath)' == '$(_ProgramKitOptionsGeneratorPath)' and
-                    '%(Analyzer.NuGetPackageId)' == 'Microsoft.Extensions.Options' and
-                    '%(Analyzer.NuGetPackageVersion)' == '10.0.10') or
+                   '%(FullPath)' == '$(_ProgramKitOptionsGeneratorPath)' or
+                   '%(FullPath)' == '$(_ProgramKitConfigurationBinderGeneratorPath)' or
                    ('$(_ProgramKitGeneratedSourceProbeAnalyzerPath)' != '' and
                     '%(FullPath)' == '$(_ProgramKitGeneratedSourceProbeAnalyzerPath)') or
                     ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitFrameworkAnalyzerRoot)', System.StringComparison.OrdinalIgnoreCase)) and

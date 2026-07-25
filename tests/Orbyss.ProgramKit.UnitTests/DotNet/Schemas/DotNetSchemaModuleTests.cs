@@ -26,7 +26,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(13, module.Resources);
+        Assert.HasCount(14, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -115,7 +115,7 @@ public sealed class DotNetSchemaModuleTests
             var schema = module.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
                 (document.Name != "dotnet-shell" ||
-                 resource.SchemaReference.Version.Value == "2.0.0"));
+                 resource.SchemaReference.Version.Value == "3.0.0"));
 
             var result = validator.Validate(
                 document.Content,

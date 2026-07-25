@@ -111,7 +111,8 @@ public sealed class GeneratedHostArtifactTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator()),
             new DotNetHostLockSelector(),
-            new DotNetHostSourceRenderer(),
+            new DotNetHostSourceRenderer(
+                new DotNetConfigurationProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

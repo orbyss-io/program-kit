@@ -67,8 +67,8 @@ internal static class ObservatoryDotNetContractFactory
             [Ref("schedule-provider", "cronos-0-13")]);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@2.0.0",
-            new SemanticVersion("2.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@3.0.0",
+            new SemanticVersion("3.0.0"),
             VersionMapInputRevision(),
             VersionSelectionInputRevision(),
             new DotNetShellComposition(
@@ -423,6 +423,7 @@ internal static class ObservatoryDotNetContractFactory
                 .ToImmutableArray(),
             HostPackages(kind),
             operations,
+            [],
             [],
             taskRequirements,
             health,

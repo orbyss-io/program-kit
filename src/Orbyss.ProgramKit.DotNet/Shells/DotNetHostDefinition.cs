@@ -16,6 +16,7 @@ public sealed record DotNetHostDefinition(
     [property: JsonPropertyName("featureActivationIdentities")] ImmutableArray<ProgramKitIdentifier> FeatureActivationIdentities,
     [property: JsonPropertyName("hostPackages")] ImmutableArray<DotNetPackageReference> HostPackages,
     [property: JsonPropertyName("operationBindings")] ImmutableArray<DotNetOperationBinding> OperationBindings,
+    [property: JsonPropertyName("configurationSources")] ImmutableArray<DotNetConfigurationSource> ConfigurationSources,
     [property: JsonPropertyName("configurationBindings")] ImmutableArray<DotNetConfigurationBinding> ConfigurationBindings,
     [property: JsonPropertyName("taskRuntimeRequirements")] ImmutableArray<DotNetTaskRuntimeRequirement> TaskRuntimeRequirements,
     [property: JsonPropertyName("health")] DotNetHealthConfiguration? Health,

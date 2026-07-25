@@ -17,6 +17,17 @@ internal static class DotNetSourceText
                 .Replace("\n", "\\n", StringComparison.Ordinal),
             "\"");
 
+    internal static string JsonLiteral(string value) =>
+        string.Concat(
+            "\"",
+            value
+                .Replace("\\", "\\\\", StringComparison.Ordinal)
+                .Replace("\"", "\\\"", StringComparison.Ordinal)
+                .Replace("\r", "\\r", StringComparison.Ordinal)
+                .Replace("\n", "\\n", StringComparison.Ordinal)
+                .Replace("\t", "\\t", StringComparison.Ordinal),
+            "\"");
+
     internal static string Xml(string value) =>
         value
             .Replace("&", "&amp;", StringComparison.Ordinal)

@@ -24,7 +24,8 @@ public sealed class DotNetHostSourceRendererTests
         var lockDocument = lockBuilder.Build(
             shell,
             DotNetTestContractFactory.Ref("shell", "reviewed", '7'));
-        DotNetHostSourceRenderer sut = new();
+        DotNetHostSourceRenderer sut =
+            new(new DotNetConfigurationProjectionCompiler());
 
         foreach (var host in shell.Hosts)
         {
@@ -38,11 +39,25 @@ public sealed class DotNetHostSourceRendererTests
             var buildTargets = Text(outputs, "Directory.Build.targets");
             var packagePolicy = Text(outputs, "Directory.Packages.props");
             var program = Text(outputs, "ProgramKitGenerated/Composition/Program.cs");
+            var options = Text(
+                outputs,
+                "ProgramKitGenerated/Configuration/SampleClientOptions.cs");
+            var optionsValidator = Text(
+                outputs,
+                "ProgramKitGenerated/Configuration/SampleClientOptionsValidator.cs");
 
             Assert.Contains("Version=\"[0.0.28]\"", project);
             Assert.AreEqual("<Project />", buildTargets.Trim());
             Assert.AreEqual("<Project />", packagePolicy.Trim());
             Assert.Contains("typeof(global::Fixtures.SampleFeature)", program);
+            Assert.Contains("builder.Configuration.Sources.Clear()", program);
+            Assert.Contains("AddJsonFile(\"appsettings.json\"", program);
+            Assert.Contains("AddOptions<global::GeneratedHost.Configuration.SampleClientOptions>", program);
+            Assert.Contains("[OptionsValidator]", optionsValidator);
+            Assert.Contains("[Required]", options);
+            Assert.Contains(
+                "<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>",
+                project);
             Assert.IsFalse(project.Contains("Orbyss.ProgramKit.DotNet", StringComparison.Ordinal));
             Assert.IsFalse(project.Contains("Orbyss.ProgramKit.Workbench", StringComparison.Ordinal));
             if (host.Kind == DotNetHostKind.Api)
@@ -73,7 +88,8 @@ public sealed class DotNetHostSourceRendererTests
         var host = shell.Hosts.Single(static item => item.Kind == DotNetHostKind.Console);
         var hostLock = locks.HostLocks.Single(static item => item.Kind == DotNetHostKind.Console);
         var document = DotNetTestContractFactory.ConsoleDocument(shell);
-        DotNetHostSourceRenderer sut = new();
+        DotNetHostSourceRenderer sut =
+            new(new DotNetConfigurationProjectionCompiler());
 
         var outputs = sut.Render(host, hostLock, shell.Features, document);
         var parser = Text(

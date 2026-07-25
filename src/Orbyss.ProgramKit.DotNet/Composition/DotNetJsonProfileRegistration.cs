@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Orbyss.ProgramKit.Artifacts.Compatibility;
 using Orbyss.ProgramKit.DotNet.Composition.Converters;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Operations.Contracts;
@@ -39,6 +40,17 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetHealthDocumentationDisposition>(),
             CreateEnumConverter<DotNetHealthExposure>(),
             CreateEnumConverter<DotNetHealthEndpointKind>(),
+            CreateEnumConverter<DotNetConfigurationProviderKind>(),
+            CreateEnumConverter<DotNetConfigurationReloadCapability>(),
+            CreateEnumConverter<DotNetConfigurationStartupDisposition>(),
+            CreateEnumConverter<DotNetConfigurationSecretClassification>(),
+            CreateEnumConverter<DotNetConfigurationFailureDisposition>(),
+            CreateEnumConverter<DotNetConfigurationOwnerKind>(),
+            CreateEnumConverter<DotNetConfigurationValueKind>(),
+            CreateEnumConverter<DotNetConfigurationValueClassification>(),
+            CreateEnumConverter<DotNetOptionsConsumption>(),
+            CreateEnumConverter<DotNetServiceLifetime>(),
+            CreateEnumConverter<DotNetConfigurationChangeReaction>(),
             CreateEnumConverter<ConsoleOptionKind>(),
             CreateEnumConverter<OperationResultDisposition>(),
             CreateEnumConverter<OperationExpectedRevisionPolicy>(),
