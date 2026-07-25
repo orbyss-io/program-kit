@@ -12,13 +12,17 @@ namespace Orbyss.ProgramKit.DotNet.Generation;
 public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
 {
     private readonly IDotNetConfigurationProjectionCompiler configurationCompiler;
+    private readonly IDotNetTelemetryProjectionCompiler telemetryCompiler;
 
     /// <summary>Initializes the renderer with the reusable configuration compiler.</summary>
     public DotNetHostSourceRenderer(
-        IDotNetConfigurationProjectionCompiler configurationCompiler)
+        IDotNetConfigurationProjectionCompiler configurationCompiler,
+        IDotNetTelemetryProjectionCompiler telemetryCompiler)
     {
         this.configurationCompiler = configurationCompiler ??
             throw new ArgumentNullException(nameof(configurationCompiler));
+        this.telemetryCompiler = telemetryCompiler ??
+            throw new ArgumentNullException(nameof(telemetryCompiler));
     }
 
     /// <inheritdoc />
@@ -41,8 +45,11 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             DotNetSourceText.Utf8(RenderProgram(
                 host,
                 features,
-                configurationCompiler.RenderRegistration(host)))));
+                configurationCompiler.RenderRegistration(host),
+                telemetryCompiler.RenderRegistration(host),
+                telemetryCompiler.RenderMiddleware(host)))));
         outputs.AddRange(configurationCompiler.Compile(host));
+        outputs.AddRange(telemetryCompiler.Compile(host));
         if (host.Kind == DotNetHostKind.Console && consoleDocument is not null)
         {
             outputs.Add(new GeneratedOutput(
@@ -130,7 +137,9 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
     private static string RenderProgram(
         DotNetHostDefinition host,
         ImmutableArray<DotNetFeatureSelection> features,
-        string configurationRegistration)
+        string configurationRegistration,
+        string telemetryRegistration,
+        string telemetryMiddleware)
     {
         var web = host.Kind == DotNetHostKind.Api || host.Health is not null;
         var builder = new StringBuilder();
@@ -138,11 +147,23 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         builder.AppendLine("using CShells.Configuration;");
         builder.AppendLine("using Microsoft.Extensions.Configuration;");
         builder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        if (host.Telemetry is not null)
+        {
+            builder.AppendLine("using Microsoft.Extensions.Logging;");
+            builder.AppendLine("using OpenTelemetry.Logs;");
+            builder.AppendLine("using OpenTelemetry.Metrics;");
+            builder.AppendLine("using OpenTelemetry.Resources;");
+            builder.AppendLine("using OpenTelemetry.Trace;");
+        }
         if (web)
         {
             builder.AppendLine("using CShells.AspNetCore.Extensions;");
             builder.AppendLine("using Microsoft.AspNetCore.Diagnostics.HealthChecks;");
             builder.AppendLine("using Microsoft.Extensions.Diagnostics.HealthChecks;");
+            if (host.Telemetry?.HttpDiagnostics.Enabled == true)
+            {
+                builder.AppendLine("using Microsoft.AspNetCore.HttpLogging;");
+            }
         }
         else
         {
@@ -185,6 +206,12 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             ? "var builder = WebApplication.CreateBuilder(args);"
             : "var builder = Host.CreateApplicationBuilder(args);");
         builder.Append(configurationRegistration);
+        builder.Append(telemetryRegistration);
+        if (host.Telemetry?.HttpDiagnostics.Enabled == true)
+        {
+            RenderHttpLoggingRegistration(builder);
+        }
+
         if (web)
         {
             RenderWebComposition(builder, host, features);
@@ -200,6 +227,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             : "using var host = builder.Build();");
         if (web)
         {
+            builder.Append(telemetryMiddleware);
             RenderHealthMappings(builder, host.Health);
             builder.AppendLine("app.MapShells();");
             builder.AppendLine("await app.RunAsync();");
@@ -214,6 +242,26 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         builder.AppendLine("}");
 
         return builder.ToString();
+    }
+
+    private static void RenderHttpLoggingRegistration(StringBuilder builder)
+    {
+        builder.AppendLine("builder.Logging.AddFilter(");
+        builder.AppendLine("    \"Microsoft.AspNetCore.Hosting.Diagnostics\",");
+        builder.AppendLine("    LogLevel.Warning);");
+        builder.AppendLine("builder.Services.AddHttpLogging(options =>");
+        builder.AppendLine("{");
+        builder.AppendLine("    options.CombineLogs = true;");
+        builder.AppendLine("    options.LoggingFields =");
+        builder.AppendLine("        HttpLoggingFields.RequestMethod |");
+        builder.AppendLine("        HttpLoggingFields.RequestPath |");
+        builder.AppendLine("        HttpLoggingFields.ResponseStatusCode |");
+        builder.AppendLine("        HttpLoggingFields.Duration;");
+        builder.AppendLine("    options.RequestHeaders.Clear();");
+        builder.AppendLine("    options.ResponseHeaders.Clear();");
+        builder.AppendLine("    options.RequestBodyLogLimit = 0;");
+        builder.AppendLine("    options.ResponseBodyLogLimit = 0;");
+        builder.AppendLine("});");
     }
 
     private static void RenderWebComposition(

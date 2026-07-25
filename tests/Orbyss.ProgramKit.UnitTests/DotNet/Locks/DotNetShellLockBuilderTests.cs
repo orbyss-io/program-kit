@@ -2,6 +2,7 @@ using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Locks;
+using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Contributions;
@@ -45,6 +46,22 @@ public sealed class DotNetShellLockBuilderTests
             item.Target.LanguageVersion == "14.0" &&
             item.Target.RollForward == "disable" &&
             !item.Target.AllowPrerelease));
+        foreach (var hostLock in first.HostLocks)
+        {
+            Assert.IsTrue(DotNetTelemetryPackageCatalog.Packages.All(
+                package => hostLock.Packages.Any(locked =>
+                    locked.PackageId == package.PackageId &&
+                    locked.Version == package.Version &&
+                    locked.PackageDigest == package.Sha256)));
+            Assert.IsTrue(hostLock.ContractRevisions.Any(static reference =>
+                reference.Identity.Value ==
+                    "pkid:specification:test:opentelemetry" &&
+                reference.Version.Value == "1.55.0"));
+            Assert.IsTrue(hostLock.ContractRevisions.Any(static reference =>
+                reference.Identity.Value ==
+                    "pkid:semantic-convention:test:opentelemetry-http" &&
+                reference.Version.Value == "1.23.0"));
+        }
     }
 
     [TestMethod]

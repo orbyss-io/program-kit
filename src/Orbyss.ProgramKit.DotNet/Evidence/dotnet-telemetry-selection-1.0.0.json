@@ -1,0 +1,68 @@
+{
+  "identity": "pkid:evidence:program-kit:dotnet-telemetry-selection",
+  "version": "1.0.0",
+  "selection": {
+    "dotNetTarget": "net10.0",
+    "openTelemetrySpecification": {
+      "version": "1.55.0",
+      "source": "https://github.com/open-telemetry/opentelemetry-specification/tree/v1.55.0",
+      "license": "Apache-2.0"
+    },
+    "semanticConventions": {
+      "reviewedRevision": "1.41.1",
+      "httpEmissionRevision": "1.23.0",
+      "source": "https://github.com/open-telemetry/semantic-conventions/tree/v1.41.1",
+      "status": "mixed; only stable HTTP conventions emitted by selected instrumentations are accepted",
+      "stabilityOptIns": [],
+      "license": "Apache-2.0"
+    },
+    "openTelemetryDotNet": {
+      "version": "1.17.0",
+      "source": "https://github.com/open-telemetry/opentelemetry-dotnet/tree/core-1.17.0",
+      "license": "Apache-2.0",
+      "signals": ["logs", "traces", "metrics"],
+      "providerGraphReloadable": false
+    }
+  },
+  "directPackages": [
+    {
+      "id": "OpenTelemetry.Exporter.OpenTelemetryProtocol",
+      "version": "1.17.0",
+      "sha256": "564269e7c9e1826c41d0c6dcda63263adc84414e8013dd2d0e92fef401ed43d6",
+      "net10Dependencies": ["OpenTelemetry@1.17.0"]
+    },
+    {
+      "id": "OpenTelemetry.Extensions.Hosting",
+      "version": "1.17.0",
+      "sha256": "c1eb25df47a110ef1a21fe240d1444da21e430a9efe8ec7fe0bc90766b4b0677",
+      "net10Dependencies": [
+        "Microsoft.Extensions.Hosting.Abstractions@10.0.0",
+        "OpenTelemetry@1.17.0"
+      ]
+    },
+    {
+      "id": "OpenTelemetry.Instrumentation.AspNetCore",
+      "version": "1.17.0",
+      "sha256": "c9d469f1ba39be71e43735141e5eb7d560306e5d9defc8d04565cb56f2ff404b",
+      "net10Dependencies": ["OpenTelemetry.Api.ProviderBuilderExtensions@[1.17.0,2.0.0)"]
+    },
+    {
+      "id": "OpenTelemetry.Instrumentation.Http",
+      "version": "1.17.0",
+      "sha256": "40518e89567dd680e1bb77bf0bbbd45b1ab4bf97dc6a86969306f259bcc885ba",
+      "net10Dependencies": [
+        "Microsoft.Extensions.Configuration@10.0.0",
+        "Microsoft.Extensions.Options@10.0.0",
+        "OpenTelemetry.Api.ProviderBuilderExtensions@[1.17.0,2.0.0)"
+      ]
+    }
+  ],
+  "policies": {
+    "propagation": "W3C Trace Context only; baggage forwarding is disabled unless a future exact allowlisting adapter is selected",
+    "httpInstrumentation": "framework/OpenTelemetry instrumentation exactly once; no custom HTTP server or client spans",
+    "httpDiagnostics": "method, path, status, and duration only; no headers or bodies",
+    "exceptions": "recorded by selected ASP.NET Core instrumentation; response behavior remains outside telemetry",
+    "exportFailure": "bounded drop-and-report; application success is unchanged",
+    "authority": "non-authoritative diagnostics only; never audit, compliance, authorization, or business-event truth"
+  }
+}

@@ -27,7 +27,8 @@ public sealed class DotNetHostSourceRendererTests
             DotNetTestContractFactory.Ref("shell", "reviewed", '7'));
         DotNetHostSourceRenderer sut =
             new(new DotNetConfigurationProjectionCompiler(
-                DotNetTestContractFactory.ProviderRegistry()));
+                    DotNetTestContractFactory.ProviderRegistry()),
+                new DotNetTelemetryProjectionCompiler());
 
         foreach (var host in shell.Hosts)
         {
@@ -47,8 +48,17 @@ public sealed class DotNetHostSourceRendererTests
             var optionsValidator = Text(
                 outputs,
                 "ProgramKitGenerated/Configuration/SampleClientOptionsValidator.cs");
+            var telemetry = Text(
+                outputs,
+                "ProgramKitGenerated/Hosting/ProgramKitTelemetry.cs");
+            var telemetryOptions = Text(
+                outputs,
+                "ProgramKitGenerated/Hosting/ProgramKitTelemetryOptions.cs");
 
             Assert.Contains("Version=\"[0.0.28]\"", project);
+            Assert.Contains(
+                "OpenTelemetry.Extensions.Hosting\" Version=\"[1.17.0]\"",
+                project);
             Assert.AreEqual("<Project />", buildTargets.Trim());
             Assert.AreEqual("<Project />", packagePolicy.Trim());
             Assert.Contains("typeof(global::Fixtures.SampleFeature)", program);
@@ -57,6 +67,14 @@ public sealed class DotNetHostSourceRendererTests
             Assert.Contains("AddOptions<global::GeneratedHost.Configuration.SampleClientOptions>", program);
             Assert.Contains("[OptionsValidator]", optionsValidator);
             Assert.Contains("[Required]", options);
+            Assert.Contains("[LoggerMessage(EventId = 1001", telemetry);
+            Assert.Contains(
+                "public Uri Endpoint",
+                telemetryOptions);
+            Assert.Contains(
+                "ProgramKitTelemetryOptions.ParseEndpoint",
+                program);
+            Assert.Contains("ValidateOnStart()", program);
             Assert.Contains(
                 "<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>",
                 project);
@@ -64,6 +82,10 @@ public sealed class DotNetHostSourceRendererTests
             Assert.IsFalse(project.Contains("Orbyss.ProgramKit.Workbench", StringComparison.Ordinal));
             if (host.Kind == DotNetHostKind.Api)
             {
+                Assert.Contains("options.CombineLogs = true", program);
+                Assert.Contains(
+                    "\"Microsoft.AspNetCore.Hosting.Diagnostics\"",
+                    program);
                 Assert.Contains("builder.AddShells", program);
                 Assert.Contains("app.MapShells", program);
                 Assert.Contains("context.Connection.LocalPort", program);
@@ -93,7 +115,8 @@ public sealed class DotNetHostSourceRendererTests
         var document = DotNetTestContractFactory.ConsoleDocument(shell);
         DotNetHostSourceRenderer sut =
             new(new DotNetConfigurationProjectionCompiler(
-                DotNetTestContractFactory.ProviderRegistry()));
+                    DotNetTestContractFactory.ProviderRegistry()),
+                new DotNetTelemetryProjectionCompiler());
 
         var outputs = sut.Render(host, hostLock, shell.Features, document);
         var parser = Text(

@@ -1,5 +1,6 @@
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Health;
+using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 
@@ -20,4 +21,5 @@ public sealed record DotNetHostDefinition(
     [property: JsonPropertyName("configurationBindings")] ImmutableArray<DotNetConfigurationBinding> ConfigurationBindings,
     [property: JsonPropertyName("taskRuntimeRequirements")] ImmutableArray<DotNetTaskRuntimeRequirement> TaskRuntimeRequirements,
     [property: JsonPropertyName("health")] DotNetHealthConfiguration? Health,
-    [property: JsonPropertyName("compatibility")] ArtifactCompatibility Compatibility);
+    [property: JsonPropertyName("compatibility")] ArtifactCompatibility Compatibility,
+    [property: JsonPropertyName("telemetry")] DotNetTelemetryConfiguration? Telemetry = null);

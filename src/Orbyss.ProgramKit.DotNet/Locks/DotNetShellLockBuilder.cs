@@ -57,6 +57,7 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
             .Concat(
                 host.ConfigurationSources
                     .Select(static source => source.Package))
+            .Concat(host.Telemetry?.Packages ?? [])
             .Concat(
                 shell.Features
                     .Where(feature => selectedActivations.Contains(feature.ActivationIdentity))
@@ -93,6 +94,14 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
             .Concat(
                 host.TaskRuntimeRequirements.SelectMany(static requirement =>
                     requirement.ScheduleProviderRevisions.Add(requirement.RuntimeRevision)))
+            .Concat(host.Telemetry is null
+                ? []
+                :
+                [
+                    host.Telemetry.ProfileRevision,
+                    host.Telemetry.SpecificationRevision,
+                    host.Telemetry.SemanticConventionRevision,
+                ])
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ThenBy(static reference => reference.Version.Value, StringComparer.Ordinal)

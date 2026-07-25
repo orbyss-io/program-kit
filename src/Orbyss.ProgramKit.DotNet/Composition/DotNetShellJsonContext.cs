@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
+using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.SecretResolution.Contracts;
 
@@ -20,6 +21,7 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow)]
 [JsonSerializable(typeof(DotNetShellDocument))]
 [JsonSerializable(typeof(DotNetConfigurationProviderCatalogDocument))]
+[JsonSerializable(typeof(DotNetTelemetryConfiguration))]
 [JsonSerializable(typeof(DotNetArtifactInputManifest))]
 [JsonSerializable(typeof(DotNetShellLockDocument))]
 [JsonSerializable(typeof(OpenApiDocumentProjection))]

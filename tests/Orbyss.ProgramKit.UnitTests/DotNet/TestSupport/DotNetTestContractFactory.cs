@@ -11,6 +11,7 @@ using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Generation.ConfigurationProviders;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
+using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Operations.Contracts;
@@ -214,8 +215,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@4.0.0",
-            new SemanticVersion("4.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@5.0.0",
+            new SemanticVersion("5.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -440,7 +441,112 @@ internal static class DotNetTestContractFactory
             [configurationBinding],
             [],
             health,
-            Compatibility());
+            Compatibility(),
+            Telemetry(name, kind));
+
+    internal static DotNetTelemetryConfiguration Telemetry(
+        string hostName = "api",
+        DotNetHostKind kind = DotNetHostKind.Api) =>
+        new(
+            Ref("profile", "dotnet-telemetry", '1'),
+            new ArtifactReference(
+                Id("specification", "opentelemetry"),
+                new SemanticVersion("1.55.0"),
+                Digest('2')),
+            new ArtifactReference(
+                Id("semantic-convention", "opentelemetry-http"),
+                new SemanticVersion("1.23.0"),
+                Digest('3')),
+            DotNetTelemetryPackageCatalog.Packages,
+            new DotNetTelemetryResource(
+                string.Concat("orbyss.test.", hostName),
+                "orbyss.test",
+                new SemanticVersion("1.0.0"),
+                "test"),
+            [
+                new DotNetLoggerEvent(
+                    "Orbyss.Test.Operations",
+                    1001,
+                    "OperationStarted",
+                    DotNetLogLevel.Information,
+                    "Operation {operationIdentity} started with correlation {correlationId}.",
+                    ["operation.identity", "correlation.id"]),
+            ],
+            [
+                new DotNetActivityDefinition(
+                    "Orbyss.Test.Operations",
+                    new SemanticVersion("1.0.0"),
+                    "operation.execute",
+                    DotNetActivityKind.Internal,
+                    [
+                        new DotNetTelemetryAttributeDefinition(
+                            "operation.kind",
+                            2,
+                            ["command", "query"]),
+                    ]),
+            ],
+            [
+                new DotNetMetricDefinition(
+                    "Orbyss.Test.Operations",
+                    new SemanticVersion("1.0.0"),
+                    "operation.duration",
+                    DotNetMetricInstrumentKind.Histogram,
+                    "s",
+                    "Duration of one operation.",
+                    [
+                        new DotNetTelemetryAttributeDefinition(
+                            "operation.outcome",
+                            3,
+                            ["succeeded", "failed", "cancelled"]),
+                    ]),
+            ],
+            kind == DotNetHostKind.Api
+                ?
+                [
+                    new DotNetTelemetryInstrumentation(
+                        DotNetTelemetryInstrumentationKind.AspNetCore,
+                        true,
+                        true,
+                        true),
+                    new DotNetTelemetryInstrumentation(
+                        DotNetTelemetryInstrumentationKind.HttpClient,
+                        true,
+                        true,
+                        false),
+                ]
+                :
+                [
+                    new DotNetTelemetryInstrumentation(
+                        DotNetTelemetryInstrumentationKind.HttpClient,
+                        true,
+                        true,
+                        false),
+                ],
+            new DotNetTelemetrySampling(
+                DotNetTelemetrySamplerKind.ParentBasedTraceIdRatio,
+                1.0),
+            new DotNetOtlpExporter(
+                "Telemetry:Otlp:Endpoint",
+                DotNetOtlpProtocol.Grpc,
+                2048,
+                512,
+                5000,
+                10000,
+                DotNetTelemetryFailureDisposition.DropAndReport),
+            new DotNetHttpDiagnosticProfile(
+                kind == DotNetHostKind.Api,
+                kind == DotNetHostKind.Api,
+                kind == DotNetHostKind.Api,
+                kind == DotNetHostKind.Api,
+                kind == DotNetHostKind.Api,
+                [],
+                [],
+                false,
+                false),
+            [],
+            "Logging:LogLevel",
+            false,
+            5000);
 
     private static DotNetPackageReference Package(
         string id,

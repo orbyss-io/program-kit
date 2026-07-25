@@ -35,4 +35,16 @@ public static class DotNetDiagnosticIds
 
     /// <summary>Configuration provider selections duplicate or conflict.</summary>
     public const string ConfigurationProviderConflict = "PKNET011";
+
+    /// <summary>Telemetry composition is unsafe, ambiguous, or unsupported.</summary>
+    public const string InvalidTelemetryConfiguration = "PKNET012";
+
+    /// <summary>A telemetry package does not match the exact reviewed selection.</summary>
+    public const string TelemetryPackageMismatch = "PKNET013";
+
+    /// <summary>Telemetry would duplicate framework instrumentation.</summary>
+    public const string DuplicateTelemetryInstrumentation = "PKNET014";
+
+    /// <summary>Telemetry could disclose sensitive or unbounded data.</summary>
+    public const string UnsafeTelemetryData = "PKNET015";
 }

@@ -119,7 +119,8 @@ public sealed class GeneratedHostArtifactTests
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(
                 new DotNetConfigurationProjectionCompiler(
-                    providerComposition.CreateBuiltInRegistry())),
+                    providerComposition.CreateBuiltInRegistry()),
+                new DotNetTelemetryProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

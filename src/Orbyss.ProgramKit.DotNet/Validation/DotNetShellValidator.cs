@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Health;
+using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -42,14 +43,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@4.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@5.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "4.0.0")
+        if (value.Version.Value != "5.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 4.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 5.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -203,6 +204,7 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 diagnostics);
             ValidateTaskRuntime(host.TaskRuntimeRequirements, diagnostics);
             ValidateHealth(host.Health, host.OperationBindings, diagnostics);
+            ValidateTelemetry(host, diagnostics);
             ValidateCompatibility(host.Compatibility, "/hosts/compatibility", diagnostics);
         }
     }
@@ -259,6 +261,7 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             .Concat(
                 host.ConfigurationSources
                     .Select(static source => source.Package))
+            .Concat(host.Telemetry?.Packages ?? [])
             .Concat(
                 features
                     .Where(feature => activations.Contains(feature.ActivationIdentity))
@@ -281,6 +284,356 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                     "/hosts/hostPackages");
             }
         }
+    }
+
+    private void ValidateTelemetry(
+        DotNetHostDefinition host,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var telemetry = host.Telemetry;
+        if (telemetry is null)
+        {
+            return;
+        }
+
+        ValidateReference(telemetry.ProfileRevision, "/hosts/telemetry/profileRevision", diagnostics);
+        ValidateReference(telemetry.SpecificationRevision, "/hosts/telemetry/specificationRevision", diagnostics);
+        ValidateReference(telemetry.SemanticConventionRevision, "/hosts/telemetry/semanticConventionRevision", diagnostics);
+        var expectedPackages = DotNetTelemetryPackageCatalog.Packages
+            .Select(static package => DotNetContractKeys.Package(package))
+            .ToHashSet(StringComparer.Ordinal);
+        var actualPackages = telemetry.Packages.IsDefault
+            ? []
+            : telemetry.Packages.Select(static package => DotNetContractKeys.Package(package))
+                .ToHashSet(StringComparer.Ordinal);
+        if (!expectedPackages.SetEquals(actualPackages))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.TelemetryPackageMismatch,
+                "Telemetry requires the exact reviewed OpenTelemetry 1.17.0 direct package closure.",
+                "/hosts/telemetry/packages");
+        }
+
+        if (telemetry.Packages.IsDefault ||
+            telemetry.LoggerEvents.IsDefault ||
+            telemetry.Activities.IsDefault ||
+            telemetry.Metrics.IsDefault ||
+            telemetry.Instrumentations.IsDefault ||
+            telemetry.BaggageAllowList.IsDefault)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                "Telemetry collections must be explicitly initialized.",
+                "/hosts/telemetry");
+            return;
+        }
+
+        RequireInitializedUnique(
+            telemetry.LoggerEvents,
+            static item => string.Concat(item.Category, ":", item.EventId.ToString(CultureInfo.InvariantCulture)),
+            "/hosts/telemetry/loggerEvents",
+            diagnostics);
+        RequireInitializedUnique(
+            telemetry.LoggerEvents,
+            static item => item.EventName,
+            "/hosts/telemetry/loggerEvents/eventName",
+            diagnostics);
+        RequireInitializedUnique(
+            telemetry.LoggerEvents
+                .Select(static item => item.Category)
+                .Distinct(StringComparer.Ordinal)
+                .ToImmutableArray(),
+            TelemetryIdentifier,
+            "/hosts/telemetry/loggerEvents/category",
+            diagnostics);
+        foreach (var loggerEvent in telemetry.LoggerEvents)
+        {
+            if (!IsStableTelemetryName(loggerEvent.Category) ||
+                !IsStableIdentifier(loggerEvent.EventName) ||
+                loggerEvent.EventId is < 1 or > 65535 ||
+                string.IsNullOrWhiteSpace(loggerEvent.MessageTemplate) ||
+                ContainsSensitiveTelemetryTerm(loggerEvent.MessageTemplate) ||
+                loggerEvent.ScopeFields.Any(static field => !AllowedScopeFields.Contains(field)) ||
+                loggerEvent.ScopeFields.Any(field =>
+                    !loggerEvent.MessageTemplate.Contains(
+                        string.Concat("{", TelemetryParameter(field), "}"),
+                        StringComparison.Ordinal)))
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.UnsafeTelemetryData,
+                    "Logger events require stable names, bounded correlation scopes, and sensitive-data-free templates.",
+                    "/hosts/telemetry/loggerEvents");
+            }
+        }
+
+        RequireInitializedUnique(
+            telemetry.Activities,
+            static item => string.Concat(item.SourceName, ":", item.Name),
+            "/hosts/telemetry/activities",
+            diagnostics);
+        RequireInitializedUnique(
+            telemetry.Activities,
+            static item => TelemetryIdentifier(item.Name),
+            "/hosts/telemetry/activities/name",
+            diagnostics);
+        foreach (var activity in telemetry.Activities)
+        {
+            if (!IsStableTelemetryName(activity.SourceName) ||
+                !IsStableTelemetryName(activity.Name) ||
+                activity.Attributes.IsDefault ||
+                (activity.Kind is DotNetActivityKind.Server or DotNetActivityKind.Client))
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.DuplicateTelemetryInstrumentation,
+                    "Custom Program Kit activities must be stable internal/producer/consumer operations and cannot duplicate HTTP server or client spans.",
+                    "/hosts/telemetry/activities");
+            }
+
+            ValidateAttributes(activity.Attributes, "/hosts/telemetry/activities/attributes", diagnostics);
+        }
+
+        RequireInitializedUnique(
+            telemetry.Metrics,
+            static item => string.Concat(item.MeterName, ":", item.Name),
+            "/hosts/telemetry/metrics",
+            diagnostics);
+        RequireInitializedUnique(
+            telemetry.Metrics,
+            static item => TelemetryIdentifier(item.Name),
+            "/hosts/telemetry/metrics/name",
+            diagnostics);
+        foreach (var metric in telemetry.Metrics)
+        {
+            if (!IsStableTelemetryName(metric.MeterName) ||
+                !IsStableTelemetryName(metric.Name) ||
+                string.IsNullOrWhiteSpace(metric.Unit) ||
+                string.IsNullOrWhiteSpace(metric.Description))
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                    "Metrics require stable names, versions, instrument types, units, and descriptions.",
+                    "/hosts/telemetry/metrics");
+            }
+
+            ValidateAttributes(metric.Attributes, "/hosts/telemetry/metrics/attributes", diagnostics);
+        }
+
+        RequireInitializedUnique(
+            telemetry.Instrumentations,
+            static item => item.Kind.ToString(),
+            "/hosts/telemetry/instrumentations",
+            diagnostics);
+        foreach (var instrumentation in telemetry.Instrumentations)
+        {
+            if (instrumentation.Kind == DotNetTelemetryInstrumentationKind.AspNetCore &&
+                host.Kind != DotNetHostKind.Api)
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                    "ASP.NET Core instrumentation is valid only for API hosts.",
+                    "/hosts/telemetry/instrumentations");
+            }
+
+            if (instrumentation.RecordExceptions &&
+                instrumentation.Kind != DotNetTelemetryInstrumentationKind.AspNetCore)
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                    "Exception recording is selected only through the reviewed ASP.NET Core instrumentation.",
+                    "/hosts/telemetry/instrumentations/recordExceptions");
+            }
+        }
+
+        var ratio = telemetry.Sampling.Ratio;
+        if ((telemetry.Sampling.Kind == DotNetTelemetrySamplerKind.ParentBasedTraceIdRatio &&
+             (ratio is null or < 0 or > 1 || double.IsNaN(ratio.Value))) ||
+            (telemetry.Sampling.Kind != DotNetTelemetrySamplerKind.ParentBasedTraceIdRatio &&
+             ratio is not null))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                "A sampling ratio is required only for parent-based trace-ID ratio sampling and must be between zero and one.",
+                "/hosts/telemetry/sampling");
+        }
+
+        ValidateExporter(telemetry.OtlpExporter, diagnostics);
+        ValidateHttpDiagnostics(telemetry.HttpDiagnostics, diagnostics);
+        if (telemetry.ProviderGraphReloadable ||
+            telemetry.ShutdownTimeoutMilliseconds is < 1000 or > 30000 ||
+            telemetry.BaggageAllowList.Length != 0 ||
+            (telemetry.LoggingFilterConfigurationKey is not null &&
+             !string.Equals(
+                 telemetry.LoggingFilterConfigurationKey,
+                 "Logging:LogLevel",
+                 StringComparison.Ordinal)))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                "The provider graph is startup-fixed; shutdown, baggage, and reloadable logging-filter selections must remain bounded.",
+                "/hosts/telemetry");
+        }
+    }
+
+    private static readonly HashSet<string> AllowedScopeFields =
+    [
+        "operation.identity",
+        "operation.invocation_id",
+        "correlation.id",
+    ];
+
+    private static void ValidateAttributes(
+        ImmutableArray<DotNetTelemetryAttributeDefinition> attributes,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        RequireInitializedUnique(attributes, static item => item.Name, path, diagnostics);
+        foreach (var attribute in attributes)
+        {
+            if (!IsStableTelemetryName(attribute.Name) ||
+                ContainsSensitiveTelemetryTerm(attribute.Name) ||
+                attribute.CardinalityLimit is < 1 or > 100 ||
+                attribute.AllowedValues.IsDefault ||
+                attribute.AllowedValues.IsEmpty ||
+                attribute.AllowedValues.Length > attribute.CardinalityLimit ||
+                attribute.AllowedValues.Distinct(StringComparer.Ordinal).Count() !=
+                    attribute.AllowedValues.Length ||
+                attribute.AllowedValues.Any(static value =>
+                    string.IsNullOrWhiteSpace(value) ||
+                    value.Length > 64 ||
+                    ContainsSensitiveTelemetryTerm(value)))
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.UnsafeTelemetryData,
+                    "Telemetry attributes must be non-sensitive and carry an explicit cardinality bound.",
+                    path);
+            }
+        }
+    }
+
+    private static string TelemetryIdentifier(string value)
+    {
+        var identifier = string.Concat(
+            value.Split(
+                    ['.', '-', '_'],
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Select(static part =>
+                    string.Concat(
+                        char.ToUpperInvariant(part[0]),
+                        part[1..])));
+        return identifier.Length == 0 ||
+               char.IsLetter(identifier[0]) ||
+               identifier[0] == '_'
+            ? identifier
+            : string.Concat("N", identifier);
+    }
+
+    private static string TelemetryParameter(string value)
+    {
+        var identifier = TelemetryIdentifier(value);
+        return string.Concat(
+            char.ToLowerInvariant(identifier[0]),
+            identifier[1..]);
+    }
+
+    private static void ValidateExporter(
+        DotNetOtlpExporter? exporter,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (exporter is null)
+        {
+            return;
+        }
+
+        if (!string.Equals(
+                exporter.EndpointConfigurationKey,
+                "Telemetry:Otlp:Endpoint",
+                StringComparison.Ordinal) ||
+            exporter.MaxQueueSize is < 1 or > 8192 ||
+            exporter.MaxExportBatchSize is < 1 or > 2048 ||
+            exporter.MaxExportBatchSize > exporter.MaxQueueSize ||
+            exporter.ScheduledDelayMilliseconds is < 100 or > 30000 ||
+            exporter.ExportTimeoutMilliseconds is < 100 or > 30000 ||
+            exporter.FailureDisposition != DotNetTelemetryFailureDisposition.DropAndReport)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidTelemetryConfiguration,
+                "OTLP export requires the fixed endpoint reference and bounded batch, timeout, and drop-and-report behavior.",
+                "/hosts/telemetry/otlpExporter");
+        }
+    }
+
+    private static void ValidateHttpDiagnostics(
+        DotNetHttpDiagnosticProfile profile,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (profile is null ||
+            profile.IncludeRequestBody ||
+            profile.IncludeResponseBody ||
+            profile.RequestHeaders.IsDefault ||
+            profile.ResponseHeaders.IsDefault ||
+            profile.RequestHeaders.Length != 0 ||
+            profile.ResponseHeaders.Length != 0 ||
+            (profile.Enabled &&
+             !(profile.IncludeMethod &&
+               profile.IncludePath &&
+               profile.IncludeStatusCode &&
+               profile.IncludeDuration)) ||
+            (!profile.Enabled &&
+             (profile.IncludeMethod ||
+              profile.IncludePath ||
+              profile.IncludeStatusCode ||
+              profile.IncludeDuration)))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeTelemetryData,
+                "HTTP diagnostics are metadata-only and never include headers, bodies, authorization material, cookies, claims, configuration, or secrets.",
+                "/hosts/telemetry/httpDiagnostics");
+        }
+    }
+
+    private static bool IsStableTelemetryName(string value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 128 &&
+        value.Any(char.IsLetterOrDigit) &&
+        value.All(static character =>
+            char.IsLetterOrDigit(character) ||
+            character is '.' or '_' or '-');
+
+    private static bool IsStableIdentifier(string value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        (char.IsLetter(value[0]) || value[0] == '_') &&
+        value.Skip(1).All(static character =>
+            char.IsLetterOrDigit(character) || character == '_');
+
+    private static bool ContainsSensitiveTelemetryTerm(string value)
+    {
+        string[] forbidden =
+        [
+            "authorization",
+            "token",
+            "cookie",
+            "claim",
+            "secret",
+            "password",
+            "requestbody",
+            "responsebody",
+            "exception.message",
+            "stacktrace",
+        ];
+        return forbidden.Any(term =>
+            value.Contains(term, StringComparison.OrdinalIgnoreCase));
     }
 
     private void ValidateHealth(

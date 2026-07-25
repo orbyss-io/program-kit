@@ -5,11 +5,12 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
 {
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("4.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("5.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
     private static readonly SemanticVersion SchemaVersionV4 = new("4.0.0");
+    private static readonly SemanticVersion SchemaVersionV5 = new("5.0.0");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:dotnet");
     private static readonly ArtifactProvenance Provenance =
@@ -74,6 +75,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w030-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance TelemetryProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w035-approved-review-set-1-3-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -125,6 +142,20 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "c557c6b4057da0fb83c99b0d8b9cf4fc1813139f5692f5b1b86aea770d345215",
             SchemaVersionV1,
             ProviderCatalogProvenance),
+        Create(
+            "dotnet-shell",
+            "dotnet-shell-5.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json",
+            "e338de2fb36732180cf3800e63badc3987c2380bc51ceb3db8ecf51fbd577648",
+            SchemaVersionV5,
+            TelemetryProvenance),
+        Create(
+            "dotnet-telemetry-composition",
+            "dotnet-telemetry-composition.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/telemetry-composition/1.0.0/schema.json",
+            "ec2bd8f25443582bc901c46094a006ce6364c1aab8a8f326b7f3ae04c65d3ed4",
+            SchemaVersionV1,
+            TelemetryProvenance),
         Create(
             "open-console",
             "open-console.schema.json",
@@ -263,6 +294,15 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:052453c42eea7e74533c94d3582cda5e2dec093a9fcae18c04a5f84c13c74ccd")),
+                ],
+                _ when version == SchemaVersionV5 =>
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-telemetry-v4-to-v5"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:0f3dc06cd571a1b7dc895ead592364d69945740d36330d118ccff8d592dcd765")),
                 ],
                 _ => [],
             });

@@ -39,8 +39,8 @@ public sealed class HostToolingOperationConvergenceVersionTests
 
         Assert.IsTrue(mapValidation.IsValid, Format(mapValidation));
         Assert.IsTrue(migrationValidation.IsValid, Format(migrationValidation));
-        Assert.HasCount(8, map.Nodes);
-        Assert.HasCount(6, map.Edges);
+        Assert.HasCount(10, map.Nodes);
+        Assert.HasCount(8, map.Edges);
         Assert.AreEqual(
             MigrationLossPolicy.RejectLoss,
             migration.LossPolicy);
@@ -227,6 +227,72 @@ public sealed class HostToolingOperationConvergenceVersionTests
                     extensionRoot,
                     "guidance",
                     "dotnet-configuration-v3-to-v4.md"))));
+
+        foreach (var fixture in migration.FixtureReferences)
+        {
+            var fixturePath = Path.Combine(
+                extensionRoot,
+                "migrations",
+                "fixtures",
+                string.Concat(fixture.Identity.Name, ".json"));
+            Assert.AreEqual(
+                fixture.Digest.Value,
+                string.Concat("sha256:", HashRaw(fixturePath)));
+        }
+    }
+
+    [TestMethod]
+    public void TelemetryMigrationBindsExactV4V5AndReviewedGuidance()
+    {
+        var programKitRoot = FindProgramKitRoot();
+        var extensionRoot = Path.Combine(
+            programKitRoot,
+            "extensions",
+            "host-tooling");
+        var migrationPath = Path.Combine(
+            extensionRoot,
+            "migrations",
+            "dotnet-telemetry-v4-to-v5.migration.json");
+        using var migrationJson = JsonDocument.Parse(
+            File.ReadAllBytes(migrationPath));
+        var migration = ReadMigration(migrationJson.RootElement);
+        IArtifactEnvelopeValidator envelopeValidator =
+            new DefaultArtifactEnvelopeValidator();
+        MigrationDefinitionValidator validator =
+            new(envelopeValidator);
+
+        var validation = validator.Validate(migration);
+
+        Assert.IsTrue(validation.IsValid, Format(validation));
+        Assert.HasCount(2, migration.FixtureReferences);
+        var module = new DotNetSchemaModule(
+            new OperationsSchemaModule());
+        var versionFive = module.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:dotnet-shell" &&
+            resource.SchemaReference.Version.Value == "5.0.0");
+        Assert.AreEqual(versionFive.SchemaReference, migration.Target);
+        Assert.AreEqual(
+            versionFive.SchemaReference.Digest.Value,
+            Hash(Path.Combine(
+                programKitRoot,
+                "schemas",
+                "dotnet",
+                "dotnet-shell-5.0.0.schema.json")));
+        Assert.IsTrue(versionFive.Compatibility.MigrationReferences.Any(
+            reference =>
+                reference.Identity.Value ==
+                    "pkid:migration:program-kit:dotnet-telemetry-v4-to-v5" &&
+                reference.Digest.Value ==
+                    string.Concat("sha256:", HashRaw(migrationPath))));
+        Assert.AreEqual(
+            migration.ImplementationReference.Digest.Value,
+            string.Concat(
+                "sha256:",
+                HashRaw(Path.Combine(
+                    extensionRoot,
+                    "guidance",
+                    "dotnet-telemetry-v4-to-v5.md"))));
 
         foreach (var fixture in migration.FixtureReferences)
         {

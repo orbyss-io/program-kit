@@ -129,7 +129,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(
                 new DotNetConfigurationProjectionCompiler(
-                    DotNetTestContractFactory.ProviderRegistry())),
+                    DotNetTestContractFactory.ProviderRegistry()),
+                new DotNetTelemetryProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

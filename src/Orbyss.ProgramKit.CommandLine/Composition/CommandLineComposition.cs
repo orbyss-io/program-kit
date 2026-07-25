@@ -116,7 +116,8 @@ public static class CommandLineComposition
             hostLockSelector,
             new DotNetHostSourceRenderer(
                 new DotNetConfigurationProjectionCompiler(
-                    providerComposition.CreateBuiltInRegistry())),
+                    providerComposition.CreateBuiltInRegistry()),
+                new DotNetTelemetryProjectionCompiler()),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),

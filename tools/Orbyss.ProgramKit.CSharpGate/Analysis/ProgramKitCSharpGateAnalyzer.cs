@@ -3952,6 +3952,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 "Health",
                 "Inputs",
                 "Locks",
+                "Observability",
                 "Operations",
                 "Packages",
                 "Schemas",

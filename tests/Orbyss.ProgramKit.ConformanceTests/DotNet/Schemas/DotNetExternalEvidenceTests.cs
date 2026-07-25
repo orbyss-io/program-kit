@@ -49,4 +49,67 @@ public sealed class DotNetExternalEvidenceTests
             "29fe542835696131278fcacc6cdb9a6186fc0447",
             text);
     }
+
+    [TestMethod]
+    public void OpenTelemetryEvidenceBindsExactSpecificationsAndRestoredPackageBytes()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(static name =>
+            name.EndsWith(
+                "dotnet-telemetry-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using var document = JsonDocument.Parse(stream);
+        var root = document.RootElement;
+        var selection = root.GetProperty("selection");
+        var conventions = selection.GetProperty("semanticConventions");
+
+        Assert.AreEqual(
+            "1.55.0",
+            selection
+                .GetProperty("openTelemetrySpecification")
+                .GetProperty("version")
+                .GetString());
+        Assert.AreEqual(
+            "1.41.1",
+            conventions.GetProperty("reviewedRevision").GetString());
+        Assert.AreEqual(
+            "1.23.0",
+            conventions.GetProperty("httpEmissionRevision").GetString());
+        Assert.IsEmpty(
+            conventions.GetProperty("stabilityOptIns").EnumerateArray());
+        Assert.AreEqual(
+            "1.17.0",
+            selection
+                .GetProperty("openTelemetryDotNet")
+                .GetProperty("version")
+                .GetString());
+
+        var packageRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".nuget",
+            "packages");
+        foreach (var package in root.GetProperty("directPackages").EnumerateArray())
+        {
+            var packageId = package.GetProperty("id").GetString()!;
+            var version = package.GetProperty("version").GetString()!;
+            var archivePath = Path.Combine(
+                packageRoot,
+                packageId.ToLowerInvariant(),
+                version,
+                string.Concat(
+                    packageId.ToLowerInvariant(),
+                    ".",
+                    version,
+                    ".nupkg"));
+            var actual = Convert.ToHexString(
+                    SHA256.HashData(File.ReadAllBytes(archivePath)))
+                .ToLowerInvariant();
+
+            Assert.AreEqual(
+                package.GetProperty("sha256").GetString(),
+                actual,
+                packageId);
+        }
+    }
 }
