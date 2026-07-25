@@ -1,0 +1,88 @@
+{
+  "manifestKind": "program-kit-design-review",
+  "manifestVersion": "1.0.0",
+  "reviewSetId": "pkid:approval:program-kit:host-tooling-review-set",
+  "reviewSetVersion": "1.0.0",
+  "owner": "human-led-program-kit-extension",
+  "reviewState": "awaiting-human-approval",
+  "implementationStatus": "not-started",
+  "approvalRecord": null,
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf",
+    "attributes": "/.gitattributes"
+  },
+  "artifacts": [
+    {
+      "artifactId": "pkid:intent:program-kit:host-tooling",
+      "artifactVersion": "1.0.0",
+      "role": "human-intent-record",
+      "path": "program-kit/extensions/host-tooling/design-intent.md",
+      "sha256": "4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:host-tooling",
+      "artifactVersion": "1.0.0",
+      "role": "canonical-design",
+      "contract": "pkid:schema:program-kit:architecture-design",
+      "contractVersion": "1.0.0",
+      "contractSha256": "19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2",
+      "path": "program-kit/extensions/host-tooling/architecture-design.json",
+      "sha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:host-tooling-design-markdown",
+      "artifactVersion": "1.0.0",
+      "role": "human-readable-design-projection",
+      "canonicalDesignId": "pkid:design:program-kit:host-tooling",
+      "canonicalDesignVersion": "1.0.0",
+      "canonicalDesignSha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632",
+      "path": "program-kit/extensions/host-tooling/architecture-design.md",
+      "sha256": "d223531154c53878897efb6dd0c806a660fdc3164d36ca79424ac5fe183ebd52"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:host-tooling",
+      "artifactVersion": "1.0.0",
+      "role": "implementation-plan-review-representation",
+      "intendedContract": "pkid:schema:program-kit:implementation-plan",
+      "intendedContractVersion": "1.0.0",
+      "designId": "pkid:design:program-kit:host-tooling",
+      "designVersion": "1.0.0",
+      "designSha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632",
+      "path": "program-kit/extensions/host-tooling/implementation-plan.md",
+      "sha256": "b4255f3821541ce96012a3cc0415ab262fffff5e74c36f1f09e80cc57403c2e5"
+    }
+  ],
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-review-set-version-and-exact-canonical-design-and-plan-digests",
+    "acceptedScope": "the Program Kit host-tooling extension architecture and work units bounded by the exact design and plan",
+    "doesNotAuthorize": [
+      "implementation before explicit approval",
+      "consumer-domain identity, authorization, role, grant, policy, principal, environment, deployment, release, or workspace semantics",
+      "comprehensive Docker Compose modeling or a Program Kit container orchestrator",
+      "automatic Aspire, container, Dev Container, Keycloak, Azure, deployment, or infrastructure execution",
+      "production Keycloak provisioning, backup, migration, or administration",
+      "a custom general-purpose OpenAPI client generator",
+      "opaque-token introspection, dynamic client registration, provider discovery, or automatic issuer selection",
+      "credentials, network discovery, cloud mutation, deployment, publication, or release activity",
+      "a material deviation from the reviewed design or plan"
+    ]
+  },
+  "validation": {
+    "jsonSyntax": "passed",
+    "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:architecture-design@1.0.0",
+    "architectureSemanticValidation": "passed through ArchitectureDesignValidator",
+    "reviewBinding": "all artifact digests and the plan-to-design digest binding were recomputed from repository bytes",
+    "commandLineFinding": "The current validate command requires a top-level $schema selector while architecture-design.schema.json forbids that undeclared property. Validation therefore used the same direct Workbench schema validator and semantic validator exercised by repository conformance tests; PKHT-W010 must close the CLI/schema-selection inconsistency rather than weakening the schema."
+  },
+  "provenance": {
+    "createdDate": "2026-07-25",
+    "sourceCommit": "c0d774e7d3d95b7c695b75798df695d68f041efa",
+    "branch": "codex/program-kit-host-tooling",
+    "source": "human-started Program Kit extension design",
+    "details": "The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. No runtime implementation or approval record was created."
+  }
+}

@@ -1,0 +1,775 @@
+{
+  "title": "Program Kit deterministic host-tooling extensions",
+  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, typed .NET configuration and Options generation, standards-profiled ASP.NET Core security, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
+  "scope": [
+    "A compact Orbyss.ProgramKit.Operations contract package that becomes the one canonical source for operation identity and host projections.",
+    "Explicit ordered .NET configuration-source composition, typed Options binding, startup validation, provider reload capabilities, and consumer-selected IOptions, IOptionsSnapshot, or IOptionsMonitor semantics.",
+    "Built-in .NET configuration provider profiles plus an explicitly registered custom-provider generation ABI.",
+    "Optional Azure Key Vault and Azure App Configuration provider adapters with external credentials, bounded refresh, and secret-safe evidence.",
+    "ASP.NET Core authentication and authorization host profiles for confidential interactive OpenID Connect clients and OAuth JWT resource servers.",
+    "Deterministic external OpenAPI client generation through an exact pinned Kiota adapter.",
+    "Deterministic Aspire AppHost source generation from explicit application composition input.",
+    "Deterministic Dev Container artifact generation and validation from explicit development-container input.",
+    "An optional FastEndpoints projection of the same owned operation contracts.",
+    "An Aspire-backed, ephemeral Keycloak local-test fixture proving provider substitution and realm import without production provisioning."
+  ],
+  "nonGoals": [
+    "No consumer-domain Identity, Authorization, role, grant, policy, principal, entitlement, environment, workspace, deployment, or release semantics.",
+    "No claim that OAuth 2.0 authenticates an end user or that an ID token is an API access token.",
+    "No assumption that every OAuth access token is a JWT; opaque-token introspection and token exchange remain deferred profiles.",
+    "No provider-neutral reinterpretation of provider-specific claims, groups, roles, scopes, or tenant conventions.",
+    "No provider discovery, issuer selection, dynamic client registration, network retrieval, secret retrieval, or token acquisition during deterministic generation.",
+    "No custom general-purpose OpenAPI client generator.",
+    "No comprehensive direct Docker Compose model or Program Kit-owned container orchestrator.",
+    "No automatic Aspire, Docker Compose, container, Dev Container, Keycloak, Azure, deployment, or infrastructure execution.",
+    "No production Keycloak provisioning, backup, migration, or administration.",
+    "No generated arbitrary configuration-provider behavior from an unconstrained type name or script.",
+    "No guarantee that a changed configuration value can recompose middleware, dependency injection, listeners, serialization profiles, database providers, or other restart-required host topology.",
+    "No silent last-known-good guarantee beyond the exact .NET Options behavior selected and proven by fixtures; a stronger runtime controller requires a separate approved design."
+  ],
+  "assumptions": [
+    "The approved Program Kit baseline at version 0.3.0 remains authoritative except where this extension is later approved as an explicit compatible or breaking revision.",
+    "The extension continues to target the repository-pinned .NET 10 and C# 14 profile and preserves exact package, source, license, and transitive-closure verification.",
+    "OAuth 2.0 protocol behavior is governed by applicable IETF standards and current security best current practice; OpenID Connect behavior is governed by approved OpenID Foundation specifications.",
+    "The initial interactive profile is a confidential web client using authorization code flow with PKCE; public browser-client, device authorization, CIBA, FAPI, DPoP, token exchange, and client-credentials profiles are deferred until separately proven.",
+    "The initial API profile accepts only JWT access tokens satisfying the selected issuer, audience, signature algorithm, lifetime, metadata, and token-profile requirements; it never accepts an ID token as an access token.",
+    "ASP.NET Core middleware constructs an AuthenticationTicket and ClaimsPrincipal as transport-host results. A consumer adapter must explicitly translate any required material into consumer-domain Identity or Authorization inputs.",
+    "A standards-conforming provider product is substitutable only when its exact metadata, algorithms, endpoints, client registration, token profile, and claim mappings satisfy the selected Program Kit host profile.",
+    "Configuration sources are ordered explicitly because later .NET configuration providers override earlier providers for the same key.",
+    "Reload is available only when a selected provider emits a change token or an explicit bounded refresh mechanism triggers one.",
+    "IOptionsSnapshot is scoped and provides one consistent value per scope; IOptionsMonitor is singleton-capable and provides current values and change notification. Neither can safely recompose arbitrary host topology.",
+    "Required and security-critical options validate on start. Live reload is opt-in per binding and fails closed when the provider cannot satisfy the declared reload capability.",
+    "Source-generated configuration binding and Options validation are preferred where the owned options type and selected .NET profile support them.",
+    "External OpenAPI documents are foreign contract inputs; Program Kit-owned OpenAPI remains a projection of owned operation contracts and never becomes a competing source of behavior.",
+    "Aspire AppHost, Dev Container, FastEndpoints, Keycloak realm, and Kiota outputs are provider projections bound to exact canonical inputs and tool/provider versions."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:host-tooling-intent",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:intent:program-kit:host-tooling",
+        "version": "1.0.0",
+        "digest": "sha256:4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+      },
+      "sourcePath": "program-kit/extensions/host-tooling/design-intent.md",
+      "governs": "The human-started scope, aligned ordering, explicit deferrals, protocol distinctions, and design authority boundary."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:approved-baseline",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:design:program-kit:baseline",
+        "version": "0.3.0",
+        "digest": "sha256:dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9"
+      },
+      "sourcePath": "program-kit/bootstrap/architecture-design.md",
+      "governs": "The implemented Program Kit ownership, dependency, generation, determinism, package, capability, and non-domain baseline."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:engine-boundaries",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:intake:domain-semantic-engine:design",
+        "version": "1.0.0",
+        "digest": "sha256:ef94f62ecfa7c7afa092d82070c3652636d4b44b396e3e06dda1e279e816dd46"
+      },
+      "sourcePath": "docs/design-intake/domain-semantic-engine.md",
+      "governs": "The accepted-intake separation between transport authentication and Engine Identity/Authorization, the prospective Operations convergence requirement, and the Dev Container versus governed-work boundaries; it grants no Engine implementation authority."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:toolkit",
+      "purpose": "Own reusable, deterministic software construction and host-integration mechanics without importing consumer-domain meaning.",
+      "vocabulary": [
+        {
+          "term": "Protocol profile",
+          "meaning": "An exact standards-backed selection of roles, flows, metadata, validation requirements, security constraints, and supported variations that a host and provider binding must satisfy.",
+          "acceptedAliases": [
+            "security profile"
+          ]
+        },
+        {
+          "term": "Provider specialization",
+          "meaning": "A technology-specific adapter that satisfies an explicit base contract or protocol profile without replacing its semantic owner.",
+          "acceptedAliases": [
+            "provider adapter"
+          ]
+        },
+        {
+          "term": "Configuration source composition",
+          "meaning": "An explicit ordered selection of IConfigurationSource behavior whose precedence, startup, reload, secret, and failure characteristics are reviewed.",
+          "acceptedAliases": [
+            "provider composition"
+          ]
+        },
+        {
+          "term": "Options binding",
+          "meaning": "A typed relationship between one owned options type, configuration section, optional name, validation rules, startup requirement, and permitted reload consumption.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Reload capability",
+          "meaning": "A provider-declared and fixture-proven ability to publish a configuration change token after obtaining a newer effective value under explicit timing and failure rules.",
+          "acceptedAliases": [
+            "change capability"
+          ]
+        },
+        {
+          "term": "Host projection",
+          "meaning": "Generated source or configuration derived from canonical operation, composition, configuration, and provider selections; it is not a second semantic owner.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Foreign contract input",
+          "meaning": "An externally owned artifact such as an OpenAPI document whose exact bytes and provenance are inputs to an integration generator.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:configuration-composition",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The ordered host configuration source selections and their provider, precedence, startup, reload, secret, failure, package, and compatibility declarations.",
+      "termContractIds": [],
+      "invariants": "Order is explicit and stable; duplicate or conflicting provider identities fail; every provider is exact-version selected; reload is declared rather than inferred; secret values never enter canonical intent, generated evidence, or diagnostics."
+    },
+    {
+      "identity": "pkid:model:program-kit:typed-options-binding",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The typed binding from an owned .NET options type to one section and optional name with exact validation, startup, and reload disposition.",
+      "termContractIds": [],
+      "invariants": "Required bindings validate on start; named options are explicit; IOptionsSnapshot is never injected into singleton-generated infrastructure; live monitoring requires provider reload support; restart-required options cannot select live monitoring."
+    },
+    {
+      "identity": "pkid:model:program-kit:transport-security-profile",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The standards and ASP.NET Core mechanics required for one exact host authentication role and its authorization-policy attachment points.",
+      "termContractIds": [],
+      "invariants": "OAuth is not reported as authentication; interactive clients and resource servers remain distinct; ID tokens are not API access tokens; issuer, audience, algorithms, metadata and HTTPS rules are explicit; provider claims do not become consumer-domain conclusions."
+    },
+    {
+      "identity": "pkid:model:program-kit:projection-provenance",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The binding from canonical or foreign inputs and exact tool/provider selections to every generated output and its digest.",
+      "termContractIds": [],
+      "invariants": "Generation never uses ambient discovery; identical inputs and exact tool versions produce byte-identical normalized outputs; foreign inputs remain foreign-owned; generated outputs carry source and tool provenance."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:operations-contracts",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "domain-core",
+      "purpose": "Prospective Orbyss.ProgramKit.Operations package owning one compact product-neutral operation descriptor, catalog, invocation documents, validators, and compatibility boundary over Artifacts only.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Operation identity, result disposition, relation, invocation, progress, catalog, and validation contracts."
+    },
+    {
+      "identity": "pkid:component:program-kit:dotnet-configuration-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Extension of Orbyss.ProgramKit.DotNet owning explicit configuration-source and Options descriptors, validators, source generation, source-generated binding policy, and an explicit provider-generation module ABI.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "DotNet shell configuration and Options wire/source-generation behavior."
+    },
+    {
+      "identity": "pkid:component:program-kit:azure-key-vault-configuration",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "provider",
+      "purpose": "Optional Azure Key Vault configuration provider adapter with explicit vault endpoint, credential reference, secret-name mapping, polling interval, package lock, and secret-safe failure behavior.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Exact Azure Key Vault configuration provider registration and refresh projection."
+    },
+    {
+      "identity": "pkid:component:program-kit:azure-app-configuration",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "provider",
+      "purpose": "Optional Azure App Configuration adapter with explicit endpoint, credential reference, key selection, refresh registration, Key Vault reference policy, and request/manual refresh behavior.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Exact Azure App Configuration registration, refresh, and secret-reference projection."
+    },
+    {
+      "identity": "pkid:component:program-kit:aspnetcore-security-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Optional ASP.NET Core host projection for authentication schemes, confidential interactive OIDC, JWT bearer resource servers, middleware order, named authorization-policy references, transport result mapping, and OpenAPI security documentation.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "ASP.NET Core authentication and authorization registration and endpoint projection."
+    },
+    {
+      "identity": "pkid:component:program-kit:kiota-client-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "provider",
+      "purpose": "Pinned Kiota adapter that validates an exact local foreign OpenAPI input, executes bounded generation, and emits client source, lock, package requirements, provenance, and output-tree digest.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Kiota tool version, supported OpenAPI/language profile, generation options, lock, and generated-source surface."
+    },
+    {
+      "identity": "pkid:component:program-kit:aspire-apphost-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Optional deterministic Aspire AppHost project and source generation from explicit low-level application composition and provider selections without claiming canonical environment or deployment meaning.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Pinned Aspire SDK/integration source projection and build behavior."
+    },
+    {
+      "identity": "pkid:component:program-kit:dev-container-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Deterministic .devcontainer artifact generation and validation with pinned features, explicit mounts, ports, lifecycle-hook placement, and opaque digest-bound scripts that are never executed during generation.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Selected Dev Container specification profile and normalized generated artifact set."
+    },
+    {
+      "identity": "pkid:component:program-kit:fastendpoints-projection",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "provider",
+      "purpose": "Optional FastEndpoints projection of the same canonical operation and ASP.NET Core security selections, with no provider-owned operation descriptor or authorization semantics.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Exact FastEndpoints and optional CShells.AspNetCore.FastEndpoints ABI and generated endpoint source."
+    },
+    {
+      "identity": "pkid:component:program-kit:keycloak-local-fixture",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "provider",
+      "purpose": "Ephemeral Aspire-backed local-test fixture selecting an exact Keycloak image/integration and deterministic realm import projection to prove standards-profile substitution, startup, key rollover, claim mapping, and teardown.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Fixture-only Keycloak version, realm-import subset, Aspire integration, and ephemeral-state behavior."
+    }
+  ],
+  "projects": [],
+  "packages": [],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:operations-inward",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "allowed",
+      "referencingScope": "Orbyss.ProgramKit.Operations",
+      "referencedScope": "Orbyss.ProgramKit.Artifacts only",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intake:domain-semantic-engine:design",
+          "version": "1.0.0",
+          "digest": "sha256:ef94f62ecfa7c7afa092d82070c3652636d4b44b396e3e06dda1e279e816dd46"
+        },
+        "path": "docs/design-intake/domain-semantic-engine.md#program-kit-operation-convergence"
+      },
+      "rationale": "The product-neutral operation contract must stay independent of hosts, transports, tasks, providers, and consumer domains."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:provider-specialization",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "allowed",
+      "referencingScope": "A selected provider-generation or host-projection package",
+      "referencedScope": "Its declared Program Kit base contract package and exact external technology packages only",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:design:program-kit:baseline",
+          "version": "0.3.0",
+          "digest": "sha256:dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9"
+        },
+        "path": "program-kit/bootstrap/architecture-design.md#architectural-principles"
+      },
+      "rationale": "Technology dependencies and quirks remain isolated from provider-neutral contracts."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:generated-host-closure",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Generated API, Console, Worker, Aspire, client, and development-container consumers",
+      "referencedScope": "Orbyss.ProgramKit.Workbench, Orbyss.ProgramKit.DotNet generation assemblies, CommandLine, agent capabilities, or design-time provider adapters at runtime",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:design:program-kit:baseline",
+          "version": "0.3.0",
+          "digest": "sha256:dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9"
+        },
+        "path": "program-kit/bootstrap/architecture-design.md#project-and-package-graph"
+      },
+      "rationale": "Generated consumers carry only selected runtime dependencies and generated source, not the tools that produced them."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-domain-security-meaning",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit protocol, ASP.NET Core security, Keycloak, Entra, configuration, and host-generation components",
+      "referencedScope": "Consumer-domain Identity, Authorization, role, grant, policy, principal, entitlement, admission, or evidence semantics",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intake:domain-semantic-engine:design",
+          "version": "1.0.0",
+          "digest": "sha256:ef94f62ecfa7c7afa092d82070c3652636d4b44b396e3e06dda1e279e816dd46"
+        },
+        "path": "docs/design-intake/domain-semantic-engine.md#discovery-and-transports"
+      },
+      "rationale": "Transport authentication and host authorization mechanics cannot establish consumer-domain identity or permission conclusions."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-ambient-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Every host-tooling generator and adapter",
+      "referencedScope": "Ambient directory, assembly, package-feed, network, credential, provider, current-user, or machine-state discovery not named by exact input",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:host-tooling",
+          "version": "1.0.0",
+          "digest": "sha256:4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+        },
+        "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
+      },
+      "rationale": "Generation remains deterministic, reviewable, secret-free, and human-started."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:host-tooling",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "requestedOutcome": "Represent the agreed Program Kit host-tooling extension scope and architectural boundaries as a validated canonical design.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design carries architecture meaning and grants no runtime or implementation behavior."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "The design is schema-validated, reviewed against its exact sources, digest-bound by its plan, and compared during implementation closure."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The repository artifact is explicit input and not discovered through an agent retrieval system."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "The design does not define, register, or authorize an agent capability."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit architecture reviewer and implementers.",
+        "decisionAuthorityBoundary": "Only an explicit human decision over the exact design and plan digests may approve implementation.",
+        "rationale": "A human-readable Markdown projection and review manifest make exact scope and tradeoffs reviewable."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "No separate generated navigation artifact is required for this bounded review set."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:host-tooling",
+        "ownerId": "pkid:domain:program-kit:toolkit",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "1.0.0",
+          "digest": "sha256:19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2"
+        },
+        "provenancePolicy": "The exact human intent record, approved Program Kit baseline, accepted Engine intake boundary, source commit, and consulted external standards are named; no later implementation is treated as retroactive design authority.",
+        "digestPolicy": "The review manifest and plan bind exact canonical design bytes; changes require regenerated projection, validation, digest, and renewed human decision.",
+        "consumerIds": [
+          "pkid:project:program-kit:dotnet",
+          "pkid:project:program-kit:workbench",
+          "pkid:test:program-kit:conformance-tests"
+        ],
+        "compatibilityPolicy": "Any ownership, authority, dependency, protocol, wire, generation, reload, or provider-boundary change requires explicit compatibility review and a new design version.",
+        "migrationPolicy": "Implementation must migrate DotNetOperationBinding, shell/configuration contracts, package/version maps, fixtures, and generated hosts through bounded work units with no parallel semantic owner."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "No credentials, tokens, secrets, personal claims, tenant values, or provider payloads are included.",
+        "externalizationPolicy": "The repository review set and its human-readable Markdown projection are the only intended externalizations.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Runtime provider observations, discovered metadata, generated secrets, tokens, caches, tool output, and local container state remain outside the canonical design."
+      },
+      "rationale": "A schema-governed design instance is the canonical authority for the extension while implementation remains blocked pending exact human approval."
+    },
+    {
+      "identity": "pkid:ai-artifact:program-kit:host-tooling-design-markdown",
+      "ownerId": "pkid:project:program-kit:workbench",
+      "requestedOutcome": "Provide a stable human-readable review projection of the canonical host-tooling design.",
+      "artifactKind": "generated-document",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "Markdown contains no executable behavior."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "compared",
+          "digested"
+        ],
+        "rationale": "The review projection is compared with the canonical design and digest-bound in the review manifest."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The projection is an explicit repository file."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "The projection contains no capability procedure."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit architecture reviewer and implementers.",
+        "decisionAuthorityBoundary": "The projection explains the design but only explicit approval of the canonical design and plan digests grants implementation authority.",
+        "rationale": "Markdown is the deliberate reviewer-oriented representation."
+      },
+      "generatedNavigation": {
+        "isRequired": true,
+        "sourceIds": [
+          "pkid:design:program-kit:host-tooling"
+        ],
+        "generationRule": "Maintain stable reviewer-oriented sections from the exact canonical design and consulted authorities.",
+        "rationale": "Stable sections make the canonical design reviewable."
+      },
+      "representation": {
+        "role": "projection",
+        "canonicalArtifactId": "pkid:design:program-kit:host-tooling",
+        "projectionRule": "Project the outcome, scope, boundaries, ordering, evidence, and consulted sources from the canonical architecture design.",
+        "lossPolicy": "The projection is intentionally lossy; canonical JSON remains authoritative for exact machine fields."
+      },
+      "governance": {
+        "artifactIdentity": "pkid:ai-artifact:program-kit:host-tooling-design-markdown",
+        "ownerId": "pkid:project:program-kit:workbench",
+        "schema": null,
+        "provenancePolicy": "The exact canonical design and named external authorities are the only content inputs.",
+        "digestPolicy": "The review manifest binds the exact Markdown bytes and the canonical design digest.",
+        "consumerIds": [
+          "pkid:test:program-kit:conformance-tests"
+        ],
+        "compatibilityPolicy": "Update and re-review whenever the canonical design changes.",
+        "migrationPolicy": "Reproject from the canonical design rather than treating Markdown as a competing architecture owner."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "No sensitive values are accepted from the canonical design or consulted sources.",
+        "externalizationPolicy": "The committed Markdown file is the intended human-readable externalization.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "No runtime provider observation, discovered metadata, token, secret, or local state is included."
+      },
+      "rationale": "The Markdown document is a review projection of the canonical JSON design."
+    }
+  ],
+  "representationRelationships": [
+    {
+      "projectionId": "pkid:ai-artifact:program-kit:host-tooling-design-markdown",
+      "canonicalId": "pkid:design:program-kit:host-tooling",
+      "projectionRule": "Project stable reviewer-oriented Markdown sections from the canonical architecture design and named consulted authorities.",
+      "lossPolicy": "The canonical JSON retains exact machine fields and remains authoritative when the Markdown projection omits detail.",
+      "isRegenerable": false
+    }
+  ],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Program Kit validates and projects exact transport-security profiles; providers perform protocol behavior; consumers own domain identity and authorization.",
+      "guarantees": [
+        "Interactive ID-token validation and API access-token validation remain distinct.",
+        "Issuer, audience, HTTPS metadata, algorithms, token kind, lifetime, client type, redirect URI, PKCE, and claim mapping are explicit and fail closed.",
+        "Secrets and tokens never enter generated source, canonical intent, logs, or evidence."
+      ],
+      "exclusions": [
+        "No user authentication server, credential store, token issuer, role model, domain authorization engine, or security authority is created.",
+        "No provider product is trusted merely because it exposes an OIDC-looking endpoint."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Only humans approve designs, plans, provider selections, credentials, execution, and consumer policy; generated artifacts and protocol outcomes grant no authority.",
+      "guarantees": [
+        "Anonymous versus authenticated transport disposition and named ASP.NET Core policy attachment are explicit.",
+        "A ClaimsPrincipal and token claims are observations available to consumer adapters, not permission conclusions."
+      ],
+      "exclusions": [
+        "No inferred role, scope, claim, group, tenant, or provider mapping grants a consumer-domain operation."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Canonical inputs carry secret references and credential-selection policy only; providers resolve values at runtime.",
+      "guarantees": [
+        "Generated source, configuration templates, locks, manifests, diagnostics, tests, and receipts are secret-free.",
+        "Azure and OIDC adapters prefer managed identity or externally supplied credential abstractions where supported."
+      ],
+      "exclusions": [
+        "No client secret, private key, access token, refresh token, password, vault secret value, or generated Keycloak credential is persisted as Program Kit evidence."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Only canonical design inputs, normalized generated artifacts, locks, provenance, and redacted evidence are durable.",
+      "guarantees": [
+        "Provider caches, discovery metadata, tokens, local container volumes, generated credentials, and runtime Options values remain ephemeral or provider-owned.",
+        "Keycloak fixture state is disposable and never treated as backup or migration material."
+      ],
+      "exclusions": [
+        "No Program Kit identity store, authorization store, deployment state, configuration control plane, or secret store is introduced."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Unknown provider capability, invalid configuration, invalid token profile, stale or conflicting input, missing package evidence, and nondeterministic output fail closed with stable diagnostics.",
+      "guarantees": [
+        "Required Options validate before host readiness.",
+        "Reload-provider outages, invalid reload candidates, metadata/key rollover failures, Kiota errors, and generator drift are distinguishable.",
+        "No failed reload is reported as successful reconfiguration."
+      ],
+      "exclusions": [
+        "No universal retry, fallback identity provider, silent default audience, permissive algorithm, insecure metadata, or stale-value guarantee is invented."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Generation is isolated per explicit output root; live configuration changes have declared ordering and consumer-owned application semantics.",
+      "guarantees": [
+        "Identical generation invocations do not race through shared mutable caches or output directories.",
+        "IOptionsSnapshot provides scope consistency and IOptionsMonitor subscriptions are disposable.",
+        "Async reconfiguration is queued by consumer-owned bounded services rather than executed unbounded inside change callbacks."
+      ],
+      "exclusions": [
+        "No atomic distributed reconfiguration, cross-process configuration transaction, or automatic service reconstruction is claimed."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Bounded generation and external-tool operations accept cancellation and report whether outputs are absent, partial, or complete.",
+      "guarantees": [
+        "Cancellation stops further generation and never promotes partial output as valid.",
+        "Local fixture teardown is attempted within its declared ownership boundary."
+      ],
+      "exclusions": [
+        "Cancellation does not roll back provider-side effects, remote token activity, or external state not owned by the operation."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Generation and runtime integration expose stable diagnostics, correlation, provider/profile identity, reload outcome, and redacted evidence.",
+      "guarantees": [
+        "Evidence records identities, versions, digests, timings or sequence where relevant, and success/failure classification without values classified as secret.",
+        "Fixtures observe provider substitution, reload notification, scoped consistency, token rejection, and generated-output determinism."
+      ],
+      "exclusions": [
+        "No token, claim payload, configuration value, secret name-value pair, personal data, or raw provider response is logged by default."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Protocol standards, .NET behavior, external tools, provider packages, generated wire/source surfaces, and Program Kit contracts version independently and are joined by exact selections.",
+      "guarantees": [
+        "Every external version and package digest is locked and source/license reviewed before implementation selection.",
+        "Existing DotNet shell and operation bindings migrate through explicit Version Map and impact assessment.",
+        "Provider-specific changes cannot silently alter the base profile."
+      ],
+      "exclusions": [
+        "No floating latest package, image, feature, SDK, specification draft, discovery result, or provider default is treated as durable compatibility evidence."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:validated-options-host",
+      "actor": "Generated host composer",
+      "intent": "Bind owned typed Options against an explicit provider composition with startup validation and declared reload consumption.",
+      "preconditions": [
+        "The options type, section, schema, validator, provider selections, order, packages, and reload disposition are exact inputs."
+      ],
+      "steps": [
+        "Validate provider capabilities and deterministic precedence.",
+        "Generate provider registration and OptionsBuilder binding with startup validation.",
+        "Build the isolated generated host.",
+        "Exercise startup-fixed, scoped snapshot, and live monitor fixtures against supported providers.",
+        "Reject invalid startup, invalid reload, incompatible lifetime, secret leakage, and unsupported reload."
+      ],
+      "outcomes": [
+        "Required configuration fails before readiness when invalid.",
+        "Scoped consumers observe one consistent snapshot per scope.",
+        "Monitor consumers observe only provider-signaled and successfully rebound values under the declared semantics."
+      ],
+      "failureOutcomes": [
+        "A provider outage, malformed value, conflicting source, or unsupported reload produces a stable redacted diagnostic and no false success."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:provider-neutral-oidc",
+      "actor": "Generated confidential web client",
+      "intent": "Authenticate an interactive user through any provider satisfying the exact OIDC profile without provider-specific application semantics.",
+      "preconditions": [
+        "Issuer, client registration reference, redirect URIs, cookie profile, scopes, claim mapping, metadata and algorithm requirements are explicit.",
+        "The provider metadata satisfies the selected OIDC profile."
+      ],
+      "steps": [
+        "Generate ASP.NET Core cookie and OpenID Connect scheme registration in the required middleware order.",
+        "Use authorization code flow with PKCE and exact redirect handling.",
+        "Validate metadata, issuer, nonce, state, ID-token signature, audience, lifetime, and selected claims.",
+        "Construct the transport ClaimsPrincipal and expose only the declared mapped observation to a consumer adapter."
+      ],
+      "outcomes": [
+        "Keycloak, Entra ID, or another conforming provider can satisfy the same host profile through configuration and optional provider specialization.",
+        "Provider substitution does not change consumer-domain Identity or Authorization ownership."
+      ],
+      "failureOutcomes": [
+        "Issuer, metadata, algorithm, redirect, state, nonce, token, or mapping mismatch fails authentication without fallback."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:jwt-resource-server",
+      "actor": "Generated ASP.NET Core API",
+      "intent": "Validate a JWT access token and attach an exact named transport authorization policy without accepting an ID token or inventing domain permission.",
+      "preconditions": [
+        "Expected issuer, audience, token profile, algorithms, metadata source, clock policy, authentication scheme, operation and policy references are explicit."
+      ],
+      "steps": [
+        "Generate JWT bearer registration and authentication before authorization middleware.",
+        "Validate signature, issuer, audience, token kind, lifetime and exact profile requirements.",
+        "Map the authenticated transport principal to the operation adapter.",
+        "Invoke the named ASP.NET Core policy supplied by the consumer composition."
+      ],
+      "outcomes": [
+        "A valid access token yields an authenticated transport principal.",
+        "Authorization remains a separate explicit evaluation and consumer-domain decisions remain outside Program Kit."
+      ],
+      "failureOutcomes": [
+        "An ID token, opaque token, wrong issuer or audience, forbidden algorithm, expired token, invalid signature, missing policy, or denied policy fails closed."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:external-openapi-client",
+      "actor": "Integration developer",
+      "intent": "Generate a strongly typed client from one exact local external OpenAPI document using a pinned Kiota toolchain.",
+      "preconditions": [
+        "The OpenAPI bytes, language, namespace, class name, include/exclude selections, serializers, output root, Kiota version and package policy are explicit."
+      ],
+      "steps": [
+        "Validate and digest the foreign OpenAPI input in an allow-listed foreign-document boundary.",
+        "Run the exact pinned Kiota adapter with isolated cache and output.",
+        "Normalize allowed outputs and record the Kiota lock and generated-tree digest.",
+        "Build an isolated package-only consumer and verify authentication injection contains no secret."
+      ],
+      "outcomes": [
+        "Identical inputs and tool versions produce byte-identical normalized source and provenance.",
+        "External contract ownership remains explicit."
+      ],
+      "failureOutcomes": [
+        "Unsupported OpenAPI, tool drift, network dependency, nondeterministic output, package conflict, or compilation error fails generation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:aspire-apphost",
+      "actor": "Local composition developer",
+      "intent": "Generate a pinned Aspire AppHost from explicit projects, containers, parameters, endpoints, dependencies, references, health, and secret-reference intent.",
+      "preconditions": [
+        "Every resource and relationship is explicit and no Runtime Manifest or Environment ownership is inferred."
+      ],
+      "steps": [
+        "Validate resource identities, package integrations, dependency direction and secret references.",
+        "Generate AppHost project, package lock and source.",
+        "Build and inspect deterministic output without running or deploying resources."
+      ],
+      "outcomes": [
+        "The AppHost is a reproducible local orchestration projection ready for separate human-started execution."
+      ],
+      "failureOutcomes": [
+        "Unknown integration, floating package, cycle, secret value, ambient project discovery, or output drift fails generation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:dev-container",
+      "actor": "Development environment author",
+      "intent": "Generate a deterministic .devcontainer directory from exact development-container inputs without executing lifecycle behavior.",
+      "preconditions": [
+        "Image or Dockerfile/Compose references, features, mounts, ports, user, editor metadata and scripts are explicit."
+      ],
+      "steps": [
+        "Validate the selected Dev Container specification profile and pinned feature references.",
+        "Treat lifecycle scripts as opaque files bound by path and digest.",
+        "Generate canonical JSON-compatible devcontainer metadata and referenced artifacts.",
+        "Validate paths, secrets, forbidden privilege defaults and repeatability."
+      ],
+      "outcomes": [
+        "A compatible tool can consume the generated development metadata.",
+        "No production-hardening or governed-work claim is made."
+      ],
+      "failureOutcomes": [
+        "Unpinned feature, missing script digest, secret value, unsafe path, implicit mount, unsupported field or output drift fails generation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:keycloak-substitution-fixture",
+      "actor": "Program Kit conformance test",
+      "intent": "Prove the same OIDC and JWT host profiles with an ephemeral Keycloak instance orchestrated by a generated Aspire AppHost.",
+      "preconditions": [
+        "Keycloak image, Aspire integration, realm import subset, clients, redirect URIs, token profile, claims and ephemeral storage are exact fixture inputs."
+      ],
+      "steps": [
+        "Generate the AppHost and realm import without users, passwords or client-secret values in source.",
+        "Start an isolated instance only through an explicit test profile.",
+        "Exercise discovery, interactive authentication, API token validation, key rollover and declared claim mapping.",
+        "Destroy fixture-owned resources and retain only redacted evidence."
+      ],
+      "outcomes": [
+        "Keycloak proves one optional provider specialization while the generated application profiles remain provider-neutral."
+      ],
+      "failureOutcomes": [
+        "Persistent state, import skip ambiguity, version drift, secret capture, provider-specific semantic leakage, teardown failure or protocol mismatch fails the fixture."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:host-tooling",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:host-tooling",
+          "version": "1.0.0",
+          "digest": "sha256:4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+        }
+      ],
+      "claim": "The extension design review set is being produced from explicit human intent; none of the described runtime packages, providers, profiles, generators, migrations, or fixtures is implemented or approved by this claim."
+    }
+  ]
+}
