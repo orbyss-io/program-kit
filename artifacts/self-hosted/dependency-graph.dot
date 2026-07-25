@@ -1,0 +1,37 @@
+digraph ProgramKitDependencies {
+  graph [label="Program Kit project dependencies", labelloc="t", rankdir="LR"];
+  node [shape="box"];
+
+  "Architecture" -> "Artifacts";
+  "CommandLine" -> "DotNet";
+  "CommandLine" -> "Workbench";
+  "Development" -> "Artifacts";
+  "Development" -> "Planning";
+  "DotNet" -> "Architecture";
+  "DotNet" -> "Planning";
+  "DotNet" -> "Quality";
+  "DotNet" -> "Serialization.JSON";
+  "DotNet" -> "Tasks";
+  "DotNet" -> "Tasks.Core";
+  "DotNet" -> "Tasks.Schedules";
+  "DotNet" -> "Workbench";
+  "Modularity" -> "Artifacts";
+  "Modularity.InProcess" -> "Modularity";
+  "Planning" -> "Artifacts";
+  "Planning" -> "Quality";
+  "Quality" -> "Artifacts";
+  "Serialization.JSON" -> "Artifacts";
+  "Tasks" -> "Modularity";
+  "Tasks" -> "Tasks.Core";
+  "Tasks.Core" -> "Artifacts";
+  "Tasks.Hosting" -> "Tasks";
+  "Tasks.InProcess" -> "Tasks";
+  "Tasks.Schedules" -> "Tasks.Core";
+  "Tasks.Schedules.Cronos" -> "Tasks.Schedules";
+  "Workbench" -> "Architecture";
+  "Workbench" -> "Artifacts";
+  "Workbench" -> "Development";
+  "Workbench" -> "Planning";
+  "Workbench" -> "Quality";
+  "Workbench" -> "Serialization.JSON";
+}

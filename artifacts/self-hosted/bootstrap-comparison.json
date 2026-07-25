@@ -1,0 +1,107 @@
+{
+  "documentKind": "program-kit-bootstrap-comparison",
+  "version": "1.0.0",
+  "requirementId": "PK-R013",
+  "source": {
+    "design": {
+      "path": "program-kit/bootstrap/architecture-design.md",
+      "reference": {
+        "identity": "pkid:design:program-kit:baseline",
+        "version": "0.3.0",
+        "digest": "sha256:dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9"
+      }
+    },
+    "plan": {
+      "path": "program-kit/bootstrap/implementation-plan.md",
+      "reference": {
+        "identity": "pkid:plan:program-kit:baseline",
+        "version": "0.3.0",
+        "digest": "sha256:6d7396d5eb71e0d064231110e2ccfcae2aea838ca851b1420ff310df127cd951"
+      }
+    },
+    "approval": {
+      "path": "program-kit/bootstrap/bootstrap-approval-record.json",
+      "reference": {
+        "identity": "pkid:approval:program-kit:bootstrap",
+        "version": "1.0.0",
+        "digest": "sha256:c5b037e391191ab4d5623a8e8fe20e41b58b6b0c50d02425423e95c465087509"
+      }
+    }
+  },
+  "target": {
+    "design": {
+      "path": "program-kit/artifacts/self-hosted/architecture-design.json",
+      "reference": {
+        "identity": "pkid:design:program-kit:self-hosted-baseline",
+        "version": "1.0.0",
+        "digest": "sha256:c5ed7f0d4f278181f138dd5a4dcb9300502dd85aea8be7271c7da15762439327"
+      }
+    },
+    "plan": {
+      "path": "program-kit/artifacts/self-hosted/implementation-plan.json",
+      "reference": {
+        "identity": "pkid:plan:program-kit:self-hosted-w080",
+        "version": "1.0.0",
+        "digest": "sha256:0b03457928ae0b7bfb917c0b6024ea56cf2451d14ba540b8cfe00f60cc64823b"
+      }
+    }
+  },
+  "historyPolicy": {
+    "bootstrapRemainsIntact": true,
+    "retroactiveCapabilityAuthorshipClaimed": false,
+    "newApprovalMinted": false,
+    "relationshipReportOnly": true
+  },
+  "comparisons": [
+    {
+      "area": "authority",
+      "sourceObservation": "The bootstrap plan and separate approval record are the exact human-approved implementation authority.",
+      "targetObservation": "The self-hosted plan is marked superseded and reports lineage to the existing approval.",
+      "classification": "preserved",
+      "disposition": "Keep the bootstrap approval controlling; never infer approval from the derived plan instance."
+    },
+    {
+      "area": "history",
+      "sourceObservation": "The bootstrap Markdown predates the registered development capabilities and implemented JSON contracts.",
+      "targetObservation": "The self-hosted artifacts name bootstrap files as historical inputs and the receipt covers only this post-registration W080 event.",
+      "classification": "preserved-with-explicit-lineage",
+      "disposition": "Do not backdate receipts or attribute bootstrap authorship to a capability."
+    },
+    {
+      "area": "representation",
+      "sourceObservation": "The compact bootstrap documents use human-authored Markdown headings to anticipate later contract fields.",
+      "targetObservation": "Canonical JSON instances now carry typed fields; Markdown and DOT files are lossy deterministic projections.",
+      "classification": "intentional-representation-difference",
+      "disposition": "Treat JSON as canonical and projections as regenerable review aids."
+    },
+    {
+      "area": "implemented-package-graph",
+      "sourceObservation": "The bootstrap design proposed the package boundaries and inward dependency rules.",
+      "targetObservation": "The self-hosted design declares all 18 current source projects, packages, and their direct Program Kit references.",
+      "classification": "realized",
+      "disposition": "Conformance compares the committed dependency graph with current project references."
+    },
+    {
+      "area": "work-unit-shape",
+      "sourceObservation": "The approved bootstrap plan contains the full W000 through W090 implementation sequence.",
+      "targetObservation": "The separate self-hosted plan represents only W080 and remains non-authoritative; earlier work stays historical and W090 remains governed by the bootstrap plan.",
+      "classification": "intentional-scope-reduction",
+      "disposition": "Do not duplicate completed historical work or create a competing approval surface."
+    },
+    {
+      "area": "render-and-graph-runtime",
+      "sourceObservation": "W080 requires deterministic Markdown and dependency, forbidden-reference, and Version Map graphs.",
+      "targetObservation": "Committed projections are fixed and checked by bootstrap comparison conformance tests; the public CLI render and generic graph descriptors still have no registered backend.",
+      "classification": "implementation-finding",
+      "disposition": "Deliver and verify W080 projections without changing production runtime outside the approved edit boundary; any CLI backend wiring requires a separately approved plan."
+    },
+    {
+      "area": "bootstrap-front-matter",
+      "sourceObservation": "Historical bootstrap front matter still says awaiting-human-approval because those exact reviewed bytes are immutable.",
+      "targetObservation": "The separate exact approval record records the later approved decision and remains active.",
+      "classification": "historical-state-versus-decision-evidence",
+      "disposition": "Preserve the source bytes and use the approval record, not rewritten front matter, as decision evidence."
+    }
+  ],
+  "overallDisposition": "conforms-with-explicit-findings"
+}

@@ -60,6 +60,9 @@
     <None Include="..\..\bootstrap\bootstrap-approval-record.json"
           Link="ConformanceInputs/Bootstrap/bootstrap-approval-record.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\artifacts\self-hosted\**\*"
+          Link="ConformanceInputs/SelfHosted/%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\..\.agents\capabilities\INDEX.md"
           Link="ConformanceInputs/Capabilities/INDEX.md"
           CopyToOutputDirectory="PreserveNewest" />

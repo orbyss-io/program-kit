@@ -1,0 +1,14 @@
+digraph ProgramKitForbiddenReferences {
+  graph [label="Program Kit forbidden reference boundaries", labelloc="t", rankdir="LR"];
+  node [shape="box"];
+
+  "Universal contracts" -> "Workbench" [color="red", label="forbidden"];
+  "Universal contracts" -> "Tasks runtime" [color="red", label="forbidden"];
+  "Universal contracts" -> ".NET host generation" [color="red", label="forbidden"];
+  "Runtime and contracts" -> ".agents capabilities" [color="red", label="forbidden"];
+  "Runtime and contracts" -> ".codex skill wrappers" [color="red", label="forbidden"];
+  "Tasks.Core" -> "Tasks" [color="red", label="forbidden"];
+  "Tasks.Core" -> "CShells" [color="red", label="forbidden"];
+  "Tasks.Schedules" -> "Cronos" [color="red", label="forbidden"];
+  "Serialization.JSON" -> "Workbench" [color="red", label="forbidden"];
+}
