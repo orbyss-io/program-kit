@@ -11,6 +11,8 @@ public sealed record DotNetConfigurationSource(
     [property: JsonPropertyName("package")] DotNetPackageReference Package,
     [property: JsonPropertyName("path")] string? Path,
     [property: JsonPropertyName("prefix")] string? Prefix,
+    [property: JsonPropertyName("initialValues")] ImmutableArray<DotNetConfigurationInitialValue> InitialValues,
+    [property: JsonPropertyName("userSecretsId")] string? UserSecretsId,
     [property: JsonPropertyName("optional")] bool Optional,
     [property: JsonPropertyName("startupDisposition")] DotNetConfigurationStartupDisposition StartupDisposition,
     [property: JsonPropertyName("reload")] DotNetConfigurationReload Reload,

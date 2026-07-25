@@ -15,7 +15,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
     public void RepeatedProjectionIsByteForByteDeterministicAndComplete()
     {
         var host = DotNetTestContractFactory.Shell().Hosts[0];
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var first = sut.Compile(host);
         var second = sut.Compile(host);
@@ -52,6 +53,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
     public void ProviderPrecedenceAndNamedOptionsAreRenderedExactly()
     {
         var host = DotNetTestContractFactory.Shell().Hosts[0];
+        var environmentProvider = DotNetTestContractFactory.Provider(
+            DotNetConfigurationProviderKind.EnvironmentVariables);
         var environment = host.ConfigurationSources[0] with
         {
             Identity = DotNetTestContractFactory.Id(
@@ -60,15 +63,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
             Order = 1,
             ProviderKind =
                 DotNetConfigurationProviderKind.EnvironmentVariables,
-            ProviderRevision = DotNetTestContractFactory.Ref(
-                "provider",
-                "environment-configuration",
-                '9'),
-            Package = new Orbyss.ProgramKit.DotNet.Packages.DotNetPackageReference(
-                "Microsoft.Extensions.Configuration.EnvironmentVariables",
-                new Orbyss.ProgramKit.Artifacts.Primitives.SemanticVersion(
-                    "10.0.10"),
-                DotNetTestContractFactory.Digest('a')),
+            ProviderRevision = environmentProvider.ProviderRevision,
+            Package = environmentProvider.Package,
             Path = null,
             Prefix = "SAMPLE_",
             Optional = true,
@@ -97,7 +93,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
                 },
             ],
         };
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var registration = sut.RenderRegistration(host);
 
@@ -132,7 +129,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
                 },
             ],
         };
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var outputs = sut.Compile(host);
         var optionsOutputs = outputs.Count(static output =>
@@ -153,7 +151,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
     {
         var host = WithReaction(
             DotNetConfigurationChangeReaction.RedactedDiagnostic);
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var outputs = sut.Compile(host);
         var source = Text(
@@ -171,7 +170,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
     {
         var host = WithReaction(
             DotNetConfigurationChangeReaction.ConsumerOwnedQueue);
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var outputs = sut.Compile(host);
         var source = Text(
@@ -210,7 +210,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
         {
             ConfigurationBindings = [external, programKit],
         };
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var report = Text(
             sut.Compile(host),
@@ -244,7 +245,8 @@ public sealed class DotNetConfigurationProjectionCompilerTests
                 },
             ],
         };
-        DotNetConfigurationProjectionCompiler sut = new();
+        DotNetConfigurationProjectionCompiler sut = new(
+            DotNetTestContractFactory.ProviderRegistry());
 
         var exception = Assert.ThrowsExactly<NotSupportedException>(
             () => sut.RenderRegistration(host));

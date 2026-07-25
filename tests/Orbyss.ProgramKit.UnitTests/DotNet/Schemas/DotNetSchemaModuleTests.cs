@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.DotNet.Composition;
+using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.Artifacts.Schemas;
@@ -26,7 +27,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(14, module.Resources);
+        Assert.HasCount(16, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -44,7 +45,8 @@ public sealed class DotNetSchemaModuleTests
         IDotNetShellValidator shellValidator =
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
-                new OperationContractDescriptorValidator());
+                new OperationContractDescriptorValidator(),
+                DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(shellValidator);
         var shellRevision = DotNetTestContractFactory.Ref(
             "shell",
@@ -93,6 +95,17 @@ public sealed class DotNetSchemaModuleTests
                     profile.Reference,
                     profile.MaximumLimits).ToArray()),
             (
+                Name: "dotnet-configuration-provider-catalog",
+                Content: serializer.Write(
+                    new DotNetConfigurationProviderCatalogDocument(
+                        "pkid:schema:program-kit:dotnet-configuration-provider-catalog@1.0.0",
+                        new ProgramKitIdentifier(
+                            "pkid:catalog:program-kit:dotnet-configuration-providers"),
+                        new SemanticVersion("1.0.0"),
+                        DotNetTestContractFactory.ProviderCatalog().Providers),
+                    profile.Reference,
+                    profile.MaximumLimits).ToArray()),
+            (
                 Name: "open-console",
                 Content: serializer.Write(
                     DotNetTestContractFactory.ConsoleDocument(shell),
@@ -115,7 +128,7 @@ public sealed class DotNetSchemaModuleTests
             var schema = module.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
                 (document.Name != "dotnet-shell" ||
-                 resource.SchemaReference.Version.Value == "3.0.0"));
+                 resource.SchemaReference.Version.Value == "4.0.0"));
 
             var result = validator.Validate(
                 document.Content,

@@ -17,7 +17,8 @@ public sealed class DotNetShellValidatorTests
     {
         DotNetShellValidator sut = new(
             new ArtifactReferenceValidator(),
-            new OperationContractDescriptorValidator());
+            new OperationContractDescriptorValidator(),
+            DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(DotNetTestContractFactory.Shell());
 
@@ -37,7 +38,8 @@ public sealed class DotNetShellValidatorTests
         };
         DotNetShellValidator sut = new(
             new ArtifactReferenceValidator(),
-            new OperationContractDescriptorValidator());
+            new OperationContractDescriptorValidator(),
+            DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(shell);
 
@@ -61,7 +63,8 @@ public sealed class DotNetShellValidatorTests
         };
         DotNetShellValidator sut = new(
             new ArtifactReferenceValidator(),
-            new OperationContractDescriptorValidator());
+            new OperationContractDescriptorValidator(),
+            DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(shell);
 
@@ -170,13 +173,13 @@ public sealed class DotNetShellValidatorTests
     {
         var shell = DotNetTestContractFactory.Shell();
         var host = shell.Hosts[0];
+        var environmentProvider = DotNetTestContractFactory.Provider(
+            DotNetConfigurationProviderKind.EnvironmentVariables);
         var source = host.ConfigurationSources[0] with
         {
             ProviderKind = DotNetConfigurationProviderKind.EnvironmentVariables,
-            Package = new Orbyss.ProgramKit.DotNet.Packages.DotNetPackageReference(
-                "Microsoft.Extensions.Configuration.EnvironmentVariables",
-                new SemanticVersion("10.0.10"),
-                DotNetTestContractFactory.Digest('9')),
+            ProviderRevision = environmentProvider.ProviderRevision,
+            Package = environmentProvider.Package,
             Path = null,
             Prefix = "SAMPLE_",
             Reload = new DotNetConfigurationReload(
@@ -364,10 +367,123 @@ public sealed class DotNetShellValidatorTests
                 StringComparison.Ordinal)));
     }
 
+    [TestMethod]
+    public void UnknownProviderRevisionFailsWithStableDiagnostic()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var host = shell.Hosts[0];
+        host = host with
+        {
+            ConfigurationSources =
+            [
+                host.ConfigurationSources[0] with
+                {
+                    ProviderRevision = DotNetTestContractFactory.Ref(
+                        "provider",
+                        "unknown",
+                        'f'),
+                },
+            ],
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.UnknownConfigurationProvider));
+    }
+
+    [TestMethod]
+    public void ProviderPackageDriftFailsWithStableDiagnostic()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var host = shell.Hosts[0];
+        var source = host.ConfigurationSources[0];
+        host = host with
+        {
+            ConfigurationSources =
+            [
+                source with
+                {
+                    Package = source.Package with
+                    {
+                        Sha256 = new Sha256Digest(
+                            string.Concat("sha256:", new string('f', 64))),
+                    },
+                },
+            ],
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.ConfigurationProviderPackageMismatch));
+    }
+
+    [TestMethod]
+    public void UnsupportedReloadFailsWithStableDiagnostic()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var host = shell.Hosts[0];
+        var descriptor = DotNetTestContractFactory.Provider(
+            DotNetConfigurationProviderKind.EnvironmentVariables);
+        host = host with
+        {
+            ConfigurationSources =
+            [
+                host.ConfigurationSources[0] with
+                {
+                    ProviderKind =
+                        DotNetConfigurationProviderKind.EnvironmentVariables,
+                    ProviderRevision = descriptor.ProviderRevision,
+                    Package = descriptor.Package,
+                    Path = null,
+                    Prefix = "PKHT_",
+                },
+            ],
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.UnsupportedProviderReload));
+    }
+
+    [TestMethod]
+    public void DuplicateExactProviderSelectionFailsWithStableDiagnostic()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var host = shell.Hosts[0];
+        var source = host.ConfigurationSources[0];
+        host = host with
+        {
+            ConfigurationSources =
+            [
+                source,
+                source with
+                {
+                    Identity = DotNetTestContractFactory.Id(
+                        "configuration-source",
+                        "duplicate"),
+                    Order = 1,
+                },
+            ],
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.ConfigurationProviderConflict));
+    }
+
     private static DotNetShellValidator CreateValidator() =>
         new(
             new ArtifactReferenceValidator(),
-            new OperationContractDescriptorValidator());
+            new OperationContractDescriptorValidator(),
+            DotNetTestContractFactory.ProviderCatalog());
 
     private static DotNetShellDocument ReplaceHost(
         DotNetShellDocument shell,

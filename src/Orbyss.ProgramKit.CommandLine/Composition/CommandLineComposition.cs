@@ -101,9 +101,13 @@ public static class CommandLineComposition
         var moduleValidator = new ProgramKitSchemaModuleValidator();
         IWorkbenchSchemaValidator schemaValidator =
             new JsonSchemaWorkbenchValidator(canonicalizer, moduleValidator);
+        DotNetConfigurationProviderComposition providerComposition =
+            new DotNetConfigurationProviderComposition();
+        var providerCatalog = providerComposition.CreateBuiltInCatalog();
         var shellValidator = new DotNetShellValidator(
             new ArtifactReferenceValidator(),
-            new OperationContractDescriptorValidator());
+            new OperationContractDescriptorValidator(),
+            providerCatalog);
         IDotNetShellLockBuilder lockBuilder =
             new DotNetShellLockBuilder(shellValidator);
         DotNetHostLockSelector hostLockSelector = new();
@@ -111,7 +115,8 @@ public static class CommandLineComposition
             shellValidator,
             hostLockSelector,
             new DotNetHostSourceRenderer(
-                new DotNetConfigurationProjectionCompiler()),
+                new DotNetConfigurationProjectionCompiler(
+                    providerComposition.CreateBuiltInRegistry())),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),

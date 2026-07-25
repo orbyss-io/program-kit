@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
@@ -18,6 +19,7 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
     RespectRequiredConstructorParameters = true,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow)]
 [JsonSerializable(typeof(DotNetShellDocument))]
+[JsonSerializable(typeof(DotNetConfigurationProviderCatalogDocument))]
 [JsonSerializable(typeof(DotNetArtifactInputManifest))]
 [JsonSerializable(typeof(DotNetShellLockDocument))]
 [JsonSerializable(typeof(OpenApiDocumentProjection))]

@@ -23,4 +23,16 @@ public static class DotNetDiagnosticIds
 
     /// <summary>Generation could not produce the declared deterministic output.</summary>
     public const string GenerationFailed = "PKNET007";
+
+    /// <summary>An exact configuration provider or generator is not registered.</summary>
+    public const string UnknownConfigurationProvider = "PKNET008";
+
+    /// <summary>A provider cannot satisfy the selected reload declaration.</summary>
+    public const string UnsupportedProviderReload = "PKNET009";
+
+    /// <summary>A provider package does not match the exact catalog closure.</summary>
+    public const string ConfigurationProviderPackageMismatch = "PKNET010";
+
+    /// <summary>Configuration provider selections duplicate or conflict.</summary>
+    public const string ConfigurationProviderConflict = "PKNET011";
 }

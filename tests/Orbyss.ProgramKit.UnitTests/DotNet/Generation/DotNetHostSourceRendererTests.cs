@@ -19,13 +19,15 @@ public sealed class DotNetHostSourceRendererTests
         IDotNetShellValidator validator =
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
-                new OperationContractDescriptorValidator());
+                new OperationContractDescriptorValidator(),
+                DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var lockDocument = lockBuilder.Build(
             shell,
             DotNetTestContractFactory.Ref("shell", "reviewed", '7'));
         DotNetHostSourceRenderer sut =
-            new(new DotNetConfigurationProjectionCompiler());
+            new(new DotNetConfigurationProjectionCompiler(
+                DotNetTestContractFactory.ProviderRegistry()));
 
         foreach (var host in shell.Hosts)
         {
@@ -80,7 +82,8 @@ public sealed class DotNetHostSourceRendererTests
         IDotNetShellValidator validator =
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
-                new OperationContractDescriptorValidator());
+                new OperationContractDescriptorValidator(),
+                DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var locks = lockBuilder.Build(
             shell,
@@ -89,7 +92,8 @@ public sealed class DotNetHostSourceRendererTests
         var hostLock = locks.HostLocks.Single(static item => item.Kind == DotNetHostKind.Console);
         var document = DotNetTestContractFactory.ConsoleDocument(shell);
         DotNetHostSourceRenderer sut =
-            new(new DotNetConfigurationProjectionCompiler());
+            new(new DotNetConfigurationProjectionCompiler(
+                DotNetTestContractFactory.ProviderRegistry()));
 
         var outputs = sut.Render(host, hostLock, shell.Features, document);
         var parser = Text(

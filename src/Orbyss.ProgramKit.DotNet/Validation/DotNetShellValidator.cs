@@ -16,16 +16,20 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
     private readonly IProgramKitSemanticValidator<ArtifactReference> referenceValidator;
     private readonly IProgramKitSemanticValidator<OperationContractDescriptor>
         operationValidator;
+    private readonly IDotNetConfigurationProviderCatalog providerCatalog;
 
-    /// <summary>Initializes the validator with exact-reference behavior.</summary>
+    /// <summary>Initializes the validator with an explicit provider catalog.</summary>
     public DotNetShellValidator(
         IProgramKitSemanticValidator<ArtifactReference> referenceValidator,
-        IProgramKitSemanticValidator<OperationContractDescriptor> operationValidator)
+        IProgramKitSemanticValidator<OperationContractDescriptor> operationValidator,
+        IDotNetConfigurationProviderCatalog providerCatalog)
     {
         this.referenceValidator = referenceValidator ??
             throw new ArgumentNullException(nameof(referenceValidator));
         this.operationValidator = operationValidator ??
             throw new ArgumentNullException(nameof(operationValidator));
+        this.providerCatalog = providerCatalog ??
+            throw new ArgumentNullException(nameof(providerCatalog));
     }
 
     /// <inheritdoc />
@@ -38,14 +42,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@3.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@4.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "3.0.0")
+        if (value.Version.Value != "4.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 3.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 4.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -497,6 +501,25 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                         "/hosts/configurationSources/path");
                 }
             }
+
+            var exactDuplicates = sources
+                .GroupBy(ProviderSelectionKey, StringComparer.Ordinal)
+                .Where(static group => group.Count() > 1)
+                .ToArray();
+            if (exactDuplicates.Length > 0 ||
+                sources.Count(static source =>
+                    source.ProviderKind ==
+                    DotNetConfigurationProviderKind.CommandLine) > 1 ||
+                sources.Count(static source =>
+                    source.ProviderKind ==
+                    DotNetConfigurationProviderKind.UserSecrets) > 1)
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.ConfigurationProviderConflict,
+                    "Configuration provider selections contain an exact duplicate or a singleton provider conflict.",
+                    "/hosts/configurationSources");
+            }
         }
 
         RequireInitializedUnique(
@@ -777,32 +800,27 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             source.Package,
             "/hosts/configurationSources/package",
             diagnostics);
-        var expectedPackageId = source.ProviderKind switch
-        {
-            DotNetConfigurationProviderKind.JsonFile =>
-                "Microsoft.Extensions.Configuration.Json",
-            DotNetConfigurationProviderKind.EnvironmentVariables =>
-                "Microsoft.Extensions.Configuration.EnvironmentVariables",
-            DotNetConfigurationProviderKind.CommandLine =>
-                "Microsoft.Extensions.Configuration.CommandLine",
-            DotNetConfigurationProviderKind.KeyPerFile =>
-                "Microsoft.Extensions.Configuration.KeyPerFile",
-            _ => string.Empty,
-        };
-        if (source.Package is null ||
-            !string.Equals(
-                source.Package.PackageId,
-                expectedPackageId,
-                StringComparison.Ordinal) ||
-            !string.Equals(
-                source.Package.Version.Value,
-                "10.0.10",
-                StringComparison.Ordinal))
+        var descriptor = source.ProviderRevision is null
+            ? null
+            : providerCatalog.Resolve(source.ProviderRevision);
+        if (descriptor is null ||
+            descriptor.Kind != source.ProviderKind)
         {
             AddError(
                 diagnostics,
-                DotNetDiagnosticIds.InvalidShell,
-                "The built-in configuration provider requires its exact pinned Microsoft.Extensions package.",
+                DotNetDiagnosticIds.UnknownConfigurationProvider,
+                "The exact provider identity, revision, and finite kind must be registered.",
+                "/hosts/configurationSources/providerRevision");
+            return;
+        }
+
+        if (source.Package is null ||
+            source.Package != descriptor.Package)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.ConfigurationProviderPackageMismatch,
+                "The configuration provider package must match the exact registered package closure.",
                 "/hosts/configurationSources/package");
         }
 
@@ -838,6 +856,74 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 DotNetDiagnosticIds.InvalidShell,
                 "Only the environment-variable provider accepts a prefix.",
                 "/hosts/configurationSources/prefix");
+        }
+
+        var valuesRequired =
+            source.ProviderKind is DotNetConfigurationProviderKind.InMemory or
+                DotNetConfigurationProviderKind.ChainedConfiguration;
+        if (source.InitialValues.IsDefault ||
+            (valuesRequired && source.InitialValues.IsEmpty) ||
+            (!valuesRequired && !source.InitialValues.IsEmpty))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidShell,
+                "Only in-memory and chained providers require explicit initialized values.",
+                "/hosts/configurationSources/initialValues");
+        }
+        else if (valuesRequired &&
+                 (source.InitialValues.Any(static value =>
+                      value is null ||
+                      string.IsNullOrWhiteSpace(value.Key) ||
+                      value.Classification !=
+                      DotNetConfigurationValueClassification.Public) ||
+                  source.InitialValues.Select(static value => value.Key)
+                      .Distinct(StringComparer.Ordinal)
+                      .Count() != source.InitialValues.Length))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidShell,
+                "Generated in-memory values must have unique keys and public classification.",
+                "/hosts/configurationSources/initialValues");
+        }
+
+        var userSecretsRequired =
+            source.ProviderKind == DotNetConfigurationProviderKind.UserSecrets;
+        if (userSecretsRequired == string.IsNullOrWhiteSpace(source.UserSecretsId) ||
+            (source.UserSecretsId is not null &&
+             !Regex.IsMatch(
+                 source.UserSecretsId,
+                 "^[A-Za-z0-9._-]+$",
+                 RegexOptions.CultureInvariant)))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidShell,
+                "Only the user-secrets provider requires a normalized explicit user-secrets ID.",
+                "/hosts/configurationSources/userSecretsId");
+        }
+
+        if (descriptor.DevelopmentOnly &&
+            (!source.Optional ||
+             source.SecretClassification !=
+             DotNetConfigurationSecretClassification.ProviderOwned))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidShell,
+                "Development-only providers must be optional and provider-owned.",
+                "/hosts/configurationSources");
+        }
+
+        if (!descriptor.AllowedSecretClassifications.Contains(
+                source.SecretClassification))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidShell,
+                "The provider does not allow the selected secret classification.",
+                "/hosts/configurationSources/secretClassification");
         }
 
         if (source.Optional !=
@@ -880,13 +966,13 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 "/hosts/configurationSources/reload");
         }
 
-        if (source.ProviderKind != DotNetConfigurationProviderKind.JsonFile &&
-            source.Reload.Capability == DotNetConfigurationReloadCapability.ChangeToken)
+        if (!descriptor.SupportedReloadCapabilities.Contains(
+                source.Reload.Capability))
         {
             AddError(
                 diagnostics,
-                DotNetDiagnosticIds.InvalidShell,
-                "The W020 built-in provider profile supports change-token reload only for JSON files.",
+                DotNetDiagnosticIds.UnsupportedProviderReload,
+                "The exact provider revision cannot satisfy the selected reload capability.",
                 "/hosts/configurationSources/reload/capability");
         }
 
@@ -915,6 +1001,27 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 "/hosts/configurationSources/reload");
         }
     }
+
+    private static string ProviderSelectionKey(
+        DotNetConfigurationSource source) =>
+        string.Join(
+            "\u001f",
+            source.ProviderRevision?.Identity.Value ?? string.Empty,
+            source.ProviderRevision?.Version.Value ?? string.Empty,
+            source.ProviderRevision?.Digest.Value ?? string.Empty,
+            source.Path ?? string.Empty,
+            source.Prefix ?? string.Empty,
+            source.UserSecretsId ?? string.Empty,
+            string.Join(
+                "\u001e",
+                (source.InitialValues.IsDefault
+                    ? []
+                    : source.InitialValues)
+                    .OrderBy(static value => value.Key, StringComparer.Ordinal)
+                    .Select(static value => string.Concat(
+                        value.Key,
+                        "=",
+                        value.Value))));
 
     private void ValidateConfigurationDefinition(
         DotNetConfigurationDefinition definition,

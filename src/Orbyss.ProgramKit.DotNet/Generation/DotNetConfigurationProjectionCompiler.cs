@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Orbyss.ProgramKit.DotNet.Configuration;
+using Orbyss.ProgramKit.DotNet.Generation.ConfigurationProviders;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
 
@@ -11,6 +12,16 @@ namespace Orbyss.ProgramKit.DotNet.Generation;
 public sealed class DotNetConfigurationProjectionCompiler :
     IDotNetConfigurationProjectionCompiler
 {
+    private readonly IDotNetConfigurationProviderGeneratorRegistry providerGenerators;
+
+    /// <summary>Initializes the compiler with an explicit exact provider registry.</summary>
+    public DotNetConfigurationProjectionCompiler(
+        IDotNetConfigurationProviderGeneratorRegistry providerGenerators)
+    {
+        this.providerGenerators = providerGenerators ??
+            throw new ArgumentNullException(nameof(providerGenerators));
+    }
+
     /// <inheritdoc />
     public ImmutableArray<GeneratedOutput> Compile(DotNetHostDefinition host)
     {
@@ -207,7 +218,7 @@ public sealed class DotNetConfigurationProjectionCompiler :
         return builder.ToString();
     }
 
-    private static void RenderProviderRegistration(
+    private void RenderProviderRegistration(
         StringBuilder builder,
         DotNetConfigurationSource source)
     {
@@ -217,41 +228,9 @@ public sealed class DotNetConfigurationProjectionCompiler :
                 "PKNET007 Explicit-refresh providers require a later approved provider adapter.");
         }
 
-        switch (source.ProviderKind)
-        {
-            case DotNetConfigurationProviderKind.JsonFile:
-                builder
-                    .Append("builder.Configuration.AddJsonFile(")
-                    .Append(DotNetSourceText.CSharpLiteral(source.Path!))
-                    .Append(", optional: ")
-                    .Append(source.Optional ? "true" : "false")
-                    .Append(", reloadOnChange: ")
-                    .Append(source.Reload.Enabled ? "true" : "false")
-                    .AppendLine(");");
-                break;
-            case DotNetConfigurationProviderKind.EnvironmentVariables:
-                builder
-                    .Append("builder.Configuration.AddEnvironmentVariables(")
-                    .Append(source.Prefix is null
-                        ? string.Empty
-                        : DotNetSourceText.CSharpLiteral(source.Prefix))
-                    .AppendLine(");");
-                break;
-            case DotNetConfigurationProviderKind.CommandLine:
-                builder.AppendLine("builder.Configuration.AddCommandLine(args);");
-                break;
-            case DotNetConfigurationProviderKind.KeyPerFile:
-                builder
-                    .Append("builder.Configuration.AddKeyPerFile(")
-                    .Append(DotNetSourceText.CSharpLiteral(source.Path!))
-                    .Append(", optional: ")
-                    .Append(source.Optional ? "true" : "false")
-                    .AppendLine(");");
-                break;
-            default:
-                throw new NotSupportedException(
-                    "PKNET007 The requested configuration provider target is unsupported.");
-        }
+        builder.Append(
+            providerGenerators.Resolve(source.ProviderRevision)
+                .RenderRegistration(source));
     }
 
     private static string RenderOptions(DotNetConfigurationDefinition definition)
@@ -812,7 +791,7 @@ public sealed class DotNetConfigurationProjectionCompiler :
         return RenderStringArray("paths", paths);
     }
 
-    private static string RenderProviderBindings(
+    private string RenderProviderBindings(
         ImmutableArray<DotNetConfigurationSource> sources)
     {
         var builder = new StringBuilder();
@@ -822,6 +801,10 @@ public sealed class DotNetConfigurationProjectionCompiler :
         for (var index = 0; index < sources.Length; index++)
         {
             var source = sources[index];
+            var descriptor = providerGenerators.Catalog.Resolve(
+                source.ProviderRevision) ??
+                throw new NotSupportedException(
+                    "PKNET008 The exact configuration provider descriptor is not registered.");
             builder
                 .Append("    {\"identity\": ")
                 .Append(DotNetSourceText.JsonLiteral(source.Identity.Value))
@@ -873,6 +856,34 @@ public sealed class DotNetConfigurationProjectionCompiler :
                         source.Reload.RefreshRevision.Version.Value,
                         "#",
                         source.Reload.RefreshRevision.Digest.Value)))
+                .Append(", \"generatorRevision\": ")
+                .Append(DotNetSourceText.JsonLiteral(string.Concat(
+                    descriptor.GeneratorRevision.Identity.Value,
+                    "@",
+                    descriptor.GeneratorRevision.Version.Value,
+                    "#",
+                    descriptor.GeneratorRevision.Digest.Value)))
+                .Append(", \"reloadMechanism\": ")
+                .Append(DotNetSourceText.JsonLiteral(
+                    EnumText(descriptor.ReloadMechanism)))
+                .Append(", \"developmentOnly\": ")
+                .Append(descriptor.DevelopmentOnly ? "true" : "false")
+                .Append(", \"initialValueKeys\": [")
+                .Append(string.Join(
+                    ", ",
+                    source.InitialValues
+                        .OrderBy(static value => value.Key, StringComparer.Ordinal)
+                        .Select(static value =>
+                            DotNetSourceText.JsonLiteral(value.Key))))
+                .Append(']')
+                .Append(", \"userSecretsIdPresent\": ")
+                .Append(source.UserSecretsId is null ? "false" : "true")
+                .Append(", \"limitations\": [")
+                .Append(string.Join(
+                    ", ",
+                    descriptor.Limitations.Select(static limitation =>
+                        DotNetSourceText.JsonLiteral(limitation))))
+                .Append(']')
                 .Append(", \"secretClassification\": ")
                 .Append(DotNetSourceText.JsonLiteral(EnumText(source.SecretClassification)))
                 .Append(", \"failureDisposition\": ")

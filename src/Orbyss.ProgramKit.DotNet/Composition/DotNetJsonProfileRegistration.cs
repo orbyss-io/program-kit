@@ -45,6 +45,7 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetHealthEndpointKind>(),
             CreateEnumConverter<DotNetConfigurationProviderKind>(),
             CreateEnumConverter<DotNetConfigurationReloadCapability>(),
+            CreateEnumConverter<DotNetConfigurationReloadMechanism>(),
             CreateEnumConverter<DotNetConfigurationStartupDisposition>(),
             CreateEnumConverter<DotNetConfigurationSecretClassification>(),
             CreateEnumConverter<DotNetConfigurationFailureDisposition>(),

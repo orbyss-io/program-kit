@@ -5,10 +5,11 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
 {
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("3.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("4.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
+    private static readonly SemanticVersion SchemaVersionV4 = new("4.0.0");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:dotnet");
     private static readonly ArtifactProvenance Provenance =
@@ -57,6 +58,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w020-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance ProviderCatalogProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w030-approved-review-set-1-3-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -94,6 +111,20 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "6f3d60cee34c8baf00f27940790a1220676b452f8bf027eeaafdf8c5ab83d60e",
             SchemaVersionV3,
             ConfigurationProvenance),
+        Create(
+            "dotnet-shell",
+            "dotnet-shell-4.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/4.0.0/dotnet-shell.schema.json",
+            "689fd7bfec2e545f91a17eeab73f649fc3e09ff2d51af45868ffc9324665a9e0",
+            SchemaVersionV4,
+            ProviderCatalogProvenance),
+        Create(
+            "dotnet-configuration-provider-catalog",
+            "dotnet-configuration-provider-catalog.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/configuration-provider-catalog/1.0.0/schema.json",
+            "c557c6b4057da0fb83c99b0d8b9cf4fc1813139f5692f5b1b86aea770d345215",
+            SchemaVersionV1,
+            ProviderCatalogProvenance),
         Create(
             "open-console",
             "open-console.schema.json",
@@ -223,6 +254,15 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:518c2c4d061a1407e205d6961689574e1e9139be9a68ba8fdab66ddbc9893565")),
+                ],
+                _ when version == SchemaVersionV4 =>
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-configuration-v3-to-v4"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:052453c42eea7e74533c94d3582cda5e2dec093a9fcae18c04a5f84c13c74ccd")),
                 ],
                 _ => [],
             });

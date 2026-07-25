@@ -19,9 +19,12 @@ public sealed class GeneratedHostArtifactTests
     {
         var shell = ObservatoryDotNetContractFactory.CreateShell();
         var shellRevision = ObservatoryDotNetContractFactory.ShellRevision();
+        DotNetConfigurationProviderComposition providerComposition =
+            new DotNetConfigurationProviderComposition();
         var shellValidator = new DotNetShellValidator(
             new ArtifactReferenceValidator(),
-            new OperationContractDescriptorValidator());
+            new OperationContractDescriptorValidator(),
+            providerComposition.CreateBuiltInCatalog());
         var lockBuilder = new DotNetShellLockBuilder(shellValidator);
         var shellLock = lockBuilder.Build(shell, shellRevision);
         var documentValidator = new DotNetIntegratorDocumentValidator();
@@ -106,13 +109,17 @@ public sealed class GeneratedHostArtifactTests
         var documentWriter = new DotNetDocumentWriter(
             openApiWriter,
             serializer);
+        DotNetConfigurationProviderComposition providerComposition =
+            new DotNetConfigurationProviderComposition();
         return new DotNetHostGenerationCoordinator(
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
-                new OperationContractDescriptorValidator()),
+                new OperationContractDescriptorValidator(),
+                providerComposition.CreateBuiltInCatalog()),
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(
-                new DotNetConfigurationProjectionCompiler()),
+                new DotNetConfigurationProjectionCompiler(
+                    providerComposition.CreateBuiltInRegistry())),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

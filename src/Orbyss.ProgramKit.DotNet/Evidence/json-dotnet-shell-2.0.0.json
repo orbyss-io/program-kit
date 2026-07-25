@@ -20,6 +20,7 @@
     "wireTypes": [
       "Orbyss.ProgramKit.DotNet.Inputs.DotNetArtifactInputManifest",
       "Orbyss.ProgramKit.DotNet.Shells.DotNetShellDocument",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationProviderCatalogDocument",
       "Orbyss.ProgramKit.DotNet.Locks.DotNetShellLockDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Api.OpenApiDocumentProjection",
       "Orbyss.ProgramKit.DotNet.Documentation.Console.OpenConsoleDocument",
@@ -43,6 +44,7 @@
       "Orbyss.ProgramKit.DotNet.Health.DotNetHealthEndpointKind",
       "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationProviderKind",
       "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationReloadCapability",
+      "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationReloadMechanism",
       "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationStartupDisposition",
       "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationSecretClassification",
       "Orbyss.ProgramKit.DotNet.Configuration.DotNetConfigurationFailureDisposition",

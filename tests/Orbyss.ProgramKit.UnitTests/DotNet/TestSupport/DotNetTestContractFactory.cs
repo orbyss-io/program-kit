@@ -7,6 +7,8 @@ using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Configuration;
+using Orbyss.ProgramKit.DotNet.Composition;
+using Orbyss.ProgramKit.DotNet.Generation.ConfigurationProviders;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
@@ -101,16 +103,16 @@ internal static class DotNetTestContractFactory
             new DotNetHealthDocumentationSelection(
                 DotNetHealthDocumentationDisposition.Excluded,
                 null));
+        var jsonProvider = Provider(DotNetConfigurationProviderKind.JsonFile);
         var configurationSource = new DotNetConfigurationSource(
             Id("configuration-source", "appsettings"),
             0,
             DotNetConfigurationProviderKind.JsonFile,
-            Ref("provider", "json-configuration", '7'),
-            Package(
-                "Microsoft.Extensions.Configuration.Json",
-                "10.0.10",
-                'd'),
+            jsonProvider.ProviderRevision,
+            jsonProvider.Package,
             "appsettings.json",
+            null,
+            [],
             null,
             false,
             DotNetConfigurationStartupDisposition.Required,
@@ -166,7 +168,6 @@ internal static class DotNetTestContractFactory
             [
                 Package("CShells", "0.0.28", '8'),
                 Package("CShells.AspNetCore", "0.0.28", '9'),
-                Package("Microsoft.Extensions.Configuration.Json", "10.0.10", 'd'),
                 Package("Microsoft.Extensions.Configuration.Binder", "10.0.10", 'c'),
                 Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
                 Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
@@ -186,7 +187,6 @@ internal static class DotNetTestContractFactory
             [
                 Package("CShells", "0.0.28", '8'),
                 Package("Microsoft.Extensions.Hosting", "10.0.10", 'a'),
-                Package("Microsoft.Extensions.Configuration.Json", "10.0.10", 'd'),
                 Package("Microsoft.Extensions.Configuration.Binder", "10.0.10", 'c'),
                 Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
                 Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
@@ -204,7 +204,6 @@ internal static class DotNetTestContractFactory
             [
                 Package("CShells", "0.0.28", '8'),
                 Package("Microsoft.Extensions.Hosting", "10.0.10", 'a'),
-                Package("Microsoft.Extensions.Configuration.Json", "10.0.10", 'd'),
                 Package("Microsoft.Extensions.Configuration.Binder", "10.0.10", 'c'),
                 Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
                 Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
@@ -215,8 +214,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@3.0.0",
-            new SemanticVersion("3.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@4.0.0",
+            new SemanticVersion("4.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -328,6 +327,23 @@ internal static class DotNetTestContractFactory
             new OpenConsoleCompletion("complete", true, true),
             Compatibility(),
             Provenance(host, operation));
+    }
+
+    internal static DotNetConfigurationProviderDescriptor Provider(
+        DotNetConfigurationProviderKind kind) =>
+        ProviderCatalog().Providers.Single(
+            descriptor => descriptor.Kind == kind);
+
+    internal static IDotNetConfigurationProviderCatalog ProviderCatalog()
+    {
+        DotNetConfigurationProviderComposition composition = new();
+        return composition.CreateBuiltInCatalog();
+    }
+
+    internal static IDotNetConfigurationProviderGeneratorRegistry ProviderRegistry()
+    {
+        DotNetConfigurationProviderComposition composition = new();
+        return composition.CreateBuiltInRegistry();
     }
 
     internal static OpenWorkerDocument WorkerDocument(

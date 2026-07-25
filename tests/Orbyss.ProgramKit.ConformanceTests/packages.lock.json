@@ -358,6 +358,8 @@
       "Orbyss.ProgramKit.ConfigurationConsumerFixture": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Extensions.Configuration.Json": "[10.0.10, 10.0.10]",
+          "Microsoft.Extensions.Configuration.KeyPerFile": "[10.0.10, 10.0.10]",
           "Microsoft.Extensions.DependencyInjection": "[10.0.10, 10.0.10]",
           "Microsoft.Extensions.Hosting": "[10.0.10, 10.0.10]",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.10, 10.0.10]",
@@ -539,6 +541,16 @@
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.10",
           "Microsoft.Extensions.Configuration.FileExtensions": "10.0.10",
           "Microsoft.Extensions.FileProviders.Abstractions": "10.0.10"
+        }
+      },
+      "Microsoft.Extensions.Configuration.KeyPerFile": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.10, 10.0.10]",
+        "resolved": "10.0.10",
+        "contentHash": "wNtz8bL7KLaoU/rXLwNqlgIG8ftRt/fTRM6LnfQkP7Lo/5RNUkypL4TNt/8+Ch5z3xJGsiIfH1Vh22WGVprtdA==",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "10.0.10",
+          "Microsoft.Extensions.FileProviders.Physical": "10.0.10"
         }
       },
       "Microsoft.Extensions.DependencyInjection": {
