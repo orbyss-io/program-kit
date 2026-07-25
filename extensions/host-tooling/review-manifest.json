@@ -2,7 +2,7 @@
   "manifestKind": "program-kit-design-review",
   "manifestVersion": "1.0.0",
   "reviewSetId": "pkid:approval:program-kit:host-tooling-review-set",
-  "reviewSetVersion": "1.0.0",
+  "reviewSetVersion": "1.1.0",
   "owner": "human-led-program-kit-extension",
   "reviewState": "awaiting-human-approval",
   "implementationStatus": "not-started",
@@ -18,42 +18,42 @@
   "artifacts": [
     {
       "artifactId": "pkid:intent:program-kit:host-tooling",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "1.1.0",
       "role": "human-intent-record",
       "path": "program-kit/extensions/host-tooling/design-intent.md",
-      "sha256": "4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+      "sha256": "9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
     },
     {
       "artifactId": "pkid:design:program-kit:host-tooling",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "1.1.0",
       "role": "canonical-design",
       "contract": "pkid:schema:program-kit:architecture-design",
       "contractVersion": "1.0.0",
       "contractSha256": "19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2",
       "path": "program-kit/extensions/host-tooling/architecture-design.json",
-      "sha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632"
+      "sha256": "6ab70a7950d9397fd89ff3bf16492a494f7102a6ec57e11fffbc2f480996227d"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:host-tooling-design-markdown",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "1.1.0",
       "role": "human-readable-design-projection",
       "canonicalDesignId": "pkid:design:program-kit:host-tooling",
-      "canonicalDesignVersion": "1.0.0",
-      "canonicalDesignSha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632",
+      "canonicalDesignVersion": "1.1.0",
+      "canonicalDesignSha256": "6ab70a7950d9397fd89ff3bf16492a494f7102a6ec57e11fffbc2f480996227d",
       "path": "program-kit/extensions/host-tooling/architecture-design.md",
-      "sha256": "d223531154c53878897efb6dd0c806a660fdc3164d36ca79424ac5fe183ebd52"
+      "sha256": "53eef2b35b1de7ea404fa7ac78e26ab4db551f10652ef9d7264562c119225336"
     },
     {
       "artifactId": "pkid:plan:program-kit:host-tooling",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "1.1.0",
       "role": "implementation-plan-review-representation",
       "intendedContract": "pkid:schema:program-kit:implementation-plan",
       "intendedContractVersion": "1.0.0",
       "designId": "pkid:design:program-kit:host-tooling",
-      "designVersion": "1.0.0",
-      "designSha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632",
+      "designVersion": "1.1.0",
+      "designSha256": "6ab70a7950d9397fd89ff3bf16492a494f7102a6ec57e11fffbc2f480996227d",
       "path": "program-kit/extensions/host-tooling/implementation-plan.md",
-      "sha256": "b4255f3821541ce96012a3cc0415ab262fffff5e74c36f1f09e80cc57403c2e5"
+      "sha256": "36b72d81e1b105ad05246395f14375348cafeef5314999b59e7f369d1cf5db88"
     }
   ],
   "approvalBoundary": {
@@ -67,6 +67,9 @@
       "production Keycloak provisioning, backup, migration, or administration",
       "a custom general-purpose OpenAPI client generator",
       "opaque-token introspection, dynamic client registration, provider discovery, or automatic issuer selection",
+      "application or consumer-domain observability meaning, a business-event or security-audit ledger, compliance evidence, telemetry backend, collector, dashboard, alert, retention, or incident policy",
+      "automatic telemetry emission from Program Kit generation, validation, design, or development-session tools",
+      "a base semantic dependency on Serilog, NLog, Application Insights, Seq, Grafana, Prometheus, or another vendor product",
       "credentials, network discovery, cloud mutation, deployment, publication, or release activity",
       "a material deviation from the reviewed design or plan"
     ]
@@ -80,9 +83,23 @@
   },
   "provenance": {
     "createdDate": "2026-07-25",
+    "revisedDate": "2026-07-25",
     "sourceCommit": "c0d774e7d3d95b7c695b75798df695d68f041efa",
     "branch": "codex/program-kit-host-tooling",
     "source": "human-started Program Kit extension design",
-    "details": "The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. No runtime implementation or approval record was created."
+    "details": "Version 1.1.0 adds the explicitly aligned diagnostics and observability scope, including exact OpenTelemetry specification and semantic-convention selection. The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. No runtime implementation or approval record was created."
+  },
+  "supersedes": {
+    "reviewSetVersion": "1.0.0",
+    "commit": "829037c",
+    "design": {
+      "artifactVersion": "1.0.0",
+      "sha256": "df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632"
+    },
+    "plan": {
+      "artifactVersion": "1.0.0",
+      "sha256": "b4255f3821541ce96012a3cc0415ab262fffff5e74c36f1f09e80cc57403c2e5"
+    },
+    "reason": "The human added and explicitly aligned the previously omitted diagnostics and observability capability before approving implementation."
   }
 }

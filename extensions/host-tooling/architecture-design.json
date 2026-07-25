@@ -1,10 +1,11 @@
 {
   "title": "Program Kit deterministic host-tooling extensions",
-  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, typed .NET configuration and Options generation, standards-profiled ASP.NET Core security, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
+  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, typed .NET configuration and Options generation, structured diagnostics and observability, standards-profiled ASP.NET Core security, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
   "scope": [
     "A compact Orbyss.ProgramKit.Operations contract package that becomes the one canonical source for operation identity and host projections.",
     "Explicit ordered .NET configuration-source composition, typed Options binding, startup validation, provider reload capabilities, and consumer-selected IOptions, IOptionsSnapshot, or IOptionsMonitor semantics.",
     "Built-in .NET configuration provider profiles plus an explicitly registered custom-provider generation ABI.",
+    "Structured .NET logging, tracing, metrics, correlation, transport telemetry, exception observation, and controlled provider/exporter composition through platform emission APIs and a pinned OpenTelemetry adapter.",
     "Optional Azure Key Vault and Azure App Configuration provider adapters with external credentials, bounded refresh, and secret-safe evidence.",
     "ASP.NET Core authentication and authorization host profiles for confidential interactive OpenID Connect clients and OAuth JWT resource servers.",
     "Deterministic external OpenAPI client generation through an exact pinned Kiota adapter.",
@@ -25,7 +26,11 @@
     "No production Keycloak provisioning, backup, migration, or administration.",
     "No generated arbitrary configuration-provider behavior from an unconstrained type name or script.",
     "No guarantee that a changed configuration value can recompose middleware, dependency injection, listeners, serialization profiles, database providers, or other restart-required host topology.",
-    "No silent last-known-good guarantee beyond the exact .NET Options behavior selected and proven by fixtures; a stronger runtime controller requires a separate approved design."
+    "No silent last-known-good guarantee beyond the exact .NET Options behavior selected and proven by fixtures; a stronger runtime controller requires a separate approved design.",
+    "No application or consumer-domain observability meaning, business event catalog, security audit ledger, compliance record, incident policy, alert rule, dashboard, retention policy, telemetry backend, collector, or storage service.",
+    "No request or response body, authorization header, token, cookie, claim payload, configuration value, secret, personal value, raw exception payload, or unbounded metric attribute is captured by default.",
+    "No assumption that every OpenTelemetry semantic-convention group is stable or that an SDK's current default convention is a durable Program Kit contract.",
+    "No automatic telemetry emission from Program Kit generation, validation, design, or development-session tools."
   ],
   "assumptions": [
     "The approved Program Kit baseline at version 0.3.0 remains authoritative except where this extension is later approved as an explicit compatible or breaking revision.",
@@ -40,6 +45,12 @@
     "IOptionsSnapshot is scoped and provides one consistent value per scope; IOptionsMonitor is singleton-capable and provides current values and change notification. Neither can safely recompose arbitrary host topology.",
     "Required and security-critical options validate on start. Live reload is opt-in per binding and fails closed when the provider cannot satisfy the declared reload capability.",
     "Source-generated configuration binding and Options validation are preferred where the owned options type and selected .NET profile support them.",
+    ".NET libraries emit provider-neutral diagnostics through ILogger, ActivitySource, and Meter; generated application hosts own collection, filtering, sampling, processing, and export selection.",
+    "OpenTelemetry is an optional provider adapter over .NET platform emission APIs and never becomes the semantic owner of Program Kit operation or transport observations.",
+    "The OpenTelemetry specification, semantic-convention revision, .NET SDK packages, instrumentation packages, exporters, and stability opt-ins are exact independent selections.",
+    "W3C Trace Context is the initial distributed-correlation profile; baggage is untrusted transport metadata and cannot establish identity, authorization, or unrestricted telemetry attributes.",
+    "Framework and selected OpenTelemetry instrumentation are preferred for ASP.NET Core and HttpClient; custom middleware adds only missing Program Kit-owned correlation and bounded operation attributes and must not duplicate spans or logs.",
+    "Logging filters may support controlled configuration reload, but the OpenTelemetry provider, processor, instrumentation, and exporter graph is startup-fixed unless a selected revision explicitly proves safe reconfiguration.",
     "External OpenAPI documents are foreign contract inputs; Program Kit-owned OpenAPI remains a projection of owned operation contracts and never becomes a competing source of behavior.",
     "Aspire AppHost, Dev Container, FastEndpoints, Keycloak realm, and Kiota outputs are provider projections bound to exact canonical inputs and tool/provider versions."
   ],
@@ -50,8 +61,8 @@
       "ownerId": "pkid:domain:program-kit:toolkit",
       "source": {
         "identity": "pkid:intent:program-kit:host-tooling",
-        "version": "1.0.0",
-        "digest": "sha256:4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+        "version": "1.1.0",
+        "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
       },
       "sourcePath": "program-kit/extensions/host-tooling/design-intent.md",
       "governs": "The human-started scope, aligned ordering, explicit deferrals, protocol distinctions, and design authority boundary."
@@ -118,6 +129,20 @@
           ]
         },
         {
+          "term": "Diagnostic signal",
+          "meaning": "A structured log, trace activity, metric measurement, or bounded event emitted for observation without becoming an authoritative business, security, audit, or compliance record.",
+          "acceptedAliases": [
+            "telemetry signal"
+          ]
+        },
+        {
+          "term": "Telemetry composition",
+          "meaning": "An explicit host selection of diagnostic sources, instrumentation, resource attributes, filters, sampling, processors, exporters, redaction, cardinality, shutdown, and failure behavior.",
+          "acceptedAliases": [
+            "observability composition"
+          ]
+        },
+        {
           "term": "Host projection",
           "meaning": "Generated source or configuration derived from canonical operation, composition, configuration, and provider selections; it is not a second semantic owner.",
           "acceptedAliases": []
@@ -145,6 +170,13 @@
       "meaning": "The typed binding from an owned .NET options type to one section and optional name with exact validation, startup, and reload disposition.",
       "termContractIds": [],
       "invariants": "Required bindings validate on start; named options are explicit; IOptionsSnapshot is never injected into singleton-generated infrastructure; live monitoring requires provider reload support; restart-required options cannot select live monitoring."
+    },
+    {
+      "identity": "pkid:model:program-kit:telemetry-composition",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The selected .NET logging, tracing, metrics, correlation, instrumentation, sampling, processing, exporter, redaction, cardinality, failure, and shutdown mechanics for one generated host.",
+      "termContractIds": [],
+      "invariants": "Libraries emit only through reviewed platform APIs; host collection and export are explicit; source and instrument names are stable and versioned; semantic-convention revisions and stability opt-ins are exact; metric dimensions are bounded; sensitive values are excluded by default; diagnostic signals never grant authority or become durable audit truth; telemetry failure does not silently change application outcomes."
     },
     {
       "identity": "pkid:model:program-kit:transport-security-profile",
@@ -182,6 +214,16 @@
       "consumesContractIds": [],
       "isActivatable": false,
       "compatibilityBoundary": "DotNet shell configuration and Options wire/source-generation behavior."
+    },
+    {
+      "identity": "pkid:component:program-kit:dotnet-observability-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Extension of Orbyss.ProgramKit.DotNet generating ILogger categories and source-generated messages, ActivitySource and Meter declarations, W3C correlation, ASP.NET Core and HttpClient instrumentation, exception observation, safe HTTP diagnostic profiles, and exact OpenTelemetry collection/export composition.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Generated .NET diagnostic signal, middleware, instrumentation, resource, sampling, redaction, provider, processor, exporter, and shutdown behavior."
     },
     {
       "identity": "pkid:component:program-kit:azure-key-vault-configuration",
@@ -332,6 +374,22 @@
       "rationale": "Transport authentication and host authorization mechanics cannot establish consumer-domain identity or permission conclusions."
     },
     {
+      "identity": "pkid:reference-rule:program-kit:no-observability-authority",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit diagnostics, logging, tracing, metrics, transport instrumentation, OpenTelemetry, exporter, and host-generation components",
+      "referencedScope": "Consumer-domain business-event meaning, security audit truth, compliance evidence, authorization conclusions, incident response policy, alerting policy, retention policy, or telemetry-backend ownership",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:host-tooling",
+          "version": "1.1.0",
+          "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
+        },
+        "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
+      },
+      "rationale": "Diagnostic signals are non-authoritative observations whose collection and loss characteristics cannot establish domain, security, audit, or compliance truth."
+    },
+    {
       "identity": "pkid:reference-rule:program-kit:no-ambient-generation",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "disposition": "forbidden",
@@ -340,8 +398,8 @@
       "ownerInput": {
         "artifact": {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.0.0",
-          "digest": "sha256:4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+          "version": "1.1.0",
+          "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
         },
         "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
       },
@@ -587,13 +645,19 @@
     },
     "observability": {
       "ownerId": "pkid:domain:program-kit:toolkit",
-      "policy": "Generation and runtime integration expose stable diagnostics, correlation, provider/profile identity, reload outcome, and redacted evidence.",
+      "policy": "Generated hosts expose stable structured logs, traces, metrics, W3C correlation, provider/profile identity, reload outcome, and redacted evidence through exact platform and provider selections without making telemetry authoritative.",
       "guarantees": [
         "Evidence records identities, versions, digests, timings or sequence where relevant, and success/failure classification without values classified as secret.",
-        "Fixtures observe provider substitution, reload notification, scoped consistency, token rejection, and generated-output determinism."
+        "ILogger categories and event IDs, ActivitySource names and versions, Meter names, instruments, units, and bounded attributes are stable reviewed contracts.",
+        "OpenTelemetry specification, semantic-convention, SDK, instrumentation, exporter, and stability opt-in revisions are selected independently and exactly.",
+        "Framework instrumentation is preferred for ASP.NET Core and HttpClient, and fixtures reject duplicate transport spans or logs.",
+        "Sampling, filtering, batching, exporter outage, bounded flush, telemetry drop, sensitive-data exclusion, and metric-cardinality behavior are explicit.",
+        "Fixtures observe provider substitution, reload notification, scoped consistency, token rejection, cross-transport correlation, telemetry redaction, and generated-output determinism."
       ],
       "exclusions": [
-        "No token, claim payload, configuration value, secret name-value pair, personal data, or raw provider response is logged by default."
+        "No token, authorization material, cookie, claim payload, configuration value, secret name-value pair, personal data, request or response body, raw exception payload, raw provider response, or unbounded attribute is recorded by default.",
+        "No diagnostic signal is a business event ledger, security audit record, compliance record, authorization decision, or guaranteed delivery channel.",
+        "No telemetry backend, collector, dashboard, alert, retention rule, or incident policy is owned by Program Kit."
       ]
     },
     "compatibility": {
@@ -610,6 +674,28 @@
     }
   },
   "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:correlated-transport-telemetry",
+      "actor": "Generated .NET host",
+      "intent": "Emit safe correlated logs, traces, and metrics for inbound transport, owned operation dispatch, outbound HTTP, and failures through an exact host-selected OpenTelemetry composition.",
+      "preconditions": [
+        "Signal sources, instruments, resource identity, W3C propagation, filters, sampling, processors, exporter, redaction, cardinality, exception, shutdown, package, specification and semantic-convention revisions are explicit."
+      ],
+      "steps": [
+        "Generate stable ILogger categories and source-generated event methods, ActivitySource and Meter declarations, and host resource identity.",
+        "Register framework ASP.NET Core and HttpClient instrumentation once and add only missing bounded Program Kit operation observations.",
+        "Compose exact sampling, processing and exporter behavior after typed startup validation.",
+        "Exercise inbound-to-operation-to-outbound correlation, expected and unexpected failures, sampling, exporter outage, shutdown, redaction, bounded cardinality and duplicate-signal rejection."
+      ],
+      "outcomes": [
+        "Selected signals correlate through W3C trace context without becoming identity or authorization evidence.",
+        "Telemetry provider failure remains distinguishable and does not silently alter successful application behavior.",
+        "A different conforming exporter can replace OTLP without changing Program Kit signal ownership."
+      ],
+      "failureOutcomes": [
+        "Unstable or unpinned convention, duplicate instrumentation, sensitive field, unbounded attribute, invalid exporter configuration, blocking critical-path export, or unbounded shutdown fails validation or the fixture."
+      ]
+    },
     {
       "identity": "pkid:scenario:program-kit:validated-options-host",
       "actor": "Generated host composer",
@@ -765,8 +851,8 @@
       "evidence": [
         {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.0.0",
-          "digest": "sha256:4fb57e5750c02be77ebac333dc158ebc22fe28adb5d3039ee304b74a88364119"
+          "version": "1.1.0",
+          "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
         }
       ],
       "claim": "The extension design review set is being produced from explicit human intent; none of the described runtime packages, providers, profiles, generators, migrations, or fixtures is implemented or approved by this claim."

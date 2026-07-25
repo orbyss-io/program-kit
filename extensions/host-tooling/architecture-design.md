@@ -2,17 +2,18 @@
 
 - Canonical design: `architecture-design.json`
 - Design identity: `pkid:design:program-kit:host-tooling`
-- Design version: `1.0.0`
+- Design version: `1.1.0`
 - State: awaiting exact human approval; nothing in this design is implemented
 
 ## Outcome
 
 Program Kit will gain a deterministic, provider-neutral toolbox for generated
 .NET hosts. The toolbox owns universal construction mechanics: operation
-contracts, configuration composition, typed Options, standards-profiled
-transport security, client and host projections, exact provider selection,
-validation, and provenance. It does not own a consumer's identity,
-authorization, environment, deployment, or other domain meaning.
+contracts, configuration composition, typed Options, structured diagnostics
+and observability, standards-profiled transport security, client and host
+projections, exact provider selection, validation, and provenance. It does not
+own a consumer's identity, authorization, observability meaning, environment,
+deployment, or other domain meaning.
 
 The key security abstraction is an exact **protocol profile**, not an identity
 provider product:
@@ -34,7 +35,7 @@ products are automatically interchangeable.
 
 ## Approved-for-review scope
 
-The proposed extension contains ten bounded capability areas:
+The proposed extension contains eleven bounded capability areas:
 
 1. **Operations convergence** — introduce a compact
    `Orbyss.ProgramKit.Operations` contract package over Artifacts and migrate
@@ -49,21 +50,25 @@ The proposed extension contains ten bounded capability areas:
 4. **Azure configuration adapters** — optionally project Azure Key Vault and
    Azure App Configuration registration, credential references, refresh
    behavior, and secret-safe evidence.
-5. **ASP.NET Core security profiles** — generate authentication schemes,
+5. **Diagnostics and observability** — generate structured .NET logging,
+   tracing, metrics, W3C correlation, transport instrumentation, exception
+   observation, redaction/cardinality rules, and controlled collection/export
+   through exact platform APIs and a pinned OpenTelemetry adapter.
+6. **ASP.NET Core security profiles** — generate authentication schemes,
    middleware order, confidential interactive OIDC clients, JWT bearer
    resource servers, named host-policy attachment, and transport results.
-6. **Kiota client generation** — consume an exact local foreign OpenAPI
+7. **Kiota client generation** — consume an exact local foreign OpenAPI
    document through a pinned external Kiota adapter and retain the lock and
    provenance.
-7. **Aspire AppHost generation** — project explicit low-level application
+8. **Aspire AppHost generation** — project explicit low-level application
    composition into a pinned AppHost project without inventing environment or
    deployment semantics.
-8. **Dev Container generation** — generate and validate deterministic
+9. **Dev Container generation** — generate and validate deterministic
    `.devcontainer` artifacts from explicit inputs, without starting a
    container.
-9. **FastEndpoints projection** — optionally project the same operation and
+10. **FastEndpoints projection** — optionally project the same operation and
    ASP.NET Core security contracts through a pinned FastEndpoints adapter.
-10. **Keycloak local fixture** — generate a minimal secret-free realm import
+11. **Keycloak local fixture** — generate a minimal secret-free realm import
     and an Aspire-backed disposable local proof that Keycloak can satisfy the
     base OIDC/JWT profiles.
 
@@ -104,6 +109,49 @@ change, an invalid candidate, provider outage, precedence, scoped consistency,
 monitor behavior, restart-required values, and secret redaction. No stronger
 “last known good” guarantee is claimed unless a later runtime-controller design
 owns and proves it.
+
+## Diagnostics and observability semantics
+
+.NET libraries emit provider-neutral signals through the platform APIs:
+`ILogger`, `ActivitySource`/`Activity`, and `Meter`. Generated application hosts
+select collection, filtering, sampling, processing and export. OpenTelemetry is
+the preferred initial adapter over those APIs; it is not the semantic owner.
+
+The canonical telemetry composition declares:
+
+- stable logger categories, structured templates and event IDs, preferring
+  source-generated `LoggerMessage` methods;
+- stable, versioned `ActivitySource` and `Meter` names;
+- trace/span names and kinds, metric instrument types, units and bounded
+  attributes;
+- W3C Trace Context propagation, with baggage treated as untrusted metadata;
+- resource identity, instrumentation, filters, sampling, processors, exporters,
+  batching, failure, drop and bounded shutdown behavior;
+- redaction/classification rules and explicit metric-cardinality limits;
+- exact OpenTelemetry specification, semantic-convention, SDK,
+  instrumentation, exporter and stability-opt-in revisions.
+
+ASP.NET Core and `HttpClient` use framework/OpenTelemetry instrumentation where
+it provides the selected behavior. Custom middleware adds only missing,
+bounded Program Kit operation correlation and must not duplicate transport
+spans or logs.
+
+Exception handling remains behaviorally separate from telemetry. The generated
+pipeline can observe and classify an exception, but it changes an HTTP response
+only through an explicit transport failure contract. Consumer-domain error
+meaning remains consumer-owned.
+
+HTTP request/response logging is a separate restrictive diagnostic profile.
+Bodies, authorization headers, tokens, cookies, claims, configuration values,
+secrets, personal data, raw exceptions and unbounded attributes are excluded
+by default. Diagnostic telemetry may be sampled, dropped or unavailable and is
+never an authoritative business ledger, security audit, compliance record or
+authorization conclusion.
+
+Logging filters may use controlled configuration reload. The OpenTelemetry
+provider/instrumentation/processor/exporter graph is initially startup-fixed
+unless an exact selected revision proves safe reconfiguration. Export failure
+must be observable and bounded without silently changing application success.
 
 ## Security ownership boundary
 
@@ -158,7 +206,14 @@ This design does not authorize:
   or automatic issuer selection;
 - generation of arbitrary provider code from an unconstrained type name or
   script;
-- a guarantee that every configuration change can be applied without restart.
+- a guarantee that every configuration change can be applied without restart;
+- application/domain observability meaning, business event or audit catalogs,
+  telemetry backends, collectors, dashboards, alerts, retention or incident
+  policies;
+- automatic telemetry emission by Program Kit generation, design, validation
+  or development-session tooling;
+- Serilog, NLog, Application Insights, Seq, Grafana, Prometheus or another
+  vendor product as a base semantic dependency.
 
 ## Dependency direction
 
@@ -195,6 +250,8 @@ configuration composition + Options + reload
         |
 provider ABI and built-in provider profiles
         |
+diagnostics + logging + tracing + metrics + OpenTelemetry adapter
+        |
         +-- Azure Key Vault / Azure App Configuration
         +-- ASP.NET Core OIDC and JWT profiles
         +-- Kiota client adapter
@@ -217,6 +274,9 @@ Implementation is incomplete until all of the following are true:
 - all external selections are exact and lock-verified;
 - Options startup, snapshot, monitor, refresh, invalid-change, outage,
   precedence, and redaction fixtures pass;
+- logging, trace, metric, W3C correlation, sampling, exporter outage, bounded
+  flush, sensitive-data, cardinality and duplicate-instrumentation fixtures
+  pass;
 - OIDC and JWT positive and adversarial fixtures pass with protocol roles kept
   distinct;
 - Keycloak proves provider substitution but is not required by the base
@@ -248,6 +308,22 @@ selections; implementation must bind exact applicable revisions and digests.
 - .NET Options and ASP.NET Core Options guidance:
   <https://learn.microsoft.com/en-us/dotnet/core/extensions/options> and
   <https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-10.0>
+- .NET logging and library instrumentation guidance:
+  <https://learn.microsoft.com/en-us/dotnet/core/extensions/logging/overview>,
+  <https://learn.microsoft.com/en-us/dotnet/core/extensions/logging/source-generation>,
+  and
+  <https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-library-authors>
+- .NET diagnostics and OpenTelemetry guidance:
+  <https://learn.microsoft.com/en-us/dotnet/core/diagnostics/observability-with-otel>
+  and
+  <https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-instrumentation-walkthroughs>
+- ASP.NET Core HTTP logging:
+  <https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-logging/?view=aspnetcore-10.0>
+- OpenTelemetry specification and independently versioned semantic
+  conventions:
+  <https://opentelemetry.io/docs/specs/otel/>,
+  <https://opentelemetry.io/docs/specs/semconv/>, and
+  <https://opentelemetry.io/docs/specs/semconv/http/>
 - ASP.NET Core OIDC and JWT bearer guidance:
   <https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication?view=aspnetcore-10.0>
   and

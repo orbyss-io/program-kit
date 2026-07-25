@@ -4,7 +4,7 @@
 - State: human-started and scope-aligned; exact design and plan not yet approved
 - Repository scope: `program-kit/`
 - Design identity: `pkid:design:program-kit:host-tooling`
-- Intended design version: `1.0.0`
+- Intended design version: `1.1.0`
 
 ## Human intent
 
@@ -25,6 +25,10 @@ generated .NET hosts and explicitly aligned with the following direction:
 9. defer comprehensive direct Docker Compose modeling, automatic container or
    Dev Container execution, production Keycloak provisioning, and consumer-
    domain identity or authorization semantics.
+10. generate structured .NET logging, tracing, metrics, correlation, transport
+    telemetry, exception observation, and controlled provider/exporter
+    composition without owning application observability meaning or a
+    telemetry backend.
 
 The human also explicitly aligned with adding typed configuration, Options,
 validation, provider composition, and controlled reload generation before the
@@ -41,11 +45,35 @@ The requested configuration sequence is:
 6. fixtures for valid and invalid changes, provider outage, precedence, secret
    redaction, scoped consistency, and singleton monitoring.
 
+The human subsequently and explicitly aligned with adding diagnostics and
+observability as foundational host infrastructure before the security, client,
+Aspire, and endpoint projections that consume it. The aligned boundary is:
+
+- .NET libraries emit through `ILogger`, `ActivitySource`, and `Meter`;
+- generated hosts select collection, instrumentation, sampling, processors,
+  and exporters;
+- OpenTelemetry is the preferred provider-neutral adapter, not the semantic
+  owner;
+- exact OpenTelemetry specification and semantic-convention revisions are
+  pinned because convention groups have independent stability;
+- transport telemetry uses framework instrumentation wherever possible and
+  avoids duplicate request middleware;
+- request and response bodies, authorization material, tokens, cookies,
+  claims, configuration values, secrets, personal data, and unbounded metric
+  attributes are excluded by default;
+- diagnostic telemetry is never an authoritative audit, security, compliance,
+  or business record.
+
 The human's explicit alignment statements included:
 
 > “yes we fully 100% agree and align!”
 
 > “Let’s do this. We 100% align and agree!”
+
+For the diagnostics and observability addition, the human further stated:
+
+> “Amazing. Really amazing. I 100% align and agree with everything you
+> envisioned and recommended here.”
 
 ## Protocol understanding to preserve
 

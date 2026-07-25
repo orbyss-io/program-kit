@@ -1,12 +1,12 @@
 ---
 artifact-kind: implementation-plan
 artifact-id: pkid:plan:program-kit:host-tooling
-artifact-version: 1.0.0
+artifact-version: 1.1.0
 intended-contract: pkid:schema:program-kit:implementation-plan
 intended-contract-version: 1.0.0
 design-ref-id: pkid:design:program-kit:host-tooling
-design-ref-version: 1.0.0
-design-digest: sha256:df33ffc00dd296957a606862eca8119f596f64af1f78429127717d90fc974632
+design-ref-version: 1.1.0
+design-digest: sha256:6ab70a7950d9397fd89ff3bf16492a494f7102a6ec57e11fffbc2f480996227d
 review-state: awaiting-human-approval
 implementation-status: not-started
 ---
@@ -59,6 +59,8 @@ renewed human approval.
 | `PKHT-R016` | Every generator is deterministic, cancellation-aware, secret-safe, provenance-bound, and isolated by explicit output root. |
 | `PKHT-R017` | Direct comprehensive Compose modeling, automatic execution, production provisioning, and consumer-domain semantics remain absent. |
 | `PKHT-R018` | Version maps, migrations, generated consumers, package closure, fixtures, documentation, and independent review close the extension. |
+| `PKHT-R019` | Generated .NET libraries and hosts expose stable structured logging, tracing, metrics, W3C correlation, transport instrumentation, exception observation, redaction and bounded cardinality through platform emission APIs. |
+| `PKHT-R020` | Exact OpenTelemetry specification, semantic-convention, SDK, instrumentation, processor and exporter revisions compose collection and export without becoming signal owners or authoritative audit infrastructure. |
 
 ## 3. Exact starting inputs
 
@@ -72,7 +74,9 @@ The implementation starts only from:
   `sha256:ef94f62ecfa7c7afa092d82070c3652636d4b44b396e3e06dda1e279e816dd46`,
   used only for declared cross-boundaries and Operations convergence;
 - the repository-pinned .NET target profile and Program Kit dependency policy;
-- exact external standards and documentation enumerated in the design.
+- exact external standards and documentation enumerated in the design,
+  including independently selected OpenTelemetry specification and
+  semantic-convention revisions rather than ambient SDK defaults.
 
 No ambient package, SDK, image, executable, current-user credential, provider
 metadata, sibling repository, generated output, or machine cache is source
@@ -186,6 +190,74 @@ unsupported reload rejection; no reflection or assembly scanning.
 **Stop conditions:** stop for any provider requiring ambient discovery,
 arbitrary code execution, unbounded polling, or an unreviewed dependency.
 
+### `PKHT-W035` — .NET diagnostics and OpenTelemetry host composition
+
+**Requirements:** `R019`, `R020`, and parts of `R002`–`R004`, `R016`,
+`R017`.
+
+**Depends on:** `W020`, `W030`.
+
+**Allowed edits:** Operations observability contracts and migration,
+DotNet logging/telemetry schemas, models, validators and generation modules;
+exact .NET/OpenTelemetry specification, semantic-convention, source, license,
+package and closure evidence; ASP.NET Core/HttpClient instrumentation and
+exception-observation generation; deterministic test listeners/sinks,
+fixtures, documentation and version metadata.
+
+**Required outcomes:**
+
+1. Preserve product-neutral operation signal meaning in Operations while
+   DotNet owns the .NET emission and host-composition projection. Do not create
+   a competing telemetry semantic owner merely to isolate packages.
+2. Generate stable `ILogger<T>` categories, structured message templates and
+   event IDs, preferring compile-time `LoggerMessage` source generation.
+   Generate explicit scopes only for bounded correlation fields.
+3. Generate stable, versioned `ActivitySource` and `Meter` names; exact
+   activity names/kinds, metric instrument types/units and bounded attribute
+   catalogs; W3C Trace Context propagation; and explicit baggage allowlisting.
+4. Select the OpenTelemetry specification, semantic-convention revision,
+   stability opt-ins, .NET SDK, instrumentation packages, processors and
+   exporters independently and exactly. Record source, license, package and
+   dependency-closure evidence before selection.
+5. Compose resource identity, logging/tracing/metrics enablement, source and
+   instrumentation selection, filters, sampling, processors, batching,
+   exporter options, drop/failure policy and bounded shutdown through typed
+   startup-validated Options. Treat the provider graph as startup-fixed unless
+   the exact selection proves safe reload.
+6. Prefer ASP.NET Core and `HttpClient` framework/OpenTelemetry
+   instrumentation. Generate custom middleware only for missing bounded
+   Program Kit operation correlation, deterministic exception observation, or
+   exact transport classification; reject duplicate request spans and logs.
+7. Provide a restrictive HTTP diagnostic-logging profile. Request/response
+   bodies, authorization material, tokens, cookies, claims, configuration,
+   secrets, personal data, raw exceptions and unbounded attributes are
+   excluded by default and require no generic “log everything” escape hatch.
+8. Keep diagnostics non-authoritative. Telemetry may be sampled, dropped or
+   unavailable and cannot serve as a business ledger, security audit,
+   compliance record, authorization decision or guaranteed delivery channel.
+9. Provide exact provider registration rather than arbitrary provider type
+   names. The initial base is .NET platform APIs with safe Console/JSON
+   development logging, deterministic test listeners/sinks and a pinned OTLP
+   exporter; vendor products remain optional later adapters.
+10. Integrate Aspire only as an optional local collection/dashboard fixture.
+    Neither Aspire nor its dashboard owns the telemetry model.
+
+**Verification:** schema/model/JSON consistency; stable source/instrument/event
+catalogs; generated API/Console/Worker builds; structured log field and
+scope tests; inbound-operation-outbound W3C correlation; sampled and
+unsampled traces; metric instrument/unit/cardinality tests; exception and
+cancel classification; sensitive-data fuzzing; duplicate-instrumentation
+rejection; exporter outage/backpressure/drop behavior; bounded shutdown/flush;
+configuration filter reload versus startup-fixed provider graph; exact package
+and convention lock proof; no telemetry from Program Kit design/generation
+operations.
+
+**Stop conditions:** stop if a semantic-convention group is unstable without
+an explicit pinned opt-in and compatibility fixture; if telemetry can change
+application success silently; if an attribute is sensitive or unbounded; if
+verification requires a live vendor backend; if transport instrumentation is
+duplicated; or if diagnostic signals would acquire audit/domain authority.
+
 ### `PKHT-W040` — Azure configuration provider adapters
 
 **Requirements:** `R006`, part of `R004`, `R016`.
@@ -220,7 +292,7 @@ mutation, or if selected provider behavior contradicts the base reload model.
 
 **Requirements:** `R007`–`R010`, parts of `R003`, `R016`, `R017`.
 
-**Depends on:** `W020`, `W030`.
+**Depends on:** `W020`, `W030`, `W035`.
 
 **Allowed edits:** Operations/DotNet transport-security schemas and models,
 ASP.NET Core generator modules, exact framework/package evidence, generated
@@ -259,7 +331,7 @@ consumer-domain policy meaning would be required.
 
 **Requirements:** `R011`, `R016`, `R017`.
 
-**Depends on:** `W020`.
+**Depends on:** `W020`, `W035`.
 
 **Allowed edits:** foreign OpenAPI input descriptor, Kiota provider module,
 exact tool/package evidence, bounded process invocation, locks/provenance,
@@ -284,7 +356,7 @@ Kiota.
 
 **Requirements:** `R012`, `R016`, `R017`.
 
-**Depends on:** `W020`, `W030`.
+**Depends on:** `W020`, `W030`, `W035`.
 
 **Allowed edits:** low-level application-composition input, Aspire generator
 module, exact SDK/integration evidence, generated project fixtures, docs and
@@ -411,7 +483,7 @@ Parallel work is permitted only after the shared foundations land:
 
 | Phase | Work units |
 | --- | --- |
-| Foundation | `W010` → `W020` → `W030` |
+| Foundation | `W010` → `W020` → `W030` → `W035` |
 | Independent adapters | `W040`, `W050`, `W060`, `W070`, `W080` after their declared dependencies |
 | Dependent projections | `W090` after `W050`; `W100` after `W050` and `W070` |
 | Closure | `W110` after all selected units |
@@ -426,7 +498,7 @@ foundation unit.
 | Requirement | Owning work unit(s) |
 | --- | --- |
 | `R001` | `W010` |
-| `R002`–`R004` | `W020`, proven across `W030`, `W040`, `W050`, `W110` |
+| `R002`–`R004` | `W020`, proven across `W030`, `W035`, `W040`, `W050`, `W110` |
 | `R005` | `W030` |
 | `R006` | `W040` |
 | `R007`–`R010` | `W050`, parity in `W090`, substitution proof in `W100` |
@@ -438,6 +510,7 @@ foundation unit.
 | `R016` | every work unit; closure in `W110` |
 | `R017` | every work unit; boundary scan in `W110` |
 | `R018` | `W010` migration start and `W110` final closure |
+| `R019`–`R020` | `W035`, consumed by `W050`, `W060`, `W070`, `W090`, `W100`, and closed by `W110` |
 
 ## 7. Deliberately unimplemented
 
@@ -445,6 +518,9 @@ The plan contains no work unit for comprehensive Docker Compose semantics,
 automatic execution, production Keycloak administration, provider discovery,
 dynamic client registration, opaque-token introspection, custom OpenAPI
 generation, consumer-domain identity/authorization, deployment, or release.
+It also contains no telemetry backend, collector, dashboard, alert, retention
+policy, incident policy, business-event ledger, security audit system, or base
+dependency on Serilog, NLog, Application Insights, Seq, Grafana or Prometheus.
 Adding any of these requires a new human-started design.
 
 ## 8. Completion rule
