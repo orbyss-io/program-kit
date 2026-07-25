@@ -4,9 +4,17 @@
   "reviewSetId": "pkid:approval:program-kit:host-tooling-review-set",
   "reviewSetVersion": "1.3.0",
   "owner": "human-led-program-kit-extension",
-  "reviewState": "awaiting-human-approval",
+  "reviewState": "approved",
   "implementationStatus": "not-started",
-  "approvalRecord": null,
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:host-tooling-review-set-1-3-0",
+    "recordVersion": "1.0.0",
+    "contract": "pkid:schema:program-kit:design-plan-approval",
+    "contractVersion": "1.0.0",
+    "path": "program-kit/extensions/host-tooling/design-plan-approval.json",
+    "sha256": "7a8de3de9c3e50c581294aab7e6a3ee493612bded014e449af65ca3fbd02d594",
+    "authoritySourceSha256": "c25f57a2663ddbe2bffe361b9915128eeb734122765bddd89183be9f0a4777c7"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -84,6 +92,7 @@
     "jsonSyntax": "passed",
     "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:architecture-design@1.0.0",
     "architectureSemanticValidation": "passed through ArchitectureDesignValidator",
+    "approvalValidation": "passed: design-plan-approval@1.0.0 schema, DesignPlanApprovalRecordValidator semantics, exact design/plan digest binding, approved decision, empty conditions, and active supersession",
     "focusedArchitectureTests": "passed: the exact 1.3.0 host-tooling architecture JSON passed JsonSchemaWorkbenchValidator against the composite Program Kit schema set and ArchitectureDesignValidator through a temporary review-only test harness; the harness was removed after execution",
     "fullSuiteFinding": "The clean Orbyss.ProgramKit.UnitTests assembly passed 293 of 293 tests after the temporary exact-design harness was removed. A prior bounded full-solution run exceeded 120 seconds and a no-restore attempt stopped at existing PKCS174 raw-reference import validation; no gate was weakened, and broader solution closure remains implementation evidence.",
     "reviewBinding": "all artifact digests and the plan-to-design digest binding were recomputed from repository bytes",
@@ -95,7 +104,7 @@
     "sourceCommit": "c0d774e7d3d95b7c695b75798df695d68f041efa",
     "branch": "codex/program-kit-host-tooling",
     "source": "human-started Program Kit extension design",
-    "details": "Version 1.3.0 adds the explicitly aligned reusable design-time configuration compiler for Program Kit-owned and external-owner-supplied typed definitions, typed secret-reference/resolver/result/lifecycle/change-signal/consumer-reaction contracts, rotation compatibility validation, strict generated-base/overlay/provider ownership, and runtime generator isolation. It introduces no centralized secret provider or store, universal secret string, live-configuration control plane, external configuration semantic ownership, or universal rotation guarantee. The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. No runtime implementation, external execution, secret resolution, credential handling, or approval record was created."
+    "details": "Version 1.3.0 adds the explicitly aligned reusable design-time configuration compiler for Program Kit-owned and external-owner-supplied typed definitions, typed secret-reference/resolver/result/lifecycle/change-signal/consumer-reaction contracts, rotation compatibility validation, strict generated-base/overlay/provider ownership, and runtime generator isolation. It introduces no centralized secret provider or store, universal secret string, live-configuration control plane, external configuration semantic ownership, or universal rotation guarantee. The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. The human approved the exact design and plan digests without conditions in Codex turn 019f9928-0d93-77d1-b513-01c25c20fa86 at host-supplied time 2026-07-25T12:02:46.840Z; no runtime implementation, external execution, secret resolution, or credential handling was performed while recording that decision."
   },
   "supersedes": {
     "reviewSetVersion": "1.2.0",
