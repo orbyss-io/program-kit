@@ -1,0 +1,8 @@
+digraph ProgramKitFinalTasks {
+  rankdir=LR;
+  "task definition v2" -> "task request / response";
+  "nightly schedule v2" -> "task definition v2" [label="schedules"];
+  "nightly schedule v2" -> "Cronos 0.13 provider" [label="configured-by"];
+  "API / Console / Worker" -> "in-process task runtime" [label="composes"];
+  "Worker" -> "nightly schedule v2" [label="hosts"];
+}

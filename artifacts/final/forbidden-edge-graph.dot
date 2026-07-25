@@ -1,0 +1,9 @@
+digraph ProgramKitForbiddenEdges {
+  rankdir=LR;
+  "Program Kit runtime" -> "engine domains" [color=red,label="forbidden"];
+  "Program Kit runtime" -> ".agents capabilities" [color=red,label="forbidden"];
+  "universal contracts" -> "CShells runtime" [color=red,label="forbidden"];
+  "Tasks.Core" -> "durable/distributed provider" [color=red,label="not implemented"];
+  "local publish" -> "feed/deployment/release" [color=red,label="outside scope"];
+  ".NET target" -> "net8.0" [color=red,label="forbidden"];
+}
