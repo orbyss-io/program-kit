@@ -1,13 +1,16 @@
 {
   "title": "Program Kit deterministic host-tooling extensions",
-  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, typed .NET configuration and Options generation, structured diagnostics and observability, standards-profiled ASP.NET Core security, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
+  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, typed .NET configuration and Options generation, structured diagnostics and observability, deterministic ASP.NET Core transport-failure handling, standards-profiled confidential and public OIDC clients, JWT resource servers, OAuth service clients and token exchange, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
   "scope": [
     "A compact Orbyss.ProgramKit.Operations contract package that becomes the one canonical source for operation identity and host projections.",
     "Explicit ordered .NET configuration-source composition, typed Options binding, startup validation, provider reload capabilities, and consumer-selected IOptions, IOptionsSnapshot, or IOptionsMonitor semantics.",
     "Built-in .NET configuration provider profiles plus an explicitly registered custom-provider generation ABI.",
     "Structured .NET logging, tracing, metrics, correlation, transport telemetry, exception observation, and controlled provider/exporter composition through platform emission APIs and a pinned OpenTelemetry adapter.",
+    "Deterministic ASP.NET Core transport-failure handling through Problem Details, ordered exception handlers, explicit middleware and diagnostics behavior, and consumer-owned error mapping.",
     "Optional Azure Key Vault and Azure App Configuration provider adapters with external credentials, bounded refresh, and secret-safe evidence.",
     "ASP.NET Core authentication and authorization host profiles for confidential interactive OpenID Connect clients and OAuth JWT resource servers.",
+    "A public browser OIDC authorization-code-with-PKCE profile, an initial pinned Blazor WebAssembly projection, automated local browser conformance, and optional operator-assisted real-provider acceptance.",
+    "Explicit OAuth client-credentials and RFC 8693 token-exchange profiles for service clients without inferred delegation, scope, audience, or consumer-domain authorization.",
     "Deterministic external OpenAPI client generation through an exact pinned Kiota adapter.",
     "Deterministic Aspire AppHost source generation from explicit application composition input.",
     "Deterministic Dev Container artifact generation and validation from explicit development-container input.",
@@ -17,7 +20,7 @@
   "nonGoals": [
     "No consumer-domain Identity, Authorization, role, grant, policy, principal, entitlement, environment, workspace, deployment, or release semantics.",
     "No claim that OAuth 2.0 authenticates an end user or that an ID token is an API access token.",
-    "No assumption that every OAuth access token is a JWT; opaque-token introspection and token exchange remain deferred profiles.",
+    "No assumption that every OAuth access token is a JWT; opaque-token introspection remains a deferred profile.",
     "No provider-neutral reinterpretation of provider-specific claims, groups, roles, scopes, or tenant conventions.",
     "No provider discovery, issuer selection, dynamic client registration, network retrieval, secret retrieval, or token acquisition during deterministic generation.",
     "No custom general-purpose OpenAPI client generator.",
@@ -30,13 +33,19 @@
     "No application or consumer-domain observability meaning, business event catalog, security audit ledger, compliance record, incident policy, alert rule, dashboard, retention policy, telemetry backend, collector, or storage service.",
     "No request or response body, authorization header, token, cookie, claim payload, configuration value, secret, personal value, raw exception payload, or unbounded metric attribute is captured by default.",
     "No assumption that every OpenTelemetry semantic-convention group is stable or that an SDK's current default convention is a durable Program Kit contract.",
-    "No automatic telemetry emission from Program Kit generation, validation, design, or development-session tools."
+    "No automatic telemetry emission from Program Kit generation, validation, design, or development-session tools.",
+    "No inference from an exception type or message to consumer-domain error meaning or an HTTP status; every non-generic mapping is explicit and consumer-owned.",
+    "No claim that browser automation proves protocol security or that real-provider acceptance is deterministic canonical generation evidence.",
+    "No device authorization, CIBA, FAPI, DPoP, implicit, resource-owner-password, or dynamic client-registration profile in the initial capability set."
   ],
   "assumptions": [
     "The approved Program Kit baseline at version 0.3.0 remains authoritative except where this extension is later approved as an explicit compatible or breaking revision.",
     "The extension continues to target the repository-pinned .NET 10 and C# 14 profile and preserves exact package, source, license, and transitive-closure verification.",
     "OAuth 2.0 protocol behavior is governed by applicable IETF standards and current security best current practice; OpenID Connect behavior is governed by approved OpenID Foundation specifications.",
-    "The initial interactive profile is a confidential web client using authorization code flow with PKCE; public browser-client, device authorization, CIBA, FAPI, DPoP, token exchange, and client-credentials profiles are deferred until separately proven.",
+    "The initial interactive profiles distinguish a preferred confidential server-side/BFF client from an explicitly selected public browser client; both use authorization code flow with PKCE, while the public client has no client secret and is not represented as the preferred architecture for sensitive applications.",
+    "The initial public browser target is a pinned Blazor WebAssembly OIDC projection behind a versioned browser-target adapter boundary; additional browser targets require separately selected adapters rather than generic JavaScript generation.",
+    "A public-client refresh token is absent or rotated in the initial profile while DPoP and other sender-constrained-token profiles remain deferred.",
+    "OAuth client credentials and RFC 8693 token exchange are separate, optional initial profiles with exact client authentication, subject/actor token, delegation/impersonation, resource, audience, scope, requested-token and issued-token declarations.",
     "The initial API profile accepts only JWT access tokens satisfying the selected issuer, audience, signature algorithm, lifetime, metadata, and token-profile requirements; it never accepts an ID token as an access token.",
     "ASP.NET Core middleware constructs an AuthenticationTicket and ClaimsPrincipal as transport-host results. A consumer adapter must explicitly translate any required material into consumer-domain Identity or Authorization inputs.",
     "A standards-conforming provider product is substitutable only when its exact metadata, algorithms, endpoints, client registration, token profile, and claim mappings satisfy the selected Program Kit host profile.",
@@ -50,6 +59,8 @@
     "The OpenTelemetry specification, semantic-convention revision, .NET SDK packages, instrumentation packages, exporters, and stability opt-ins are exact independent selections.",
     "W3C Trace Context is the initial distributed-correlation profile; baggage is untrusted transport metadata and cannot establish identity, authorization, or unrestricted telemetry attributes.",
     "Framework and selected OpenTelemetry instrumentation are preferred for ASP.NET Core and HttpClient; custom middleware adds only missing Program Kit-owned correlation and bounded operation attributes and must not duplicate spans or logs.",
+    "ASP.NET Core exception observation and response handling are separate concerns. The selected transport-failure profile explicitly composes Problem Details, ordered IExceptionHandler registrations, middleware order, status-code pages, response-started behavior, cancellation classification, content negotiation, and .NET 10 handled-exception diagnostic suppression.",
+    "Public-browser verification is layered: protocol tests are deterministic; Playwright for .NET drives isolated local browsers and Aspire-backed fixtures; real-provider interaction is opt-in and may pause for a human without capturing credentials; threat-model acceptance remains a human decision.",
     "Logging filters may support controlled configuration reload, but the OpenTelemetry provider, processor, instrumentation, and exporter graph is startup-fixed unless a selected revision explicitly proves safe reconfiguration.",
     "External OpenAPI documents are foreign contract inputs; Program Kit-owned OpenAPI remains a projection of owned operation contracts and never becomes a competing source of behavior.",
     "Aspire AppHost, Dev Container, FastEndpoints, Keycloak realm, and Kiota outputs are provider projections bound to exact canonical inputs and tool/provider versions."
@@ -61,8 +72,8 @@
       "ownerId": "pkid:domain:program-kit:toolkit",
       "source": {
         "identity": "pkid:intent:program-kit:host-tooling",
-        "version": "1.1.0",
-        "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
+        "version": "1.2.0",
+        "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
       },
       "sourcePath": "program-kit/extensions/host-tooling/design-intent.md",
       "governs": "The human-started scope, aligned ordering, explicit deferrals, protocol distinctions, and design authority boundary."
@@ -143,6 +154,20 @@
           ]
         },
         {
+          "term": "Transport failure profile",
+          "meaning": "An explicit ASP.NET Core selection of exception handlers, Problem Details serialization, middleware order, status-code handling, diagnostic disposition, and consumer-owned mappings from transport-relevant failures to HTTP responses.",
+          "acceptedAliases": [
+            "HTTP failure profile"
+          ]
+        },
+        {
+          "term": "Operator-assisted acceptance",
+          "meaning": "An opt-in headed-browser verification mode in which a human completes provider-controlled interaction and automation resumes only to verify declared application outcomes without capturing credentials or granting approval.",
+          "acceptedAliases": [
+            "human-assisted browser verification"
+          ]
+        },
+        {
           "term": "Host projection",
           "meaning": "Generated source or configuration derived from canonical operation, composition, configuration, and provider selections; it is not a second semantic owner.",
           "acceptedAliases": []
@@ -179,11 +204,18 @@
       "invariants": "Libraries emit only through reviewed platform APIs; host collection and export are explicit; source and instrument names are stable and versioned; semantic-convention revisions and stability opt-ins are exact; metric dimensions are bounded; sensitive values are excluded by default; diagnostic signals never grant authority or become durable audit truth; telemetry failure does not silently change application outcomes."
     },
     {
+      "identity": "pkid:model:program-kit:transport-failure-profile",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The ASP.NET Core mechanics that deterministically convert explicitly classified transport failures into safe negotiated HTTP responses while coordinating exception diagnostics.",
+      "termContractIds": [],
+      "invariants": "Problem Details and handler order are explicit; generic unhandled failures disclose no internal detail; cancellation and response-started cases are distinct; handled-exception diagnostic suppression is selected explicitly; no exception name or message invents consumer-domain meaning."
+    },
+    {
       "identity": "pkid:model:program-kit:transport-security-profile",
       "ownerDomainId": "pkid:domain:program-kit:toolkit",
       "meaning": "The standards and ASP.NET Core mechanics required for one exact host authentication role and its authorization-policy attachment points.",
       "termContractIds": [],
-      "invariants": "OAuth is not reported as authentication; interactive clients and resource servers remain distinct; ID tokens are not API access tokens; issuer, audience, algorithms, metadata and HTTPS rules are explicit; provider claims do not become consumer-domain conclusions."
+      "invariants": "OAuth is not reported as authentication; confidential clients, public browser clients, service clients and resource servers remain distinct; ID tokens are not API access tokens; public clients carry no secret; token exchange distinguishes impersonation from delegation; issuer, audience, resource, scope, token types, algorithms, metadata and HTTPS rules are explicit; provider claims do not become consumer-domain conclusions."
     },
     {
       "identity": "pkid:model:program-kit:projection-provenance",
@@ -246,14 +278,34 @@
       "compatibilityBoundary": "Exact Azure App Configuration registration, refresh, and secret-reference projection."
     },
     {
+      "identity": "pkid:component:program-kit:aspnetcore-failure-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "ASP.NET Core transport-failure projection for Problem Details, ordered IExceptionHandler registrations, middleware ordering, content negotiation, status-code pages, cancellation and response-started classification, safe fallback, and explicit diagnostics coordination.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "ASP.NET Core exception-to-HTTP mechanics and explicit consumer-supplied transport failure mappings."
+    },
+    {
       "identity": "pkid:component:program-kit:aspnetcore-security-generation",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "kind": "focused-helper",
-      "purpose": "Optional ASP.NET Core host projection for authentication schemes, confidential interactive OIDC, JWT bearer resource servers, middleware order, named authorization-policy references, transport result mapping, and OpenAPI security documentation.",
+      "purpose": "Optional ASP.NET Core host projection for authentication schemes, confidential interactive OIDC, JWT bearer resource servers, OAuth client credentials and RFC 8693 token exchange, middleware order, named authorization-policy references, transport result mapping, and OpenAPI security documentation.",
       "providesContractIds": [],
       "consumesContractIds": [],
       "isActivatable": false,
       "compatibilityBoundary": "ASP.NET Core authentication and authorization registration and endpoint projection."
+    },
+    {
+      "identity": "pkid:component:program-kit:public-browser-security-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "provider",
+      "purpose": "A versioned public-browser protocol and projection boundary with an initial pinned Blazor WebAssembly authorization-code-with-PKCE adapter, no client secret, explicit token storage/refresh disposition, and generated Playwright verification.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Public-browser OIDC profile, pinned browser target package/source surface, storage and refresh behavior, browser-origin rules, and automated or operator-assisted verification ABI."
     },
     {
       "identity": "pkid:component:program-kit:kiota-client-generation",
@@ -345,7 +397,7 @@
       "identity": "pkid:reference-rule:program-kit:generated-host-closure",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "disposition": "forbidden",
-      "referencingScope": "Generated API, Console, Worker, Aspire, client, and development-container consumers",
+      "referencingScope": "Generated API, Console, Worker, Aspire, public-browser, service-client, foreign-client, and development-container consumers",
       "referencedScope": "Orbyss.ProgramKit.Workbench, Orbyss.ProgramKit.DotNet generation assemblies, CommandLine, agent capabilities, or design-time provider adapters at runtime",
       "ownerInput": {
         "artifact": {
@@ -361,7 +413,7 @@
       "identity": "pkid:reference-rule:program-kit:no-domain-security-meaning",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "disposition": "forbidden",
-      "referencingScope": "Program Kit protocol, ASP.NET Core security, Keycloak, Entra, configuration, and host-generation components",
+      "referencingScope": "Program Kit protocol, ASP.NET Core failure/security, public-browser, OAuth service-client, Keycloak, Entra, configuration, and host-generation components",
       "referencedScope": "Consumer-domain Identity, Authorization, role, grant, policy, principal, entitlement, admission, or evidence semantics",
       "ownerInput": {
         "artifact": {
@@ -382,8 +434,8 @@
       "ownerInput": {
         "artifact": {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.1.0",
-          "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
+          "version": "1.2.0",
+          "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
         },
         "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
       },
@@ -398,8 +450,8 @@
       "ownerInput": {
         "artifact": {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.1.0",
-          "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
+          "version": "1.2.0",
+          "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
         },
         "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
       },
@@ -567,12 +619,14 @@
       "policy": "Program Kit validates and projects exact transport-security profiles; providers perform protocol behavior; consumers own domain identity and authorization.",
       "guarantees": [
         "Interactive ID-token validation and API access-token validation remain distinct.",
-        "Issuer, audience, HTTPS metadata, algorithms, token kind, lifetime, client type, redirect URI, PKCE, and claim mapping are explicit and fail closed.",
+        "Confidential, public-browser, service-client and resource-server roles remain distinct; a public client never carries a client secret.",
+        "Issuer, audience, resource, scope, HTTPS metadata, algorithms, token kind, lifetime, client type, redirect URI, PKCE, refresh disposition, subject token, actor token, delegation or impersonation, and claim mapping are explicit and fail closed.",
         "Secrets and tokens never enter generated source, canonical intent, logs, or evidence."
       ],
       "exclusions": [
         "No user authentication server, credential store, token issuer, role model, domain authorization engine, or security authority is created.",
-        "No provider product is trusted merely because it exposes an OIDC-looking endpoint."
+        "No provider product is trusted merely because it exposes an OIDC-looking endpoint.",
+        "No token is ambiently forwarded or exchanged, and no requested scope, audience, resource, delegation or impersonation authority is inferred."
       ]
     },
     "authority": {
@@ -591,7 +645,8 @@
       "policy": "Canonical inputs carry secret references and credential-selection policy only; providers resolve values at runtime.",
       "guarantees": [
         "Generated source, configuration templates, locks, manifests, diagnostics, tests, and receipts are secret-free.",
-        "Azure and OIDC adapters prefer managed identity or externally supplied credential abstractions where supported."
+        "Azure, confidential OIDC, client-credentials and token-exchange adapters prefer managed identity, certificates, assertions, or externally supplied credential abstractions where supported.",
+        "Playwright authentication state, browser traces, cookies and tokens are ephemeral secret material, excluded from source control and redacted or destroyed under the selected test profile."
       ],
       "exclusions": [
         "No client secret, private key, access token, refresh token, password, vault secret value, or generated Keycloak credential is persisted as Program Kit evidence."
@@ -614,10 +669,12 @@
       "guarantees": [
         "Required Options validate before host readiness.",
         "Reload-provider outages, invalid reload candidates, metadata/key rollover failures, Kiota errors, and generator drift are distinguishable.",
-        "No failed reload is reported as successful reconfiguration."
+        "No failed reload is reported as successful reconfiguration.",
+        "Unhandled transport failures receive a safe generic response unless the response has started; explicit mappings, cancellation and client disconnects remain distinguishable.",
+        "Handled-exception diagnostic emission is an explicit .NET profile choice so one failure is not accidentally logged or counted twice."
       ],
       "exclusions": [
-        "No universal retry, fallback identity provider, silent default audience, permissive algorithm, insecure metadata, or stale-value guarantee is invented."
+        "No universal retry, fallback identity provider, silent default audience, permissive algorithm, insecure metadata, stale-value guarantee, or exception-name-to-status convention is invented."
       ]
     },
     "concurrency": {
@@ -652,7 +709,7 @@
         "OpenTelemetry specification, semantic-convention, SDK, instrumentation, exporter, and stability opt-in revisions are selected independently and exactly.",
         "Framework instrumentation is preferred for ASP.NET Core and HttpClient, and fixtures reject duplicate transport spans or logs.",
         "Sampling, filtering, batching, exporter outage, bounded flush, telemetry drop, sensitive-data exclusion, and metric-cardinality behavior are explicit.",
-        "Fixtures observe provider substitution, reload notification, scoped consistency, token rejection, cross-transport correlation, telemetry redaction, and generated-output determinism."
+        "Fixtures observe provider substitution, reload notification, scoped consistency, token rejection and exchange, browser redirects and storage, transport-failure handling, cross-transport correlation, telemetry redaction, and generated-output determinism."
       ],
       "exclusions": [
         "No token, authorization material, cookie, claim payload, configuration value, secret name-value pair, personal data, request or response body, raw exception payload, raw provider response, or unbounded attribute is recorded by default.",
@@ -720,6 +777,28 @@
       ]
     },
     {
+      "identity": "pkid:scenario:program-kit:aspnetcore-transport-failure",
+      "actor": "Generated ASP.NET Core host",
+      "intent": "Turn an explicitly classified transport failure into a safe negotiated HTTP response without inventing consumer-domain error meaning or duplicating diagnostics.",
+      "preconditions": [
+        "The Problem Details profile, handler order, middleware order, environment disclosure policy, status-code-page disposition, content negotiation, cancellation classification, response-started behavior, explicit consumer mappings and diagnostic suppression choice are exact."
+      ],
+      "steps": [
+        "Generate AddProblemDetails, ordered IExceptionHandler registration and UseExceptionHandler in the selected pipeline position.",
+        "Apply an explicit consumer-owned transport mapping when one matches, otherwise use the safe generic fallback.",
+        "Coordinate handled-exception logging, tracing and metrics under the pinned .NET behavior.",
+        "Exercise handled, unhandled, invalid-mapping, cancellation, response-started, development and production response cases."
+      ],
+      "outcomes": [
+        "The client receives only the selected safe transport representation.",
+        "The same failure produces the declared diagnostic outcome exactly once.",
+        "FastEndpoints and Minimal API projections preserve the same failure contract."
+      ],
+      "failureOutcomes": [
+        "Raw exception detail, secret leakage, inferred domain mapping, duplicate diagnostics, middleware-order drift, invalid content negotiation, or a false response rewrite after headers start fails validation or the fixture."
+      ]
+    },
+    {
       "identity": "pkid:scenario:program-kit:provider-neutral-oidc",
       "actor": "Generated confidential web client",
       "intent": "Authenticate an interactive user through any provider satisfying the exact OIDC profile without provider-specific application semantics.",
@@ -739,6 +818,49 @@
       ],
       "failureOutcomes": [
         "Issuer, metadata, algorithm, redirect, state, nonce, token, or mapping mismatch fails authentication without fallback."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:public-browser-oidc",
+      "actor": "Generated Blazor WebAssembly public client",
+      "intent": "Authenticate through an exact OIDC public-client profile and call a protected API without a client secret or inferred application authorization.",
+      "preconditions": [
+        "Authority, public client identifier, exact redirect and post-logout URIs, browser origins, scopes, PKCE, state, nonce, token storage, refresh rotation or absence, API resource and threat acceptance are explicit."
+      ],
+      "steps": [
+        "Generate the pinned Blazor WebAssembly OIDC adapter and no client secret.",
+        "Run deterministic protocol vectors for redirects, PKCE, state, nonce, issuer, token kind, refresh and origin behavior.",
+        "Use Playwright for .NET against an explicitly started isolated Aspire/provider fixture to exercise login, callback, protected API access, refresh where selected, logout and negative paths.",
+        "When a real provider requires human-controlled interaction, open a headed browser, pause without capturing credentials, resume after callback and record only redacted non-authoritative acceptance evidence."
+      ],
+      "outcomes": [
+        "The public client completes authorization code flow with PKCE and the API accepts only the intended access token.",
+        "Automated local evidence remains deterministic and operator-assisted provider evidence remains explicitly separate.",
+        "A confidential server-side/BFF profile remains the preferred default for sensitive applications."
+      ],
+      "failureOutcomes": [
+        "Client secret generation, implicit flow, password flow, redirect or origin mismatch, state or nonce failure, token in URL/log/source, unsafe refresh persistence, hidden human authority, trace leakage, or browser/provider drift fails the applicable fixture."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:oauth-service-client",
+      "actor": "Generated .NET service client",
+      "intent": "Acquire a client-credentials token or perform RFC 8693 token exchange through an exact optional profile without ambient token forwarding or invented delegation.",
+      "preconditions": [
+        "The selected grant/profile, token endpoint, client authentication reference, resource, audience, scope, requested token type, subject token type and provenance, optional actor token and delegation-versus-impersonation intent are explicit."
+      ],
+      "steps": [
+        "Validate provider metadata and selected profile support.",
+        "Resolve client authentication only through the declared runtime secret, certificate, assertion or managed-identity-compatible reference.",
+        "Construct the exact client-credentials or token-exchange request and validate the response token type and lifetime.",
+        "Cache only under explicit subject, actor, resource, audience, scope and expiry keys; redact all token material from evidence."
+      ],
+      "outcomes": [
+        "A service obtains only the explicitly requested transport token under the declared client role.",
+        "Token exchange preserves the distinction between delegation and impersonation without creating consumer-domain permission."
+      ],
+      "failureOutcomes": [
+        "Missing client authentication, wrong token type, invalid issuer or audience, actor confusion, replay, overbroad scope, unsupported exchange, provider outage, token leakage, or cache-key collision fails closed."
       ]
     },
     {
@@ -851,8 +973,8 @@
       "evidence": [
         {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.1.0",
-          "digest": "sha256:9005c0819a2fe527a7efb66604ca3b83fbae812566c953d6a0357d0adc7f33da"
+          "version": "1.2.0",
+          "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
         }
       ],
       "claim": "The extension design review set is being produced from explicit human intent; none of the described runtime packages, providers, profiles, generators, migrations, or fixtures is implemented or approved by this claim."

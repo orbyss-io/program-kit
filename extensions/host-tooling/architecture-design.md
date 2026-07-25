@@ -2,7 +2,7 @@
 
 - Canonical design: `architecture-design.json`
 - Design identity: `pkid:design:program-kit:host-tooling`
-- Design version: `1.1.0`
+- Design version: `1.2.0`
 - State: awaiting exact human approval; nothing in this design is implemented
 
 ## Outcome
@@ -35,7 +35,7 @@ products are automatically interchangeable.
 
 ## Approved-for-review scope
 
-The proposed extension contains eleven bounded capability areas:
+The proposed extension contains fourteen bounded capability areas:
 
 1. **Operations convergence** — introduce a compact
    `Orbyss.ProgramKit.Operations` contract package over Artifacts and migrate
@@ -54,23 +54,32 @@ The proposed extension contains eleven bounded capability areas:
    tracing, metrics, W3C correlation, transport instrumentation, exception
    observation, redaction/cardinality rules, and controlled collection/export
    through exact platform APIs and a pinned OpenTelemetry adapter.
-6. **ASP.NET Core security profiles** — generate authentication schemes,
+6. **ASP.NET Core transport failures** — generate Problem Details, ordered
+   exception handlers, middleware and diagnostic disposition while requiring
+   explicit consumer-owned mappings for non-generic error meaning.
+7. **ASP.NET Core security profiles** — generate authentication schemes,
    middleware order, confidential interactive OIDC clients, JWT bearer
    resource servers, named host-policy attachment, and transport results.
-7. **Kiota client generation** — consume an exact local foreign OpenAPI
+8. **Public browser security** — define an authorization-code-with-PKCE public
+   OIDC profile, initially project it through a pinned Blazor WebAssembly
+   adapter, and generate layered protocol/browser verification.
+9. **OAuth service clients** — generate explicit client-credentials and RFC
+   8693 token-exchange profiles without ambient token forwarding or inferred
+   delegation, impersonation, scope, audience, or authorization.
+10. **Kiota client generation** — consume an exact local foreign OpenAPI
    document through a pinned external Kiota adapter and retain the lock and
    provenance.
-8. **Aspire AppHost generation** — project explicit low-level application
+11. **Aspire AppHost generation** — project explicit low-level application
    composition into a pinned AppHost project without inventing environment or
    deployment semantics.
-9. **Dev Container generation** — generate and validate deterministic
+12. **Dev Container generation** — generate and validate deterministic
    `.devcontainer` artifacts from explicit inputs, without starting a
    container.
-10. **FastEndpoints projection** — optionally project the same operation and
-   ASP.NET Core security contracts through a pinned FastEndpoints adapter.
-11. **Keycloak local fixture** — generate a minimal secret-free realm import
+13. **FastEndpoints projection** — optionally project the same operation and
+    ASP.NET Core security contracts through a pinned FastEndpoints adapter.
+14. **Keycloak local fixture** — generate a minimal secret-free realm import
     and an Aspire-backed disposable local proof that Keycloak can satisfy the
-    base OIDC/JWT profiles.
+    base OIDC/JWT and selected OAuth service-client profiles.
 
 ## Configuration and Options semantics
 
@@ -153,6 +162,33 @@ provider/instrumentation/processor/exporter graph is initially startup-fixed
 unless an exact selected revision proves safe reconfiguration. Export failure
 must be observable and bounded without silently changing application success.
 
+## ASP.NET Core transport-failure semantics
+
+Exception observation does not define client-visible failure behavior. The
+selected transport-failure profile separately composes:
+
+- `AddProblemDetails`;
+- ordered singleton `IExceptionHandler` registrations;
+- `UseExceptionHandler` in an explicit middleware position;
+- optional status-code pages and content negotiation;
+- environment-specific detail disclosure;
+- cancellation and client-disconnect classification;
+- behavior when a response has already started;
+- generated OpenAPI Problem Details responses where the owned operation
+  contract declares them;
+- the .NET 10 handled-exception diagnostic suppression choice.
+
+The generic production fallback is stable and discloses no internal detail.
+Every non-generic exception-to-status or exception-to-Problem-Details mapping
+is explicit consumer input. Program Kit never infers HTTP meaning from an
+exception type name, message, namespace, inheritance pattern, or provider
+payload.
+
+Exception handling and observability share a correlation identity but not
+ownership. Fixtures prove that handled and unhandled exceptions, cancellation,
+response-started cases and framework endpoint projections produce their exact
+response and diagnostic disposition without double logging or double counting.
+
 ## Security ownership boundary
 
 ASP.NET Core authentication handlers may produce an `AuthenticationTicket` and
@@ -161,11 +197,46 @@ named host policies. Those are transport-host results. Provider claims,
 scopes, groups, roles, tenant identifiers, and claim names are not silently
 translated into a consumer-domain identity or permission decision.
 
-The initial interactive profile is a confidential server-side web client using
-authorization code flow with PKCE. Its exact metadata, callback, cookie,
+The initial confidential interactive profile is a server-side web client/BFF
+using authorization code flow with PKCE. Its exact metadata, callback, cookie,
 correlation, nonce, client authentication, token validation, and HTTPS
-requirements are explicit. Public browser clients, device flow, CIBA, FAPI,
-DPoP, token exchange, and client credentials are deferred.
+requirements are explicit. It remains the preferred browser architecture for
+sensitive and business applications.
+
+The separate public-browser profile also uses authorization code flow with
+PKCE, but carries no client secret. It explicitly declares redirect and
+post-logout URIs, origins and CORS expectations, state, nonce, issuer, scopes,
+API resource, token storage, refresh-token absence or rotation, and logout.
+Implicit and resource-owner-password flows are forbidden. The initial target
+is a pinned Blazor WebAssembly OIDC adapter behind a versioned browser-target
+projection boundary; other browser languages require their own selected
+adapter rather than generic JavaScript generation.
+
+Public-browser verification is layered:
+
+1. deterministic protocol and adversarial vectors;
+2. automated Playwright for .NET tests against an isolated local
+   Aspire/identity-provider fixture;
+3. optional operator-assisted headed-browser acceptance for real providers
+   whose MFA, passkey, consent, conditional-access, or anti-automation
+   interaction requires a human;
+4. an explicit human threat-model decision that browser-held tokens are
+   acceptable for the consuming application.
+
+Operator-assisted acceptance pauses without capturing provider credentials,
+resumes after the callback, records only redacted non-authoritative evidence,
+and never becomes deterministic generation proof. Playwright authentication
+state, traces, cookies and tokens are ephemeral secrets and cannot enter source
+control or durable Program Kit evidence.
+
+The initial service-client profiles include OAuth client credentials and RFC
+8693 token exchange. Client credentials declares exact token endpoint, client
+authentication, resource, audience and scope. Token exchange additionally
+declares subject-token provenance/type, optional actor token, delegation versus
+impersonation, requested and issued token types, and cache/lifetime behavior.
+Neither profile performs ambient token forwarding or infers permissions,
+downscoping, delegation, impersonation, audience, resource, or domain
+authorization.
 
 The initial API profile accepts only JWT access tokens and validates issuer,
 audience, signature, allowed algorithm, lifetime, metadata, and selected token
@@ -204,6 +275,8 @@ This design does not authorize:
 - a custom general-purpose OpenAPI client generator;
 - opaque-token introspection, dynamic client registration, provider discovery,
   or automatic issuer selection;
+- device authorization, CIBA, FAPI, DPoP, implicit, or
+  resource-owner-password profiles;
 - generation of arbitrary provider code from an unconstrained type name or
   script;
 - a guarantee that every configuration change can be applied without restart;
@@ -253,13 +326,18 @@ provider ABI and built-in provider profiles
 diagnostics + logging + tracing + metrics + OpenTelemetry adapter
         |
         +-- Azure Key Vault / Azure App Configuration
-        +-- ASP.NET Core OIDC and JWT profiles
+        +-- ASP.NET Core transport-failure profile
+        +-- ASP.NET Core confidential OIDC and JWT profiles
+        |       |
+        |       +-- public-browser OIDC + Blazor WebAssembly adapter
+        |       +-- client credentials + RFC 8693 token exchange
         +-- Kiota client adapter
         +-- Aspire AppHost projection
         +-- Dev Container projection
                  |
-                 +-- FastEndpoints projection (after ASP.NET security)
-                 +-- Keycloak local fixture (after ASP.NET security + Aspire)
+                 +-- FastEndpoints projection (after failure + security)
+                 +-- Keycloak/Playwright local fixture
+                     (after security + public browser + Aspire)
         |
 migration, isolated consumers, deterministic closure
 ```
@@ -279,6 +357,17 @@ Implementation is incomplete until all of the following are true:
   pass;
 - OIDC and JWT positive and adversarial fixtures pass with protocol roles kept
   distinct;
+- Problem Details, ordered handler, middleware, content-negotiation,
+  cancellation, response-started, disclosure, OpenAPI and exactly-once
+  diagnostics fixtures pass;
+- public-browser PKCE, redirect/origin, state/nonce, storage, refresh rotation
+  or absence, API access and logout fixtures pass in automated local browser
+  tests without any client secret;
+- client-credentials and token-exchange positive and adversarial fixtures prove
+  exact client authentication, resource/audience/scope, token types,
+  subject/actor distinction, delegation/impersonation, caching and redaction;
+- optional real-provider acceptance remains operator-assisted, secret-safe,
+  separately identified and non-authoritative;
 - Keycloak proves provider substitution but is not required by the base
   security profiles;
 - Kiota, Aspire, Dev Container, and FastEndpoints outputs build or validate in
@@ -328,6 +417,30 @@ selections; implementation must bind exact applicable revisions and digests.
   <https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication?view=aspnetcore-10.0>
   and
   <https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0>
+- ASP.NET Core error handling, Problem Details, `IExceptionHandler`, and .NET 10
+  handled-exception diagnostics:
+  <https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?view=aspnetcore-10.0>,
+  <https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling-api?view=aspnetcore-10.0>,
+  and
+  <https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/exception-handler-diagnostics-suppressed?view=aspnetcore-10.0>
+- OAuth 2.0 Token Exchange, RFC 8693, and the client-credentials grant in OAuth
+  2.0, RFC 6749:
+  <https://www.rfc-editor.org/rfc/rfc8693.html>
+  and
+  <https://www.rfc-editor.org/rfc/rfc6749>
+- Browser-based OAuth guidance and the .NET 10 Blazor WebAssembly OIDC
+  projection. The reviewed browser guidance is an Internet-Draft and is design
+  input rather than a floating normative compatibility contract:
+  <https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/26/>
+  and
+  <https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/standalone-with-authentication-library?view=aspnetcore-10.0>
+- Playwright for .NET browser, authentication, network and trace guidance:
+  <https://playwright.dev/dotnet/docs/intro>,
+  <https://playwright.dev/dotnet/docs/auth>,
+  <https://playwright.dev/dotnet/docs/network>, and
+  <https://playwright.dev/dotnet/docs/trace-viewer>
+- Aspire AppHost testing:
+  <https://learn.microsoft.com/en-us/dotnet/aspire/testing/manage-app-host>
 - Azure Key Vault and Azure App Configuration provider guidance:
   <https://learn.microsoft.com/en-us/aspnet/core/security/key-vault-configuration?view=aspnetcore-10.0>
   and

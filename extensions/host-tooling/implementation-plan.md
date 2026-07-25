@@ -1,12 +1,12 @@
 ---
 artifact-kind: implementation-plan
 artifact-id: pkid:plan:program-kit:host-tooling
-artifact-version: 1.1.0
+artifact-version: 1.2.0
 intended-contract: pkid:schema:program-kit:implementation-plan
 intended-contract-version: 1.0.0
 design-ref-id: pkid:design:program-kit:host-tooling
-design-ref-version: 1.1.0
-design-digest: sha256:6ab70a7950d9397fd89ff3bf16492a494f7102a6ec57e11fffbc2f480996227d
+design-ref-version: 1.2.0
+design-digest: sha256:ac94d94864403dd2f230afe16342020b00f44d03be846e43087bea546a99704c
 review-state: awaiting-human-approval
 implementation-status: not-started
 ---
@@ -61,6 +61,11 @@ renewed human approval.
 | `PKHT-R018` | Version maps, migrations, generated consumers, package closure, fixtures, documentation, and independent review close the extension. |
 | `PKHT-R019` | Generated .NET libraries and hosts expose stable structured logging, tracing, metrics, W3C correlation, transport instrumentation, exception observation, redaction and bounded cardinality through platform emission APIs. |
 | `PKHT-R020` | Exact OpenTelemetry specification, semantic-convention, SDK, instrumentation, processor and exporter revisions compose collection and export without becoming signal owners or authoritative audit infrastructure. |
+| `PKHT-R021` | ASP.NET Core transport failures generate explicit Problem Details, ordered exception handling, middleware, content-negotiation, cancellation, disclosure, response-started, OpenAPI, and exactly-once diagnostic behavior without inferred consumer-domain error meaning. |
+| `PKHT-R022` | A public-browser OIDC profile uses authorization code with PKCE, no client secret, exact browser-origin/token-lifecycle constraints, and an initial pinned Blazor WebAssembly target adapter while confidential BFF remains the preferred sensitive-application profile. |
+| `PKHT-R023` | An OAuth client-credentials profile acquires service tokens through exact client authentication, resource, audience, scope, cache, expiry, cancellation, outage, and redaction declarations. |
+| `PKHT-R024` | An RFC 8693 token-exchange profile explicitly distinguishes subject and actor tokens, delegation and impersonation, requested and issued token types, resource, audience, scope and client authentication without ambient forwarding or inferred authorization. |
+| `PKHT-R025` | Public-client verification separates deterministic protocol vectors, automated local Playwright/Aspire browser evidence, opt-in operator-assisted real-provider acceptance, ephemeral secret handling, and explicit human threat-model acceptance. |
 
 ## 3. Exact starting inputs
 
@@ -288,11 +293,52 @@ outage, cancellation and redaction tests; dependency/license/lock proof.
 **Stop conditions:** stop if verification requires live credentials or cloud
 mutation, or if selected provider behavior contradicts the base reload model.
 
+### `PKHT-W045` — ASP.NET Core transport-failure handling
+
+**Requirements:** `R021`, parts of `R010`, `R016`, `R019`.
+
+**Depends on:** `W020`, `W035`.
+
+**Allowed edits:** Operations transport-failure contracts; DotNet ASP.NET Core
+failure schemas/models/validators and generation modules; exact framework
+behavior evidence; Problem Details/OpenAPI projection; deterministic Minimal
+API and controller fixtures; documentation and version metadata.
+
+**Required outcomes:**
+
+1. Define an explicit transport-failure profile separately from telemetry and
+   consumer-domain error meaning.
+2. Generate `AddProblemDetails`, ordered singleton `IExceptionHandler`
+   registrations, `UseExceptionHandler` in an exact pipeline position,
+   optional status-code pages, content negotiation, environment disclosure,
+   cancellation/client-disconnect classification, response-started behavior,
+   and a safe generic production fallback.
+3. Accept non-generic exception-to-HTTP mappings only through explicit
+   consumer-owned declarations/adapters. Reject conventions based on exception
+   type names, messages, namespaces, reflection discovery or provider payloads.
+4. Generate declared Problem Details responses into owned OpenAPI projections
+   without claiming undocumented runtime mappings.
+5. Select .NET 10 handled-exception diagnostic suppression explicitly and
+   coordinate logging, tracing and metrics so one failure has the declared
+   diagnostic outcome exactly once.
+
+**Verification:** schema/model/JSON consistency; deterministic API builds;
+ordered handled and unhandled failures; matching and missing explicit mapping;
+generic production response and development-only detail; content negotiation;
+status-code pages; cancellation/client disconnect; response already started;
+OpenAPI parity; raw-detail/secret fuzzing; exactly-once logs/spans/metrics; .NET
+10 diagnostic-suppression compatibility; Minimal API/controller parity.
+
+**Stop conditions:** stop if response behavior depends on middleware accident,
+if a consumer-domain mapping would be inferred, if sensitive detail can escape,
+if a started response would be rewritten, if cancellation is blindly reported
+as server failure, or if framework diagnostics cannot be made deterministic.
+
 ### `PKHT-W050` — ASP.NET Core OIDC, JWT, and authorization host profiles
 
 **Requirements:** `R007`–`R010`, parts of `R003`, `R016`, `R017`.
 
-**Depends on:** `W020`, `W030`, `W035`.
+**Depends on:** `W020`, `W030`, `W035`, `W045`.
 
 **Allowed edits:** Operations/DotNet transport-security schemas and models,
 ASP.NET Core generator modules, exact framework/package evidence, generated
@@ -326,6 +372,104 @@ anonymous versus protected endpoints; secret redaction; isolated build.
 **Stop conditions:** stop if the initial framework handler cannot prove a
 required protocol guarantee, if a product quirk enters the base profile, or if
 consumer-domain policy meaning would be required.
+
+### `PKHT-W052` — public-browser OIDC and layered browser verification
+
+**Requirements:** `R022`, `R025`, parts of `R007`, `R009`, `R010`, `R016`,
+`R017`.
+
+**Depends on:** `W050`.
+
+**Allowed edits:** provider-neutral public-browser protocol schemas/models and
+validators; versioned browser-target adapter registration; one pinned Blazor
+WebAssembly OIDC projection; generated browser/API fixtures; Playwright for
+.NET test generation; ephemeral evidence/redaction support; exact
+framework/package/source/license selections; docs and version metadata.
+
+**Required outcomes:**
+
+1. Define `oidc-public-browser-code-pkce` separately from the confidential
+   client. Require no client secret, exact redirect and post-logout URIs,
+   origins/CORS expectations, PKCE, state, nonce, issuer, scopes, API resource,
+   token storage, logout, and refresh-token absence or rotation. Forbid
+   implicit and resource-owner-password flows.
+2. Define a closed, versioned browser-target projection boundary and select one
+   exact Blazor WebAssembly OIDC adapter after source/license/package/closure
+   review. Do not create a generic JavaScript generator or claim that an
+   ASP.NET Core host is itself a browser client.
+3. Generate deterministic protocol vectors and a Playwright for .NET harness
+   covering login, callback, protected API access, refresh where selected,
+   logout, redirect/origin/state/nonce failures, storage, token non-disclosure,
+   and Chromium/Firefox/WebKit compatibility profiles.
+4. Keep automated local execution separately human-started. Integrate with the
+   disposable Aspire/provider fixture in `W100` without making Keycloak a base
+   dependency.
+5. Provide an opt-in headed operator-assisted mode for real providers. Pause
+   before provider-controlled authentication, capture no credentials, resume
+   after callback, and retain only redacted, separately classified,
+   non-authoritative evidence.
+6. Require an explicit human threat-model acceptance before a consumer selects
+   browser-held tokens; retain confidential server-side/BFF as the preferred
+   profile for sensitive applications.
+
+**Verification:** schema/model/JSON consistency; no client secret in canonical
+input, source, configuration, browser bundle, logs, trace or evidence; PKCE,
+redirect, origin, CORS, state, nonce, issuer, token-kind, refresh rotation or
+absence, storage, API and logout vectors; repeated generation; isolated Blazor
+build; Playwright Chromium baseline and Firefox/WebKit compatibility profiles;
+auth-state/trace cleanup and source-control exclusion; deterministic evidence
+kept separate from operator-assisted acceptance.
+
+**Stop conditions:** stop if the selected adapter cannot prove the profile; if
+tokens, cookies, credentials or Playwright storage enter durable evidence; if
+automation attempts to bypass MFA, consent, conditional access, passkeys or
+anti-automation controls; if a real provider becomes required for deterministic
+verification; or if public-client selection is presented as the safe default.
+
+### `PKHT-W055` — OAuth service clients and RFC 8693 token exchange
+
+**Requirements:** `R023`, `R024`, parts of `R002`–`R004`, `R007`, `R016`,
+`R017`, `R019`.
+
+**Depends on:** `W050`.
+
+**Allowed edits:** Operations/DotNet OAuth service-client schemas/models and
+validators; generated typed clients/handlers; exact standards/framework/package
+evidence; deterministic authorization-server fixtures; cache, telemetry,
+redaction and adversarial tests; docs and version metadata.
+
+**Required outcomes:**
+
+1. Define separate `oauth-client-credentials` and
+   `oauth-token-exchange-rfc8693` profiles. Neither may retrieve or forward an
+   ambient current-user token.
+2. Client credentials explicitly declares token endpoint/metadata, client
+   identity, authentication reference/method, resource, audience, scope,
+   expected token type, lifetime, cache, cancellation, outage and redaction.
+3. Token exchange additionally declares subject-token provenance/type,
+   optional actor token/type, delegation versus impersonation,
+   requested-token and issued-token types, resource, audience, scope and
+   required client authentication.
+4. Cache keys include every security-relevant subject, actor, resource,
+   audience, scope, token-type and client-profile dimension; expiry and
+   cancellation are bounded and token values never enter diagnostics or
+   evidence.
+5. Treat every resulting token as transport security material. Generate no
+   domain permission, downscope, on-behalf-of, delegation or impersonation
+   conclusion and no automatic retry that can duplicate an unsafe exchange.
+
+**Verification:** positive and adversarial client-credentials/token-exchange
+fixtures; missing or wrong client authentication; wrong subject/actor/token
+type; issuer/audience/resource/scope mismatch; delegation/impersonation
+confusion; replay; overbroad scope; multiple audience/resource rejection unless
+explicitly selected; unsupported provider capability; expiry/cache isolation;
+outage/cancellation; token redaction; deterministic isolated client build and
+exact standards/package lock proof.
+
+**Stop conditions:** stop if the provider requires proprietary meaning in the
+base profile, if subject-token provenance is ambient, if requested authority
+would be inferred, if cache isolation is incomplete, or if token material can
+reach logs, traces, metrics, generated source or durable evidence.
 
 ### `PKHT-W060` — pinned Kiota foreign-client adapter
 
@@ -403,18 +547,18 @@ beyond the bounded Dev Container projection.
 
 ### `PKHT-W090` — optional FastEndpoints projection
 
-**Requirements:** `R014`, `R007`, `R010`, `R016`.
+**Requirements:** `R014`, `R007`, `R010`, `R016`, parity for `R021`.
 
-**Depends on:** `W050`.
+**Depends on:** `W045`, `W050`.
 
 **Allowed edits:** optional FastEndpoints adapter, exact source/package
 evidence, generator modules, fixtures, docs and version metadata.
 
 **Required outcomes:** project the same Operations and transport-security
 profiles into FastEndpoints endpoint/configuration source; preserve route,
-request, response, error, anonymous/protected and named-policy behavior; keep
-ASP.NET Core middleware as the security owner and FastEndpoints as syntax/tool
-specialization.
+request, response, Problem Details, explicit transport-failure mapping,
+anonymous/protected and named-policy behavior; keep ASP.NET Core middleware as
+the failure/security owner and FastEndpoints as syntax/tool specialization.
 
 **Verification:** projection parity matrix against Minimal API output;
 deterministic build/run fixture; OpenAPI and security equivalence; package
@@ -425,9 +569,10 @@ base policy/profile semantics or require provider-specific identity meaning.
 
 ### `PKHT-W100` — optional Keycloak/Aspire local-test fixture
 
-**Requirements:** `R015`, `R007`–`R009`, `R012`, `R016`, `R017`.
+**Requirements:** `R015`, `R007`–`R009`, `R012`, `R016`, `R017`, integration
+proof for `R022`–`R025`.
 
-**Depends on:** `W050`, `W070`.
+**Depends on:** `W052`, `W055`, `W070`.
 
 **Allowed edits:** test-fixture-only realm descriptor/generator, exact
 Keycloak/Aspire/image evidence, generated Aspire fixture, protocol tests,
@@ -435,17 +580,23 @@ redacted evidence and documentation.
 
 **Required outcomes:** generate a minimal realm import with explicit realm,
 client, redirect URI, audience/scope mapping, test-only principals and
-secret-reference placeholders; bind a pinned Keycloak container through the
-pinned Aspire integration; prove the same generated OIDC client and JWT API
-profiles work without adding Keycloak to base contracts.
+secret-reference placeholders; include public and confidential client
+registrations and only provider-supported selected service-client/exchange
+fixtures; bind a pinned Keycloak container through the pinned Aspire
+integration; prove the same generated confidential/public OIDC, JWT API and
+selected OAuth service-client profiles work without adding Keycloak to base
+contracts.
 
 Container execution remains a separately human-started test action. Fixture
 state is disposable and import is neither backup nor production provisioning.
 
 **Verification:** offline realm JSON/schema/semantic checks always run; when
 explicitly authorized, the isolated integration profile starts the resource,
-waits for readiness, exercises OIDC/JWT positive and adversarial paths,
-captures redacted evidence, and tears down owned state.
+waits for readiness, exercises OIDC/JWT/service-client positive and adversarial
+paths, drives public-client browser scenarios through Playwright, captures
+redacted evidence, and tears down owned state. Operator-assisted real-provider
+acceptance is a separate opt-in profile and is never required for Keycloak
+fixture conformance.
 
 **Stop conditions:** stop without explicit execution authority; stop on
 unpinned images, durable credentials, production provisioning behavior,
@@ -456,7 +607,7 @@ root.
 
 **Requirements:** `R016`–`R018` and closure of all preceding requirements.
 
-**Depends on:** `W040`, `W060`, `W080`, `W090`, `W100`.
+**Depends on:** `W040`, `W055`, `W060`, `W080`, `W090`, `W100`.
 
 **Allowed edits:** version maps/selections/migrations, package locks, generated
 fixtures, docs, self-hosted design/plan projections, test-plan profiles,
@@ -483,9 +634,10 @@ Parallel work is permitted only after the shared foundations land:
 
 | Phase | Work units |
 | --- | --- |
-| Foundation | `W010` → `W020` → `W030` → `W035` |
+| Foundation | `W010` → `W020` → `W030` → `W035` → `W045` |
 | Independent adapters | `W040`, `W050`, `W060`, `W070`, `W080` after their declared dependencies |
-| Dependent projections | `W090` after `W050`; `W100` after `W050` and `W070` |
+| Security clients | `W052` and `W055` after `W050` |
+| Dependent projections | `W090` after `W045` and `W050`; `W100` after `W052`, `W055`, and `W070` |
 | Closure | `W110` after all selected units |
 
 Each parallel unit owns disjoint provider/projection paths. Changes to shared
@@ -498,10 +650,10 @@ foundation unit.
 | Requirement | Owning work unit(s) |
 | --- | --- |
 | `R001` | `W010` |
-| `R002`–`R004` | `W020`, proven across `W030`, `W035`, `W040`, `W050`, `W110` |
+| `R002`–`R004` | `W020`, proven across `W030`, `W035`, `W040`, `W050`, `W055`, `W110` |
 | `R005` | `W030` |
 | `R006` | `W040` |
-| `R007`–`R010` | `W050`, parity in `W090`, substitution proof in `W100` |
+| `R007`–`R010` | `W050`, extended by `W052` and `W055`, parity in `W090`, substitution proof in `W100` |
 | `R011` | `W060` |
 | `R012` | `W070`, used by `W100` |
 | `R013` | `W080` |
@@ -510,7 +662,10 @@ foundation unit.
 | `R016` | every work unit; closure in `W110` |
 | `R017` | every work unit; boundary scan in `W110` |
 | `R018` | `W010` migration start and `W110` final closure |
-| `R019`–`R020` | `W035`, consumed by `W050`, `W060`, `W070`, `W090`, `W100`, and closed by `W110` |
+| `R019`–`R020` | `W035`, consumed by `W045`, `W050`, `W055`, `W060`, `W070`, `W090`, `W100`, and closed by `W110` |
+| `R021` | `W045`, parity in `W090`, consumed by `W050`, closed by `W110` |
+| `R022`, `R025` | `W052`, local-provider proof in `W100`, closed by `W110` |
+| `R023`–`R024` | `W055`, provider proof in `W100`, closed by `W110` |
 
 ## 7. Deliberately unimplemented
 
@@ -518,6 +673,9 @@ The plan contains no work unit for comprehensive Docker Compose semantics,
 automatic execution, production Keycloak administration, provider discovery,
 dynamic client registration, opaque-token introspection, custom OpenAPI
 generation, consumer-domain identity/authorization, deployment, or release.
+Device authorization, CIBA, FAPI, DPoP, implicit flow, resource-owner-password
+flow, generic JavaScript generation, and automated bypass of provider-controlled
+human interaction also remain absent.
 It also contains no telemetry backend, collector, dashboard, alert, retention
 policy, incident policy, business-event ledger, security audit system, or base
 dependency on Serilog, NLog, Application Insights, Seq, Grafana or Prometheus.

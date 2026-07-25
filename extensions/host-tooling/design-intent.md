@@ -4,7 +4,7 @@
 - State: human-started and scope-aligned; exact design and plan not yet approved
 - Repository scope: `program-kit/`
 - Design identity: `pkid:design:program-kit:host-tooling`
-- Intended design version: `1.1.0`
+- Intended design version: `1.2.0`
 
 ## Human intent
 
@@ -75,6 +75,42 @@ For the diagnostics and observability addition, the human further stated:
 > “Amazing. Really amazing. I 100% align and agree with everything you
 > envisioned and recommended here.”
 
+The human then requested two material corrections before approval:
+
+1. deterministic ASP.NET Core transport-failure handling must accompany
+   exception observation, while remaining behaviorally separate from
+   telemetry and from consumer-domain error meaning;
+2. public browser clients and OAuth token exchange must be initial core
+   protocol capabilities rather than deferred work. The aligned analysis also
+   added the more foundational client-credentials profile, retained a
+   confidential server-side/BFF profile as the preferred browser architecture,
+   and kept device authorization, CIBA, FAPI, DPoP, and opaque-token
+   introspection deferred.
+
+The public-browser profile must be concrete without pretending that an
+ASP.NET Core host alone is a browser client. It therefore includes a
+provider-neutral protocol contract, a first .NET browser target projection,
+and layered verification:
+
+- deterministic protocol and adversarial conformance;
+- automated Playwright for .NET testing against an isolated local
+  Aspire/identity-provider fixture;
+- optional operator-assisted headed-browser acceptance for real providers
+  whose MFA, passkey, consent, conditional-access, or anti-automation
+  interaction requires a human;
+- a separate explicit human security decision for whether browser-held tokens
+  are appropriate for the consuming application's threat model.
+
+Operator assistance is a supported verification mode, not permission for
+Program Kit to capture credentials, automate a human identity, provision a
+provider, or turn nondeterministic real-provider acceptance into canonical
+generation evidence.
+
+The human explicitly aligned with the complete correction:
+
+> “Once again. I agree with every thing you wrote. We are 100% aligned in our
+> vision and design”
+
 ## Protocol understanding to preserve
 
 Program Kit owns deterministic host mechanics and exact protocol-profile
@@ -86,6 +122,17 @@ identity and authorization meaning.
 - OpenID Connect is an identity layer over OAuth 2.0.
 - An interactive client validates an ID token for its client session.
 - An API validates an access token; an ID token is not an API access token.
+- A public browser client cannot protect a client secret. Its initial profile
+  uses authorization code flow with PKCE, exact redirect/origin rules, and no
+  implicit or resource-owner-password flow. A confidential server-side/BFF
+  profile remains the preferred default for sensitive applications.
+- A public-client refresh token is either absent or uses rotation in the
+  initial profile while sender-constrained token support remains deferred.
+- OAuth client credentials and RFC 8693 token exchange are distinct,
+  explicitly selected service-client capabilities. Token exchange declares
+  subject and optional actor tokens, impersonation versus delegation,
+  resource/audience/scope, requested/issued token types, and client
+  authentication; none of those fields imply consumer-domain authorization.
 - Access tokens are not universally JWTs. The initial resource-server profile
   is deliberately limited to JWT access tokens; opaque-token introspection is a
   later optional profile.
