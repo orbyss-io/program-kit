@@ -1,9 +1,11 @@
 {
   "title": "Program Kit deterministic host-tooling extensions",
-  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, typed .NET configuration and Options generation, structured diagnostics and observability, deterministic ASP.NET Core transport-failure handling, standards-profiled confidential and public OIDC clients, JWT resource servers, OAuth service clients and token exchange, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
+  "intent": "Extend the implemented Program Kit with provider-neutral operation convergence, a reusable deterministic configuration compiler, typed secret-resolution and rotation contracts, typed .NET configuration and Options generation, structured diagnostics and observability, deterministic ASP.NET Core transport-failure handling, standards-profiled confidential and public OIDC clients, JWT resource servers, OAuth service clients and token exchange, external OpenAPI client generation, Aspire and Dev Container projections, and bounded optional adapters without importing consumer-domain meaning.",
   "scope": [
     "A compact Orbyss.ProgramKit.Operations contract package that becomes the one canonical source for operation identity and host projections.",
     "Explicit ordered .NET configuration-source composition, typed Options binding, startup validation, provider reload capabilities, and consumer-selected IOptions, IOptionsSnapshot, or IOptionsMonitor semantics.",
+    "A design-time configuration compiler that projects explicit owner-supplied typed definitions and values into deterministic secret-free configuration bases, templates, mappings, overlays, validation evidence, and provenance without taking ownership of external component or domain meaning.",
+    "Central typed secret-reference, resolver-capability, resolution-result, lifecycle/change-signal, and consumer-reaction contracts with provider/result/lifetime/rotation compatibility validation, but no centralized secret provider or store.",
     "Built-in .NET configuration provider profiles plus an explicitly registered custom-provider generation ABI.",
     "Structured .NET logging, tracing, metrics, correlation, transport telemetry, exception observation, and controlled provider/exporter composition through platform emission APIs and a pinned OpenTelemetry adapter.",
     "Deterministic ASP.NET Core transport-failure handling through Problem Details, ordered exception handlers, explicit middleware and diagnostics behavior, and consumer-owned error mapping.",
@@ -28,6 +30,10 @@
     "No automatic Aspire, Docker Compose, container, Dev Container, Keycloak, Azure, deployment, or infrastructure execution.",
     "No production Keycloak provisioning, backup, migration, or administration.",
     "No generated arbitrary configuration-provider behavior from an unconstrained type name or script.",
+    "No Program Kit ownership of externally supplied configuration meaning, defaults, business validation, compatibility policy, or runtime reaction semantics.",
+    "No universal interpolated secret string, assumption that every secret reference is safe to log, or coercion of every credential into a string in IConfiguration.",
+    "No centralized Program Kit secret store, secret broker, provider monopoly, live-configuration control plane, or generic remote configuration-editing endpoint.",
+    "No silent overwrite or merge of generated configuration bases, developer-owned overlays, or provider/environment-owned values.",
     "No guarantee that a changed configuration value can recompose middleware, dependency injection, listeners, serialization profiles, database providers, or other restart-required host topology.",
     "No silent last-known-good guarantee beyond the exact .NET Options behavior selected and proven by fixtures; a stronger runtime controller requires a separate approved design.",
     "No application or consumer-domain observability meaning, business event catalog, security audit ledger, compliance record, incident policy, alert rule, dashboard, retention policy, telemetry backend, collector, or storage service.",
@@ -50,6 +56,13 @@
     "ASP.NET Core middleware constructs an AuthenticationTicket and ClaimsPrincipal as transport-host results. A consumer adapter must explicitly translate any required material into consumer-domain Identity or Authorization inputs.",
     "A standards-conforming provider product is substitutable only when its exact metadata, algorithms, endpoints, client registration, token profile, and claim mappings satisfy the selected Program Kit host profile.",
     "Configuration sources are ordered explicitly because later .NET configuration providers override earlier providers for the same key.",
+    "Program Kit-owned components own their configuration definitions; external component and domain authors may reuse the same deterministic compiler only through explicit typed definitions whose meaning remains externally owned.",
+    "Configuration generation is a human-started design-time operation. Generator, Workbench, CLI, and provider-generation assemblies remain outside generated runtime dependency closure.",
+    "Generated bases, examples, developer overlays, and provider/environment bindings have explicit ownership and collision policy; a developer edits owned input or overlay and regenerates rather than hand-editing a generator-owned file.",
+    "A secret reference is a typed canonical artifact rather than a magic string. A selected adapter projects it into an environment variable, mounted path, provider locator, Aspire parameter, or other representation actually supported by the target.",
+    "Secret resolution may yield configuration text or bytes, a certificate, mounted-file handle, credential object, assertion-producing service, or no secret material when workload or managed identity supplies the capability.",
+    "Secret change signals carry reference identity and safe generation, expiry, or status metadata but never resolved material; provider locators and secret names remain classified rather than presumed safe.",
+    "Each secret consumer explicitly selects hot replacement, client recreation, reconnect or resource recycle, host restart, manual handling, or unsupported rotation. Provider, result-kind, lifetime, rotation, and consumer-reaction compatibility must validate before generation.",
     "Reload is available only when a selected provider emits a change token or an explicit bounded refresh mechanism triggers one.",
     "IOptionsSnapshot is scoped and provides one consistent value per scope; IOptionsMonitor is singleton-capable and provides current values and change notification. Neither can safely recompose arbitrary host topology.",
     "Required and security-critical options validate on start. Live reload is opt-in per binding and fails closed when the provider cannot satisfy the declared reload capability.",
@@ -72,8 +85,8 @@
       "ownerId": "pkid:domain:program-kit:toolkit",
       "source": {
         "identity": "pkid:intent:program-kit:host-tooling",
-        "version": "1.2.0",
-        "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
+        "version": "1.3.0",
+        "digest": "sha256:4379a459d0a30a22eb25ea9cf72c1b0a51c970f28d16da72f2fb54b73689e093"
       },
       "sourcePath": "program-kit/extensions/host-tooling/design-intent.md",
       "governs": "The human-started scope, aligned ordering, explicit deferrals, protocol distinctions, and design authority boundary."
@@ -140,6 +153,32 @@
           ]
         },
         {
+          "term": "Configuration definition",
+          "meaning": "An owner-supplied typed declaration of configuration identity, schema, values, defaults, validation, classification, compatibility, source bindings, and permitted runtime reactions whose domain meaning remains with that owner.",
+          "acceptedAliases": [
+            "configuration contract"
+          ]
+        },
+        {
+          "term": "Configuration projection",
+          "meaning": "A deterministic design-time artifact generated from an exact configuration definition and target adapter, with explicit ownership, collision, provenance, and secret-reference behavior.",
+          "acceptedAliases": [
+            "configuration artifact"
+          ]
+        },
+        {
+          "term": "Secret reference",
+          "meaning": "A typed non-secret identity and resolver binding for obtaining an expected kind of protected runtime capability without placing resolved material in canonical configuration or generated evidence.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Secret consumption binding",
+          "meaning": "The explicit relationship between a resolver result and a consumer-supported reaction such as hot replacement, client recreation, reconnect, resource recycle, host restart, manual handling, or unsupported rotation.",
+          "acceptedAliases": [
+            "rotation reaction binding"
+          ]
+        },
+        {
           "term": "Diagnostic signal",
           "meaning": "A structured log, trace activity, metric measurement, or bounded event emitted for observation without becoming an authoritative business, security, audit, or compliance record.",
           "acceptedAliases": [
@@ -197,6 +236,20 @@
       "invariants": "Required bindings validate on start; named options are explicit; IOptionsSnapshot is never injected into singleton-generated infrastructure; live monitoring requires provider reload support; restart-required options cannot select live monitoring."
     },
     {
+      "identity": "pkid:model:program-kit:configuration-projection",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The deterministic design-time projection from one explicitly owned typed configuration definition and supplied values into a selected target representation, ownership manifest, validation result, and provenance.",
+      "termContractIds": [],
+      "invariants": "The definition owner retains semantic ownership; generation is explicit and side-effect bounded; generator-owned bases and human/provider-owned overlays are separate; actual secret material is never emitted; unsupported target semantics and ownership collisions fail closed."
+    },
+    {
+      "identity": "pkid:model:program-kit:secret-resolution",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The typed relationship among a non-secret reference, selected resolver capability, expected result kind, resolution lifecycle, safe change metadata, and consumer-supported reaction.",
+      "termContractIds": [],
+      "invariants": "No universal secret-string syntax or central store is assumed; provider locators are classified; resolved material never enters canonical artifacts, logs, diagnostics, or change signals; IConfiguration is only one configuration-shaped specialization; incompatible result, lifetime, rotation, or consumer reaction fails before generation."
+    },
+    {
       "identity": "pkid:model:program-kit:telemetry-composition",
       "ownerDomainId": "pkid:domain:program-kit:toolkit",
       "meaning": "The selected .NET logging, tracing, metrics, correlation, instrumentation, sampling, processing, exporter, redaction, cardinality, failure, and shutdown mechanics for one generated host.",
@@ -241,11 +294,21 @@
       "identity": "pkid:component:program-kit:dotnet-configuration-generation",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "kind": "focused-helper",
-      "purpose": "Extension of Orbyss.ProgramKit.DotNet owning explicit configuration-source and Options descriptors, validators, source generation, source-generated binding policy, and an explicit provider-generation module ABI.",
+      "purpose": "Extension of Orbyss.ProgramKit.DotNet owning explicit configuration-source and Options descriptors, validators, source generation, source-generated binding policy, deterministic target configuration projections, and an explicit provider-generation module ABI. External owners may supply typed definitions through the reviewed design-time ABI without transferring semantic ownership.",
       "providesContractIds": [],
       "consumesContractIds": [],
       "isActivatable": false,
-      "compatibilityBoundary": "DotNet shell configuration and Options wire/source-generation behavior."
+      "compatibilityBoundary": "DotNet shell configuration, Options, configuration-projection, ownership/collision, and source-generation behavior."
+    },
+    {
+      "identity": "pkid:component:program-kit:secret-resolution-contracts",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "domain-core",
+      "purpose": "Provider-neutral typed contracts for secret references, resolver capabilities, result kinds, leases/lifecycles, safe change signals, classification, and consumer reactions; provider adapters resolve material and consumer adapters own application behavior.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Secret-reference identity and wire shape, resolver/result capability matching, lifecycle/change metadata, redaction classification, and consumer-reaction compatibility."
     },
     {
       "identity": "pkid:component:program-kit:dotnet-observability-generation",
@@ -410,6 +473,22 @@
       "rationale": "Generated consumers carry only selected runtime dependencies and generated source, not the tools that produced them."
     },
     {
+      "identity": "pkid:reference-rule:program-kit:configuration-and-secret-ownership",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit configuration compiler, provider modules, secret resolver adapters, generated hosts, and runtime bindings",
+      "referencedScope": "Externally owned configuration meaning, secret values, centralized secret storage, ambient provider discovery, implicit live mutation, or generator assemblies in runtime consumers",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:4379a459d0a30a22eb25ea9cf72c1b0a51c970f28d16da72f2fb54b73689e093"
+        },
+        "path": "program-kit/extensions/host-tooling/design-intent.md#human-intent"
+      },
+      "rationale": "Program Kit may compile explicit owner-supplied configuration and standardize secret-resolution mechanics without becoming the semantic owner, secret store, or live configuration control plane."
+    },
+    {
       "identity": "pkid:reference-rule:program-kit:no-domain-security-meaning",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "disposition": "forbidden",
@@ -434,8 +513,8 @@
       "ownerInput": {
         "artifact": {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.2.0",
-          "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
+          "version": "1.3.0",
+          "digest": "sha256:4379a459d0a30a22eb25ea9cf72c1b0a51c970f28d16da72f2fb54b73689e093"
         },
         "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
       },
@@ -450,8 +529,8 @@
       "ownerInput": {
         "artifact": {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.2.0",
-          "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
+          "version": "1.3.0",
+          "digest": "sha256:4379a459d0a30a22eb25ea9cf72c1b0a51c970f28d16da72f2fb54b73689e093"
         },
         "path": "program-kit/extensions/host-tooling/design-intent.md#authority-boundary"
       },
@@ -642,14 +721,18 @@
     },
     "secrets": {
       "ownerId": "pkid:domain:program-kit:toolkit",
-      "policy": "Canonical inputs carry secret references and credential-selection policy only; providers resolve values at runtime.",
+      "policy": "Canonical inputs carry typed secret references, expected result kinds, resolver selections, lifecycle policy, and consumer-reaction bindings only; explicitly selected providers resolve protected capabilities at runtime without a centralized Program Kit secret provider or store.",
       "guarantees": [
         "Generated source, configuration templates, locks, manifests, diagnostics, tests, and receipts are secret-free.",
+        "A secret reference has stable non-secret identity, classification, expected result kind, and resolver binding; target adapters project it only into representations they actually support and no universal interpolated string is invented.",
+        "Resolution may yield text or bytes, a certificate, mounted-file handle, credential object, assertion-producing service, or no secret material for workload or managed identity; IConfiguration is only one configuration-shaped specialization.",
+        "Rotation signals carry reference identity and safe generation, expiry, or status metadata but no resolved material, and consumer reaction compatibility is validated before generation.",
         "Azure, confidential OIDC, client-credentials and token-exchange adapters prefer managed identity, certificates, assertions, or externally supplied credential abstractions where supported.",
         "Playwright authentication state, browser traces, cookies and tokens are ephemeral secret material, excluded from source control and redacted or destroyed under the selected test profile."
       ],
       "exclusions": [
-        "No client secret, private key, access token, refresh token, password, vault secret value, or generated Keycloak credential is persisted as Program Kit evidence."
+        "No client secret, private key, access token, refresh token, password, vault secret value, or generated Keycloak credential is persisted as Program Kit evidence.",
+        "No secret name, locator, tenant, path, certificate identifier, or provider reference is presumed safe to log merely because it is not resolved material."
       ]
     },
     "persistence": {
@@ -668,7 +751,7 @@
       "policy": "Unknown provider capability, invalid configuration, invalid token profile, stale or conflicting input, missing package evidence, and nondeterministic output fail closed with stable diagnostics.",
       "guarantees": [
         "Required Options validate before host readiness.",
-        "Reload-provider outages, invalid reload candidates, metadata/key rollover failures, Kiota errors, and generator drift are distinguishable.",
+        "Reload-provider outages, invalid reload candidates, secret resolution denial, unavailable or expired material, incompatible result kinds, rotation/reaction mismatch, metadata/key rollover failures, Kiota errors, and generator drift are distinguishable.",
         "No failed reload is reported as successful reconfiguration.",
         "Unhandled transport failures receive a safe generic response unless the response has started; explicit mappings, cancellation and client disconnects remain distinguishable.",
         "Handled-exception diagnostic emission is an explicit .NET profile choice so one failure is not accidentally logged or counted twice."
@@ -683,10 +766,11 @@
       "guarantees": [
         "Identical generation invocations do not race through shared mutable caches or output directories.",
         "IOptionsSnapshot provides scope consistency and IOptionsMonitor subscriptions are disposable.",
-        "Async reconfiguration is queued by consumer-owned bounded services rather than executed unbounded inside change callbacks."
+        "Async reconfiguration is queued by consumer-owned bounded services rather than executed unbounded inside change callbacks.",
+        "Secret change callbacks carry metadata only; hot replacement, client recreation, reconnect, resource recycle, restart, or manual handling executes only through the declared consumer-owned binding."
       ],
       "exclusions": [
-        "No atomic distributed reconfiguration, cross-process configuration transaction, or automatic service reconstruction is claimed."
+        "No atomic distributed reconfiguration, cross-process configuration transaction, automatic service reconstruction, zero-downtime rotation, rollback, or universal last-known-good behavior is claimed."
       ]
     },
     "cancellation": {
@@ -751,6 +835,50 @@
       ],
       "failureOutcomes": [
         "Unstable or unpinned convention, duplicate instrumentation, sensitive field, unbounded attribute, invalid exporter configuration, blocking critical-path export, or unbounded shutdown fails validation or the fixture."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:external-configuration-projection",
+      "actor": "External component developer",
+      "intent": "Reuse Program Kit configuration compilation to generate deterministic configuration artifacts from an explicitly owned typed definition without transferring domain meaning or adding generator dependencies to the runtime application.",
+      "preconditions": [
+        "The definition identity, schema, owner, values, defaults, validation, classification, compatibility, target adapter, output ownership, collision policy, and secret references are explicit."
+      ],
+      "steps": [
+        "Validate the owner-supplied typed definition and secret-free values.",
+        "Select an exact supported target adapter and reject unsupported target semantics.",
+        "Generate the owned base, example or developer overlay, source mapping, validation report, and provenance under an explicit output root.",
+        "Build an isolated consumer using only generated artifacts and selected runtime contracts."
+      ],
+      "outcomes": [
+        "Identical inputs and adapter versions produce byte-identical normalized artifacts.",
+        "The external component retains semantic ownership and can regenerate after changing its typed input.",
+        "Generated bases, human-owned overlays, and provider/environment-owned values remain distinguishable and collision-safe."
+      ],
+      "failureOutcomes": [
+        "Secret material, ambiguous ownership, implicit merge, unsupported representation, ambient discovery, invalid definition, or runtime generator dependency fails generation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:secret-resolution-and-rotation",
+      "actor": "Generated host secret consumer",
+      "intent": "Resolve one typed secret reference through an explicitly selected provider and react to rotation only through a compatible consumer-owned lifecycle binding.",
+      "preconditions": [
+        "Reference identity, classification, provider and revision, expected result kind, lifetime, refresh or rotation capability, failure policy, and consumer reaction are explicit."
+      ],
+      "steps": [
+        "Validate provider, result-kind, lifetime, rotation, and consumer-reaction compatibility before generation.",
+        "Resolve protected material at runtime without persisting it in canonical configuration, generated output, logs, diagnostics, or evidence.",
+        "Publish a bounded metadata-only change signal when the provider proves a newer generation, expiry, revocation, or failure state.",
+        "Queue the declared hot replacement, client recreation, reconnect, resource recycle, host restart request, manual disposition, or unsupported outcome through the consumer-owned binding."
+      ],
+      "outcomes": [
+        "Configuration-shaped values may participate in IConfiguration and Options only when that specialization is selected.",
+        "Certificates, handles, credentials, assertions, mounted files, and managed identity remain typed runtime capabilities rather than coerced configuration strings.",
+        "A provider change is never reported as successful application reconfiguration until the declared consumer reaction succeeds."
+      ],
+      "failureOutcomes": [
+        "Unknown resolver, mismatched result kind, expired or revoked material, classified-locator disclosure, callback leakage, unsupported live rotation, reaction failure, or false success produces a stable redacted failure disposition."
       ]
     },
     {
@@ -973,8 +1101,8 @@
       "evidence": [
         {
           "identity": "pkid:intent:program-kit:host-tooling",
-          "version": "1.2.0",
-          "digest": "sha256:ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
+          "version": "1.3.0",
+          "digest": "sha256:4379a459d0a30a22eb25ea9cf72c1b0a51c970f28d16da72f2fb54b73689e093"
         }
       ],
       "claim": "The extension design review set is being produced from explicit human intent; none of the described runtime packages, providers, profiles, generators, migrations, or fixtures is implemented or approved by this claim."

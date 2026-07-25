@@ -1,12 +1,12 @@
 ---
 artifact-kind: implementation-plan
 artifact-id: pkid:plan:program-kit:host-tooling
-artifact-version: 1.2.0
+artifact-version: 1.3.0
 intended-contract: pkid:schema:program-kit:implementation-plan
 intended-contract-version: 1.0.0
 design-ref-id: pkid:design:program-kit:host-tooling
-design-ref-version: 1.2.0
-design-digest: sha256:ac94d94864403dd2f230afe16342020b00f44d03be846e43087bea546a99704c
+design-ref-version: 1.3.0
+design-digest: sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57
 review-state: awaiting-human-approval
 implementation-status: not-started
 ---
@@ -66,6 +66,10 @@ renewed human approval.
 | `PKHT-R023` | An OAuth client-credentials profile acquires service tokens through exact client authentication, resource, audience, scope, cache, expiry, cancellation, outage, and redaction declarations. |
 | `PKHT-R024` | An RFC 8693 token-exchange profile explicitly distinguishes subject and actor tokens, delegation and impersonation, requested and issued token types, resource, audience, scope and client authentication without ambient forwarding or inferred authorization. |
 | `PKHT-R025` | Public-client verification separates deterministic protocol vectors, automated local Playwright/Aspire browser evidence, opt-in operator-assisted real-provider acceptance, ephemeral secret handling, and explicit human threat-model acceptance. |
+| `PKHT-R026` | Program Kit-owned and explicit external-owner-supplied typed configuration definitions project through a reusable design-time compiler without transferring external semantics or adding generator assemblies to runtime consumers. |
+| `PKHT-R027` | Generated configuration bases, examples, mappings, developer overlays, provider/environment bindings, validation evidence, provenance, and collision rules are deterministic, secret-free, and ownership-safe. |
+| `PKHT-R028` | Typed secret references, resolver capabilities, result kinds, lifecycles, classifications, and metadata-only change signals compose without a centralized Program Kit secret provider, store, broker, or universal secret string. |
+| `PKHT-R029` | Secret provider, result-kind, lifetime, rotation, and consumer-reaction bindings validate before generation; unsupported or failed reactions cannot claim successful live reload. |
 
 ## 3. Exact starting inputs
 
@@ -127,13 +131,14 @@ dependency; stop if planning integrity semantics would be weakened.
 
 ### `PKHT-W020` — configuration composition and typed Options
 
-**Requirements:** `R002`, `R003`, `R004`, part of `R016`.
+**Requirements:** `R002`, `R003`, `R004`, `R026`, `R027`, part of `R016`.
 
 **Depends on:** `W010`.
 
-**Allowed edits:** DotNet configuration and shell schemas/models/validators,
-generation modules, host renderers, locks/provenance, focused tests and
-fixtures, documentation, version/migration artifacts.
+**Allowed edits:** DotNet configuration-definition, projection, ownership,
+collision, and shell schemas/models/validators; design-time library/command
+generation modules; host renderers; locks/provenance; focused tests and
+fixtures; documentation; version/migration artifacts.
 
 **Required outcomes:**
 
@@ -152,22 +157,93 @@ fixtures, documentation, version/migration artifacts.
 5. Generate disposable bounded monitor subscription scaffolding and redacted
    diagnostics; non-trivial reactions are queued into consumer-owned bounded
    services.
+6. Define a reusable design-time configuration-definition ABI. Program
+   Kit-owned components supply their own definitions; external component or
+   domain authors may supply explicit typed definitions while retaining
+   ownership of meaning, defaults, semantic validation, compatibility,
+   classification, and runtime reactions.
+7. Generate only target-supported secret-free bases, examples, developer
+   overlays, environment-variable maps, key-per-file layouts, provider
+   bindings, validation reports, and provenance under explicit output roots.
+8. Separate generator-owned bases, human-owned overlays, and
+   provider/environment-owned values with exact collision and regeneration
+   behavior. Never silently merge into or overwrite a human-owned artifact.
+9. Keep configuration compiler, Workbench, DotNet generator, CLI, and provider
+   generation assemblies outside isolated generated runtime consumers.
 
 **Verification:** deterministic API/Console/Worker hosts; precedence matrix;
 missing/invalid startup values; named Options; valid reload; invalid reload
 candidate; scoped consistency across scopes; singleton monitor notification;
 subscription disposal; restart-required rejection; redaction; build/analyzer
-proof; no unused intent fields.
+proof; Program Kit-owned and external-owner definitions; repeated
+configuration projection; generated-base/overlay/provider ownership and
+collision matrix; unsupported target rejection; isolated runtime dependency
+scan; no unused intent fields.
 
 **Stop conditions:** stop if .NET runtime behavior cannot support a declared
 guarantee, if a provider does not produce a usable change token, or if safe
-invalid-reload behavior requires a new runtime controller.
+invalid-reload behavior requires a new runtime controller; stop if the reusable
+ABI would make Program Kit own external configuration meaning or require
+ambient type/assembly discovery.
+
+### `PKHT-W025` — typed secret resolution and rotation contracts
+
+**Requirements:** `R028`, `R029`, and parts of `R002`, `R004`, `R016`.
+
+**Depends on:** `W020`.
+
+**Allowed edits:** provider-neutral secret-reference, resolver-capability,
+result-kind, lifecycle/lease, classification, change-signal, and
+consumer-reaction schemas/models/validators; DotNet runtime bindings and
+generation adapters; focused fixtures, documentation, version maps and
+migration artifacts.
+
+**Required outcomes:**
+
+1. Define a typed non-secret reference with stable identity, classification,
+   expected result kind, and exact resolver binding. Provider-specific locator
+   payload remains adapter-owned and classified; no universal interpolated
+   string is invented.
+2. Define finite typed result capabilities for configuration text/bytes,
+   certificates, mounted-file handles, credential objects/handles,
+   assertion-producing services, and workload/managed-identity capability
+   without secret material.
+3. Define resolution status and lifecycle metadata, including safe generation,
+   expiry, revocation and failure state. Change signals contain metadata only
+   and never resolved material.
+4. Define explicit consumer reactions: hot replacement, client recreation,
+   reconnect, resource recycle, host restart request, manual handling, or
+   unsupported rotation.
+5. Validate provider, result-kind, lifetime, refresh/rotation, and
+   consumer-reaction compatibility before generation. Treat `IConfiguration`
+   and Options as one configuration-shaped specialization rather than the
+   universal secret transport.
+6. Generate bounded disposable subscriptions that queue non-trivial reactions
+   into consumer-owned services. A provider change is not successful
+   application reconfiguration until the selected reaction succeeds.
+7. Preserve the absence of a centralized Program Kit secret provider, store,
+   broker, configuration control plane, live editing endpoint, universal
+   atomicity, zero-downtime, rollback, or last-known-good guarantee.
+
+**Verification:** schema/model/JSON drift; reference and locator classification;
+provider/result/lifetime/reaction compatibility matrix; text, certificate,
+handle, assertion and managed-identity fixtures; metadata-only rotation;
+expiry/revocation; resolution denial and outage; callback disposal; bounded
+queueing; hot-swap/client-recreate/reconnect/recycle/restart/manual/unsupported
+reactions; false-success rejection; logging, diagnostic, generated-output and
+evidence redaction; isolated runtime consumer.
+
+**Stop conditions:** stop if a provider requires secret material in canonical
+input, generated output or evidence; if a supposedly generic contract embeds a
+provider product; if a locator cannot be classified and redacted; if runtime
+material must be coerced into a string; or if safe reaction semantics require a
+new Program Kit runtime controller.
 
 ### `PKHT-W030` — provider-generation module ABI and built-in providers
 
 **Requirements:** `R005`, part of `R002`, `R004`, `R016`.
 
-**Depends on:** `W020`.
+**Depends on:** `W025`.
 
 **Allowed edits:** configuration provider contracts/catalog, DotNet generation
 module registration, selected built-in provider projections, conformance
@@ -187,10 +263,14 @@ fixtures, docs and package/version metadata.
    remain visible.
 4. Enforce provider ordering, duplicates/conflicts, package closure, secret
    rules, deterministic registration, and stable diagnostics.
+5. Keep configuration-source providers and secret resolvers distinct while
+   permitting an exact adapter to implement both independently declared
+   capabilities.
 
 **Verification:** provider matrix and negative catalog tests; repeated
 generation; output-tree digest; isolated host build; controlled file changes;
-unsupported reload rejection; no reflection or assembly scanning.
+unsupported reload rejection; secret-resolver separation; no reflection or
+assembly scanning.
 
 **Stop conditions:** stop for any provider requiring ambient discovery,
 arbitrary code execution, unbounded polling, or an unreviewed dependency.
@@ -265,7 +345,7 @@ duplicated; or if diagnostic signals would acquire audit/domain authority.
 
 ### `PKHT-W040` — Azure configuration provider adapters
 
-**Requirements:** `R006`, part of `R004`, `R016`.
+**Requirements:** `R006`, parts of `R004`, `R016`, `R028`, `R029`.
 
 **Depends on:** `W030`.
 
@@ -285,10 +365,15 @@ docs and version metadata.
    and outage behavior exactly as supported.
 4. Keep provider-specific cached-value behavior explicit; do not generalize it
    into a universal Program Kit guarantee.
+5. Bind Azure credential and Key Vault reference shapes through the typed
+   secret-resolution contracts. Keep provider locators classified and prove
+   each selected result kind and rotation reaction rather than projecting a
+   generic secret string.
 
 **Verification:** deterministic generation and build; fake provider startup,
 rotation/refresh, sentinel consistency, invalid secret, credential failure,
-outage, cancellation and redaction tests; dependency/license/lock proof.
+outage, result-kind/reaction compatibility, locator classification,
+cancellation and redaction tests; dependency/license/lock proof.
 
 **Stop conditions:** stop if verification requires live credentials or cloud
 mutation, or if selected provider behavior contradicts the base reload model.
@@ -634,7 +719,7 @@ Parallel work is permitted only after the shared foundations land:
 
 | Phase | Work units |
 | --- | --- |
-| Foundation | `W010` → `W020` → `W030` → `W035` → `W045` |
+| Foundation | `W010` → `W020` → `W025` → `W030` → `W035` → `W045` |
 | Independent adapters | `W040`, `W050`, `W060`, `W070`, `W080` after their declared dependencies |
 | Security clients | `W052` and `W055` after `W050` |
 | Dependent projections | `W090` after `W045` and `W050`; `W100` after `W052`, `W055`, and `W070` |
@@ -666,6 +751,8 @@ foundation unit.
 | `R021` | `W045`, parity in `W090`, consumed by `W050`, closed by `W110` |
 | `R022`, `R025` | `W052`, local-provider proof in `W100`, closed by `W110` |
 | `R023`–`R024` | `W055`, provider proof in `W100`, closed by `W110` |
+| `R026`–`R027` | `W020`, consumed by every configuration-dependent projection and closed by `W110` |
+| `R028`–`R029` | `W025`, proven across `W030`, `W040`, `W050`, `W055`, `W070`, `W100`, and closed by `W110` |
 
 ## 7. Deliberately unimplemented
 
@@ -679,6 +766,10 @@ human interaction also remain absent.
 It also contains no telemetry backend, collector, dashboard, alert, retention
 policy, incident policy, business-event ledger, security audit system, or base
 dependency on Serilog, NLog, Application Insights, Seq, Grafana or Prometheus.
+It contains no central Program Kit secret provider, store or broker; universal
+secret interpolation syntax; generic live-configuration control plane or
+remote editing endpoint; ownership of external configuration meaning; or
+guarantee of atomic, zero-downtime, rollback-capable rotation.
 Adding any of these requires a new human-started design.
 
 ## 8. Completion rule

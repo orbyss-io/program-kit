@@ -4,7 +4,7 @@
 - State: human-started and scope-aligned; exact design and plan not yet approved
 - Repository scope: `program-kit/`
 - Design identity: `pkid:design:program-kit:host-tooling`
-- Intended design version: `1.2.0`
+- Intended design version: `1.3.0`
 
 ## Human intent
 
@@ -110,6 +110,46 @@ The human explicitly aligned with the complete correction:
 
 > “Once again. I agree with every thing you wrote. We are 100% aligned in our
 > vision and design”
+
+The human then requested and explicitly aligned with a reusable configuration
+compiler and typed secret-resolution boundary. The accepted direction is:
+
+- Program Kit owns deterministic configuration definition, validation,
+  projection, provenance, safe diffing, and generated-consumer mechanics for
+  Program Kit-owned components;
+- external component and domain authors may use the same mechanics by
+  supplying explicit typed definitions whose meaning, defaults, validation,
+  compatibility, and runtime reactions they continue to own;
+- design-time generator packages and commands remain outside generated
+  application runtime dependency closure;
+- generated bases, developer-owned overlays, and provider/environment-owned
+  values have explicit, non-overlapping ownership and collision behavior;
+- there is no universal interpolated secret string: canonical input carries a
+  typed secret reference and a selected target adapter projects the reference
+  into the representation that target actually supports;
+- Program Kit centralizes secret-reference, resolver-capability,
+  typed-resolution-result, lifecycle/change-signal, and consumer-reaction
+  contracts, but owns no centralized secret provider, store, broker, or
+  configuration control plane;
+- secret resolution may return text or bytes, a certificate, mounted-file
+  handle, credential object, assertion-producing service, or no secret
+  material when a workload/managed identity supplies the capability;
+- a rotation signal contains reference identity and safe generation, expiry,
+  or status metadata, never resolved material or a locator assumed safe to
+  disclose;
+- each consumer declares whether it can hot-swap, recreate a client, reconnect,
+  recycle a resource, restart the host, or cannot react automatically;
+- provider, result-kind, lifetime, rotation, and consumer-reaction
+  compatibility is validated before generation, and unsupported live rotation
+  fails rather than being misreported as successful reload;
+- `IConfiguration` and Options reload remain one configuration-shaped
+  specialization, not a universal transport for certificates, handles,
+  assertions, or managed identity.
+
+The human confirmed this complete risk and ownership boundary:
+
+> “I 100% agree with your risk analysis, your anticipation and your
+> recommendations. Fully. 100%.”
 
 ## Protocol understanding to preserve
 

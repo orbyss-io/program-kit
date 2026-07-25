@@ -2,7 +2,7 @@
   "manifestKind": "program-kit-design-review",
   "manifestVersion": "1.0.0",
   "reviewSetId": "pkid:approval:program-kit:host-tooling-review-set",
-  "reviewSetVersion": "1.2.0",
+  "reviewSetVersion": "1.3.0",
   "owner": "human-led-program-kit-extension",
   "reviewState": "awaiting-human-approval",
   "implementationStatus": "not-started",
@@ -18,42 +18,42 @@
   "artifacts": [
     {
       "artifactId": "pkid:intent:program-kit:host-tooling",
-      "artifactVersion": "1.2.0",
+      "artifactVersion": "1.3.0",
       "role": "human-intent-record",
       "path": "program-kit/extensions/host-tooling/design-intent.md",
-      "sha256": "ce66df87ed209bb6caf96578bb9224ab4512595ed8d4539a1dd0eac2f52d016f"
+      "sha256": "4379a459d0a30a22eb25ea9cf72c1b0a51c970f28d16da72f2fb54b73689e093"
     },
     {
       "artifactId": "pkid:design:program-kit:host-tooling",
-      "artifactVersion": "1.2.0",
+      "artifactVersion": "1.3.0",
       "role": "canonical-design",
       "contract": "pkid:schema:program-kit:architecture-design",
       "contractVersion": "1.0.0",
       "contractSha256": "19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2",
       "path": "program-kit/extensions/host-tooling/architecture-design.json",
-      "sha256": "ac94d94864403dd2f230afe16342020b00f44d03be846e43087bea546a99704c"
+      "sha256": "a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:host-tooling-design-markdown",
-      "artifactVersion": "1.2.0",
+      "artifactVersion": "1.3.0",
       "role": "human-readable-design-projection",
       "canonicalDesignId": "pkid:design:program-kit:host-tooling",
-      "canonicalDesignVersion": "1.2.0",
-      "canonicalDesignSha256": "ac94d94864403dd2f230afe16342020b00f44d03be846e43087bea546a99704c",
+      "canonicalDesignVersion": "1.3.0",
+      "canonicalDesignSha256": "a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57",
       "path": "program-kit/extensions/host-tooling/architecture-design.md",
-      "sha256": "26e6c69272976c05731af99cbf60f90ae512135e6bc062efede5b966b1b3eb48"
+      "sha256": "ccaa21e00d1a5be767ddca90f4d4166b33fd56360eaf622141f06b640813dc9d"
     },
     {
       "artifactId": "pkid:plan:program-kit:host-tooling",
-      "artifactVersion": "1.2.0",
+      "artifactVersion": "1.3.0",
       "role": "implementation-plan-review-representation",
       "intendedContract": "pkid:schema:program-kit:implementation-plan",
       "intendedContractVersion": "1.0.0",
       "designId": "pkid:design:program-kit:host-tooling",
-      "designVersion": "1.2.0",
-      "designSha256": "ac94d94864403dd2f230afe16342020b00f44d03be846e43087bea546a99704c",
+      "designVersion": "1.3.0",
+      "designSha256": "a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57",
       "path": "program-kit/extensions/host-tooling/implementation-plan.md",
-      "sha256": "77ff7266e3a7717c7b076f4d840770605a517e8bd260ba4a285c0e9b8fdc2a8a"
+      "sha256": "8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5"
     }
   ],
   "approvalBoundary": {
@@ -72,6 +72,10 @@
       "application or consumer-domain observability meaning, a business-event or security-audit ledger, compliance evidence, telemetry backend, collector, dashboard, alert, retention, or incident policy",
       "automatic telemetry emission from Program Kit generation, validation, design, or development-session tools",
       "a base semantic dependency on Serilog, NLog, Application Insights, Seq, Grafana, Prometheus, or another vendor product",
+      "Program Kit ownership of external configuration meaning, defaults, business validation, compatibility, or runtime reaction semantics",
+      "a universal interpolated secret string, centralized Program Kit secret provider, store or broker, live-configuration control plane, or generic remote configuration-editing endpoint",
+      "coercion of every protected capability into IConfiguration, disclosure of classified secret locators, or silent merging of generated bases and human/provider-owned overlays",
+      "a universal guarantee of atomic, zero-downtime, rollback-capable, cross-process, or last-known-good secret rotation",
       "credentials, network discovery, cloud mutation, deployment, publication, or release activity",
       "a material deviation from the reviewed design or plan"
     ]
@@ -80,8 +84,8 @@
     "jsonSyntax": "passed",
     "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:architecture-design@1.0.0",
     "architectureSemanticValidation": "passed through ArchitectureDesignValidator",
-    "focusedArchitectureTests": "passed: 16 tests through Orbyss.ProgramKit.UnitTests filtered to Architecture",
-    "fullSuiteFinding": "A bounded full-solution run with normal restore exceeded 120 seconds without a result. The no-restore attempt stopped before tests at existing PKCS174 raw-reference import validation because no MSTest raw references were observed. No gate was weakened; full-suite execution remains implementation-closure evidence.",
+    "focusedArchitectureTests": "passed: the exact 1.3.0 host-tooling architecture JSON passed JsonSchemaWorkbenchValidator against the composite Program Kit schema set and ArchitectureDesignValidator through a temporary review-only test harness; the harness was removed after execution",
+    "fullSuiteFinding": "The clean Orbyss.ProgramKit.UnitTests assembly passed 293 of 293 tests after the temporary exact-design harness was removed. A prior bounded full-solution run exceeded 120 seconds and a no-restore attempt stopped at existing PKCS174 raw-reference import validation; no gate was weakened, and broader solution closure remains implementation evidence.",
     "reviewBinding": "all artifact digests and the plan-to-design digest binding were recomputed from repository bytes",
     "commandLineFinding": "The current validate command requires a top-level $schema selector while architecture-design.schema.json forbids that undeclared property. Validation therefore used the same direct Workbench schema validator and semantic validator exercised by repository conformance tests; PKHT-W010 must close the CLI/schema-selection inconsistency rather than weakening the schema."
   },
@@ -91,19 +95,19 @@
     "sourceCommit": "c0d774e7d3d95b7c695b75798df695d68f041efa",
     "branch": "codex/program-kit-host-tooling",
     "source": "human-started Program Kit extension design",
-    "details": "Version 1.2.0 adds the explicitly aligned ASP.NET Core transport-failure profile, public-browser OIDC with a pinned Blazor WebAssembly target boundary, OAuth client credentials, RFC 8693 token exchange, and layered Playwright/operator-assisted browser verification. It retains confidential BFF as the preferred sensitive-application profile and keeps device authorization, CIBA, FAPI, DPoP, opaque-token introspection, implicit flow, and resource-owner-password flow deferred. The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. No runtime implementation, external execution, credential handling, or approval record was created."
+    "details": "Version 1.3.0 adds the explicitly aligned reusable design-time configuration compiler for Program Kit-owned and external-owner-supplied typed definitions, typed secret-reference/resolver/result/lifecycle/change-signal/consumer-reaction contracts, rotation compatibility validation, strict generated-base/overlay/provider ownership, and runtime generator isolation. It introduces no centralized secret provider or store, universal secret string, live-configuration control plane, external configuration semantic ownership, or universal rotation guarantee. The exact local and external source set is enumerated in design-intent.md, canonical architecture-design.json, and architecture-design.md. No runtime implementation, external execution, secret resolution, credential handling, or approval record was created."
   },
   "supersedes": {
-    "reviewSetVersion": "1.1.0",
-    "commit": "df3352e",
+    "reviewSetVersion": "1.2.0",
+    "commit": "f1978b6",
     "design": {
-      "artifactVersion": "1.1.0",
-      "sha256": "6ab70a7950d9397fd89ff3bf16492a494f7102a6ec57e11fffbc2f480996227d"
+      "artifactVersion": "1.2.0",
+      "sha256": "ac94d94864403dd2f230afe16342020b00f44d03be846e43087bea546a99704c"
     },
     "plan": {
-      "artifactVersion": "1.1.0",
-      "sha256": "36b72d81e1b105ad05246395f14375348cafeef5314999b59e7f369d1cf5db88"
+      "artifactVersion": "1.2.0",
+      "sha256": "77ff7266e3a7717c7b076f4d840770605a517e8bd260ba4a285c0e9b8fdc2a8a"
     },
-    "reason": "The human corrected the initial security scope before approval by adding deterministic transport-failure handling, public-browser OIDC, client credentials, RFC 8693 token exchange, and layered browser verification."
+    "reason": "The human extended the still-unapproved review set with a reusable deterministic configuration compiler, typed secret-resolution and rotation contracts, explicit consumer-reaction compatibility, and strict design-time/runtime and generated/human/provider ownership boundaries."
   }
 }

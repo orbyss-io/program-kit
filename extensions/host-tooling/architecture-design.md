@@ -2,18 +2,20 @@
 
 - Canonical design: `architecture-design.json`
 - Design identity: `pkid:design:program-kit:host-tooling`
-- Design version: `1.2.0`
+- Design version: `1.3.0`
 - State: awaiting exact human approval; nothing in this design is implemented
 
 ## Outcome
 
 Program Kit will gain a deterministic, provider-neutral toolbox for generated
 .NET hosts. The toolbox owns universal construction mechanics: operation
-contracts, configuration composition, typed Options, structured diagnostics
-and observability, standards-profiled transport security, client and host
-projections, exact provider selection, validation, and provenance. It does not
-own a consumer's identity, authorization, observability meaning, environment,
-deployment, or other domain meaning.
+contracts, reusable configuration compilation, typed secret-resolution and
+rotation contracts, configuration composition, typed Options, structured
+diagnostics and observability, standards-profiled transport security, client
+and host projections, exact provider selection, validation, and provenance. It
+does not own a consumer's configuration meaning, runtime reaction, identity,
+authorization, observability meaning, environment, deployment, or other domain
+meaning.
 
 The key security abstraction is an exact **protocol profile**, not an identity
 provider product:
@@ -35,49 +37,56 @@ products are automatically interchangeable.
 
 ## Approved-for-review scope
 
-The proposed extension contains fourteen bounded capability areas:
+The proposed extension contains sixteen bounded capability areas:
 
 1. **Operations convergence** — introduce a compact
    `Orbyss.ProgramKit.Operations` contract package over Artifacts and migrate
    the current DotNet-owned operation binding so all projections share one
    semantic owner.
-2. **.NET configuration and Options** — model ordered configuration sources,
+2. **Configuration compiler** — project Program Kit-owned or explicitly
+   external-owner-supplied typed configuration definitions into deterministic
+   secret-free bases, templates, mappings, overlays, validation evidence, and
+   provenance without taking ownership of external meaning.
+3. **.NET configuration and Options** — model ordered configuration sources,
    typed and named Options binding, startup validation, reload capability, and
    explicit `IOptions<T>`, `IOptionsSnapshot<T>`, or
    `IOptionsMonitor<T>` consumption.
-3. **Provider composition** — support a reviewed built-in provider catalog and
+4. **Secret resolution and rotation** — define typed secret references,
+   resolver capabilities, result kinds, lifecycles, safe change signals, and
+   consumer reactions without creating a central provider or store.
+5. **Provider composition** — support a reviewed built-in provider catalog and
    a closed, explicitly registered custom-provider generation ABI.
-4. **Azure configuration adapters** — optionally project Azure Key Vault and
+6. **Azure configuration adapters** — optionally project Azure Key Vault and
    Azure App Configuration registration, credential references, refresh
    behavior, and secret-safe evidence.
-5. **Diagnostics and observability** — generate structured .NET logging,
+7. **Diagnostics and observability** — generate structured .NET logging,
    tracing, metrics, W3C correlation, transport instrumentation, exception
    observation, redaction/cardinality rules, and controlled collection/export
    through exact platform APIs and a pinned OpenTelemetry adapter.
-6. **ASP.NET Core transport failures** — generate Problem Details, ordered
+8. **ASP.NET Core transport failures** — generate Problem Details, ordered
    exception handlers, middleware and diagnostic disposition while requiring
    explicit consumer-owned mappings for non-generic error meaning.
-7. **ASP.NET Core security profiles** — generate authentication schemes,
+9. **ASP.NET Core security profiles** — generate authentication schemes,
    middleware order, confidential interactive OIDC clients, JWT bearer
    resource servers, named host-policy attachment, and transport results.
-8. **Public browser security** — define an authorization-code-with-PKCE public
+10. **Public browser security** — define an authorization-code-with-PKCE public
    OIDC profile, initially project it through a pinned Blazor WebAssembly
    adapter, and generate layered protocol/browser verification.
-9. **OAuth service clients** — generate explicit client-credentials and RFC
+11. **OAuth service clients** — generate explicit client-credentials and RFC
    8693 token-exchange profiles without ambient token forwarding or inferred
    delegation, impersonation, scope, audience, or authorization.
-10. **Kiota client generation** — consume an exact local foreign OpenAPI
+12. **Kiota client generation** — consume an exact local foreign OpenAPI
    document through a pinned external Kiota adapter and retain the lock and
    provenance.
-11. **Aspire AppHost generation** — project explicit low-level application
+13. **Aspire AppHost generation** — project explicit low-level application
    composition into a pinned AppHost project without inventing environment or
    deployment semantics.
-12. **Dev Container generation** — generate and validate deterministic
+14. **Dev Container generation** — generate and validate deterministic
    `.devcontainer` artifacts from explicit inputs, without starting a
    container.
-13. **FastEndpoints projection** — optionally project the same operation and
+15. **FastEndpoints projection** — optionally project the same operation and
     ASP.NET Core security contracts through a pinned FastEndpoints adapter.
-14. **Keycloak local fixture** — generate a minimal secret-free realm import
+16. **Keycloak local fixture** — generate a minimal secret-free realm import
     and an Aspire-backed disposable local proof that Keycloak can satisfy the
     base OIDC/JWT and selected OAuth service-client profiles.
 
@@ -118,6 +127,76 @@ change, an invalid candidate, provider outage, precedence, scoped consistency,
 monitor behavior, restart-required values, and secret redaction. No stronger
 “last known good” guarantee is claimed unless a later runtime-controller design
 owns and proves it.
+
+## Reusable configuration compiler
+
+Program Kit owns configuration compilation mechanics, not every component's
+configuration language. Program Kit-owned generated components provide their
+own typed definitions. External component and domain authors may invoke the
+same design-time library or command with an explicit typed definition while
+retaining ownership of:
+
+- configuration meaning, identity and schema;
+- defaults, required values and semantic validation;
+- compatibility and migration;
+- classification and redaction;
+- supported runtime reactions.
+
+An exact target adapter may deterministically emit a generated base, example,
+developer-owned overlay, environment-variable map, key-per-file layout,
+provider binding, validation report, and provenance. Unsupported target
+semantics fail rather than being approximated.
+
+Generated bases, human-owned overlays, and provider/environment-owned values
+have distinct ownership and collision policies. Developers change owned typed
+input or an explicitly human-owned overlay and regenerate; Program Kit does not
+silently merge into or overwrite a hand-edited generator-owned file.
+
+Configuration compilation is a human-started design-time operation. Generated
+applications contain only selected runtime contracts/providers and generated
+artifacts. Workbench, DotNet generation, CLI, and provider-generation
+assemblies do not enter the runtime dependency closure.
+
+## Secret references, resolution and rotation
+
+There is no universal secret interpolation syntax. A canonical typed secret
+reference records stable identity, classification, expected result kind, and
+resolver binding without containing protected material. An exact target
+adapter may project that reference as an environment-variable binding, mounted
+file, Aspire parameter, provider locator, or another representation the target
+actually supports.
+
+The central contract does not imply a central secret provider, store, broker,
+or configuration control plane. Provider adapters resolve at runtime and may
+return:
+
+- configuration text or bytes;
+- a certificate;
+- a mounted-file handle;
+- a credential object or handle;
+- an assertion-producing service;
+- no secret material when workload or managed identity supplies the
+  capability.
+
+`IConfiguration` is therefore one configuration-shaped specialization rather
+than the universal credential transport.
+
+Each secret consumption binding declares whether the consumer can hot-swap,
+recreate a client, reconnect, recycle a resource, request host restart, require
+manual handling, or does not support rotation. Provider capability, result
+kind, lifetime, rotation behavior, and consumer reaction must be compatible
+before generation succeeds.
+
+Change signals carry reference identity plus safe generation, expiry,
+revocation, or status metadata, never resolved material. Secret names,
+locators, paths, tenants, and certificate identifiers remain classified rather
+than presumed safe to disclose. Non-trivial reactions run through
+consumer-owned bounded services, not inline in change callbacks.
+
+A provider detecting new material is not reported as successful application
+reconfiguration until the declared consumer reaction succeeds. This design
+claims no universal atomicity, zero-downtime rotation, rollback, cross-process
+consistency, or last-known-good behavior.
 
 ## Diagnostics and observability semantics
 
@@ -259,6 +338,10 @@ Every adapter selection binds:
 Generated runtime consumers may reference only the selected runtime packages
 and generated source. They may not reference Workbench, DotNet generation
 assemblies, the CLI, development capabilities, or design-time adapters.
+External owners may reference the design-time configuration compiler to
+project their own definitions, but that use neither transfers semantic
+ownership to Program Kit nor permits the compiler to enter the generated
+runtime closure.
 
 ## Explicit deferrals
 
@@ -279,6 +362,15 @@ This design does not authorize:
   resource-owner-password profiles;
 - generation of arbitrary provider code from an unconstrained type name or
   script;
+- Program Kit ownership of external configuration meaning, defaults,
+  compatibility, business validation, or runtime reaction semantics;
+- a universal secret-string syntax, central Program Kit secret provider or
+  store, live-configuration control plane, or generic remote editing endpoint;
+- coercing every protected capability into `IConfiguration` or presuming that
+  secret names, locators, tenants, paths, or certificate identifiers are safe
+  to log;
+- silently merging or overwriting generated bases, human-owned overlays, or
+  provider/environment-owned values;
 - a guarantee that every configuration change can be applied without restart;
 - application/domain observability meaning, business event or audit catalogs,
   telemetry backends, collectors, dashboards, alerts, retention or incident
@@ -295,11 +387,14 @@ The intended package direction is:
 ```text
 Operations -> Artifacts
 
-DotNet -> Operations, existing Program Kit dependencies
+secret-resolution contracts -> minimal Program Kit contract dependencies
+
+DotNet design-time configuration compiler
+  -> Operations, secret-resolution contracts, existing Program Kit dependencies
 Workbench -> Operations, existing Program Kit dependencies
 
 optional provider/projection adapter
-  -> its Program Kit base contract
+  -> its Program Kit base or secret-resolution contract
   -> its exact external technology dependencies
 
 generated host
@@ -319,7 +414,10 @@ The configuration and Operations foundations precede their consumers:
 ```text
 Operations convergence
         |
-configuration composition + Options + reload
+typed configuration definitions + deterministic projections
++ configuration composition + Options + reload
+        |
+secret references + resolution + rotation/reaction compatibility
         |
 provider ABI and built-in provider profiles
         |
@@ -352,6 +450,15 @@ Implementation is incomplete until all of the following are true:
 - all external selections are exact and lock-verified;
 - Options startup, snapshot, monitor, refresh, invalid-change, outage,
   precedence, and redaction fixtures pass;
+- external-owner configuration definitions generate deterministic bases,
+  examples, overlays, mappings, validation evidence, and provenance without
+  transferring semantic ownership or adding design-time runtime dependencies;
+- generated-base, human-overlay, provider-value, collision, regeneration, and
+  unsupported-target fixtures pass;
+- secret-reference/result-kind/provider/lifetime/rotation/reaction
+  compatibility, metadata-only notification, resolution denial, expiry,
+  revocation, provider outage, consumer reaction failure, restart-required,
+  locator classification, and redaction fixtures pass;
 - logging, trace, metric, W3C correlation, sampling, exporter outage, bounded
   flush, sensitive-data, cardinality and duplicate-instrumentation fixtures
   pass;
