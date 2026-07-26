@@ -13,6 +13,7 @@ using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet;
+using Orbyss.ProgramKit.CommandLine.Operations.DotNet.Clients;
 using Orbyss.ProgramKit.CommandLine.Operations.Packages;
 using Orbyss.ProgramKit.CommandLine.Operations.Processes;
 using Orbyss.ProgramKit.CommandLine.Operations.Publishing;
@@ -153,6 +154,13 @@ public static class CommandLineComposition
             workerGeneration);
         ICommandOperation dotNetGeneration =
             new DotNetGenerateHostCommandOperation(hostGeneration);
+        IKiotaForeignClientGenerator kiotaGenerator =
+            new KiotaForeignClientGenerator(
+                fileSystem,
+                processRunner,
+                new KiotaToolPackageMaterializer(fileSystem));
+        ICommandOperation kiotaGeneration =
+            new KiotaGenerateClientCommandOperation(kiotaGenerator);
         IArtifactEnvelopeValidator artifactEnvelopeValidator =
             new DefaultArtifactEnvelopeValidator();
         LocalPackagePreparationService packagePreparation = new(
@@ -199,6 +207,7 @@ public static class CommandLineComposition
                     fileSystem,
                     canonicalizer),
                 "dotnet.generate-host" => dotNetGeneration,
+                "dotnet.generate-client" => kiotaGeneration,
                 "packages.prepare-local" => packagePreparationOperation,
                 "dotnet.publish-local" => localPublishOperation,
                 "capabilities.render-catalog" => capabilityCatalogOperation,

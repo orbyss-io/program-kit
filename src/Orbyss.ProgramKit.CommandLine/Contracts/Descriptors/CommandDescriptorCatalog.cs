@@ -89,6 +89,19 @@ public static class CommandDescriptorCatalog
                 Diagnostics(),
             ]),
         Create(
+            "dotnet.generate-client",
+            ["dotnet", "generate-client"],
+            [],
+            [
+                new("openapi", true, true),
+                new("tool-manifest", true, true),
+                new("tool-package", true, true),
+                new("namespace-name", true, true),
+                new("class-name", true, true),
+                new("output", true, true),
+                Diagnostics(),
+            ]),
+        Create(
             "packages.prepare-local",
             ["packages", "prepare-local"],
             [],

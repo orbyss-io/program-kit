@@ -16,6 +16,7 @@ program-kit versions map --manifest <component-manifest> --output <file|->
 program-kit versions assess --observed <selection> --target <selection> --output <file|->
 program-kit check <design|plan> | --manifest <workspace-manifest> [--profile <id>]
 program-kit dotnet generate-host <api|console|worker> --shell <file> --host <id> --artifact-manifest <file> --output <dir>
+program-kit dotnet generate-client --openapi <file> --tool-manifest <file> --tool-package <nupkg> --namespace-name <namespace> --class-name <class> --output <dir>
 program-kit capabilities render-catalog <index> --output <file|->
 program-kit capabilities verify-bundle <bundle>
 ```
@@ -42,3 +43,11 @@ Host generation requires `hostDocuments[]` in the artifact manifest, binding
 each selected host identity to one exact integrator-document revision. This
 keeps shell and document digests independently verifiable and avoids inferred
 file naming.
+
+Foreign-client generation accepts one explicit local JSON OpenAPI document and
+one explicit `Microsoft.OpenApi.Kiota` package archive. The reviewed tool
+manifest, package archive, entry assembly, version, language, and options must
+all match exactly. The operation rejects external `$ref` values and publishes
+only a complete generated C# tree containing `kiota-lock.json` and
+`program-kit.client-generation.json`. It performs no package download, feed
+lookup, login, or ambient tool/cache discovery.

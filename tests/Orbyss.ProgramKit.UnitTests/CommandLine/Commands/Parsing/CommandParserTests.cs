@@ -107,6 +107,38 @@ public sealed class CommandParserTests
     }
 
     [TestMethod]
+    public void ParsesExplicitPinnedForeignClientCommand()
+    {
+        CommandParser sut = new(CommandDescriptorCatalog.All);
+
+        var result = sut.Parse(
+        [
+            "dotnet",
+            "generate-client",
+            "--openapi",
+            "foreign.openapi.json",
+            "--tool-manifest",
+            ".config/dotnet-tools.json",
+            "--tool-package",
+            "microsoft.openapi.kiota.1.34.1.nupkg",
+            "--namespace-name",
+            "Example.ForeignApi",
+            "--class-name",
+            "ForeignApiClient",
+            "--output",
+            "generated-client",
+        ]);
+
+        Assert.AreEqual("dotnet.generate-client", result.Descriptor.Key);
+        Assert.AreEqual(
+            "foreign.openapi.json",
+            result.RequiredOption("openapi"));
+        Assert.AreEqual(
+            "microsoft.openapi.kiota.1.34.1.nupkg",
+            result.RequiredOption("tool-package"));
+    }
+
+    [TestMethod]
     public void ParsesExplicitCapabilityCatalogAndBundleCommands()
     {
         CommandParser sut = new(CommandDescriptorCatalog.All);

@@ -18,6 +18,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
+    <EmbeddedResource Include="Evidence\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.CommandLine.Evidence.%(Filename)%(Extension)" />
+    <None Include="Evidence\**\*.json"
+          Pack="true"
+          PackagePath="contentFiles/any/any/Evidence/%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.config\dotnet-tools.json"
+          Link=".config\dotnet-tools.json"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.config/dotnet-tools.json"
+          CopyToOutputDirectory="PreserveNewest" />
     <EmbeddedResource Include="Operations\Serialization\Profiles\json-local-operations-1.0.0.json" />
   </ItemGroup>
 </Project>
