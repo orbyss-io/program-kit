@@ -7,6 +7,9 @@ namespace Orbyss.ProgramKit.ConformanceTests.DotNet.Schemas;
 [TestClass]
 public sealed class DotNetExternalEvidenceTests
 {
+    private static readonly string[] OAuthStandards =
+        ["RFC 6749", "RFC 8693", "RFC 8707"];
+
     [TestMethod]
     public void VendoredOpenApiSchemaMatchesFrozenOfficialBytes()
     {
@@ -305,5 +308,59 @@ public sealed class DotNetExternalEvidenceTests
                     .ToLowerInvariant(),
                 packageId);
         }
+    }
+
+    [TestMethod]
+    public void OAuthServiceClientEvidenceBindsExactStandardsAndFrameworkBoundary()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(
+            static name => name.EndsWith(
+                "dotnet-oauth-service-clients-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using MemoryStream bytes = new();
+        stream.CopyTo(bytes);
+        Assert.AreEqual(
+            "f7f89ccbcd3ed86164465a41e8926208699539ea39a8a77a06e025f6d4054525",
+            Convert.ToHexString(SHA256.HashData(bytes.ToArray()))
+                .ToLowerInvariant());
+        bytes.Position = 0;
+        using var document = JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+
+        Assert.IsEmpty(root.GetProperty("directPackages").EnumerateArray());
+        Assert.AreEqual(
+            "Microsoft.AspNetCore.App@10.0.10",
+            root.GetProperty("selection")
+                .GetProperty("sharedFramework")
+                .GetString());
+        Assert.IsFalse(
+            root.GetProperty("selection")
+                .GetProperty("automaticRetry")
+                .GetBoolean());
+        Assert.IsFalse(
+            root.GetProperty("selection")
+                .GetProperty("ambientCurrentUserToken")
+                .GetBoolean());
+        var generatorPath = Path.Combine(
+            ConformanceInputs.RepositoryRoot,
+            "program-kit",
+            "src",
+            "Orbyss.ProgramKit.DotNet",
+            "Generation",
+            "DotNetOAuthServiceClientProjectionRenderer.cs");
+        Assert.AreEqual(
+            root.GetProperty("selection")
+                .GetProperty("generatorSha256")
+                .GetString(),
+            Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(generatorPath)))
+                .ToLowerInvariant());
+        Assert.AreSequenceEqual(
+            OAuthStandards,
+            root.GetProperty("standards")
+                .EnumerateArray()
+                .Select(static item => item.GetProperty("revision").GetString())
+                .ToArray());
     }
 }

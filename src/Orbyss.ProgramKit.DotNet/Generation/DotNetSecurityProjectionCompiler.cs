@@ -41,6 +41,7 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
             outputs.AddRange(RenderPublicBrowser(publicBrowser));
         }
 
+        outputs.AddRange(DotNetOAuthServiceClientProjectionRenderer.Render(host.Security));
         return outputs.ToImmutable();
     }
 
@@ -91,6 +92,7 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
             RenderPublicBrowserCorsRegistration(builder, publicBrowser);
         }
 
+        builder.Append(DotNetOAuthServiceClientProjectionRenderer.RenderRegistration(security));
         builder.AppendLine("var programKitAuthorization = builder.Services.AddAuthorizationBuilder();");
         foreach (var policy in security.Policies
                      .Where(static item =>

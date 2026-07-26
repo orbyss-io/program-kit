@@ -1,5 +1,6 @@
 using GeneratedHost.Composition;
 using GeneratedPublicBrowser.Operations;
+using GeneratedOAuthServiceClients.Operations;
 using System.Xml.Linq;
 
 namespace Orbyss.ProgramKit.ConformanceTests.Dependencies;
@@ -31,6 +32,20 @@ public sealed class SecurityDependencyConformanceTests
     public void PublicBrowserVerifierUsesNoProgramKitRuntime()
     {
         var references = typeof(PublicBrowserProtocolProbe).Assembly
+            .GetReferencedAssemblies()
+            .Select(static assembly => assembly.Name!)
+            .Where(static name =>
+                name.StartsWith("Orbyss.ProgramKit.", StringComparison.Ordinal))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.IsEmpty(references);
+    }
+
+    [TestMethod]
+    public void OAuthServiceClientConsumerUsesNoProgramKitRuntime()
+    {
+        var references = typeof(OAuthServiceClientProbe).Assembly
             .GetReferencedAssemblies()
             .Select(static assembly => assembly.Name!)
             .Where(static name =>

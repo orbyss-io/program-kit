@@ -52,14 +52,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@8.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@9.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "8.0.0")
+        if (value.Version.Value != "9.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 8.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 9.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -245,7 +245,9 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             diagnostics);
         if (security.OidcConfidentialInteractive is null &&
             security.OidcPublicBrowser is null &&
-            security.JwtResourceServer is null)
+            security.JwtResourceServer is null &&
+            security.OAuthClientCredentials.IsDefaultOrEmpty &&
+            security.OAuthTokenExchanges.IsDefaultOrEmpty)
         {
             AddError(
                 diagnostics,
@@ -270,9 +272,229 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             ValidateJwt(jwt, schemes, diagnostics);
         }
 
+        ValidateOAuthServiceClients(security, diagnostics);
         ValidateAuthenticationDefaults(security, schemes, diagnostics);
         ValidateSecurityPolicies(security, schemes, diagnostics);
         ValidateOperationSecurityBindings(host, security, diagnostics);
+    }
+
+    private void ValidateOAuthServiceClients(
+        DotNetSecurityConfiguration security,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (security.OAuthClientCredentials.IsDefault ||
+            security.OAuthTokenExchanges.IsDefault)
+        {
+            AddSecurityError(
+                diagnostics,
+                "OAuth service-client profile collections must be initialized.",
+                "/hosts/security");
+            return;
+        }
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var profile in security.OAuthClientCredentials)
+        {
+            ValidateOAuthCommon(
+                profile.ProfileRevision,
+                profile.ClientName,
+                profile.MetadataAddress,
+                profile.TokenEndpoint,
+                profile.ClientId,
+                profile.Authentication,
+                profile.Resource,
+                profile.Audience,
+                profile.Scopes,
+                profile.ExpectedIssuedTokenType,
+                profile.RequestedLifetimeSeconds,
+                profile.RequestTimeoutSeconds,
+                profile.Cache,
+                profile.CancellationRequired,
+                profile.FailClosedOnOutage,
+                profile.RedactTokenMaterial,
+                profile.AutomaticRetry,
+                profile.RetrieveAmbientCurrentUserToken,
+                names,
+                "/hosts/security/oauthClientCredentials",
+                diagnostics);
+        }
+
+        foreach (var profile in security.OAuthTokenExchanges)
+        {
+            var path = "/hosts/security/oauthTokenExchanges";
+            ValidateOAuthCommon(
+                profile.ProfileRevision,
+                profile.ClientName,
+                profile.MetadataAddress,
+                profile.TokenEndpoint,
+                profile.ClientId,
+                profile.Authentication,
+                profile.Resource,
+                profile.Audience,
+                profile.Scopes,
+                profile.ExpectedIssuedTokenType,
+                profile.RequestedLifetimeSeconds,
+                profile.RequestTimeoutSeconds,
+                profile.Cache,
+                profile.CancellationRequired,
+                profile.FailClosedOnOutage,
+                profile.RedactTokenMaterial,
+                profile.AutomaticRetry,
+                profile.RetrieveAmbientCurrentUserToken,
+                names,
+                path,
+                diagnostics);
+
+            if (profile.SubjectToken is null ||
+                !ProgramKitIdentifier.Validate(profile.SubjectToken.SourceIdentity.Value).IsValid ||
+                !Enum.IsDefined(profile.SubjectToken.TokenType))
+            {
+                AddSecurityError(
+                    diagnostics,
+                    "Token exchange requires an explicit typed subject-token source.",
+                    string.Concat(path, "/subjectToken"));
+            }
+            else
+            {
+                ValidateReference(
+                    profile.SubjectToken.ProvenanceRevision,
+                    string.Concat(path, "/subjectToken/provenanceRevision"),
+                    diagnostics);
+            }
+
+            if (!Enum.IsDefined(profile.ExchangeMode) ||
+                !Enum.IsDefined(profile.RequestedTokenType) ||
+                (profile.ExchangeMode == DotNetOAuthExchangeMode.Delegation &&
+                 profile.ActorToken is null) ||
+                (profile.ExchangeMode == DotNetOAuthExchangeMode.Impersonation &&
+                 profile.ActorToken is not null))
+            {
+                AddSecurityError(
+                    diagnostics,
+                    "Delegation requires an explicit actor token; impersonation forbids one. No authority is inferred.",
+                    path);
+            }
+
+            if (profile.ActorToken is { } actor)
+            {
+                if (!ProgramKitIdentifier.Validate(actor.SourceIdentity.Value).IsValid ||
+                    !Enum.IsDefined(actor.TokenType) ||
+                    actor.SourceIdentity == profile.SubjectToken?.SourceIdentity)
+                {
+                    AddSecurityError(
+                        diagnostics,
+                        "An actor token requires distinct explicit provenance and a finite token type.",
+                        string.Concat(path, "/actorToken"));
+                }
+
+                ValidateReference(
+                    actor.ProvenanceRevision,
+                    string.Concat(path, "/actorToken/provenanceRevision"),
+                    diagnostics);
+            }
+        }
+    }
+
+    private void ValidateOAuthCommon(
+        ArtifactReference profileRevision,
+        string clientName,
+        Uri metadataAddress,
+        Uri tokenEndpoint,
+        string clientId,
+        DotNetOAuthClientAuthentication authentication,
+        Uri resource,
+        string audience,
+        ImmutableArray<string> scopes,
+        DotNetOAuthTokenType issuedTokenType,
+        int requestedLifetimeSeconds,
+        int requestTimeoutSeconds,
+        DotNetOAuthCachePolicy cache,
+        bool cancellationRequired,
+        bool failClosedOnOutage,
+        bool redactTokenMaterial,
+        bool automaticRetry,
+        bool retrieveAmbientCurrentUserToken,
+        HashSet<string> names,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        ValidateReference(profileRevision, string.Concat(path, "/profileRevision"), diagnostics);
+        ValidateInitializedUniqueStrings(scopes, string.Concat(path, "/scopes"), diagnostics);
+        if (!IsStableName(clientName) ||
+            !names.Add(clientName) ||
+            !IsHttps(metadataAddress) ||
+            !IsHttps(tokenEndpoint) ||
+            !string.Equals(metadataAddress.Host, tokenEndpoint.Host, StringComparison.OrdinalIgnoreCase) ||
+            !IsHttps(resource) ||
+            string.IsNullOrWhiteSpace(clientId) ||
+            string.IsNullOrWhiteSpace(audience) ||
+            scopes.IsDefaultOrEmpty ||
+            !Enum.IsDefined(issuedTokenType) ||
+            requestedLifetimeSeconds is <= 0 or > 3600 ||
+            requestTimeoutSeconds is <= 0 or > 120 ||
+            cache is null ||
+            !cache.Enabled ||
+            cache.ExpirySkewSeconds is < 0 or > 300 ||
+            cache.MaximumLifetimeSeconds is <= 0 or > 3600 ||
+            cache.ExpirySkewSeconds >= cache.MaximumLifetimeSeconds ||
+            cache.MaximumLifetimeSeconds > requestedLifetimeSeconds ||
+            !cancellationRequired ||
+            !failClosedOnOutage ||
+            !redactTokenMaterial ||
+            automaticRetry ||
+            retrieveAmbientCurrentUserToken)
+        {
+            AddSecurityError(
+                diagnostics,
+                "OAuth service clients require unique names, exact HTTPS endpoints, one resource and audience, bounded lifetime/cache/timeout, cancellation, fail-closed outage, redaction, no retry, and no ambient token retrieval.",
+                path);
+        }
+
+        ValidateOAuthClientAuthentication(authentication, path, diagnostics);
+    }
+
+    private void ValidateOAuthClientAuthentication(
+        DotNetOAuthClientAuthentication authentication,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (authentication is null ||
+            authentication.Reference is null ||
+            !Enum.IsDefined(authentication.Method))
+        {
+            AddSecurityError(
+                diagnostics,
+                "OAuth service clients require an explicit typed client-authentication reference.",
+                string.Concat(path, "/authentication"));
+            return;
+        }
+
+        var assertion =
+            authentication.Method == DotNetOAuthClientAuthenticationMethod.PrivateKeyJwtAssertion;
+        var expected = assertion
+            ? SecretResultKind.AssertionService
+            : SecretResultKind.ConfigurationText;
+        if (authentication.Reference.ExpectedResultKind != expected ||
+            authentication.Reference.Classification == SecretReferenceClassification.Unspecified ||
+            authentication.Reference.LocatorClassification == SecretReferenceClassification.Unspecified ||
+            (assertion && authentication.ConfigurationKey is not null) ||
+            (!assertion && string.IsNullOrWhiteSpace(authentication.ConfigurationKey)))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeSecurityMaterial,
+                "OAuth client authentication must bind classified configuration text or an assertion service without embedding secret material.",
+                string.Concat(path, "/authentication"));
+        }
+
+        ValidateReference(
+            authentication.Reference.ResolverCapabilityRevision,
+            string.Concat(path, "/authentication/reference/resolverCapabilityRevision"),
+            diagnostics);
+        ValidateReference(
+            authentication.Reference.LocatorRevision,
+            string.Concat(path, "/authentication/reference/locatorRevision"),
+            diagnostics);
     }
 
     private void ValidatePublicBrowser(

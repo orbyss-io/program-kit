@@ -142,6 +142,70 @@ public sealed class DotNetSecurityValidationTests
                 DotNetDiagnosticIds.InvalidSecurityConfiguration));
     }
 
+    [TestMethod]
+    public void OAuthServiceClientsRejectAmbientTokensRetriesAndIncompleteCacheIsolation()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var api = shell.Hosts.Single(static host => host.Kind == DotNetHostKind.Api);
+        var security = api.Security!;
+        var client = security.OAuthClientCredentials.Single();
+        var invalid = security with
+        {
+            OAuthClientCredentials =
+            [
+                client with
+                {
+                    RetrieveAmbientCurrentUserToken = true,
+                    AutomaticRetry = true,
+                    Cache = client.Cache with
+                    {
+                        ExpirySkewSeconds = client.Cache.MaximumLifetimeSeconds,
+                    },
+                },
+            ],
+        };
+
+        var result = Validator().Validate(ReplaceSecurity(shell, api, invalid));
+
+        Assert.IsFalse(result.IsValid);
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id == DotNetDiagnosticIds.InvalidSecurityConfiguration &&
+            diagnostic.Path.StartsWith(
+                "/hosts/security/oauthClientCredentials",
+                StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void TokenExchangeKeepsSubjectActorAndModeExplicit()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var api = shell.Hosts.Single(static host => host.Kind == DotNetHostKind.Api);
+        var security = api.Security!;
+        var exchange = security.OAuthTokenExchanges.Single();
+        var invalid = security with
+        {
+            OAuthTokenExchanges =
+            [
+                exchange with
+                {
+                    ExchangeMode = DotNetOAuthExchangeMode.Impersonation,
+                    ActorToken = exchange.SubjectToken,
+                },
+            ],
+        };
+
+        var result = Validator().Validate(ReplaceSecurity(shell, api, invalid));
+
+        Assert.IsFalse(result.IsValid);
+        Assert.IsGreaterThanOrEqualTo(
+            1,
+            result.Diagnostics.Count(static diagnostic =>
+                diagnostic.Id == DotNetDiagnosticIds.InvalidSecurityConfiguration &&
+                diagnostic.Path.StartsWith(
+                    "/hosts/security/oauthTokenExchanges",
+                    StringComparison.Ordinal)));
+    }
+
     private static DotNetShellDocument ReplaceSecurity(
         DotNetShellDocument shell,
         DotNetHostDefinition api,

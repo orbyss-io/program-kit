@@ -497,6 +497,9 @@
           "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.1, )"
         }
       },
+      "Orbyss.ProgramKit.OAuthServiceClientConsumerFixture": {
+        "type": "Project"
+      },
       "orbyss.programkit.operations": {
         "type": "Project",
         "dependencies": {

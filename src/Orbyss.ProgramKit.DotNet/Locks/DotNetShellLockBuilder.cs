@@ -188,6 +188,25 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
             yield return publicBrowser.Verification.ProfileRevision;
             yield return publicBrowser.Verification.PlaywrightRevision;
         }
+
+        foreach (var profile in host.Security.OAuthClientCredentials)
+        {
+            yield return profile.ProfileRevision;
+            yield return profile.Authentication.Reference.ResolverCapabilityRevision;
+            yield return profile.Authentication.Reference.LocatorRevision;
+        }
+
+        foreach (var profile in host.Security.OAuthTokenExchanges)
+        {
+            yield return profile.ProfileRevision;
+            yield return profile.Authentication.Reference.ResolverCapabilityRevision;
+            yield return profile.Authentication.Reference.LocatorRevision;
+            yield return profile.SubjectToken.ProvenanceRevision;
+            if (profile.ActorToken is { } actor)
+            {
+                yield return actor.ProvenanceRevision;
+            }
+        }
     }
 
     private static Sha256Digest HashPackages(ImmutableArray<DotNetPackageLock> packages)

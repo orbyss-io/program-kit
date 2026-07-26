@@ -256,8 +256,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@8.0.0",
-            new SemanticVersion("8.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@9.0.0",
+            new SemanticVersion("9.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -612,6 +612,58 @@ internal static class DotNetTestContractFactory
                 true,
                 false),
             [
+                new DotNetOAuthClientCredentialsProfile(
+                    Ref("profile", "oauth-client-credentials", 'd'),
+                    "catalog-service",
+                    new Uri("https://identity.example.test/.well-known/oauth-authorization-server"),
+                    new Uri("https://identity.example.test/connect/token"),
+                    "catalog-client",
+                    OAuthAuthentication("catalog-client"),
+                    new Uri("https://catalog.example.test/"),
+                    "catalog-api",
+                    ["catalog.read"],
+                    DotNetOAuthTokenType.AccessToken,
+                    300,
+                    30,
+                    new DotNetOAuthCachePolicy(true, 30, 300),
+                    true,
+                    true,
+                    true,
+                    false,
+                    false),
+            ],
+            [
+                new DotNetOAuthTokenExchangeProfile(
+                    Ref("profile", "oauth-token-exchange-rfc8693", 'e'),
+                    "delegated-catalog-service",
+                    new Uri("https://identity.example.test/.well-known/oauth-authorization-server"),
+                    new Uri("https://identity.example.test/connect/token"),
+                    "catalog-exchange-client",
+                    OAuthAuthentication("catalog-exchange-client"),
+                    new DotNetOAuthTokenSource(
+                        Id("token-source", "explicit-subject"),
+                        Ref("provenance", "explicit-subject-token", 'f'),
+                        DotNetOAuthTokenType.AccessToken),
+                    new DotNetOAuthTokenSource(
+                        Id("token-source", "explicit-actor"),
+                        Ref("provenance", "explicit-actor-token", '1'),
+                        DotNetOAuthTokenType.Jwt),
+                    DotNetOAuthExchangeMode.Delegation,
+                    DotNetOAuthTokenType.AccessToken,
+                    DotNetOAuthTokenType.AccessToken,
+                    new Uri("https://catalog.example.test/"),
+                    "catalog-api",
+                    ["catalog.read"],
+                    300,
+                    30,
+                    new DotNetOAuthCachePolicy(true, 30, 300),
+                    true,
+                    true,
+                    true,
+                    false,
+                    false),
+            ],
+            [
                 new DotNetNamedHostPolicyReference(
                     policyRevision,
                     "ProgramKit.AuthenticatedTransport",
@@ -627,6 +679,18 @@ internal static class DotNetTestContractFactory
                     policyRevision.Identity),
             ]);
     }
+
+    private static DotNetOAuthClientAuthentication OAuthAuthentication(string name) =>
+        new(
+            DotNetOAuthClientAuthenticationMethod.ClientSecretBasic,
+            new SecretReferenceDescriptor(
+                Id("secret-reference", name),
+                SecretReferenceClassification.RestrictedMetadata,
+                SecretResultKind.ConfigurationText,
+                Ref("capability", "configuration-secret-resolver", '2'),
+                Ref("locator", string.Concat(name, "-secret"), '3'),
+                SecretReferenceClassification.RestrictedMetadata),
+            string.Concat("Authentication:OAuth:", name, ":ClientSecret"));
 
     private static ImmutableArray<OpenApiSecuritySchemeProjection> SecuritySchemes(
         DotNetHostDefinition host)

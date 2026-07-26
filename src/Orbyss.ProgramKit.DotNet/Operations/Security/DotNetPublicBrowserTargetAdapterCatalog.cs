@@ -20,7 +20,7 @@ public static class DotNetPublicBrowserTargetAdapterCatalog
                     "pkid:generator:program-kit:public-browser"),
                 new SemanticVersion("1.0.0"),
                 new Sha256Digest(
-                    "sha256:92acc5f993c3a8da072d74229be80963ab755175aa0182be8a4da1a7d73c9248")),
+                    "sha256:7932393546f1cf35b56ad5b7bd6ebfc1af552ca111fdedb97b243380f398c8d7")),
             [
                 new DotNetPackageReference(
                     "Microsoft.AspNetCore.Components.WebAssembly",

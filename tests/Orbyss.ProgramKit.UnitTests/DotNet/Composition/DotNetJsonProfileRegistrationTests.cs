@@ -40,6 +40,9 @@ public sealed class DotNetJsonProfileRegistrationTests
         Assert.Contains("\"inputVersionMapRevision\"", json);
         Assert.Contains("\"operationRevision\"", json);
         Assert.Contains("\"oidcPublicBrowser\"", json);
+        Assert.Contains("\"oauthClientCredentials\"", json);
+        Assert.Contains("\"oauthTokenExchanges\"", json);
+        Assert.Contains("\"exchangeMode\":\"delegation\"", json);
         Assert.Contains("\"targetKind\":\"blazor-web-assembly-oidc\"", json);
         Assert.Contains("\"web-kit\"", json);
         Assert.DoesNotContain("\"InputVersionMapRevision\"", json);

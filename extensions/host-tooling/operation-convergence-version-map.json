@@ -271,6 +271,38 @@
           "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
         }
       ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "9.0.0",
+        "digest": "sha256:f25df5b350c36a4189a4007f2dad7908f72b40df50e705933913315d53c11d7b"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:dotnet-security-composition",
+        "version": "3.0.0",
+        "digest": "sha256:6064358be2a5636ef459b01d4503e112da63e4512d816741bbb13f74879a0343"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
     }
   ],
   "edges": [
@@ -661,6 +693,56 @@
         "identity": "pkid:schema:program-kit:dotnet-security-composition",
         "version": "2.0.0",
         "digest": "sha256:a97dadb5a216ffc4efa416e1492df8e6896d9af4e7b9166074f082ca53255f5a"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": ["wire-read", "wire-write"],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:dotnet-shell-v9-migrates-v8",
+      "source": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "9.0.0",
+        "digest": "sha256:f25df5b350c36a4189a4007f2dad7908f72b40df50e705933913315d53c11d7b"
+      },
+      "targetIdentity": "pkid:schema:program-kit:dotnet-shell",
+      "kind": "migrates",
+      "acceptedRange": "[8.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "8.0.0",
+        "digest": "sha256:c34541a5f065ee379a76a5f1cd9e6bd9c1a11eb6c09cacdb70a47abc6e19310d"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": ["wire-read", "wire-write"],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:guidance:program-kit:dotnet-oauth-service-clients-v8-to-v9",
+          "version": "1.0.0",
+          "digest": "sha256:6883f61c6ba23bc74713f5b60e55804116fbbae7670ed638d66578c070ae05cf"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:dotnet-shell-v9-uses-security-composition-v3",
+      "source": {
+        "identity": "pkid:schema:program-kit:dotnet-shell",
+        "version": "9.0.0",
+        "digest": "sha256:f25df5b350c36a4189a4007f2dad7908f72b40df50e705933913315d53c11d7b"
+      },
+      "targetIdentity": "pkid:schema:program-kit:dotnet-security-composition",
+      "kind": "uses-contract",
+      "acceptedRange": "[3.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:dotnet-security-composition",
+        "version": "3.0.0",
+        "digest": "sha256:6064358be2a5636ef459b01d4503e112da63e4512d816741bbb13f74879a0343"
       },
       "exposure": "public",
       "compatibilityDimensions": ["wire-read", "wire-write"],

@@ -82,6 +82,20 @@ public sealed class DotNetShellLockBuilderTests
         Assert.Contains(
             publicBrowser.ThreatModelAcceptanceRevision,
             apiLock.ContractRevisions);
+        var security = shell.Hosts
+            .Single(static item => item.Kind == DotNetHostKind.Api)
+            .Security!;
+        Assert.Contains(
+            security.OAuthClientCredentials.Single().ProfileRevision,
+            apiLock.ContractRevisions);
+        var exchange = security.OAuthTokenExchanges.Single();
+        Assert.Contains(exchange.ProfileRevision, apiLock.ContractRevisions);
+        Assert.Contains(
+            exchange.SubjectToken.ProvenanceRevision,
+            apiLock.ContractRevisions);
+        Assert.Contains(
+            exchange.ActorToken!.ProvenanceRevision,
+            apiLock.ContractRevisions);
     }
 
     [TestMethod]

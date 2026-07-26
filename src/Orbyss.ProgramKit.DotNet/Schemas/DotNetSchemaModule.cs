@@ -5,7 +5,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
 {
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("8.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("9.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -14,6 +14,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private static readonly SemanticVersion SchemaVersionV6 = new("6.0.0");
     private static readonly SemanticVersion SchemaVersionV7 = new("7.0.0");
     private static readonly SemanticVersion SchemaVersionV8 = new("8.0.0");
+    private static readonly SemanticVersion SchemaVersionV9 = new("9.0.0");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:dotnet");
     private static readonly ArtifactProvenance Provenance =
@@ -142,6 +143,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w052-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance OAuthServiceClientProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w055-approved-review-set-1-3-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -249,6 +266,20 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "a97dadb5a216ffc4efa416e1492df8e6896d9af4e7b9166074f082ca53255f5a",
             SchemaVersionV2,
             PublicBrowserProvenance),
+        Create(
+            "dotnet-shell",
+            "dotnet-shell-9.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/9.0.0/dotnet-shell.schema.json",
+            "f25df5b350c36a4189a4007f2dad7908f72b40df50e705933913315d53c11d7b",
+            SchemaVersionV9,
+            OAuthServiceClientProvenance),
+        Create(
+            "dotnet-security-composition",
+            "dotnet-security-composition-3.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/security-composition/3.0.0/schema.json",
+            "6064358be2a5636ef459b01d4503e112da63e4512d816741bbb13f74879a0343",
+            SchemaVersionV3,
+            OAuthServiceClientProvenance),
         Create(
             "open-console",
             "open-console.schema.json",
@@ -423,6 +454,15 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:a3b5dac3c5ea69e16434b1a393805c5641c88aab0b9f46ca39b1d18fff26f01b")),
+                ],
+                _ when version == SchemaVersionV9 =>
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-oauth-service-clients-v8-to-v9"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:d7842fbef99eda9ca69d3e8beccd88af54f470bdac7e93b0afa0d796babfa179")),
                 ],
                 _ => [],
             });

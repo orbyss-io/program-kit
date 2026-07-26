@@ -62,7 +62,27 @@ public sealed class DotNetSecurityProjectionCompilerTests
         Assert.Contains("\"webkit\" => playwright.Webkit", source);
         Assert.Contains("policy.DisallowCredentials()", registration);
         Assert.Contains("app.UseCors(\"ProgramKit.PublicBrowser\")", middleware);
-        Assert.IsFalse(source.Contains("client_secret", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("grant-type:token-exchange", source);
+        Assert.Contains("subject_token_type", source);
+        Assert.Contains("actor_token_type", source);
+        Assert.Contains("CreateCacheKey", source);
+        Assert.Contains("SHA256.HashData", source);
+        Assert.Contains("AddHttpClient(\"ProgramKit.OAuth.catalog-service\"", registration);
+        var oauthSource = string.Join(
+            Environment.NewLine,
+            first.Where(static output =>
+                    output.RelativePath.Contains("OAuth", StringComparison.Ordinal))
+                .Select(static output => Encoding.UTF8.GetString(output.Content.Span)));
+        Assert.DoesNotContain("HttpContext", oauthSource);
+        Assert.DoesNotContain("GetTokenAsync", oauthSource);
+        var browserSource = string.Join(
+            Environment.NewLine,
+            first.Where(static output =>
+                    output.RelativePath.StartsWith("PublicBrowser", StringComparison.Ordinal))
+                .Select(static output => Encoding.UTF8.GetString(output.Content.Span)));
+        Assert.IsFalse(browserSource.Contains(
+            "client_secret",
+            StringComparison.OrdinalIgnoreCase));
         Assert.IsFalse(source.Contains("offline_access", StringComparison.OrdinalIgnoreCase));
         Assert.IsTrue(first.Any(static output =>
             output.RelativePath == "PublicBrowser/PublicBrowser.csproj"));
