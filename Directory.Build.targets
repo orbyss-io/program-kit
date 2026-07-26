@@ -24,6 +24,7 @@
                                _ProgramKitResolvedGeneratedSourceProbeProjectPath;
                                _ProgramKitSdkRoot;
                                _ProgramKitSelfValidationAnalyzerPath;
+                               _ProgramKitSystemClientModelGeneratorPath;
                                _ProgramKitSelfValidationBaseOutputPath;
                                _ProgramKitSelfValidationIntermediateOutputPath;
                                _ProgramKitSelfValidationInvocationDirectory;
@@ -489,6 +490,7 @@
       <_ProgramKitFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.NETCore.App.Ref'))\</_ProgramKitFrameworkAnalyzerRoot>
       <_ProgramKitAspNetFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.AspNetCore.App.Ref\10.0.10\analyzers\dotnet\cs'))\</_ProgramKitAspNetFrameworkAnalyzerRoot>
       <_ProgramKitWebSdkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Web\analyzers\cs'))\</_ProgramKitWebSdkAnalyzerRoot>
+      <_ProgramKitSystemClientModelGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)system.clientmodel\1.10.0\analyzers\dotnet\cs\System.ClientModel.SourceGeneration.dll'))</_ProgramKitSystemClientModelGeneratorPath>
       <_ProgramKitRazorGeneratorRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Razor\source-generators'))\</_ProgramKitRazorGeneratorRoot>
       <_ProgramKitExpectedGeneratedSourceProbeProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\CSharpGate\GeneratedSource\Generator\GeneratedSourceProbe.csproj'))</_ProgramKitExpectedGeneratedSourceProbeProjectPath>
       <_ProgramKitResolvedGeneratedSourceProbeProjectPath></_ProgramKitResolvedGeneratedSourceProbeProjectPath>
@@ -560,6 +562,9 @@
                     '%(Analyzer.NuGetPackageVersion)' == '10.0.10') or
                    '%(FullPath)' == '$(_ProgramKitOptionsGeneratorPath)' or
                    '%(FullPath)' == '$(_ProgramKitConfigurationBinderGeneratorPath)' or
+                   ('%(FullPath)' == '$(_ProgramKitSystemClientModelGeneratorPath)' and
+                    '%(Analyzer.NuGetPackageId)' == 'System.ClientModel' and
+                    '%(Analyzer.NuGetPackageVersion)' == '1.10.0') or
                    ('$(_ProgramKitGeneratedSourceProbeAnalyzerPath)' != '' and
                     '%(FullPath)' == '$(_ProgramKitGeneratedSourceProbeAnalyzerPath)') or
                     ($([System.String]::Copy('%(FullPath)').StartsWith('$(_ProgramKitFrameworkAnalyzerRoot)', System.StringComparison.OrdinalIgnoreCase)) and
@@ -644,9 +649,10 @@
     <ItemGroup>
       <_ProgramKitPhysicalOwnedSource Remove="@(_ProgramKitPhysicalOwnedSource)" />
       <_ProgramKitMissingOwnedSource Remove="@(_ProgramKitMissingOwnedSource)" />
-      <_ProgramKitPhysicalOwnedSource Include="$(MSBuildProjectDirectory)\**\*.cs" />
-      <_ProgramKitPhysicalOwnedSource Remove="$(MSBuildProjectDirectory)\bin\**\*.cs;
-                                                    $(MSBuildProjectDirectory)\obj\**\*.cs" />
+      <_ProgramKitPhysicalOwnedSource
+        Include="$(MSBuildProjectDirectory)\**\*.cs"
+        Exclude="$(MSBuildProjectDirectory)\bin\**\*.cs;
+                 $(MSBuildProjectDirectory)\obj\**\*.cs" />
       <_ProgramKitPhysicalOwnedSource
         Remove="$(MSBuildProjectDirectory)\Fixtures\**\*.cs"
         Condition="'$(MSBuildProjectFullPath)' == '$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'" />

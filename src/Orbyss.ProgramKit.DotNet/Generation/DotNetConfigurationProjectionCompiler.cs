@@ -123,6 +123,13 @@ public sealed class DotNetConfigurationProjectionCompiler :
         outputs.Add(Output(
             "configuration/ownership.json",
             RenderOwnership(host.ConfigurationSources)));
+        foreach (var source in host.ConfigurationSources)
+        {
+            outputs.AddRange(
+                providerGenerators.Resolve(source.ProviderRevision)
+                    .Compile(source, host));
+        }
+
         return outputs.ToImmutable();
     }
 
@@ -144,7 +151,7 @@ public sealed class DotNetConfigurationProjectionCompiler :
 
         foreach (var source in host.ConfigurationSources)
         {
-            RenderProviderRegistration(builder, source);
+            RenderProviderRegistration(builder, source, host);
         }
 
         foreach (var definition in orderedBindings
@@ -220,17 +227,19 @@ public sealed class DotNetConfigurationProjectionCompiler :
 
     private void RenderProviderRegistration(
         StringBuilder builder,
-        DotNetConfigurationSource source)
+        DotNetConfigurationSource source,
+        DotNetHostDefinition host)
     {
-        if (source.Reload.Capability == DotNetConfigurationReloadCapability.ExplicitRefresh)
+        if (source.Reload.Capability ==
+            DotNetConfigurationReloadCapability.ExplicitRefresh)
         {
             throw new NotSupportedException(
-                "PKNET007 Explicit-refresh providers require a later approved provider adapter.");
+                "PKNET007 Explicit-refresh providers require a reviewed available provider adapter.");
         }
 
         builder.Append(
             providerGenerators.Resolve(source.ProviderRevision)
-                .RenderRegistration(source));
+                .RenderRegistration(source, host));
     }
 
     private static string RenderOptions(DotNetConfigurationDefinition definition)

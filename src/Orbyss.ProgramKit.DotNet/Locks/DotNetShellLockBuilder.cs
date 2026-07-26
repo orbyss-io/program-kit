@@ -108,6 +108,7 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
                     .Select(static failure => failure.ProblemSchemaRevision)
                     .Prepend(host.TransportFailures.Profile.ProfileRevision))
             .Concat(SecurityReferences(host))
+            .Concat(AzureConfigurationReferences(host))
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ThenBy(static reference => reference.Version.Value, StringComparer.Ordinal)
@@ -115,6 +116,9 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
         var generators = host.OperationBindings
             .Select(static operation => operation.ProjectionRevision)
             .Append(host.GeneratorProfileRevision)
+            .Concat(host.AzureConfiguration is null
+                ? []
+                : [host.AzureConfiguration.GeneratorRevision])
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ToImmutableArray();
@@ -150,6 +154,32 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
             shell.InputVersionSelectionRevision,
             packages,
             packageDigest);
+    }
+
+    private static IEnumerable<ArtifactReference> AzureConfigurationReferences(
+        DotNetHostDefinition host)
+    {
+        if (host.AzureConfiguration is null)
+        {
+            yield break;
+        }
+
+        yield return host.AzureConfiguration.ProfileRevision;
+        foreach (var binding in host.AzureConfiguration.Bindings)
+        {
+            foreach (var reference in SecretReferences(binding.CredentialResolution))
+            {
+                yield return reference;
+            }
+        }
+    }
+
+    private static IEnumerable<ArtifactReference> SecretReferences(
+        Orbyss.ProgramKit.SecretResolution.Contracts.SecretResolutionContract contract)
+    {
+        yield return contract.Reference.ResolverCapabilityRevision;
+        yield return contract.Reference.LocatorRevision;
+        yield return contract.Resolver.CapabilityRevision;
     }
 
     private static IEnumerable<ArtifactReference> SecurityReferences(

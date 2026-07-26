@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.DotNet.Composition.Converters;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Configuration;
+using Orbyss.ProgramKit.DotNet.Configuration.Azure;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -60,6 +61,7 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetOptionsConsumption>(),
             CreateEnumConverter<DotNetServiceLifetime>(),
             CreateEnumConverter<DotNetConfigurationChangeReaction>(),
+            CreateEnumConverter<DotNetAzureConfigurationProviderKind>(),
             CreateEnumConverter<DotNetLogLevel>(),
             CreateEnumConverter<DotNetActivityKind>(),
             CreateEnumConverter<DotNetMetricInstrumentKind>(),

@@ -1,4 +1,5 @@
 using Orbyss.ProgramKit.DotNet.Configuration;
+using Orbyss.ProgramKit.DotNet.Configuration.Azure;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
@@ -12,6 +13,7 @@ using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
 using Orbyss.ProgramKit.SecretResolution.Contracts;
+using Orbyss.ProgramKit.SecretResolution.Contracts.Validation;
 
 namespace Orbyss.ProgramKit.DotNet.Validation;
 
@@ -23,13 +25,19 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
         operationValidator;
     private readonly IProgramKitSemanticValidator<TransportFailureProfile>
         transportFailureValidator;
+    private readonly IProgramKitSemanticValidator<SecretResolutionContract>
+        secretResolutionValidator;
     private readonly IDotNetConfigurationProviderCatalog providerCatalog;
 
-    /// <summary>Initializes the validator with an explicit provider catalog.</summary>
+    /// <summary>
+    /// Initializes the validator with explicit provider and secret-resolution
+    /// validators.
+    /// </summary>
     public DotNetShellValidator(
         IProgramKitSemanticValidator<ArtifactReference> referenceValidator,
         IProgramKitSemanticValidator<OperationContractDescriptor> operationValidator,
         IProgramKitSemanticValidator<TransportFailureProfile> transportFailureValidator,
+        IProgramKitSemanticValidator<SecretResolutionContract> secretResolutionValidator,
         IDotNetConfigurationProviderCatalog providerCatalog)
     {
         this.referenceValidator = referenceValidator ??
@@ -38,6 +46,8 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             throw new ArgumentNullException(nameof(operationValidator));
         this.transportFailureValidator = transportFailureValidator ??
             throw new ArgumentNullException(nameof(transportFailureValidator));
+        this.secretResolutionValidator = secretResolutionValidator ??
+            throw new ArgumentNullException(nameof(secretResolutionValidator));
         this.providerCatalog = providerCatalog ??
             throw new ArgumentNullException(nameof(providerCatalog));
     }
@@ -52,14 +62,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@9.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@10.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "9.0.0")
+        if (value.Version.Value != "10.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 9.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 10.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -211,6 +221,7 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 host.ConfigurationSources,
                 host.ConfigurationBindings,
                 diagnostics);
+            ValidateAzureConfiguration(host, diagnostics);
             ValidateTaskRuntime(host.TaskRuntimeRequirements, diagnostics);
             ValidateHealth(host.Health, host.OperationBindings, diagnostics);
             ValidateTelemetry(host, diagnostics);
@@ -219,6 +230,223 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             ValidateCompatibility(host.Compatibility, "/hosts/compatibility", diagnostics);
         }
     }
+
+    private void ValidateAzureConfiguration(
+        DotNetHostDefinition host,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var composition = host.AzureConfiguration;
+        var azureSources = host.ConfigurationSources
+            .Where(source =>
+                DotNetAzureConfigurationProviderCatalog.Descriptors.Any(
+                    descriptor =>
+                        descriptor.ProviderRevision == source.ProviderRevision))
+            .ToArray();
+        if (composition is null)
+        {
+            if (azureSources.Length > 0)
+            {
+                AddAzureError(
+                    diagnostics,
+                    "Azure provider selections require exact Azure adapter composition.",
+                    "/hosts/azureConfiguration");
+            }
+
+            return;
+        }
+
+        ValidateReference(
+            composition.ProfileRevision,
+            "/hosts/azureConfiguration/profileRevision",
+            diagnostics);
+        ValidateReference(
+            composition.GeneratorRevision,
+            "/hosts/azureConfiguration/generatorRevision",
+            diagnostics);
+        if (composition.GeneratorRevision !=
+            DotNetAzureConfigurationProviderCatalog.KeyVault.GeneratorRevision)
+        {
+            AddAzureError(
+                diagnostics,
+                "Azure composition must bind the exact reviewed generator revision.",
+                "/hosts/azureConfiguration/generatorRevision");
+        }
+
+        RequireInitializedUnique(
+            composition.Bindings,
+            static binding => binding.SourceIdentity.Value,
+            "/hosts/azureConfiguration/bindings",
+            diagnostics);
+        if (composition.Bindings.IsDefault ||
+            composition.Bindings.Length != azureSources.Length ||
+            composition.Bindings.Any(binding =>
+                azureSources.All(source => source.Identity != binding.SourceIdentity)))
+        {
+            AddAzureError(
+                diagnostics,
+                "Every and only selected Azure source requires one exact binding.",
+                "/hosts/azureConfiguration/bindings");
+            return;
+        }
+
+        foreach (var binding in composition.Bindings)
+        {
+            var source = azureSources.Single(
+                candidate => candidate.Identity == binding.SourceIdentity);
+            ValidateAzureBinding(source, binding, diagnostics);
+        }
+    }
+
+    private void ValidateAzureBinding(
+        DotNetConfigurationSource source,
+        DotNetAzureConfigurationBinding binding,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        const string path = "/hosts/azureConfiguration/bindings";
+        if (!ProgramKitIdentifier.Validate(binding.SourceIdentity.Value).IsValid ||
+            !Enum.IsDefined(binding.ProviderKind) ||
+            !IsHttps(binding.Endpoint) ||
+            !string.IsNullOrEmpty(binding.Endpoint.UserInfo) ||
+            !string.IsNullOrEmpty(binding.Endpoint.Query) ||
+            !string.IsNullOrEmpty(binding.Endpoint.Fragment) ||
+            binding.CredentialResolutionTimeoutSeconds is <= 0 or > 120 ||
+            !binding.RedactOperationalMetadata)
+        {
+            AddAzureError(
+                diagnostics,
+                "Azure bindings require HTTPS endpoints without embedded authority material, bounded credential cancellation, and redacted operational metadata.",
+                path);
+        }
+
+        ValidateAzureCredential(
+            binding.CredentialResolution,
+            string.Concat(path, "/credentialResolution"),
+            diagnostics);
+        if (binding.ProviderKind != DotNetAzureConfigurationProviderKind.KeyVault ||
+            source.ProviderRevision !=
+                DotNetAzureConfigurationProviderCatalog.KeyVault.ProviderRevision ||
+            source.Package != DotNetAzureConfigurationProviderCatalog.KeyVault.Package)
+        {
+            AddAzureError(
+                diagnostics,
+                "The Azure binding kind must match the exact selected provider and package.",
+                path);
+        }
+
+        ValidateAzureKeyVault(source, binding, diagnostics);
+    }
+
+    private static void ValidateAzureKeyVault(
+        DotNetConfigurationSource source,
+        DotNetAzureConfigurationBinding binding,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        const string path = "/hosts/azureConfiguration/bindings/keyVault";
+        var profile = binding.KeyVault;
+        if (profile is null || !profile.ExcludeExpiredOrNotYetValidSecrets)
+        {
+            AddAzureError(
+                diagnostics,
+                "Key Vault requires its exact profile and active-secret filtering.",
+                path);
+            return;
+        }
+
+        if (profile.ReloadIntervalSeconds is { } seconds)
+        {
+            if (seconds <= 0 ||
+                !source.Reload.Enabled ||
+                source.Reload.Capability !=
+                    DotNetConfigurationReloadCapability.ProviderPolling ||
+                source.Reload.PollIntervalSeconds != seconds ||
+                source.Reload.RefreshRevision is not null ||
+                profile.ValueRotationReaction != SecretConsumerReaction.HotReplacement)
+            {
+                AddAzureError(
+                    diagnostics,
+                    "Reloading Key Vault requires matching positive provider polling and hot replacement.",
+                    path);
+            }
+        }
+        else if (source.Reload.Enabled ||
+                 source.Reload.Capability != DotNetConfigurationReloadCapability.None ||
+                 profile.ValueRotationReaction is not
+                     (SecretConsumerReaction.HostRestartRequest or
+                      SecretConsumerReaction.Manual))
+        {
+            AddAzureError(
+                diagnostics,
+                "Startup-fixed Key Vault requires no reload and an explicit restart or manual value-rotation reaction.",
+                path);
+        }
+    }
+
+    private void ValidateAzureCredential(
+        SecretResolutionContract contract,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        ValidateSecretContract(contract, path, diagnostics);
+        if (contract is null ||
+            contract.Reference.ExpectedResultKind is not
+                (SecretResultKind.CredentialHandle or
+                 SecretResultKind.WorkloadIdentityCapability) ||
+            contract.Reference.Classification ==
+                SecretReferenceClassification.Unspecified ||
+            contract.Reference.LocatorClassification ==
+                SecretReferenceClassification.Unspecified ||
+            contract.Consumption.ConsumptionShape !=
+                SecretConsumptionShape.NativeCapability ||
+            contract.Consumption.RequestedLifetime is not
+                (SecretResultLifetime.Host or
+                 SecretResultLifetime.ProviderManaged) ||
+            contract.Consumption.Reaction is not
+                (SecretConsumerReaction.ClientRecreation or
+                 SecretConsumerReaction.HostRestartRequest or
+                 SecretConsumerReaction.Manual or
+                 SecretConsumerReaction.Unsupported))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeAzureConfigurationMaterial,
+                "Azure authentication requires a classified native credential handle or workload-identity capability with explicit lifetime and rotation reaction.",
+                path);
+        }
+    }
+
+    private void ValidateSecretContract(
+        SecretResolutionContract contract,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (contract is null)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeAzureConfigurationMaterial,
+                "A typed secret-resolution contract is required.",
+                path);
+            return;
+        }
+
+        foreach (var diagnostic in secretResolutionValidator.Validate(contract).Diagnostics)
+        {
+            diagnostics.Add(diagnostic with
+            {
+                Path = string.Concat(path, diagnostic.Path.TrimStart('$')),
+            });
+        }
+    }
+
+    private static void AddAzureError(
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics,
+        string message,
+        string path) =>
+        AddError(
+            diagnostics,
+            DotNetDiagnosticIds.InvalidAzureConfiguration,
+            message,
+            path);
 
     private void ValidateSecurity(
         DotNetHostDefinition host,
@@ -2310,6 +2538,19 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                     DotNetDiagnosticIds.InvalidShell,
                     "Explicit refresh requires a positive polling interval.",
                     "/hosts/configurationSources/reload/pollIntervalSeconds");
+            }
+        }
+        else if (source.Reload.Capability ==
+                 DotNetConfigurationReloadCapability.ProviderPolling)
+        {
+            if (source.Reload.RefreshRevision is not null ||
+                source.Reload.PollIntervalSeconds is <= 0)
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.InvalidShell,
+                    "Provider polling requires a positive interval and no consumer-invoked refresh revision.",
+                    "/hosts/configurationSources/reload");
             }
         }
         else if (source.Reload.RefreshRevision is not null ||

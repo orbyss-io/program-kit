@@ -19,6 +19,7 @@ public sealed class DotNetShellValidatorTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(DotNetTestContractFactory.Shell());
@@ -41,6 +42,7 @@ public sealed class DotNetShellValidatorTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(shell);
@@ -67,6 +69,7 @@ public sealed class DotNetShellValidatorTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
         var result = sut.Validate(shell);
@@ -487,6 +490,7 @@ public sealed class DotNetShellValidatorTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 
     private static DotNetShellDocument ReplaceHost(

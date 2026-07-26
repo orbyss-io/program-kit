@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.AzureConfigurationConsumerFixture</PackageId>
+    <RootNamespace>Orbyss.ProgramKit.AzureConfigurationConsumerFixture</RootNamespace>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
+  </ItemGroup>
+</Project>

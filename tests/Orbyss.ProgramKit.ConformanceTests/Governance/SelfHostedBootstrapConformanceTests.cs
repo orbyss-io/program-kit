@@ -28,7 +28,7 @@ public sealed class SelfHostedBootstrapConformanceTests
             ["implementation-plan.md"] =
                 "b1e60623624ced9ede4c529d1c6d80022a6894923425d384c5863c22db5f595b",
             ["dependency-graph.dot"] =
-                "bf4bd73a52e5ca3fdf1274947f06303c121a65a13750db52b30ee781638def64",
+                "defaedbd3f826b3455c2007fbd7012391f6326c39ded0c871f4b96b441a758b8",
             ["forbidden-reference-graph.dot"] =
                 "194a8498eb3d68a76cd32700acfaa4f7959fa003daba029d2db4cfff5c818ed9",
             ["version-map-graph.dot"] =

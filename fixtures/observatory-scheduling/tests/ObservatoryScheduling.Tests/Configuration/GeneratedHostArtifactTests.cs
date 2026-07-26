@@ -6,6 +6,7 @@ using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
+using Orbyss.ProgramKit.SecretResolution.Contracts.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
@@ -25,6 +26,7 @@ public sealed class GeneratedHostArtifactTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new SecretResolutionContractValidator(),
             providerComposition.CreateBuiltInCatalog());
         var lockBuilder = new DotNetShellLockBuilder(shellValidator);
         var shellLock = lockBuilder.Build(shell, shellRevision);
@@ -117,6 +119,7 @@ public sealed class GeneratedHostArtifactTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new SecretResolutionContractValidator(),
                 providerComposition.CreateBuiltInCatalog()),
             new DotNetHostLockSelector(),
             new DotNetHostSourceRenderer(

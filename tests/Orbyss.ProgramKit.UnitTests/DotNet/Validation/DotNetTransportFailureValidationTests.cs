@@ -98,5 +98,6 @@ public sealed class DotNetTransportFailureValidationTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             DotNetTestContractFactory.ProviderCatalog());
 }

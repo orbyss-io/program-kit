@@ -22,6 +22,7 @@ public sealed class DotNetShellLockBuilderTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder sut = new(validator);
         var shellRevision = DotNetTestContractFactory.Ref("shell", "reviewed", '7');
@@ -107,6 +108,7 @@ public sealed class DotNetShellLockBuilderTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var document = lockBuilder.Build(
@@ -176,6 +178,7 @@ public sealed class DotNetShellLockBuilderTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder sut = new(validator);
 

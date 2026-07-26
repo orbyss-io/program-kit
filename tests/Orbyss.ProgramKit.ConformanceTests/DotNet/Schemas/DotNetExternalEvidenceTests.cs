@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Orbyss.ProgramKit.SecretResolution.Contracts.Schemas;
 
 namespace Orbyss.ProgramKit.ConformanceTests.DotNet.Schemas;
 
@@ -13,7 +14,9 @@ public sealed class DotNetExternalEvidenceTests
     [TestMethod]
     public void VendoredOpenApiSchemaMatchesFrozenOfficialBytes()
     {
-        DotNetSchemaModule module = new(new OperationsSchemaModule());
+        DotNetSchemaModule module = new(
+            new OperationsSchemaModule(),
+            new SecretResolutionSchemaModule());
         var resource = module.Resources.Single(static item =>
             item.ResourceName == "openapi-3.2.0-2025-11-23.schema.json");
         using var stream = module.OpenRead(resource.SchemaReference);
@@ -362,5 +365,78 @@ public sealed class DotNetExternalEvidenceTests
                 .EnumerateArray()
                 .Select(static item => item.GetProperty("revision").GetString())
                 .ToArray());
+    }
+
+    [TestMethod]
+    public void AzureKeyVaultEvidenceBindsExactPackageCompilerAndDeferral()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(
+            static name => name.EndsWith(
+                "dotnet-azure-configuration-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using MemoryStream bytes = new();
+        stream.CopyTo(bytes);
+        Assert.AreEqual(
+            "204949c63de6dbbea3740b29618f154d36947e4f2086d4d695abc0dd7a982495",
+            Convert.ToHexString(SHA256.HashData(bytes.ToArray()))
+                .ToLowerInvariant());
+        bytes.Position = 0;
+        using var document = JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+        var package = root.GetProperty("availableAdapters")[0];
+        var packageRoot = Environment.GetEnvironmentVariable(
+                "NUGET_PACKAGES") ??
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".nuget",
+                "packages");
+        var packageDirectory = Path.Combine(
+            packageRoot,
+            package.GetProperty("package").GetString()!.ToLowerInvariant(),
+            package.GetProperty("version").GetString()!);
+        var archivePath = Path.Combine(
+            packageDirectory,
+            "azure.extensions.aspnetcore.configuration.secrets.1.5.1.nupkg");
+        var assemblyPath = Path.Combine(
+            packageDirectory,
+            "lib",
+            "net10.0",
+            "Azure.Extensions.AspNetCore.Configuration.Secrets.dll");
+
+        Assert.AreEqual(
+            package.GetProperty("packageSha256").GetString(),
+            Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(archivePath)))
+                .ToLowerInvariant());
+        Assert.AreEqual(
+            package.GetProperty("net10AssemblySha256").GetString(),
+            Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(assemblyPath)))
+                .ToLowerInvariant());
+        Assert.AreEqual(
+            root.GetProperty("target")
+                .GetProperty("generatorSha256")
+                .GetString(),
+            Convert.ToHexString(
+                    SHA256.HashData(File.ReadAllBytes(Path.Combine(
+                        ConformanceInputs.RepositoryRoot,
+                        "program-kit",
+                        "src",
+                        "Orbyss.ProgramKit.DotNet",
+                        "Generation",
+                        "ConfigurationProviders",
+                        "DotNetAzureConfigurationProviderGenerator.cs"))))
+                .ToLowerInvariant());
+        Assert.HasCount(
+            2,
+            root.GetProperty("deferredAdapters")[0]
+                .GetProperty("reviewedPackages")
+                .EnumerateArray()
+                .ToArray());
+        Assert.AreEqual(
+            "not registered, generated, packaged, or advertised",
+            root.GetProperty("deferredAdapters")[0]
+                .GetProperty("availability")
+                .GetString());
     }
 }

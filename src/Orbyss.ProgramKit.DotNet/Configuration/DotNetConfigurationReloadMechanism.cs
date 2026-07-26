@@ -7,4 +7,6 @@ public enum DotNetConfigurationReloadMechanism
     None,
     /// <summary>A file provider emits change tokens from watched filesystem changes.</summary>
     FileProviderChangeToken,
+    /// <summary>The provider polls its external source and emits change tokens.</summary>
+    ProviderPollingChangeToken,
 }

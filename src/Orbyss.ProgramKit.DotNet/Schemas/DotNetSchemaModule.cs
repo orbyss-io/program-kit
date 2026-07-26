@@ -4,8 +4,9 @@ namespace Orbyss.ProgramKit.DotNet.Schemas;
 public sealed class DotNetSchemaModule : IProgramKitSchemaModule
 {
     private readonly IProgramKitSchemaModule operationsSchemas;
+    private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("9.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("10.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -15,6 +16,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private static readonly SemanticVersion SchemaVersionV7 = new("7.0.0");
     private static readonly SemanticVersion SchemaVersionV8 = new("8.0.0");
     private static readonly SemanticVersion SchemaVersionV9 = new("9.0.0");
+    private static readonly SemanticVersion SchemaVersionV10 = new("10.0.0");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:dotnet");
     private static readonly ArtifactProvenance Provenance =
@@ -159,6 +161,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w055-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance AzureKeyVaultProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w040-human-approved-key-vault-only-adjustment");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -281,6 +299,27 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             SchemaVersionV3,
             OAuthServiceClientProvenance),
         Create(
+            "dotnet-shell",
+            "dotnet-shell-10.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/10.0.0/dotnet-shell.schema.json",
+            "0bc42230ee4c1d03aa07235fcde2abcd483f5817e7008f23c5bc29d8e209f08a",
+            SchemaVersionV10,
+            AzureKeyVaultProvenance),
+        Create(
+            "dotnet-azure-key-vault-composition",
+            "dotnet-azure-key-vault-composition.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/azure-key-vault-composition/1.0.0/schema.json",
+            "873f1d6f1f98b7bee34a4f562b5a3919793dd0146d6f432f965afa2189799eea",
+            SchemaVersionV1,
+            AzureKeyVaultProvenance),
+        Create(
+            "dotnet-configuration-provider-catalog",
+            "dotnet-configuration-provider-catalog-2.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/configuration-provider-catalog/2.0.0/schema.json",
+            "6662822e3707c822b692753ae244316e861f6b17e0a8114db4f7dc4b91e6d85a",
+            SchemaVersionV2,
+            AzureKeyVaultProvenance),
+        Create(
             "open-console",
             "open-console.schema.json",
             "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/open-console.schema.json",
@@ -303,14 +342,20 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             Provenance),
     ];
     /// <summary>
-    /// Initializes the DotNet module with the exact Operations dependency
-    /// schemas required by the operation projection.
+    /// Initializes the DotNet module with exact Operations and secret-resolution
+    /// dependency schemas required by its projections.
     /// </summary>
-    public DotNetSchemaModule(IProgramKitSchemaModule operationsSchemas)
+    public DotNetSchemaModule(
+        IProgramKitSchemaModule operationsSchemas,
+        IProgramKitSchemaModule secretResolutionSchemas)
     {
         ArgumentNullException.ThrowIfNull(operationsSchemas);
+        ArgumentNullException.ThrowIfNull(secretResolutionSchemas);
         this.operationsSchemas = operationsSchemas;
-        registered = Owned.AddRange(operationsSchemas.Resources);
+        this.secretResolutionSchemas = secretResolutionSchemas;
+        registered = Owned
+            .AddRange(operationsSchemas.Resources)
+            .AddRange(secretResolutionSchemas.Resources);
     }
 
     /// <inheritdoc />
@@ -340,6 +385,12 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                 candidate.SchemaReference == schemaReference))
         {
             return operationsSchemas.OpenRead(schemaReference);
+        }
+
+        if (secretResolutionSchemas.Resources.Any(candidate =>
+                candidate.SchemaReference == schemaReference))
+        {
+            return secretResolutionSchemas.OpenRead(schemaReference);
         }
 
         var assembly = typeof(DotNetSchemaModule).Assembly;
@@ -373,9 +424,11 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                 new ProgramKitIdentifier("pkid:test:program-kit:conformance-tests"),
             ],
             provenance,
-            Compatibility(version));
+            Compatibility(name, version));
 
-    private static ArtifactCompatibility Compatibility(SemanticVersion version) =>
+    private static ArtifactCompatibility Compatibility(
+        string name,
+        SemanticVersion version) =>
         new(
             new ProgramKitIdentifier("pkid:contract:program-kit:schema-compatibility-policy"),
             [
@@ -390,82 +443,102 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new SemanticVersionRange(string.Concat("[", version.Value, "]")),
             new SemanticVersionRange(string.Concat("[", version.Value, "]")),
-            version switch
-            {
-                _ when version == SchemaVersionV2 =>
+            name == "dotnet-configuration-provider-catalog" &&
+            version == SchemaVersionV2
+                ?
                 [
                     new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-configuration-provider-catalog-v1-to-v2"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:76ed434b6c743180926caadc0d4ce9e1adf74a30e39f432507a53771b3e7d5c6")),
+                ]
+                : version switch
+                {
+                    _ when version == SchemaVersionV2 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-operation-binding-v1-to-v2"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:a394d9ff69fe3f1f3d2f0941518ca81c9a79cb0ae092e1ba5579655b016a12b4")),
                 ],
-                _ when version == SchemaVersionV3 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV3 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-configuration-v2-to-v3"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:518c2c4d061a1407e205d6961689574e1e9139be9a68ba8fdab66ddbc9893565")),
                 ],
-                _ when version == SchemaVersionV4 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV4 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-configuration-v3-to-v4"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:052453c42eea7e74533c94d3582cda5e2dec093a9fcae18c04a5f84c13c74ccd")),
                 ],
-                _ when version == SchemaVersionV5 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV5 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-telemetry-v4-to-v5"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:0f3dc06cd571a1b7dc895ead592364d69945740d36330d118ccff8d592dcd765")),
                 ],
-                _ when version == SchemaVersionV6 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV6 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-transport-failures-v5-to-v6"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:b825ecf1b8f88b78609540019c947d82d0adab7a19c2ac83021783bf4ea52f65")),
                 ],
-                _ when version == SchemaVersionV7 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV7 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-security-v6-to-v7"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:0722776dc337a33714fc72d94780b52cad627ff1378d850de05dc8577385572f")),
                 ],
-                _ when version == SchemaVersionV8 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV8 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-public-browser-v7-to-v8"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:a3b5dac3c5ea69e16434b1a393805c5641c88aab0b9f46ca39b1d18fff26f01b")),
                 ],
-                _ when version == SchemaVersionV9 =>
-                [
-                    new ArtifactReference(
+                    _ when version == SchemaVersionV9 =>
+                    [
+                        new ArtifactReference(
                         new ProgramKitIdentifier(
                             "pkid:migration:program-kit:dotnet-oauth-service-clients-v8-to-v9"),
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:d7842fbef99eda9ca69d3e8beccd88af54f470bdac7e93b0afa0d796babfa179")),
                 ],
-                _ => [],
-            });
+                    _ when version == SchemaVersionV10 =>
+                    [
+                        new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-azure-key-vault-v9-to-v10"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:1cee0a9842dfcd73f675a943b1cde203dd7879334f9994764583871506c1b3ad")),
+                ],
+                    _ => [],
+                });
 
     private static string ExactKey(ArtifactReference reference) =>
         string.Concat(

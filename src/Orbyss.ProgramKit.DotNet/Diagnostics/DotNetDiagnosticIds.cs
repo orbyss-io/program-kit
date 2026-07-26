@@ -71,4 +71,10 @@ public static class DotNetDiagnosticIds
 
     /// <summary>Security material would be persisted or disclosed unsafely.</summary>
     public const string UnsafeSecurityMaterial = "PKNET023";
+
+    /// <summary>Azure configuration adapter composition is invalid or incomplete.</summary>
+    public const string InvalidAzureConfiguration = "PKNET024";
+
+    /// <summary>Azure credential, locator, or Key Vault reference handling is unsafe.</summary>
+    public const string UnsafeAzureConfigurationMaterial = "PKNET025";
 }

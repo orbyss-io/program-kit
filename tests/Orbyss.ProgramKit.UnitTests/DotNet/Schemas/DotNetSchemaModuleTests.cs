@@ -10,6 +10,7 @@ using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
+using Orbyss.ProgramKit.SecretResolution.Contracts.Schemas;
 using Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
 using Orbyss.ProgramKit.Workbench.Operations.Schemas;
 
@@ -21,13 +22,15 @@ public sealed class DotNetSchemaModuleTests
     [TestMethod]
     public void ModuleRegistersOwnedAndOperationDependencySchemas()
     {
-        DotNetSchemaModule module = new(new OperationsSchemaModule());
+        DotNetSchemaModule module = new(
+            new OperationsSchemaModule(),
+            new SecretResolutionSchemaModule());
         ProgramKitSchemaModuleValidator validator = new();
 
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(27, module.Resources);
+        Assert.HasCount(33, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -47,6 +50,7 @@ public sealed class DotNetSchemaModuleTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(shellValidator);
         var shellRevision = DotNetTestContractFactory.Ref(
@@ -119,7 +123,9 @@ public sealed class DotNetSchemaModuleTests
                     profile.Reference,
                     profile.MaximumLimits).ToArray()),
         };
-        DotNetSchemaModule module = new(new OperationsSchemaModule());
+        DotNetSchemaModule module = new(
+            new OperationsSchemaModule(),
+            new SecretResolutionSchemaModule());
         JsonSchemaWorkbenchValidator validator = new(
             canonicalizer,
             new ProgramKitSchemaModuleValidator());
@@ -129,7 +135,9 @@ public sealed class DotNetSchemaModuleTests
             var schema = module.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
                 (document.Name != "dotnet-shell" ||
-                 resource.SchemaReference.Version.Value == "9.0.0"));
+                 resource.SchemaReference.Version.Value == "10.0.0") &&
+                (document.Name != "dotnet-configuration-provider-catalog" ||
+                 resource.SchemaReference.Version.Value == "1.0.0"));
 
             var result = validator.Validate(
                 document.Content,

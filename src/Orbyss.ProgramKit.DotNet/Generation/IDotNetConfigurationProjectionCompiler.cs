@@ -11,4 +11,5 @@ public interface IDotNetConfigurationProjectionCompiler
 
     /// <summary>Renders exact provider and Options registrations for host composition.</summary>
     string RenderRegistration(DotNetHostDefinition host);
+
 }

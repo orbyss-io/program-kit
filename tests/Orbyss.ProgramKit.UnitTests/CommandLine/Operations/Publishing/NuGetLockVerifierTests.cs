@@ -43,6 +43,7 @@ public sealed class NuGetLockVerifierTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog()));
         var document = builder.Build(
             shell,

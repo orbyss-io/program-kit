@@ -97,7 +97,9 @@ public static class CommandLineComposition
             new SerializationJsonSchemaModule(),
             new TasksCoreSchemaModule(),
             new TaskSchedulesSchemaModule(),
-            new DotNetSchemaModule(new OperationsSchemaModule()));
+            new DotNetSchemaModule(
+                new OperationsSchemaModule(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Schemas.SecretResolutionSchemaModule()));
         var moduleValidator = new ProgramKitSchemaModuleValidator();
         IWorkbenchSchemaValidator schemaValidator =
             new JsonSchemaWorkbenchValidator(canonicalizer, moduleValidator);
@@ -108,6 +110,7 @@ public static class CommandLineComposition
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             providerCatalog);
         IDotNetShellLockBuilder lockBuilder =
             new DotNetShellLockBuilder(shellValidator);

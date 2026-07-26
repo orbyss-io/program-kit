@@ -37,6 +37,7 @@ public sealed class DotNetConfigurationProviderGenerationTests
             new ArtifactReferenceValidator(),
             new OperationContractDescriptorValidator(),
             new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
             DotNetTestContractFactory.ProviderCatalog());
         DotNetConfigurationProjectionCompiler compiler = new(
             DotNetTestContractFactory.ProviderRegistry());

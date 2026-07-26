@@ -207,7 +207,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         builder.AppendLine();
         builder.AppendLine("namespace GeneratedHost.Composition;");
         builder.AppendLine();
-        builder.AppendLine("internal static class Program");
+        builder.AppendLine("internal static partial class Program");
         builder.AppendLine("{");
         builder.AppendLine("    private static async Task<int> Main(string[] args)");
         builder.AppendLine("    {");

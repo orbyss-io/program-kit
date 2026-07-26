@@ -5,6 +5,7 @@ digraph ProgramKitDependencies {
   "Architecture" -> "Artifacts";
   "CommandLine" -> "DotNet";
   "CommandLine" -> "Operations";
+  "CommandLine" -> "SecretResolution";
   "CommandLine" -> "Workbench";
   "Development" -> "Artifacts";
   "Development" -> "Planning";

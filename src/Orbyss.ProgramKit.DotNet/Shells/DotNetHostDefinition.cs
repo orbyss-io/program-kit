@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.DotNet.Operations.Security;
+using Orbyss.ProgramKit.DotNet.Configuration.Azure;
 
 namespace Orbyss.ProgramKit.DotNet.Shells;
 
@@ -26,4 +27,5 @@ public sealed record DotNetHostDefinition(
     [property: JsonPropertyName("compatibility")] ArtifactCompatibility Compatibility,
     [property: JsonPropertyName("telemetry")] DotNetTelemetryConfiguration? Telemetry = null,
     [property: JsonPropertyName("transportFailures")] DotNetTransportFailureConfiguration? TransportFailures = null,
-    [property: JsonPropertyName("security")] DotNetSecurityConfiguration? Security = null);
+    [property: JsonPropertyName("security")] DotNetSecurityConfiguration? Security = null,
+    [property: JsonPropertyName("azureConfiguration")] DotNetAzureConfigurationComposition? AzureConfiguration = null);

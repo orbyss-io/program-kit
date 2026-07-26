@@ -21,6 +21,7 @@ public sealed class DotNetHostSourceRendererTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var lockDocument = lockBuilder.Build(
@@ -109,6 +110,7 @@ public sealed class DotNetHostSourceRendererTests
                 new ArtifactReferenceValidator(),
                 new OperationContractDescriptorValidator(),
                 new TransportFailureProfileValidator(),
+                new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog());
         DotNetShellLockBuilder lockBuilder = new(validator);
         var locks = lockBuilder.Build(

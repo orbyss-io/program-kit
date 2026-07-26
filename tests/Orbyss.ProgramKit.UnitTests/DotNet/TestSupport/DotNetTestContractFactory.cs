@@ -256,8 +256,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@9.0.0",
-            new SemanticVersion("9.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@10.0.0",
+            new SemanticVersion("10.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(

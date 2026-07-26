@@ -158,6 +158,7 @@ public sealed class BuildSpineConformanceTests
 
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            ["Azure.Extensions.AspNetCore.Configuration.Secrets"] = "[1.5.1]",
             ["MSTest.Sdk"] = "[4.3.2]",
             ["JsonSchema.Net"] = "[9.3.0]",
             ["Microsoft.AspNetCore.Authentication.JwtBearer"] = "[10.0.10]",
@@ -379,6 +380,7 @@ public sealed class BuildSpineConformanceTests
                 [
                     "Orbyss.ProgramKit.DotNet",
                     "Orbyss.ProgramKit.Operations",
+                    "Orbyss.ProgramKit.SecretResolution",
                     "Orbyss.ProgramKit.Workbench",
                 ],
                 ["Orbyss.ProgramKit.DotNet"] =
@@ -524,6 +526,7 @@ public sealed class BuildSpineConformanceTests
                     "Orbyss.ProgramKit.Operations",
                     "Orbyss.ProgramKit.Planning",
                     "Orbyss.ProgramKit.Quality",
+                    "Orbyss.ProgramKit.SecretResolution",
                     "Orbyss.ProgramKit.Serialization.JSON",
                     "Orbyss.ProgramKit.Tasks.Core",
                     "Orbyss.ProgramKit.Tasks.Schedules",
