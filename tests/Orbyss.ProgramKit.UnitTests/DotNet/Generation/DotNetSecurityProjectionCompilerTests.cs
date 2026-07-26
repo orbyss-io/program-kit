@@ -48,11 +48,57 @@ public sealed class DotNetSecurityProjectionCompilerTests
         Assert.Contains("AuthorizeAsync", source);
         Assert.Contains("ChallengeAsync", source);
         Assert.Contains("ForbidAsync", source);
+        Assert.Contains("Microsoft.NET.Sdk.BlazorWebAssembly", source);
+        Assert.Contains("AddOidcAuthentication", source);
+        Assert.Contains("ResponseType = \"code\"", source);
+        Assert.Contains("AuthenticationService.js", source);
+        Assert.Contains("window.localStorage.length", source);
+        Assert.Contains("RefreshTokenExpected = false", source);
+        Assert.Contains("IsSafeAuthorizationResponse", source);
+        Assert.Contains("assertProtectedApiAccess", source);
+        Assert.Contains("assertAdversarialFailures", source);
+        Assert.Contains("\"chromium\" => playwright.Chromium", source);
+        Assert.Contains("\"firefox\" => playwright.Firefox", source);
+        Assert.Contains("\"webkit\" => playwright.Webkit", source);
+        Assert.Contains("policy.DisallowCredentials()", registration);
+        Assert.Contains("app.UseCors(\"ProgramKit.PublicBrowser\")", middleware);
+        Assert.IsFalse(source.Contains("client_secret", StringComparison.OrdinalIgnoreCase));
+        Assert.IsFalse(source.Contains("offline_access", StringComparison.OrdinalIgnoreCase));
+        Assert.IsTrue(first.Any(static output =>
+            output.RelativePath == "PublicBrowser/PublicBrowser.csproj"));
+        Assert.IsTrue(first.Any(static output =>
+            output.RelativePath ==
+            "PublicBrowserVerification/chromium.runsettings"));
         Assert.IsLessThan(
             middleware.IndexOf(
                 "ProgramKitOperationAuthorizationMiddleware",
                 StringComparison.Ordinal),
             middleware.IndexOf("UseAuthorization", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void PublicBrowserGenerationKeepsAuthenticationMaterialEphemeral()
+    {
+        var host = ApiHost();
+        DotNetSecurityProjectionCompiler sut = new();
+
+        var outputs = sut.Compile(host);
+        var combined = string.Join(
+            Environment.NewLine,
+            outputs.Select(static output =>
+                Encoding.UTF8.GetString(output.Content.Span)));
+
+        Assert.DoesNotContain("StorageStateAsync", combined);
+        Assert.DoesNotContain("RecordHarPath = \"", combined);
+        Assert.DoesNotContain("RecordVideoDir = \"", combined);
+        Assert.DoesNotContain("access_token=", combined.Replace(
+            "request.Url.Contains(\"access_token=\"",
+            string.Empty,
+            StringComparison.Ordinal));
+        Assert.Contains("playwright/.auth/", combined);
+        Assert.Contains("Headless = false", combined);
+        Assert.Contains("waitForHumanControlledCallback", combined);
+        Assert.Contains("ClearCookiesAsync", combined);
     }
 
     [TestMethod]

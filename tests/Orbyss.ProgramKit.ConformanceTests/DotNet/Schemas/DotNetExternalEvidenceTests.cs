@@ -215,4 +215,95 @@ public sealed class DotNetExternalEvidenceTests
                 packageId);
         }
     }
+
+    [TestMethod]
+    public void PublicBrowserEvidenceBindsExactAdapterPackagesAndAssemblies()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(
+            static name => name.EndsWith(
+                "dotnet-public-browser-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using MemoryStream bytes = new();
+        stream.CopyTo(bytes);
+        Assert.AreEqual(
+            "ab9fe10529b7087c75d24e0e0f3267c7adc1dd0832120d0a7a5b868b228f0ef4",
+            Convert.ToHexString(SHA256.HashData(bytes.ToArray()))
+                .ToLowerInvariant());
+        bytes.Position = 0;
+        using var document = JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+        var packages = root.GetProperty("directPackages")
+            .EnumerateArray()
+            .ToArray();
+
+        Assert.HasCount(3, packages);
+        Assert.IsTrue(
+            root.GetProperty("selection")
+                .GetProperty("humanThreatAcceptanceRequired")
+                .GetBoolean());
+        Assert.AreEqual(
+            "absent",
+            root.GetProperty("selection")
+                .GetProperty("refreshDisposition")
+                .GetString());
+        var generatorPath = Path.Combine(
+            ConformanceInputs.RepositoryRoot,
+            "program-kit",
+            "src",
+            "Orbyss.ProgramKit.DotNet",
+            "Generation",
+            "DotNetSecurityProjectionCompiler.cs");
+        Assert.AreEqual(
+            Orbyss.ProgramKit.DotNet.Operations.Security
+                .DotNetPublicBrowserTargetAdapterCatalog
+                .BlazorWebAssemblyOidc
+                .GeneratorRevision
+                .Digest
+                .Value,
+            string.Concat(
+                "sha256:",
+                Convert.ToHexString(
+                        SHA256.HashData(File.ReadAllBytes(generatorPath)))
+                    .ToLowerInvariant()));
+
+        var packageRoot = Environment.GetEnvironmentVariable(
+                "NUGET_PACKAGES") ??
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".nuget",
+                "packages");
+        foreach (var package in packages)
+        {
+            var packageId = package.GetProperty("id").GetString()!;
+            var version = package.GetProperty("version").GetString()!;
+            var packageDirectory = Path.Combine(
+                packageRoot,
+                packageId.ToLowerInvariant(),
+                version);
+            var archivePath = Path.Combine(
+                packageDirectory,
+                string.Concat(packageId.ToLowerInvariant(), ".", version, ".nupkg"));
+            Assert.AreEqual(
+                package.GetProperty("sha256").GetString(),
+                Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(archivePath)))
+                    .ToLowerInvariant(),
+                packageId);
+
+            var targetFramework = packageId == "Microsoft.Playwright"
+                ? "netstandard2.0"
+                : "net10.0";
+            var assemblyPath = Path.Combine(
+                packageDirectory,
+                "lib",
+                targetFramework,
+                string.Concat(packageId, ".dll"));
+            Assert.AreEqual(
+                package.GetProperty("assemblySha256").GetString(),
+                Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(assemblyPath)))
+                    .ToLowerInvariant(),
+                packageId);
+        }
+    }
 }

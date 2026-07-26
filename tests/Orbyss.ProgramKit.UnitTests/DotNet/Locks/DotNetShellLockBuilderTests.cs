@@ -63,6 +63,25 @@ public sealed class DotNetShellLockBuilderTests
                     "pkid:semantic-convention:test:opentelemetry-http" &&
                 reference.Version.Value == "1.23.0"));
         }
+
+        var apiLock = first.HostLocks.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+        var publicBrowser = shell.Hosts
+            .Single(static item => item.Kind == DotNetHostKind.Api)
+            .Security!
+            .OidcPublicBrowser!;
+        Assert.Contains(
+            publicBrowser.TargetAdapter.AdapterRevision,
+            apiLock.ContractRevisions);
+        Assert.Contains(
+            publicBrowser.TargetAdapter.GeneratorRevision,
+            apiLock.ContractRevisions);
+        Assert.Contains(
+            publicBrowser.Verification.PlaywrightRevision,
+            apiLock.ContractRevisions);
+        Assert.Contains(
+            publicBrowser.ThreatModelAcceptanceRevision,
+            apiLock.ContractRevisions);
     }
 
     [TestMethod]

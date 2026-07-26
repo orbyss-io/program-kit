@@ -78,6 +78,70 @@ public sealed class DotNetSecurityValidationTests
             diagnostic.Id == DotNetDiagnosticIds.UnsafeSecurityMaterial));
     }
 
+    [TestMethod]
+    public void PublicBrowserRequiresNoSecretNoRefreshAndHumanThreatAcceptance()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var api = shell.Hosts.Single(static host =>
+            host.Kind == DotNetHostKind.Api);
+        var security = api.Security!;
+        var browser = security.OidcPublicBrowser!;
+        var invalid = security with
+        {
+            OidcPublicBrowser = browser with
+            {
+                ClientSecretAbsent = false,
+                RefreshDisposition =
+                    DotNetPublicBrowserRefreshDisposition.RotatingBrowserSession,
+                HumanAcceptedBrowserHeldTokens = false,
+                Scopes = browser.Scopes.Add("offline_access"),
+            },
+        };
+
+        var result = Validator().Validate(ReplaceSecurity(shell, api, invalid));
+
+        Assert.IsFalse(result.IsValid);
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id == DotNetDiagnosticIds.InvalidSecurityConfiguration &&
+            diagnostic.Path.StartsWith(
+                "/hosts/security/oidcPublicBrowser",
+                StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void PublicBrowserRejectsOriginDriftAndDurableVerificationState()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var api = shell.Hosts.Single(static host =>
+            host.Kind == DotNetHostKind.Api);
+        var security = api.Security!;
+        var browser = security.OidcPublicBrowser!;
+        var invalid = security with
+        {
+            OidcPublicBrowser = browser with
+            {
+                RedirectUri = new Uri(
+                    "https://attacker.example.test/authentication/login-callback"),
+                CorsAllowedOrigins =
+                    [new Uri("https://attacker.example.test/")],
+                Verification = browser.Verification with
+                {
+                    PersistAuthenticationState = true,
+                    PersistTrace = true,
+                },
+            },
+        };
+
+        var result = Validator().Validate(ReplaceSecurity(shell, api, invalid));
+
+        Assert.IsFalse(result.IsValid);
+        Assert.IsGreaterThanOrEqualTo(
+            2,
+            result.Diagnostics.Count(static diagnostic =>
+                diagnostic.Id ==
+                DotNetDiagnosticIds.InvalidSecurityConfiguration));
+    }
+
     private static DotNetShellDocument ReplaceSecurity(
         DotNetShellDocument shell,
         DotNetHostDefinition api,

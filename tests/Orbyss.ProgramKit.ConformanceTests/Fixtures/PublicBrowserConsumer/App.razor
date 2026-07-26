@@ -1,0 +1,10 @@
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" />
+        </Found>
+        <NotFound>
+            <p role="status">Not found.</p>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

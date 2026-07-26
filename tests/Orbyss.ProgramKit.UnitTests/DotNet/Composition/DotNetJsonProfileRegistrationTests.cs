@@ -39,6 +39,9 @@ public sealed class DotNetJsonProfileRegistrationTests
         var json = Encoding.UTF8.GetString(canonical.ToArray());
         Assert.Contains("\"inputVersionMapRevision\"", json);
         Assert.Contains("\"operationRevision\"", json);
+        Assert.Contains("\"oidcPublicBrowser\"", json);
+        Assert.Contains("\"targetKind\":\"blazor-web-assembly-oidc\"", json);
+        Assert.Contains("\"web-kit\"", json);
         Assert.DoesNotContain("\"InputVersionMapRevision\"", json);
         Assert.DoesNotContain("JsonElement", json);
     }

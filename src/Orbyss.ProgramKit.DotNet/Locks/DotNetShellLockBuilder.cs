@@ -178,6 +178,16 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
         {
             yield return jwt.ProfileRevision;
         }
+
+        if (host.Security.OidcPublicBrowser is { } publicBrowser)
+        {
+            yield return publicBrowser.ProfileRevision;
+            yield return publicBrowser.ThreatModelAcceptanceRevision;
+            yield return publicBrowser.TargetAdapter.AdapterRevision;
+            yield return publicBrowser.TargetAdapter.GeneratorRevision;
+            yield return publicBrowser.Verification.ProfileRevision;
+            yield return publicBrowser.Verification.PlaywrightRevision;
+        }
     }
 
     private static Sha256Digest HashPackages(ImmutableArray<DotNetPackageLock> packages)

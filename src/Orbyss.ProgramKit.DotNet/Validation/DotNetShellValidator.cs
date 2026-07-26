@@ -52,14 +52,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@7.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@8.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "7.0.0")
+        if (value.Version.Value != "8.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 7.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 8.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -244,6 +244,7 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             "/hosts/security/profileRevision",
             diagnostics);
         if (security.OidcConfidentialInteractive is null &&
+            security.OidcPublicBrowser is null &&
             security.JwtResourceServer is null)
         {
             AddError(
@@ -259,6 +260,11 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             ValidateOidc(oidc, schemes, diagnostics);
         }
 
+        if (security.OidcPublicBrowser is { } publicBrowser)
+        {
+            ValidatePublicBrowser(publicBrowser, security, diagnostics);
+        }
+
         if (security.JwtResourceServer is { } jwt)
         {
             ValidateJwt(jwt, schemes, diagnostics);
@@ -268,6 +274,191 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
         ValidateSecurityPolicies(security, schemes, diagnostics);
         ValidateOperationSecurityBindings(host, security, diagnostics);
     }
+
+    private void ValidatePublicBrowser(
+        DotNetOidcPublicBrowserProfile profile,
+        DotNetSecurityConfiguration security,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (profile.TargetAdapter is null || profile.Verification is null)
+        {
+            AddSecurityError(
+                diagnostics,
+                "The public-browser profile requires an exact target adapter and verification contract.",
+                "/hosts/security/oidcPublicBrowser");
+            return;
+        }
+
+        ValidateReference(
+            profile.ProfileRevision,
+            "/hosts/security/oidcPublicBrowser/profileRevision",
+            diagnostics);
+        ValidateReference(
+            profile.ThreatModelAcceptanceRevision,
+            "/hosts/security/oidcPublicBrowser/threatModelAcceptanceRevision",
+            diagnostics);
+        ValidateReference(
+            profile.Verification.ProfileRevision,
+            "/hosts/security/oidcPublicBrowser/verification/profileRevision",
+            diagnostics);
+
+        var expectedAdapter =
+            DotNetPublicBrowserTargetAdapterCatalog.BlazorWebAssemblyOidc;
+        if (profile.TargetAdapter.AdapterRevision != expectedAdapter.AdapterRevision ||
+            profile.TargetAdapter.TargetKind != expectedAdapter.TargetKind ||
+            profile.TargetAdapter.GeneratorRevision != expectedAdapter.GeneratorRevision ||
+            profile.TargetAdapter.Packages.IsDefaultOrEmpty ||
+            !profile.TargetAdapter.Packages.SequenceEqual(expectedAdapter.Packages))
+        {
+            AddSecurityError(
+                diagnostics,
+                "The public browser requires the exact registered .NET 10 Blazor WebAssembly OIDC adapter and package closure.",
+                "/hosts/security/oidcPublicBrowser/targetAdapter");
+        }
+
+        var browserOrigin = Origin(profile.BrowserOrigin);
+        if (!IsHttps(profile.Authority) ||
+            !IsHttps(profile.MetadataAddress) ||
+            !string.Equals(
+                profile.Authority.Host,
+                profile.MetadataAddress.Host,
+                StringComparison.OrdinalIgnoreCase) ||
+            !IsHttps(profile.RedirectUri) ||
+            !IsHttps(profile.PostLogoutRedirectUri) ||
+            !IsHttps(profile.BrowserOrigin) ||
+            !IsHttps(profile.ApiResource) ||
+            browserOrigin is null ||
+            !IsExactOrigin(profile.BrowserOrigin) ||
+            !string.Equals(
+                Origin(profile.RedirectUri),
+                browserOrigin,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                Origin(profile.PostLogoutRedirectUri),
+                browserOrigin,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                profile.RedirectUri.AbsolutePath,
+                "/authentication/login-callback",
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                profile.PostLogoutRedirectUri.AbsolutePath,
+                "/authentication/logout-callback",
+                StringComparison.Ordinal) ||
+            string.IsNullOrWhiteSpace(profile.ClientId) ||
+            !IsStableName(profile.CorsPolicyName) ||
+            profile.TokenStorage != DotNetPublicBrowserTokenStorage.BrowserSession ||
+            profile.RefreshDisposition != DotNetPublicBrowserRefreshDisposition.Absent ||
+            !profile.RequireHttps ||
+            !profile.UsePkce ||
+            !profile.RequireState ||
+            !profile.RequireNonce ||
+            !profile.ClientSecretAbsent ||
+            !profile.LogoutEnabled ||
+            !profile.HumanAcceptedBrowserHeldTokens ||
+            !profile.ConfidentialBffPreferredForSensitiveApplications ||
+            security.JwtResourceServer is null)
+        {
+            AddSecurityError(
+                diagnostics,
+                "The public-browser profile requires HTTPS authorization code with PKCE, no client secret or refresh token, exact callbacks, explicit human threat acceptance, an API resource server, session-only storage, and retained BFF preference.",
+                "/hosts/security/oidcPublicBrowser");
+        }
+
+        ValidateInitializedUniqueStrings(
+            profile.Scopes,
+            "/hosts/security/oidcPublicBrowser/scopes",
+            diagnostics);
+        if (profile.Scopes.IsDefault ||
+            !profile.Scopes.Contains("openid", StringComparer.Ordinal) ||
+            profile.Scopes.Contains("offline_access", StringComparer.Ordinal) ||
+            !profile.Scopes.Any(static scope =>
+                scope is not ("openid" or "profile")))
+        {
+            AddSecurityError(
+                diagnostics,
+                "The public-browser profile requires openid plus an explicit API scope and forbids offline_access in its initial no-refresh adapter.",
+                "/hosts/security/oidcPublicBrowser/scopes");
+        }
+
+        if (profile.CorsAllowedOrigins.IsDefaultOrEmpty ||
+            profile.CorsAllowedOrigins.Any(static origin => !IsExactOrigin(origin)) ||
+            profile.CorsAllowedOrigins
+                .Select(Origin)
+                .Any(static origin => origin is null) ||
+            profile.CorsAllowedOrigins
+                .Select(Origin)
+                .Distinct(StringComparer.Ordinal)
+                .Count() != profile.CorsAllowedOrigins.Length ||
+            !profile.CorsAllowedOrigins
+                .Select(Origin)
+                .Contains(browserOrigin, StringComparer.Ordinal))
+        {
+            AddSecurityError(
+                diagnostics,
+                "CORS origins must be unique HTTPS origins and include the exact generated browser origin.",
+                "/hosts/security/oidcPublicBrowser/corsAllowedOrigins");
+        }
+
+        var allowedMethods = new HashSet<string>(
+            ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"],
+            StringComparer.Ordinal);
+        if (profile.CorsAllowedMethods.IsDefaultOrEmpty ||
+            profile.CorsAllowedMethods
+                .Distinct(StringComparer.Ordinal)
+                .Count() != profile.CorsAllowedMethods.Length ||
+            profile.CorsAllowedMethods.Any(method => !allowedMethods.Contains(method)))
+        {
+            AddSecurityError(
+                diagnostics,
+                "CORS methods must be a unique finite uppercase HTTP method set.",
+                "/hosts/security/oidcPublicBrowser/corsAllowedMethods");
+        }
+
+        var verification = profile.Verification;
+        var expectedEngines = new HashSet<DotNetBrowserEngine>(
+            [
+                DotNetBrowserEngine.Chromium,
+                DotNetBrowserEngine.Firefox,
+                DotNetBrowserEngine.WebKit,
+            ]);
+        if (verification.PlaywrightRevision !=
+                DotNetPublicBrowserTargetAdapterCatalog.Playwright ||
+            verification.Engines.IsDefault ||
+            verification.Engines.Length != expectedEngines.Count ||
+            !verification.Engines.ToHashSet().SetEquals(expectedEngines) ||
+            !verification.AutomatedLocalExecutionHumanStarted ||
+            !verification.OperatorAssistedRealProviderOptIn ||
+            verification.CaptureCredentials ||
+            verification.PersistAuthenticationState ||
+            verification.PersistTrace ||
+            !verification.RedactedNonAuthoritativeEvidence)
+        {
+            AddSecurityError(
+                diagnostics,
+                "Browser verification requires exact Playwright Chromium, Firefox and WebKit profiles, human-started local execution, opt-in operator assistance, no credential/state/trace persistence, and redacted non-authoritative evidence.",
+                "/hosts/security/oidcPublicBrowser/verification");
+        }
+    }
+
+    private static string? Origin(Uri? value)
+    {
+        if (!IsHttps(value) ||
+            value!.Query.Length != 0 ||
+            value.Fragment.Length != 0)
+        {
+            return null;
+        }
+
+        return value.GetLeftPart(UriPartial.Authority);
+    }
+
+    private static bool IsExactOrigin(Uri? value) =>
+        IsHttps(value) &&
+        string.Equals(value!.AbsolutePath, "/", StringComparison.Ordinal) &&
+        value.Query.Length == 0 &&
+        value.Fragment.Length == 0 &&
+        value.UserInfo.Length == 0;
 
     private void ValidateOidc(
         DotNetOidcConfidentialInteractiveProfile profile,

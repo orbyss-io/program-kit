@@ -162,6 +162,9 @@ public sealed class BuildSpineConformanceTests
             ["JsonSchema.Net"] = "[9.3.0]",
             ["Microsoft.AspNetCore.Authentication.JwtBearer"] = "[10.0.10]",
             ["Microsoft.AspNetCore.Authentication.OpenIdConnect"] = "[10.0.10]",
+            ["Microsoft.AspNetCore.Components.WebAssembly"] = "[10.0.10]",
+            ["Microsoft.AspNetCore.Components.WebAssembly.Authentication"] = "[10.0.10]",
+            ["Microsoft.Playwright"] = "[1.61.0]",
             ["Microsoft.Extensions.Configuration.Json"] = "[10.0.10]",
             ["Microsoft.Extensions.Configuration.KeyPerFile"] = "[10.0.10]",
             ["Microsoft.Extensions.DependencyInjection"] = "[10.0.10]",
@@ -211,7 +214,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void SolutionContainsTheApprovedW060PackagesFixtureTestsAndCSharpGate()
+    public void SolutionContainsTheApprovedW052PackagesFixtureTestsAndCSharpGate()
     {
         var solution = ConformanceInputs.Read("ProgramKit.sln");
         var projectLines = solution
@@ -220,7 +223,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(33, projectLines);
+        Assert.HasCount(34, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -238,7 +241,7 @@ public sealed class BuildSpineConformanceTests
         }
 
         Assert.HasCount(
-            4,
+            5,
             projectLines.Where(line => line.Contains(
                 "Orbyss.ProgramKit.UnitTests",
                 StringComparison.Ordinal)
@@ -255,6 +258,10 @@ public sealed class BuildSpineConformanceTests
         Assert.ContainsSingle(
             projectLines.Where(line => line.Contains(
                 "\"SecurityConsumer\"",
+                StringComparison.Ordinal)));
+        Assert.ContainsSingle(
+            projectLines.Where(line => line.Contains(
+                "\"PublicBrowserVerification\"",
                 StringComparison.Ordinal)));
     }
 

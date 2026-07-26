@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/8.0.0/dotnet-shell.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-shell",
+  "x-program-kit-version": "8.0.0",
+  "title": "Program Kit .NET Shell with public-browser OIDC",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "inputVersionMapRevision",
+    "inputVersionSelectionRevision",
+    "composition",
+    "features",
+    "jsonSerialization",
+    "hosts",
+    "compatibility"
+  ],
+  "properties": {
+    "$schema": {"const": "pkid:schema:program-kit:dotnet-shell@8.0.0"},
+    "version": {"const": "8.0.0"},
+    "inputVersionMapRevision": {"$ref": "#/$defs/reference"},
+    "inputVersionSelectionRevision": {"$ref": "#/$defs/reference"},
+    "composition": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/properties/composition"
+    },
+    "features": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/properties/features"
+    },
+    "jsonSerialization": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/properties/jsonSerialization"
+    },
+    "hosts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/host"}
+    },
+    "compatibility": {"$ref": "#/$defs/compatibility"}
+  },
+  "$defs": {
+    "identifier": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/identifier"
+    },
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/reference"
+    },
+    "compatibility": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/compatibility"
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "version",
+        "kind",
+        "dotNetTargetProfileRevision",
+        "generatorProfileRevision",
+        "shellIdentities",
+        "featureActivationIdentities",
+        "hostPackages",
+        "operationBindings",
+        "configurationSources",
+        "configurationBindings",
+        "taskRuntimeRequirements",
+        "health",
+        "compatibility",
+        "telemetry",
+        "transportFailures",
+        "security"
+      ],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/version"
+        },
+        "kind": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/kind"
+        },
+        "dotNetTargetProfileRevision": {"$ref": "#/$defs/reference"},
+        "generatorProfileRevision": {"$ref": "#/$defs/reference"},
+        "shellIdentities": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/shellIdentities"
+        },
+        "featureActivationIdentities": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/featureActivationIdentities"
+        },
+        "hostPackages": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/hostPackages"
+        },
+        "operationBindings": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/operationBindings"
+        },
+        "configurationSources": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/configurationSources"
+        },
+        "configurationBindings": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/configurationBindings"
+        },
+        "taskRuntimeRequirements": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/taskRuntimeRequirements"
+        },
+        "health": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/health"
+        },
+        "compatibility": {"$ref": "#/$defs/compatibility"},
+        "telemetry": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/5.0.0/dotnet-shell.schema.json#/$defs/host/properties/telemetry"
+        },
+        "transportFailures": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/dotnet/transport-failure-composition/1.0.0/schema.json"
+            }
+          ]
+        },
+        "security": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
