@@ -6,7 +6,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("11.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("11.1.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -194,6 +194,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w090-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance KeycloakFixtureProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w100-approved-review-set-1-3-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -336,6 +352,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "873f1d6f1f98b7bee34a4f562b5a3919793dd0146d6f432f965afa2189799eea",
             SchemaVersionV1,
             AzureKeyVaultProvenance),
+        Create(
+            "dotnet-keycloak-local-realm-import",
+            "keycloak-local-realm-import-1.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/keycloak-local-realm-import/1.0.0/schema.json",
+            "2a13f360095c8ba8859fd3ebc3c9d2092dda68f6775ad332960ee1cd4567e024",
+            SchemaVersionV1,
+            KeycloakFixtureProvenance),
         Create(
             "dotnet-configuration-provider-catalog",
             "dotnet-configuration-provider-catalog-2.0.0.schema.json",

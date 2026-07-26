@@ -101,4 +101,16 @@ public static class DotNetDiagnosticIds
 
     /// <summary>FastEndpoints output differs from the canonical API projection.</summary>
     public const string FastEndpointsProjectionMismatch = "PKNET033";
+
+    /// <summary>The optional Keycloak local-test fixture input is invalid.</summary>
+    public const string InvalidKeycloakLocalFixture = "PKNET034";
+
+    /// <summary>Keycloak fixture secret material is missing, unsafe, or disclosed.</summary>
+    public const string UnsafeKeycloakFixtureMaterial = "PKNET035";
+
+    /// <summary>The exact Keycloak image or Aspire integration selection differs.</summary>
+    public const string KeycloakFixtureSelectionMismatch = "PKNET036";
+
+    /// <summary>A requested protocol behavior is not in the reviewed provider subset.</summary>
+    public const string UnsupportedKeycloakFixtureProfile = "PKNET037";
 }

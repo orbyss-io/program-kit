@@ -4,6 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="[13.4.6-preview.1.26319.6]" />
     <PackageVersion Include="MSTest.Sdk" Version="[4.3.2]" />
     <PackageVersion Include="JsonSchema.Net" Version="[9.3.0]" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="[10.0.10]" />
