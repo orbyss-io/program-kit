@@ -2,6 +2,7 @@
   <PropertyGroup>
     <PackageId>Orbyss.ProgramKit.DotNet</PackageId>
     <Description>.NET 10 shell intent, exact CShells composition, integrator-document projection, and deterministic host generation for Orbyss Program Kit.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
@@ -28,6 +29,7 @@
     <Using Include="System.Text.Json.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
     <EmbeddedResource Include="..\..\schemas\dotnet\**\*.json"
                       LogicalName="Orbyss.ProgramKit.DotNet.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="..\..\schemas\dotnet\**\*.json"

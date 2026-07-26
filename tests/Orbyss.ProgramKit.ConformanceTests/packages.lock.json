@@ -515,6 +515,7 @@
         "dependencies": {
           "Orbyss.ProgramKit.DotNet": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Operations": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.SecretResolution": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Workbench": "[0.1.0-alpha.1, )"
         }
       },

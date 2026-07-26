@@ -77,4 +77,19 @@ public static class DotNetDiagnosticIds
 
     /// <summary>Azure credential, locator, or Key Vault reference handling is unsafe.</summary>
     public const string UnsafeAzureConfigurationMaterial = "PKNET025";
+
+    /// <summary>Aspire application-composition input is invalid or incomplete.</summary>
+    public const string InvalidAspireComposition = "PKNET026";
+
+    /// <summary>An Aspire integration is absent, duplicated, or not exactly registered.</summary>
+    public const string AspireIntegrationMismatch = "PKNET027";
+
+    /// <summary>An Aspire resource relationship is missing, conflicting, or cyclic.</summary>
+    public const string InvalidAspireRelationship = "PKNET028";
+
+    /// <summary>An Aspire projection could disclose secret or classified locator material.</summary>
+    public const string UnsafeAspireSecretMaterial = "PKNET029";
+
+    /// <summary>Aspire output could not be produced deterministically.</summary>
+    public const string AspireGenerationFailed = "PKNET030";
 }

@@ -20,6 +20,7 @@ Start with:
 - [W080 self-hosted comparison](artifacts/self-hosted/README.md)
 - [Observatory Scheduling fixture](fixtures/observatory-scheduling/README.md)
 - [CLI commands](src/Orbyss.ProgramKit.CommandLine/README.md)
+- [.NET generation contracts, including Aspire AppHost](src/Orbyss.ProgramKit.DotNet/README.md)
 - [Historical bootstrap authority](bootstrap/README.md)
 
 The exact bootstrap design, plan, and separate approval record remain preserved
