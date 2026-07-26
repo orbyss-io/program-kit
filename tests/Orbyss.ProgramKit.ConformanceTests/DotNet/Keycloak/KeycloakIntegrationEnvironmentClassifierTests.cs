@@ -1,0 +1,77 @@
+namespace Orbyss.ProgramKit.ConformanceTests.DotNet.Keycloak;
+
+using System.Text.Json;
+using Orbyss.ProgramKit.ConformanceTests.Infrastructure;
+
+[TestClass]
+public sealed class KeycloakIntegrationEnvironmentClassifierTests
+{
+    [TestMethod]
+    public void OnlyExactReviewedWindowsPreResourceFingerprintIsBlocked()
+    {
+        var reviewed = new KeycloakIntegrationFailure(
+            "windows",
+            "dcp-control-plane-startup",
+            false,
+            KeycloakIntegrationEnvironmentClassifier
+                .WindowsDcpPreResourceFingerprint);
+
+        Assert.IsTrue(
+            KeycloakIntegrationEnvironmentClassifier
+                .IsReviewedWindowsPreResourceBlocker(reviewed));
+        Assert.IsFalse(
+            KeycloakIntegrationEnvironmentClassifier
+                .IsReviewedWindowsPreResourceBlocker(
+                    reviewed with { OperatingSystem = "linux" }));
+        Assert.IsFalse(
+            KeycloakIntegrationEnvironmentClassifier
+                .IsReviewedWindowsPreResourceBlocker(
+                    reviewed with { ResourceCreated = true }));
+        Assert.IsFalse(
+            KeycloakIntegrationEnvironmentClassifier
+                .IsReviewedWindowsPreResourceBlocker(
+                    reviewed with
+                    {
+                        Fingerprint =
+                            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                    }));
+    }
+
+    [TestMethod]
+    public void LinuxEnvironmentSelectionPinsExactToolingWithoutExecution()
+    {
+        var root = Path.Combine(
+            ConformanceInputs.RepositoryRoot,
+            "program-kit",
+            "extensions",
+            "host-tooling-keycloak-tls-proof",
+            "integration-environment",
+            "linux-amd64");
+        var dockerfile = File.ReadAllText(
+            Path.Combine(root, "Dockerfile"));
+        using var selection = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(root, "selection.json")));
+
+        Assert.Contains(
+            "10.0.302-noble-amd64@sha256:3dae2f7699441af56216ff64d5c9b6dfce7cd7dc7f4f71d353d29662b10a384f",
+            dockerfile);
+        Assert.Contains(
+            "v1.61.0-noble@sha256:72d804504ac23fcc83c770ca68c88c7e6b3e3462c9ad02f220197b95d46237db",
+            dockerfile);
+        Assert.DoesNotContain("\nRUN ", dockerfile);
+        Assert.AreEqual(
+            "selected-not-built-or-executed",
+            selection.RootElement.GetProperty("status").GetString());
+        Assert.AreEqual(
+            "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+            selection.RootElement.GetProperty("dockerfileSha256").GetString());
+        Assert.IsTrue(
+            selection.RootElement.GetProperty("execution")
+                .GetProperty("humanStarted")
+                .GetBoolean());
+        Assert.IsFalse(
+            selection.RootElement.GetProperty("execution")
+                .GetProperty("automaticRun")
+                .GetBoolean());
+    }
+}

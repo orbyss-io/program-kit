@@ -53,7 +53,7 @@ public sealed class KeycloakLocalFixtureGenerator :
                     RenderFixtureTls()),
                 Output(
                     "KeycloakFixture/AppHost/ProgramKitFixtureTrust.cs",
-                    RenderFixtureTrust()),
+                    RenderFixtureTrustSource()),
                 Output(
                     "KeycloakFixture/AppHost/global.json",
                     RenderGlobalJson()),
@@ -72,6 +72,8 @@ public sealed class KeycloakLocalFixtureGenerator :
                 Output(
                     "KeycloakFixture/README.md",
                     RenderReadme(definition)))
+            .AddRange(
+                KeycloakGeneratedSecurityConsumerGenerator.Generate(definition))
             .OrderBy(static output => output.RelativePath, StringComparer.Ordinal)
             .ToImmutableArray();
         return new KeycloakLocalFixtureGenerationResult(outputs, HashTree(outputs));
@@ -813,7 +815,7 @@ public sealed class KeycloakLocalFixtureGenerator :
             """;
     }
 
-    private static string RenderFixtureTrust()
+    internal static string RenderFixtureTrustSource()
     {
         var tls = KeycloakLocalFixtureCatalog.TlsProfile;
         return $$"""
@@ -1108,7 +1110,7 @@ public sealed class KeycloakLocalFixtureGenerator :
         builder.AppendLine("  },");
         builder.AppendLine("  \"secretReferenceSha256\": [");
         var digests = SecretReferences(definition)
-            .Select(static secret => HashText(secret.Identity.Value).Value)
+            .Select(static secret => HashTextValue(secret.Identity.Value).Value)
             .Order(StringComparer.Ordinal)
             .ToArray();
         for (var index = 0; index < digests.Length; index++)
@@ -1336,7 +1338,7 @@ public sealed class KeycloakLocalFixtureGenerator :
             "sha256:",
             Convert.ToHexStringLower(SHA256.HashData(bytes))));
 
-    private static Sha256Digest HashText(string value) =>
+    internal static Sha256Digest HashTextValue(string value) =>
         Hash(Encoding.UTF8.GetBytes(value));
 
     private static Sha256Digest HashTree(ImmutableArray<GeneratedOutput> outputs)

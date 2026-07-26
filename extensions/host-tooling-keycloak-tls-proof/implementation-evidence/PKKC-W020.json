@@ -1,0 +1,82 @@
+{
+  "evidenceKind": "program-kit-keycloak-corrective-work-unit",
+  "evidenceVersion": "1.0.0",
+  "workUnit": "PKKC-W020",
+  "recordedAtUtc": "2026-07-26T21:58:56.341Z",
+  "status": "checkpoint-awaiting-separate-human-started-linux-execution",
+  "completionClaim": false,
+  "approval": {
+    "parentDesignSha256": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57",
+    "parentPlanSha256": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5",
+    "correctiveDesignSha256": "sha256:094459fa8813d04f3ab0f97764770d80564657d27be04762c78e6a726d9d6a11",
+    "correctivePlanSha256": "sha256:a7aae926ae5916f2ccdbda28a2dc70dfc008e43236718c3a5ed1ee644831c39a"
+  },
+  "generatedProfiles": {
+    "compiler": "Orbyss.ProgramKit.DotNet.Generation.DotNetSecurityProjectionCompiler",
+    "roles": [
+      "oidc-confidential-code-pkce",
+      "oidc-public-browser-code-pkce",
+      "rfc9068-jwt-resource-server",
+      "oauth-client-credentials",
+      "rfc8693-token-exchange"
+    ],
+    "directProtocolReplacementAllowed": false,
+    "runtimeDependencyLeakage": false
+  },
+  "offlineVerification": {
+    "focusedUnitTests": {
+      "total": 13,
+      "passed": 13
+    },
+    "focusedConformanceTests": {
+      "total": 4,
+      "passed": 3,
+      "skipped": 1,
+      "skipReason": "exact Linux fixture execution was not separately human-started"
+    },
+    "generatedConsumerProjectsBuilt": [
+      "security-host",
+      "public-browser",
+      "public-browser-verification"
+    ],
+    "strictReleaseSolutionBuild": "passed-zero-warnings-zero-errors",
+    "fullUnitTests": {
+      "total": 437,
+      "passed": 437
+    },
+    "prohibitedMutationAndBypassScan": "passed"
+  },
+  "linuxEnvironment": {
+    "status": "selected-not-built-or-executed",
+    "operatingSystem": "linux",
+    "architecture": "amd64",
+    "dockerfileSha256": "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+    "dotNetSdkManifestSha256": "sha256:3dae2f7699441af56216ff64d5c9b6dfce7cd7dc7f4f71d353d29662b10a384f",
+    "playwrightManifestSha256": "sha256:72d804504ac23fcc83c770ca68c88c7e6b3e3462c9ad02f220197b95d46237db",
+    "derivedImageDigest": null,
+    "executionHumanStarted": false
+  },
+  "windowsBlocker": {
+    "classificationKind": "synthetic-bounded-test-only",
+    "reviewedFingerprintSha256": "sha256:5312155b739bcb05f204f1b2bd71d724f5c24dc941ebfa7efd932aba2bd90912",
+    "unknownFailureDisposition": "fail",
+    "satisfiesLinuxLane": false,
+    "triggersRemediation": false
+  },
+  "safety": {
+    "fixtureStarted": false,
+    "browserStarted": false,
+    "imagePulled": false,
+    "containerStarted": false,
+    "hostCertificateStoreChanged": false,
+    "hostNetworkChanged": false,
+    "dockerNetworkChanged": false,
+    "sensitiveOrMachineSpecificDurableEvidence": false
+  },
+  "sourceSha256": {
+    "generatedSecurityConsumerGenerator": "sha256:f20dd4bdb9ed12609626c3454cd40acce25599f8c74473657ad79beb473147f4",
+    "securityProjectionCompiler": "sha256:a99552d756258e3cb0170d36e54db44dbc0b39d8305ca57cc967c503ec08c5a4",
+    "integrationConformance": "sha256:d4de6513d5ca959cf2c6058d6b82471910b6f8fc193c1a3fed8672f07c1e7b93"
+  },
+  "remainingRequiredGate": "build and separately human-start the exact Linux environment, bind its derived image digest, pass every live generated-profile and additive vector checkpoint, and prove teardown"
+}

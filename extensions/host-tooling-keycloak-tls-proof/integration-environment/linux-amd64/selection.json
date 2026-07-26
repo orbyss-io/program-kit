@@ -1,0 +1,32 @@
+{
+  "selectionKind": "program-kit-keycloak-integration-environment",
+  "selectionVersion": "1.0.0",
+  "operatingSystem": "linux",
+  "architecture": "amd64",
+  "dockerfileSha256": "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+  "dotNetSdk": {
+    "version": "10.0.302",
+    "image": "mcr.microsoft.com/dotnet/sdk:10.0.302-noble-amd64",
+    "manifestSha256": "sha256:3dae2f7699441af56216ff64d5c9b6dfce7cd7dc7f4f71d353d29662b10a384f"
+  },
+  "browserEnvironment": {
+    "packageVersion": "1.61.0",
+    "image": "mcr.microsoft.com/playwright/dotnet:v1.61.0-noble",
+    "manifestSha256": "sha256:72d804504ac23fcc83c770ca68c88c7e6b3e3462c9ad02f220197b95d46237db",
+    "browser": "chromium",
+    "trustMode": "chromium-server-spki-list"
+  },
+  "containerRuntime": {
+    "selection": "explicit-mounted-compatible-docker-socket",
+    "ownsProgramKitSemantics": false,
+    "directDockerFixtureReplacement": false
+  },
+  "execution": {
+    "humanStarted": true,
+    "automaticBuild": false,
+    "automaticRun": false,
+    "fixtureGate": "PROGRAM_KIT_RUN_KEYCLOAK_FIXTURE=1",
+    "derivedImageDigest": null
+  },
+  "status": "selected-not-built-or-executed"
+}

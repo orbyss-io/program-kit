@@ -89,6 +89,75 @@ public sealed class KeycloakLocalFixtureConformanceTests
     }
 
     [TestMethod]
+    public async Task GeneratedSecurityConsumersRestoreBuildAndHaveNoKitRuntimeDependency()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            string.Concat(
+                "program-kit-keycloak-consumers-",
+                Guid.NewGuid().ToString("N")));
+        Directory.CreateDirectory(root);
+        try
+        {
+            _ = await WriteGeneratedFixtureAsync(root);
+            var projects = new[]
+            {
+                "SecurityHost/SecurityHost.csproj",
+                "PublicBrowser/PublicBrowser.csproj",
+                "PublicBrowserVerification/PublicBrowserVerification.csproj",
+            };
+            foreach (var project in projects)
+            {
+                var projectPath = Path.Combine(
+                    root,
+                    "KeycloakFixture",
+                    "GeneratedConsumers",
+                    project.Replace('/', Path.DirectorySeparatorChar));
+                var projectRoot = Path.GetDirectoryName(projectPath)!;
+                var nuget = Path.Combine(projectRoot, "NuGet.Config");
+                await File.WriteAllTextAsync(
+                    nuget,
+                    NuGetConfiguration,
+                    TestContext.CancellationToken);
+                var restore = await RunDotNetAsync(
+                    projectRoot,
+                    TestContext.CancellationToken,
+                    "restore",
+                    Path.GetFileName(projectPath),
+                    "--configfile",
+                    "NuGet.Config",
+                    "--force-evaluate",
+                    "-p:NuGetAudit=false",
+                    "--verbosity",
+                    "minimal");
+                Assert.AreEqual(0, restore.ExitCode, restore.Output);
+                var build = await RunDotNetAsync(
+                    projectRoot,
+                    TestContext.CancellationToken,
+                    "build",
+                    Path.GetFileName(projectPath),
+                    "--no-restore",
+                    "--configuration",
+                    "Release",
+                    "--verbosity",
+                    "minimal");
+                Assert.AreEqual(0, build.ExitCode, build.Output);
+                var assets = await File.ReadAllTextAsync(
+                    Path.Combine(projectRoot, "obj", "project.assets.json"),
+                    TestContext.CancellationToken);
+                Assert.DoesNotContain("Orbyss.ProgramKit", assets);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [TestMethod]
     public async Task GeneratedTlsSourcesCreateExactTrustAndCleanOwnedState()
     {
         var root = Path.Combine(
@@ -239,7 +308,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
 
     [TestMethod]
     [TestCategory("ContainerIntegration")]
-    public async Task ExplicitProfileRunsDiscoveryServiceTokenAndTokenExchange()
+    public async Task ExplicitLinuxProfileRunsGeneratedTopologyAndAdditiveVectors()
     {
         if (!string.Equals(
                 Environment.GetEnvironmentVariable(
@@ -251,6 +320,18 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 "Set PROGRAM_KIT_RUN_KEYCLOAK_FIXTURE=1 to run the human-started disposable profile.");
         }
 
+        if (!OperatingSystem.IsLinux())
+        {
+            Assert.Inconclusive(
+                "The full generated-profile acceptance lane requires the exact selected Linux environment.");
+        }
+
+        Assert.AreEqual(
+            "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+            Environment.GetEnvironmentVariable(
+                "PROGRAM_KIT_KEYCLOAK_LINUX_ENVIRONMENT"),
+            "The exact reviewed Linux environment selection was not bound.");
+
         var fixtureBase = ResolveFixtureBase();
         var root = Path.Combine(
             fixtureBase,
@@ -259,8 +340,14 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 Guid.NewGuid().ToString("N")[..8]));
         Directory.CreateDirectory(root);
         Process? appHost = null;
+        Process? securityHost = null;
+        Process? publicBrowser = null;
         Task<string>? standardOutput = null;
         Task<string>? standardError = null;
+        Task<string>? securityHostOutput = null;
+        Task<string>? securityHostError = null;
+        Task<string>? publicBrowserOutput = null;
+        Task<string>? publicBrowserError = null;
         var secrets = CreateRuntimeSecrets();
         var baselineContainers = await GetKeycloakContainerIdsAsync(
             TestContext.CancellationToken);
@@ -294,6 +381,10 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 "--verbosity",
                 "minimal");
             Assert.AreEqual(0, build.ExitCode, Sanitize(build.Output, secrets));
+            await RestoreAndBuildGeneratedConsumersAsync(
+                root,
+                secrets,
+                TestContext.CancellationToken);
 
             var startInfo = AppHostStartInfo(
                 appHostDirectory,
@@ -335,6 +426,119 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 metadata,
                 TestContext.CancellationToken);
 
+            var securityHostDirectory = Path.Combine(
+                root,
+                "KeycloakFixture",
+                "GeneratedConsumers",
+                "SecurityHost");
+            securityHost = Process.Start(
+                    GeneratedConsumerStartInfo(
+                        securityHostDirectory,
+                        "SecurityHost.csproj",
+                        "https://localhost:8443",
+                        root,
+                        secrets)) ??
+                throw new InvalidOperationException(
+                    "The generated security host did not start.");
+            securityHostOutput = securityHost.StandardOutput.ReadToEndAsync(
+                TestContext.CancellationToken);
+            securityHostError = securityHost.StandardError.ReadToEndAsync(
+                TestContext.CancellationToken);
+            await WaitForGeneratedConsumerAsync(
+                client,
+                new Uri("https://localhost:8443/"),
+                securityHost,
+                securityHostOutput,
+                securityHostError,
+                secrets,
+                TestContext.CancellationToken);
+            using (var denied = await client.GetAsync(
+                       "https://localhost:8443/protected",
+                       TestContext.CancellationToken))
+            {
+                Assert.AreEqual(HttpStatusCode.Unauthorized, denied.StatusCode);
+            }
+
+            using (var service = await client.PostAsync(
+                       "https://localhost:8443/oauth/client-credentials",
+                       null,
+                       TestContext.CancellationToken))
+            {
+                Assert.AreEqual(HttpStatusCode.OK, service.StatusCode);
+            }
+
+            using (var exchange = await client.PostAsync(
+                       "https://localhost:8443/oauth/token-exchange",
+                       null,
+                       TestContext.CancellationToken))
+            {
+                Assert.AreEqual(HttpStatusCode.OK, exchange.StatusCode);
+            }
+
+            using (var roundTrip = await client.PostAsync(
+                       "https://localhost:8443/oauth/protected-roundtrip",
+                       null,
+                       TestContext.CancellationToken))
+            {
+                Assert.AreEqual(HttpStatusCode.OK, roundTrip.StatusCode);
+            }
+
+            var initialKeyIds = JsonWebKeyIds(jsonWebKeySet);
+            await RotateFixtureSigningKeyAsync(
+                client,
+                secrets,
+                TestContext.CancellationToken);
+            var rotatedKeys = await WaitForJsonWebKeyRolloverAsync(
+                client,
+                metadata,
+                initialKeyIds,
+                TestContext.CancellationToken);
+            Assert.IsGreaterThan(0, rotatedKeys.Except(initialKeyIds).Count());
+            using (var rollover = await client.PostAsync(
+                       "https://localhost:8443/oauth/protected-roundtrip-after-rollover",
+                       null,
+                       TestContext.CancellationToken))
+            {
+                Assert.AreEqual(HttpStatusCode.OK, rollover.StatusCode);
+            }
+
+            var publicBrowserDirectory = Path.Combine(
+                root,
+                "KeycloakFixture",
+                "GeneratedConsumers",
+                "PublicBrowser");
+            publicBrowser = Process.Start(
+                    GeneratedConsumerStartInfo(
+                        publicBrowserDirectory,
+                        "PublicBrowser.csproj",
+                        "https://localhost:7443",
+                        root,
+                        secrets)) ??
+                throw new InvalidOperationException(
+                    "The generated public browser host did not start.");
+            publicBrowserOutput = publicBrowser.StandardOutput.ReadToEndAsync(
+                TestContext.CancellationToken);
+            publicBrowserError = publicBrowser.StandardError.ReadToEndAsync(
+                TestContext.CancellationToken);
+            await WaitForGeneratedConsumerAsync(
+                client,
+                Definition().PublicBrowserOrigin,
+                publicBrowser,
+                publicBrowserOutput,
+                publicBrowserError,
+                secrets,
+                TestContext.CancellationToken);
+            await RunGeneratedConfidentialFlowAsync(
+                trust.ChromiumSpkiList,
+                secrets,
+                TestContext.CancellationToken);
+            await RunGeneratedPublicBrowserFlowAsync(
+                trust.ChromiumSpkiList,
+                secrets,
+                TestContext.CancellationToken);
+
+            // Additive raw protocol vectors verify response-level properties
+            // that are intentionally not disclosed by generated consumers.
             var serviceToken = await RequestClientCredentialsAsync(
                 client,
                 Definition().ServiceClientId,
@@ -385,6 +589,8 @@ public sealed class KeycloakLocalFixtureConformanceTests
         }
         finally
         {
+            await StopProcessAsync(publicBrowser);
+            await StopProcessAsync(securityHost);
             if (appHost is { HasExited: false })
             {
                 appHost.Kill(true);
@@ -392,6 +598,27 @@ public sealed class KeycloakLocalFixtureConformanceTests
             }
 
             appHost?.Dispose();
+            publicBrowser?.Dispose();
+            securityHost?.Dispose();
+            if (publicBrowserOutput is not null)
+            {
+                _ = Sanitize(await publicBrowserOutput, secrets);
+            }
+
+            if (publicBrowserError is not null)
+            {
+                _ = Sanitize(await publicBrowserError, secrets);
+            }
+
+            if (securityHostOutput is not null)
+            {
+                _ = Sanitize(await securityHostOutput, secrets);
+            }
+
+            if (securityHostError is not null)
+            {
+                _ = Sanitize(await securityHostError, secrets);
+            }
             if (standardOutput is not null)
             {
                 _ = Sanitize(await standardOutput, secrets);
@@ -547,6 +774,177 @@ public sealed class KeycloakLocalFixtureConformanceTests
         startInfo.Environment["Parameters__keycloak-token-exchange-client-secret"] =
             secrets.TokenExchangeClientSecret;
         return startInfo;
+    }
+
+    private static async Task RestoreAndBuildGeneratedConsumersAsync(
+        string runtimeRoot,
+        KeycloakFixtureRuntimeSecrets secrets,
+        CancellationToken cancellationToken)
+    {
+        var consumerRoot = Path.Combine(
+            runtimeRoot,
+            "KeycloakFixture",
+            "GeneratedConsumers");
+        foreach (var relativeProject in new[]
+                 {
+                     "SecurityHost/SecurityHost.csproj",
+                     "PublicBrowser/PublicBrowser.csproj",
+                     "PublicBrowserVerification/PublicBrowserVerification.csproj",
+                 })
+        {
+            var project = Path.Combine(
+                consumerRoot,
+                relativeProject.Replace(
+                    '/',
+                    Path.DirectorySeparatorChar));
+            var projectRoot = Path.GetDirectoryName(project)!;
+            await File.WriteAllTextAsync(
+                Path.Combine(projectRoot, "NuGet.Config"),
+                NuGetConfiguration,
+                cancellationToken);
+            var restore = await RunDotNetAsync(
+                projectRoot,
+                cancellationToken,
+                "restore",
+                Path.GetFileName(project),
+                "--configfile",
+                "NuGet.Config",
+                "--force-evaluate",
+                "-p:NuGetAudit=false",
+                "--verbosity",
+                "minimal");
+            Assert.AreEqual(
+                0,
+                restore.ExitCode,
+                Sanitize(restore.Output, secrets));
+            var build = await RunDotNetAsync(
+                projectRoot,
+                cancellationToken,
+                "build",
+                Path.GetFileName(project),
+                "--no-restore",
+                "--configuration",
+                "Release",
+                "--verbosity",
+                "minimal");
+            Assert.AreEqual(
+                0,
+                build.ExitCode,
+                Sanitize(build.Output, secrets));
+        }
+    }
+
+    private static ProcessStartInfo GeneratedConsumerStartInfo(
+        string workingDirectory,
+        string project,
+        string address,
+        string runtimeRoot,
+        KeycloakFixtureRuntimeSecrets secrets)
+    {
+        ProcessStartInfo startInfo = new("dotnet")
+        {
+            WorkingDirectory = workingDirectory,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+        };
+        startInfo.ArgumentList.Add("run");
+        startInfo.ArgumentList.Add("--project");
+        startInfo.ArgumentList.Add(project);
+        startInfo.ArgumentList.Add("--no-build");
+        startInfo.ArgumentList.Add("--no-restore");
+        startInfo.ArgumentList.Add("--configuration");
+        startInfo.ArgumentList.Add("Release");
+        startInfo.Environment["ASPNETCORE_URLS"] = address;
+        startInfo.Environment["DOTNET_ENVIRONMENT"] = "Development";
+        startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
+        startInfo.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
+        startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+        startInfo.Environment["DOTNET_NOLOGO"] = "1";
+        startInfo.Environment[
+            KeycloakLocalFixtureCatalog.TlsProfile
+                .RuntimeRootEnvironmentVariable] = runtimeRoot;
+        var tlsRoot = Path.Combine(runtimeRoot, "tls");
+        startInfo.Environment[
+            "ASPNETCORE_Kestrel__Certificates__Default__Path"] =
+            Path.Combine(tlsRoot, "keycloak-server-certificate.pem");
+        startInfo.Environment[
+            "ASPNETCORE_Kestrel__Certificates__Default__KeyPath"] =
+            Path.Combine(tlsRoot, "keycloak-server-private-key.pem");
+        if (string.Equals(
+                project,
+                "SecurityHost.csproj",
+                StringComparison.Ordinal))
+        {
+            startInfo.Environment["Authentication__Oidc__ClientSecret"] =
+                secrets.ConfidentialClientSecret;
+            startInfo.Environment["PROGRAM_KIT_SERVICE_CLIENT_SECRET"] =
+                secrets.ServiceClientSecret;
+            startInfo.Environment[
+                "PROGRAM_KIT_TOKEN_EXCHANGE_CLIENT_SECRET"] =
+                secrets.TokenExchangeClientSecret;
+        }
+
+        return startInfo;
+    }
+
+    private static async Task WaitForGeneratedConsumerAsync(
+        HttpClient client,
+        Uri address,
+        Process process,
+        Task<string> standardOutput,
+        Task<string> standardError,
+        KeycloakFixtureRuntimeSecrets secrets,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(45);
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            if (process.HasExited)
+            {
+                throw new InvalidOperationException(
+                    string.Concat(
+                        "A generated consumer exited before readiness.",
+                        Environment.NewLine,
+                        Sanitize(await standardOutput, secrets),
+                        Environment.NewLine,
+                        Sanitize(await standardError, secrets)));
+            }
+
+            try
+            {
+                using var response = await client.GetAsync(
+                    address,
+                    cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+            }
+            catch (HttpRequestException)
+            {
+            }
+            catch (TaskCanceledException)
+                when (!cancellationToken.IsCancellationRequested)
+            {
+            }
+
+            await Task.Delay(
+                TimeSpan.FromMilliseconds(250),
+                cancellationToken);
+        }
+
+        throw new TimeoutException(
+            "A generated consumer did not become ready within 45 seconds.");
+    }
+
+    private static async Task StopProcessAsync(Process? process)
+    {
+        if (process is { HasExited: false })
+        {
+            process.Kill(true);
+            await process.WaitForExitAsync(CancellationToken.None);
+        }
     }
 
     private static string ResolveFixtureBase()
@@ -878,6 +1276,292 @@ public sealed class KeycloakLocalFixtureConformanceTests
             0,
             document.RootElement.GetProperty("keys").GetArrayLength());
         return document.RootElement.Clone();
+    }
+
+    private static HashSet<string> JsonWebKeyIds(JsonElement keySet) =>
+        keySet.GetProperty("keys")
+            .EnumerateArray()
+            .Select(static key =>
+                key.GetProperty("kid").GetString() ??
+                throw new InvalidOperationException(
+                    "A fixture JSON Web Key has no identifier."))
+            .ToHashSet(StringComparer.Ordinal);
+
+    private static async Task RotateFixtureSigningKeyAsync(
+        HttpClient client,
+        KeycloakFixtureRuntimeSecrets secrets,
+        CancellationToken cancellationToken)
+    {
+        using var tokenRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://localhost:5443/realms/master/protocol/openid-connect/token")
+        {
+            Content = new FormUrlEncodedContent(
+                new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["grant_type"] = "password",
+                    ["client_id"] = "admin-cli",
+                    ["username"] = "fixture-admin",
+                    ["password"] = secrets.AdminPassword,
+                }),
+        };
+        using var tokenResponse = await client.SendAsync(
+            tokenRequest,
+            cancellationToken);
+        Assert.AreEqual(HttpStatusCode.OK, tokenResponse.StatusCode);
+        using var tokenDocument = JsonDocument.Parse(
+            await tokenResponse.Content.ReadAsStreamAsync(cancellationToken));
+        var adminToken =
+            tokenDocument.RootElement.GetProperty("access_token").GetString() ??
+            throw new InvalidOperationException(
+                "The disposable provider returned no bounded admin token.");
+
+        using var realmRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://localhost:5443/admin/realms/program-kit");
+        realmRequest.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", adminToken);
+        using var realmResponse = await client.SendAsync(
+            realmRequest,
+            cancellationToken);
+        Assert.AreEqual(HttpStatusCode.OK, realmResponse.StatusCode);
+        using var realmDocument = JsonDocument.Parse(
+            await realmResponse.Content.ReadAsStreamAsync(cancellationToken));
+        var realmId = realmDocument.RootElement.GetProperty("id").GetString() ??
+            throw new InvalidOperationException(
+                "The disposable realm returned no identifier.");
+
+        var component = JsonSerializer.Serialize(
+            new
+            {
+                name = "program-kit-rollover-rsa",
+                providerId = "rsa-generated",
+                providerType = "org.keycloak.keys.KeyProvider",
+                parentId = realmId,
+                config = new Dictionary<string, string[]>(StringComparer.Ordinal)
+                {
+                    ["priority"] = ["200"],
+                    ["enabled"] = ["true"],
+                    ["active"] = ["true"],
+                    ["algorithm"] = ["RS256"],
+                    ["keySize"] = ["3072"],
+                },
+            });
+        using var componentRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://localhost:5443/admin/realms/program-kit/components")
+        {
+            Content = new StringContent(
+                component,
+                Encoding.UTF8,
+                "application/json"),
+        };
+        componentRequest.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", adminToken);
+        using var componentResponse = await client.SendAsync(
+            componentRequest,
+            cancellationToken);
+        Assert.IsTrue(
+            componentResponse.StatusCode is HttpStatusCode.Created or
+                HttpStatusCode.NoContent,
+            string.Concat(
+                "The disposable signing-key rollover was rejected: ",
+                (int)componentResponse.StatusCode));
+    }
+
+    private static async Task<HashSet<string>> WaitForJsonWebKeyRolloverAsync(
+        HttpClient client,
+        JsonElement metadata,
+        HashSet<string> initialKeyIds,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            var keySet = await GetJsonWebKeySetAsync(
+                client,
+                metadata,
+                cancellationToken);
+            var current = JsonWebKeyIds(keySet);
+            if (current.Except(initialKeyIds).Any())
+            {
+                return current;
+            }
+
+            await Task.Delay(
+                TimeSpan.FromMilliseconds(250),
+                cancellationToken);
+        }
+
+        throw new TimeoutException(
+            "The disposable provider did not publish the generated rollover key.");
+    }
+
+    private static async Task RunGeneratedConfidentialFlowAsync(
+        string chromiumSpkiList,
+        KeycloakFixtureRuntimeSecrets secrets,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(
+            new BrowserTypeLaunchOptions
+            {
+                Headless = true,
+                Args =
+                [
+                    string.Concat(
+                        "--ignore-certificate-errors-spki-list=",
+                        chromiumSpkiList),
+                ],
+            });
+        await using var context = await browser.NewContextAsync(
+            new BrowserNewContextOptions
+            {
+                RecordHarPath = null,
+                RecordVideoDir = null,
+            });
+        var page = await context.NewPageAsync();
+        var tokenInUrl = false;
+        page.Request += (_, request) =>
+        {
+            tokenInUrl |=
+                request.Url.Contains(
+                    "access_token=",
+                    StringComparison.OrdinalIgnoreCase) ||
+                request.Url.Contains(
+                    "id_token=",
+                    StringComparison.OrdinalIgnoreCase);
+        };
+        await page.GotoAsync(
+            "https://localhost:8443/confidential/login",
+            new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+            });
+        await page.Locator("#username").FillAsync(
+            Definition().TestPrincipalName);
+        await page.Locator("#password").FillAsync(
+            secrets.TestPrincipalPassword);
+        var callback = page.WaitForURLAsync(
+            "https://localhost:8443/confidential/session");
+        await page.Locator("#kc-login").ClickAsync();
+        await callback;
+        Assert.Contains(
+            "\"authenticated\":true",
+            await page.Locator("body").InnerTextAsync());
+        Assert.IsFalse(tokenInUrl);
+        var cookies = await context.CookiesAsync(
+            ["https://localhost:8443/"]);
+        var session = cookies.Single(cookie =>
+            cookie.Name == "__Host-program-kit-session");
+        Assert.IsTrue(session.HttpOnly);
+        Assert.IsTrue(session.Secure);
+
+        await page.GotoAsync(
+            "https://localhost:8443/confidential/logout",
+            new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+            });
+        var confirmation = page.Locator("#kc-logout");
+        if (await confirmation.CountAsync() == 1)
+        {
+            await confirmation.ClickAsync();
+        }
+
+        await page.WaitForURLAsync("https://localhost:8443/");
+        Assert.DoesNotContain(
+            "__Host-program-kit-session",
+            (await context.CookiesAsync(["https://localhost:8443/"]))
+            .Select(static cookie => cookie.Name));
+        await context.ClearCookiesAsync();
+    }
+
+    private static async Task RunGeneratedPublicBrowserFlowAsync(
+        string chromiumSpkiList,
+        KeycloakFixtureRuntimeSecrets secrets,
+        CancellationToken cancellationToken)
+    {
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(
+            new BrowserTypeLaunchOptions
+            {
+                Headless = true,
+                Args =
+                [
+                    string.Concat(
+                        "--ignore-certificate-errors-spki-list=",
+                        chromiumSpkiList),
+                ],
+            });
+        await using var context = await browser.NewContextAsync(
+            new BrowserNewContextOptions
+            {
+                RecordHarPath = null,
+                RecordVideoDir = null,
+            });
+        var page = await context.NewPageAsync();
+        var tokenInUrl = false;
+        page.Request += (_, request) =>
+        {
+            tokenInUrl |=
+                request.Url.Contains(
+                    "access_token=",
+                    StringComparison.OrdinalIgnoreCase) ||
+                request.Url.Contains(
+                    "id_token=",
+                    StringComparison.OrdinalIgnoreCase);
+        };
+        await page.GotoAsync(
+            "https://localhost:7443/authentication/login?returnUrl=%2Ffixture%2Fprotected-api",
+            new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+            });
+        await page.Locator("#username").FillAsync(
+            Definition().TestPrincipalName);
+        await page.Locator("#password").FillAsync(
+            secrets.TestPrincipalPassword);
+        var callback = page.WaitForURLAsync(
+            "https://localhost:7443/fixture/protected-api");
+        await page.Locator("#kc-login").ClickAsync();
+        await callback;
+        await page.Locator("#call-protected-api").ClickAsync();
+        await page.Locator("#protected-api-outcome")
+            .WaitForAsync(
+                new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                });
+        Assert.AreEqual(
+            "accepted",
+            await page.Locator("#protected-api-outcome").InnerTextAsync());
+        Assert.AreEqual(
+            0,
+            await page.EvaluateAsync<int>(
+                "() => window.localStorage.length"));
+        Assert.IsFalse(tokenInUrl);
+
+        await page.GotoAsync(
+            "https://localhost:7443/authentication/logout?returnUrl=%2F",
+            new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+            });
+        var confirmation = page.Locator("#kc-logout");
+        if (await confirmation.CountAsync() == 1)
+        {
+            await confirmation.ClickAsync();
+        }
+
+        await page.WaitForURLAsync("https://localhost:7443/");
+        Assert.AreEqual(
+            0,
+            await page.EvaluateAsync<int>(
+                "() => window.localStorage.length"));
+        await context.ClearCookiesAsync();
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     private static async Task RunBrowserCodeFlowAsync(

@@ -110,6 +110,43 @@ public sealed class KeycloakLocalFixtureGeneratorTests
     }
 
     [TestMethod]
+    public void GeneratedSecurityTopologyUsesEveryOrdinaryProjection()
+    {
+        KeycloakLocalFixtureGenerator generator = new();
+        var result = generator.Generate(Definition());
+        var host = Text(
+            result,
+            "KeycloakFixture/GeneratedConsumers/SecurityHost/Program.cs");
+        var catalog = Text(
+            result,
+            "KeycloakFixture/GeneratedConsumers/SecurityHost/ProgramKitGenerated/Hosting/ProgramKitOAuthProfileCatalog.cs");
+        var browser = Text(
+            result,
+            "KeycloakFixture/GeneratedConsumers/PublicBrowser/Program.cs");
+        var evidence = Text(
+            result,
+            "KeycloakFixture/GeneratedConsumers/generated-security-profiles.json");
+        var project = Text(
+            result,
+            "KeycloakFixture/GeneratedConsumers/SecurityHost/SecurityHost.csproj");
+
+        Assert.Contains("AddOpenIdConnect", host);
+        Assert.Contains("AddJwtBearer", host);
+        Assert.Contains("ProgramKitOAuthTokenEndpointClient", host);
+        Assert.Contains("keycloak-service", catalog);
+        Assert.Contains("keycloak-exchange-subject", catalog);
+        Assert.Contains("keycloak-token-exchange", catalog);
+        Assert.Contains("AddOidcAuthentication", browser);
+        Assert.Contains("ResponseType = \"code\"", browser);
+        Assert.Contains("\"rfc8693-token-exchange\"", evidence);
+        Assert.Contains("\"directProtocolReplacementAllowed\": false", evidence);
+        Assert.DoesNotContain("Orbyss.ProgramKit", project);
+        Assert.IsTrue(result.Outputs.Any(static output =>
+            output.RelativePath ==
+            "KeycloakFixture/GeneratedConsumers/PublicBrowser/Pages/FixtureProtectedApiProbe.razor"));
+    }
+
+    [TestMethod]
     public void AppHostPinsImageIntegrationAndDisposableState()
     {
         KeycloakLocalFixtureGenerator generator = new();

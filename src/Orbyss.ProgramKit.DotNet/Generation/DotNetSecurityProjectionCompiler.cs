@@ -13,19 +13,25 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
     public ImmutableArray<GeneratedOutput> Compile(DotNetHostDefinition host)
     {
         ArgumentNullException.ThrowIfNull(host);
-        if (host.Security is null)
-        {
-            return [];
-        }
+        return host.Security is null ? [] : Compile(host.Security);
+    }
 
+    /// <summary>
+    /// Compiles one already validated security composition for a specialized
+    /// generated host topology.
+    /// </summary>
+    public ImmutableArray<GeneratedOutput> Compile(
+        DotNetSecurityConfiguration security)
+    {
+        ArgumentNullException.ThrowIfNull(security);
         var outputs = ImmutableArray.CreateBuilder<GeneratedOutput>();
         outputs.Add(Output(
             "ProgramKitOperationAuthorizationMiddleware",
-            RenderOperationAuthorizationMiddleware(host.Security)));
+            RenderOperationAuthorizationMiddleware(security)));
         outputs.Add(Output(
             "ProgramKitSecurityPolicyStartupValidator",
-            RenderPolicyStartupValidator(host.Security)));
-        if (host.Security.OidcConfidentialInteractive?.ClientAuthentication.Method ==
+            RenderPolicyStartupValidator(security)));
+        if (security.OidcConfidentialInteractive?.ClientAuthentication.Method ==
             DotNetOidcClientAuthenticationMethod.PrivateKeyJwtAssertion)
         {
             outputs.Add(Output(
@@ -36,12 +42,12 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
                 RenderAssertion()));
         }
 
-        if (host.Security.OidcPublicBrowser is { } publicBrowser)
+        if (security.OidcPublicBrowser is { } publicBrowser)
         {
             outputs.AddRange(RenderPublicBrowser(publicBrowser));
         }
 
-        outputs.AddRange(DotNetOAuthServiceClientProjectionRenderer.Render(host.Security));
+        outputs.AddRange(DotNetOAuthServiceClientProjectionRenderer.Render(security));
         return outputs.ToImmutable();
     }
 
@@ -49,12 +55,15 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
     public string RenderRegistration(DotNetHostDefinition host)
     {
         ArgumentNullException.ThrowIfNull(host);
-        if (host.Security is null)
-        {
-            return string.Empty;
-        }
+        return host.Security is null
+            ? string.Empty
+            : RenderRegistration(host.Security);
+    }
 
-        var security = host.Security;
+    /// <summary>Renders registration for one specialized generated host.</summary>
+    public string RenderRegistration(DotNetSecurityConfiguration security)
+    {
+        ArgumentNullException.ThrowIfNull(security);
         var builder = new StringBuilder();
         builder.AppendLine("var programKitAuthentication = builder.Services.AddAuthentication(options =>");
         builder.AppendLine("{");
@@ -123,13 +132,17 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
     public string RenderMiddleware(DotNetHostDefinition host)
     {
         ArgumentNullException.ThrowIfNull(host);
-        if (host.Security is null)
-        {
-            return string.Empty;
-        }
+        return host.Security is null
+            ? string.Empty
+            : RenderMiddleware(host.Security);
+    }
 
+    /// <summary>Renders middleware for one specialized generated host.</summary>
+    public string RenderMiddleware(DotNetSecurityConfiguration security)
+    {
+        ArgumentNullException.ThrowIfNull(security);
         var builder = new StringBuilder();
-        if (host.Security.OidcPublicBrowser is { } publicBrowser)
+        if (security.OidcPublicBrowser is { } publicBrowser)
         {
             builder.Append("app.UseCors(")
                 .Append(Literal(publicBrowser.CorsPolicyName))

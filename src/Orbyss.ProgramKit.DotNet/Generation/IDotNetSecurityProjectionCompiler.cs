@@ -1,4 +1,5 @@
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
 
 namespace Orbyss.ProgramKit.DotNet.Generation;
@@ -9,9 +10,18 @@ public interface IDotNetSecurityProjectionCompiler
     /// <summary>Generates isolated runtime source for one selected security profile.</summary>
     ImmutableArray<GeneratedOutput> Compile(DotNetHostDefinition host);
 
+    /// <summary>Generates source for one specialized validated security composition.</summary>
+    ImmutableArray<GeneratedOutput> Compile(DotNetSecurityConfiguration security);
+
     /// <summary>Renders authentication, handlers, and named-policy registration.</summary>
     string RenderRegistration(DotNetHostDefinition host);
 
+    /// <summary>Renders registration for one specialized validated security composition.</summary>
+    string RenderRegistration(DotNetSecurityConfiguration security);
+
     /// <summary>Renders authentication and exact operation authorization middleware.</summary>
     string RenderMiddleware(DotNetHostDefinition host);
+
+    /// <summary>Renders middleware for one specialized validated security composition.</summary>
+    string RenderMiddleware(DotNetSecurityConfiguration security);
 }
