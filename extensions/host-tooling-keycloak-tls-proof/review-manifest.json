@@ -4,8 +4,17 @@
   "reviewSetId": "pkid:approval:program-kit:host-tooling-keycloak-tls-proof-review-set",
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-extension",
-  "reviewState": "ready-for-human-decision",
-  "implementationStatus": "not-started",
+  "reviewState": "approved",
+  "implementationStatus": "in-progress",
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:host-tooling-keycloak-tls-proof-review-set-1-0-0",
+    "recordVersion": "1.0.0",
+    "contract": "pkid:schema:program-kit:design-plan-approval",
+    "contractVersion": "1.0.0",
+    "path": "program-kit/extensions/host-tooling-keycloak-tls-proof/design-plan-approval.json",
+    "sha256": "cfdaec81c0a26dfd1ccb590e4b22817c2a417ed92d44e2aa93a3e3ad3705fc0b",
+    "authoritySourceSha256": "faff3cd10c1dd19ee66c1c0363b9b846edb2fc6020056303f03a7cf005bc4019"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -86,6 +95,7 @@
     "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:architecture-design@1.0.0",
     "mandatoryCSharpGateSelfValidation": "passed as part of the temporary review-only schema-validation harness; the harness was removed after execution",
     "parentArtifactBinding": "passed: the exact approved host-tooling 1.3.0 design and plan digests remain unchanged",
+    "approvalValidation": "passed: design-plan-approval@1.0.0 exact design/plan digest binding, unconditional approved decision, empty conditions, active supersession, exact review authority source, and human-session evidence",
     "requirementTrace": "passed: PKKC-R001 through PKKC-R009 are assigned across the exact serial PKKC-W010, PKKC-W020, and PKKC-W030 work units",
     "implementationOrExecution": "not performed"
   },
@@ -94,6 +104,6 @@
     "startingCommit": "e4a0320",
     "branch": "codex/program-kit-host-tooling",
     "source": "human-started corrective Program Kit extension design",
-    "details": "This review set preserves the immutable host-tooling 1.3.0 approval and replaces no approved bytes. It defines the separate authority required to correct the incomplete PKHT-W100 checkpoint."
+    "details": "This review set preserves the immutable host-tooling 1.3.0 approval and replaces no approved bytes. The human approved the exact corrective design and plan digests without conditions in Codex turn 019fa033-ed21-7061-9c02-92fc75c98b9d at host-supplied time 2026-07-26T20:53:05.477Z."
   }
 }
