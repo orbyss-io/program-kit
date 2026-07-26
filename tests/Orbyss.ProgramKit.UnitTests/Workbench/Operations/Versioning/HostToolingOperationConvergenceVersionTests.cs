@@ -39,8 +39,8 @@ public sealed class HostToolingOperationConvergenceVersionTests
 
         Assert.IsTrue(mapValidation.IsValid, Format(mapValidation));
         Assert.IsTrue(migrationValidation.IsValid, Format(migrationValidation));
-        Assert.HasCount(19, map.Nodes);
-        Assert.HasCount(17, map.Edges);
+        Assert.HasCount(21, map.Nodes);
+        Assert.HasCount(19, map.Edges);
         Assert.AreEqual(
             MigrationLossPolicy.RejectLoss,
             migration.LossPolicy);
@@ -632,6 +632,73 @@ public sealed class HostToolingOperationConvergenceVersionTests
                     extensionRoot,
                     "guidance",
                     "dotnet-azure-key-vault-v9-to-v10.md"))));
+
+        foreach (var fixture in migration.FixtureReferences)
+        {
+            var fixturePath = Path.Combine(
+                extensionRoot,
+                "migrations",
+                "fixtures",
+                string.Concat(fixture.Identity.Name, ".json"));
+            Assert.AreEqual(
+                fixture.Digest.Value,
+                string.Concat("sha256:", HashRaw(fixturePath)));
+        }
+    }
+
+    [TestMethod]
+    public void FastEndpointsMigrationBindsExactV10V11AndReviewedGuidance()
+    {
+        var programKitRoot = FindProgramKitRoot();
+        var extensionRoot = Path.Combine(
+            programKitRoot,
+            "extensions",
+            "host-tooling");
+        var migrationPath = Path.Combine(
+            extensionRoot,
+            "migrations",
+            "dotnet-fastendpoints-v10-to-v11.migration.json");
+        using var migrationJson = JsonDocument.Parse(
+            File.ReadAllBytes(migrationPath));
+        var migration = ReadMigration(migrationJson.RootElement);
+        IArtifactEnvelopeValidator envelopeValidator =
+            new DefaultArtifactEnvelopeValidator();
+        MigrationDefinitionValidator validator =
+            new(envelopeValidator);
+
+        var validation = validator.Validate(migration);
+
+        Assert.IsTrue(validation.IsValid, Format(validation));
+        Assert.HasCount(2, migration.FixtureReferences);
+        var module = new DotNetSchemaModule(
+            new OperationsSchemaModule(),
+            new SecretResolutionSchemaModule());
+        var versionEleven = module.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:dotnet-shell" &&
+            resource.SchemaReference.Version.Value == "11.0.0");
+        Assert.AreEqual(versionEleven.SchemaReference, migration.Target);
+        Assert.AreEqual(
+            versionEleven.SchemaReference.Digest.Value,
+            Hash(Path.Combine(
+                programKitRoot,
+                "schemas",
+                "dotnet",
+                "dotnet-shell-11.0.0.schema.json")));
+        Assert.IsTrue(versionEleven.Compatibility.MigrationReferences.Any(
+            reference =>
+                reference.Identity.Value ==
+                    "pkid:migration:program-kit:dotnet-fastendpoints-v10-to-v11" &&
+                reference.Digest.Value ==
+                    string.Concat("sha256:", HashRaw(migrationPath))));
+        Assert.AreEqual(
+            migration.ImplementationReference.Digest.Value,
+            string.Concat(
+                "sha256:",
+                HashRaw(Path.Combine(
+                    extensionRoot,
+                    "guidance",
+                    "dotnet-fastendpoints-v10-to-v11.md"))));
 
         foreach (var fixture in migration.FixtureReferences)
         {

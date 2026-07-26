@@ -92,4 +92,13 @@ public static class DotNetDiagnosticIds
 
     /// <summary>Aspire output could not be produced deterministically.</summary>
     public const string AspireGenerationFailed = "PKNET030";
+
+    /// <summary>The optional FastEndpoints projection selection is invalid.</summary>
+    public const string InvalidFastEndpointsConfiguration = "PKNET031";
+
+    /// <summary>The exact FastEndpoints adapter package selection is inconsistent.</summary>
+    public const string FastEndpointsPackageMismatch = "PKNET032";
+
+    /// <summary>FastEndpoints output differs from the canonical API projection.</summary>
+    public const string FastEndpointsProjectionMismatch = "PKNET033";
 }

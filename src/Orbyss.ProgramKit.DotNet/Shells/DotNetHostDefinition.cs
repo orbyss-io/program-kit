@@ -6,6 +6,7 @@ using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.DotNet.Configuration.Azure;
+using Orbyss.ProgramKit.DotNet.Operations.FastEndpoints;
 
 namespace Orbyss.ProgramKit.DotNet.Shells;
 
@@ -28,4 +29,5 @@ public sealed record DotNetHostDefinition(
     [property: JsonPropertyName("telemetry")] DotNetTelemetryConfiguration? Telemetry = null,
     [property: JsonPropertyName("transportFailures")] DotNetTransportFailureConfiguration? TransportFailures = null,
     [property: JsonPropertyName("security")] DotNetSecurityConfiguration? Security = null,
-    [property: JsonPropertyName("azureConfiguration")] DotNetAzureConfigurationComposition? AzureConfiguration = null);
+    [property: JsonPropertyName("azureConfiguration")] DotNetAzureConfigurationComposition? AzureConfiguration = null,
+    [property: JsonPropertyName("fastEndpoints")] DotNetFastEndpointsConfiguration? FastEndpoints = null);

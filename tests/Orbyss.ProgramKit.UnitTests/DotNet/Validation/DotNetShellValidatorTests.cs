@@ -3,6 +3,7 @@ using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
+using Orbyss.ProgramKit.DotNet.Operations.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
@@ -483,6 +484,80 @@ public sealed class DotNetShellValidatorTests
         Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
             diagnostic.Id ==
             DotNetDiagnosticIds.ConfigurationProviderConflict));
+    }
+
+    [TestMethod]
+    public void FastEndpointsRequiresExactReviewedProfileAndPackages()
+    {
+        var shell = DotNetTestContractFactory.WithFastEndpoints(
+            DotNetTestContractFactory.Shell());
+        var host = shell.Hosts.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+        host = host with
+        {
+            FastEndpoints = host.FastEndpoints! with
+            {
+                ProfileRevision = DotNetTestContractFactory.Ref(
+                    "profile",
+                    "substituted-fastendpoints",
+                    'f'),
+                FastEndpointsPackage =
+                    DotNetFastEndpointsSelection.FastEndpointsPackage with
+                    {
+                        Version = new SemanticVersion("8.2.0"),
+                    },
+            },
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.InvalidFastEndpointsConfiguration));
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.FastEndpointsPackageMismatch));
+    }
+
+    [TestMethod]
+    public void FastEndpointsCannotOwnSecurityOrTransportFailures()
+    {
+        var shell = DotNetTestContractFactory.WithFastEndpoints(
+            DotNetTestContractFactory.Shell());
+        var host = shell.Hosts.Single(static item =>
+            item.Kind == DotNetHostKind.Api) with
+        {
+            Security = null,
+            TransportFailures = null,
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.InvalidFastEndpointsConfiguration));
+    }
+
+    [TestMethod]
+    public void AmbientFastEndpointsPackageWithoutProfileFailsClosed()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var host = shell.Hosts.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+        host = host with
+        {
+            HostPackages =
+            [
+                .. host.HostPackages,
+                DotNetFastEndpointsSelection.FastEndpointsPackage,
+            ],
+        };
+
+        var result = CreateValidator().Validate(ReplaceHost(shell, host));
+
+        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id ==
+            DotNetDiagnosticIds.FastEndpointsPackageMismatch));
     }
 
     private static DotNetShellValidator CreateValidator() =>

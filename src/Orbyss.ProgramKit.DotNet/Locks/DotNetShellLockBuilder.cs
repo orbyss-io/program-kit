@@ -58,6 +58,13 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
                 host.ConfigurationSources
                     .Select(static source => source.Package))
             .Concat(host.Telemetry?.Packages ?? [])
+            .Concat(host.FastEndpoints is null
+                ? []
+                :
+                [
+                    host.FastEndpoints.ShellAdapterPackage,
+                    host.FastEndpoints.FastEndpointsPackage,
+                ])
             .Concat(
                 shell.Features
                     .Where(feature => selectedActivations.Contains(feature.ActivationIdentity))
@@ -109,6 +116,9 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
                     .Prepend(host.TransportFailures.Profile.ProfileRevision))
             .Concat(SecurityReferences(host))
             .Concat(AzureConfigurationReferences(host))
+            .Concat(host.FastEndpoints is null
+                ? []
+                : [host.FastEndpoints.ProfileRevision])
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ThenBy(static reference => reference.Version.Value, StringComparer.Ordinal)
@@ -119,6 +129,9 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
             .Concat(host.AzureConfiguration is null
                 ? []
                 : [host.AzureConfiguration.GeneratorRevision])
+            .Concat(host.FastEndpoints is null
+                ? []
+                : [host.FastEndpoints.ProfileRevision])
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ToImmutableArray();

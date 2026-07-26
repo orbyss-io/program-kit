@@ -32,7 +32,8 @@ public sealed class DotNetHostSourceRendererTests
                     DotNetTestContractFactory.ProviderRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
                 new DotNetTransportFailureProjectionCompiler(),
-                new DotNetSecurityProjectionCompiler());
+                new DotNetSecurityProjectionCompiler(),
+                new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler());
 
         foreach (var host in shell.Hosts)
         {
@@ -41,7 +42,12 @@ public sealed class DotNetHostSourceRendererTests
             var console = host.Kind == DotNetHostKind.Console
                 ? DotNetTestContractFactory.ConsoleDocument(shell)
                 : null;
-            var outputs = sut.Render(host, hostLock, shell.Features, console);
+            var outputs = sut.Render(
+                host,
+                hostLock,
+                shell.Features,
+                null,
+                console);
             var project = Text(outputs, "GeneratedHost.csproj");
             var buildTargets = Text(outputs, "Directory.Build.targets");
             var packagePolicy = Text(outputs, "Directory.Packages.props");
@@ -124,9 +130,15 @@ public sealed class DotNetHostSourceRendererTests
                     DotNetTestContractFactory.ProviderRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
                 new DotNetTransportFailureProjectionCompiler(),
-                new DotNetSecurityProjectionCompiler());
+                new DotNetSecurityProjectionCompiler(),
+                new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler());
 
-        var outputs = sut.Render(host, hostLock, shell.Features, document);
+        var outputs = sut.Render(
+            host,
+            hostLock,
+            shell.Features,
+            null,
+            document);
         var parser = Text(
             outputs,
             "ProgramKitGenerated/Commands/GeneratedConsoleParser.cs");
@@ -148,6 +160,127 @@ public sealed class DotNetHostSourceRendererTests
         Assert.Contains("PKNETC006", parser);
         Assert.Contains("PKNETC007", parser);
     }
+
+    [TestMethod]
+    public void FastEndpointsAddsOnlyPinnedSyntaxAdapterAndPreservesOwners()
+    {
+        var baselineShell = DotNetTestContractFactory.Shell();
+        var fastEndpointsShell =
+            DotNetTestContractFactory.WithFastEndpoints(baselineShell);
+        var shellRevision = DotNetTestContractFactory.Ref(
+            "shell",
+            "reviewed",
+            '7');
+        DotNetShellLockBuilder lockBuilder = new(CreateValidator());
+        var baselineLock = lockBuilder.Build(
+            baselineShell,
+            shellRevision);
+        var fastEndpointsLock = lockBuilder.Build(
+            fastEndpointsShell,
+            shellRevision);
+        var baselineHost = baselineShell.Hosts.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+        var fastEndpointsHost = fastEndpointsShell.Hosts.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+        var baselineHostLock = baselineLock.HostLocks.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+        var fastEndpointsHostLock = fastEndpointsLock.HostLocks.Single(
+            static item => item.Kind == DotNetHostKind.Api);
+        var document =
+            DotNetTestContractFactory.ApiDocument(fastEndpointsShell);
+        var sut = CreateRenderer();
+
+        var baseline = sut.Render(
+            baselineHost,
+            baselineHostLock,
+            baselineShell.Features,
+            document,
+            null);
+        var projected = sut.Render(
+            fastEndpointsHost,
+            fastEndpointsHostLock,
+            fastEndpointsShell.Features,
+            document,
+            null);
+
+        var ownerPaths = baseline
+            .Select(static output => output.RelativePath)
+            .Where(static path =>
+                path.Contains(
+                    "ProgramKitOperationAuthorizationMiddleware.cs",
+                    StringComparison.Ordinal) ||
+                path.Contains(
+                    "ProgramKitMappedTransportFailureHandler.cs",
+                    StringComparison.Ordinal) ||
+                path.Contains(
+                    "ProgramKitFallbackTransportFailureHandler.cs",
+                    StringComparison.Ordinal) ||
+                path.Contains(
+                    "ProgramKitProblemDetailsWriter.cs",
+                    StringComparison.Ordinal))
+            .ToArray();
+        Assert.IsNotEmpty(ownerPaths);
+        foreach (var path in ownerPaths)
+        {
+            Assert.AreSequenceEqual(
+                baseline.Single(output =>
+                    output.RelativePath == path).Content.ToArray(),
+                projected.Single(output =>
+                    output.RelativePath == path).Content.ToArray());
+        }
+
+        var project = Text(projected, "GeneratedHost.csproj");
+        var program = Text(
+            projected,
+            "ProgramKitGenerated/Composition/Program.cs");
+        Assert.Contains(
+            "CShells.FastEndpoints\" Version=\"[0.0.28]\"",
+            project);
+        Assert.Contains(
+            "FastEndpoints\" Version=\"[7.2.0]\"",
+            project);
+        Assert.Contains(
+            "GeneratedHost.Hosting.ProgramKitFastEndpointsFeature",
+            program);
+        Assert.Contains("app.UseExceptionHandler", program);
+        Assert.Contains(
+            "ProgramKitOperationAuthorizationMiddleware",
+            program);
+        Assert.IsTrue(projected.Any(static output =>
+            output.RelativePath ==
+                "ProgramKitGenerated/Hosting/IProgramKitFastEndpointOperationDispatcher.cs"));
+        Assert.IsTrue(projected.Any(static output =>
+            output.RelativePath ==
+                "ProgramKitGenerated/Hosting/ProgramKitFastEndpointsFeature.cs"));
+        Assert.IsTrue(projected.Any(static output =>
+            output.RelativePath.StartsWith(
+                "ProgramKitGenerated/Hosting/ProgramKitFastEndpoint",
+                StringComparison.Ordinal)));
+        Assert.IsTrue(projected.Any(static output =>
+            output.RelativePath ==
+                "ProgramKitGenerated/Hosting/fastendpoints-projection.json"));
+        Assert.IsFalse(baseline.Any(static output =>
+            output.RelativePath.Contains(
+                "FastEndpoint",
+                StringComparison.Ordinal)));
+    }
+
+    private static DotNetHostSourceRenderer CreateRenderer() =>
+        new(
+            new DotNetConfigurationProjectionCompiler(
+                DotNetTestContractFactory.ProviderRegistry()),
+            new DotNetTelemetryProjectionCompiler(),
+            new DotNetTransportFailureProjectionCompiler(),
+            new DotNetSecurityProjectionCompiler(),
+            new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler());
+
+    private static DotNetShellValidator CreateValidator() =>
+        new(
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
+            DotNetTestContractFactory.ProviderCatalog());
 
     private static string Text(
         ImmutableArray<Orbyss.ProgramKit.Workbench.Operations.Generation.GeneratedOutput> outputs,

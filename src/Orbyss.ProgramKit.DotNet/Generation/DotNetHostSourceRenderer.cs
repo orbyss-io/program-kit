@@ -1,6 +1,8 @@
 using System.Text;
 using System.Globalization;
+using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.DotNet.Generation.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -15,13 +17,15 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
     private readonly IDotNetTelemetryProjectionCompiler telemetryCompiler;
     private readonly IDotNetTransportFailureProjectionCompiler transportFailureCompiler;
     private readonly IDotNetSecurityProjectionCompiler securityCompiler;
+    private readonly IDotNetFastEndpointsProjectionCompiler fastEndpointsCompiler;
 
     /// <summary>Initializes the renderer with the reusable configuration compiler.</summary>
     public DotNetHostSourceRenderer(
         IDotNetConfigurationProjectionCompiler configurationCompiler,
         IDotNetTelemetryProjectionCompiler telemetryCompiler,
         IDotNetTransportFailureProjectionCompiler transportFailureCompiler,
-        IDotNetSecurityProjectionCompiler securityCompiler)
+        IDotNetSecurityProjectionCompiler securityCompiler,
+        IDotNetFastEndpointsProjectionCompiler fastEndpointsCompiler)
     {
         this.configurationCompiler = configurationCompiler ??
             throw new ArgumentNullException(nameof(configurationCompiler));
@@ -31,6 +35,8 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             throw new ArgumentNullException(nameof(transportFailureCompiler));
         this.securityCompiler = securityCompiler ??
             throw new ArgumentNullException(nameof(securityCompiler));
+        this.fastEndpointsCompiler = fastEndpointsCompiler ??
+            throw new ArgumentNullException(nameof(fastEndpointsCompiler));
     }
 
     /// <inheritdoc />
@@ -38,6 +44,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         DotNetHostDefinition host,
         DotNetHostLock hostLock,
         ImmutableArray<DotNetFeatureSelection> features,
+        OpenApiDocumentProjection? openApiDocument,
         OpenConsoleDocument? consoleDocument)
     {
         ArgumentNullException.ThrowIfNull(host);
@@ -64,6 +71,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         outputs.AddRange(telemetryCompiler.Compile(host));
         outputs.AddRange(transportFailureCompiler.Compile(host));
         outputs.AddRange(securityCompiler.Compile(host));
+        outputs.AddRange(fastEndpointsCompiler.Compile(host, openApiDocument));
         if (host.Kind == DotNetHostKind.Console && consoleDocument is not null)
         {
             outputs.Add(new GeneratedOutput(
@@ -361,6 +369,14 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
                     .Append("    shell.WithFeature(typeof(global::")
                     .Append(feature.FeatureTypeName)
                     .AppendLine("));");
+            }
+
+            if (host.FastEndpoints is not null)
+            {
+                builder
+                    .Append(indent)
+                    .AppendLine(
+                        "    shell.WithFeature(typeof(global::GeneratedHost.Hosting.ProgramKitFastEndpointsFeature));");
             }
 
             builder.Append(indent).AppendLine("});");

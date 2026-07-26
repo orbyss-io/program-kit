@@ -40,6 +40,7 @@
     <ProjectReference Include="Fixtures\PublicBrowserVerification\PublicBrowserVerification.csproj" />
     <ProjectReference Include="Fixtures\OAuthServiceClientConsumer\OAuthServiceClientConsumer.csproj" />
     <ProjectReference Include="Fixtures\AzureConfigurationConsumer\AzureConfigurationConsumer.csproj" />
+    <ProjectReference Include="Fixtures\FastEndpointsConsumer\FastEndpointsConsumer.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\global.json"

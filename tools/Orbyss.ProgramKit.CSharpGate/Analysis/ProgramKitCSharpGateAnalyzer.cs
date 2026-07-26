@@ -2410,6 +2410,7 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
                 symbol.IsStatic ||
                 !IsBehavioralServiceType(symbol) ||
                 HasFrameworkBehavioralBaseContract(symbol) ||
+                HasReviewedGeneratedFastEndpointsContract(symbol) ||
                 HasSourceGeneratedOptionsValidatorContract(symbol) ||
                 HasRelevantBehavioralInterfaceContract(symbol))
             {
@@ -2592,6 +2593,84 @@ public sealed class ProgramKitCSharpGateAnalyzer : DiagnosticAnalyzer
             GetEffectivePublicInstanceBehaviorMembers(type)
                 .All(OverridesFrameworkMember);
     }
+
+    private static bool HasReviewedGeneratedFastEndpointsContract(
+        INamedTypeSymbol type)
+    {
+        var baseType = type.BaseType;
+        if (!type.IsSealed ||
+            type.DeclaredAccessibility != Accessibility.Internal ||
+            baseType is null ||
+            baseType.Name != "EndpointWithoutRequest" ||
+            baseType.Arity != 0 ||
+            baseType.ContainingNamespace.ToDisplayString() != "FastEndpoints" ||
+            !HasExactFastEndpointsAssemblyIdentity(baseType.ContainingAssembly) ||
+            !type.AllInterfaces.Any(static @interface =>
+                @interface.Name == "IEndpoint" &&
+                @interface.Arity == 0 &&
+                @interface.ContainingNamespace.ToDisplayString() ==
+                    "FastEndpoints" &&
+                HasExactFastEndpointsAssemblyIdentity(
+                    @interface.ContainingAssembly)))
+        {
+            return false;
+        }
+
+        var declarations = type.DeclaringSyntaxReferences;
+        if (declarations.Length != 1 ||
+            declarations[0].GetSyntax() is not ClassDeclarationSyntax ||
+            !HasExactGeneratedSourceOwnershipHeader(
+                declarations[0].SyntaxTree.GetText()))
+        {
+            return false;
+        }
+
+        var path = NormalizePath(declarations[0].SyntaxTree.FilePath);
+        var segments = SplitPath(path);
+        var generatedIndex = Array.FindIndex(
+            segments,
+            static segment =>
+                segment == GeneratedSourceMarker);
+        if (generatedIndex < 0 ||
+            generatedIndex + 2 != segments.Length - 1 ||
+            segments[generatedIndex + 1] != "Hosting" ||
+            segments[^1] != string.Concat(type.Name, ".cs"))
+        {
+            return false;
+        }
+
+        var declaredBehavior = type.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(static method =>
+                method.DeclaredAccessibility == Accessibility.Public &&
+                !method.IsStatic &&
+                !method.IsImplicitlyDeclared &&
+                method.MethodKind == MethodKind.Ordinary)
+            .ToArray();
+        return declaredBehavior.Length == 2 &&
+            declaredBehavior.Any(static method =>
+                method.Name == "Configure" &&
+                method.Parameters.Length == 0 &&
+                IsExactFastEndpointsOverride(method)) &&
+            declaredBehavior.Any(static method =>
+                method.Name == "HandleAsync" &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.ToDisplayString() ==
+                    "System.Threading.CancellationToken" &&
+                IsExactFastEndpointsOverride(method));
+    }
+
+    private static bool IsExactFastEndpointsOverride(IMethodSymbol method) =>
+        method.OverriddenMethod is { } overridden &&
+        HasExactFastEndpointsAssemblyIdentity(
+            overridden.ContainingAssembly);
+
+    private static bool HasExactFastEndpointsAssemblyIdentity(
+        IAssemblySymbol assembly) =>
+        assembly.Identity.Name == "FastEndpoints" &&
+        assembly.Identity.Version == new Version(7, 2, 0, 0) &&
+        assembly.Identity.PublicKeyToken.SequenceEqual(
+            new byte[] { 0x7f, 0x8c, 0x2d, 0xfb, 0xd8, 0xf8, 0x1c, 0x6f });
 
     private static bool OverridesFrameworkMember(ISymbol member)
     {

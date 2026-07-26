@@ -124,7 +124,8 @@ public static class CommandLineComposition
                     providerComposition.CreateBuiltInRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
                 new DotNetTransportFailureProjectionCompiler(),
-                new DotNetSecurityProjectionCompiler()),
+                new DotNetSecurityProjectionCompiler(),
+                new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler()),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),

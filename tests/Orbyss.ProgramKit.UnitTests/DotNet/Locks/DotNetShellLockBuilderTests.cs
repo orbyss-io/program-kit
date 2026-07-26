@@ -3,6 +3,7 @@ using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Observability;
+using Orbyss.ProgramKit.DotNet.Operations.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Contributions;
@@ -124,6 +125,41 @@ public sealed class DotNetShellLockBuilderTests
     }
 
     [TestMethod]
+    public void FastEndpointsLockIncludesExactProfileAndCompatiblePackages()
+    {
+        var shell = DotNetTestContractFactory.WithFastEndpoints(
+            DotNetTestContractFactory.Shell());
+        DotNetShellLockBuilder sut = new(CreateValidator());
+
+        var document = sut.Build(
+            shell,
+            DotNetTestContractFactory.Ref("shell", "reviewed", '7'));
+        var apiLock = document.HostLocks.Single(static item =>
+            item.Kind == DotNetHostKind.Api);
+
+        Assert.IsTrue(apiLock.Packages.Any(static package =>
+            package.PackageId ==
+                DotNetFastEndpointsSelection.ShellAdapterPackage.PackageId &&
+            package.Version ==
+                DotNetFastEndpointsSelection.ShellAdapterPackage.Version &&
+            package.PackageDigest ==
+                DotNetFastEndpointsSelection.ShellAdapterPackage.Sha256));
+        Assert.IsTrue(apiLock.Packages.Any(static package =>
+            package.PackageId ==
+                DotNetFastEndpointsSelection.FastEndpointsPackage.PackageId &&
+            package.Version ==
+                DotNetFastEndpointsSelection.FastEndpointsPackage.Version &&
+            package.PackageDigest ==
+                DotNetFastEndpointsSelection.FastEndpointsPackage.Sha256));
+        Assert.Contains(
+            DotNetFastEndpointsSelection.ProfileRevision,
+            apiLock.ContractRevisions);
+        Assert.Contains(
+            DotNetFastEndpointsSelection.ProfileRevision,
+            apiLock.GeneratorRevisions);
+    }
+
+    [TestMethod]
     public void LockClosesOverConfigurationTasksSchedulesAndJsonContributions()
     {
         var shell = DotNetTestContractFactory.Shell();
@@ -197,4 +233,12 @@ public sealed class DotNetShellLockBuilderTests
             reference.Version == contribution.Version &&
             reference.Digest == contribution.Digest));
     }
+
+    private static DotNetShellValidator CreateValidator() =>
+        new(
+            new ArtifactReferenceValidator(),
+            new OperationContractDescriptorValidator(),
+            new TransportFailureProfileValidator(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
+            DotNetTestContractFactory.ProviderCatalog());
 }

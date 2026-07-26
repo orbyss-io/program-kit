@@ -1,7 +1,7 @@
 # Program Kit C# source quality gate
 
 Policy ID: `pkid:policy:program-kit:csharp-source-quality-gate`
-Policy version: `1.9.0`
+Policy version: `1.10.0`
 Status: human-directed implementation constraint
 Effective date: 2026-07-23
 Applies to: all Program Kit-owned handwritten C# and all C# emitted by Program
@@ -70,8 +70,16 @@ The following rules are mandatory:
    apply to interface return-substitutability analysis. Framework abstract
    behavior bases are accepted only when every additional public behavior
    member overrides that framework contract; test observation hooks remain
-   non-public or require their own interface. This dependency rule still
-   applies inside composition code and tests: those locations may construct a
+   non-public or require their own interface. The gate also admits the exact
+   pinned `FastEndpoints` `7.2.0.0` strong-named
+   `EndpointWithoutRequest` adapter contract only for an internal sealed,
+   Program Kit-owned generated source directly below
+   `ProgramKitGenerated/Hosting`. The generated type must implement the exact
+   `IEndpoint` contract and may declare only the exact `Configure()` and
+   `HandleAsync(CancellationToken)` overrides. A changed assembly identity,
+   path, ownership header, accessibility, inheritance shape, or additional
+   public behavior fails closed. This dependency rule still applies inside
+   composition code and tests: those locations may construct a
    named system under test or selected implementation, but they do not gain
    permission to retain concrete behavioral collaborators.
    Behavioral interface methods, properties, and indexers return substitutable

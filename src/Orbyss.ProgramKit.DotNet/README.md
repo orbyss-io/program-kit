@@ -28,3 +28,29 @@ does not claim to be a universal NuGet dependency lock.
 
 The generator never restores, discovers projects or containers, starts
 resources, creates infrastructure, deploys, or assigns environment meaning.
+
+## Optional FastEndpoints projection
+
+`DotNetFastEndpointsSelection` binds the exact compatible
+`CShells.FastEndpoints` 0.0.28 and FastEndpoints 7.2.0 package pair. When an API
+host selects it, the host generator projects every accepted OpenAPI operation
+into one deterministic FastEndpoints endpoint and activates one generated
+`IFastEndpointsShellFeature` per selected shell.
+
+FastEndpoints remains a syntax adapter. Each projected endpoint neutralizes
+FastEndpoints authorization with `AllowAnonymous()` and disables its exception
+catching with `DontCatchExceptions()`. The existing generated ASP.NET Core
+operation-authorization middleware, exception handlers, Problem Details
+contracts, OpenAPI document, and explicit transport-failure mappings remain
+authoritative.
+
+Consumer code implements the generated
+`IProgramKitFastEndpointOperationDispatcher`. It receives the exact operation
+revision and current `HttpContext`, so request binding, response production,
+operation behavior, and all domain meaning remain consumer-owned. Generated
+applications do not reference `Orbyss.ProgramKit.DotNet` at runtime.
+
+The mandatory source gate recognizes only the exact strong-named
+FastEndpoints 7.2.0 endpoint base, Program Kit ownership header, canonical
+`ProgramKitGenerated/Hosting` path, internal sealed inheritance shape, and two
+required public overrides. Drift fails closed.

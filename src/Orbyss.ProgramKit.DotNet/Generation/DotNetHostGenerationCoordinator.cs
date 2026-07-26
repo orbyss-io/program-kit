@@ -62,7 +62,12 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             .Where(feature => selectedActivations.Contains(feature.ActivationIdentity))
             .OrderBy(static feature => feature.ActivationIdentity.Value, StringComparer.Ordinal)
             .ToImmutableArray();
-        var outputs = sourceRenderer.Render(host, hostLock, features, input.OpenConsole).ToBuilder();
+        var outputs = sourceRenderer.Render(
+            host,
+            hostLock,
+            features,
+            input.OpenApi,
+            input.OpenConsole).ToBuilder();
         outputs.Add(new GeneratedOutput("shell.lock.json", documentWriter.Write(input.Lock)));
         if (input.OpenApi is not null)
         {

@@ -136,7 +136,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
                     DotNetTestContractFactory.ProviderRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
                 new DotNetTransportFailureProjectionCompiler(),
-                new DotNetSecurityProjectionCompiler()),
+                new DotNetSecurityProjectionCompiler(),
+                new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

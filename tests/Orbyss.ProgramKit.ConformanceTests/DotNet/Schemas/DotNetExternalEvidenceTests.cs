@@ -99,6 +99,77 @@ public sealed class DotNetExternalEvidenceTests
     }
 
     [TestMethod]
+    public void FastEndpointsEvidenceBindsExactAdapterPackagesAndAssemblies()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(
+            static name => name.EndsWith(
+                "dotnet-fastendpoints-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using MemoryStream bytes = new();
+        stream.CopyTo(bytes);
+        Assert.AreEqual(
+            "c6fef42c36215e83c9d9d63259e132bbb3fc0d7ff543c6a9694bc18b4064c854",
+            Convert.ToHexString(SHA256.HashData(bytes.ToArray()))
+                .ToLowerInvariant());
+        bytes.Position = 0;
+        using var document = JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+        var packages = root.GetProperty("directPackages")
+            .EnumerateArray()
+            .ToArray();
+
+        Assert.HasCount(2, packages);
+        Assert.AreEqual(
+            "exact assembly identity, ownership header, logical path, accessibility, inheritance, and public override surface fail closed",
+            root.GetProperty("boundaries")
+                .GetProperty("sourceGateAccommodation")
+                .GetString());
+        var packageRoot = Environment.GetEnvironmentVariable(
+                "NUGET_PACKAGES") ??
+            Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.UserProfile),
+                ".nuget",
+                "packages");
+        foreach (var package in packages)
+        {
+            var packageId = package.GetProperty("id").GetString()!;
+            var version = package.GetProperty("version").GetString()!;
+            var packageDirectory = Path.Combine(
+                packageRoot,
+                packageId.ToLowerInvariant(),
+                version);
+            var archivePath = Path.Combine(
+                packageDirectory,
+                string.Concat(
+                    packageId.ToLowerInvariant(),
+                    ".",
+                    version,
+                    ".nupkg"));
+            var assemblyPath = Path.Combine(
+                packageDirectory,
+                "lib",
+                "net10.0",
+                string.Concat(packageId, ".dll"));
+
+            Assert.AreEqual(
+                package.GetProperty("sha256").GetString(),
+                Convert.ToHexString(
+                        SHA256.HashData(File.ReadAllBytes(archivePath)))
+                    .ToLowerInvariant(),
+                packageId);
+            Assert.AreEqual(
+                package.GetProperty("assemblySha256").GetString(),
+                Convert.ToHexString(
+                        SHA256.HashData(File.ReadAllBytes(assemblyPath)))
+                    .ToLowerInvariant(),
+                packageId);
+        }
+    }
+
+    [TestMethod]
     public void OpenTelemetryEvidenceBindsExactSpecificationsAndRestoredPackageBytes()
     {
         var assembly = typeof(DotNetShellDocument).Assembly;

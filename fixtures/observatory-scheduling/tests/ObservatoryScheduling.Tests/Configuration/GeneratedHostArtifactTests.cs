@@ -2,6 +2,7 @@ using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Generation;
+using Orbyss.ProgramKit.DotNet.Generation.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
@@ -127,7 +128,8 @@ public sealed class GeneratedHostArtifactTests
                     providerComposition.CreateBuiltInRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
                 new DotNetTransportFailureProjectionCompiler(),
-                new DotNetSecurityProjectionCompiler()),
+                new DotNetSecurityProjectionCompiler(),
+                new DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

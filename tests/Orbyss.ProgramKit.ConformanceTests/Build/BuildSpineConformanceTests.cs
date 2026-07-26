@@ -71,7 +71,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W080");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W090");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -166,6 +166,7 @@ public sealed class BuildSpineConformanceTests
             ["Microsoft.AspNetCore.Authentication.OpenIdConnect"] = "[10.0.10]",
             ["Microsoft.AspNetCore.Components.WebAssembly"] = "[10.0.10]",
             ["Microsoft.AspNetCore.Components.WebAssembly.Authentication"] = "[10.0.10]",
+            ["Microsoft.AspNetCore.TestHost"] = "[10.0.10]",
             ["Microsoft.Playwright"] = "[1.61.0]",
             ["Microsoft.Extensions.Configuration.Json"] = "[10.0.10]",
             ["Microsoft.Extensions.Configuration.KeyPerFile"] = "[10.0.10]",
@@ -185,6 +186,8 @@ public sealed class BuildSpineConformanceTests
             ["CShells.AspNetCore.Abstractions"] = "[0.0.28]",
             ["CShells"] = "[0.0.28]",
             ["CShells.AspNetCore"] = "[0.0.28]",
+            ["CShells.FastEndpoints"] = "[0.0.28]",
+            ["FastEndpoints"] = "[7.2.0]",
             ["Cronos"] = "[0.13.0]",
             ["TUnit"] = "[1.60.0]",
         };

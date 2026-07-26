@@ -1,3 +1,4 @@
+using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -13,5 +14,6 @@ public interface IDotNetHostSourceRenderer
         DotNetHostDefinition host,
         DotNetHostLock hostLock,
         ImmutableArray<DotNetFeatureSelection> features,
+        OpenApiDocumentProjection? openApiDocument,
         OpenConsoleDocument? consoleDocument);
 }

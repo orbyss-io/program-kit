@@ -11,6 +11,7 @@ using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Generation.ConfigurationProviders;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
+using Orbyss.ProgramKit.DotNet.Operations.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.DotNet.Observability;
@@ -256,8 +257,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@10.0.0",
-            new SemanticVersion("10.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@11.0.0",
+            new SemanticVersion("11.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -276,6 +277,22 @@ internal static class DotNetTestContractFactory
             [api, console, worker],
             Compatibility());
     }
+
+    internal static DotNetShellDocument WithFastEndpoints(
+        DotNetShellDocument shell) =>
+        shell with
+        {
+            Hosts =
+            [
+                .. shell.Hosts.Select(static host =>
+                    host.Kind == DotNetHostKind.Api
+                        ? host with
+                        {
+                            FastEndpoints = DotNetFastEndpointsSelection.Create(),
+                        }
+                        : host),
+            ],
+        };
 
     internal static OpenConsoleDocument ConsoleDocument(
         DotNetShellDocument shell)

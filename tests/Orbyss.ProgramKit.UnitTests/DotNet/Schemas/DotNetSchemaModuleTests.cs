@@ -30,7 +30,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(33, module.Resources);
+        Assert.HasCount(34, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -135,7 +135,7 @@ public sealed class DotNetSchemaModuleTests
             var schema = module.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
                 (document.Name != "dotnet-shell" ||
-                 resource.SchemaReference.Version.Value == "10.0.0") &&
+                 resource.SchemaReference.Version.Value == "11.0.0") &&
                 (document.Name != "dotnet-configuration-provider-catalog" ||
                  resource.SchemaReference.Version.Value == "1.0.0"));
 

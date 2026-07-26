@@ -10,6 +10,7 @@ using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
 using Orbyss.ProgramKit.DotNet.Operations.Security;
+using Orbyss.ProgramKit.DotNet.Operations.FastEndpoints;
 using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
 using Orbyss.ProgramKit.SecretResolution.Contracts;
@@ -62,14 +63,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@10.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@11.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "10.0.0")
+        if (value.Version.Value != "11.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 10.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 11.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -227,7 +228,65 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             ValidateTelemetry(host, diagnostics);
             ValidateTransportFailures(host, diagnostics);
             ValidateSecurity(host, diagnostics);
+            ValidateFastEndpoints(host, diagnostics);
             ValidateCompatibility(host.Compatibility, "/hosts/compatibility", diagnostics);
+        }
+    }
+
+    private static void ValidateFastEndpoints(
+        DotNetHostDefinition host,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var ambientPackages = host.HostPackages
+            .Where(static package =>
+                package.PackageId is "CShells.FastEndpoints" or "FastEndpoints")
+            .ToArray();
+        if (host.FastEndpoints is null)
+        {
+            if (ambientPackages.Length > 0)
+            {
+                AddError(
+                    diagnostics,
+                    DotNetDiagnosticIds.FastEndpointsPackageMismatch,
+                    "FastEndpoints packages require the exact optional adapter selection.",
+                    "/hosts/fastEndpoints");
+            }
+
+            return;
+        }
+
+        if (host.Kind != DotNetHostKind.Api ||
+            host.Security is null ||
+            host.TransportFailures is null)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidFastEndpointsConfiguration,
+                "FastEndpoints requires an API host with the existing security and transport-failure owners.",
+                "/hosts/fastEndpoints");
+        }
+
+        if (host.FastEndpoints.ProfileRevision !=
+            DotNetFastEndpointsSelection.ProfileRevision)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidFastEndpointsConfiguration,
+                "FastEndpoints requires the exact reviewed provider-profile revision.",
+                "/hosts/fastEndpoints/profileRevision");
+        }
+
+        if (host.FastEndpoints.ShellAdapterPackage !=
+                DotNetFastEndpointsSelection.ShellAdapterPackage ||
+            host.FastEndpoints.FastEndpointsPackage !=
+                DotNetFastEndpointsSelection.FastEndpointsPackage ||
+            ambientPackages.Length > 0)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.FastEndpointsPackageMismatch,
+                "FastEndpoints requires its exact reviewed packages only through the adapter selection.",
+                "/hosts/fastEndpoints");
         }
     }
 
@@ -1458,6 +1517,13 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 host.ConfigurationSources
                     .Select(static source => source.Package))
             .Concat(host.Telemetry?.Packages ?? [])
+            .Concat(host.FastEndpoints is null
+                ? []
+                :
+                [
+                    host.FastEndpoints.ShellAdapterPackage,
+                    host.FastEndpoints.FastEndpointsPackage,
+                ])
             .Concat(
                 features
                     .Where(feature => activations.Contains(feature.ActivationIdentity))

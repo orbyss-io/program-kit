@@ -69,8 +69,8 @@ internal static class ObservatoryDotNetContractFactory
             [Ref("schedule-provider", "cronos-0-13")]);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@9.0.0",
-            new SemanticVersion("9.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@11.0.0",
+            new SemanticVersion("11.0.0"),
             VersionMapInputRevision(),
             VersionSelectionInputRevision(),
             new DotNetShellComposition(

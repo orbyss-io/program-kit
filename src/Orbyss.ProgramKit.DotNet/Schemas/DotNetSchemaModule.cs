@@ -6,7 +6,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("10.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("11.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -17,6 +17,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private static readonly SemanticVersion SchemaVersionV8 = new("8.0.0");
     private static readonly SemanticVersion SchemaVersionV9 = new("9.0.0");
     private static readonly SemanticVersion SchemaVersionV10 = new("10.0.0");
+    private static readonly SemanticVersion SchemaVersionV11 = new("11.0.0");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:dotnet");
     private static readonly ArtifactProvenance Provenance =
@@ -177,6 +178,22 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkht-w040-human-approved-key-vault-only-adjustment");
+    private static readonly ArtifactProvenance FastEndpointsProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:design:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier("pkid:plan:program-kit:host-tooling"),
+                    new SemanticVersion("1.3.0"),
+                    new Sha256Digest(
+                        "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkht-w090-approved-review-set-1-3-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -305,6 +322,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "0bc42230ee4c1d03aa07235fcde2abcd483f5817e7008f23c5bc29d8e209f08a",
             SchemaVersionV10,
             AzureKeyVaultProvenance),
+        Create(
+            "dotnet-shell",
+            "dotnet-shell-11.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/11.0.0/dotnet-shell.schema.json",
+            "17d9ce99d9d717c874f4e398081b056232a1533ef038a4c5c35e3b7896e0caec",
+            SchemaVersionV11,
+            FastEndpointsProvenance),
         Create(
             "dotnet-azure-key-vault-composition",
             "dotnet-azure-key-vault-composition.schema.json",
@@ -536,6 +560,15 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                         new SemanticVersion("1.0.0"),
                         new Sha256Digest(
                             "sha256:1cee0a9842dfcd73f675a943b1cde203dd7879334f9994764583871506c1b3ad")),
+                ],
+                    _ when version == SchemaVersionV11 =>
+                    [
+                        new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:migration:program-kit:dotnet-fastendpoints-v10-to-v11"),
+                        new SemanticVersion("1.0.0"),
+                        new Sha256Digest(
+                            "sha256:c909e8d4be626a8a075da56489eb48f54697fd8cbfc89ae460cda9548b380527")),
                 ],
                     _ => [],
                 });
