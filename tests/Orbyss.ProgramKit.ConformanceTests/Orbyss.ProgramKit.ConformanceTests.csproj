@@ -35,6 +35,7 @@
     <ProjectReference Include="Fixtures\SecretResolutionConsumer\SecretResolutionConsumer.csproj" />
     <ProjectReference Include="Fixtures\TelemetryConsumer\TelemetryConsumer.csproj" />
     <ProjectReference Include="Fixtures\TransportFailureConsumer\TransportFailureConsumer.csproj" />
+    <ProjectReference Include="Fixtures\SecurityConsumer\SecurityConsumer.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\global.json"

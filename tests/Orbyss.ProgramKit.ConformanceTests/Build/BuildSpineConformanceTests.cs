@@ -160,6 +160,8 @@ public sealed class BuildSpineConformanceTests
         {
             ["MSTest.Sdk"] = "[4.3.2]",
             ["JsonSchema.Net"] = "[9.3.0]",
+            ["Microsoft.AspNetCore.Authentication.JwtBearer"] = "[10.0.10]",
+            ["Microsoft.AspNetCore.Authentication.OpenIdConnect"] = "[10.0.10]",
             ["Microsoft.Extensions.Configuration.Json"] = "[10.0.10]",
             ["Microsoft.Extensions.Configuration.KeyPerFile"] = "[10.0.10]",
             ["Microsoft.Extensions.DependencyInjection"] = "[10.0.10]",
@@ -218,7 +220,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(32, projectLines);
+        Assert.HasCount(33, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -236,7 +238,7 @@ public sealed class BuildSpineConformanceTests
         }
 
         Assert.HasCount(
-            3,
+            4,
             projectLines.Where(line => line.Contains(
                 "Orbyss.ProgramKit.UnitTests",
                 StringComparison.Ordinal)
@@ -249,6 +251,10 @@ public sealed class BuildSpineConformanceTests
         Assert.ContainsSingle(
             projectLines.Where(line => line.Contains(
                 "\"Orbyss.ProgramKit.CSharpGate\"",
+                StringComparison.Ordinal)));
+        Assert.ContainsSingle(
+            projectLines.Where(line => line.Contains(
+                "\"SecurityConsumer\"",
                 StringComparison.Ordinal)));
     }
 

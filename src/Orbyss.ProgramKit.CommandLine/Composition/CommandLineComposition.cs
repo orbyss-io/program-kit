@@ -119,7 +119,8 @@ public static class CommandLineComposition
                 new DotNetConfigurationProjectionCompiler(
                     providerComposition.CreateBuiltInRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
-                new DotNetTransportFailureProjectionCompiler()),
+                new DotNetTransportFailureProjectionCompiler(),
+                new DotNetSecurityProjectionCompiler()),
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),

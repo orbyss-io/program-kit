@@ -123,7 +123,8 @@ public sealed class GeneratedHostArtifactTests
                 new DotNetConfigurationProjectionCompiler(
                     providerComposition.CreateBuiltInRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
-                new DotNetTransportFailureProjectionCompiler()),
+                new DotNetTransportFailureProjectionCompiler(),
+                new DotNetSecurityProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

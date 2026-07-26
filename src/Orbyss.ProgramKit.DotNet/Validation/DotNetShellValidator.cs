@@ -8,8 +8,10 @@ using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
+using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
+using Orbyss.ProgramKit.SecretResolution.Contracts;
 
 namespace Orbyss.ProgramKit.DotNet.Validation;
 
@@ -50,14 +52,14 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             return ProgramKitValidationResult.From(diagnostics);
         }
 
-        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@6.0.0", StringComparison.Ordinal))
+        if (!string.Equals(value.Schema, "pkid:schema:program-kit:dotnet-shell@7.0.0", StringComparison.Ordinal))
         {
             AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The exact DotNet shell schema is required.", "/$schema");
         }
 
-        if (value.Version.Value != "6.0.0")
+        if (value.Version.Value != "7.0.0")
         {
-            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 6.0.0.", "/version");
+            AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "The shell document version must be 7.0.0.", "/version");
         }
 
         ValidateReference(value.InputVersionMapRevision, "/inputVersionMapRevision", diagnostics);
@@ -213,9 +215,437 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             ValidateHealth(host.Health, host.OperationBindings, diagnostics);
             ValidateTelemetry(host, diagnostics);
             ValidateTransportFailures(host, diagnostics);
+            ValidateSecurity(host, diagnostics);
             ValidateCompatibility(host.Compatibility, "/hosts/compatibility", diagnostics);
         }
     }
+
+    private void ValidateSecurity(
+        DotNetHostDefinition host,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var security = host.Security;
+        if (security is null)
+        {
+            return;
+        }
+
+        if (host.Kind != DotNetHostKind.Api)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidSecurityConfiguration,
+                "Transport security profiles are available only to API hosts.",
+                "/hosts/security");
+        }
+
+        ValidateReference(
+            security.ProfileRevision,
+            "/hosts/security/profileRevision",
+            diagnostics);
+        if (security.OidcConfidentialInteractive is null &&
+            security.JwtResourceServer is null)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidSecurityConfiguration,
+                "At least one exact OIDC or OAuth resource-server profile is required.",
+                "/hosts/security");
+        }
+
+        var schemes = new HashSet<string>(StringComparer.Ordinal);
+        if (security.OidcConfidentialInteractive is { } oidc)
+        {
+            ValidateOidc(oidc, schemes, diagnostics);
+        }
+
+        if (security.JwtResourceServer is { } jwt)
+        {
+            ValidateJwt(jwt, schemes, diagnostics);
+        }
+
+        ValidateAuthenticationDefaults(security, schemes, diagnostics);
+        ValidateSecurityPolicies(security, schemes, diagnostics);
+        ValidateOperationSecurityBindings(host, security, diagnostics);
+    }
+
+    private void ValidateOidc(
+        DotNetOidcConfidentialInteractiveProfile profile,
+        HashSet<string> schemes,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        ValidateReference(
+            profile.ProfileRevision,
+            "/hosts/security/oidcConfidentialInteractive/profileRevision",
+            diagnostics);
+        if (!IsStableName(profile.Scheme) ||
+            !IsStableName(profile.CookieScheme) ||
+            !schemes.Add(profile.Scheme) ||
+            !schemes.Add(profile.CookieScheme) ||
+            !IsHttps(profile.Authority) ||
+            !IsHttps(profile.MetadataAddress) ||
+            !string.Equals(
+                profile.Authority.Host,
+                profile.MetadataAddress.Host,
+                StringComparison.OrdinalIgnoreCase) ||
+            string.IsNullOrWhiteSpace(profile.ClientId) ||
+            !Enum.IsDefined(profile.PushedAuthorization) ||
+            profile.ClaimMapping !=
+                DotNetTransportClaimMapping.PreserveProviderClaimNames ||
+            !profile.RequireHttpsMetadata ||
+            !profile.UsePkce ||
+            !profile.RequireNonce ||
+            !profile.RequireState ||
+            profile.SaveTokens ||
+            profile.GetClaimsFromUserInfoEndpoint ||
+            profile.RemoteAuthenticationTimeoutSeconds is <= 0 or > 900)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.InvalidSecurityConfiguration,
+                "The confidential interactive profile must use HTTPS authorization code with PKCE, nonce and state validation, explicit PAR behavior, preserved claim names, and bounded non-persisted sessions.",
+                "/hosts/security/oidcConfidentialInteractive");
+        }
+
+        ValidatePath(profile.CallbackPath, "callbackPath", diagnostics);
+        ValidatePath(profile.SignedOutCallbackPath, "signedOutCallbackPath", diagnostics);
+        ValidatePath(profile.RemoteSignOutPath, "remoteSignOutPath", diagnostics);
+        string[] oidcPaths =
+        [
+            profile.CallbackPath,
+            profile.SignedOutCallbackPath,
+            profile.RemoteSignOutPath,
+        ];
+        if (oidcPaths.Distinct(StringComparer.Ordinal).Count() != 3)
+        {
+            AddSecurityError(
+                diagnostics,
+                "OIDC callback and sign-out paths must be unique.",
+                "/hosts/security/oidcConfidentialInteractive");
+        }
+
+        ValidateInitializedUniqueStrings(
+            profile.Scopes,
+            "/hosts/security/oidcConfidentialInteractive/scopes",
+            diagnostics);
+        if (profile.Scopes.IsDefault ||
+            !profile.Scopes.Contains("openid", StringComparer.Ordinal) ||
+            profile.Scopes.Contains("offline_access", StringComparer.Ordinal))
+        {
+            AddSecurityError(
+                diagnostics,
+                "The initial confidential profile requires openid and does not persist refresh-token scope.",
+                "/hosts/security/oidcConfidentialInteractive/scopes");
+        }
+
+        ValidateAlgorithms(
+            profile.AllowedIdTokenAlgorithms,
+            "/hosts/security/oidcConfidentialInteractive/allowedIdTokenAlgorithms",
+            diagnostics);
+        ValidateCookie(profile.Cookie, DotNetCookieSameSite.Lax, "cookie", diagnostics);
+        ValidateCookie(
+            profile.CorrelationCookie,
+            DotNetCookieSameSite.None,
+            "correlationCookie",
+            diagnostics);
+        ValidateCookie(
+            profile.NonceCookie,
+            DotNetCookieSameSite.None,
+            "nonceCookie",
+            diagnostics);
+        ValidateClientAuthentication(profile.ClientAuthentication, diagnostics);
+    }
+
+    private void ValidateClientAuthentication(
+        DotNetOidcClientAuthentication authentication,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (authentication is null ||
+            !Enum.IsDefined(authentication.Method) ||
+            authentication.Reference is null)
+        {
+            AddSecurityError(
+                diagnostics,
+                "A typed confidential-client authentication reference is required.",
+                "/hosts/security/oidcConfidentialInteractive/clientAuthentication");
+            return;
+        }
+
+        var reference = authentication.Reference;
+        ValidateReference(
+            reference.ResolverCapabilityRevision,
+            "/hosts/security/oidcConfidentialInteractive/clientAuthentication/reference/resolverCapabilityRevision",
+            diagnostics);
+        ValidateReference(
+            reference.LocatorRevision,
+            "/hosts/security/oidcConfidentialInteractive/clientAuthentication/reference/locatorRevision",
+            diagnostics);
+        if (!ProgramKitIdentifier.Validate(reference.Identity.Value).IsValid ||
+            reference.Classification == SecretReferenceClassification.Unspecified ||
+            reference.LocatorClassification == SecretReferenceClassification.Unspecified)
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeSecurityMaterial,
+                "Client authentication requires classified, non-secret reference metadata.",
+                "/hosts/security/oidcConfidentialInteractive/clientAuthentication/reference");
+        }
+
+        var secret = authentication.Method ==
+            DotNetOidcClientAuthenticationMethod.ClientSecretPost;
+        var expected = secret
+            ? SecretResultKind.ConfigurationText
+            : SecretResultKind.AssertionService;
+        if (reference.ExpectedResultKind != expected ||
+            (secret && string.IsNullOrWhiteSpace(authentication.ConfigurationKey)) ||
+            (!secret && authentication.ConfigurationKey is not null))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.UnsafeSecurityMaterial,
+                "Client-secret authentication requires a configuration-text reference and key; private-key JWT requires an assertion-service reference and no configuration key.",
+                "/hosts/security/oidcConfidentialInteractive/clientAuthentication");
+        }
+    }
+
+    private void ValidateJwt(
+        DotNetJwtResourceServerProfile profile,
+        HashSet<string> schemes,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        ValidateReference(
+            profile.ProfileRevision,
+            "/hosts/security/jwtResourceServer/profileRevision",
+            diagnostics);
+        if (!IsStableName(profile.Scheme) ||
+            !schemes.Add(profile.Scheme) ||
+            !IsHttps(profile.Authority) ||
+            !IsHttps(profile.MetadataAddress) ||
+            !string.Equals(
+                profile.Authority.Host,
+                profile.MetadataAddress.Host,
+                StringComparison.OrdinalIgnoreCase) ||
+            string.IsNullOrWhiteSpace(profile.Issuer) ||
+            string.IsNullOrWhiteSpace(profile.Audience) ||
+            profile.AccessTokenProfile != DotNetJwtAccessTokenProfile.Rfc9068AtJwt ||
+            profile.ClaimMapping !=
+                DotNetTransportClaimMapping.PreserveProviderClaimNames ||
+            profile.ClockSkewSeconds is < 0 or > 300 ||
+            !profile.RequireHttpsMetadata ||
+            profile.SaveToken)
+        {
+            AddSecurityError(
+                diagnostics,
+                "The resource server requires an HTTPS RFC 9068 access-token profile with explicit issuer, audience, preserved claim names, and bounded lifetime skew.",
+                "/hosts/security/jwtResourceServer");
+        }
+
+        ValidateAlgorithms(
+            profile.AllowedAlgorithms,
+            "/hosts/security/jwtResourceServer/allowedAlgorithms",
+            diagnostics);
+    }
+
+    private static void ValidateAuthenticationDefaults(
+        DotNetSecurityConfiguration security,
+        HashSet<string> schemes,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var defaults = security.Defaults;
+        if (defaults is null ||
+            !schemes.Contains(defaults.AuthenticateScheme) ||
+            !schemes.Contains(defaults.ChallengeScheme) ||
+            !schemes.Contains(defaults.ForbidScheme) ||
+            (defaults.SignInScheme is not null &&
+             !schemes.Contains(defaults.SignInScheme)) ||
+            (defaults.SignOutScheme is not null &&
+             !schemes.Contains(defaults.SignOutScheme)))
+        {
+            AddSecurityError(
+                diagnostics,
+                "Every authentication default must select one explicitly generated scheme.",
+                "/hosts/security/defaults");
+        }
+    }
+
+    private void ValidateSecurityPolicies(
+        DotNetSecurityConfiguration security,
+        HashSet<string> schemes,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        RequireInitializedUnique(
+            security.Policies,
+            static policy => policy.PolicyRevision.Identity.Value,
+            "/hosts/security/policies",
+            diagnostics);
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var policy in security.Policies)
+        {
+            ValidateReference(
+                policy.PolicyRevision,
+                "/hosts/security/policies/policyRevision",
+                diagnostics);
+            if (!IsStableName(policy.PolicyName) ||
+                !names.Add(policy.PolicyName) ||
+                !Enum.IsDefined(policy.RegistrationOwnership) ||
+                policy.AuthenticationSchemes.IsDefaultOrEmpty ||
+                policy.AuthenticationSchemes.Distinct(StringComparer.Ordinal).Count() !=
+                    policy.AuthenticationSchemes.Length ||
+                policy.AuthenticationSchemes.Any(scheme => !schemes.Contains(scheme)))
+            {
+                AddSecurityError(
+                    diagnostics,
+                    "Named policies require a unique stable name, exact ownership, and generated authentication schemes.",
+                    "/hosts/security/policies");
+            }
+        }
+    }
+
+    private static void ValidateOperationSecurityBindings(
+        DotNetHostDefinition host,
+        DotNetSecurityConfiguration security,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        RequireInitializedUnique(
+            security.OperationBindings,
+            static binding => DotNetContractKeys.Exact(binding.OperationRevision),
+            "/hosts/security/operationBindings",
+            diagnostics);
+        var operations = host.OperationBindings.IsDefault
+            ? new Dictionary<string, DotNetOperationBinding>(StringComparer.Ordinal)
+            : host.OperationBindings.ToDictionary(
+                static operation => DotNetContractKeys.Exact(
+                    operation.OperationContract.OperationRevision),
+                StringComparer.Ordinal);
+        var policies = security.Policies.IsDefault
+            ? new Dictionary<string, DotNetNamedHostPolicyReference>(StringComparer.Ordinal)
+            : security.Policies.ToDictionary(
+                static policy => policy.PolicyRevision.Identity.Value,
+                StringComparer.Ordinal);
+        foreach (var binding in security.OperationBindings)
+        {
+            var key = DotNetContractKeys.Exact(binding.OperationRevision);
+            if (!operations.ContainsKey(key) ||
+                !Enum.IsDefined(binding.Disposition) ||
+                (binding.Disposition == DotNetOperationSecurityDisposition.Anonymous &&
+                 binding.PolicyIdentity is not null) ||
+                (binding.Disposition == DotNetOperationSecurityDisposition.NamedPolicy &&
+                 (binding.PolicyIdentity is null ||
+                  !policies.ContainsKey(binding.PolicyIdentity.Value.Value))))
+            {
+                AddSecurityError(
+                    diagnostics,
+                    "Every operation requires one exact anonymous or named-policy route binding matching its operation revision.",
+                    "/hosts/security/operationBindings");
+            }
+        }
+
+        if (!operations.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(
+                security.OperationBindings.IsDefault
+                    ? []
+                    : security.OperationBindings.Select(
+                        static binding =>
+                            DotNetContractKeys.Exact(binding.OperationRevision))))
+        {
+            AddSecurityError(
+                diagnostics,
+                "Security bindings must cover the exact generated operation set.",
+                "/hosts/security/operationBindings");
+        }
+    }
+
+    private static void ValidateAlgorithms(
+        ImmutableArray<string> algorithms,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        var allowed = new HashSet<string>(
+            ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"],
+            StringComparer.Ordinal);
+        if (algorithms.IsDefaultOrEmpty ||
+            algorithms.Distinct(StringComparer.Ordinal).Count() != algorithms.Length ||
+            algorithms.Any(algorithm => !allowed.Contains(algorithm)))
+        {
+            AddSecurityError(
+                diagnostics,
+                "A unique finite asymmetric JOSE algorithm allow-list is required.",
+                path);
+        }
+    }
+
+    private static void ValidateCookie(
+        DotNetCookieSecurityProfile cookie,
+        DotNetCookieSameSite sameSite,
+        string name,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (cookie is null ||
+            string.IsNullOrWhiteSpace(cookie.Name) ||
+            cookie.SameSite != sameSite ||
+            !cookie.HttpOnly ||
+            !cookie.SecureAlways ||
+            cookie.IsEssential ||
+            cookie.LifetimeMinutes is <= 0 or > 1440)
+        {
+            AddSecurityError(
+                diagnostics,
+                "Generated security cookies require a name, HttpOnly, Secure Always, non-essential classification, exact SameSite behavior, and a bounded lifetime.",
+                string.Concat("/hosts/security/oidcConfidentialInteractive/", name));
+        }
+    }
+
+    private static void ValidatePath(
+        string path,
+        string name,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(path) ||
+            path[0] != '/' ||
+            path.Contains('?') ||
+            path.Contains('#'))
+        {
+            AddSecurityError(
+                diagnostics,
+                "OIDC protocol paths must be absolute application paths without query or fragment.",
+                string.Concat("/hosts/security/oidcConfidentialInteractive/", name));
+        }
+    }
+
+    private static void ValidateInitializedUniqueStrings(
+        ImmutableArray<string> values,
+        string path,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (values.IsDefaultOrEmpty ||
+            values.Any(string.IsNullOrWhiteSpace) ||
+            values.Distinct(StringComparer.Ordinal).Count() != values.Length)
+        {
+            AddSecurityError(
+                diagnostics,
+                "The finite string set must be initialized, non-empty, and unique.",
+                path);
+        }
+    }
+
+    private static bool IsHttps(Uri? value) =>
+        value is { IsAbsoluteUri: true } &&
+        string.Equals(value.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal);
+
+    private static bool IsStableName(string value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.All(static character =>
+            char.IsLetterOrDigit(character) ||
+            character is '.' or '-' or '_');
+
+    private static void AddSecurityError(
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics,
+        string message,
+        string path) =>
+        AddError(
+            diagnostics,
+            DotNetDiagnosticIds.InvalidSecurityConfiguration,
+            message,
+            path);
 
     private void ValidateTransportFailures(
         DotNetHostDefinition host,
@@ -331,6 +761,22 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
                 diagnostics);
         }
 
+        if (host.Security?.OidcConfidentialInteractive is not null)
+        {
+            RequireSecurityPackage(
+                packages,
+                "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+                diagnostics);
+        }
+
+        if (host.Security?.JwtResourceServer is not null)
+        {
+            RequireSecurityPackage(
+                packages,
+                "Microsoft.AspNetCore.Authentication.JwtBearer",
+                diagnostics);
+        }
+
         foreach (var package in packages.Values.Where(static package =>
                      package.PackageId.StartsWith("CShells", StringComparison.Ordinal)))
         {
@@ -338,6 +784,25 @@ public sealed class DotNetShellValidator : IDotNetShellValidator
             {
                 AddError(diagnostics, DotNetDiagnosticIds.InvalidShell, "Every CShells package must be pinned to 0.0.28.", "/hosts/hostPackages/version");
             }
+        }
+    }
+
+    private static void RequireSecurityPackage(
+        Dictionary<string, DotNetPackageReference> packages,
+        string packageId,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (!packages.TryGetValue(packageId, out var package) ||
+            !string.Equals(package.Version.Value, "10.0.10", StringComparison.Ordinal))
+        {
+            AddError(
+                diagnostics,
+                DotNetDiagnosticIds.SecurityPackageMismatch,
+                string.Concat(
+                    "Transport security requires exact package '",
+                    packageId,
+                    "' at 10.0.10."),
+                "/hosts/hostPackages");
         }
     }
 

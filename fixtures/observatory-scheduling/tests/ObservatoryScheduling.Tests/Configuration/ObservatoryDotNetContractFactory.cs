@@ -69,8 +69,8 @@ internal static class ObservatoryDotNetContractFactory
             [Ref("schedule-provider", "cronos-0-13")]);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@6.0.0",
-            new SemanticVersion("6.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@7.0.0",
+            new SemanticVersion("7.0.0"),
             VersionMapInputRevision(),
             VersionSelectionInputRevision(),
             new DotNetShellComposition(
@@ -192,7 +192,8 @@ internal static class ObservatoryDotNetContractFactory
                 [
                     schedule.OperationContract.OperationRevision,
                     health.OperationContract.OperationRevision,
-                ]));
+                ]),
+            []);
     }
 
     internal static OpenConsoleDocument CreateConsoleDocument(

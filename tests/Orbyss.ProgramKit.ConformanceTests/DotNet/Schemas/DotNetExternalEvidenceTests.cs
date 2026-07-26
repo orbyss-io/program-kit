@@ -151,4 +151,68 @@ public sealed class DotNetExternalEvidenceTests
                 .GetProperty("developmentDisclosure")
                 .GetString());
     }
+
+    [TestMethod]
+    public void SecurityEvidenceBindsExactProtocolProfilesAndPackageArchives()
+    {
+        var assembly = typeof(DotNetShellDocument).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().Single(
+            static name => name.EndsWith(
+                "dotnet-security-selection-1.0.0.json",
+                StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourceName)!;
+        using MemoryStream bytes = new();
+        stream.CopyTo(bytes);
+        Assert.AreEqual(
+            "71760d93aa57802ba9524a04c93e5bfa59ed0cab1c5f3a3902de2215f9c41f9c",
+            Convert.ToHexString(SHA256.HashData(bytes.ToArray()))
+                .ToLowerInvariant());
+        bytes.Position = 0;
+        using var document = JsonDocument.Parse(bytes);
+        var root = document.RootElement;
+        var packages = root.GetProperty("directPackages")
+            .EnumerateArray()
+            .ToArray();
+
+        Assert.HasCount(2, packages);
+        Assert.AreEqual(
+            "excluded",
+            root.GetProperty("selection")
+                .GetProperty("domainAuthorizationMeaning")
+                .GetString());
+        Assert.AreEqual(
+            "classified secret reference or assertion-service reference only; no secret value in shell, source, evidence, or logs",
+            root.GetProperty("policies")
+                .GetProperty("clientMaterial")
+                .GetString());
+
+        var packageRoot = Environment.GetEnvironmentVariable(
+                "NUGET_PACKAGES") ??
+            Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.UserProfile),
+                ".nuget",
+                "packages");
+        foreach (var package in packages)
+        {
+            var packageId = package.GetProperty("id").GetString()!;
+            var version = package.GetProperty("version").GetString()!;
+            var archivePath = Path.Combine(
+                packageRoot,
+                packageId.ToLowerInvariant(),
+                version,
+                string.Concat(
+                    packageId.ToLowerInvariant(),
+                    ".",
+                    version,
+                    ".nupkg"));
+            var actual = Convert.ToHexString(
+                    SHA256.HashData(File.ReadAllBytes(archivePath)))
+                .ToLowerInvariant();
+            Assert.AreEqual(
+                package.GetProperty("sha256").GetString(),
+                actual,
+                packageId);
+        }
+    }
 }

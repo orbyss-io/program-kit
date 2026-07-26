@@ -3,11 +3,13 @@ using System.Text.Json.Serialization;
 using Orbyss.ProgramKit.Artifacts.Compatibility;
 using Orbyss.ProgramKit.DotNet.Composition.Converters;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
+using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.Operations.Contracts;
 using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.SecretResolution.Contracts;
@@ -69,6 +71,14 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetResponseStartedDisposition>(),
             CreateEnumConverter<DotNetClientDisconnectDisposition>(),
             CreateEnumConverter<TransportFailureDisclosure>(),
+            CreateEnumConverter<DotNetTransportClaimMapping>(),
+            CreateEnumConverter<DotNetOidcPushedAuthorizationBehavior>(),
+            CreateEnumConverter<DotNetOidcClientAuthenticationMethod>(),
+            CreateEnumConverter<DotNetCookieSameSite>(),
+            CreateEnumConverter<DotNetJwtAccessTokenProfile>(),
+            CreateEnumConverter<DotNetPolicyRegistrationOwnership>(),
+            CreateEnumConverter<DotNetOperationSecurityDisposition>(),
+            CreateEnumConverter<OpenApiSecuritySchemeKind>(),
             CreateEnumConverter<ConsoleOptionKind>(),
             CreateEnumConverter<OperationResultDisposition>(),
             CreateEnumConverter<OperationExpectedRevisionPolicy>(),

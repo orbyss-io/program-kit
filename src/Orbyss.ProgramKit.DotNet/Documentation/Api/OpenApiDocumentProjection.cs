@@ -6,4 +6,5 @@ public sealed record OpenApiDocumentProjection(
     SemanticVersion ApiVersion,
     ImmutableArray<OpenApiServerProjection> Servers,
     ImmutableArray<OpenApiOperationProjection> Operations,
-    IntegratorDocumentProvenance Provenance);
+    IntegratorDocumentProvenance Provenance,
+    ImmutableArray<OpenApiSecuritySchemeProjection> SecuritySchemes = default);

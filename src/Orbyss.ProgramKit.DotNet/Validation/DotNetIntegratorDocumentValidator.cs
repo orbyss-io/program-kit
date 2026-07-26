@@ -26,9 +26,45 @@ public sealed class DotNetIntegratorDocumentValidator : IDotNetIntegratorDocumen
 
         if (string.IsNullOrWhiteSpace(document.Title) ||
             document.Servers.IsDefault ||
-            document.Operations.IsDefault)
+            document.Operations.IsDefault ||
+            document.SecuritySchemes.IsDefault)
         {
             Error(diagnostics, "OpenAPI title, servers, and operations must be explicit.", string.Empty);
+        }
+
+        var securitySchemeNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var scheme in document.SecuritySchemes)
+        {
+            var valid = !string.IsNullOrWhiteSpace(scheme.Name) &&
+                        securitySchemeNames.Add(scheme.Name) &&
+                        Enum.IsDefined(scheme.Kind);
+            valid &= scheme.Kind switch
+            {
+                OpenApiSecuritySchemeKind.OpenIdConnect =>
+                    scheme.OpenIdConnectUrl is
+                    {
+                        IsAbsoluteUri: true,
+                    } &&
+                    string.Equals(
+                        scheme.OpenIdConnectUrl.Scheme,
+                        Uri.UriSchemeHttps,
+                        StringComparison.Ordinal) &&
+                    scheme.BearerFormat is null,
+                OpenApiSecuritySchemeKind.HttpBearerJwt =>
+                    scheme.OpenIdConnectUrl is null &&
+                    string.Equals(
+                        scheme.BearerFormat,
+                        "JWT",
+                        StringComparison.Ordinal),
+                _ => false,
+            };
+            if (!valid)
+            {
+                Error(
+                    diagnostics,
+                    "OpenAPI security schemes require a unique name and exact OIDC discovery or HTTP Bearer JWT mechanics.",
+                    "/securitySchemes");
+            }
         }
 
         var keys = new HashSet<string>(StringComparer.Ordinal);
@@ -41,6 +77,24 @@ public sealed class DotNetIntegratorDocumentValidator : IDotNetIntegratorDocumen
                 string.IsNullOrWhiteSpace(operation.OperationId))
             {
                 Error(diagnostics, "OpenAPI operations require unique method/path pairs, absolute paths, and stable operation IDs.", "/operations");
+            }
+
+            if (operation.Security is { } security &&
+                ((security.Anonymous &&
+                  (security.PolicyIdentity is not null ||
+                   !security.SchemeNames.IsDefaultOrEmpty)) ||
+                 (!security.Anonymous &&
+                  (security.PolicyIdentity is null ||
+                   security.SchemeNames.IsDefaultOrEmpty ||
+                   security.SchemeNames.Any(
+                       scheme => !securitySchemeNames.Contains(scheme)) ||
+                   security.SchemeNames.Distinct(StringComparer.Ordinal).Count() !=
+                       security.SchemeNames.Length))))
+            {
+                Error(
+                    diagnostics,
+                    "Operation security must explicitly select anonymous access or one named host policy with declared schemes.",
+                    "/operations/security");
             }
 
             if (operation.ProblemDetailsResponses.IsDefault ||

@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/1.0.0/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-security-composition",
+  "x-program-kit-version": "1.0.0",
+  "title": "Program Kit .NET provider-neutral transport security composition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileRevision",
+    "defaults",
+    "oidcConfidentialInteractive",
+    "jwtResourceServer",
+    "policies",
+    "operationBindings"
+  ],
+  "properties": {
+    "profileRevision": {"$ref": "#/$defs/reference"},
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authenticateScheme",
+        "challengeScheme",
+        "forbidScheme",
+        "signInScheme",
+        "signOutScheme"
+      ],
+      "properties": {
+        "authenticateScheme": {"$ref": "#/$defs/name"},
+        "challengeScheme": {"$ref": "#/$defs/name"},
+        "forbidScheme": {"$ref": "#/$defs/name"},
+        "signInScheme": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/name"}]},
+        "signOutScheme": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/name"}]}
+      }
+    },
+    "oidcConfidentialInteractive": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/oidcConfidentialInteractive"}
+      ]
+    },
+    "jwtResourceServer": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/jwtResourceServer"}
+      ]
+    },
+    "policies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/policy"}
+    },
+    "operationBindings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/operationBinding"}
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "$ref": "https://schemas.orbyss.io/program-kit/operations/1.0.0/definitions.schema.json#/$defs/identifier"
+    },
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/operations/1.0.0/definitions.schema.json#/$defs/reference"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "httpsUri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^/[^?#]*$"
+    },
+    "cookie": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sameSite",
+        "httpOnly",
+        "secureAlways",
+        "isEssential",
+        "lifetimeMinutes"
+      ],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "sameSite": {"enum": ["lax", "none"]},
+        "httpOnly": {"const": true},
+        "secureAlways": {"const": true},
+        "isEssential": {"const": false},
+        "lifetimeMinutes": {"type": "integer", "minimum": 1, "maximum": 1440}
+      }
+    },
+    "secretReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "classification",
+        "expectedResultKind",
+        "resolverCapabilityRevision",
+        "locatorRevision",
+        "locatorClassification"
+      ],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "classification": {
+          "enum": ["restricted-metadata", "sensitive-metadata"]
+        },
+        "expectedResultKind": {
+          "enum": ["configuration-text", "assertion-service"]
+        },
+        "resolverCapabilityRevision": {"$ref": "#/$defs/reference"},
+        "locatorRevision": {"$ref": "#/$defs/reference"},
+        "locatorClassification": {
+          "enum": ["restricted-metadata", "sensitive-metadata"]
+        }
+      }
+    },
+    "clientAuthentication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "reference", "configurationKey"],
+      "properties": {
+        "method": {"enum": ["client-secret-post", "private-key-jwt-assertion"]},
+        "reference": {"$ref": "#/$defs/secretReference"},
+        "configurationKey": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "minLength": 1}
+          ]
+        }
+      }
+    },
+    "oidcConfidentialInteractive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileRevision",
+        "scheme",
+        "cookieScheme",
+        "authority",
+        "metadataAddress",
+        "clientId",
+        "clientAuthentication",
+        "callbackPath",
+        "signedOutCallbackPath",
+        "remoteSignOutPath",
+        "scopes",
+        "allowedIdTokenAlgorithms",
+        "pushedAuthorization",
+        "claimMapping",
+        "cookie",
+        "correlationCookie",
+        "nonceCookie",
+        "remoteAuthenticationTimeoutSeconds",
+        "requireHttpsMetadata",
+        "usePkce",
+        "requireNonce",
+        "requireState",
+        "saveTokens",
+        "getClaimsFromUserInfoEndpoint"
+      ],
+      "properties": {
+        "profileRevision": {"$ref": "#/$defs/reference"},
+        "scheme": {"$ref": "#/$defs/name"},
+        "cookieScheme": {"$ref": "#/$defs/name"},
+        "authority": {"$ref": "#/$defs/httpsUri"},
+        "metadataAddress": {"$ref": "#/$defs/httpsUri"},
+        "clientId": {"type": "string", "minLength": 1},
+        "clientAuthentication": {"$ref": "#/$defs/clientAuthentication"},
+        "callbackPath": {"$ref": "#/$defs/path"},
+        "signedOutCallbackPath": {"$ref": "#/$defs/path"},
+        "remoteSignOutPath": {"$ref": "#/$defs/path"},
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "contains": {"const": "openid"},
+          "items": {"type": "string", "minLength": 1}
+        },
+        "allowedIdTokenAlgorithms": {"$ref": "#/$defs/algorithms"},
+        "pushedAuthorization": {
+          "enum": ["require", "use-if-available", "disable"]
+        },
+        "claimMapping": {"const": "preserve-provider-claim-names"},
+        "cookie": {"$ref": "#/$defs/cookie"},
+        "correlationCookie": {"$ref": "#/$defs/cookie"},
+        "nonceCookie": {"$ref": "#/$defs/cookie"},
+        "remoteAuthenticationTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 900
+        },
+        "requireHttpsMetadata": {"const": true},
+        "usePkce": {"const": true},
+        "requireNonce": {"const": true},
+        "requireState": {"const": true},
+        "saveTokens": {"const": false},
+        "getClaimsFromUserInfoEndpoint": {"const": false}
+      }
+    },
+    "jwtResourceServer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileRevision",
+        "scheme",
+        "authority",
+        "metadataAddress",
+        "issuer",
+        "audience",
+        "allowedAlgorithms",
+        "accessTokenProfile",
+        "claimMapping",
+        "clockSkewSeconds",
+        "requireHttpsMetadata",
+        "saveToken"
+      ],
+      "properties": {
+        "profileRevision": {"$ref": "#/$defs/reference"},
+        "scheme": {"$ref": "#/$defs/name"},
+        "authority": {"$ref": "#/$defs/httpsUri"},
+        "metadataAddress": {"$ref": "#/$defs/httpsUri"},
+        "issuer": {"type": "string", "minLength": 1},
+        "audience": {"type": "string", "minLength": 1},
+        "allowedAlgorithms": {"$ref": "#/$defs/algorithms"},
+        "accessTokenProfile": {"const": "rfc9068-at-jwt"},
+        "claimMapping": {"const": "preserve-provider-claim-names"},
+        "clockSkewSeconds": {"type": "integer", "minimum": 0, "maximum": 300},
+        "requireHttpsMetadata": {"const": true},
+        "saveToken": {"const": false}
+      }
+    },
+    "algorithms": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "RS256",
+          "RS384",
+          "RS512",
+          "PS256",
+          "PS384",
+          "PS512",
+          "ES256",
+          "ES384",
+          "ES512"
+        ]
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policyRevision",
+        "policyName",
+        "authenticationSchemes",
+        "registrationOwnership"
+      ],
+      "properties": {
+        "policyRevision": {"$ref": "#/$defs/reference"},
+        "policyName": {"$ref": "#/$defs/name"},
+        "authenticationSchemes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/name"}
+        },
+        "registrationOwnership": {
+          "enum": ["program-kit-authenticated-transport", "external-consumer"]
+        }
+      }
+    },
+    "operationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationRevision",
+        "method",
+        "path",
+        "disposition",
+        "policyIdentity"
+      ],
+      "properties": {
+        "operationRevision": {"$ref": "#/$defs/reference"},
+        "method": {
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE"]
+        },
+        "path": {"$ref": "#/$defs/path"},
+        "disposition": {"enum": ["anonymous", "named-policy"]},
+        "policyIdentity": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/identifier"}
+          ]
+        }
+      }
+    }
+  }
+}

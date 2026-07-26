@@ -273,13 +273,111 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                 !ExactSet(
                     matches[0].GetRelatedOperationRevisions(),
                     operation.RelatedOperationRevisions) ||
-                !HasExactProblemDetailsProjection(host, operation))
+                !HasExactProblemDetailsProjection(host, operation) ||
+                !HasExactSecurityProjection(host, document, operation))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static bool HasExactSecurityProjection(
+        DotNetHostDefinition host,
+        Documentation.Api.OpenApiDocumentProjection document,
+        Documentation.Api.OpenApiOperationProjection operation)
+    {
+        var security = host.Security;
+        if (security is null)
+        {
+            return document.SecuritySchemes.IsDefaultOrEmpty &&
+                   operation.Security is null;
+        }
+
+        if (document.SecuritySchemes.IsDefault)
+        {
+            return false;
+        }
+
+        var expectedSchemes = new HashSet<string>(StringComparer.Ordinal);
+        if (security.OidcConfidentialInteractive is { } oidc)
+        {
+            expectedSchemes.Add(string.Concat(
+                oidc.Scheme,
+                "|OpenIdConnect|",
+                oidc.MetadataAddress.AbsoluteUri,
+                "|"));
+        }
+
+        if (security.JwtResourceServer is { } jwt)
+        {
+            expectedSchemes.Add(string.Concat(
+                jwt.Scheme,
+                "|HttpBearerJwt||JWT"));
+        }
+
+        var actualSchemes = document.SecuritySchemes
+            .Select(static scheme => string.Concat(
+                scheme.Name,
+                "|",
+                scheme.Kind,
+                "|",
+                scheme.OpenIdConnectUrl?.AbsoluteUri,
+                "|",
+                scheme.BearerFormat))
+            .ToHashSet(StringComparer.Ordinal);
+        if (!expectedSchemes.SetEquals(actualSchemes) ||
+            expectedSchemes.Count != document.SecuritySchemes.Length)
+        {
+            return false;
+        }
+
+        var operationBinding = security.OperationBindings.SingleOrDefault(
+            binding =>
+                binding.OperationRevision == operation.OperationRevision &&
+                string.Equals(binding.Method, operation.Method, StringComparison.Ordinal) &&
+                string.Equals(binding.Path, operation.Path, StringComparison.Ordinal));
+        if (operationBinding is null || operation.Security is null)
+        {
+            return false;
+        }
+
+        if (operationBinding.Disposition ==
+            Operations.Security.DotNetOperationSecurityDisposition.Anonymous)
+        {
+            return operation.Security.Anonymous &&
+                   operation.Security.PolicyIdentity is null &&
+                   operation.Security.SchemeNames.IsDefaultOrEmpty;
+        }
+
+        if (operationBinding.PolicyIdentity is null ||
+            operation.Security.Anonymous ||
+            operation.Security.PolicyIdentity != operationBinding.PolicyIdentity)
+        {
+            return false;
+        }
+
+        var policy = security.Policies.SingleOrDefault(
+            item => item.PolicyRevision.Identity == operationBinding.PolicyIdentity);
+        return policy is not null &&
+               ExactStringSet(
+                   policy.AuthenticationSchemes,
+                   operation.Security.SchemeNames);
+    }
+
+    private static bool ExactStringSet(
+        ImmutableArray<string> expected,
+        ImmutableArray<string> actual)
+    {
+        if (expected.IsDefault || actual.IsDefault ||
+            expected.Length != actual.Length)
+        {
+            return false;
+        }
+
+        return expected.ToHashSet(StringComparer.Ordinal)
+            .SetEquals(actual);
     }
 
     private static bool HasExactProblemDetailsProjection(

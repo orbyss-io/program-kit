@@ -133,7 +133,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
                 new DotNetConfigurationProjectionCompiler(
                     DotNetTestContractFactory.ProviderRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
-                new DotNetTransportFailureProjectionCompiler()),
+                new DotNetTransportFailureProjectionCompiler(),
+                new DotNetSecurityProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
     }

@@ -4,6 +4,7 @@ using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
+using Orbyss.ProgramKit.DotNet.Operations.Security;
 
 namespace Orbyss.ProgramKit.DotNet.Shells;
 
@@ -24,4 +25,5 @@ public sealed record DotNetHostDefinition(
     [property: JsonPropertyName("health")] DotNetHealthConfiguration? Health,
     [property: JsonPropertyName("compatibility")] ArtifactCompatibility Compatibility,
     [property: JsonPropertyName("telemetry")] DotNetTelemetryConfiguration? Telemetry = null,
-    [property: JsonPropertyName("transportFailures")] DotNetTransportFailureConfiguration? TransportFailures = null);
+    [property: JsonPropertyName("transportFailures")] DotNetTransportFailureConfiguration? TransportFailures = null,
+    [property: JsonPropertyName("security")] DotNetSecurityConfiguration? Security = null);

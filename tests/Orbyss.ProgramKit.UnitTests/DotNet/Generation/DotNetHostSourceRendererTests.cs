@@ -30,7 +30,8 @@ public sealed class DotNetHostSourceRendererTests
             new(new DotNetConfigurationProjectionCompiler(
                     DotNetTestContractFactory.ProviderRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
-                new DotNetTransportFailureProjectionCompiler());
+                new DotNetTransportFailureProjectionCompiler(),
+                new DotNetSecurityProjectionCompiler());
 
         foreach (var host in shell.Hosts)
         {
@@ -120,7 +121,8 @@ public sealed class DotNetHostSourceRendererTests
             new(new DotNetConfigurationProjectionCompiler(
                     DotNetTestContractFactory.ProviderRegistry()),
                 new DotNetTelemetryProjectionCompiler(),
-                new DotNetTransportFailureProjectionCompiler());
+                new DotNetTransportFailureProjectionCompiler(),
+                new DotNetSecurityProjectionCompiler());
 
         var outputs = sut.Render(host, hostLock, shell.Features, document);
         var parser = Text(

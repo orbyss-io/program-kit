@@ -14,12 +14,14 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
     private readonly IDotNetConfigurationProjectionCompiler configurationCompiler;
     private readonly IDotNetTelemetryProjectionCompiler telemetryCompiler;
     private readonly IDotNetTransportFailureProjectionCompiler transportFailureCompiler;
+    private readonly IDotNetSecurityProjectionCompiler securityCompiler;
 
     /// <summary>Initializes the renderer with the reusable configuration compiler.</summary>
     public DotNetHostSourceRenderer(
         IDotNetConfigurationProjectionCompiler configurationCompiler,
         IDotNetTelemetryProjectionCompiler telemetryCompiler,
-        IDotNetTransportFailureProjectionCompiler transportFailureCompiler)
+        IDotNetTransportFailureProjectionCompiler transportFailureCompiler,
+        IDotNetSecurityProjectionCompiler securityCompiler)
     {
         this.configurationCompiler = configurationCompiler ??
             throw new ArgumentNullException(nameof(configurationCompiler));
@@ -27,6 +29,8 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             throw new ArgumentNullException(nameof(telemetryCompiler));
         this.transportFailureCompiler = transportFailureCompiler ??
             throw new ArgumentNullException(nameof(transportFailureCompiler));
+        this.securityCompiler = securityCompiler ??
+            throw new ArgumentNullException(nameof(securityCompiler));
     }
 
     /// <inheritdoc />
@@ -53,10 +57,13 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
                 telemetryCompiler.RenderRegistration(host),
                 telemetryCompiler.RenderMiddleware(host),
                 transportFailureCompiler.RenderRegistration(host),
-                transportFailureCompiler.RenderMiddleware(host)))));
+                transportFailureCompiler.RenderMiddleware(host),
+                securityCompiler.RenderRegistration(host),
+                securityCompiler.RenderMiddleware(host)))));
         outputs.AddRange(configurationCompiler.Compile(host));
         outputs.AddRange(telemetryCompiler.Compile(host));
         outputs.AddRange(transportFailureCompiler.Compile(host));
+        outputs.AddRange(securityCompiler.Compile(host));
         if (host.Kind == DotNetHostKind.Console && consoleDocument is not null)
         {
             outputs.Add(new GeneratedOutput(
@@ -148,7 +155,9 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         string telemetryRegistration,
         string telemetryMiddleware,
         string transportFailureRegistration,
-        string transportFailureMiddleware)
+        string transportFailureMiddleware,
+        string securityRegistration,
+        string securityMiddleware)
     {
         var web = host.Kind == DotNetHostKind.Api || host.Health is not null;
         var builder = new StringBuilder();
@@ -172,6 +181,13 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             if (host.Telemetry?.HttpDiagnostics.Enabled == true)
             {
                 builder.AppendLine("using Microsoft.AspNetCore.HttpLogging;");
+            }
+            if (host.Security is not null)
+            {
+                builder.AppendLine("using Microsoft.AspNetCore.Authentication.Cookies;");
+                builder.AppendLine("using Microsoft.AspNetCore.Authentication.JwtBearer;");
+                builder.AppendLine("using Microsoft.AspNetCore.Authentication.OpenIdConnect;");
+                builder.AppendLine("using Microsoft.AspNetCore.Authorization;");
             }
         }
         else
@@ -217,6 +233,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         builder.Append(configurationRegistration);
         builder.Append(telemetryRegistration);
         builder.Append(transportFailureRegistration);
+        builder.Append(securityRegistration);
         if (host.Telemetry?.HttpDiagnostics.Enabled == true)
         {
             RenderHttpLoggingRegistration(builder);
@@ -239,6 +256,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         {
             builder.Append(transportFailureMiddleware);
             builder.Append(telemetryMiddleware);
+            builder.Append(securityMiddleware);
             RenderHealthMappings(builder, host.Health);
             builder.AppendLine("app.MapShells();");
             builder.AppendLine("await app.RunAsync();");

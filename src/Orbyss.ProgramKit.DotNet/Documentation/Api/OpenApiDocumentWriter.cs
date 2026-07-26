@@ -30,6 +30,33 @@ public sealed class OpenApiDocumentWriter : IOpenApiDocumentWriter
             writer.WriteString("title", document.Title);
             writer.WriteString("version", document.ApiVersion.Value);
             writer.WriteEndObject();
+            writer.WriteStartObject("components");
+            writer.WriteStartObject("securitySchemes");
+            foreach (var scheme in (document.SecuritySchemes.IsDefault
+                         ? []
+                         : document.SecuritySchemes)
+                     .OrderBy(static item => item.Name, StringComparer.Ordinal))
+            {
+                writer.WriteStartObject(scheme.Name);
+                if (scheme.Kind == OpenApiSecuritySchemeKind.OpenIdConnect)
+                {
+                    writer.WriteString("type", "openIdConnect");
+                    writer.WriteString(
+                        "openIdConnectUrl",
+                        scheme.OpenIdConnectUrl!.AbsoluteUri);
+                }
+                else
+                {
+                    writer.WriteString("type", "http");
+                    writer.WriteString("scheme", "bearer");
+                    writer.WriteString("bearerFormat", scheme.BearerFormat);
+                }
+
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndObject();
+            writer.WriteEndObject();
             writer.WriteStartArray("servers");
             foreach (var server in document.Servers.OrderBy(static item => item.Url, StringComparer.Ordinal))
             {
@@ -78,6 +105,29 @@ public sealed class OpenApiDocumentWriter : IOpenApiDocumentWriter
         WriteReferences(writer, "x-orbyss-result-schemas", operation.ResultSchemaRevisions);
         WriteReferences(writer, "x-orbyss-diagnostic-schemas", operation.DiagnosticSchemaRevisions);
         WriteReferences(writer, "x-orbyss-related-operations", operation.RelatedOperationRevisions);
+        if (operation.Security is { } security)
+        {
+            writer.WriteStartArray("security");
+            if (!security.Anonymous)
+            {
+                writer.WriteStartObject();
+                foreach (var scheme in security.SchemeNames.Order(StringComparer.Ordinal))
+                {
+                    writer.WriteStartArray(scheme);
+                    writer.WriteEndArray();
+                }
+
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
+            if (security.PolicyIdentity is { } policyIdentity)
+            {
+                writer.WriteString(
+                    "x-orbyss-host-policy",
+                    policyIdentity.Value);
+            }
+        }
         if (!operation.InputSchemaRevisions.IsDefaultOrEmpty)
         {
             writer.WriteStartObject("requestBody");

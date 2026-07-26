@@ -12,12 +12,14 @@ using Orbyss.ProgramKit.DotNet.Generation.ConfigurationProviders;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
+using Orbyss.ProgramKit.DotNet.Operations.Security;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Packages;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Operations.Contracts;
 using Orbyss.ProgramKit.Operations.Contracts.Transport;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
+using Orbyss.ProgramKit.SecretResolution.Contracts;
 
 namespace Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
 
@@ -210,6 +212,8 @@ internal static class DotNetTestContractFactory
                 Package("Microsoft.Extensions.Options", "10.0.10", 'b'),
                 Package("Microsoft.Extensions.Options.ConfigurationExtensions", "10.0.10", 'e'),
                 Package("Microsoft.Extensions.Options.DataAnnotations", "10.0.10", 'f'),
+                Package("Microsoft.AspNetCore.Authentication.OpenIdConnect", "10.0.10", '7'),
+                Package("Microsoft.AspNetCore.Authentication.JwtBearer", "10.0.10", '6'),
             ],
             configurationSource,
             configurationBinding,
@@ -252,8 +256,8 @@ internal static class DotNetTestContractFactory
             null);
 
         return new DotNetShellDocument(
-            "pkid:schema:program-kit:dotnet-shell@6.0.0",
-            new SemanticVersion("6.0.0"),
+            "pkid:schema:program-kit:dotnet-shell@7.0.0",
+            new SemanticVersion("7.0.0"),
             Ref("version-map", "inputs", 'a'),
             Ref("version-selection", "inputs", 'b'),
             new DotNetShellComposition(
@@ -435,9 +439,14 @@ internal static class DotNetTestContractFactory
                     binding.GetResultSchemaRevisions(),
                     binding.GetDiagnosticSchemaRevisions(),
                     binding.GetRelatedOperationRevisions(),
-                    ProblemResponses(host)),
+                    ProblemResponses(host),
+                    new OpenApiOperationSecurityProjection(
+                        false,
+                        host.Security!.Policies[0].PolicyRevision.Identity,
+                        host.Security.Policies[0].AuthenticationSchemes)),
             ],
-            Provenance(host, binding.OperationContract.OperationRevision));
+            Provenance(host, binding.OperationContract.OperationRevision),
+            SecuritySchemes(host));
     }
 
     internal static ArtifactReference Ref(
@@ -481,7 +490,127 @@ internal static class DotNetTestContractFactory
             health,
             Compatibility(),
             Telemetry(name, kind),
-            kind == DotNetHostKind.Api ? TransportFailures() : null);
+            kind == DotNetHostKind.Api ? TransportFailures() : null,
+            kind == DotNetHostKind.Api ? Security(operation) : null);
+
+    internal static DotNetSecurityConfiguration Security(
+        DotNetOperationBinding operation)
+    {
+        var policyRevision = Ref("policy", "authenticated-transport", '9');
+        var jwtScheme = "ProgramKit.Jwt";
+        var oidcScheme = "ProgramKit.Oidc";
+        return new DotNetSecurityConfiguration(
+            Ref("profile", "transport-security", '8'),
+            new DotNetAuthenticationDefaults(
+                jwtScheme,
+                jwtScheme,
+                jwtScheme,
+                "ProgramKit.Cookie",
+                oidcScheme),
+            new DotNetOidcConfidentialInteractiveProfile(
+                Ref("profile", "oidc-confidential-code-pkce", '7'),
+                oidcScheme,
+                "ProgramKit.Cookie",
+                new Uri("https://identity.example.test/"),
+                new Uri("https://identity.example.test/.well-known/openid-configuration"),
+                "sample-confidential-client",
+                new DotNetOidcClientAuthentication(
+                    DotNetOidcClientAuthenticationMethod.ClientSecretPost,
+                    new SecretReferenceDescriptor(
+                        Id("secret-reference", "oidc-client"),
+                        SecretReferenceClassification.RestrictedMetadata,
+                        SecretResultKind.ConfigurationText,
+                        Ref("capability", "configuration-secret-resolver", '4'),
+                        Ref("locator", "oidc-client-secret", '5'),
+                        SecretReferenceClassification.RestrictedMetadata),
+                    "Authentication:Oidc:ClientSecret"),
+                "/signin-oidc",
+                "/signout-callback-oidc",
+                "/signout-oidc",
+                ["openid", "profile"],
+                ["RS256", "PS256", "ES256"],
+                DotNetOidcPushedAuthorizationBehavior.UseIfAvailable,
+                DotNetTransportClaimMapping.PreserveProviderClaimNames,
+                new DotNetCookieSecurityProfile(
+                    "__Host-program-kit-session",
+                    DotNetCookieSameSite.Lax,
+                    true,
+                    true,
+                    false,
+                    60),
+                new DotNetCookieSecurityProfile(
+                    "__Host-program-kit-correlation",
+                    DotNetCookieSameSite.None,
+                    true,
+                    true,
+                    false,
+                    15),
+                new DotNetCookieSecurityProfile(
+                    "__Host-program-kit-nonce",
+                    DotNetCookieSameSite.None,
+                    true,
+                    true,
+                    false,
+                    15),
+                300,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false),
+            new DotNetJwtResourceServerProfile(
+                Ref("profile", "oauth-jwt-resource-server", '6'),
+                jwtScheme,
+                new Uri("https://identity.example.test/"),
+                new Uri("https://identity.example.test/.well-known/openid-configuration"),
+                "https://identity.example.test/",
+                "sample-api",
+                ["RS256", "PS256", "ES256"],
+                DotNetJwtAccessTokenProfile.Rfc9068AtJwt,
+                DotNetTransportClaimMapping.PreserveProviderClaimNames,
+                60,
+                true,
+                false),
+            [
+                new DotNetNamedHostPolicyReference(
+                    policyRevision,
+                    "ProgramKit.AuthenticatedTransport",
+                    [jwtScheme],
+                    DotNetPolicyRegistrationOwnership.ProgramKitAuthenticatedTransport),
+            ],
+            [
+                new DotNetOperationSecurityBinding(
+                    operation.OperationContract.OperationRevision,
+                    "POST",
+                    "/runs",
+                    DotNetOperationSecurityDisposition.NamedPolicy,
+                    policyRevision.Identity),
+            ]);
+    }
+
+    private static ImmutableArray<OpenApiSecuritySchemeProjection> SecuritySchemes(
+        DotNetHostDefinition host)
+    {
+        if (host.Security is null)
+        {
+            return [];
+        }
+
+        return
+        [
+            new OpenApiSecuritySchemeProjection(
+                host.Security.OidcConfidentialInteractive!.Scheme,
+                OpenApiSecuritySchemeKind.OpenIdConnect,
+                host.Security.OidcConfidentialInteractive.MetadataAddress,
+                null),
+            new OpenApiSecuritySchemeProjection(
+                host.Security.JwtResourceServer!.Scheme,
+                OpenApiSecuritySchemeKind.HttpBearerJwt,
+                null,
+                "JWT"),
+        ];
+    }
 
     private static ImmutableArray<OpenApiProblemDetailsResponseProjection> ProblemResponses(
         DotNetHostDefinition host) =>

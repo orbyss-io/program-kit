@@ -59,4 +59,16 @@ public static class DotNetDiagnosticIds
 
     /// <summary>OpenAPI failure responses do not match runtime declarations.</summary>
     public const string TransportFailureOpenApiMismatch = "PKNET019";
+
+    /// <summary>OIDC, OAuth, or host authorization composition is invalid.</summary>
+    public const string InvalidSecurityConfiguration = "PKNET020";
+
+    /// <summary>A security package does not match the exact reviewed selection.</summary>
+    public const string SecurityPackageMismatch = "PKNET021";
+
+    /// <summary>Runtime authorization and OpenAPI security declarations disagree.</summary>
+    public const string SecurityOpenApiMismatch = "PKNET022";
+
+    /// <summary>Security material would be persisted or disclosed unsafely.</summary>
+    public const string UnsafeSecurityMaterial = "PKNET023";
 }

@@ -107,6 +107,7 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
                 : host.TransportFailures.Profile.Failures
                     .Select(static failure => failure.ProblemSchemaRevision)
                     .Prepend(host.TransportFailures.Profile.ProfileRevision))
+            .Concat(SecurityReferences(host))
             .DistinctBy(static reference => string.Concat(reference.Identity.Value, "@", reference.Version.Value, "#", reference.Digest.Value))
             .OrderBy(static reference => reference.Identity.Value, StringComparer.Ordinal)
             .ThenBy(static reference => reference.Version.Value, StringComparer.Ordinal)
@@ -149,6 +150,34 @@ public sealed class DotNetShellLockBuilder : IDotNetShellLockBuilder
             shell.InputVersionSelectionRevision,
             packages,
             packageDigest);
+    }
+
+    private static IEnumerable<ArtifactReference> SecurityReferences(
+        DotNetHostDefinition host)
+    {
+        if (host.Security is null)
+        {
+            yield break;
+        }
+
+        yield return host.Security.ProfileRevision;
+        foreach (var policy in host.Security.Policies)
+        {
+            yield return policy.PolicyRevision;
+        }
+
+        if (host.Security.OidcConfidentialInteractive is { } oidc)
+        {
+            yield return oidc.ProfileRevision;
+            yield return oidc.ClientAuthentication.Reference
+                .ResolverCapabilityRevision;
+            yield return oidc.ClientAuthentication.Reference.LocatorRevision;
+        }
+
+        if (host.Security.JwtResourceServer is { } jwt)
+        {
+            yield return jwt.ProfileRevision;
+        }
     }
 
     private static Sha256Digest HashPackages(ImmutableArray<DotNetPackageLock> packages)
