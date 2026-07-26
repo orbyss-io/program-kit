@@ -45,7 +45,7 @@ public sealed class KeycloakLocalFixtureGeneratorTests
         var changed = Definition() with
         {
             ConfidentialRedirectUri =
-                new Uri("https://127.0.0.1:5444/signin-oidc"),
+                new Uri("https://localhost:5444/signin-oidc"),
         };
 
         Assert.AreNotEqual(
@@ -116,6 +116,9 @@ public sealed class KeycloakLocalFixtureGeneratorTests
         var result = generator.Generate(Definition());
         var project = Text(result, "KeycloakFixture/AppHost/AppHost.csproj");
         var program = Text(result, "KeycloakFixture/AppHost/Program.cs");
+        var tls = Text(
+            result,
+            "KeycloakFixture/AppHost/ProgramKitFixtureTls.cs");
         var lockText = Text(
             result,
             "KeycloakFixture/keycloak-fixture.lock.json");
@@ -130,14 +133,27 @@ public sealed class KeycloakLocalFixtureGeneratorTests
             ".WithImageSHA256(\"0f198be292568439d700cdbfb893e69a6009bb43a94a06a945b1d3d506c76b13\")",
             program);
         Assert.Contains(".WithRealmImport(\"../Realm\")", program);
+        Assert.Contains(".WithEndpoint(\"http\", endpoint =>", program);
+        Assert.Contains("endpoint.UriScheme = \"https\";", program);
+        Assert.Contains("endpoint.TargetPort = 8443;", program);
+        Assert.Contains("KC_HTTP_ENABLED", program);
+        Assert.Contains("\"false\"", program);
+        Assert.Contains("KC_HTTPS_CERTIFICATE_FILE", program);
+        Assert.Contains("KC_HTTPS_CERTIFICATE_KEY_FILE", program);
+        Assert.Contains(
+            ".WithBindMount(fixtureTls.ServerCertificatePath",
+            program);
+        Assert.Contains(
+            ".WithBindMount(fixtureTls.ServerPrivateKeyPath",
+            program);
         Assert.Contains(
             ".WithHttpEndpoint(port: 5444, targetPort: 9000, name: \"management\")",
             program);
         Assert.Contains("ContainerLifetime.Session", program);
         Assert.DoesNotContain("UseEphemeralDataProtectionProvider", program);
-        Assert.DoesNotContain("WithDataVolume", program);
-        Assert.Contains(
-            "\"ASPIRE_DCP_USE_DEVELOPER_CERTIFICATE\": \"true\"",
+        Assert.DoesNotContain(string.Concat("WithData", "Volume"), program);
+        Assert.DoesNotContain(
+            string.Concat("ASPIRE_DCP_USE_", "DEVELOPER_CERTIFICATE"),
             launchSettings);
         Assert.Contains(
             "\"ASPIRE_VERSION_CHECK_DISABLED\": \"true\"",
@@ -146,27 +162,57 @@ public sealed class KeycloakLocalFixtureGeneratorTests
             "\"ASPIRE_DASHBOARD_TELEMETRY_OPTOUT\": \"true\"",
             launchSettings);
         Assert.Contains(
-            "\"ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL\": \"https://localhost:5457\"",
+            "\"ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL\": \"http://localhost:5457\"",
             launchSettings);
+        Assert.Contains(
+            "X509BasicConstraintsExtension(",
+            tls);
+        Assert.Contains(
+            "X509EnhancedKeyUsageExtension(",
+            tls);
+        Assert.Contains(
+            "SubjectAlternativeNameBuilder",
+            tls);
+        Assert.Contains(
+            "serverKey.ExportSubjectPublicKeyInfo()",
+            tls);
+        Assert.Contains("chromiumSpkiList", tls);
+        Assert.Contains("File.SetUnixFileMode(", tls);
+        Assert.DoesNotContain(string.Concat("X509", "Store"), tls);
+        Assert.DoesNotContain(string.Concat("Ignore", "HTTPSErrors"), tls);
+        Assert.DoesNotContain(string.Concat("Dangerous", "AcceptAny"), tls);
+        Assert.DoesNotContain(string.Concat("net", "sh"), tls);
+        Assert.Contains("\"lockVersion\": \"2.0.0\"", lockText);
+        Assert.Contains("\"providerHttpEnabled\": false", lockText);
+        Assert.Contains("\"dotNetTrustMode\": \"dotnet-custom-root-trust\"", lockText);
+        Assert.Contains(
+            "\"chromiumTrustMode\": \"chromium-server-spki-list\"",
+            lockText);
         Assert.Contains("\"executionAuthorized\": false", lockText);
         Assert.Contains("\"productionProvisioning\": false", lockText);
         Assert.Contains("\"persistentState\": false", lockText);
     }
 
     [TestMethod]
-    public void GeneratedRealmPassesBoundedSchemaAndSecretMutationFails()
+    public void GeneratedRealmAndProfilePassBoundedSchemasAndMutationsFail()
     {
         KeycloakLocalFixtureGenerator generator = new();
         var result = generator.Generate(Definition());
         var realm = result.Outputs.Single(output =>
             output.RelativePath ==
             "KeycloakFixture/Realm/program-kit-realm.json").Content.ToArray();
+        var profile = result.Outputs.Single(output =>
+            output.RelativePath ==
+            "KeycloakFixture/keycloak-fixture.profile.json").Content.ToArray();
         DotNetSchemaModule module = new(
             new OperationsSchemaModule(),
             new SecretResolutionSchemaModule());
         var schema = module.Resources.Single(resource =>
             resource.SchemaReference.Identity.Name ==
             "dotnet-keycloak-local-realm-import");
+        var profileSchema = module.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Name ==
+            "dotnet-keycloak-local-fixture-profile");
         ProgramKitJsonCanonicalizer canonicalizer = new();
         JsonSchemaWorkbenchValidator validator = new(
             canonicalizer,
@@ -189,6 +235,22 @@ public sealed class KeycloakLocalFixtureGeneratorTests
             module,
             schema.SchemaReference,
             limits);
+        var validProfile = validator.Validate(
+            profile,
+            module,
+            profileSchema.SchemaReference,
+            limits);
+        var httpProfile = Encoding.UTF8.GetBytes(
+            Encoding.UTF8.GetString(profile)
+                .Replace(
+                    "https://localhost:5443",
+                    "http://localhost:5443",
+                    StringComparison.Ordinal));
+        var invalidProfile = validator.Validate(
+            httpProfile,
+            module,
+            profileSchema.SchemaReference,
+            limits);
 
         Assert.IsTrue(
             valid.IsValid,
@@ -196,6 +258,13 @@ public sealed class KeycloakLocalFixtureGeneratorTests
                 Environment.NewLine,
                 valid.Diagnostics.Select(static diagnostic => diagnostic.Message)));
         Assert.IsFalse(invalid.IsValid);
+        Assert.IsTrue(
+            validProfile.IsValid,
+            string.Join(
+                Environment.NewLine,
+                validProfile.Diagnostics.Select(
+                    static diagnostic => diagnostic.Message)));
+        Assert.IsFalse(invalidProfile.IsValid);
     }
 
     [TestMethod]
@@ -203,7 +272,27 @@ public sealed class KeycloakLocalFixtureGeneratorTests
     {
         var invalid = Definition() with
         {
-            Authority = new Uri("http://127.0.0.1:5443/realms/program-kit"),
+            Authority = new Uri("http://localhost:5443/realms/program-kit"),
+        };
+
+        KeycloakLocalFixtureGenerator generator = new();
+        var exception = Assert.ThrowsExactly<DotNetKitException>(
+            () => generator.Generate(invalid));
+
+        Assert.AreEqual(
+            DotNetDiagnosticIds.UnsupportedKeycloakFixtureProfile,
+            exception.DiagnosticId);
+    }
+
+    [TestMethod]
+    public void AlternateLoopbackHostnameFailsExactTlsProfile()
+    {
+        var invalid = Definition() with
+        {
+            Authority = new Uri(
+                "https://127.0.0.1:5443/realms/program-kit"),
+            MetadataAddress = new Uri(
+                "https://127.0.0.1:5443/realms/program-kit/.well-known/openid-configuration"),
         };
 
         KeycloakLocalFixtureGenerator generator = new();
@@ -244,17 +333,17 @@ public sealed class KeycloakLocalFixtureGeneratorTests
             new ProgramKitIdentifier("pkid:fixture:program-kit:keycloak-local"),
             new SemanticVersion("1.0.0"),
             "program-kit",
-            new Uri("https://127.0.0.1:5443/realms/program-kit"),
+            new Uri("https://localhost:5443/realms/program-kit"),
             new Uri(
-                "https://127.0.0.1:5443/realms/program-kit/.well-known/openid-configuration"),
+                "https://localhost:5443/realms/program-kit/.well-known/openid-configuration"),
             "program-kit-api",
             "program-kit.api",
             "program-kit-public",
-            new Uri("https://127.0.0.1:7443/authentication/login-callback"),
-            new Uri("https://127.0.0.1:7443/authentication/logout-callback"),
-            new Uri("https://127.0.0.1:7443/"),
+            new Uri("https://localhost:7443/authentication/login-callback"),
+            new Uri("https://localhost:7443/authentication/logout-callback"),
+            new Uri("https://localhost:7443/"),
             "program-kit-confidential",
-            new Uri("https://127.0.0.1:8443/signin-oidc"),
+            new Uri("https://localhost:8443/signin-oidc"),
             "program-kit-service",
             "program-kit-exchange",
             "fixture-principal",

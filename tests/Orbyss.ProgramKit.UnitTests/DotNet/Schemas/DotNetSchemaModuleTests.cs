@@ -30,7 +30,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(35, module.Resources);
+        Assert.HasCount(36, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);

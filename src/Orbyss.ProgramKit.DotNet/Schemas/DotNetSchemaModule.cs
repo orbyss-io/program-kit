@@ -6,7 +6,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("11.1.0");
+    private static readonly SemanticVersion CatalogVersion = new("11.2.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -207,9 +207,21 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                     new SemanticVersion("1.3.0"),
                     new Sha256Digest(
                         "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:host-tooling-keycloak-tls-proof"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:094459fa8813d04f3ab0f97764770d80564657d27be04762c78e6a726d9d6a11")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:host-tooling-keycloak-tls-proof"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:a7aae926ae5916f2ccdbda28a2dc70dfc008e43236718c3a5ed1ee644831c39a")),
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
-            "pkht-w100-approved-review-set-1-3-0");
+            "pkkc-w010-approved-correction-1-0-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -357,6 +369,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "keycloak-local-realm-import-1.0.0.schema.json",
             "https://schemas.orbyss.io/program-kit/dotnet/keycloak-local-realm-import/1.0.0/schema.json",
             "2a13f360095c8ba8859fd3ebc3c9d2092dda68f6775ad332960ee1cd4567e024",
+            SchemaVersionV1,
+            KeycloakFixtureProvenance),
+        Create(
+            "dotnet-keycloak-local-fixture-profile",
+            "keycloak-local-fixture-profile-1.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/keycloak-local-fixture-profile/1.0.0/schema.json",
+            "15d77ff5f65b33e313f150e8acb000be88079e6774e97928b745bb3cab70c35d",
             SchemaVersionV1,
             KeycloakFixtureProvenance),
         Create(

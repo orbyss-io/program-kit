@@ -26,4 +26,24 @@ public static class KeycloakLocalFixtureCatalog
     public const string KeycloakSourceCommit =
         "6c73e3027811d9c7b22683edd825e839272e9547";
 
+    /// <summary>Exact runtime-only TLS profile used by the fixture.</summary>
+    public static KeycloakLocalFixtureTlsProfile TlsProfile { get; } =
+        new(
+            new ProgramKitIdentifier(
+                "pkid:profile:program-kit:keycloak-fixture-tls"),
+            new SemanticVersion("1.0.0"),
+            "localhost",
+            8443,
+            "RSA-SHA256",
+            3072,
+            3072,
+            5,
+            24,
+            8,
+            "1.3.6.1.5.5.7.3.1",
+            "PROGRAM_KIT_KEYCLOAK_RUNTIME_ROOT",
+            "/opt/keycloak/conf/program-kit-server-certificate.pem",
+            "/opt/keycloak/conf/program-kit-server-private-key.pem",
+            "dotnet-custom-root-trust",
+            "chromium-server-spki-list");
 }

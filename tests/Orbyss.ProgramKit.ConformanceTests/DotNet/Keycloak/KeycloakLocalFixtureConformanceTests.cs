@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Security;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -82,6 +84,84 @@ public sealed class KeycloakLocalFixtureConformanceTests
             if (Directory.Exists(root))
             {
                 Directory.Delete(root, true);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task GeneratedTlsSourcesCreateExactTrustAndCleanOwnedState()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            string.Concat(
+                "program-kit-keycloak-crypto-",
+                Guid.NewGuid().ToString("N")));
+        Directory.CreateDirectory(root);
+        try
+        {
+            KeycloakLocalFixtureGenerator generator = new();
+            var generated = generator.Generate(Definition());
+            foreach (var relativePath in new[]
+                     {
+                         "KeycloakFixture/AppHost/ProgramKitFixtureTls.cs",
+                         "KeycloakFixture/AppHost/ProgramKitFixtureTrust.cs",
+                         "KeycloakFixture/AppHost/global.json",
+                     })
+            {
+                var output = generated.Outputs.Single(candidate =>
+                    candidate.RelativePath == relativePath);
+                await File.WriteAllBytesAsync(
+                    Path.Combine(root, Path.GetFileName(relativePath)),
+                    output.Content.ToArray(),
+                    TestContext.CancellationToken);
+            }
+
+            await File.WriteAllTextAsync(
+                Path.Combine(root, "Probe.csproj"),
+                TlsProbeProject,
+                TestContext.CancellationToken);
+            await File.WriteAllTextAsync(
+                Path.Combine(root, "Program.cs"),
+                TlsProbeProgram,
+                TestContext.CancellationToken);
+            await File.WriteAllTextAsync(
+                Path.Combine(root, "NuGet.Config"),
+                NuGetConfiguration,
+                TestContext.CancellationToken);
+
+            var restore = await RunDotNetAsync(
+                root,
+                TestContext.CancellationToken,
+                "restore",
+                "Probe.csproj",
+                "--configfile",
+                "NuGet.Config",
+                "--force-evaluate",
+                "-p:NuGetAudit=false",
+                "--verbosity",
+                "minimal");
+            Assert.AreEqual(0, restore.ExitCode, restore.Output);
+            var run = await RunDotNetAsync(
+                root,
+                TestContext.CancellationToken,
+                "run",
+                "--project",
+                "Probe.csproj",
+                "--no-restore",
+                "--configuration",
+                "Release",
+                "--",
+                root);
+            Assert.AreEqual(0, run.ExitCode, run.Output);
+            Assert.IsFalse(Directory.Exists(Path.Combine(root, "tls")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                await DeleteDirectoryWithRetryAsync(
+                    root,
+                    CancellationToken.None);
             }
         }
     }
@@ -175,7 +255,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
         var root = Path.Combine(
             fixtureBase,
             string.Concat(
-                "pkkc-",
+                "program-kit-keycloak-",
                 Guid.NewGuid().ToString("N")[..8]));
         Directory.CreateDirectory(root);
         Process? appHost = null;
@@ -217,6 +297,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
 
             var startInfo = AppHostStartInfo(
                 appHostDirectory,
+                root,
                 secrets);
             appHost = Process.Start(startInfo) ??
                 throw new InvalidOperationException(
@@ -226,13 +307,15 @@ public sealed class KeycloakLocalFixtureConformanceTests
             standardError = appHost.StandardError.ReadToEndAsync(
                 TestContext.CancellationToken);
 
-            using var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    static (request, certificate, _, _) =>
-                        request.RequestUri is { IsLoopback: true } &&
-                        certificate is not null,
-            };
+            var trust = await WaitForExactTrustAsync(
+                root,
+                appHost,
+                standardOutput,
+                standardError,
+                secrets,
+                TestContext.CancellationToken);
+            using var handler = CreateExactTrustHandler(
+                trust.AuthorityCertificatePath);
             using HttpClient client = new(handler)
             {
                 Timeout = TimeSpan.FromSeconds(10),
@@ -286,6 +369,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 Definition().PublicClientId,
                 Definition().PublicRedirectUri,
                 null,
+                trust.ChromiumSpkiList,
                 secrets,
                 TestContext.CancellationToken);
             await RunBrowserCodeFlowAsync(
@@ -295,6 +379,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 Definition().ConfidentialClientId,
                 Definition().ConfidentialRedirectUri,
                 secrets.ConfidentialClientSecret,
+                trust.ChromiumSpkiList,
                 secrets,
                 TestContext.CancellationToken);
         }
@@ -334,17 +419,17 @@ public sealed class KeycloakLocalFixtureConformanceTests
             new ProgramKitIdentifier("pkid:fixture:program-kit:keycloak-local"),
             new SemanticVersion("1.0.0"),
             "program-kit",
-            new Uri("https://127.0.0.1:5443/realms/program-kit"),
+            new Uri("https://localhost:5443/realms/program-kit"),
             new Uri(
-                "https://127.0.0.1:5443/realms/program-kit/.well-known/openid-configuration"),
+                "https://localhost:5443/realms/program-kit/.well-known/openid-configuration"),
             "program-kit-api",
             "program-kit.api",
             "program-kit-public",
-            new Uri("https://127.0.0.1:7443/authentication/login-callback"),
-            new Uri("https://127.0.0.1:7443/authentication/logout-callback"),
-            new Uri("https://127.0.0.1:7443/"),
+            new Uri("https://localhost:7443/authentication/login-callback"),
+            new Uri("https://localhost:7443/authentication/logout-callback"),
+            new Uri("https://localhost:7443/"),
             "program-kit-confidential",
-            new Uri("https://127.0.0.1:8443/signin-oidc"),
+            new Uri("https://localhost:8443/signin-oidc"),
             "program-kit-service",
             "program-kit-exchange",
             "fixture-principal",
@@ -424,6 +509,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
 
     private static ProcessStartInfo AppHostStartInfo(
         string workingDirectory,
+        string runtimeRoot,
         KeycloakFixtureRuntimeSecrets secrets)
     {
         ProcessStartInfo startInfo = new("dotnet")
@@ -445,6 +531,9 @@ public sealed class KeycloakLocalFixtureConformanceTests
         startInfo.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
         startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         startInfo.Environment["DOTNET_NOLOGO"] = "1";
+        startInfo.Environment[
+            KeycloakLocalFixtureCatalog.TlsProfile
+                .RuntimeRootEnvironmentVariable] = runtimeRoot;
         startInfo.Environment["Parameters__keycloak-admin-username"] =
             "fixture-admin";
         startInfo.Environment["Parameters__keycloak-admin-password"] =
@@ -542,6 +631,111 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 Sanitize(await standardOutput, secrets),
                 Environment.NewLine,
                 Sanitize(await standardError, secrets)));
+    }
+
+    private static async Task<KeycloakFixtureTrust> WaitForExactTrustAsync(
+        string runtimeRoot,
+        Process appHost,
+        Task<string> standardOutput,
+        Task<string> standardError,
+        KeycloakFixtureRuntimeSecrets secrets,
+        CancellationToken cancellationToken)
+    {
+        var descriptorPath = Path.Combine(
+            runtimeRoot,
+            "tls",
+            "trust.runtime.json");
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+        while (!File.Exists(descriptorPath))
+        {
+            if (appHost.HasExited)
+            {
+                throw new InvalidOperationException(
+                    string.Concat(
+                        "The disposable Aspire AppHost exited before exact fixture trust became available.",
+                        Environment.NewLine,
+                        Sanitize(await standardOutput, secrets),
+                        Environment.NewLine,
+                        Sanitize(await standardError, secrets)));
+            }
+
+            if (DateTimeOffset.UtcNow >= deadline)
+            {
+                throw new TimeoutException(
+                    "The exact ephemeral fixture trust descriptor was not created.");
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+        }
+
+        using var descriptor = JsonDocument.Parse(
+            await File.ReadAllTextAsync(descriptorPath, cancellationToken));
+        var root = descriptor.RootElement;
+        Assert.AreEqual(
+            string.Concat(
+                KeycloakLocalFixtureCatalog.TlsProfile.Identity.Value,
+                "@",
+                KeycloakLocalFixtureCatalog.TlsProfile.Version.Value),
+            root.GetProperty("profile").GetString());
+        Assert.AreEqual(
+            KeycloakLocalFixtureCatalog.TlsProfile.DotNetTrustMode,
+            root.GetProperty("dotNetTrust").GetString());
+        Assert.AreEqual(
+            KeycloakLocalFixtureCatalog.TlsProfile.ChromiumTrustMode,
+            root.GetProperty("chromiumTrust").GetString());
+        var relativeAuthorityPath =
+            root.GetProperty("authorityCertificate").GetString() ??
+            throw new InvalidOperationException(
+                "The exact authority certificate path is missing.");
+        Assert.AreEqual(
+            "tls/authority-certificate.pem",
+            relativeAuthorityPath);
+        var authorityCertificatePath = Path.GetFullPath(
+            Path.Combine(
+                runtimeRoot,
+                relativeAuthorityPath.Replace(
+                    '/',
+                    Path.DirectorySeparatorChar)));
+        Assert.IsTrue(
+            authorityCertificatePath.StartsWith(
+                string.Concat(
+                    Path.GetFullPath(runtimeRoot).TrimEnd(
+                        Path.DirectorySeparatorChar),
+                    Path.DirectorySeparatorChar),
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal));
+        var chromiumSpkiList =
+            root.GetProperty("chromiumSpkiList").GetString() ??
+            throw new InvalidOperationException(
+                "The exact Chromium SPKI list is missing.");
+        Assert.HasCount(
+            32,
+            Convert.FromBase64String(chromiumSpkiList));
+        return new KeycloakFixtureTrust(
+            authorityCertificatePath,
+            chromiumSpkiList);
+    }
+
+    private static SocketsHttpHandler CreateExactTrustHandler(
+        string authorityCertificatePath)
+    {
+        var authority = X509CertificateLoader.LoadCertificateFromFile(
+            authorityCertificatePath);
+        X509ChainPolicy policy = new()
+        {
+            TrustMode = X509ChainTrustMode.CustomRootTrust,
+            RevocationMode = X509RevocationMode.NoCheck,
+            VerificationFlags = X509VerificationFlags.NoFlag,
+        };
+        policy.CustomTrustStore.Add(authority);
+        return new SocketsHttpHandler
+        {
+            SslOptions = new SslClientAuthenticationOptions
+            {
+                CertificateChainPolicy = policy,
+            },
+        };
     }
 
     private static async Task DeleteDirectoryWithRetryAsync(
@@ -693,6 +887,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
         string clientId,
         Uri redirectUri,
         string? clientSecret,
+        string chromiumSpkiList,
         KeycloakFixtureRuntimeSecrets secrets,
         CancellationToken cancellationToken)
     {
@@ -726,11 +921,16 @@ public sealed class KeycloakLocalFixtureConformanceTests
             new BrowserTypeLaunchOptions
             {
                 Headless = true,
+                Args =
+                [
+                    string.Concat(
+                        "--ignore-certificate-errors-spki-list=",
+                        chromiumSpkiList),
+                ],
             });
         await using var context = await browser.NewContextAsync(
             new BrowserNewContextOptions
             {
-                IgnoreHTTPSErrors = true,
                 RecordHarPath = null,
                 RecordVideoDir = null,
             });
@@ -1011,6 +1211,222 @@ public sealed class KeycloakLocalFixtureConformanceTests
             RegexOptions.CultureInvariant,
             TimeSpan.FromSeconds(1));
     }
+
+    private const string TlsProbeProject =
+        """
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup>
+            <OutputType>Exe</OutputType>
+            <TargetFramework>net10.0</TargetFramework>
+            <Nullable>enable</Nullable>
+            <ImplicitUsings>enable</ImplicitUsings>
+            <LangVersion>14.0</LangVersion>
+            <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+            <EnableNETAnalyzers>true</EnableNETAnalyzers>
+            <AnalysisLevel>latest-all</AnalysisLevel>
+          </PropertyGroup>
+        </Project>
+        """;
+
+    private const string TlsProbeProgram =
+        """
+        var runtimeRoot = args.Single();
+        using var cancelled = new global::System.Threading.CancellationTokenSource();
+        await cancelled.CancelAsync().ConfigureAwait(false);
+        try
+        {
+            _ = await global::ProgramKitFixtureTls.CreateAsync(
+                runtimeRoot,
+                cancelled.Token).ConfigureAwait(false);
+            throw new global::System.InvalidOperationException(
+                "Cancelled creation unexpectedly succeeded.");
+        }
+        catch (global::System.OperationCanceledException)
+        {
+        }
+
+        if (global::System.IO.Directory.Exists(
+                global::System.IO.Path.Combine(runtimeRoot, "tls")))
+        {
+            throw new global::System.InvalidOperationException(
+                "Cancelled creation retained owned TLS state.");
+        }
+
+        var fixture = await global::ProgramKitFixtureTls.CreateAsync(
+            runtimeRoot,
+            global::System.Threading.CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            using var authority =
+                global::System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificateFromFile(
+                    fixture.AuthorityCertificatePath);
+            using var server =
+                global::System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificateFromFile(
+                    fixture.ServerCertificatePath);
+            var authorityConstraints = authority.Extensions
+                .OfType<global::System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension>()
+                .Single();
+            if (!authorityConstraints.CertificateAuthority ||
+                !authorityConstraints.HasPathLengthConstraint ||
+                authorityConstraints.PathLengthConstraint != 0)
+            {
+                throw new global::System.InvalidOperationException(
+                    "The fixture authority constraints differ.");
+            }
+
+            using var authorityKey =
+                global::System.Security.Cryptography.X509Certificates.RSACertificateExtensions.GetRSAPublicKey(
+                    authority);
+            using var serverKey =
+                global::System.Security.Cryptography.X509Certificates.RSACertificateExtensions.GetRSAPublicKey(
+                    server);
+            if (authorityKey?.KeySize != 3072 ||
+                serverKey?.KeySize != 3072 ||
+                server.HasPrivateKey)
+            {
+                throw new global::System.InvalidOperationException(
+                    "The fixture public certificate key profile differs.");
+            }
+
+            var authorityUsage = authority.Extensions
+                .OfType<global::System.Security.Cryptography.X509Certificates.X509KeyUsageExtension>()
+                .Single()
+                .KeyUsages;
+            if (!authorityUsage.HasFlag(
+                    global::System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign) ||
+                !authorityUsage.HasFlag(
+                    global::System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.CrlSign))
+            {
+                throw new global::System.InvalidOperationException(
+                    "The fixture authority key usage differs.");
+            }
+
+            var serverUsage = server.Extensions
+                .OfType<global::System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension>()
+                .Single()
+                .EnhancedKeyUsages
+                .Cast<global::System.Security.Cryptography.Oid>()
+                .Select(static usage => usage.Value)
+                .ToArray();
+            if (!serverUsage.Contains(
+                    "1.3.6.1.5.5.7.3.1",
+                    global::System.StringComparer.Ordinal) ||
+                !string.Equals(
+                    server.GetNameInfo(
+                        global::System.Security.Cryptography.X509Certificates.X509NameType.DnsName,
+                        forIssuer: false),
+                    "localhost",
+                    global::System.StringComparison.Ordinal) ||
+                server.NotAfter.ToUniversalTime() >
+                    server.NotBefore.ToUniversalTime().AddHours(8).AddMinutes(1) ||
+                authority.NotAfter.ToUniversalTime() >
+                    authority.NotBefore.ToUniversalTime().AddHours(24).AddMinutes(1))
+            {
+                throw new global::System.InvalidOperationException(
+                    "The fixture server identity or validity profile differs.");
+            }
+
+            using var chain =
+                new global::System.Security.Cryptography.X509Certificates.X509Chain();
+            chain.ChainPolicy.TrustMode =
+                global::System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust;
+            chain.ChainPolicy.RevocationMode =
+                global::System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck;
+            chain.ChainPolicy.VerificationFlags =
+                global::System.Security.Cryptography.X509Certificates.X509VerificationFlags.NoFlag;
+            chain.ChainPolicy.ApplicationPolicy.Add(
+                new global::System.Security.Cryptography.Oid(
+                    "1.3.6.1.5.5.7.3.1",
+                    "TLS Web Server Authentication"));
+            chain.ChainPolicy.CustomTrustStore.Add(authority);
+            if (!chain.Build(server))
+            {
+                throw new global::System.InvalidOperationException(
+                    "The exact custom-root chain did not validate.");
+            }
+
+            using var substitutedKey =
+                global::System.Security.Cryptography.RSA.Create(3072);
+            var substitutedRequest =
+                new global::System.Security.Cryptography.X509Certificates.CertificateRequest(
+                    "CN=localhost",
+                    substitutedKey,
+                    global::System.Security.Cryptography.HashAlgorithmName.SHA256,
+                    global::System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+            substitutedRequest.CertificateExtensions.Add(
+                new global::System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(
+                    certificateAuthority: false,
+                    hasPathLengthConstraint: false,
+                    pathLengthConstraint: 0,
+                    critical: true));
+            using var substituted = substitutedRequest.CreateSelfSigned(
+                global::System.DateTimeOffset.UtcNow.AddMinutes(-1),
+                global::System.DateTimeOffset.UtcNow.AddMinutes(10));
+            using var substitutedChain =
+                new global::System.Security.Cryptography.X509Certificates.X509Chain();
+            substitutedChain.ChainPolicy.TrustMode =
+                global::System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust;
+            substitutedChain.ChainPolicy.RevocationMode =
+                global::System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck;
+            substitutedChain.ChainPolicy.CustomTrustStore.Add(authority);
+            if (substitutedChain.Build(substituted))
+            {
+                throw new global::System.InvalidOperationException(
+                    "A substituted self-signed server certificate was accepted.");
+            }
+
+            var expectedSpki = global::System.Convert.ToBase64String(
+                global::System.Security.Cryptography.SHA256.HashData(
+                    serverKey.ExportSubjectPublicKeyInfo()));
+            var actualSpki =
+                global::ProgramKitFixtureTrust.ReadChromiumSpkiList(runtimeRoot);
+            if (!string.Equals(
+                    expectedSpki,
+                    actualSpki,
+                    global::System.StringComparison.Ordinal))
+            {
+                throw new global::System.InvalidOperationException(
+                    "The exact Chromium SPKI binding differs.");
+            }
+
+            using var handler =
+                global::ProgramKitFixtureTrust.CreateHttpHandler(runtimeRoot);
+            if (handler.SslOptions.CertificateChainPolicy?.TrustMode !=
+                    global::System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust ||
+                handler.SslOptions.CertificateChainPolicy.CustomTrustStore.Count != 1)
+            {
+                throw new global::System.InvalidOperationException(
+                    "The exact .NET custom-root trust policy differs.");
+            }
+
+            try
+            {
+                _ = await global::ProgramKitFixtureTls.CreateAsync(
+                    runtimeRoot,
+                    global::System.Threading.CancellationToken.None).ConfigureAwait(false);
+                throw new global::System.InvalidOperationException(
+                    "An existing TLS directory was reused.");
+            }
+            catch (global::System.InvalidOperationException exception)
+                when (exception.Message.Contains(
+                    "already exists",
+                    global::System.StringComparison.Ordinal))
+            {
+            }
+        }
+        finally
+        {
+            await fixture.DisposeAsync().ConfigureAwait(false);
+        }
+
+        if (global::System.IO.Directory.Exists(
+                global::System.IO.Path.Combine(runtimeRoot, "tls")))
+        {
+            throw new global::System.InvalidOperationException(
+                "Bounded disposal retained owned TLS state.");
+        }
+
+        """;
 
     private static async Task WaitForOwnedContainersToStopAsync(
         ImmutableHashSet<string> baseline,
