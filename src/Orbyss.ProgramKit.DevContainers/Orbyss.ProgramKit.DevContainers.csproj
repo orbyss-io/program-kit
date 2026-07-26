@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.DevContainers</PackageId>
+    <Description>Deterministic, non-executing Dev Container artifact generation and validation for Orbyss Program Kit.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Orbyss.ProgramKit.Artifacts.Compatibility" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Diagnostics" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Envelopes" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Primitives" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.References" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Schemas" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Validation" />
+    <Using Include="System.Collections.Immutable" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <EmbeddedResource Include="..\..\schemas\dev-containers\dev-container-base-validation-1.0.0.schema.json"
+                      LogicalName="Orbyss.ProgramKit.DevContainers.Schemas.dev-container-base-validation.schema.json" />
+    <None Include="..\..\schemas\dev-containers\dev-container-base-validation-1.0.0.schema.json"
+          Pack="true"
+          PackagePath="schemas/dev-containers/" />
+    <EmbeddedResource Include="..\..\schemas\dev-containers\vendor\devcontainers\devContainer.base.schema.json"
+                      LogicalName="Orbyss.ProgramKit.DevContainers.Schemas.Vendor.devContainer.base.schema.json" />
+    <None Include="..\..\schemas\dev-containers\vendor\devcontainers\devContainer.base.schema.json"
+          Pack="true"
+          PackagePath="schemas/dev-containers/vendor/devcontainers/" />
+    <None Include="..\..\schemas\dev-containers\vendor\devcontainers\LICENSE-CODE.txt"
+          Pack="true"
+          PackagePath="schemas/dev-containers/vendor/devcontainers/" />
+    <EmbeddedResource Include="Evidence\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.DevContainers.Evidence.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="Evidence\**\*.json"
+          Pack="true"
+          PackagePath="evidence/dev-containers/%(RecursiveDir)" />
+  </ItemGroup>
+</Project>

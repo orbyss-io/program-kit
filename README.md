@@ -21,6 +21,7 @@ Start with:
 - [Observatory Scheduling fixture](fixtures/observatory-scheduling/README.md)
 - [CLI commands](src/Orbyss.ProgramKit.CommandLine/README.md)
 - [.NET generation contracts, including Aspire AppHost](src/Orbyss.ProgramKit.DotNet/README.md)
+- [Deterministic Dev Container generation](src/Orbyss.ProgramKit.DevContainers/README.md)
 - [Historical bootstrap authority](bootstrap/README.md)
 
 The exact bootstrap design, plan, and separate approval record remain preserved

@@ -530,6 +530,12 @@
           "Microsoft.Extensions.Options.DataAnnotations": "[10.0.10, 10.0.10]"
         }
       },
+      "orbyss.programkit.devcontainers": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.development": {
         "type": "Project",
         "dependencies": {

@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityConsumer", "tests\O
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicBrowserVerification", "tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\PublicBrowserVerification\PublicBrowserVerification.csproj", "{B20E6C72-BA8E-4F5E-ABC2-6C5A7B59C8C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.DevContainers", "src\Orbyss.ProgramKit.DevContainers\Orbyss.ProgramKit.DevContainers.csproj", "{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -513,6 +515,18 @@ Global
 		{B20E6C72-BA8E-4F5E-ABC2-6C5A7B59C8C2}.Release|x64.Build.0 = Release|Any CPU
 		{B20E6C72-BA8E-4F5E-ABC2-6C5A7B59C8C2}.Release|x86.ActiveCfg = Release|Any CPU
 		{B20E6C72-BA8E-4F5E-ABC2-6C5A7B59C8C2}.Release|x86.Build.0 = Release|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Debug|x64.Build.0 = Debug|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Debug|x86.Build.0 = Debug|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Release|x64.ActiveCfg = Release|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Release|x64.Build.0 = Release|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Release|x86.ActiveCfg = Release|Any CPU
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -541,5 +555,6 @@ Global
 		{9145EC15-FD2C-1C37-5E44-FDF59E612B58} = {D3025811-0619-8EE6-B11E-84D3CFD1686D}
 		{676B0521-C9A6-4356-AD65-926F9EA4E383} = {9145EC15-FD2C-1C37-5E44-FDF59E612B58}
 		{B20E6C72-BA8E-4F5E-ABC2-6C5A7B59C8C2} = {9145EC15-FD2C-1C37-5E44-FDF59E612B58}
+		{0B2AC419-5D73-44C4-BBAD-A5CBAF7BDEE7} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

@@ -109,7 +109,12 @@ public sealed class SchemaModelConformanceTests
     [TestMethod]
     public void DurableRootModelsMatchTheirCanonicalSchemaPropertyNames()
     {
-        var schemaFiles = ConformanceInputs.Files("Schemas", "*.schema.json");
+        var schemaFiles = ConformanceInputs
+            .Files("Schemas", "*.schema.json")
+            .Where(file => !Normalize(file).Contains(
+                "/dev-containers/",
+                StringComparison.Ordinal))
+            .ToArray();
         var schemasById = schemaFiles.ToDictionary(
             file => ReadStringAtPath(File.ReadAllBytes(file), ["$id"])
                 ?? throw new AssertFailedException($"{file} has no $id."),

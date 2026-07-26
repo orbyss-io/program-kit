@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DevContainers\Orbyss.ProgramKit.DevContainers.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CommandLine\Orbyss.ProgramKit.CommandLine.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity\Orbyss.ProgramKit.Modularity.csproj" />

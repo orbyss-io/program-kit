@@ -18,6 +18,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.CapabilityBundle",
         "Orbyss.ProgramKit.CommandLine",
         "Orbyss.ProgramKit.Development",
+        "Orbyss.ProgramKit.DevContainers",
         "Orbyss.ProgramKit.DotNet",
         "Orbyss.ProgramKit.Modularity",
         "Orbyss.ProgramKit.Modularity.InProcess",
@@ -70,7 +71,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W070");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W080");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -224,7 +225,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(34, projectLines);
+        Assert.HasCount(35, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -271,7 +272,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(20, projectFiles);
+        Assert.HasCount(21, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -311,7 +312,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(23, projectFiles);
+        Assert.HasCount(24, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -376,6 +377,8 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Quality"],
                 ["Orbyss.ProgramKit.Development"] =
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
+                ["Orbyss.ProgramKit.DevContainers"] =
+                ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.CommandLine"] =
                 [
                     "Orbyss.ProgramKit.DotNet",
@@ -437,6 +440,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Quality"] = [],
                 ["Orbyss.ProgramKit.Planning"] = [],
                 ["Orbyss.ProgramKit.Development"] = [],
+                ["Orbyss.ProgramKit.DevContainers"] = [],
                 ["Orbyss.ProgramKit.CommandLine"] = [],
                 ["Orbyss.ProgramKit.DotNet"] = [],
                 ["Orbyss.ProgramKit.Modularity"] = [],
@@ -743,9 +747,14 @@ public sealed class BuildSpineConformanceTests
     {
         var schemaFiles = ConformanceInputs
             .Files("Schemas", "*.schema.json")
-            .Where(schemaFile => !schemaFile
-                .Replace('\\', '/')
-                .Contains("/vendor/", StringComparison.Ordinal))
+            .Where(schemaFile =>
+            {
+                var normalized = schemaFile.Replace('\\', '/');
+                return !normalized.Contains("/vendor/", StringComparison.Ordinal)
+                    && !normalized.Contains(
+                        "/dev-containers/",
+                        StringComparison.Ordinal);
+            })
             .ToImmutableArray();
 
         Assert.IsGreaterThanOrEqualTo(5, schemaFiles.Length);

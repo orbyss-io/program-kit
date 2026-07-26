@@ -9,6 +9,7 @@ digraph ProgramKitDependencies {
   "CommandLine" -> "Workbench";
   "Development" -> "Artifacts";
   "Development" -> "Planning";
+  "DevContainers" -> "Artifacts";
   "DotNet" -> "Architecture";
   "DotNet" -> "Operations";
   "DotNet" -> "Planning";
