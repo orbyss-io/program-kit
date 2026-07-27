@@ -116,4 +116,7 @@ public static class DotNetDiagnosticIds
 
     /// <summary>The exact Open Console document revision is missing, stale, or mismatched.</summary>
     public const string InvalidOpenConsoleDocumentRevision = "PKNET038";
+
+    /// <summary>A .NET Console binding is incomplete, ambiguous, or inconsistent.</summary>
+    public const string InvalidConsoleBinding = "PKNET039";
 }

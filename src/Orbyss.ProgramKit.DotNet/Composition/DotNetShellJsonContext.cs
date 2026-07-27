@@ -4,6 +4,7 @@ using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Inputs;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -30,6 +31,7 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
 [JsonSerializable(typeof(DotNetFastEndpointsConfiguration))]
 [JsonSerializable(typeof(DotNetArtifactInputManifest))]
 [JsonSerializable(typeof(DotNetShellLockDocument))]
+[JsonSerializable(typeof(DotNetConsoleBindingDocument))]
 [JsonSerializable(typeof(DotNetConsoleCommandDispatchLockDocument))]
 [JsonSerializable(typeof(DotNetConsoleCommandDispatchEvidenceDocument))]
 [JsonSerializable(typeof(OpenApiDocumentProjection))]

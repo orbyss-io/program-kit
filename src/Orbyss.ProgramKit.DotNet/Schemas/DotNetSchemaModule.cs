@@ -6,7 +6,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("11.4.0");
+    private static readonly SemanticVersion CatalogVersion = new("11.5.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -240,6 +240,24 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkccd-w010-approved-review-set-1-0-0");
+    private static readonly ArtifactProvenance TypedConsoleProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:typed-console-host-generation"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:typed-console-host-generation"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pktch-w020-approved-review-set-1-0-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -417,6 +435,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "6a92aff0466f845c75d9eca4a6aa09a80981da09d329ab7594c7076aa5c710cf",
             SchemaVersionV1,
             ConsoleDispatchProvenance),
+        Create(
+            "dotnet-console-binding",
+            "dotnet-console-binding-1.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-binding/1.0.0/schema.json",
+            "d5db01326609f83b39dbc1275afbde67b43ac9664d3915a2cdbc300b06da47e9",
+            SchemaVersionV1,
+            TypedConsoleProvenance),
         Create(
             "open-worker",
             "open-worker.schema.json",

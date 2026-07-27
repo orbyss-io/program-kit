@@ -13,7 +13,7 @@ public static class DotNetJsonProfiles
                     "pkid:profile:program-kit:json-dotnet-shell"),
                 new SemanticVersion("2.0.0"),
                 new Sha256Digest(
-                    "sha256:c25bcbb1a5363f76207d58dcbee43f088c63beff730b156b5b5d37a1f5b031d2")),
+                    "sha256:eb4e5e4f8dc77f70f7d71ef2c4ee4deada69068b3bd8b6d14b0d57f3a69ff3a0")),
             ProgramKitJsonProfiles.CanonicalJsonRfc8785,
             JsonProfileExtensibility.None,
             new JsonSerializationRules(

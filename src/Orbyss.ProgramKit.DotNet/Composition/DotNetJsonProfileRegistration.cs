@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Configuration.Azure;
 using Orbyss.ProgramKit.DotNet.Health;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
 using Orbyss.ProgramKit.DotNet.Observability;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Operations.TransportFailures;
@@ -89,6 +90,9 @@ public sealed class DotNetJsonProfileRegistration : IDotNetJsonProfileRegistrati
             CreateEnumConverter<DotNetOAuthExchangeMode>(),
             CreateEnumConverter<OpenApiSecuritySchemeKind>(),
             CreateEnumConverter<ConsoleOptionKind>(),
+            CreateEnumConverter<DotNetConsoleReferenceNullability>(),
+            CreateEnumConverter<DotNetConsoleBindingSourceKind>(),
+            CreateEnumConverter<DotNetConsoleDefaultKind>(),
             CreateEnumConverter<OperationResultDisposition>(),
             CreateEnumConverter<OperationExpectedRevisionPolicy>(),
             CreateEnumConverter<OperationIdempotencyPolicy>(),
