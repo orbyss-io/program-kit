@@ -209,8 +209,53 @@ invocation remain separate human-authority transitions. The policy is not a
 permission grant, and derived MCP annotations are informational projections
 only.
 
+## Converged section 4: package and executable identity
+
+The human accepted this section without changes.
+
+The provider-neutral contracts, models, schemas, validation, canonical
+serialization, compatibility rules, and evidence extend the existing
+`Orbyss.ProgramKit.Development` package. A redundant core Development Tool
+package is not introduced.
+
+One new package owns the provider-neutral MCP stdio bridge:
+
+- package: `Orbyss.ProgramKit.DevelopmentTools.Mcp`;
+- executable: `program-kit-development-tools-mcp`.
+
+The bridge is the only Development Tool MCP runtime. Codex and Claude Code
+register and execute the same exact package and executable bytes. There is no
+Codex-specific or Claude-specific runtime adapter package or executable.
+
+Provider configuration writers and the explicit lifecycle are operations of
+the existing `program-kit` CLI:
+
+- `program-kit development-tools register --provider <provider>`;
+- `program-kit development-tools status --provider <provider>`;
+- `program-kit development-tools update --provider <provider>`;
+- `program-kit development-tools remove --provider <provider>`.
+
+Those writers own only translation between one exact provider-neutral
+registration and each provider's reviewed project configuration contract. They
+do not contain tool semantics or implement MCP.
+
+The exact provider-neutral identities are:
+
+- `pkid:contract:program-kit:development-tool@1.0.0`;
+- `pkid:schema:program-kit:development-tool-declaration@1.0.0`;
+- `pkid:schema:program-kit:development-tool-manifest@1.0.0`;
+- `pkid:schema:program-kit:development-tool-mapping-report@1.0.0`;
+- `pkid:schema:program-kit:development-tool-registration-lock@1.0.0`.
+
+Each consumer retains its own exact application package and executable
+identity. The generated Development Tool manifest binds those consumer bytes;
+ProgramKit does not rename or repackage the application as a provider adapter.
+The generated Console proof package and executable remain test-only acceptance
+artifacts and are not a user-facing ProgramKit capability.
+
 ## Next convergence question
 
-Converge the exact provider-neutral package, executable, manifest, operation,
-and registration identities, including how one provider-neutral MCP bridge is
-shared by the Codex and Claude Code registration integrations.
+Converge the explicit registration, trust, permission, collision, update, and
+removal lifecycle for both Codex and Claude Code, including the exact point at
+which the provider may start the neutral MCP bridge and the bridge may start a
+consumer executable.
