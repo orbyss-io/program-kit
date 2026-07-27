@@ -155,8 +155,62 @@ Development Tool declaration owns only the AI execution and access policy that
 Open Console does not currently express. Exact policy fields and their safe
 defaults remain the next convergence decision.
 
+## Converged section 3: structured invocation and fail-closed policy
+
+The human accepted this section without changes.
+
+ProgramKit mechanically derives one structured AI input schema for each
+selected operation from the exact Open Console command:
+
+- canonical positional-argument and option names become properties;
+- requiredness, scalar/array shape, value type, occurrence, default, and
+  dependency/conflict rules come from the existing argument and option
+  descriptors;
+- flags become booleans;
+- aliases remain Console-only alternate syntax and never become additional AI
+  properties;
+- the bridge maps a validated structured call to one canonical token array and
+  any explicitly declared standard input for the generated Console executable;
+- the operation is projectable only when its successful standard output is one
+  canonical JSON document bound to an exact schema.
+
+The generated schema is a digest-bound projection, not a separately authored
+input contract. Open Console remains authoritative, and projection drift is a
+construction failure.
+
+The provider-neutral safe defaults are:
+
+- filesystem access denied;
+- network access denied;
+- secret access denied;
+- maximum concurrency one;
+- no automatic retry;
+- no idempotency claim or replay;
+- a positive bounded timeout owned by the Development Tool contract version;
+- cancellation is advertised only when the application explicitly declares
+  support;
+- non-JSON, unbounded, interactive, or schema-ambiguous operations are blocked
+  from projection until corrected or explicitly excluded.
+
+Access beyond a denied default requires an exact positive declaration. Secret
+declarations may identify provider-owned secret references but never contain
+secret values. Registration and evidence contain no input, output, environment,
+credential, or secret values.
+
+Side effects cannot be inferred honestly from the current Open Console
+document. Every selected operation therefore requires one explicit
+classification from the closed set `none`, `read-only`, `additive`, `mutating`,
+or `destructive`. A missing classification keeps the operation selected in the
+mapping report but marks it blocked; it cannot enter a generated manifest or
+provider registration. The owner must classify or explicitly exclude it.
+
+Provider selection, provider registration, provider permission, and actual
+invocation remain separate human-authority transitions. The policy is not a
+permission grant, and derived MCP annotations are informational projections
+only.
+
 ## Next convergence question
 
-Define the structured invocation contract and safe defaults for side effects,
-filesystem, network, secrets, timeout, cancellation, concurrency, and
-idempotency without duplicating the Open Console command contract.
+Converge the exact provider-neutral package, executable, manifest, operation,
+and registration identities, including how one provider-neutral MCP bridge is
+shared by the Codex and Claude Code registration integrations.

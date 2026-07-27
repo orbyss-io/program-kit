@@ -92,7 +92,7 @@
       "artifactVersion": "1.0.0",
       "role": "human-convergence-status-and-provider-research",
       "path": "extensions/development-tools/convergence-notes.md",
-      "sha256": "70c362fd969921f409a1ef04cf7f064d8257f203d803b84e18eb5e13276ae6ed"
+      "sha256": "466103adfba0770637c4a5572dc84a6a66b4df60f74d9d82c99000898a74c600"
     },
     {
       "artifactId": "pkid:guide:program-kit:development-tools-review",
