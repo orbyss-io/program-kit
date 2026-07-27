@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/console-command-dispatch-evidence/1.0.0/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-console-command-dispatch-evidence",
+  "x-program-kit-version": "1.0.0",
+  "title": "Program Kit .NET Console Command Dispatch Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "dispatchLockRevision",
+    "dispatcherContractPath",
+    "registrationMethod",
+    "requiredDispatcherResolution",
+    "resolutionBeforeHostStart",
+    "lifecycleOrder",
+    "parserPath",
+    "parserDigest",
+    "parseResultPath",
+    "parseResultDigest",
+    "exitCodePolicy"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "pkid:schema:program-kit:dotnet-console-command-dispatch-evidence@1.0.0"
+    },
+    "version": {"const": "1.0.0"},
+    "dispatchLockRevision": {"$ref": "#/$defs/reference"},
+    "dispatcherContractPath": {
+      "const": "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs"
+    },
+    "registrationMethod": {
+      "const": "ConfigureProgramKitConsoleServices"
+    },
+    "requiredDispatcherResolution": {"const": true},
+    "resolutionBeforeHostStart": {"const": true},
+    "lifecycleOrder": {
+      "type": "array",
+      "prefixItems": [
+        {"const": "parse"},
+        {"const": "compose"},
+        {"const": "resolve-single-dispatcher"},
+        {"const": "start-host"},
+        {"const": "dispatch-once"},
+        {"const": "stop-host-finally"},
+        {"const": "return-dispatcher-integer-unchanged"}
+      ],
+      "items": false,
+      "minItems": 7,
+      "maxItems": 7
+    },
+    "parserPath": {
+      "const": "ProgramKitGenerated/Commands/GeneratedConsoleParser.cs"
+    },
+    "parserDigest": {"$ref": "#/$defs/digest"},
+    "parseResultPath": {
+      "const": "ProgramKitGenerated/Commands/GeneratedConsoleParseResult.cs"
+    },
+    "parseResultDigest": {"$ref": "#/$defs/digest"},
+    "exitCodePolicy": {
+      "const": "return-dispatcher-integer-unchanged"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^pkid:[a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "digest"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {"$ref": "#/$defs/version"},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

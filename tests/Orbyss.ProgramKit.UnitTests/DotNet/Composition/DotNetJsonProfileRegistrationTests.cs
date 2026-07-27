@@ -1,6 +1,7 @@
 using System.Text;
 using System.Security.Cryptography;
 using Orbyss.ProgramKit.DotNet.Composition;
+using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
@@ -67,5 +68,75 @@ public sealed class DotNetJsonProfileRegistrationTests
         Assert.AreEqual(
             DotNetJsonProfiles.ShellBootstrap.Reference.Digest.Value,
             digest);
+    }
+
+    [TestMethod]
+    public void FixedProfileCanonicallyRoundTripsConsoleDispatchLockAndEvidence()
+    {
+        ProgramKitJsonRegistryFactory registryFactory = new();
+        ProgramKitJsonBuilder builder = new(registryFactory);
+        DotNetJsonProfileRegistration registration = new();
+        registration.Register(builder);
+        ProgramKitJsonSerializer serializer = new(
+            builder.Freeze(),
+            new ProgramKitJsonCanonicalizer());
+        var reference = DotNetTestContractFactory.Ref(
+            "document",
+            "console",
+            'a');
+        var dispatchLock = new DotNetConsoleCommandDispatchLockDocument(
+            "pkid:schema:program-kit:dotnet-console-command-dispatch-lock@1.0.0",
+            new SemanticVersion("1.0.0"),
+            reference,
+            reference,
+            reference,
+            reference,
+            reference);
+        var evidence = new DotNetConsoleCommandDispatchEvidenceDocument(
+            "pkid:schema:program-kit:dotnet-console-command-dispatch-evidence@1.0.0",
+            new SemanticVersion("1.0.0"),
+            reference,
+            "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs",
+            "ConfigureProgramKitConsoleServices",
+            true,
+            true,
+            [
+                "parse",
+                "compose",
+                "resolve-single-dispatcher",
+                "start-host",
+                "dispatch-once",
+                "stop-host-finally",
+                "return-dispatcher-integer-unchanged",
+            ],
+            "ProgramKitGenerated/Commands/GeneratedConsoleParser.cs",
+            DotNetTestContractFactory.Digest('b'),
+            "ProgramKitGenerated/Commands/GeneratedConsoleParseResult.cs",
+            DotNetTestContractFactory.Digest('c'),
+            "return-dispatcher-integer-unchanged");
+
+        AssertCanonicalRoundTrip(serializer, dispatchLock);
+        AssertCanonicalRoundTrip(serializer, evidence);
+    }
+
+    private static void AssertCanonicalRoundTrip<T>(
+        ProgramKitJsonSerializer serializer,
+        T value)
+    {
+        var profile = DotNetJsonProfiles.ShellBootstrap;
+        var first = serializer.Write(
+            value,
+            profile.Reference,
+            profile.MaximumLimits);
+        var roundTrip = serializer.Read<T>(
+            first.ToArray(),
+            profile.Reference,
+            profile.MaximumLimits);
+        var second = serializer.Write(
+            roundTrip,
+            profile.Reference,
+            profile.MaximumLimits);
+
+        Assert.AreSequenceEqual(first.ToArray(), second.ToArray());
     }
 }

@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
+using Orbyss.ProgramKit.DotNet.Generation.ConsoleCommands;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
@@ -56,6 +58,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         var hostLock = lockSelector.Resolve(input.Lock, input.HostIdentity, requiredKind);
         ValidateLock(input, host, hostLock);
         ValidateDocument(input, requiredKind);
+        ValidateDocumentRevision(input, requiredKind);
         ValidateDocumentSemantics(input, host, requiredKind);
         var selectedActivations = host.FeatureActivationIdentities.ToHashSet();
         var features = input.Shell.Features
@@ -84,11 +87,102 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             outputs.Add(new GeneratedOutput("docs/open-worker.json", documentWriter.Write(input.OpenWorker)));
         }
 
+        if (requiredKind == DotNetHostKind.Console)
+        {
+            AddConsoleDispatchIntegrityOutputs(
+                outputs,
+                input,
+                host);
+        }
+
         return ValueTask.FromResult(
             outputs
                 .OrderBy(static output => output.RelativePath, StringComparer.Ordinal)
                 .ToImmutableArray());
     }
+
+    private void AddConsoleDispatchIntegrityOutputs(
+        ImmutableArray<GeneratedOutput>.Builder outputs,
+        DotNetHostGenerationInput input,
+        DotNetHostDefinition host)
+    {
+        var dispatcher = FindOutput(
+            outputs,
+            DotNetConsoleCommandDispatchContract.DispatcherContractPath);
+        if (Digest(dispatcher.Content.Span) !=
+            DotNetConsoleCommandDispatchContract.DispatcherRevision.Digest)
+        {
+            throw DotNetKitException.Create(
+                DotNetDiagnosticIds.GenerationFailed,
+                "The generated Console dispatcher contract differs from its exact revision.",
+                "/generation/consoleCommandDispatcher");
+        }
+
+        var parser = FindOutput(
+            outputs,
+            DotNetConsoleCommandDispatchContract.ParserPath);
+        var parseResult = FindOutput(
+            outputs,
+            DotNetConsoleCommandDispatchContract.ParseResultPath);
+        var dispatchLock = new DotNetConsoleCommandDispatchLockDocument(
+            DotNetConsoleCommandDispatchContract.LockSchema,
+            new SemanticVersion("1.0.0"),
+            input.OpenConsole!.HostRevision,
+            input.ShellRevision,
+            input.OpenConsoleDocumentRevision!,
+            host.GeneratorProfileRevision,
+            DotNetConsoleCommandDispatchContract.DispatcherRevision);
+        var dispatchLockBytes = documentWriter.Write(dispatchLock);
+        var dispatchLockRevision = new ArtifactReference(
+            new ProgramKitIdentifier(
+                "pkid:lock:program-kit:console-command-dispatch"),
+            dispatchLock.Version,
+            Digest(dispatchLockBytes.Span));
+        var evidence = new DotNetConsoleCommandDispatchEvidenceDocument(
+            DotNetConsoleCommandDispatchContract.EvidenceSchema,
+            new SemanticVersion("1.0.0"),
+            dispatchLockRevision,
+            DotNetConsoleCommandDispatchContract.DispatcherContractPath,
+            DotNetConsoleCommandDispatchContract.RegistrationMethod,
+            true,
+            true,
+            DotNetConsoleCommandDispatchContract.LifecycleOrder,
+            DotNetConsoleCommandDispatchContract.ParserPath,
+            Digest(parser.Content.Span),
+            DotNetConsoleCommandDispatchContract.ParseResultPath,
+            Digest(parseResult.Content.Span),
+            DotNetConsoleCommandDispatchContract.ExitCodePolicy);
+        outputs.Add(new GeneratedOutput(
+            DotNetConsoleCommandDispatchContract.DispatchLockPath,
+            dispatchLockBytes));
+        outputs.Add(new GeneratedOutput(
+            DotNetConsoleCommandDispatchContract.DispatchEvidencePath,
+            documentWriter.Write(evidence)));
+    }
+
+    private static GeneratedOutput FindOutput(
+        ImmutableArray<GeneratedOutput>.Builder outputs,
+        string relativePath)
+    {
+        var matches = outputs
+            .Where(output =>
+                string.Equals(
+                    output.RelativePath,
+                    relativePath,
+                    StringComparison.Ordinal))
+            .ToArray();
+        return matches.Length == 1
+            ? matches[0]
+            : throw DotNetKitException.Create(
+                DotNetDiagnosticIds.GenerationFailed,
+                "Console generation did not produce one required dispatch artifact.",
+                "/generation/outputs");
+    }
+
+    private static Sha256Digest Digest(ReadOnlySpan<byte> content) =>
+        new(string.Concat(
+            "sha256:",
+            Convert.ToHexStringLower(SHA256.HashData(content))));
 
     private static DotNetHostDefinition ResolveHost(
         ImmutableArray<DotNetHostDefinition> hosts,
@@ -199,6 +293,51 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                 "/documentation");
         }
     }
+
+    private void ValidateDocumentRevision(
+        DotNetHostGenerationInput input,
+        DotNetHostKind requiredKind)
+    {
+        if (requiredKind != DotNetHostKind.Console)
+        {
+            if (input.OpenConsoleDocumentRevision is not null)
+            {
+                throw InvalidOpenConsoleRevision(
+                    "Only Console generation accepts an Open Console document revision.");
+            }
+
+            return;
+        }
+
+        var revision = input.OpenConsoleDocumentRevision;
+        var document = input.OpenConsole!;
+        if (revision is null)
+        {
+            throw InvalidOpenConsoleRevision(
+                "Console generation requires the artifact-manifest Open Console document revision.");
+        }
+
+        var canonicalBytes = documentWriter.Write(document);
+        var actualDigest = string.Concat(
+            "sha256:",
+            Convert.ToHexStringLower(
+                SHA256.HashData(canonicalBytes.Span)));
+        if (revision.Version != document.DocumentVersion ||
+            !string.Equals(
+                revision.Digest.Value,
+                actualDigest,
+                StringComparison.Ordinal))
+        {
+            throw InvalidOpenConsoleRevision(
+                "The Open Console revision must match the canonical document version and bytes exactly.");
+        }
+    }
+
+    private static DotNetKitException InvalidOpenConsoleRevision(string message) =>
+        DotNetKitException.Create(
+            DotNetDiagnosticIds.InvalidOpenConsoleDocumentRevision,
+            message,
+            "/documentation/openConsoleDocumentRevision");
 
     private static bool HasExactProjection(
         DotNetHostGenerationInput input,

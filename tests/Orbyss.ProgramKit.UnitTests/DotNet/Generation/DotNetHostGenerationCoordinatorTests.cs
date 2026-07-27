@@ -1,13 +1,16 @@
+using System.Security.Cryptography;
 using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
+using Orbyss.ProgramKit.DotNet.Documentation.Console;
 using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
+using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
 using Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
 
@@ -37,7 +40,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
             host.Identity,
             null,
             document,
-            null);
+            null,
+            DocumentRevision(document));
 
         var outputs = await sut.GenerateAsync(
             input,
@@ -51,6 +55,56 @@ public sealed class DotNetHostGenerationCoordinatorTests
             output.RelativePath == "docs/open-console.json"));
         Assert.IsTrue(outputs.Any(static output =>
             output.RelativePath == "shell.lock.json"));
+        Assert.IsTrue(outputs.Any(static output =>
+            output.RelativePath ==
+            "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs"));
+        var dispatchLockOutput = outputs.Single(static output =>
+            output.RelativePath ==
+            "ProgramKitGenerated/Commands/console-command-dispatch.lock.json");
+        var evidenceOutput = outputs.Single(static output =>
+            output.RelativePath ==
+            "ProgramKitGenerated/Evidence/console-command-dispatch.evidence.json");
+        var serializer = CreateSerializer();
+        var dispatchLock = serializer.Read<DotNetConsoleCommandDispatchLockDocument>(
+            dispatchLockOutput.Content,
+            DotNetJsonProfiles.ShellBootstrap.Reference,
+            JsonSerializationLimits.Default);
+        var evidence = serializer.Read<DotNetConsoleCommandDispatchEvidenceDocument>(
+            evidenceOutput.Content,
+            DotNetJsonProfiles.ShellBootstrap.Reference,
+            JsonSerializationLimits.Default);
+        Assert.AreEqual(shellRevision, dispatchLock.ShellRevision);
+        Assert.AreEqual(
+            input.OpenConsoleDocumentRevision,
+            dispatchLock.OpenConsoleDocumentRevision);
+        Assert.AreEqual(
+            host.GeneratorProfileRevision,
+            dispatchLock.HostGeneratorRevision);
+        Assert.AreEqual(
+            "sha256:2e4434b1df81274c2d8d5a41911d7a23a837b5db63da93687aed6b1862538ec3",
+            evidence.ParserDigest.Value);
+        Assert.AreEqual(
+            "sha256:a95b7bf78aea54d000c580e033faca7638b66accbe87ee7e8a7e9ebc734d1f61",
+            evidence.ParseResultDigest.Value);
+        Assert.AreEqual(
+            "return-dispatcher-integer-unchanged",
+            evidence.ExitCodePolicy);
+        Assert.IsTrue(evidence.RequiredDispatcherResolution);
+        Assert.IsTrue(evidence.ResolutionBeforeHostStart);
+
+        var repeated = await sut.GenerateAsync(
+            input,
+            CancellationToken.None);
+        Assert.AreSequenceEqual(
+            outputs.Select(static output => output.RelativePath).ToArray(),
+            repeated.Select(static output => output.RelativePath).ToArray());
+        foreach (var output in outputs)
+        {
+            Assert.AreSequenceEqual(
+                output.Content.ToArray(),
+                repeated.Single(candidate =>
+                    candidate.RelativePath == output.RelativePath).Content.ToArray());
+        }
     }
 
     [TestMethod]
@@ -83,7 +137,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
             host.Identity,
             null,
             document,
-            null);
+            null,
+            DocumentRevision(document));
 
         var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(
             async () => await sut.GenerateAsync(
@@ -92,6 +147,94 @@ public sealed class DotNetHostGenerationCoordinatorTests
 
         Assert.AreEqual(
             DotNetDiagnosticIds.InvalidIntegratorDocument,
+            exception.DiagnosticId);
+    }
+
+    [TestMethod]
+    [DataRow("missing")]
+    [DataRow("stale-version")]
+    [DataRow("mismatched-digest")]
+    public async Task ConsoleGenerationRejectsInvalidDocumentRevision(
+        string invalidRevisionKind)
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var shellRevision = DotNetTestContractFactory.Ref(
+            "shell",
+            "reviewed",
+            '6');
+        var host = shell.Hosts.Single(static candidate =>
+            candidate.Kind == DotNetHostKind.Console);
+        var document = DotNetTestContractFactory.ConsoleDocument(shell);
+        var exactRevision = DocumentRevision(document);
+        var revision = invalidRevisionKind switch
+        {
+            "missing" => null,
+            "stale-version" => exactRevision with
+            {
+                Version = new SemanticVersion("2.0.0"),
+            },
+            "mismatched-digest" => exactRevision with
+            {
+                Digest = DotNetTestContractFactory.Digest('f'),
+            },
+            _ => throw new AssertFailedException("Unsupported invalid revision kind."),
+        };
+        ConsoleHostGenerator sut = new(CreateCoordinator());
+        var input = new DotNetHostGenerationInput(
+            shell,
+            shellRevision,
+            CreateLock(shell, shellRevision),
+            host.Identity,
+            null,
+            document,
+            null,
+            revision);
+
+        var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(
+            async () => await sut.GenerateAsync(
+                input,
+                CancellationToken.None));
+
+        Assert.AreEqual(
+            DotNetDiagnosticIds.InvalidOpenConsoleDocumentRevision,
+            exception.DiagnosticId);
+        Assert.AreEqual(
+            "/documentation/openConsoleDocumentRevision",
+            exception.Path);
+    }
+
+    [TestMethod]
+    public async Task NonConsoleGenerationRejectsExtraOpenConsoleRevision()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var shellRevision = DotNetTestContractFactory.Ref(
+            "shell",
+            "reviewed",
+            '6');
+        var host = shell.Hosts.Single(static candidate =>
+            candidate.Kind == DotNetHostKind.Api);
+        var apiDocument = DotNetTestContractFactory.ApiDocument(shell);
+        ApiHostGenerator sut = new(CreateCoordinator());
+        var input = new DotNetHostGenerationInput(
+            shell,
+            shellRevision,
+            CreateLock(shell, shellRevision),
+            host.Identity,
+            apiDocument,
+            null,
+            null,
+            DotNetTestContractFactory.Ref(
+                "document",
+                "console",
+                'e'));
+
+        var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(
+            async () => await sut.GenerateAsync(
+                input,
+                CancellationToken.None));
+
+        Assert.AreEqual(
+            DotNetDiagnosticIds.InvalidOpenConsoleDocumentRevision,
             exception.DiagnosticId);
     }
 
@@ -111,18 +254,7 @@ public sealed class DotNetHostGenerationCoordinatorTests
 
     private static DotNetHostGenerationCoordinator CreateCoordinator()
     {
-        ProgramKitJsonRegistryFactory registryFactory = new();
-        ProgramKitJsonBuilder jsonBuilder = new(registryFactory);
-        DotNetJsonProfileRegistration registration = new();
-        registration.Register(jsonBuilder);
-        ProgramKitJsonCanonicalizer canonicalizer = new();
-        ProgramKitJsonSerializer serializer = new(
-            jsonBuilder.Freeze(),
-            canonicalizer);
-        OpenApiDocumentWriter openApiWriter = new(canonicalizer);
-        DotNetDocumentWriter documentWriter = new(
-            openApiWriter,
-            serializer);
+        var documentWriter = CreateDocumentWriter();
         return new DotNetHostGenerationCoordinator(
             new DotNetShellValidator(
                 new ArtifactReferenceValidator(),
@@ -140,5 +272,42 @@ public sealed class DotNetHostGenerationCoordinatorTests
                 new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator());
+    }
+
+    private static DotNetDocumentWriter CreateDocumentWriter()
+    {
+        var serializer = CreateSerializer();
+        ProgramKitJsonCanonicalizer canonicalizer = new();
+        OpenApiDocumentWriter openApiWriter = new(canonicalizer);
+        return new DotNetDocumentWriter(
+            openApiWriter,
+            serializer);
+    }
+
+    private static ProgramKitJsonSerializer CreateSerializer()
+    {
+        ProgramKitJsonRegistryFactory registryFactory = new();
+        ProgramKitJsonBuilder jsonBuilder = new(registryFactory);
+        DotNetJsonProfileRegistration registration = new();
+        registration.Register(jsonBuilder);
+        ProgramKitJsonCanonicalizer canonicalizer = new();
+        ProgramKitJsonSerializer serializer = new(
+            jsonBuilder.Freeze(),
+            canonicalizer);
+        return serializer;
+    }
+
+    private static ArtifactReference DocumentRevision(
+        OpenConsoleDocument document)
+    {
+        var content = CreateDocumentWriter().Write(document);
+        return new ArtifactReference(
+            DotNetTestContractFactory.Id("document", "console"),
+            document.DocumentVersion,
+            new Sha256Digest(
+                string.Concat(
+                    "sha256:",
+                    Convert.ToHexStringLower(
+                        SHA256.HashData(content.Span)))));
     }
 }

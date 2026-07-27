@@ -121,7 +121,10 @@ public sealed class DotNetHostGenerationCommandService :
             hostIdentity,
             documentInput.OpenApi,
             documentInput.OpenConsole,
-            documentInput.OpenWorker);
+            documentInput.OpenWorker,
+            host.Kind == DotNetHostKind.Console
+                ? projectionRevision
+                : null);
         var service = SelectService(host.Kind);
         var result = await service.GenerateAsync(
             new GenerationRequest<DotNetHostGenerationInput>(
