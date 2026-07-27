@@ -13,6 +13,9 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Authoring\Orbyss.ProgramKit.CSharpBuildGates.Authoring.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Build\Orbyss.ProgramKit.CSharpBuildGates.Build.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Contracts\Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />

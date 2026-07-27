@@ -4,6 +4,7 @@ digraph ProgramKitDependencies {
 
   "Architecture" -> "Artifacts";
   "CSharpBuildGates.Authoring" -> "CSharpBuildGates.Contracts";
+  "CSharpBuildGates.Build" -> "CSharpBuildGates.Contracts";
   "CSharpBuildGates.Contracts" -> "Artifacts";
   "CommandLine" -> "DotNet";
   "CommandLine" -> "Operations";

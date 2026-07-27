@@ -1,0 +1,114 @@
+<Project TreatAsLocalProperty="_ProgramKitCSharpGateCommand;
+                               _ProgramKitCSharpGateInvocationRoot;
+                               _ProgramKitCSharpGateNonce;
+                               _ProgramKitCSharpGatePreCompilerInputDigest">
+  <UsingTask TaskName="Orbyss.ProgramKit.CSharpBuildGates.Build.Operations.Execution.PrepareCSharpBuildGateTask"
+             AssemblyFile="$(ProgramKitCSharpGateTaskAssembly)" />
+  <UsingTask TaskName="Orbyss.ProgramKit.CSharpBuildGates.Build.Operations.Execution.VerifyCSharpBuildGateTask"
+             AssemblyFile="$(ProgramKitCSharpGateTaskAssembly)" />
+
+  <Target Name="ProgramKitPrepareCSharpBuildGate"
+          BeforeTargets="CoreCompile"
+          Condition="'$(ProgramKitCSharpGateEnabled)' == 'true'">
+    <PropertyGroup>
+      <_ProgramKitCSharpGateCommand>build</_ProgramKitCSharpGateCommand>
+      <_ProgramKitCSharpGateCommand Condition="'$(IsTestProject)' == 'true'">test</_ProgramKitCSharpGateCommand>
+      <_ProgramKitCSharpGateCommand Condition="'$(_IsPacking)' == 'true'">pack</_ProgramKitCSharpGateCommand>
+      <_ProgramKitCSharpGateCommand Condition="'$(_IsPublishing)' == 'true'">publish</_ProgramKitCSharpGateCommand>
+      <_ProgramKitCSharpGateCommand Condition="'$(ProgramKitCSharpGateGeneratedProjectBinding)' == '1.0.0'">generated-project-verify</_ProgramKitCSharpGateCommand>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProgramKitCSharpGateExecutedInput Remove="@(_ProgramKitCSharpGateExecutedInput)" />
+      <_ProgramKitCSharpGateExecutedInput Include="$(MSBuildProjectFullPath)">
+        <Kind>project</Kind>
+      </_ProgramKitCSharpGateExecutedInput>
+      <_ProgramKitCSharpGateExecutedInput Include="@(Compile)">
+        <Kind Condition="'%(Compile.ProgramKitCSharpGateInputKind)' == ''">physical-source</Kind>
+        <Kind Condition="'%(Compile.ProgramKitCSharpGateInputKind)' != ''">%(Compile.ProgramKitCSharpGateInputKind)</Kind>
+      </_ProgramKitCSharpGateExecutedInput>
+      <_ProgramKitCSharpGateExecutedInput Include="@(ReferencePath)">
+        <Kind>reference</Kind>
+      </_ProgramKitCSharpGateExecutedInput>
+      <_ProgramKitCSharpGateExecutedInput Include="@(AdditionalFiles)">
+        <Kind>additional-file</Kind>
+      </_ProgramKitCSharpGateExecutedInput>
+      <_ProgramKitCSharpGateExecutedInput Include="@(AnalyzerConfigFiles)">
+        <Kind>analyzer-config</Kind>
+      </_ProgramKitCSharpGateExecutedInput>
+    </ItemGroup>
+
+    <PrepareCSharpBuildGateTask
+      AnalyzerSelections="@(ProgramKitCSharpGateAnalyzer)"
+      Activations="@(ProgramKitCSharpGateActivation)"
+      TemporaryExceptions="@(ProgramKitCSharpGateTemporaryException)"
+      ExpectedInputs="@(ProgramKitCSharpGateExpectedInput)"
+      ExecutedInputs="@(_ProgramKitCSharpGateExecutedInput)"
+      ExistingAnalyzers="@(Analyzer)"
+      ProjectPath="$(MSBuildProjectFullPath)"
+      ProjectProfileId="$(ProgramKitCSharpGateProjectProfileId)"
+      SourceProfileId="$(ProgramKitCSharpGateSourceProfileId)"
+      Command="$(_ProgramKitCSharpGateCommand)"
+      Boundary="$(ProgramKitCSharpGateImplementationBoundary)"
+      VerificationProfile="$(ProgramKitCSharpGateVerificationProfile)"
+      IntermediateRoot="$(IntermediateOutputPath)"
+      ReceiptBase="$(ProgramKitCSharpGateReceiptBase)"
+      SelectionLockDigest="$(ProgramKitCSharpGateSelectionLockDigest)"
+      SdkVersion="$(NETCoreSdkVersion)"
+      CompilerRoslynVersion="$(ProgramKitCSharpGateCompilerRoslynVersion)"
+      LanguageVersion="$(LangVersion)"
+      TargetFramework="$(TargetFramework)"
+      RunAnalyzers="$(RunAnalyzers)"
+      RunAnalyzersDuringBuild="$(RunAnalyzersDuringBuild)"
+      CodeAnalysisTreatWarningsAsErrors="$(CodeAnalysisTreatWarningsAsErrors)"
+      TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+      NoWarn="$(NoWarn)"
+      WarningsNotAsErrors="$(WarningsNotAsErrors)">
+      <Output TaskParameter="ApplicableAnalyzers"
+              ItemName="_ProgramKitCSharpGateApplicableAnalyzer" />
+      <Output TaskParameter="InvocationRoot"
+              PropertyName="_ProgramKitCSharpGateInvocationRoot" />
+      <Output TaskParameter="CompilationNonce"
+              PropertyName="_ProgramKitCSharpGateNonce" />
+      <Output TaskParameter="PreCompilerInputDigest"
+              PropertyName="_ProgramKitCSharpGatePreCompilerInputDigest" />
+    </PrepareCSharpBuildGateTask>
+
+    <PropertyGroup>
+      <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+      <CompilerGeneratedFilesOutputPath>$(_ProgramKitCSharpGateInvocationRoot)\generated</CompilerGeneratedFilesOutputPath>
+      <ProgramKitCompilerInvocationNonce>$(_ProgramKitCSharpGateNonce)</ProgramKitCompilerInvocationNonce>
+      <ProgramKitPublicAnalyzerReceiptNonce>$(_ProgramKitCSharpGateNonce)</ProgramKitPublicAnalyzerReceiptNonce>
+      <NonExistentFile>$(_ProgramKitCSharpGateInvocationRoot)\compiler-execution-required.receipt</NonExistentFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <CompilerVisibleProperty Include="MSBuildProjectName" />
+      <CompilerVisibleProperty Include="ProgramKitCompilerInvocationNonce" />
+      <CompilerVisibleProperty Include="ProgramKitPublicAnalyzerReceiptNonce" />
+      <CompilerVisibleProperty Include="ProgramKitCSharpGateVerificationProfile" />
+      <Analyzer Include="@(_ProgramKitCSharpGateApplicableAnalyzer)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ProgramKitVerifyCSharpBuildGate"
+          AfterTargets="CoreCompile"
+          Condition="'$(ProgramKitCSharpGateEnabled)' == 'true'">
+    <VerifyCSharpBuildGateTask
+      ApplicableAnalyzers="@(_ProgramKitCSharpGateApplicableAnalyzer)"
+      ExpectedInputs="@(ProgramKitCSharpGateExpectedInput)"
+      ExecutedInputs="@(_ProgramKitCSharpGateExecutedInput)"
+      InvocationRoot="$(_ProgramKitCSharpGateInvocationRoot)"
+      CompilationNonce="$(_ProgramKitCSharpGateNonce)"
+      ProjectProfileId="$(ProgramKitCSharpGateProjectProfileId)"
+      VerificationProfile="$(ProgramKitCSharpGateVerificationProfile)"
+      SelectionLockDigest="$(ProgramKitCSharpGateSelectionLockDigest)"
+      PreCompilerInputDigest="$(_ProgramKitCSharpGatePreCompilerInputDigest)" />
+  </Target>
+
+  <Target Name="ProgramKitRejectDisabledCSharpBuildGate"
+          BeforeTargets="Pack;Publish;VSTest"
+          Condition="'@(ProgramKitCSharpGateActivation)' != '' and
+                     '$(ProgramKitCSharpGateEnabled)' != 'true'">
+    <Error Code="PKCG001"
+           Text="An exact C# build-gate activation exists but direct build integration is not enabled." />
+  </Target>
+</Project>
