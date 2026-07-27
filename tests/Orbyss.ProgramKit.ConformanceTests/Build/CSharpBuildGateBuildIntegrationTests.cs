@@ -56,6 +56,7 @@ public sealed class CSharpBuildGateBuildIntegrationTests
     [DataRow("duplicate-activation", "PKCG100")]
     [DataRow("demoted", "PKCG100")]
     [DataRow("extra-input", "PKCG100")]
+    [DataRow("private-analyzer", "PKCG100")]
     [DataRow("missing-receipt", "PKCG200")]
     [DataRow("wrong-receipt", "PKCG200")]
     public void TamperingFailsClosedAtTheOwningMechanicsLayer(
@@ -223,6 +224,10 @@ public sealed class CSharpBuildGateBuildIntegrationTests
         var projectPath = Path.Combine(root, "Consumer.proj");
         var taskAssembly = TaskAssemblyPath();
         Assert.IsTrue(File.Exists(taskAssembly), taskAssembly);
+        var selectedAnalyzer = scenario == "private-analyzer"
+            ? PrivateAnalyzerPath()
+            : taskAssembly;
+        Assert.IsTrue(File.Exists(selectedAnalyzer), selectedAnalyzer);
         var projectDigest = FileDigest(projectPath);
         var isTest = command == "test" ? "true" : "false";
         var isPacking = command == "pack" ? "true" : "false";
@@ -233,12 +238,12 @@ public sealed class CSharpBuildGateBuildIntegrationTests
         var runAnalyzers = scenario == "disabled" ? "false" : "true";
         var assemblyDigest = scenario == "substituted"
             ? new string('b', 64)
-            : FileDigest(taskAssembly);
+            : FileDigest(selectedAnalyzer);
         var warningsNotAsErrors = scenario == "demoted"
             ? "CNS0001"
             : string.Empty;
         var existingAnalyzer = scenario == "duplicate-analyzer"
-            ? $"<Analyzer Include=\"{Xml(taskAssembly)}\" />"
+            ? $"<Analyzer Include=\"{Xml(selectedAnalyzer)}\" />"
             : string.Empty;
         var duplicateActivation = scenario == "duplicate-activation"
             ? Activation(command, "work-unit")
@@ -321,7 +326,7 @@ public sealed class CSharpBuildGateBuildIntegrationTests
             $$"""
             <Project>
               <ItemGroup>
-                <ProgramKitCSharpGateAnalyzer Include="{{Xml(taskAssembly)}}">
+                <ProgramKitCSharpGateAnalyzer Include="{{Xml(selectedAnalyzer)}}">
                   <ComponentId>pkid:analyzer:consumer:boundary</ComponentId>
                   <Kind>consumer-owned</Kind>
                   <AssemblyDigest>sha256:{{assemblyDigest}}</AssemblyDigest>
@@ -429,6 +434,16 @@ public sealed class CSharpBuildGateBuildIntegrationTests
             "Debug",
             "net10.0",
             "Orbyss.ProgramKit.CSharpBuildGates.Build.dll");
+
+    private static string PrivateAnalyzerPath() =>
+        Path.Combine(
+            ConformanceInputs.ProgramKitRoot,
+            "tools",
+            "Orbyss.ProgramKit.CSharpGate",
+            "bin",
+            "Debug",
+            "net10.0",
+            "Orbyss.ProgramKit.CSharpGate.dll");
 
     private static string BuildProjectPath() =>
         Path.Combine(
