@@ -1,0 +1,120 @@
+{
+  "manifestKind": "program-kit-design-review",
+  "manifestVersion": "1.0.0",
+  "reviewSetId": "pkid:approval:program-kit:console-command-dispatch-review-set",
+  "reviewSetVersion": "1.0.0",
+  "owner": "human-led-program-kit-extension",
+  "reviewState": "ready-for-human-decision",
+  "implementationStatus": "not-started",
+  "approvalRecord": null,
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf",
+    "attributes": "/.gitattributes"
+  },
+  "artifacts": [
+    {
+      "artifactId": "pkid:intent:program-kit:console-command-dispatch",
+      "artifactVersion": "1.0.0",
+      "role": "human-intent-record",
+      "path": "extensions/console-command-dispatch/design-intent.md",
+      "sha256": "3f27a39d09ddbe00f5e00c521191b50188ce92ce5d86d281bd2db8d78345852d"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:console-command-dispatch",
+      "artifactVersion": "1.0.0",
+      "role": "canonical-design",
+      "contract": "pkid:schema:program-kit:architecture-design",
+      "contractVersion": "1.0.0",
+      "contractSha256": "19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2",
+      "path": "extensions/console-command-dispatch/architecture-design.json",
+      "sha256": "21afb73f5abc636f23a5fe0357d226bd04dc0697d280a18f3d2ace2ae3be6046"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:console-command-dispatch-design-markdown",
+      "artifactVersion": "1.0.0",
+      "role": "human-readable-design-projection",
+      "canonicalDesignId": "pkid:design:program-kit:console-command-dispatch",
+      "canonicalDesignVersion": "1.0.0",
+      "canonicalDesignSha256": "21afb73f5abc636f23a5fe0357d226bd04dc0697d280a18f3d2ace2ae3be6046",
+      "path": "extensions/console-command-dispatch/architecture-design.md",
+      "sha256": "99fd727fa6da432c30a228f0c2afd47e56904ebee021ad0c05d9853722a12e42"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:console-command-dispatch",
+      "artifactVersion": "1.0.0",
+      "role": "canonical-implementation-plan",
+      "contract": "pkid:schema:program-kit:implementation-plan",
+      "contractVersion": "2.0.0",
+      "contractSha256": "119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d",
+      "designId": "pkid:design:program-kit:console-command-dispatch",
+      "designVersion": "1.0.0",
+      "designSha256": "21afb73f5abc636f23a5fe0357d226bd04dc0697d280a18f3d2ace2ae3be6046",
+      "path": "extensions/console-command-dispatch/implementation-plan.json",
+      "sha256": "1eaec71ea9916512d0a3d15a7e601dd03f5474d9fb6faa9805734eca12439196"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:console-command-dispatch-plan-markdown",
+      "artifactVersion": "1.0.0",
+      "role": "human-readable-plan-projection",
+      "canonicalPlanId": "pkid:plan:program-kit:console-command-dispatch",
+      "canonicalPlanVersion": "1.0.0",
+      "canonicalPlanSha256": "1eaec71ea9916512d0a3d15a7e601dd03f5474d9fb6faa9805734eca12439196",
+      "path": "extensions/console-command-dispatch/implementation-plan.md",
+      "sha256": "37332c5e026c6813c625e63af33bf55e5e417cf9cec5474ddc89bcce91457db2"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:console-command-dispatch-validation",
+      "artifactVersion": "1.0.0",
+      "role": "design-validation-report",
+      "path": "extensions/console-command-dispatch/validation-report.md",
+      "sha256": "c23252742a61d3081c826d0044d6523bf1234c88d3bfce06f8234b35d4694554"
+    },
+    {
+      "artifactId": "pkid:guide:program-kit:console-command-dispatch-review",
+      "artifactVersion": "1.0.0",
+      "role": "review-navigation",
+      "path": "extensions/console-command-dispatch/README.md",
+      "sha256": "40f13556ae1a4aa68e9662cc47617ba9003c608963e592e73d00fae7a038cbd2"
+    }
+  ],
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-review-set-version-and-exact-canonical-design-and-canonical-plan-digests",
+    "acceptedScope": "the generated Console command dispatcher port, consumer composition registration, one-shot lifecycle, exact exit-code pass-through, document revision binding, lock/evidence contracts, parser stability, base-shell constraint, and bounded PKCCD-W010 through PKCCD-W040 implementation",
+    "requiresParentApproval": false,
+    "doesNotAuthorize": [
+      "implementation before explicit approval",
+      "any parser or parse-result byte change",
+      "JTest repository inspection, change, build, or work-unit completion",
+      "a Program Kit-owned consumer exit-code or exception policy",
+      "reflection, scanning, ambient registration, hooks, watchers, provider bindings, or runtime generator packages",
+      "a base-CShells-optional shell contract or dotnet-shell v12 migration",
+      "package publication, release qualification, promotion, deployment, or external consumer changes",
+      "a material deviation from either reviewed canonical design or plan"
+    ]
+  },
+  "validation": {
+    "jsonSyntax": "passed for architecture-design.json and implementation-plan.json",
+    "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:architecture-design@1.0.0",
+    "architectureSemanticValidation": "passed through ArchitectureDesignValidator",
+    "canonicalPlanSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:implementation-plan@2.0.0",
+    "planSemanticValidation": "passed through ImplementationPlanDocumentValidator",
+    "designPlanBinding": "passed: canonical plan design reference equals the exact canonical design SHA-256",
+    "requirementTrace": "passed: PKCCD-R001 through PKCCD-R012 each have one exact trace entry across serial PKCCD-W010 through PKCCD-W040",
+    "focusedValidator": "passed: one temporary review-only Program Kit unit-test harness test, zero failures; harness removed after execution",
+    "lockedRestore": "passed: dotnet restore ProgramKit.sln --locked-mode",
+    "standaloneGraph": "unavailable: standalone composition returned PKCLI004 because the Workbench graph adapter is not registered; not cited as evidence",
+    "runtimeImplementationOrExecution": "not performed under design authority",
+    "fullImplementationClosure": "deferred to approved PKCCD-W040"
+  },
+  "provenance": {
+    "startingCommit": "fe52a2f7bb04dbafe42c65fcec412ae0c1cbc5ae",
+    "branch": "main",
+    "reportedConsumerBaseline": "74c1abc4379ea3dfc39f624ade22a3a4191787bb",
+    "source": "human-started Program Kit generated Console dispatch design",
+    "details": "The review set is bounded to Program Kit repository source truth. JTest is consumer evidence only. No approval, implementation, release authority, or consumer completion claim is created by these artifacts."
+  }
+}
