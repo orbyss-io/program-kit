@@ -605,6 +605,39 @@ public sealed class CSharpBuildGateContractTests
         Assert.HasCount(3, map.Edges);
     }
 
+    [TestMethod]
+    public void AuthoringVersionMapIsSchemaAndModelValid()
+    {
+        var bytes = File.ReadAllBytes(Path.Combine(
+            FindProgramKitRoot().FullName,
+            "extensions",
+            "reusable-csharp-build-gates",
+            "authoring-version-map.json"));
+        ArtifactsSchemaModule module = new();
+        var schema = module.Resources.Single(static resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:version-map");
+        JsonSchemaWorkbenchValidator schemaValidator = new(
+            new ProgramKitJsonCanonicalizer(),
+            new ProgramKitSchemaModuleValidator());
+        using var json = JsonDocument.Parse(bytes);
+        var map = ReadVersionMap(json.RootElement);
+        VersionMapDocumentValidator modelValidator = new(
+            new DefaultArtifactEnvelopeValidator());
+
+        var schemaValidation = schemaValidator.Validate(
+            bytes,
+            module,
+            schema.SchemaReference,
+            JsonSerializationLimits.Default);
+        var modelValidation = modelValidator.Validate(map);
+
+        Assert.IsTrue(schemaValidation.IsValid, Format(schemaValidation));
+        Assert.IsTrue(modelValidation.IsValid, Format(modelValidation));
+        Assert.HasCount(3, map.Nodes);
+        Assert.HasCount(2, map.Edges);
+    }
+
     private static CSharpBuildGateDefinitionDocument Definition()
     {
         var ownerId = Id("domain", "software");

@@ -374,6 +374,12 @@
           "Microsoft.Extensions.Options.DataAnnotations": "[10.0.10, 10.0.10]"
         }
       },
+      "orbyss.programkit.csharpbuildgates.authoring": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.CSharpBuildGates.Contracts": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.csharpbuildgates.contracts": {
         "type": "Project",
         "dependencies": {

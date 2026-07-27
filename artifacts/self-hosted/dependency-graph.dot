@@ -3,6 +3,7 @@ digraph ProgramKitDependencies {
   node [shape="box"];
 
   "Architecture" -> "Artifacts";
+  "CSharpBuildGates.Authoring" -> "CSharpBuildGates.Contracts";
   "CSharpBuildGates.Contracts" -> "Artifacts";
   "CommandLine" -> "DotNet";
   "CommandLine" -> "Operations";

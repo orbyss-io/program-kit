@@ -11,7 +11,7 @@ namespace Orbyss.ProgramKit.ConformanceTests.Build;
 [TestClass]
 public sealed class BuildSpineConformanceTests
 {
-    private static readonly string[] PublicAnalyzerRawReferences =
+    private static readonly string[] ApprovedRoslynRawReferences =
     [
         "Microsoft.CodeAnalysis",
         "Microsoft.CodeAnalysis.CSharp",
@@ -23,6 +23,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Artifacts",
         "Orbyss.ProgramKit.CapabilityBundle",
         "Orbyss.ProgramKit.CommandLine",
+        "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
         "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
         "Orbyss.ProgramKit.Development",
         "Orbyss.ProgramKit.DevContainers",
@@ -237,7 +238,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(37, projectLines);
+        Assert.HasCount(38, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -284,7 +285,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(23, projectFiles);
+        Assert.HasCount(24, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -322,7 +323,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(26, projectFiles);
+        Assert.HasCount(27, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -378,6 +379,8 @@ public sealed class BuildSpineConformanceTests
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Authoring"] =
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"],
                 ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"] =
                 ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
@@ -447,6 +450,7 @@ public sealed class BuildSpineConformanceTests
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Authoring"] = [],
                 ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"] = [],
                 ["Orbyss.ProgramKit.Operations"] = [],
                 ["Orbyss.ProgramKit.SecretResolution"] = [],
@@ -488,11 +492,12 @@ public sealed class BuildSpineConformanceTests
             Assert.IsNotNull(sdkAttribute, projectName);
             Assert.AreEqual("Microsoft.NET.Sdk", sdkAttribute.Value, projectName);
             Assert.IsEmpty(document.Descendants("FrameworkReference"), projectName);
-            if (projectName ==
+            if (projectName is
+                "Orbyss.ProgramKit.CSharpBuildGates.Authoring" or
                 "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers")
             {
                 Assert.AreSequenceEqual(
-                    PublicAnalyzerRawReferences,
+                    ApprovedRoslynRawReferences,
                     document
                         .Descendants("Reference")
                         .Select(reference =>
@@ -541,6 +546,7 @@ public sealed class BuildSpineConformanceTests
         {
             ["Orbyss.ProgramKit.Artifacts"] = [],
             ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+            ["Orbyss.ProgramKit.CSharpBuildGates.Authoring"] = [],
             ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.SecretResolution"] =
                 ["Orbyss.ProgramKit.Artifacts"],

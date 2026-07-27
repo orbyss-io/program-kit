@@ -1,0 +1,111 @@
+{
+  "nodes": [
+    {
+      "revision": {
+        "identity": "pkid:recipe:program-kit:csharp-forbid-type-name-suffix",
+        "version": "1.0.0",
+        "digest": "sha256:81e56d5ab5fca42512e7fc0669ca0ee0de433b0a12238e60171b4aa55c293904"
+      },
+      "kind": "contract",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+      },
+      "kind": "implementation",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:package:program-kit:csharp-build-gates-authoring",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+      },
+      "kind": "package",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "pkid:edge:program-kit:csharp-build-gates-authoring-uses-recipe",
+      "source": {
+        "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+      },
+      "targetIdentity": "pkid:recipe:program-kit:csharp-forbid-type-name-suffix",
+      "kind": "uses-contract",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:recipe:program-kit:csharp-forbid-type-name-suffix",
+        "version": "1.0.0",
+        "digest": "sha256:81e56d5ab5fca42512e7fc0669ca0ee0de433b0a12238e60171b4aa55c293904"
+      },
+      "exposure": "private",
+      "compatibilityDimensions": [
+        "semantic-behavior",
+        "generated-artifacts"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:csharp-build-gates-authoring-package-exposes-implementation",
+      "source": {
+        "identity": "pkid:package:program-kit:csharp-build-gates-authoring",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+      },
+      "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
+      "kind": "publicly-exposes",
+      "acceptedRange": "[0.1.0-alpha.1]",
+      "resolution": {
+        "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "source-api",
+        "binary-abi",
+        "generated-artifacts"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    }
+  ]
+}

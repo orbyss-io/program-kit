@@ -709,6 +709,7 @@
           BeforeTargets="ResolvePackageAssets">
     <PropertyGroup>
       <_ProgramKitCSharpGateRawReferenceProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tools\Orbyss.ProgramKit.CSharpGate\Orbyss.ProgramKit.CSharpGate.csproj'))</_ProgramKitCSharpGateRawReferenceProjectPath>
+      <_ProgramKitCSharpBuildGatesAuthoringRawReferenceProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)src\Orbyss.ProgramKit.CSharpBuildGates.Authoring\Orbyss.ProgramKit.CSharpBuildGates.Authoring.csproj'))</_ProgramKitCSharpBuildGatesAuthoringRawReferenceProjectPath>
       <_ProgramKitGeneratedSourceContractAnalyzerRawReferenceProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)src\Orbyss.ProgramKit.GeneratedSourceContract.Analyzers\Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.csproj'))</_ProgramKitGeneratedSourceContractAnalyzerRawReferenceProjectPath>
       <_ProgramKitGeneratedProbeRawReferenceProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\CSharpGate\GeneratedSource\Generator\GeneratedSourceProbe.csproj'))</_ProgramKitGeneratedProbeRawReferenceProjectPath>
       <_ProgramKitRoslynBinariesPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Roslyn\bincore'))\</_ProgramKitRoslynBinariesPath>
@@ -720,6 +721,7 @@
         Condition="('%(Reference.Identity)' == 'Microsoft.CodeAnalysis' and
                     '%(Reference.HintPath)' == '$(_ProgramKitRoslynBinariesPath)Microsoft.CodeAnalysis.dll' and
                     ('%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCSharpGateRawReferenceProjectPath)' or
+                     '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCSharpBuildGatesAuthoringRawReferenceProjectPath)' or
                      '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitGeneratedSourceContractAnalyzerRawReferenceProjectPath)' or
                      '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitGeneratedProbeRawReferenceProjectPath)') and
                     '%(Reference.Private)' == 'false' and
@@ -728,6 +730,7 @@
                    ('%(Reference.Identity)' == 'Microsoft.CodeAnalysis.CSharp' and
                     '%(Reference.HintPath)' == '$(_ProgramKitRoslynBinariesPath)Microsoft.CodeAnalysis.CSharp.dll' and
                     ('%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCSharpGateRawReferenceProjectPath)' or
+                     '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitCSharpBuildGatesAuthoringRawReferenceProjectPath)' or
                      '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitGeneratedSourceContractAnalyzerRawReferenceProjectPath)' or
                      '%(Reference.DefiningProjectFullPath)' == '$(_ProgramKitGeneratedProbeRawReferenceProjectPath)') and
                     '%(Reference.Private)' == 'false' and

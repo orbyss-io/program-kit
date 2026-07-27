@@ -10,6 +10,7 @@ using Json.Schema;
 namespace Orbyss.ProgramKit.ConformanceTests.Build;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class PublicGeneratedSourceContractAnalyzerTests
 {
     private const string Nonce = "0123456789abcdef0123456789abcdef";
