@@ -1,0 +1,449 @@
+{
+  "title": "ProgramKit Development Tools",
+  "intent": "Define a provider-neutral executable Development Tool identity and contract, prove it through an exact generated Console tool, and add one human-started, digest-locked Codex MCP registration lifecycle without granting autonomous authority.",
+  "scope": [
+    "A versioned manifest for exact tool package, executable, operations, schemas, exit codes, permissions, side effects, timeouts, cancellation, concurrency, idempotency, compatibility, evidence, and documentation ownership.",
+    "A package-only generated Console proof tool using current ProgramKit Console generation source truth.",
+    "A thin Codex adapter over stable MCP standard input/output revision 2025-11-25.",
+    "Explicit collision-safe Codex registration, verification, update, and removal.",
+    "A genuine two-session cold-discovery proof and negative fixtures."
+  ],
+  "nonGoals": [
+    "Implementation, registration, permissions, an MCP server, provider binding, capability, plugin, autonomous loop, package publication, release, deployment, or website authority under design approval.",
+    "Provider-native or additional-provider adapters.",
+    "Any consumer use of ProgramKit project references, source/file includes, assembly hint paths, or build outputs."
+  ],
+  "assumptions": [
+    "Current Codex project-scoped MCP configuration and stable MCP 2025-11-25 remain authoritative at implementation start; material drift stops implementation for renewed review.",
+    "The current generated Console dispatcher and one-shot lifecycle are the source truth for the first proof tool.",
+    "A trusted project can persist the reviewed .codex/config.toml server table between completely separate Codex sessions.",
+    "Locally prepared NuGet packages and controlled package-source mapping are available and remain the only ProgramKit consumer boundary."
+  ],
+  "unresolvedDecisions": [
+    {
+      "identity": "pkid:decision:program-kit:development-tools-provider-contract-drift",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "question": "Do the authoritative Codex MCP configuration and stable MCP contracts still support the exact reviewed adapter and registration at implementation start?",
+      "decisionNeededBy": "Before PKDT-W030 begins.",
+      "blockingEffect": "Material drift blocks adapter and registration implementation and requires renewed design review."
+    }
+  ],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:development-tools-intent",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "source": {
+        "identity": "pkid:intent:program-kit:development-tools",
+        "version": "1.0.0",
+        "digest": "sha256:335b9332d5c6f244382a7fb02bd0e60ba06b272506b577685e0226fb334c7fdd"
+      },
+      "sourcePath": "extensions/development-tools/design-intent.md",
+      "governs": "Exact identities, invocation and registration semantics, transport decision, cold-session proof, package boundary, exclusions, and approval boundary."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:development-tools-console-source",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "source": {
+        "identity": "pkid:implementation:program-kit:dotnet-host-source-renderer",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:9b121ffa8a435f4e8dcf961dc44c6c672ac3d16353c38ed2c12f8a17fba2b9b8"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.DotNet/Generation/DotNetHostSourceRenderer.cs",
+      "governs": "Current generated Console parse, dispatcher, lifecycle, cancellation-carrier, and exact integer exit-result behavior used by the proof."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:development-tools-cli-source",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "source": {
+        "identity": "pkid:implementation:program-kit:command-line-composition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:133ea3b937f0d361cfe3f35b537749329f9ff4dd85b9160662a337b6eaa07d2d"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
+      "governs": "Current backed command composition, local package preparation, local publish, and capability boundaries; unbacked render, graph, and check commands are not treated as available."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:development-tools",
+      "purpose": "Own explicit, inspectable executable development-tool contracts and provider registration evidence without owning AI authority or consumer-domain behavior.",
+      "vocabulary": [
+        {
+          "term": "Development Tool",
+          "meaning": "An exact versioned package and executable exposing schema-governed operations under declared permissions, side effects, execution semantics, and compatibility.",
+          "acceptedAliases": [
+            "executable development tool"
+          ]
+        },
+        {
+          "term": "Provider adapter",
+          "meaning": "A thin reviewed transport projection that discovers and invokes one exact provider-neutral tool contract without adding domain meaning or authority.",
+          "acceptedAliases": [
+            "Codex MCP adapter"
+          ]
+        },
+        {
+          "term": "Cold-session discovery proof",
+          "meaning": "Discovery and invocation in a new provider session solely from persisted reviewed registration, with no inherited conversational, command, path, process, or shell state.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:development-tool-manifest",
+      "ownerDomainId": "pkid:domain:program-kit:development-tools",
+      "meaning": "Exact package, executable, operation schema, execution, access, compatibility, evidence, and documentation facts required before a tool can be invoked or advertised.",
+      "termContractIds": [],
+      "invariants": "Every referenced package, executable, schema, and adapter byte is digest-bound; access is denied unless declared; stdout is one schema-valid result; retry and concurrency never exceed the manifest."
+    },
+    {
+      "identity": "pkid:model:program-kit:codex-registration-lock",
+      "ownerDomainId": "pkid:domain:program-kit:development-tools",
+      "meaning": "Ownership proof for one exact Codex project-scoped MCP server table and the exact package, contract, executable, and adapter bytes it exposes.",
+      "termContractIds": [],
+      "invariants": "Registration, update, and removal are explicit; collision and drift fail closed; unrelated TOML remains unowned and unchanged; removal deletes only exactly owned state."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:development-tool-contracts",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "kind": "domain-core",
+      "purpose": "Provide versioned schemas, models, validation, canonical serialization, compatibility, and evidence for provider-neutral executable tools.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Contract/schema identity, manifest fields, exit-code profile, permission and side-effect enum, canonical serialization, and explicit migrations."
+    },
+    {
+      "identity": "pkid:component:program-kit:console-development-tool-proof",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "kind": "host",
+      "purpose": "Demonstrate the contract with a generated Console application consuming ProgramKit only through exact prepared packages.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Orbyss.ProgramKit.DevelopmentTool.ConsoleProof@0.1.0-alpha.1, executable program-kit-development-tool-console-proof, exact manifest/schema digests, and current generated Console dispatcher behavior."
+    },
+    {
+      "identity": "pkid:component:program-kit:codex-development-tool-adapter",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "kind": "bridge",
+      "purpose": "Project one exact provider-neutral tool as one stable MCP 2025-11-25 stdio server/tool and enforce the reviewed invocation policy.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Orbyss.ProgramKit.DevelopmentTool.Adapter.Codex.Mcp@0.1.0-alpha.1, executable program-kit-development-tool-codex-mcp, server id program_kit_console_proof, tool name program-kit.console-proof.invoke, stable MCP revision, and authoritative Codex config keys."
+    },
+    {
+      "identity": "pkid:component:program-kit:codex-registration-lifecycle",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "kind": "bridge",
+      "purpose": "Verify exact bytes and explicitly register, update, remove, and audit only the owned project-scoped Codex MCP table.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Collision refusal, normalized owned-table digest, exact lock ownership, TOML preservation, human-started commands, and non-discovery after removal."
+    }
+  ],
+  "projects": [],
+  "packages": [],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:development-tool-package-only",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "disposition": "forbidden",
+      "referencingScope": "Console proof tool, Codex adapter, and cold-session fixture applications",
+      "referencedScope": "ProgramKit projects, source/file includes, assembly hint paths, and ProgramKit build outputs",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "1.0.0",
+          "digest": "sha256:335b9332d5c6f244382a7fb02bd0e60ba06b272506b577685e0226fb334c7fdd"
+        },
+        "path": "design-intent.md#package-only-proof-boundary"
+      },
+      "rationale": "All consumers must restore exact locally prepared packages through controlled NuGet source mapping."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:development-tool-no-agent-loop",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "disposition": "forbidden",
+      "referencingScope": "Development Tool executable and provider adapter runtime",
+      "referencedScope": "AI provider invocation, ProgramKit development capabilities, autonomous registration, ambient permissions, and self-start behavior",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "1.0.0",
+          "digest": "sha256:335b9332d5c6f244382a7fb02bd0e60ba06b272506b577685e0226fb334c7fdd"
+        },
+        "path": "design-intent.md#explicit-codex-registration"
+      },
+      "rationale": "The human initiates provider registration and each authorized use; the tool is not an agent or authority source."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:development-tools",
+      "ownerId": "pkid:domain:program-kit:development-tools",
+      "requestedOutcome": "Represent executable-tool identity, invocation, permissions, provider transport, registration lifecycle, package boundary, and cold-session proof as one validated canonical design.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design grants no executable behavior or registration authority."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "The exact canonical bytes are validated, digest-bound by the plan and review manifest, and compared during approved work-unit closure."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review set is explicit repository input; no agent retrieval contract is created."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "This design does not create or initialize a capability, skill, MCP server, tool binding, or provider wrapper."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human ProgramKit reviewer and later bounded implementer.",
+        "decisionAuthorityBoundary": "Only explicit human approval of this review-set version and exact canonical design and plan SHA-256 values authorizes implementation.",
+        "rationale": "The Markdown projection, fixtures, validation report, and manifest expose exact identities, boundaries, proof obligations, risks, and deferrals."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "No generated navigation is required."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:development-tools",
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "1.0.0",
+          "digest": "sha256:19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2"
+        },
+        "provenancePolicy": "Exact human intent, ProgramKit b4b14cd source bytes, current official Codex MCP configuration documentation, and stable MCP 2025-11-25 are named; later implementation cannot become design authority.",
+        "digestPolicy": "The review manifest and plan bind exact canonical bytes; material changes require revalidation, new digests, and renewed human approval.",
+        "consumerIds": [
+          "pkid:component:program-kit:console-development-tool-proof",
+          "pkid:component:program-kit:codex-development-tool-adapter",
+          "pkid:component:program-kit:codex-registration-lifecycle"
+        ],
+        "compatibilityPolicy": "Identity, schema, package/executable bytes, operation names, exit codes, access declarations, timeouts, concurrency, idempotency, transport revision, Codex config table, registration lock, package-only boundary, and cold-session protocol version explicitly.",
+        "migrationPolicy": "Changed contracts or adapters require explicit schema/package revisions and migrations; changed registration requires explicit verified update; incompatible provider drift stops for review."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "Manifests, locks, and evidence include secret reference names and access-policy facts only; inputs, outputs, environment values, credentials, and secret values are excluded.",
+        "externalizationPolicy": "Canonical documentation remains in ProgramKit or a future owning Development Tool repository; a website may project reviewed content only.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Processes, provider sessions, invocation payloads, and runtime environment state are not durable design content."
+      },
+      "rationale": "A schema-governed design is the review authority while all runtime, adapter, registration, and capability work remains blocked."
+    }
+  ],
+  "representationRelationships": [],
+  "boundaries": {
+      "security": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Access is fail-closed from an exact manifest and independently enforced by the adapter/provider; annotations are descriptive projections only.",
+        "guarantees": [
+          "Filesystem, network, and secrets are denied unless explicitly declared and approved.",
+          "Inputs and outputs are schema-validated and exact executable/adapter bytes are verified before advertisement.",
+          "Sensitive operations retain human approval."
+        ],
+        "exclusions": [
+          "Tool metadata or model inference never grants permissions."
+        ]
+      },
+      "authority": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Only a human starts registration, update, removal, and provider use; the tool and adapter expose no agent or development authority.",
+        "guarantees": [
+          "No self-registration, self-permission, automatic start, capability invocation, provider invocation, or autonomous loop.",
+          "Collision and ownership drift refuse mutation."
+        ],
+        "exclusions": [
+          "Discovery does not authorize invocation or side effects."
+        ]
+      },
+      "secrets": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Only named secret references may be declared; provider-owned secret resolution and redaction remain outside persisted tool evidence.",
+        "guarantees": [
+          "Secret values never enter manifests, locks, command lines, stdout, stderr, or evidence."
+        ],
+        "exclusions": [
+          "The first proof permits no secret access."
+        ]
+      },
+      "persistence": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Only exact packages, manifests, approved project-scoped registration, ownership lock, and redacted evidence persist.",
+        "guarantees": [
+          "Registration owns one exact TOML table and lock.",
+          "Unrelated provider configuration remains unchanged."
+        ],
+        "exclusions": [
+          "Invocation process state and conversation state do not persist as tool authority."
+        ]
+      },
+      "failure": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Exit codes and structured errors distinguish success, declared failure/cancellation, invocation rejection, and internal fault; timeouts are adapter observations.",
+        "guarantees": [
+          "Invalid identity, schema, permission, package, adapter, collision, or ownership facts fail closed.",
+          "No failure is rewritten as success."
+        ],
+        "exclusions": [
+          "A host kill has no fabricated tool exit code."
+        ]
+      },
+      "concurrency": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "The manifest declares positive maximum concurrency and the adapter refuses excess; the first proof allows one active invocation.",
+        "guarantees": [
+          "The adapter does not queue or retry beyond the declared contract."
+        ],
+        "exclusions": [
+          "No shared background worker or autonomous scheduler is introduced."
+        ]
+      },
+      "cancellation": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "MCP cancellation is translated to the child process; the lower contract/provider timeout is enforced; late responses are discarded.",
+        "guarantees": [
+          "Cancellation and timeout evidence are explicit.",
+          "Cancellation never claims rollback of side effects."
+        ],
+        "exclusions": [
+          "The adapter does not infer compensating behavior."
+        ]
+      },
+      "observability": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Evidence binds identities, digests, process/session boundaries, discovery, approval, invocation classification, and redacted result digests.",
+        "guarantees": [
+          "The cold proof records that session A ended and session B discovered solely from persisted registration.",
+          "Negative evidence covers tamper, collision, permission, timeout, cancellation, update, and removal."
+        ],
+        "exclusions": [
+          "Evidence does not retain secret values or conversational content."
+        ]
+      },
+      "compatibility": {
+        "ownerId": "pkid:domain:program-kit:development-tools",
+        "policy": "Contract, package, executable, adapter, protocol, provider config, schemas, and registration lock version independently and are digest-bound.",
+        "guarantees": [
+          "Incompatible bytes are never silently substituted.",
+          "Implementation re-checks authoritative provider sources and stops on material drift.",
+          "Consumer builds use exact prepared packages and source mapping only."
+        ],
+        "exclusions": [
+          "No compatibility is claimed for provider-native, plugin, remote, or additional-provider transports."
+        ]
+      }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:development-tool-direct-conformance",
+      "actor": "ProgramKit conformance runner",
+      "intent": "Invoke the exact Console proof executable through the provider-neutral contract.",
+      "preconditions": [
+        "Exact local packages, manifest, executable, schemas, and allowed fixture root verify.",
+        "No ProgramKit project/source/build-output coupling exists."
+      ],
+      "steps": [
+        "Start a fresh proof process with the exact invoke syntax and contract digest.",
+        "Write one canonical JSON input to stdin and close it.",
+        "Validate exactly one canonical JSON stdout result and exit classification.",
+        "Verify declared access, timeout, cancellation, concurrency, idempotency, and evidence."
+      ],
+      "outcomes": [
+        "Successful input returns schema-valid output and exit 0.",
+        "Identical inputs and exact package bytes produce deterministic proof evidence."
+      ],
+      "failureOutcomes": [
+        "Identity, schema, permission, access, or package drift fails before operation behavior."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:development-tool-cold-codex-discovery",
+      "actor": "Human reviewer in two isolated Codex sessions",
+      "intent": "Prove provider discovery and invocation solely from explicit persisted registration.",
+      "preconditions": [
+        "Session A has prepared and registered exact approved bytes and then ended completely.",
+        "Session B inherits no conversation, path, syntax, process, environment hint, or manual shell instruction."
+      ],
+      "steps": [
+        "Start session B in the trusted registered project.",
+        "State only the semantic intent to use the registered Console proof.",
+        "Observe Codex discover the exact MCP server/tool from persisted configuration.",
+        "Approve as required, invoke, validate the structured result, and record evidence."
+      ],
+      "outcomes": [
+        "The exact registered tool is discovered and invoked without manual executable knowledge.",
+        "Evidence binds both session boundaries and all registered bytes."
+      ],
+      "failureOutcomes": [
+        "Inherited state, manual shell instruction, undisclosed executable syntax, or a surviving session-A process invalidates the proof."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:development-tool-registration-lifecycle",
+      "actor": "Human ProgramKit operator",
+      "intent": "Register, update, and remove one exact Codex tool without owning unrelated provider configuration.",
+      "preconditions": [
+        "The project is trusted and exact package, manifest, adapter, and provider contract evidence verify."
+      ],
+      "steps": [
+        "Refuse server/tool collisions and verify the target table is absent before registration.",
+        "Write one exact table and ownership lock, then verify discovery.",
+        "Perform an explicit digest-bound update and verify old bytes are rejected.",
+        "Perform explicit removal and prove non-discovery in a third cold session."
+      ],
+      "outcomes": [
+        "Only owned configuration changes and lifecycle evidence is complete."
+      ],
+      "failureOutcomes": [
+        "Missing/tampered adapter, incompatible package, changed owned table, collision, or missing lock refuses mutation."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:development-tools",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "1.0.0",
+          "digest": "sha256:335b9332d5c6f244382a7fb02bd0e60ba06b272506b577685e0226fb334c7fdd"
+        }
+      ],
+      "claim": "The review design exists from explicit human intent; no executable contract, Console proof, adapter, registration, capability, or runtime behavior is implemented or approved."
+    }
+  ]
+}

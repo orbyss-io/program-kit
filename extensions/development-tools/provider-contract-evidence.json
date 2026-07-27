@@ -1,0 +1,68 @@
+{
+  "evidenceKind": "program-kit-provider-contract-review",
+  "evidenceVersion": "1.0.0",
+  "reviewedAt": "2026-07-27",
+  "programKitCommit": "b4b14cd88a1e931531cbcdeddc2c2273ad96f4f4",
+  "selectedProvider": "codex",
+  "selectedTransport": "mcp-stdio",
+  "selectedMcpRevision": "2025-11-25",
+  "sources": [
+    {
+      "authority": "OpenAI Codex documentation",
+      "url": "https://learn.chatgpt.com/docs/extend/mcp",
+      "governs": [
+        "Codex MCP support",
+        "shared host configuration",
+        "project or user config scope",
+        "stdio and streamable HTTP server configuration",
+        "required server, timeouts, tool allow/deny lists, and approvals"
+      ]
+    },
+    {
+      "authority": "OpenAI Codex configuration reference",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference#configtoml",
+      "governs": [
+        "trusted project .codex/config.toml",
+        "mcp_servers.<id>.command, args, env, env_vars, cwd, enabled, and required",
+        "startup_timeout_sec and tool_timeout_sec",
+        "enabled_tools, disabled_tools, default_tools_approval_mode, and per-tool approval"
+      ]
+    },
+    {
+      "authority": "Model Context Protocol stable specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "governs": [
+        "tools capability, tools/list, tools/call, unique names, JSON input/output schemas, structured content, errors, security, and human review"
+      ]
+    },
+    {
+      "authority": "Model Context Protocol stable specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+      "governs": [
+        "stdio framing, stdout protocol discipline, and stderr diagnostics"
+      ]
+    },
+    {
+      "authority": "Model Context Protocol stable specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/cancellation",
+      "governs": [
+        "notifications/cancelled and cancellation race behavior"
+      ]
+    },
+    {
+      "authority": "Model Context Protocol stable specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/progress",
+      "governs": [
+        "progress tokens and monotonic progress notifications"
+      ]
+    }
+  ],
+  "selection": {
+    "directExecutable": "selected as the provider-neutral invocation and conformance baseline; rejected as persisted Codex discovery",
+    "providerNative": "rejected because no authoritative arbitrary-executable discovery and invocation contract was found",
+    "mcp": "selected for the first Codex adapter because both provider configuration and stable discovery/invocation contracts are authoritative",
+    "instructionalSkill": "deferred to optional workflow guidance; rejected as tool identity, transport, permission, and cold-discovery mechanism",
+    "plugin": "deferred because packaging is not required for the first project-scoped proof"
+  },
+  "implementationGate": "Re-fetch all sources before PKDT-W030. Any material change to discovery, config scope/keys, stdio framing, tool schemas/results, cancellation, timeout, or approval semantics blocks implementation for renewed review."
+}

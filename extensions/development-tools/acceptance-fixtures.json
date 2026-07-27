@@ -1,0 +1,93 @@
+{
+  "fixtureCatalogKind": "program-kit-development-tool-acceptance",
+  "fixtureCatalogVersion": "1.0.0",
+  "designId": "pkid:design:program-kit:development-tools",
+  "designVersion": "1.0.0",
+  "designSha256": "6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2",
+  "cases": [
+    {
+      "id": "PKDT-F001",
+      "kind": "positive",
+      "stage": "direct-executable",
+      "input": "Exact package, manifest, executable, operation, schema-valid JSON, allowed root, concurrency one.",
+      "expected": "One canonical schema-valid stdout result, no sensitive stderr, exit 0, exact redacted evidence."
+    },
+    {
+      "id": "PKDT-F002",
+      "kind": "negative",
+      "stage": "direct-executable",
+      "input": "Wrong contract digest or operation/input schema.",
+      "expected": "No operation side effect; structured rejection; exit 2."
+    },
+    {
+      "id": "PKDT-F003",
+      "kind": "negative",
+      "stage": "permissions",
+      "input": "Filesystem path outside allowed root, network request, or secret request under the first proof.",
+      "expected": "Fail closed before access; exit 2; redacted evidence names only denied access class."
+    },
+    {
+      "id": "PKDT-F004",
+      "kind": "negative",
+      "stage": "execution-policy",
+      "input": "Timeout, cancellation race, second concurrent call, missing/reused invalid idempotency key.",
+      "expected": "Lower timeout enforced; cancellation propagated; excess concurrency refused; no automatic retry; each outcome classified deterministically."
+    },
+    {
+      "id": "PKDT-F005",
+      "kind": "positive",
+      "stage": "mcp-adapter",
+      "input": "Stable MCP initialize, tools/list, and tools/call for the exact reviewed tool.",
+      "expected": "Exactly one discoverable tool with exact schemas and structured result; no resource, prompt, sampling, or extra tool surface."
+    },
+    {
+      "id": "PKDT-F006",
+      "kind": "negative",
+      "stage": "mcp-adapter",
+      "input": "Missing/tampered adapter, executable, manifest, schema, or incompatible package.",
+      "expected": "Adapter advertises no tool and returns deterministic startup/invocation failure without running the proof."
+    },
+    {
+      "id": "PKDT-F007",
+      "kind": "negative",
+      "stage": "registration",
+      "input": "Existing server id, existing tool name, changed owned table, missing/mismatched lock, untrusted/out-of-scope project.",
+      "expected": "No TOML or lock mutation; exact collision/ownership diagnostic; unrelated configuration byte-identical."
+    },
+    {
+      "id": "PKDT-F008",
+      "kind": "positive",
+      "stage": "registration",
+      "input": "Absent collision plus exact package/contract/executable/adapter bytes and explicit human register.",
+      "expected": "One project-scoped server table and exact ownership lock; status verifies; no process auto-started by registration."
+    },
+    {
+      "id": "PKDT-F009",
+      "kind": "positive",
+      "stage": "cold-session",
+      "input": "Session A ends completely; session B has semantic intent only and no inherited conversation/path/syntax/process/environment/manual-shell state.",
+      "expected": "Codex discovers and invokes solely from persisted registration; evidence binds exact session/process/provider/package/adapter/lock/result facts."
+    },
+    {
+      "id": "PKDT-F010",
+      "kind": "positive",
+      "stage": "update-removal",
+      "input": "Explicit compatible update, then explicit exact removal, then isolated session C.",
+      "expected": "Old bytes rejected after update; unrelated TOML preserved; only owned table/lock removed; session C cannot discover the tool."
+    },
+    {
+      "id": "PKDT-F011",
+      "kind": "negative",
+      "stage": "package-boundary",
+      "input": "Consumer project reference, ProgramKit source/file include, assembly hint path, build-output coupling, or uncontrolled first-party NuGet source.",
+      "expected": "Construction/conformance fails before acceptance; no cold-session proof claim."
+    },
+    {
+      "id": "PKDT-F012",
+      "kind": "negative",
+      "stage": "authority",
+      "input": "Self-registration, self-permission, auto-start, development-capability invocation, AI/provider call, or tool/model loop.",
+      "expected": "Static/runtime conformance fails and the review set cannot close."
+    }
+  ]
+}
