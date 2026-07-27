@@ -37,5 +37,17 @@
           Link="Payload\.agent-capabilities\provider-adapters\codex\implement-software-plan\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/implement-software-plan/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/develop-software/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-software\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\claude\design-software\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/design-software/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\implement-software-plan\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\claude\implement-software-plan\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/implement-software-plan/" />
   </ItemGroup>
 </Project>

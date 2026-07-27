@@ -19,7 +19,7 @@ program-kit dotnet generate-host <api|console|worker> --shell <file> --host <id>
 program-kit dotnet generate-client --openapi <file> --tool-manifest <file> --tool-package <nupkg> --namespace-name <namespace> --class-name <class> --output <dir>
 program-kit capabilities render-catalog <index> --output <file|->
 program-kit capabilities verify-bundle <bundle>
-program-kit capabilities initialize --provider codex --workspace-root <dir> --program-kit-root <dir>
+program-kit capabilities initialize --provider <claude|codex> --workspace-root <dir> --program-kit-root <dir>
 ```
 
 Every command also accepts `--diagnostics text|json`. Exit codes are `0` for
@@ -38,15 +38,18 @@ exact `.nupkg` bundle verification. Catalog rendering accepts the canonical
 `.agent-capabilities/capabilities/INDEX.md` path, preserves `available`/`unavailable`
 values, and includes the exact source SHA-256. Bundle verification requires the
 three distributable canonical definitions and their separately listed inert
-Codex adapter templates; it rejects the index, the authoring capability, the
-repository-only local-publish capability, unlisted bytes, and tampering.
+Codex and Claude Code adapter templates; it rejects the index, the authoring
+capability, the repository-only local-publish capability, unlisted bytes, and
+tampering.
 
 Capability initialization requires explicit provider, workspace-root, and
 Program-Kit-root arguments. It verifies the exact source manifest and bytes,
-renders only `.codex/skills/<capability>/SKILL.md` wrappers with a portable
-relative pointer to the canonical definition, and records exact ownership in
-`.program-kit/capabilities.lock.json`. It never copies canonical capability
-semantics into the human-led workspace, never writes `.agents`, never scans for
+renders only `.codex/skills/<capability>/SKILL.md` (provider `codex`) or
+`.claude/skills/<capability>/SKILL.md` (provider `claude`) wrappers with a
+portable relative pointer to the canonical definition, and records exact
+ownership in `.program-kit/capabilities.lock.json`. The lock records the most
+recently initialized provider. It never copies canonical capability semantics
+into the human-led workspace, never writes `.agents`, never scans for
 providers, and refuses to overwrite an unowned or modified wrapper.
 Host generation requires `hostDocuments[]` in the artifact manifest, binding
 each selected host identity to one exact integrator-document revision. This

@@ -18,7 +18,7 @@ public static class CommandDescriptorCatalog
         new HashSet<string>(["text", "json"], StringComparer.Ordinal);
 
     private static readonly IReadOnlySet<string> CapabilityProviders =
-        new HashSet<string>(["codex"], StringComparer.Ordinal);
+        new HashSet<string>(["claude", "codex"], StringComparer.Ordinal);
 
     /// <summary>Gets every W050 command descriptor in exact ordinal order.</summary>
     public static ImmutableArray<CommandDescriptor> All { get; } =

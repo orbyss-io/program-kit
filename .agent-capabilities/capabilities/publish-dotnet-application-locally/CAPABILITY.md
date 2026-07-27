@@ -129,6 +129,8 @@ or retirement requires human authority plus index and wrapper migration.
 
 The repository-only Codex adapter template at
 `.agent-capabilities/provider-adapters/codex/publish-dotnet-application-locally/SKILL.md`
-may contain only registration metadata and one canonical-path token. Verify
-that an initialized wrapper contains no copied operation mechanics or
+and the repository-only Claude Code adapter template at
+`.agent-capabilities/provider-adapters/claude/publish-dotnet-application-locally/SKILL.md`
+may contain only registration metadata and one canonical-path token each.
+Verify that an initialized wrapper contains no copied operation mechanics or
 procedure and is bound by the workspace ownership lock.

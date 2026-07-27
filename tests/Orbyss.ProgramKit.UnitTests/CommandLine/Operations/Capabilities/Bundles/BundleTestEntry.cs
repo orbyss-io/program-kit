@@ -5,4 +5,5 @@ internal sealed record BundleTestEntry(
     string SourcePath,
     string PackagePath,
     byte[] Content,
-    string Digest);
+    string Digest,
+    string? Provider = null);

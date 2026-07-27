@@ -21,6 +21,11 @@ public sealed class CapabilityInitializerTests
         "develop-software",
         "implement-software-plan",
     ];
+    private static readonly string[] Providers =
+    [
+        "claude",
+        "codex",
+    ];
     private static readonly JsonSerializerOptions ManifestJsonOptions =
         new(JsonSerializerDefaults.Web);
 
@@ -189,6 +194,122 @@ public sealed class CapabilityInitializerTests
     }
 
     [TestMethod]
+    public async Task InitializesOnlyPortableClaudeWrappersAndOwnershipLock()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var kit = Path.Combine(workspace, "tools", "program-kit");
+            CreateKit(kit);
+            CapabilityInitializer sut = CreateSubject();
+
+            await sut.InitializeAsync(
+                "claude",
+                workspace,
+                kit,
+                TestContext.CancellationToken);
+            await sut.InitializeAsync(
+                "claude",
+                workspace,
+                kit,
+                TestContext.CancellationToken);
+
+            Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".codex")));
+            foreach (var capabilityId in CapabilityIds)
+            {
+                var wrapper = await File.ReadAllTextAsync(
+                    Path.Combine(
+                        workspace,
+                        ".claude",
+                        "skills",
+                        capabilityId,
+                        "SKILL.md"),
+                    TestContext.CancellationToken);
+                Assert.Contains(
+                    string.Concat(
+                        "../../../tools/program-kit/.agent-capabilities/capabilities/",
+                        capabilityId,
+                        "/CAPABILITY.md"),
+                    wrapper);
+                Assert.DoesNotContain(CanonicalPathToken, wrapper);
+            }
+
+            var lockText = await File.ReadAllTextAsync(
+                Path.Combine(
+                    workspace,
+                    ".program-kit",
+                    "capabilities.lock.json"),
+                TestContext.CancellationToken);
+            Assert.Contains("\"provider\":\"claude\"", lockText);
+            Assert.Contains(
+                "\"outputPath\":\".claude/skills/design-software/SKILL.md\"",
+                lockText);
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task InitializingSecondProviderKeepsFirstWrappersAndRewritesLock()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var kit = Path.Combine(workspace, "program-kit");
+            CreateKit(kit);
+            CapabilityInitializer sut = CreateSubject();
+            await sut.InitializeAsync(
+                "codex",
+                workspace,
+                kit,
+                TestContext.CancellationToken);
+            var codexWrapperPath = Path.Combine(
+                workspace,
+                ".codex",
+                "skills",
+                "design-software",
+                "SKILL.md");
+            var codexWrapperBytes = await File.ReadAllBytesAsync(
+                codexWrapperPath,
+                TestContext.CancellationToken);
+
+            await sut.InitializeAsync(
+                "claude",
+                workspace,
+                kit,
+                TestContext.CancellationToken);
+
+            Assert.IsTrue(
+                File.Exists(
+                    Path.Combine(
+                        workspace,
+                        ".claude",
+                        "skills",
+                        "design-software",
+                        "SKILL.md")));
+            Assert.AreSequenceEqual(
+                codexWrapperBytes,
+                await File.ReadAllBytesAsync(
+                    codexWrapperPath,
+                    TestContext.CancellationToken));
+            var lockText = await File.ReadAllTextAsync(
+                Path.Combine(
+                    workspace,
+                    ".program-kit",
+                    "capabilities.lock.json"),
+                TestContext.CancellationToken);
+            Assert.Contains("\"provider\":\"claude\"", lockText);
+            Assert.DoesNotContain(".codex/skills/", lockText);
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task RejectsUnreviewedProviderBeforeFilesystemWork()
     {
         CapabilityInitializer sut = CreateSubject();
@@ -196,7 +317,7 @@ public sealed class CapabilityInitializerTests
         var exception =
             await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
                 () => sut.InitializeAsync(
-                    "claude",
+                    "cursor",
                     "missing-workspace",
                     "missing-program-kit",
                     TestContext.CancellationToken).AsTask());
@@ -231,21 +352,9 @@ public sealed class CapabilityInitializerTests
                 ".agent-capabilities/capabilities/",
                 capabilityId,
                 "/CAPABILITY.md");
-            var adapterRelative = string.Concat(
-                ".agent-capabilities/provider-adapters/codex/",
-                capabilityId,
-                "/SKILL.md");
             var canonicalBytes = Encoding.UTF8.GetBytes(
                 string.Concat("# ", capabilityId, "\n"));
-            var adapterBytes = Encoding.UTF8.GetBytes(
-                string.Concat(
-                    "---\nname: ",
-                    capabilityId,
-                    "\n---\n\nLoad `",
-                    CanonicalPathToken,
-                    "`.\n"));
             Write(kit, canonicalRelative, canonicalBytes);
-            Write(kit, adapterRelative, adapterBytes);
             capabilities.Add(
                 new CapabilityBundlePayloadEntry(
                     capabilityId,
@@ -254,15 +363,34 @@ public sealed class CapabilityInitializerTests
                         canonicalRelative),
                     Digest(canonicalBytes),
                     canonicalRelative));
-            adapters.Add(
-                new CapabilityBundleProviderAdapter(
+            foreach (var provider in Providers)
+            {
+                var adapterRelative = string.Concat(
+                    ".agent-capabilities/provider-adapters/",
+                    provider,
+                    "/",
                     capabilityId,
+                    "/SKILL.md");
+                var adapterBytes = Encoding.UTF8.GetBytes(
                     string.Concat(
-                        "contentFiles/any/any/",
-                        adapterRelative),
-                    "codex",
-                    Digest(adapterBytes),
-                    adapterRelative));
+                        "---\nname: ",
+                        capabilityId,
+                        "\n---\n\nLoad `",
+                        CanonicalPathToken,
+                        "` for ",
+                        provider,
+                        ".\n"));
+                Write(kit, adapterRelative, adapterBytes);
+                adapters.Add(
+                    new CapabilityBundleProviderAdapter(
+                        capabilityId,
+                        string.Concat(
+                            "contentFiles/any/any/",
+                            adapterRelative),
+                        provider,
+                        Digest(adapterBytes),
+                        adapterRelative));
+            }
         }
 
         var manifest = new CapabilityBundleManifest(

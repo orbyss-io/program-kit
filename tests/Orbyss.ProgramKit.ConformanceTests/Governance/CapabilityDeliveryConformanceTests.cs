@@ -26,6 +26,12 @@ public sealed class CapabilityDeliveryConformanceTests
         "publish-dotnet-application-locally",
     ];
 
+    private static readonly string[] RegisteredProviders =
+    [
+        "claude",
+        "codex",
+    ];
+
     [TestMethod]
     public void CanonicalDefinitionsCarryEveryRequiredCapabilityBoundary()
     {
@@ -66,29 +72,35 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
-    public void CodexAdapterTemplatesAreThinExactCanonicalPointerTemplates()
+    public void AdapterTemplatesAreThinExactCanonicalPointerTemplates()
     {
-        foreach (var capabilityId in RegisteredCapabilityIds)
+        foreach (var provider in RegisteredProviders)
         {
-            var wrapper = ConformanceInputs.Read(
-                string.Concat(
-                    "Capabilities/Wrappers/",
-                    capabilityId,
-                    "/SKILL.md"));
-            Assert.Contains(
-                string.Concat("name: ", capabilityId),
-                wrapper,
-                capabilityId);
-            Assert.HasCount(
-                1,
-                wrapper.Split(
-                    "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}",
-                    StringSplitOptions.None).Skip(1),
-                capabilityId);
-            Assert.DoesNotContain("## Procedure", wrapper, capabilityId);
-            Assert.DoesNotContain("## Allowed actions", wrapper, capabilityId);
-            Assert.DoesNotContain("## Prohibited actions", wrapper, capabilityId);
-            Assert.IsLessThan(4096, wrapper.Length, capabilityId);
+            foreach (var capabilityId in RegisteredCapabilityIds)
+            {
+                var label = string.Concat(provider, "/", capabilityId);
+                var wrapper = ConformanceInputs.Read(
+                    string.Concat(
+                        "Capabilities/Wrappers/",
+                        provider,
+                        "/",
+                        capabilityId,
+                        "/SKILL.md"));
+                Assert.Contains(
+                    string.Concat("name: ", capabilityId),
+                    wrapper,
+                    label);
+                Assert.HasCount(
+                    1,
+                    wrapper.Split(
+                        "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}",
+                        StringSplitOptions.None).Skip(1),
+                    label);
+                Assert.DoesNotContain("## Procedure", wrapper, label);
+                Assert.DoesNotContain("## Allowed actions", wrapper, label);
+                Assert.DoesNotContain("## Prohibited actions", wrapper, label);
+                Assert.IsLessThan(4096, wrapper.Length, label);
+            }
         }
     }
 
@@ -153,19 +165,30 @@ public sealed class CapabilityDeliveryConformanceTests
             .Select(entry => entry.CapabilityId)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        var adapterIds = manifest.OptionalProviderAdapters
-            .Select(entry => entry.CapabilityId)
-            .Order(StringComparer.Ordinal)
-            .ToArray();
-
         Assert.AreSequenceEqual(DistributedCapabilityIds, capabilityIds);
-        Assert.AreSequenceEqual(DistributedCapabilityIds, adapterIds);
         Assert.DoesNotContain(
             "publish-dotnet-application-locally",
             capabilityIds);
         Assert.DoesNotContain(
             "author-and-maintain-skills",
             capabilityIds);
+        foreach (var provider in RegisteredProviders)
+        {
+            var adapterIds = manifest.OptionalProviderAdapters
+                .Where(
+                    entry => string.Equals(
+                        entry.Provider,
+                        provider,
+                        StringComparison.Ordinal))
+                .Select(entry => entry.CapabilityId)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+            Assert.AreSequenceEqual(DistributedCapabilityIds, adapterIds);
+        }
+
+        Assert.HasCount(
+            RegisteredProviders.Length * DistributedCapabilityIds.Length,
+            manifest.OptionalProviderAdapters);
         foreach (var capability in manifest.Capabilities)
         {
             Assert.AreEqual(
@@ -180,13 +203,15 @@ public sealed class CapabilityDeliveryConformanceTests
 
         foreach (var adapter in manifest.OptionalProviderAdapters)
         {
-            Assert.AreEqual("codex", adapter.Provider);
+            Assert.Contains(adapter.Provider, RegisteredProviders);
             Assert.AreEqual(
                 adapter.Sha256,
                 Digest(
                     ConformanceInputs.ReadBytes(
                         string.Concat(
                             "Capabilities/Wrappers/",
+                            adapter.Provider,
+                            "/",
                             adapter.CapabilityId,
                             "/SKILL.md"))));
         }
@@ -213,7 +238,7 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            7,
+            10,
             project
                 .Descendants("None")
                 .Where(

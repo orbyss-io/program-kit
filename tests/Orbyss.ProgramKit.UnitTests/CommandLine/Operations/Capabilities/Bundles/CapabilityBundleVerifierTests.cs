@@ -17,6 +17,11 @@ public sealed class CapabilityBundleVerifierTests
         "design-software",
         "implement-software-plan",
     ];
+    private static readonly string[] Providers =
+    [
+        "claude",
+        "codex",
+    ];
 
     public TestContext TestContext { get; set; } = null!;
 
@@ -31,6 +36,33 @@ public sealed class CapabilityBundleVerifierTests
                 new CapabilityBundleManifestReader());
 
             await sut.VerifyAsync(bundle, TestContext.CancellationToken);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task RejectsBundleMissingRegisteredProviderAdapters()
+    {
+        var root = CreateRoot();
+        try
+        {
+            var bundle = CreateBundle(
+                root,
+                adapterProviders: ["codex"]);
+            CapabilityBundleVerifier sut = new(
+                new CapabilityBundleManifestReader());
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.VerifyAsync(
+                        bundle,
+                        TestContext.CancellationToken).AsTask());
+
+            Assert.AreEqual("PKCLI007", exception.DiagnosticId);
+            Assert.Contains("provider-adapter", exception.Message);
         }
         finally
         {
@@ -222,7 +254,8 @@ public sealed class CapabilityBundleVerifierTests
     private static string CreateBundle(
         string root,
         string? tamperedCapabilityId = null,
-        string? extraPath = null)
+        string? extraPath = null,
+        string[]? adapterProviders = null)
     {
         var bundlePath = Path.Combine(root, "capabilities.nupkg");
         var capabilities = CapabilityIds
@@ -245,28 +278,36 @@ public sealed class CapabilityBundleVerifierTests
                         Digest(bytes));
                 })
             .ToArray();
-        var adapters = CapabilityIds
-            .Select(
-                capabilityId =>
-                {
-                    var bytes = Encoding.UTF8.GetBytes(
-                        string.Concat(
-                            "---\nname: ",
+        var adapters = (adapterProviders ?? Providers)
+            .SelectMany(
+                provider => CapabilityIds.Select(
+                    capabilityId =>
+                    {
+                        var bytes = Encoding.UTF8.GetBytes(
+                            string.Concat(
+                                "---\nname: ",
+                                capabilityId,
+                                "\nprovider: ",
+                                provider,
+                                "\n---\n"));
+                        return new BundleTestEntry(
                             capabilityId,
-                            "\n---\n"));
-                    return new BundleTestEntry(
-                        capabilityId,
-                        string.Concat(
-                            ".agent-capabilities/provider-adapters/codex/",
-                            capabilityId,
-                            "/SKILL.md"),
-                        string.Concat(
-                            "contentFiles/any/any/.agent-capabilities/provider-adapters/codex/",
-                            capabilityId,
-                            "/SKILL.md"),
-                        bytes,
-                        Digest(bytes));
-                })
+                            string.Concat(
+                                ".agent-capabilities/provider-adapters/",
+                                provider,
+                                "/",
+                                capabilityId,
+                                "/SKILL.md"),
+                            string.Concat(
+                                "contentFiles/any/any/.agent-capabilities/provider-adapters/",
+                                provider,
+                                "/",
+                                capabilityId,
+                                "/SKILL.md"),
+                            bytes,
+                            Digest(bytes),
+                            provider);
+                    }))
             .ToArray();
         var manifest = BuildManifest(capabilities, adapters);
 
@@ -332,7 +373,9 @@ public sealed class CapabilityBundleVerifierTests
                         entry.CapabilityId,
                         "\",\"packagePath\":\"",
                         entry.PackagePath,
-                        "\",\"provider\":\"codex\",\"sha256\":\"",
+                        "\",\"provider\":\"",
+                        entry.Provider,
+                        "\",\"sha256\":\"",
                         entry.Digest,
                         "\",\"sourcePath\":\"",
                         entry.SourcePath,

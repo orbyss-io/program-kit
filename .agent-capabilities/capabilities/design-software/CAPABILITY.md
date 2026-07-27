@@ -137,8 +137,11 @@ and wrapper migration.
 ## Provider wrapper mapping and drift check
 
 The inert Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/design-software/SKILL.md` contains
-one canonical-path token. Initialization renders the selected workspace's
-`.codex/skills/design-software/SKILL.md`. Verify its exact pointer, confirm it
-contains no copied design rules, and bind its source and output digests in the
-workspace ownership lock.
+`.agent-capabilities/provider-adapters/codex/design-software/SKILL.md` and the
+inert Claude Code adapter template at
+`.agent-capabilities/provider-adapters/claude/design-software/SKILL.md` each
+contain one canonical-path token. Initialization renders the selected
+workspace's `.codex/skills/design-software/SKILL.md` or
+`.claude/skills/design-software/SKILL.md`. Verify the rendered wrapper's exact
+pointer, confirm it contains no copied design rules, and bind its source and
+output digests in the workspace ownership lock.

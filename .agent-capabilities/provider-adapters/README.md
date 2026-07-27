@@ -22,12 +22,35 @@ workspace `.codex/skills/<capability-id>/SKILL.md` to the selected canonical
 definition. This keeps the adapter portable when Program Kit is located at
 `program-kit/`, `tools/program-kit/`, or another explicit workspace path.
 
+## Implemented provider: Claude Code
+
+Provider identifier: `claude`. Claude Code discovers project-scoped skills at
+`.claude/skills/<skill-name>/SKILL.md` beneath the workspace root. Each skill
+file carries YAML front matter whose `name` and `description` fields are the
+trigger and discovery metadata; the Markdown body is loaded when the skill is
+invoked. This local discovery contract was documented from direct provider
+behavior of the Claude Code CLI and desktop application (2026 releases, which
+also accept the `/<skill-name>` invocation form).
+
+Claude templates live under
+`provider-adapters/claude/<capability-id>/SKILL.md`. Each template contains
+the exact `{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}` token once. The Program
+Kit CLI replaces it with a forward-slash relative path computed from the
+generated workspace `.claude/skills/<capability-id>/SKILL.md` to the selected
+canonical definition, exactly as for Codex.
+
+The workspace ownership lock at `.program-kit/capabilities.lock.json` records
+one provider: the most recently initialized one. Initializing a second
+provider renders that provider's wrappers into its own discovery root and
+rewrites the lock; wrappers whose bytes are no longer recorded by the current
+lock are treated as human-owned and initialization refuses to overwrite them
+when they differ.
+
 ## Adding another provider
 
 Another provider is supported only after a human starts provider-adapter work
 and the provider's local discovery contract is known from authoritative,
-current documentation or direct provider behavior. A contributor—for example
-a future Claude Code session—must:
+current documentation or direct provider behavior. A contributor must:
 
 1. document the provider identifier, supported version or revision, discovery
    root, file naming rules, trigger metadata, and canonical-pointer semantics;

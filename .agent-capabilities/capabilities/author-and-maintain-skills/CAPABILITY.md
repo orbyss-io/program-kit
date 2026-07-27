@@ -95,8 +95,9 @@ When updating a capability, read the current canonical definition, relevant inde
 3. Judge fit: reject or split proposals that combine unrelated concerns, authorize work indirectly, or need unrequested integrations.
 4. Draft the canonical definition with all required content sections and boundaries.
 5. Add or update inert provider templates as thin adapters only. For example,
-   a Codex template may use Codex skill front matter for triggering, then use
-   the exact canonical-path token that initialization resolves to
+   a Codex or Claude Code template may use that provider's skill front matter
+   for triggering, then use the exact canonical-path token that initialization
+   resolves to
    `.agent-capabilities/capabilities/<capability-id>/CAPABILITY.md`.
 6. Update the capability index and nearby navigation in the same change.
 7. Run deterministic verification: required paths, Markdown links, wrapper-to-canonical pointer, duplicate-rule-body scan, and status accuracy.

@@ -21,6 +21,11 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         "develop-software",
         "implement-software-plan",
     ];
+    private static readonly string[] RegisteredProviders =
+    [
+        "claude",
+        "codex",
+    ];
     private readonly ICapabilityBundleManifestReader manifestReader;
 
     /// <summary>Initializes the verifier with strict manifest parsing.</summary>
@@ -255,35 +260,39 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     private static void ValidateAdapters(
         IReadOnlyCollection<CapabilityBundleProviderAdapter> adapters)
     {
-        var actualIds = adapters
-            .Select(entry => entry?.CapabilityId)
+        var expectedKeys = RegisteredProviders
+            .SelectMany(
+                provider => DistributedCapabilityIds.Select(
+                    capabilityId => string.Concat(
+                        provider,
+                        "/",
+                        capabilityId)))
             .Order(StringComparer.Ordinal)
             .ToArray();
-        if (actualIds.Length != DistributedCapabilityIds.Length ||
-            !actualIds.SequenceEqual(
-                DistributedCapabilityIds,
-                StringComparer.Ordinal))
+        var actualKeys = adapters
+            .Select(
+                entry =>
+                    entry?.Provider is null || entry.CapabilityId is null
+                        ? string.Empty
+                        : string.Concat(
+                            entry.Provider,
+                            "/",
+                            entry.CapabilityId))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (!actualKeys.SequenceEqual(expectedKeys, StringComparer.Ordinal))
         {
             throw InvalidBundle(
-                "The optional provider-adapter section must contain exactly one adapter for each distributable capability.",
+                "The optional provider-adapter section must contain exactly one adapter per registered provider for each distributable capability.",
                 "/bundle/manifest/optionalProviderAdapters");
         }
 
         foreach (var adapter in adapters)
         {
-            if (adapter is null ||
-                !string.Equals(
-                    adapter.Provider,
-                    "codex",
-                    StringComparison.Ordinal))
-            {
-                throw InvalidBundle(
-                    "Every optional adapter must be one explicit Codex wrapper.",
-                    "/bundle/manifest/optionalProviderAdapters");
-            }
-
             var expectedSource = string.Concat(
-                ".agent-capabilities/provider-adapters/codex/",
+                ".agent-capabilities/provider-adapters/",
+                adapter.Provider,
+                "/",
                 adapter.CapabilityId,
                 "/SKILL.md");
             var expectedPackage = string.Concat(

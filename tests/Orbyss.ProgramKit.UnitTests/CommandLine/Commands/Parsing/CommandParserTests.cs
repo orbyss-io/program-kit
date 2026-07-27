@@ -168,6 +168,17 @@ public sealed class CommandParserTests
             "--program-kit-root",
             "C:/work/tools/program-kit",
         ]);
+        var initializeClaude = sut.Parse(
+        [
+            "capabilities",
+            "initialize",
+            "--provider",
+            "claude",
+            "--workspace-root",
+            "C:/work",
+            "--program-kit-root",
+            "C:/work/tools/program-kit",
+        ]);
 
         Assert.AreEqual(
             "capabilities.render-catalog",
@@ -181,5 +192,11 @@ public sealed class CommandParserTests
         Assert.AreEqual(
             "capabilities.initialize",
             initialize.Descriptor.Key);
+        Assert.AreEqual(
+            "capabilities.initialize",
+            initializeClaude.Descriptor.Key);
+        Assert.AreEqual(
+            "claude",
+            initializeClaude.RequiredOption("provider"));
     }
 }

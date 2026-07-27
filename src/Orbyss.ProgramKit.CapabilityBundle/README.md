@@ -7,10 +7,10 @@ Program Kit development capabilities:
 - `design-software`
 - `implement-software-plan`
 
-Their inert Codex wrapper templates are separately listed provider adapters. The
-repository-only `publish-dotnet-application-locally` capability, the capability
-index, generated catalog, authoring capability, and Release Cycle reservations
-are deliberately excluded.
+Their inert Codex and Claude Code wrapper templates are separately listed
+provider adapters. The repository-only `publish-dotnet-application-locally`
+capability, the capability index, generated catalog, authoring capability, and
+Release Cycle reservations are deliberately excluded.
 
 Bundle revision `2.0.0` uses the unique `.agent-capabilities` source tree. Its
 canonical definitions stay in Program Kit. They are never copied into a

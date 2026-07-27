@@ -30,6 +30,12 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         "develop-software",
         "implement-software-plan",
     ];
+    private static readonly Dictionary<string, string> ProviderSkillRoots =
+        new(StringComparer.Ordinal)
+        {
+            ["claude"] = ".claude/skills/",
+            ["codex"] = ".codex/skills/",
+        };
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
         throwOnInvalidBytes: true);
@@ -54,10 +60,11 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         string programKitRoot,
         CancellationToken cancellationToken)
     {
-        if (!string.Equals(provider, "codex", StringComparison.Ordinal))
+        if (provider is null ||
+            !ProviderSkillRoots.TryGetValue(provider, out var providerSkillRoot))
         {
             throw InvalidInitialization(
-                "Only the exact reviewed 'codex' provider adapter is supported.",
+                "Only the exact reviewed 'claude' and 'codex' provider adapters are supported.",
                 "/provider");
         }
 
@@ -143,7 +150,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             var template = DecodeTemplate(templateBytes.Span);
             ValidateTemplate(template);
             var outputRelativePath = string.Concat(
-                ".codex/skills/",
+                providerSkillRoot,
                 capability.CapabilityId,
                 "/SKILL.md");
             var outputPath = ResolveUnder(
@@ -252,10 +259,10 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 value.LockVersion,
                 LockVersion,
                 StringComparison.Ordinal) ||
-            !string.Equals(
+            value.Provider is null ||
+            !ProviderSkillRoots.TryGetValue(
                 value.Provider,
-                "codex",
-                StringComparison.Ordinal) ||
+                out var lockedSkillRoot) ||
             !string.Equals(
                 value.BundleVersion,
                 "2.0.0",
@@ -264,7 +271,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             !IsSafeStoredRelativePath(
                 value.ProgramKitRoot,
                 allowCurrentDirectory: true) ||
-            !HasExactValidLockEntries(value.Capabilities))
+            !HasExactValidLockEntries(value.Capabilities, lockedSkillRoot))
         {
             throw InvalidInitialization(
                 "The existing Program Kit capability ownership lock is unsupported.",
@@ -446,7 +453,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             template.Contains("## Prohibited actions", StringComparison.Ordinal))
         {
             throw InvalidInitialization(
-                "The Codex adapter must remain thin and contain exactly one canonical-path token.",
+                "The provider adapter must remain thin and contain exactly one canonical-path token.",
                 "/capabilities/adapter");
         }
     }
@@ -522,7 +529,8 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
     }
 
     private static bool HasExactValidLockEntries(
-        CapabilityInitializationLockEntry[]? entries)
+        CapabilityInitializationLockEntry[]? entries,
+        string providerSkillRoot)
     {
         if (entries is null ||
             entries.Length != DistributedCapabilityIds.Length)
@@ -547,7 +555,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 !string.Equals(
                     entry.OutputPath,
                     string.Concat(
-                        ".codex/skills/",
+                        providerSkillRoot,
                         entry.CapabilityId,
                         "/SKILL.md"),
                     StringComparison.Ordinal) ||

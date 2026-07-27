@@ -142,6 +142,8 @@ wrapper migration, and removal of stale registration.
 
 The inert Codex adapter template at
 `.agent-capabilities/provider-adapters/codex/implement-software-plan/SKILL.md`
-contains only registration metadata and one canonical-path token.
+and the inert Claude Code adapter template at
+`.agent-capabilities/provider-adapters/claude/implement-software-plan/SKILL.md`
+contain only registration metadata and one canonical-path token each.
 Initialization renders the selected workspace wrapper. Verify its exact
 pointer, absence of copied procedure text, and workspace ownership binding.
