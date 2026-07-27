@@ -66,7 +66,7 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
-    public void CodexWrappersAreThinExactPointersToCanonicalDefinitions()
+    public void CodexAdapterTemplatesAreThinExactCanonicalPointerTemplates()
     {
         foreach (var capabilityId in RegisteredCapabilityIds)
         {
@@ -79,17 +79,16 @@ public sealed class CapabilityDeliveryConformanceTests
                 string.Concat("name: ", capabilityId),
                 wrapper,
                 capabilityId);
-            Assert.Contains(
-                string.Concat(
-                    "../../../.agents/capabilities/",
-                    capabilityId,
-                    "/CAPABILITY.md"),
-                wrapper,
+            Assert.HasCount(
+                1,
+                wrapper.Split(
+                    "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}",
+                    StringSplitOptions.None).Skip(1),
                 capabilityId);
             Assert.DoesNotContain("## Procedure", wrapper, capabilityId);
             Assert.DoesNotContain("## Allowed actions", wrapper, capabilityId);
             Assert.DoesNotContain("## Prohibited actions", wrapper, capabilityId);
-            Assert.IsLessThan(800, wrapper.Length, capabilityId);
+            Assert.IsLessThan(4096, wrapper.Length, capabilityId);
         }
     }
 
@@ -214,18 +213,14 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            6,
+            7,
             project
                 .Descendants("None")
                 .Where(
                     item =>
                         RequiredAttribute(item, "PackagePath")
                             .StartsWith(
-                                "contentFiles/any/any/.agents/",
-                                StringComparison.Ordinal) ||
-                        RequiredAttribute(item, "PackagePath")
-                            .StartsWith(
-                                "contentFiles/any/any/.codex/",
+                                "contentFiles/any/any/.agent-capabilities/",
                                 StringComparison.Ordinal)));
     }
 

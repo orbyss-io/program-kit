@@ -9,6 +9,7 @@ using Orbyss.ProgramKit.CommandLine.Hosting.IO;
 using Orbyss.ProgramKit.CommandLine.Operations;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
 using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
@@ -192,6 +193,11 @@ public static class CommandLineComposition
             new VerifyCapabilityBundleCommandOperation(
                 new CapabilityBundleVerifier(
                     new CapabilityBundleManifestReader()));
+        ICommandOperation capabilityInitializationOperation =
+            new InitializeCapabilitiesCommandOperation(
+                new CapabilityInitializer(
+                    fileSystem,
+                    new CapabilityBundleManifestReader()));
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {
@@ -213,6 +219,7 @@ public static class CommandLineComposition
                 "dotnet.publish-local" => localPublishOperation,
                 "capabilities.render-catalog" => capabilityCatalogOperation,
                 "capabilities.verify-bundle" => capabilityBundleOperation,
+                "capabilities.initialize" => capabilityInitializationOperation,
                 _ => new UnavailableCommandOperation(
                     descriptor.Key,
                     BackingWorkUnit(descriptor.Key)),

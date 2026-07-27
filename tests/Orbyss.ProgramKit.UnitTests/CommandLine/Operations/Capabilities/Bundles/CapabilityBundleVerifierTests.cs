@@ -75,7 +75,7 @@ public sealed class CapabilityBundleVerifierTests
             var bundle = CreateBundle(
                 root,
                 extraPath:
-                    "contentFiles/any/any/.agents/capabilities/INDEX.md");
+                    "contentFiles/any/any/.agent-capabilities/capabilities/INDEX.md");
             CapabilityBundleVerifier sut = new(
                 new CapabilityBundleManifestReader());
 
@@ -102,7 +102,7 @@ public sealed class CapabilityBundleVerifierTests
             var bundle = CreateBundle(
                 root,
                 extraPath:
-                    "contentFiles/any/any/.agents/capabilities/publish-dotnet-application-locally/CAPABILITY.md");
+                    "contentFiles/any/any/.agent-capabilities/capabilities/publish-dotnet-application-locally/CAPABILITY.md");
             CapabilityBundleVerifier sut = new(
                 new CapabilityBundleManifestReader());
 
@@ -186,7 +186,7 @@ public sealed class CapabilityBundleVerifierTests
             {
                 WriteEntry(
                     archive,
-                    "contentFiles/any/any/.program-kit/capability-bundle-manifest.json",
+                    "contentFiles/any/any/.agent-capabilities/capability-bundle-manifest.json",
                     Encoding.UTF8.GetBytes("{"));
             }
 
@@ -234,11 +234,11 @@ public sealed class CapabilityBundleVerifierTests
                     return new BundleTestEntry(
                         capabilityId,
                         string.Concat(
-                            ".agents/capabilities/",
+                            ".agent-capabilities/capabilities/",
                             capabilityId,
                             "/CAPABILITY.md"),
                         string.Concat(
-                            "contentFiles/any/any/.agents/capabilities/",
+                            "contentFiles/any/any/.agent-capabilities/capabilities/",
                             capabilityId,
                             "/CAPABILITY.md"),
                         bytes,
@@ -257,11 +257,11 @@ public sealed class CapabilityBundleVerifierTests
                     return new BundleTestEntry(
                         capabilityId,
                         string.Concat(
-                            ".codex/skills/",
+                            ".agent-capabilities/provider-adapters/codex/",
                             capabilityId,
                             "/SKILL.md"),
                         string.Concat(
-                            "contentFiles/any/any/.codex/skills/",
+                            "contentFiles/any/any/.agent-capabilities/provider-adapters/codex/",
                             capabilityId,
                             "/SKILL.md"),
                         bytes,
@@ -275,7 +275,7 @@ public sealed class CapabilityBundleVerifierTests
             ZipArchiveMode.Create);
         WriteEntry(
             archive,
-            "contentFiles/any/any/.program-kit/capability-bundle-manifest.json",
+            "contentFiles/any/any/.agent-capabilities/capability-bundle-manifest.json",
             Encoding.UTF8.GetBytes(manifest));
         foreach (var capability in capabilities)
         {
@@ -308,7 +308,7 @@ public sealed class CapabilityBundleVerifierTests
         IReadOnlyList<BundleTestEntry> capabilities,
         IReadOnlyList<BundleTestEntry> adapters) =>
         string.Concat(
-            "{\"bundleVersion\":\"1.0.0\",\"capabilities\":[",
+            "{\"bundleVersion\":\"2.0.0\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(

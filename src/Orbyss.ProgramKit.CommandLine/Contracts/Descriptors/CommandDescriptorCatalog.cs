@@ -17,6 +17,9 @@ public static class CommandDescriptorCatalog
     private static readonly IReadOnlySet<string> DiagnosticFormats =
         new HashSet<string>(["text", "json"], StringComparer.Ordinal);
 
+    private static readonly IReadOnlySet<string> CapabilityProviders =
+        new HashSet<string>(["codex"], StringComparer.Ordinal);
+
     /// <summary>Gets every W050 command descriptor in exact ordinal order.</summary>
     public static ImmutableArray<CommandDescriptor> All { get; } =
     [
@@ -132,6 +135,16 @@ public static class CommandDescriptorCatalog
             ["capabilities", "verify-bundle"],
             [new("bundle", true, false)],
             [Diagnostics()]),
+        Create(
+            "capabilities.initialize",
+            ["capabilities", "initialize"],
+            [],
+            [
+                new("provider", true, true, CapabilityProviders),
+                new("workspace-root", true, true),
+                new("program-kit-root", true, true),
+                Diagnostics(),
+            ]),
     ];
 
     private static CommandOptionDefinition Diagnostics() =>

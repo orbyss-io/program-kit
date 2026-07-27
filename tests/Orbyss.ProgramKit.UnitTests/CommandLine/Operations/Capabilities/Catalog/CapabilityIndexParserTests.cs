@@ -20,7 +20,7 @@ public sealed class CapabilityIndexParserTests
 
                 | Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |
                 | --- | --- | --- | --- | --- | --- |
-                | `design-software` | design | available | [CAPABILITY.md](design-software/CAPABILITY.md) | [Codex wrapper](../../.codex/skills/design-software/SKILL.md) | Design flow. |
+                | `design-software` | design | available | [CAPABILITY.md](design-software/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/design-software/SKILL.md) | Design flow. |
                 | `release-software` | release | unavailable | Not created | Not registered | Reserved flow. |
                 """));
 

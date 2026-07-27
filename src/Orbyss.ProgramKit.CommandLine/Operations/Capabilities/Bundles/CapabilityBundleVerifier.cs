@@ -11,7 +11,7 @@ namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
 public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
 {
     private const string ManifestPath =
-        "contentFiles/any/any/.program-kit/capability-bundle-manifest.json";
+        "contentFiles/any/any/.agent-capabilities/capability-bundle-manifest.json";
     private const int MaximumArchiveEntries = 64;
     private const int MaximumManifestBytes = 32 * 1024;
     private const int MaximumPayloadBytes = 512 * 1024;
@@ -133,10 +133,10 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
             .Where(
                 path =>
                     path.StartsWith(
-                        "contentFiles/any/any/.agents/",
+                        "contentFiles/any/any/.agent-capabilities/capabilities/",
                         StringComparison.Ordinal) ||
                     path.StartsWith(
-                        "contentFiles/any/any/.codex/",
+                        "contentFiles/any/any/.agent-capabilities/provider-adapters/",
                         StringComparison.Ordinal))
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -181,11 +181,11 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         }
     }
 
-    private static void ValidateManifest(CapabilityBundleManifest manifest)
+    internal static void ValidateManifest(CapabilityBundleManifest manifest)
     {
         if (!string.Equals(
                 manifest.BundleVersion,
-                "1.0.0",
+                "2.0.0",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
@@ -236,7 +236,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
             }
 
             var expectedSource = string.Concat(
-                ".agents/capabilities/",
+                ".agent-capabilities/capabilities/",
                 entry.CapabilityId,
                 "/CAPABILITY.md");
             var expectedPackage = string.Concat(
@@ -283,7 +283,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
             }
 
             var expectedSource = string.Concat(
-                ".codex/skills/",
+                ".agent-capabilities/provider-adapters/codex/",
                 adapter.CapabilityId,
                 "/SKILL.md");
             var expectedPackage = string.Concat(

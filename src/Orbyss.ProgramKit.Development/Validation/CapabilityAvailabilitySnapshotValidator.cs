@@ -22,7 +22,8 @@ public sealed class CapabilityAvailabilitySnapshotValidator
     }
 
     /// <summary>The only canonical capability-index source path.</summary>
-    public const string CanonicalIndexPath = ".agents/capabilities/INDEX.md";
+    public const string CanonicalIndexPath =
+        ".agent-capabilities/capabilities/INDEX.md";
 
     /// <inheritdoc />
     public ProgramKitValidationResult Validate(CapabilityAvailabilitySnapshot value)

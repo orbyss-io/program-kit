@@ -23,4 +23,7 @@ public static class CommandDiagnosticIds
 
     /// <summary>The capability bundle differs from its exact content allow-list.</summary>
     public const string InvalidCapabilityBundle = "PKCLI007";
+
+    /// <summary>Provider capability initialization is unsafe or inconsistent.</summary>
+    public const string InvalidCapabilityInitialization = "PKCLI008";
 }

@@ -68,7 +68,7 @@ public sealed class DevelopmentSchemaModule : IProgramKitSchemaModule
             "development-definitions",
             "definitions.schema.json",
             "https://schemas.orbyss.io/program-kit/development/1.0.0/definitions.schema.json",
-            "1447216ea2469fb2aca44542530e7961fc0c1919b7f915a0b2793d402906e36f"),
+            "8557046e873ba1d5f6824dbdbcdf2ec127a104a1c1cf0bf126fd2b57cc0e48d2"),
         Create(
             "development-receipt",
             "development-receipt.schema.json",

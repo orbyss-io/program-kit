@@ -9,7 +9,8 @@ namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 /// <summary>Deterministic Markdown projection of the canonical capability index.</summary>
 public sealed class CapabilityCatalogRenderer : ICapabilityCatalogRenderer
 {
-    private const string CanonicalIndexPath = ".agents/capabilities/INDEX.md";
+    private const string CanonicalIndexPath =
+        ".agent-capabilities/capabilities/INDEX.md";
     private readonly ICommandFileSystem fileSystem;
     private readonly ICapabilityIndexParser parser;
 
@@ -97,7 +98,7 @@ public sealed class CapabilityCatalogRenderer : ICapabilityCatalogRenderer
             builder.Append(
                 entry.ActiveProviderWrapper is null
                     ? "Not registered"
-                    : $"[Codex wrapper]({entry.ActiveProviderWrapper})");
+                    : $"[Codex adapter template]({entry.ActiveProviderWrapper})");
             builder.Append(" | ");
             builder.Append(entry.Notes);
             builder.AppendLine(" |");

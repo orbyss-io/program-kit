@@ -41,7 +41,7 @@
       ],
       "properties": {
         "sourcePath": {
-          "const": ".agents/capabilities/INDEX.md"
+          "const": ".agent-capabilities/capabilities/INDEX.md"
         },
         "sourceDigest": { "$ref": "#/$defs/sha256" },
         "capabilities": {

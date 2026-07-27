@@ -139,7 +139,7 @@ public sealed class CommandParserTests
     }
 
     [TestMethod]
-    public void ParsesExplicitCapabilityCatalogAndBundleCommands()
+    public void ParsesExplicitCapabilityCommands()
     {
         CommandParser sut = new(CommandDescriptorCatalog.All);
 
@@ -147,9 +147,9 @@ public sealed class CommandParserTests
         [
             "capabilities",
             "render-catalog",
-            ".agents/capabilities/INDEX.md",
+            ".agent-capabilities/capabilities/INDEX.md",
             "--output",
-            ".agents/capabilities/README.md",
+            ".agent-capabilities/capabilities/README.md",
         ]);
         var bundle = sut.Parse(
         [
@@ -157,15 +157,29 @@ public sealed class CommandParserTests
             "verify-bundle",
             "Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.1.nupkg",
         ]);
+        var initialize = sut.Parse(
+        [
+            "capabilities",
+            "initialize",
+            "--provider",
+            "codex",
+            "--workspace-root",
+            "C:/work",
+            "--program-kit-root",
+            "C:/work/tools/program-kit",
+        ]);
 
         Assert.AreEqual(
             "capabilities.render-catalog",
             catalog.Descriptor.Key);
         Assert.AreEqual(
-            ".agents/capabilities/INDEX.md",
+            ".agent-capabilities/capabilities/INDEX.md",
             catalog.Arguments[0]);
         Assert.AreEqual(
             "capabilities.verify-bundle",
             bundle.Descriptor.Key);
+        Assert.AreEqual(
+            "capabilities.initialize",
+            initialize.Descriptor.Key);
     }
 }

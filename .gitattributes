@@ -3,8 +3,8 @@
 bootstrap/*.md text eol=lf
 bootstrap/*.json text eol=lf
 extensions/**/*.md text eol=lf
-.agents/**/*.md text eol=lf
-.codex/**/*.md text eol=lf
+.agent-capabilities/**/*.md text eol=lf
+.agent-capabilities/**/*.json text eol=lf
 global.json text eol=lf
 **/*.cs text eol=lf
 **/*.csproj text eol=lf
