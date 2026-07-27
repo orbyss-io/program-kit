@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/planning/3.0.0/definitions.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:planning-definitions",
+  "x-program-kit-version": "3.0.0",
+  "$defs": {
+    "plannedArtifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "state", "integrityDigest"],
+      "properties": {
+        "identity": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/programKitIdentifier"
+        },
+        "version": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/semanticVersion"
+        },
+        "state": {
+          "enum": ["prospective", "materialized"]
+        },
+        "integrityDigest": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/sha256Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "prospective"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "integrityDigest": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "integrityDigest": {
+                "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/sha256Digest"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "plannedArtifactSet": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/plannedArtifactReference"
+      }
+    },
+    "planWorkUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workUnitId",
+        "requiredOutcome",
+        "sequence",
+        "parallelGroupId",
+        "dependsOn",
+        "inputs",
+        "outputs",
+        "allowedEdits",
+        "sourceDependencies",
+        "externalDependencies",
+        "migrations",
+        "compatibility",
+        "stopConditions",
+        "verification",
+        "selectedTests",
+        "workUnitKind",
+        "activationMatrix",
+        "verificationProfile"
+      ],
+      "properties": {
+        "workUnitId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiredOutcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "parallelGroupId": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "dependsOn": {
+          "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/stringSet"
+        },
+        "inputs": {
+          "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/referenceSet"
+        },
+        "outputs": {
+          "$ref": "#/$defs/plannedArtifactSet"
+        },
+        "allowedEdits": {
+          "allOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/stringSet"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "sourceDependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/planDependency"
+          }
+        },
+        "externalDependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/planDependency"
+          }
+        },
+        "migrations": {
+          "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/referenceSet"
+        },
+        "compatibility": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/compatibilityRequirement"
+          }
+        },
+        "stopConditions": {
+          "allOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/stringSet"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "verification": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/verificationCommand"
+          }
+        },
+        "selectedTests": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/testSelection"
+          }
+        },
+        "workUnitKind": {
+          "enum": [
+            "gate-establishment",
+            "product",
+            "closure"
+          ]
+        },
+        "activationMatrix": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/artifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verificationProfile": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/artifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "implementationPlanDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "design",
+        "ownerId",
+        "state",
+        "requirementIds",
+        "workUnits",
+        "parallelGroups",
+        "trace",
+        "unresolvedDecisions",
+        "staticConformanceDisposition",
+        "staticConformanceState",
+        "gateDesign",
+        "gateDefinition",
+        "selectionLock",
+        "activationEvidence"
+      ],
+      "properties": {
+        "design": {
+          "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/artifactReference"
+        },
+        "ownerId": {
+          "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/pkid"
+        },
+        "state": {
+          "enum": ["draft", "ready-for-human-decision", "superseded"]
+        },
+        "requirementIds": {
+          "allOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/stringSet"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "workUnits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/planWorkUnit"
+          }
+        },
+        "parallelGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/parallelGroup"
+          }
+        },
+        "trace": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/requirementTrace"
+          }
+        },
+        "unresolvedDecisions": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/unresolvedDecision"
+          }
+        },
+        "staticConformanceDisposition": {
+          "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/artifactReference"
+        },
+        "staticConformanceState": {
+          "enum": [
+            "reuse-existing",
+            "extend-existing",
+            "create-new",
+            "accepted-empty",
+            "blocked-unavailable"
+          ]
+        },
+        "gateDesign": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/artifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "gateDefinition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/plannedArtifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "selectionLock": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/plannedArtifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "activationEvidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/plannedArtifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

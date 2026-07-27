@@ -57,6 +57,8 @@ public sealed class SchemaModelConformanceTests
         Root<IndependentReview>("quality/independent-review.schema.json"),
         Root<ImplementationPlanDocument>(
             "planning/implementation-plan-2.0.0.schema.json"),
+        Root<ImplementationPlanDocumentV3>(
+            "planning/implementation-plan-3.0.0.schema.json"),
         Nested<PlanWorkUnit>(
             "planning/definitions-2.0.0.schema.json",
             "$defs",
@@ -65,6 +67,10 @@ public sealed class SchemaModelConformanceTests
             "planning/definitions-2.0.0.schema.json",
             "$defs",
             "plannedArtifactReference"),
+        Nested<PlanWorkUnitV3>(
+            "planning/definitions-3.0.0.schema.json",
+            "$defs",
+            "planWorkUnit"),
         Root<DesignPlanApprovalRecord>(
             "planning/design-plan-approval.schema.json"),
         Root<OperationContractDescriptor>(

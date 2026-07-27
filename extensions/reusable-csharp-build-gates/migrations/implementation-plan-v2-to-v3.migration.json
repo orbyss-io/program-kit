@@ -1,0 +1,44 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:implementation-plan",
+  "sourceRange": "[2.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:implementation-plan",
+    "version": "3.0.0",
+    "digest": "sha256:0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "exact-static-conformance-and-work-unit-classification",
+      "description": "The human supplied the exact disposition, gate artifact states, and one explicit v3 binding for every v2 work-unit identity.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:approval-record:program-kit:reusable-csharp-build-gates-review-set-1-0-0",
+          "version": "1.0.0",
+          "digest": "sha256:95d0ea4c020570115dcde6c2929848ae72d4ab7f311d607f40c2d88d7a1b0e85"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:implementation-plan-v2-to-v3",
+    "version": "1.0.0",
+    "digest": "sha256:641c131abb5a4a000f2fcb807f8102928ceaf699ab07146fe2683a3fb9be62d9"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:implementation-plan-v2-gate-establishment",
+      "version": "2.0.0",
+      "digest": "sha256:fca0856126fb5549962ad5f03a6fb0256158479976438040dd485840a5d2e925"
+    },
+    {
+      "identity": "pkid:fixture:program-kit:implementation-plan-v3-gate-establishment",
+      "version": "3.0.0",
+      "digest": "sha256:00523b2a2d0a9b1e64a3def2b7b1c953fb6534e860b45266559eb136affe95e3"
+    }
+  ]
+}

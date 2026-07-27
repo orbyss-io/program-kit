@@ -14,9 +14,10 @@ namespace Orbyss.ProgramKit.Planning.Schemas;
 public sealed class PlanningSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Planning.Schemas.";
-    private static readonly SemanticVersion CatalogVersion = new("2.0.0");
+    private static readonly SemanticVersion CatalogVersion = new("3.0.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
+    private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:planning");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -56,6 +57,24 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:planning"),
             "pkht-w010-approved-review-set-1-3-0");
+    private static readonly ArtifactProvenance BuildGateSchemaProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:reusable-csharp-build-gates"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:reusable-csharp-build-gates"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:planning"),
+            "pkcg-w020-approved-review-set-1-0-0");
 
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
@@ -94,6 +113,20 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             "119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d",
             SchemaVersionV2,
             HostToolingSchemaProvenance),
+        Create(
+            "planning-definitions",
+            "definitions-3.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/3.0.0/definitions.schema.json",
+            "70b3a0291cfa163da5b6144394fb4cc44fe00d44e4a8d2953dab5ec28e78ddc7",
+            SchemaVersionV3,
+            BuildGateSchemaProvenance),
+        Create(
+            "implementation-plan",
+            "implementation-plan-3.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/implementation-plan/3.0.0/schema.json",
+            "0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6",
+            SchemaVersionV3,
+            BuildGateSchemaProvenance),
     ];
 
     /// <summary>Initializes an explicitly composed schema module.</summary>

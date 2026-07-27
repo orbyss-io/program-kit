@@ -1,0 +1,110 @@
+{
+  "nodes": [
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "2.0.0",
+        "digest": "sha256:119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "3.0.0",
+        "digest": "sha256:0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:static-conformance-disposition",
+        "version": "1.0.0",
+        "digest": "sha256:834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "pkid:edge:program-kit:implementation-plan-v3-migrates-v2",
+      "source": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "3.0.0",
+        "digest": "sha256:0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6"
+      },
+      "targetIdentity": "pkid:schema:program-kit:implementation-plan",
+      "kind": "migrates",
+      "acceptedRange": "[2.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "2.0.0",
+        "digest": "sha256:119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:guidance:program-kit:implementation-plan-v2-to-v3",
+          "version": "1.0.0",
+          "digest": "sha256:641c131abb5a4a000f2fcb807f8102928ceaf699ab07146fe2683a3fb9be62d9"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:implementation-plan-v3-uses-static-conformance-disposition-v1",
+      "source": {
+        "identity": "pkid:schema:program-kit:implementation-plan",
+        "version": "3.0.0",
+        "digest": "sha256:0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6"
+      },
+      "targetIdentity": "pkid:schema:program-kit:static-conformance-disposition",
+      "kind": "uses-contract",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:static-conformance-disposition",
+        "version": "1.0.0",
+        "digest": "sha256:834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    }
+  ]
+}
