@@ -316,15 +316,18 @@ without partial mutation or process start.
 
 The active design capability now requires one explicit
 `StaticConformanceDisposition@1.0.0`. Current source truth provides a compatible
-candidate: `reuse-existing` with the repository-private
+selection: `reuse-existing` with the repository-private
 `pkid:policy:program-kit:csharp-source-quality-gate`, which already governs
 ProgramKit-owned C# through the repository build spine. This would not attach
 the private ProgramKit analyzer to generated consumer applications.
 
-This is a candidate recommendation only. It has not been accepted by the human
-and creates no gate-establishment or implementation authority.
+The human explicitly approved this `reuse-existing` disposition during
+convergence. The final disposition artifact must bind the exact compatible
+current gate and activation-matrix versions/digests to the replacement
+canonical design. No new gate, gate extension, gate-establishment work unit,
+consumer attachment, or implementation authority is created by this decision.
 
 ## Next convergence question
 
-Obtain the exact human static-conformance disposition, then converge the
-cold-session acceptance proof and cross-provider evidence protocol.
+Converge the cold-session acceptance proof and cross-provider evidence
+protocol.
