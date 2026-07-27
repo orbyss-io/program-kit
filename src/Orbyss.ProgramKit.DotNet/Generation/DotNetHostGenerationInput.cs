@@ -14,4 +14,5 @@ public sealed record DotNetHostGenerationInput(
     ProgramKitIdentifier HostIdentity,
     OpenApiDocumentProjection? OpenApi,
     OpenConsoleDocument? OpenConsole,
-    OpenWorkerDocument? OpenWorker);
+    OpenWorkerDocument? OpenWorker,
+    ArtifactReference? OpenConsoleDocumentRevision = null);

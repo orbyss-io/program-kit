@@ -113,4 +113,7 @@ public static class DotNetDiagnosticIds
 
     /// <summary>A requested protocol behavior is not in the reviewed provider subset.</summary>
     public const string UnsupportedKeycloakFixtureProfile = "PKNET037";
+
+    /// <summary>The exact Open Console document revision is missing, stale, or mismatched.</summary>
+    public const string InvalidOpenConsoleDocumentRevision = "PKNET038";
 }

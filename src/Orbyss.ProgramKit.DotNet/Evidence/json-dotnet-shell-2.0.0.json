@@ -25,6 +25,8 @@
       "Orbyss.ProgramKit.DotNet.Operations.TransportFailures.DotNetTransportFailureConfiguration",
       "Orbyss.ProgramKit.DotNet.Operations.Security.DotNetSecurityConfiguration",
       "Orbyss.ProgramKit.DotNet.Locks.DotNetShellLockDocument",
+      "Orbyss.ProgramKit.DotNet.Locks.DotNetConsoleCommandDispatchLockDocument",
+      "Orbyss.ProgramKit.DotNet.Locks.DotNetConsoleCommandDispatchEvidenceDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Api.OpenApiDocumentProjection",
       "Orbyss.ProgramKit.DotNet.Documentation.Console.OpenConsoleDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Worker.OpenWorkerDocument",

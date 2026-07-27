@@ -6,7 +6,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("11.2.0");
+    private static readonly SemanticVersion CatalogVersion = new("11.3.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -222,6 +222,24 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkkc-w010-approved-correction-1-0-0");
+    private static readonly ArtifactProvenance ConsoleDispatchProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:console-command-dispatch"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:21afb73f5abc636f23a5fe0357d226bd04dc0697d280a18f3d2ace2ae3be6046")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:console-command-dispatch"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:1eaec71ea9916512d0a3d15a7e601dd03f5474d9fb6faa9805734eca12439196")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+            "pkccd-w010-approved-review-set-1-0-0");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -392,6 +410,20 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "eed3583dd81b564dd7137e056f650468a17ad31076bdfe938a2520719a73c8e5",
             SchemaVersionV1,
             Provenance),
+        Create(
+            "dotnet-console-command-dispatch-lock",
+            "dotnet-console-command-dispatch-lock-1.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-command-dispatch-lock/1.0.0/schema.json",
+            "396765c3a0edabed2fae5186593761400a21eec29716a630fcc37f1cb6fa1106",
+            SchemaVersionV1,
+            ConsoleDispatchProvenance),
+        Create(
+            "dotnet-console-command-dispatch-evidence",
+            "dotnet-console-command-dispatch-evidence-1.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-command-dispatch-evidence/1.0.0/schema.json",
+            "6a92aff0466f845c75d9eca4a6aa09a80981da09d329ab7594c7076aa5c710cf",
+            SchemaVersionV1,
+            ConsoleDispatchProvenance),
         Create(
             "open-worker",
             "open-worker.schema.json",

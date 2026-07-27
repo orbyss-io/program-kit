@@ -41,6 +41,14 @@ public sealed class DotNetDocumentWriter : IDotNetDocumentWriter
     public ReadOnlyMemory<byte> Write(DotNetShellLockDocument document) =>
         WriteCanonical(document);
 
+    /// <inheritdoc />
+    public ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchLockDocument document) =>
+        WriteCanonical(document);
+
+    /// <inheritdoc />
+    public ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchEvidenceDocument document) =>
+        WriteCanonical(document);
+
     private ReadOnlyMemory<byte> WriteCanonical<T>(T document)
     {
         var canonical = jsonSerializer.Write(

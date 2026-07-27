@@ -19,4 +19,10 @@ public interface IDotNetDocumentWriter
 
     /// <summary>Writes the selected deterministic shell lock.</summary>
     ReadOnlyMemory<byte> Write(DotNetShellLockDocument document);
+
+    /// <summary>Writes the exact Console command-dispatch lock.</summary>
+    ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchLockDocument document);
+
+    /// <summary>Writes deterministic Console command-dispatch evidence.</summary>
+    ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchEvidenceDocument document);
 }

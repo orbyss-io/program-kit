@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -56,6 +57,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         var hostLock = lockSelector.Resolve(input.Lock, input.HostIdentity, requiredKind);
         ValidateLock(input, host, hostLock);
         ValidateDocument(input, requiredKind);
+        ValidateDocumentRevision(input, requiredKind);
         ValidateDocumentSemantics(input, host, requiredKind);
         var selectedActivations = host.FeatureActivationIdentities.ToHashSet();
         var features = input.Shell.Features
@@ -199,6 +201,51 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                 "/documentation");
         }
     }
+
+    private void ValidateDocumentRevision(
+        DotNetHostGenerationInput input,
+        DotNetHostKind requiredKind)
+    {
+        if (requiredKind != DotNetHostKind.Console)
+        {
+            if (input.OpenConsoleDocumentRevision is not null)
+            {
+                throw InvalidOpenConsoleRevision(
+                    "Only Console generation accepts an Open Console document revision.");
+            }
+
+            return;
+        }
+
+        var revision = input.OpenConsoleDocumentRevision;
+        var document = input.OpenConsole!;
+        if (revision is null)
+        {
+            throw InvalidOpenConsoleRevision(
+                "Console generation requires the artifact-manifest Open Console document revision.");
+        }
+
+        var canonicalBytes = documentWriter.Write(document);
+        var actualDigest = string.Concat(
+            "sha256:",
+            Convert.ToHexStringLower(
+                SHA256.HashData(canonicalBytes.Span)));
+        if (revision.Version != document.DocumentVersion ||
+            !string.Equals(
+                revision.Digest.Value,
+                actualDigest,
+                StringComparison.Ordinal))
+        {
+            throw InvalidOpenConsoleRevision(
+                "The Open Console revision must match the canonical document version and bytes exactly.");
+        }
+    }
+
+    private static DotNetKitException InvalidOpenConsoleRevision(string message) =>
+        DotNetKitException.Create(
+            DotNetDiagnosticIds.InvalidOpenConsoleDocumentRevision,
+            message,
+            "/documentation/openConsoleDocumentRevision");
 
     private static bool HasExactProjection(
         DotNetHostGenerationInput input,
