@@ -31,6 +31,8 @@ Inputs:
 - Applicable `AGENTS.md` guidance and repository-owned source truth.
 - Existing accepted designs, contracts, schemas, plans, decisions, and evidence
   explicitly in scope.
+- The exact `StaticConformanceDisposition@1.0.0` decision or the information
+  needed for the human to make it.
 - Supplied identity, authority, time, or correlation values when durable
   artifacts require them.
 
@@ -38,6 +40,9 @@ Outputs:
 
 - A reviewable design artifact.
 - A separate implementation plan with bounded, dependency-ordered work units.
+- Exactly one explicit static-conformance disposition: `reuse-existing`,
+  `extend-existing`, `create-new`, human-accepted `not-justified`, or
+  `blocked-unavailable`.
 - Explicit assumptions, decisions, deferred work, and blockers.
 - Deterministic validation/rendering evidence and exact artifact digests.
 - A human approval request; no approval decision.
@@ -71,6 +76,8 @@ Outputs:
 - Do not access secrets or the network unless explicitly authorized and needed.
 - Do not overwrite, delete, reset, or broadly move user data.
 - Do not create speculative capabilities or provider wrappers.
+- Do not silently start `design-csharp-build-gate`, approve an empty analyzer
+  selection, implement or activate a gate, or renew a temporary exception.
 
 ## Stop conditions
 
@@ -96,17 +103,33 @@ designs.
 3. Separate implemented, scaffolded, deferred, and aspirational claims.
 4. Model identities, ownership, semantic boundaries, invariants, dependencies,
    failure behavior, authority, versioning, migration, and evidence.
-5. Resolve reversible details independently; present material alternatives and
+5. Ask the mandatory static-conformance disposition question. Inventory the
+   design's static invariants and require exactly one explicit
+   `StaticConformanceDisposition@1.0.0`: reuse an exact compatible gate, extend
+   one, create one, record a human-accepted empty selection with rationale and
+   residual risks, or block because required backing is unavailable. Missing,
+   null, defaulted, implicit-empty, and unaccepted-empty values are invalid.
+6. If no compatible layered build gate exists and the human has not accepted
+   an empty selection, ask: “This design has no compatible layered build gate
+   and no approved empty selection. Should we design one?” A yes is an explicit
+   human start of `design-csharp-build-gate@1.0.0`; load its active-provider
+   wrapper and canonical definition. A missing wrapper is a setup blocker. A
+   no is not empty acceptance and must leave an explicit human decision or a
+   blocker.
+7. Resolve reversible details independently; present material alternatives and
    tradeoffs to the human.
-6. Produce a design artifact and a separate implementation plan. Keep work
+8. Produce a design artifact and a separate Implementation Plan `3.0.0`. Keep work
    units bounded, dependency-ordered, reviewable, and explicit about allowed
-   edits, outputs, verification, and stop conditions.
-7. Define deterministic fixtures and acceptance evidence proportional to risk.
-8. Validate and render the artifacts through backed Program Kit operations when
+   edits, outputs, verification, and stop conditions. For `create-new` or
+   `extend-existing`, place the exact approved gate-establishment fragment
+   before every product and closure unit and make downstream work depend on
+   compatible activation evidence.
+9. Define deterministic fixtures and acceptance evidence proportional to risk.
+10. Validate and render the artifacts through backed Program Kit operations when
    available; record exact versions and digests.
-9. Reconcile every human comment into an explicit change, disposition, or open
+11. Reconcile every human comment into an explicit change, disposition, or open
    decision.
-10. Present the exact review set and stop for human approval.
+12. Present the exact review set and stop for human approval.
 
 Judgment owns architecture and tradeoffs. Deterministic tooling validates,
 hashes, renders, and compares artifacts but cannot make approval decisions.
@@ -117,7 +140,9 @@ Verify traceability from intent to design decisions, plan tasks, and acceptance
 evidence; verify no unresolved material decision is hidden; verify rendered
 projections match their sources; and report every unavailable check. State
 deliberately unimplemented or deferred work. Never label a design as approved
-without the exact human decision record.
+without the exact human decision record. Verify the disposition is explicit,
+its gate selections or accepted empty value have exact human authority, and
+every create/extend plan is establishment-first.
 
 ## Authority and safety boundaries
 

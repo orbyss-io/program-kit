@@ -17,6 +17,7 @@ public sealed class CapabilityInitializerTests
         "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}";
     private static readonly string[] CapabilityIds =
     [
+        "design-csharp-build-gate",
         "design-software",
         "develop-software",
         "implement-software-plan",
@@ -252,6 +253,50 @@ public sealed class CapabilityInitializerTests
     }
 
     [TestMethod]
+    public async Task MissingGateDesignAdapterIsASetupBlockerWithoutPartialInitialization()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var kit = Path.Combine(workspace, "program-kit");
+            CreateKit(kit);
+            File.Delete(
+                Path.Combine(
+                    kit,
+                    ".agent-capabilities",
+                    "provider-adapters",
+                    "codex",
+                    "design-csharp-build-gate",
+                    "SKILL.md"));
+            CapabilityInitializer sut = CreateSubject();
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.InitializeAsync(
+                        "codex",
+                        workspace,
+                        kit,
+                        TestContext.CancellationToken).AsTask());
+
+            Assert.AreEqual("PKCLI008", exception.DiagnosticId);
+            Assert.Contains("/adapter", exception.Path);
+            Assert.IsFalse(
+                Directory.Exists(
+                    Path.Combine(workspace, ".codex", "skills")));
+            Assert.IsFalse(
+                File.Exists(
+                    Path.Combine(
+                        workspace,
+                        ".program-kit",
+                        "capabilities.lock.json")));
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task InitializingSecondProviderKeepsFirstWrappersAndRewritesLock()
     {
         var workspace = CreateWorkspace();
@@ -395,7 +440,7 @@ public sealed class CapabilityInitializerTests
         }
 
         var manifest = new CapabilityBundleManifest(
-            "2.0.0",
+            "2.1.0",
             capabilities.ToArray(),
             "0.1.0-alpha.1",
             adapters.ToArray());

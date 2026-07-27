@@ -95,6 +95,9 @@
     <None Include="..\..\.agent-capabilities\capabilities\develop-software\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/develop-software/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\capabilities\design-csharp-build-gate\CAPABILITY.md"
+          Link="ConformanceInputs/Capabilities/design-csharp-build-gate/CAPABILITY.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\capabilities\design-software\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/design-software/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />
@@ -110,6 +113,9 @@
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/codex/develop-software/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\codex\design-csharp-build-gate\SKILL.md"
+          Link="ConformanceInputs/Capabilities/Wrappers/codex/design-csharp-build-gate/SKILL.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\design-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/codex/design-software/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
@@ -124,6 +130,9 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/claude/develop-software/SKILL.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-csharp-build-gate\SKILL.md"
+          Link="ConformanceInputs/Capabilities/Wrappers/claude/design-csharp-build-gate/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/claude/design-software/SKILL.md"

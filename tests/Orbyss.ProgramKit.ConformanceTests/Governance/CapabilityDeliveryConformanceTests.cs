@@ -13,6 +13,7 @@ public sealed class CapabilityDeliveryConformanceTests
 {
     private static readonly string[] DistributedCapabilityIds =
     [
+        "design-csharp-build-gate",
         "design-software",
         "develop-software",
         "implement-software-plan",
@@ -20,6 +21,7 @@ public sealed class CapabilityDeliveryConformanceTests
 
     private static readonly string[] RegisteredCapabilityIds =
     [
+        "design-csharp-build-gate",
         "design-software",
         "develop-software",
         "implement-software-plan",
@@ -105,6 +107,55 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
+    public void GateDesignFlowPreservesHumanAuthorityAndEstablishmentFirstExecution()
+    {
+        var design = ConformanceInputs.Read(
+            "Capabilities/design-software/CAPABILITY.md");
+        var gateDesign = ConformanceInputs.Read(
+            "Capabilities/design-csharp-build-gate/CAPABILITY.md");
+        var implementation = ConformanceInputs.Read(
+            "Capabilities/implement-software-plan/CAPABILITY.md");
+
+        Assert.Contains(
+            "mandatory static-conformance disposition question",
+            design);
+        Assert.Contains(
+            "Should we design one?",
+            design);
+        Assert.Contains(
+            "A yes is an explicit",
+            design);
+        Assert.Contains(
+            "missing wrapper is a setup blocker",
+            design);
+        Assert.Contains(
+            "Use it only after a human explicitly starts",
+            gateDesign);
+        Assert.Contains(
+            "Do not silently continue from `design-software`",
+            gateDesign);
+        Assert.Contains(
+            "Do not accept an empty analyzer selection",
+            gateDesign);
+        Assert.Contains(
+            "consumer-owned analyzer",
+            gateDesign);
+        Assert.IsFalse(
+            gateDesign.Contains(
+                string.Concat("domain", " analyzer"),
+                StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            "dependency-ready `gate-establishment` units",
+            implementation);
+        Assert.Contains(
+            "Do not run Program Kit's private `Orbyss.ProgramKit.CSharpGate`",
+            implementation);
+        Assert.Contains(
+            "do not renew a temporary exception",
+            implementation);
+    }
+
+    [TestMethod]
     public void IndexAndGeneratedCatalogAgreeAtExactCurrentBytes()
     {
         var indexBytes = ConformanceInputs.ReadBytes(
@@ -155,7 +206,7 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
-    public void BundleManifestAllowsExactlyThreeDefinitionsAndTheirAdapters()
+    public void BundleManifestAllowsExactlyFourDefinitionsAndTheirAdapters()
     {
         CapabilityBundleManifestReader reader = new();
         var manifest = reader.Read(
@@ -238,7 +289,7 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            10,
+            13,
             project
                 .Descendants("None")
                 .Where(

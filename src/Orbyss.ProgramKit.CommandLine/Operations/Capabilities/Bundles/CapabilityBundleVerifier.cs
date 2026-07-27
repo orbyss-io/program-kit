@@ -17,6 +17,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     private const int MaximumPayloadBytes = 512 * 1024;
     private static readonly string[] DistributedCapabilityIds =
     [
+        "design-csharp-build-gate",
         "design-software",
         "develop-software",
         "implement-software-plan",
@@ -190,7 +191,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     {
         if (!string.Equals(
                 manifest.BundleVersion,
-                "2.0.0",
+                "2.1.0",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
@@ -227,7 +228,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 StringComparer.Ordinal))
         {
             throw InvalidBundle(
-                "The canonical payload must contain exactly the three distributable development capabilities.",
+                "The canonical payload must contain exactly the four distributable development capabilities.",
                 "/bundle/manifest/capabilities");
         }
 

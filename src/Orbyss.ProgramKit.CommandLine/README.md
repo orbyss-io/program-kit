@@ -42,7 +42,7 @@ operations are backed by W065. W070 backs capability catalog rendering and
 exact `.nupkg` bundle verification. Catalog rendering accepts the canonical
 `.agent-capabilities/capabilities/INDEX.md` path, preserves `available`/`unavailable`
 values, and includes the exact source SHA-256. Bundle verification requires the
-three distributable canonical definitions and their separately listed inert
+four distributable canonical definitions and their separately listed inert
 Codex and Claude Code adapter templates; it rejects the index, the authoring
 capability, the repository-only local-publish capability, unlisted bytes, and
 tampering.
