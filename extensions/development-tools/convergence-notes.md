@@ -85,8 +85,40 @@ approval, cold-session discovery and semantic invocation, tool-call result,
 and negative cases for collision, tampering, incompatible package versions,
 permission denial, update, and removal.
 
+## Converged section 1: product outcome and proof boundary
+
+The human accepted this section during convergence.
+
+The product is generic infrastructure through which a ProgramKit-built
+application can expose its own consumer-owned development operations to an AI
+session. ProgramKit owns the exact executable/tool contract, projection,
+registration mechanics, provider bridge, validation, and evidence. It does not
+invent or own the application's operation semantics.
+
+The first acceptance proof uses a deliberately minimal, test-only generated
+Console application. Its operation accepts a challenge value and returns a
+deterministic structured response binding the challenge digest and exact tool
+contract identity. The fixture exists only to prove construction, packaging,
+registration, cold-session discovery, structured invocation, result validation,
+and removal. It is not a ProgramKit product capability and is not installed or
+advertised outside the bounded acceptance workspace.
+
+An earlier proposal for a product-like `verify-artifact` proof operation was
+rejected as unnecessary semantics. Discovery alone is insufficient evidence,
+so the minimal fixture remains necessary to prove an actual invocation through
+the exact registered bytes.
+
+Converged outcome:
+
+> A fresh Codex or Claude Code session can discover and invoke a
+> consumer-owned operation from an explicitly registered ProgramKit-built
+> Console application without inherited executable paths or command syntax. A
+> minimal test-only Console fixture proves that path; ProgramKit does not
+> prescribe application operation semantics.
+
 ## Next convergence question
 
-Before exact identities and schemas are useful, the first Development Tool
-needs a concrete outcome: what should the generated Console tool actually let
-an AI session accomplish beyond proving that discovery and invocation work?
+Define the minimum provider-neutral declaration an application owner must
+supply for one consumer-owned operation to become an AI-usable Development
+Tool, and decide which parts ProgramKit may derive from the existing Open
+Console document without creating a second source of truth.
