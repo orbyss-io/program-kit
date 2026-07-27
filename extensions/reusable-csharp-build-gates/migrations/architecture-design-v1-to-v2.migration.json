@@ -1,0 +1,44 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:architecture-design",
+  "sourceRange": "[1.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:architecture-design",
+    "version": "2.0.0",
+    "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "exact-human-selected-static-conformance-disposition",
+      "description": "The human supplied one exact StaticConformanceDisposition@1.0.0 reference; migration must not infer or default it.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:approval-record:program-kit:reusable-csharp-build-gates-review-set-1-0-0",
+          "version": "1.0.0",
+          "digest": "sha256:95d0ea4c020570115dcde6c2929848ae72d4ab7f311d607f40c2d88d7a1b0e85"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:architecture-design-v1-to-v2",
+    "version": "1.0.0",
+    "digest": "sha256:6c2bab2554456dc2faad584930c200bc930fe9907588ccec1e35424bbb1848d5"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:architecture-design-v1-migration-input",
+      "version": "1.0.0",
+      "digest": "sha256:70470945c5269246286a10c33717aeacfd47808cbc968d2878c7d99636c301af"
+    },
+    {
+      "identity": "pkid:fixture:program-kit:architecture-design-v2-migration-output",
+      "version": "2.0.0",
+      "digest": "sha256:b8c436a4d4077b079615f15c04d29521e0076b70369d1a5f460893161b2c36c8"
+    }
+  ]
+}

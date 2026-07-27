@@ -42,6 +42,10 @@ public sealed class SchemaModelConformanceTests
         Root<MigrationAssessment>("artifacts/migration-assessment.schema.json"),
         Root<ArchitectureDesignDocument>(
             "architecture/architecture-design.schema.json"),
+        Root<ArchitectureDesignDocumentV2>(
+            "architecture/architecture-design-2.0.0.schema.json"),
+        Root<StaticConformanceDisposition>(
+            "architecture/static-conformance-disposition.schema.json"),
         Root<ArtifactDecision>("architecture/artifact-decision.schema.json"),
         Root<DotNetTargetProfile>(
             "architecture/dotnet-target-profile.schema.json"),

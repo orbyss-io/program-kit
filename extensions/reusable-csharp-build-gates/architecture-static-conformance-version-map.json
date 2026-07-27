@@ -1,0 +1,110 @@
+{
+  "nodes": [
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:architecture-design",
+        "version": "1.0.0",
+        "digest": "sha256:19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:architecture-design",
+        "version": "2.0.0",
+        "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:static-conformance-disposition",
+        "version": "1.0.0",
+        "digest": "sha256:834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "pkid:edge:program-kit:architecture-design-v2-migrates-v1",
+      "source": {
+        "identity": "pkid:schema:program-kit:architecture-design",
+        "version": "2.0.0",
+        "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+      },
+      "targetIdentity": "pkid:schema:program-kit:architecture-design",
+      "kind": "migrates",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:architecture-design",
+        "version": "1.0.0",
+        "digest": "sha256:19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:guidance:program-kit:architecture-design-v1-to-v2",
+          "version": "1.0.0",
+          "digest": "sha256:6c2bab2554456dc2faad584930c200bc930fe9907588ccec1e35424bbb1848d5"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:architecture-design-v2-uses-static-conformance-disposition-v1",
+      "source": {
+        "identity": "pkid:schema:program-kit:architecture-design",
+        "version": "2.0.0",
+        "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+      },
+      "targetIdentity": "pkid:schema:program-kit:static-conformance-disposition",
+      "kind": "uses-contract",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:static-conformance-disposition",
+        "version": "1.0.0",
+        "digest": "sha256:834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    }
+  ]
+}

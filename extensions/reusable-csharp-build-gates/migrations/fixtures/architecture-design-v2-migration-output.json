@@ -1,0 +1,13 @@
+{
+  "sourceDesign": {
+    "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+  },
+  "sourceBytesPreserved": true,
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:cd4cc216087f1b741e8f88a95b28c866fc31ac4bcd085cf893f5b4732b3a20c6"
+  }
+}

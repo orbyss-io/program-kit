@@ -277,4 +277,28 @@ public static class ArchitectureDiagnosticIds
     public const string Pkarc639 = "PKARC639";
     /// <summary>Diagnostic PKARC640.</summary>
     public const string Pkarc640 = "PKARC640";
+    /// <summary>Diagnostic PKARC700.</summary>
+    public const string Pkarc700 = "PKARC700";
+    /// <summary>Diagnostic PKARC701.</summary>
+    public const string Pkarc701 = "PKARC701";
+    /// <summary>Diagnostic PKARC702.</summary>
+    public const string Pkarc702 = "PKARC702";
+    /// <summary>Diagnostic PKARC703.</summary>
+    public const string Pkarc703 = "PKARC703";
+    /// <summary>Diagnostic PKARC704.</summary>
+    public const string Pkarc704 = "PKARC704";
+    /// <summary>Diagnostic PKARC705.</summary>
+    public const string Pkarc705 = "PKARC705";
+    /// <summary>Diagnostic PKARC706.</summary>
+    public const string Pkarc706 = "PKARC706";
+    /// <summary>Diagnostic PKARC707.</summary>
+    public const string Pkarc707 = "PKARC707";
+    /// <summary>Diagnostic PKARC708.</summary>
+    public const string Pkarc708 = "PKARC708";
+    /// <summary>Diagnostic PKARC709.</summary>
+    public const string Pkarc709 = "PKARC709";
+    /// <summary>Diagnostic PKARC710.</summary>
+    public const string Pkarc710 = "PKARC710";
+    /// <summary>Diagnostic PKARC711.</summary>
+    public const string Pkarc711 = "PKARC711";
 }
