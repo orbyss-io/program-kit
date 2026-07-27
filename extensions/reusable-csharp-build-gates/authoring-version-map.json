@@ -20,7 +20,7 @@
       "revision": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+        "digest": "sha256:61459b43bffea71946dd9f5a8d34be274011a08def03bb0f5c47af83133057d0"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
@@ -36,7 +36,7 @@
       "revision": {
         "identity": "pkid:package:program-kit:csharp-build-gates-authoring",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+        "digest": "sha256:61459b43bffea71946dd9f5a8d34be274011a08def03bb0f5c47af83133057d0"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
@@ -55,7 +55,7 @@
       "source": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+        "digest": "sha256:61459b43bffea71946dd9f5a8d34be274011a08def03bb0f5c47af83133057d0"
       },
       "targetIdentity": "pkid:recipe:program-kit:csharp-forbid-type-name-suffix",
       "kind": "uses-contract",
@@ -83,7 +83,7 @@
       "source": {
         "identity": "pkid:package:program-kit:csharp-build-gates-authoring",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+        "digest": "sha256:61459b43bffea71946dd9f5a8d34be274011a08def03bb0f5c47af83133057d0"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
       "kind": "publicly-exposes",
@@ -91,7 +91,7 @@
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98"
+        "digest": "sha256:61459b43bffea71946dd9f5a8d34be274011a08def03bb0f5c47af83133057d0"
       },
       "exposure": "public",
       "compatibilityDimensions": [

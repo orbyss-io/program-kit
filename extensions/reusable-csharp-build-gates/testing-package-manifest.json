@@ -4,7 +4,7 @@
   "operationsVersion": "1.0.0",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:8ef95928d176139bc535bacc621e766d74b02a54ed7e8b1d5fc86bac976462ad",
+    "digest": "sha256:a0e22b8a1b98254362d036c188590be353d4bb39ff1de79fac74d93624619b6f",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/FiniteProcessResult.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/PinnedDotNetCSharpGateCompilerHarness.cs",
