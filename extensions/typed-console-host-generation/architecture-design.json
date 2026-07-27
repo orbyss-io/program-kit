@@ -1,0 +1,743 @@
+{
+  "title": "Program Kit typed Console host generation",
+  "intent": "Generate complete deterministic typed .NET Console hosts from language-neutral Open Console and explicit verified .NET bindings, protect every generated host tree through build and publication integrity, and distribute a safe incremental maintenance flow.",
+  "scope": [
+    "Language-neutral Open Console ownership and versioning.",
+    "Exact .NET binding, metadata inspection, Spectre projection, generated project, CShells composition, validation, help, completion, diagnostics, and exit-code behavior.",
+    "Host-kind-neutral generated-output sealing, verification, atomic refresh, explicit repair, build gating, and publication verification.",
+    "Shared completion profiles plus an inert installable maintain-software capability and mandatory Program Kit capability-distribution standard.",
+    "Unit, schema, build, process, determinism, tamper, repair, capability, and isolated-consumer conformance."
+  ],
+  "nonGoals": [
+    "No Program Kit package publication, release qualification, promotion, deployment, or external consumer modification.",
+    "No runtime source-tree integrity check, second executable parser, dynamic completion, reflection scanning, service locator, hook, watcher, autonomous loop, or global provider write.",
+    "No consumer-domain semantics, complex document-native object binding, arbitrary converter, or general semantic-validation catalog in this revision.",
+    "No new C# analyzer or build gate for this extension."
+  ],
+  "assumptions": [
+    "Spectre.Console 0.55.0, Spectre.Console.Cli 0.55.0, and CShells 0.0.28 remain exactly available to the approved implementation.",
+    "The consumer can provide one deterministic compiled reference assembly before generation or explicitly authorize the approved C# build profile.",
+    "The generated host root is entirely Program Kit-owned and consumer-owned source remains outside it.",
+    "Portable process exit codes are 0 through 255; the managed entry point preserves the exact handler integer while the operating system owns wider-value encoding.",
+    "The merged reusable C# build-gate implementation at source commit ",
+    "65a102b83dd35cc16fb433793e49c25e0f4c098f",
+    " is current source truth."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:typed-console-intent",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:intent:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:c772ea587b44bde780de2e46330daaceecd7a9b2ce30bfa07e16feea7a049467"
+      },
+      "sourcePath": "extensions/typed-console-host-generation/design-intent.md",
+      "governs": "The converged human outcome, boundaries, exact dependencies, integrity behavior, maintenance flow, deferrals, and approval boundary."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-open-console-schema",
+      "ownerId": "pkid:domain:program-kit:open-console",
+      "source": {
+        "identity": "pkid:schema:program-kit:open-console",
+        "version": "1.0.0",
+        "digest": "sha256:eed3583dd81b564dd7137e056f650468a17ad31076bdfe938a2520719a73c8e5"
+      },
+      "sourcePath": "schemas/dotnet/open-console.schema.json",
+      "governs": "The current grammar and validation source that W010 moves to language-neutral ownership."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-console-renderer",
+      "ownerId": "pkid:domain:program-kit:dotnet-console-projection",
+      "source": {
+        "identity": "pkid:source:program-kit:dotnet-host-source-renderer",
+        "version": "1.0.0",
+        "digest": "sha256:9b121ffa8a435f4e8dcf961dc44c6c672ac3d16353c38ed2c12f8a17fba2b9b8"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.DotNet/Generation/DotNetHostSourceRenderer.cs",
+      "governs": "The current generated host layout and Console rendering implementation replaced by the approved compiler structure."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:capability-bundle",
+      "ownerId": "pkid:domain:program-kit:software-maintenance",
+      "source": {
+        "identity": "pkid:manifest:program-kit:capability-bundle",
+        "version": "2.1.0",
+        "digest": "sha256:7c8587d2ff6d0ef287fac5b8fbb232ec5a5c9de7e38fa64de8f8af7b46deebeb"
+      },
+      "sourcePath": ".agent-capabilities/capability-bundle-manifest.json",
+      "governs": "The existing inert exact-byte capability packaging and explicit initialization foundation extended by W090 and W100."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:private-csharp-gate",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "sourcePath": "governance/csharp-source-quality-gate.md",
+      "governs": "The human-selected existing static conformance policy for Program Kit-owned implementation source."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:open-console",
+      "purpose": "Own the language-neutral Console grammar and caller-visible command contract.",
+      "vocabulary": [
+        {
+          "term": "Open Console document",
+          "meaning": "A language-neutral declaration of commands, logical values, cardinality, defaults, constraints, parsing, help, completion, streams, and host exit-code roles.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:dotnet-console-projection",
+      "purpose": "Own verified .NET binding and deterministic Spectre Console-host generation without consumer semantics.",
+      "vocabulary": [
+        {
+          "term": ".NET Console binding",
+          "meaning": "The explicit mapping from Open Console operations to exact CLR requests, handlers, optional validators, feature type, project, assembly, symbols, and defaults.",
+          "acceptedAliases": [
+            "Console binding document"
+          ]
+        },
+        {
+          "term": ".NET Spectre projection profile",
+          "meaning": "The exact support and conformance contract mapping language-neutral Open Console shapes to one pinned Spectre version.",
+          "acceptedAliases": [
+            "Spectre projection profile"
+          ]
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:generated-output-integrity",
+      "purpose": "Own host-kind-neutral sealing, verification, atomic replacement, and repair of Program Kit generated trees.",
+      "vocabulary": [
+        {
+          "term": "Generated-output seal",
+          "meaning": "The in-tree all-payload digest manifest plus sibling external anchor that together cover one complete generated root.",
+          "acceptedAliases": [
+            "generated-host integrity seal"
+          ]
+        },
+        {
+          "term": "Generated-output repair",
+          "meaning": "Explicitly authorized quarantine of drift followed by regeneration from authoritative consumer inputs.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:software-maintenance",
+      "purpose": "Own human-started bounded incremental maintenance authority and reuse of backed completion profiles.",
+      "vocabulary": [
+        {
+          "term": "Maintenance unit",
+          "meaning": "One coherent architecture-compatible application change refreshed, verified, recorded, committed, and pushed as a reversible history event.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:toolkit",
+      "purpose": "Own Program Kit command transport, capability packaging, repository integration, and implementation governance.",
+      "vocabulary": [
+        {
+          "term": "Backed operation",
+          "meaning": "One exact Program Kit command transport whose implementation is selected from an explicit finite operation set.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:typed-console-binding",
+      "ownerDomainId": "pkid:domain:program-kit:dotnet-console-projection",
+      "meaning": "The exact reconciliation of language-neutral command sources, structured CLR types, request construction, handlers, optional validators, feature, project, and reference assembly.",
+      "termContractIds": [],
+      "invariants": "Every command maps exactly once; every constructor parameter has an exact CLR descriptor, source, position, name, and default disposition; compiled metadata must match before publication."
+    },
+    {
+      "identity": "pkid:model:program-kit:typed-console-invocation",
+      "ownerDomainId": "pkid:domain:program-kit:dotnet-console-projection",
+      "meaning": "The host-owned parse, document validation, request construction, optional consumer validation, handler, cancellation, shutdown, diagnostic, and exit-code lifecycle.",
+      "termContractIds": [],
+      "invariants": "Generated validation precedes consumer code; validator failure prevents handlers; exactly one feature/handler and at most one validator resolve; handler integers remain unchanged at the managed entry point."
+    },
+    {
+      "identity": "pkid:model:program-kit:generated-output-seal",
+      "ownerDomainId": "pkid:domain:program-kit:generated-output-integrity",
+      "meaning": "The all-generated-file manifest, external anchor, offline verifier, atomic publication transaction, build attestation, and explicit repair authority.",
+      "termContractIds": [],
+      "invariants": "Every generated payload byte is covered; consumer files are excluded; drift blocks build and publication; repair quarantines rather than adopts edited generated code."
+    },
+    {
+      "identity": "pkid:model:program-kit:incremental-maintenance",
+      "ownerDomainId": "pkid:domain:program-kit:software-maintenance",
+      "meaning": "One human-started compatible change routed through shared completion profiles and recorded as coherent application history.",
+      "termContractIds": [],
+      "invariants": "No autonomous start; no guessed semantics; all affected derived artifacts refresh; Program Kit upgrades require exact prior approval; material changes route to design."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:open-console-contract",
+      "ownerId": "pkid:domain:program-kit:open-console",
+      "kind": "evaluated-artifact",
+      "purpose": "Provide the canonical language-neutral schema, serializer, and semantic validator.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Exact schema identity, logical values, parsing, help, completion, streams, constraints, defaults, and host exit-code roles."
+    },
+    {
+      "identity": "pkid:component:program-kit:dotnet-spectre-console-generator",
+      "ownerId": "pkid:domain:program-kit:dotnet-console-projection",
+      "kind": "design-time-source",
+      "purpose": "Compile Open Console plus an exact .NET binding into one complete deterministic executable Spectre host.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Binding schema, projection profile, exact dependencies, generated layout, validation order, composition, help, completion, diagnostics, and managed exit behavior."
+    },
+    {
+      "identity": "pkid:component:program-kit:generated-output-integrity",
+      "ownerId": "pkid:domain:program-kit:generated-output-integrity",
+      "kind": "bridge",
+      "purpose": "Seal, verify, transact, and explicitly repair generated output across host kinds.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Manifest, anchor, path, digest, transaction, diagnostic, build-attestation, and publication-verification revisions."
+    },
+    {
+      "identity": "pkid:component:program-kit:maintain-software-capability",
+      "ownerId": "pkid:domain:program-kit:software-maintenance",
+      "kind": "feature",
+      "purpose": "Route one human-started bounded compatible change through shared backed completion profiles.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Stable capability identity, trigger, maintenance admission, escalation, exact Program Kit upgrade approval, completion profile binding, evidence, and provider-wrapper pointers."
+    },
+    {
+      "identity": "pkid:component:program-kit:generated-output-integrity-build",
+      "ownerId": "pkid:domain:program-kit:generated-output-integrity",
+      "kind": "focused-helper",
+      "purpose": "Import offline generated-output verification into consumer build and publication boundaries.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Build import, attestation, exact verifier package identity, and fail-closed diagnostics."
+    },
+    {
+      "identity": "pkid:component:program-kit:typed-console-command-transport",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "host",
+      "purpose": "Expose exact generate, refresh, and verify host operations through the frozen Program Kit command grammar.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Command paths, arguments, diagnostics, and Program Kit operation exit codes."
+    }
+  ],
+  "projects": [
+    {
+      "identity": "pkid:project:program-kit:open-console",
+      "ownerId": "pkid:domain:program-kit:open-console",
+      "projectPath": "src/Orbyss.ProgramKit.OpenConsole/Orbyss.ProgramKit.OpenConsole.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:open-console-contract"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:open-console"
+    },
+    {
+      "identity": "pkid:project:program-kit:dotnet",
+      "ownerId": "pkid:domain:program-kit:dotnet-console-projection",
+      "projectPath": "src/Orbyss.ProgramKit.DotNet/Orbyss.ProgramKit.DotNet.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:dotnet-spectre-console-generator"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:open-console",
+        "pkid:project:program-kit:generated-output-integrity"
+      ],
+      "packageId": "pkid:package:program-kit:dotnet"
+    },
+    {
+      "identity": "pkid:project:program-kit:generated-output-integrity",
+      "ownerId": "pkid:domain:program-kit:generated-output-integrity",
+      "projectPath": "src/Orbyss.ProgramKit.GeneratedOutputIntegrity/Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:generated-output-integrity"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:generated-output-integrity"
+    },
+    {
+      "identity": "pkid:project:program-kit:generated-output-integrity-build",
+      "ownerId": "pkid:domain:program-kit:generated-output-integrity",
+      "projectPath": "src/Orbyss.ProgramKit.GeneratedOutputIntegrity.Build/Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:generated-output-integrity-build"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:generated-output-integrity"
+      ],
+      "packageId": "pkid:package:program-kit:generated-output-integrity-build"
+    },
+    {
+      "identity": "pkid:project:program-kit:command-line",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "projectPath": "src/Orbyss.ProgramKit.CommandLine/Orbyss.ProgramKit.CommandLine.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:typed-console-command-transport"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:dotnet",
+        "pkid:project:program-kit:generated-output-integrity"
+      ],
+      "packageId": "pkid:package:program-kit:command-line"
+    },
+    {
+      "identity": "pkid:project:program-kit:capability-bundle",
+      "ownerId": "pkid:domain:program-kit:software-maintenance",
+      "projectPath": "src/Orbyss.ProgramKit.CapabilityBundle/Orbyss.ProgramKit.CapabilityBundle.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:maintain-software-capability"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:capability-bundle"
+    }
+  ],
+  "packages": [
+    {
+      "identity": "pkid:package:program-kit:open-console",
+      "ownerId": "pkid:domain:program-kit:open-console",
+      "version": "1.0.0",
+      "projectIds": [
+        "pkid:project:program-kit:open-console"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "The language-neutral Open Console model, schema, serializer, and validator version together."
+    },
+    {
+      "identity": "pkid:package:program-kit:dotnet",
+      "ownerId": "pkid:domain:program-kit:dotnet-console-projection",
+      "version": "1.0.0",
+      "projectIds": [
+        "pkid:project:program-kit:dotnet"
+      ],
+      "packageDependencyIds": [
+        "pkid:package:program-kit:open-console",
+        "pkid:package:program-kit:generated-output-integrity"
+      ],
+      "publicContractIds": [],
+      "compatibilityBoundary": "The .NET binding and deterministic Console projection implementation version together."
+    },
+    {
+      "identity": "pkid:package:program-kit:generated-output-integrity",
+      "ownerId": "pkid:domain:program-kit:generated-output-integrity",
+      "version": "1.0.0",
+      "projectIds": [
+        "pkid:project:program-kit:generated-output-integrity"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Generated-output manifest, anchor, verification, transaction, and repair contracts version together."
+    },
+    {
+      "identity": "pkid:package:program-kit:generated-output-integrity-build",
+      "ownerId": "pkid:domain:program-kit:generated-output-integrity",
+      "version": "1.0.0",
+      "projectIds": [
+        "pkid:project:program-kit:generated-output-integrity-build"
+      ],
+      "packageDependencyIds": [
+        "pkid:package:program-kit:generated-output-integrity"
+      ],
+      "publicContractIds": [],
+      "compatibilityBoundary": "The consumer build import and compile-time integrity attestation version together."
+    },
+    {
+      "identity": "pkid:package:program-kit:command-line",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "version": "1.0.0",
+      "projectIds": [
+        "pkid:project:program-kit:command-line"
+      ],
+      "packageDependencyIds": [
+        "pkid:package:program-kit:dotnet",
+        "pkid:package:program-kit:generated-output-integrity"
+      ],
+      "publicContractIds": [],
+      "compatibilityBoundary": "The frozen Program Kit host-generation command grammar and operation transport version together."
+    },
+    {
+      "identity": "pkid:package:program-kit:capability-bundle",
+      "ownerId": "pkid:domain:program-kit:software-maintenance",
+      "version": "1.0.0",
+      "projectIds": [
+        "pkid:project:program-kit:capability-bundle"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Exact inert capability payloads, provider adapters, bundle manifest, initialization, and drift verification version together."
+    }
+  ],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:open-console-no-dotnet-vocabulary",
+      "ownerId": "pkid:domain:program-kit:open-console",
+      "disposition": "forbidden",
+      "referencingScope": "Open Console schema, model, validation, examples, and documentation",
+      "referencedScope": "CLR, Spectre, CShells, project paths, assemblies, constructors, or dependency injection",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:c772ea587b44bde780de2e46330daaceecd7a9b2ce30bfa07e16feea7a049467"
+        },
+        "path": "design-intent.md#binding-authority"
+      },
+      "rationale": "Open Console must remain implementable by other platforms such as Node.js."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:generated-host-one-way-consumer-reference",
+      "ownerId": "pkid:domain:program-kit:dotnet-console-projection",
+      "disposition": "allowed",
+      "referencingScope": "Generated <Product>.Cli.Host project",
+      "referencedScope": "One exact consumer-owned contracts and implementation project",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:c772ea587b44bde780de2e46330daaceecd7a9b2ce30bfa07e16feea7a049467"
+        },
+        "path": "design-intent.md#human-started-outcome"
+      },
+      "rationale": "The generated host adapts typed generated settings to consumer-owned request and behavior contracts."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-consumer-generator-runtime",
+      "ownerId": "pkid:domain:program-kit:dotnet-console-projection",
+      "disposition": "forbidden",
+      "referencingScope": "Generated host runtime and consumer project",
+      "referencedScope": "Program Kit generation, Workbench, planning, capability, or command-line runtime packages",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:c772ea587b44bde780de2e46330daaceecd7a9b2ce30bfa07e16feea7a049467"
+        },
+        "path": "design-intent.md#accepted-dependency-and-framework-decisions"
+      },
+      "rationale": "Program Kit generation remains design-time only; generated applications carry only their declared host dependencies."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:capability-authoring-inert",
+      "ownerId": "pkid:domain:program-kit:software-maintenance",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit capability authoring, packing, building, and fixture verification",
+      "referencedScope": "Authoring-workspace active provider paths or user-global provider configuration",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:c772ea587b44bde780de2e46330daaceecd7a9b2ce30bfa07e16feea7a049467"
+        },
+        "path": "design-intent.md#maintenance-flow"
+      },
+      "rationale": "Packaging a capability must never activate it in the Program Kit authoring workspace."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:typed-console-host-generation",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "requestedOutcome": "Represent the complete typed Console projection, generated-output integrity, and bounded maintenance architecture as one validated canonical design.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design grants no runtime execution, generation, repair, maintenance, upgrade, publication, or capability-initialization authority."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "The exact canonical bytes are schema-validated, semantically checked, digest-bound by the plan and review manifest, and compared during approved work-unit closure."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review set is explicit repository input; no agent retrieval contract is created."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "This design does not initialize a capability, skill, hook, MCP server, tool binding, provider wrapper, or autonomous procedure."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit reviewer and later bounded implementer.",
+        "decisionAuthorityBoundary": "Only explicit human approval of this review-set version and exact canonical design and plan SHA-256 values authorizes implementation.",
+        "rationale": "The Markdown projection, canonical JSON, validation report, and manifest expose exact identities, boundaries, proof obligations, risks, and deferrals."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "No generated navigation is required."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:typed-console-host-generation",
+        "ownerId": "pkid:domain:program-kit:toolkit",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "2.0.0",
+          "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+        },
+        "provenancePolicy": "Exact converged human intent and source commit 65a102b83dd35cc16fb433793e49c25e0f4c098f are named; implementation cannot become design authority.",
+        "digestPolicy": "The review manifest and Planning v3 plan bind exact canonical bytes; material change requires revalidation, new digests, and renewed human approval.",
+        "consumerIds": [
+          "pkid:component:program-kit:dotnet-spectre-console-generator",
+          "pkid:component:program-kit:generated-output-integrity",
+          "pkid:component:program-kit:maintain-software-capability"
+        ],
+        "compatibilityPolicy": "Open Console, .NET binding, Spectre projection, generated layout, integrity, maintenance, capability, diagnostics, and evidence boundaries version explicitly.",
+        "migrationPolicy": "Changed accepted contracts require explicit versioning and migration; the superseded unaccepted dispatcher design has no compatibility or migration path."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "Documents, locks, and evidence include identities, paths, versions, digests, and outcomes only; credentials, secret values, and runtime command values are excluded.",
+        "externalizationPolicy": "Canonical artifacts remain Program Kit-owned; generated consumer hosts and initialized inert capability wrappers are exact governed projections.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Processes, candidate directories, provider sessions, invocation payloads, and runtime validation observations are not durable design content."
+      },
+      "rationale": "A schema-governed canonical design is the review authority while runtime, generator, integrity, maintenance, and capability work remains blocked pending exact approval."
+    }
+  ],
+  "representationRelationships": [],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Generation treats documents, metadata, paths, messages, and generated roots as untrusted structured input.",
+      "guarantees": [
+        "No consumer assembly is loaded or executed during core generation.",
+        "Paths are contained and reparse traversal is rejected.",
+        "Consumer text is rendered as escaped plain text."
+      ],
+      "exclusions": [
+        "Consumer handlers and validators are not sandboxed.",
+        "External signing against coordinated hostile rewriting is deferred."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Humans start design, implementation, maintenance, upgrade, repair, publication, and capability initialization.",
+      "guarantees": [
+        "Plain refresh cannot erase drift.",
+        "Program Kit upgrades name an exact approved version.",
+        "Capability packaging does not grant execution authority."
+      ],
+      "exclusions": [
+        "No hook, watcher, autonomous loop, silent upgrade, implicit repair, or automatic provider activation."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Generation and maintenance evidence contains paths, identities, versions, digests, and outcomes but no runtime command values or secrets.",
+      "guarantees": [
+        "Diagnostics and receipts exclude credentials and consumer argument values."
+      ],
+      "exclusions": [
+        "Consumer validator access to environment and external systems remains consumer-owned."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Only authoritative documents, generated output, seals, locks, evidence, capability payloads, and coherent Git history are durable.",
+      "guarantees": [
+        "Generated repair retains a recoverable quarantine.",
+        "Each maintenance unit records source and derived artifacts together."
+      ],
+      "exclusions": [
+        "Runtime command state, service state, and validation observations are not generation evidence."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Every invalid binding, projection, registration, generated drift, transaction ambiguity, or unsupported shape fails closed before publication or invocation.",
+      "guarantees": [
+        "Program Kit operation exit codes remain 0 success, 1 conformance, 2 usage/input, 3 internal.",
+        "Generated command failures use document-declared host exit roles.",
+        "Failed generation preserves the prior canonical tree."
+      ],
+      "exclusions": [
+        "No failure is converted to generated success or guessed binding."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Generation and refresh use one exclusive output transaction; verification observes only sealed states.",
+      "guarantees": [
+        "Concurrent writers cannot interleave generated trees.",
+        "Candidate output is isolated until validation completes."
+      ],
+      "exclusions": [
+        "Consumer command concurrency remains consumer-owned."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Cancellation is propagated through generation, validation, handler execution, host lifecycle, and finite build operations.",
+      "guarantees": [
+        "Cancelled generation publishes no partial candidate.",
+        "Cancelled command behavior uses the declared host cancellation exit role."
+      ],
+      "exclusions": [
+        "Cancellation does not imply rollback of consumer side effects."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Stable diagnostics and evidence expose exact inputs, phases, output digests, gate participation, tests, commits, and repair authority without retaining consumer data.",
+      "guarantees": [
+        "Actual-process fixtures observe invocation order and exit codes.",
+        "Verification reports every drifted path."
+      ],
+      "exclusions": [
+        "Telemetry or remote evidence transport is not introduced."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Open Console, .NET binding, projection, generated layout, integrity, generation request, capabilities, and evidence version independently and fail closed on mismatch.",
+      "guarantees": [
+        "Exact package pins and reference-assembly digests are recorded.",
+        "Open Console remains cross-language.",
+        "Installed capabilities remain pinned until an approved Program Kit upgrade."
+      ],
+      "exclusions": [
+        "No compatibility layer or migration path is created for unaccepted Console-generation designs."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:generate-typed-console-host",
+      "actor": "Console application engineer",
+      "intent": "Generate and execute a complete typed Console host from explicit authoritative contracts.",
+      "preconditions": [
+        "Open Console, .NET binding, project, reference assembly, projection profile, and generation request conform.",
+        "Exactly one consumer Console feature registers all required handlers and optional validators."
+      ],
+      "steps": [
+        "Verify documents, digests, paths, and compiled consumer metadata.",
+        "Render and compile the deterministic Spectre candidate.",
+        "Seal and atomically publish the generated root.",
+        "Build the consumer and generated host through selected gates.",
+        "Invoke commands through document validation, optional consumer validation, and handlers."
+      ],
+      "outcomes": [
+        "Typed settings construct typed consumer requests.",
+        "Help describes the declared grammar.",
+        "Handler integers become managed process results unchanged.",
+        "Unchanged inputs regenerate byte-identically."
+      ],
+      "failureOutcomes": [
+        "Wrong types or document constraints exit with invalid invocation before consumer code.",
+        "Missing or duplicate registrations fail closed.",
+        "Unsupported projection shapes never publish output."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:repair-generated-host",
+      "actor": "Consumer workspace engineer",
+      "intent": "Detect and safely reset a tampered generated host.",
+      "preconditions": [
+        "The generated root differs from its manifest or external anchor.",
+        "Authoritative consumer inputs remain available."
+      ],
+      "steps": [
+        "Run verify or refresh and receive all drift diagnostics.",
+        "Review the drift and authorize generated-output repair.",
+        "Quarantine the drifted tree.",
+        "Regenerate, seal, verify, build, test, record, and commit the repaired state."
+      ],
+      "outcomes": [
+        "No generated edit is adopted as source truth.",
+        "The canonical host returns to a verified buildable state.",
+        "The repair authority and resulting history are recorded."
+      ],
+      "failureOutcomes": [
+        "Without repair authority all bytes remain unchanged.",
+        "Ambiguous transaction recovery stops for human review."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:maintain-consumer-software",
+      "actor": "Consumer workspace engineer",
+      "intent": "Make one small compatible change without a full architecture cycle.",
+      "preconditions": [
+        "The human explicitly requests a bounded change.",
+        "The change does not introduce a material architecture, schema mechanism, security boundary, or unapproved Program Kit upgrade."
+      ],
+      "steps": [
+        "Classify the request through develop-software.",
+        "Change authoritative consumer source.",
+        "Refresh every affected derived artifact through backed profiles.",
+        "Verify, review, record, commit, and push one coherent unit."
+      ],
+      "outcomes": [
+        "Full and incremental implementation use the same completion mechanics.",
+        "Git history remains reversible and interpretable.",
+        "Installed capability bytes remain version-locked and drift-verifiable."
+      ],
+      "failureOutcomes": [
+        "Ambiguous semantics or material changes route to design.",
+        "Capability activation in the Program Kit authoring workspace is rejected."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:typed-console-host-generation",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:c772ea587b44bde780de2e46330daaceecd7a9b2ce30bfa07e16feea7a049467"
+        }
+      ],
+      "claim": "The review design exists from explicit converged human intent; no approved implementation behavior is claimed by this artifact."
+    }
+  ],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:typed-console-host-generation",
+    "version": "1.0.0",
+    "digest": "sha256:f81924fa3edee264e6ff726943b96431009aff21377964c87246d17e690e004b"
+  }
+}

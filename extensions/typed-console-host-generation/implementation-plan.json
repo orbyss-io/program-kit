@@ -1,0 +1,958 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:typed-console-host-generation",
+    "version": "1.0.0",
+    "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+  },
+  "ownerId": "pkid:domain:program-kit:toolkit",
+  "state": "ready-for-human-decision",
+  "requirementIds": [
+    "PKTCH-R001",
+    "PKTCH-R002",
+    "PKTCH-R003",
+    "PKTCH-R004",
+    "PKTCH-R005",
+    "PKTCH-R006",
+    "PKTCH-R007",
+    "PKTCH-R008",
+    "PKTCH-R009",
+    "PKTCH-R010",
+    "PKTCH-R011",
+    "PKTCH-R012",
+    "PKTCH-R013"
+  ],
+  "workUnits": [
+    {
+      "workUnitId": "PKTCH-W010",
+      "requiredOutcome": "Establish neutral Open Console schema and source ownership, including logical values, canonical defaults, parsing, help, completion, streams, and host exit-code roles.",
+      "sequence": 10,
+      "parallelGroupId": null,
+      "dependsOn": [],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w010",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/open-console; src/Orbyss.ProgramKit.OpenConsole; bounded existing schema registration, Open Console source, fixtures, tests, docs, solution, and lock files."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if neutral ownership narrows Open Console to one framework or leaves an existing schema consumer inconsistent."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Open Console schema, canonical round trips, semantic validation, and language-neutral vocabulary tests pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W020",
+      "requiredOutcome": "Add the versioned .NET binding schema and model with structured CLR types, explicit symbols, defaults, constructor mappings, contracts, project identity, and reference digest.",
+      "sequence": 20,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W010"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w020",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/dotnet; src/Orbyss.ProgramKit.DotNet/Generation/Console/Binding and Contracts; serializers, diagnostics, fixtures, tests, and docs."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if mappings must be guessed, executable C# enters the binding, or CLR meaning enters Open Console."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Binding round trips and every ambiguous, missing, colliding, mismatched, or non-explicit shape fails deterministically."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W030",
+      "requiredOutcome": "Verify exact bindings against digest-checked consumer metadata and compile isolated candidates without loading consumer code or invoking MSBuild.",
+      "sequence": 30,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W020"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w030",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "src/Orbyss.ProgramKit.DotNet/Generation/Console/Compilation, Binding, Contracts, and Diagnostics; metadata fixtures and focused tests."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if verification requires Assembly.Load, consumer execution, ambient resolution, arbitrary MSBuild, or relaxed source gates."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Valid metadata compiles; digest drift, malformed metadata, accessibility, generic, nullability, signature, constructor, and injection failures reject."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W040",
+      "requiredOutcome": "Replace Console generation with an immutable Spectre projection and deterministic per-file renderers for a complete executable generated host.",
+      "sequence": 40,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W030"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w040",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "src/Orbyss.ProgramKit.DotNet/Generation/Console; bounded generation coordinator and writer code; exact package versions; fixtures, tests, docs, solution, and lock files."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the pinned Spectre version cannot faithfully project an accepted shape or if API/Worker behavior changes outside integrity integration."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Candidate compilation, exact file layout, public generated-source gate, and repeated byte-identical generation pass without a second parser or runtime generator dependency."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W050",
+      "requiredOutcome": "Compose exactly one Console feature, audit exact service registrations, use one invocation scope, and implement fixed validation and handler lifecycle.",
+      "sequence": 50,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W040"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w050",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "generated Console composition, command, validation, lifecycle, DI audit, consumer fixture, tests, and documentation."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if composition requires scanning, a service locator, multiple features, or consumer knowledge of Spectre or generated types."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Zero, one, duplicate, lifetime, registration-shape, constructor, provider, validation-order, cancellation, and handler-invocation proofs pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W060",
+      "requiredOutcome": "Freeze parsing, help, static completion, diagnostics, cancellation, exception, and handler exit behavior through the pinned projection profile.",
+      "sequence": 60,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W050"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w060",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Console projection profile, settings validation, command configuration, help, completion, outcome handling, process fixtures, goldens, tests, and docs."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if fidelity needs a hidden parser, undocumented built-ins, dynamic completion, or non-neutral Open Console changes."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Actual-process grammar, native types, defaults, validation messages, information paths, cancellation, internal failure, and portable exit-code tests pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W070",
+      "requiredOutcome": "Add host-kind-neutral generated-output schemas, sealing, offline verification, safe transactions, recovery, and dotnet verify-host.",
+      "sequence": 70,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W040"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w070",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/generated-output; src/Orbyss.ProgramKit.GeneratedOutputIntegrity; bounded DotNet publication and CommandLine operations; API/Console/Worker fixtures, tests, docs, solution, and locks."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if any generated byte is outside coverage, consumer paths are captured, verification regenerates or uses network, or self-hash handling is ambiguous."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Immediate verification plus modified, missing, unexpected, unsafe, reparse, malformed, anchor, recovery, determinism, and all-file diagnostics pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W080",
+      "requiredOutcome": "Add generation request, refresh, preview, explicit consumer build, authorized repair/quarantine, private integrity build integration, attestation, and publication verification.",
+      "sequence": 80,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W060",
+        "PKTCH-W070"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w080",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "generation request and refresh orchestration; integrity transactions; approved C# build-profile integration; GeneratedOutputIntegrity.Build; generated project; publish-local; CLI grammar/docs; tests, solution, and locks."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if refresh silently erases or adopts drift, invokes builds without authority, auto-upgrades, or duplicates reusable C# gate mechanics."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Create, no-change, changed, drift refusal, repair, preview, quarantine, build rejection, publish rejection, no runtime verification, and frozen operation exit codes pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W090",
+      "requiredOutcome": "Package inert shared completion profiles for source review, refresh, integrity, build/test, optional publication, evidence, diff, coherent commit, and push.",
+      "sequence": 90,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W080"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w090",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".agent-capabilities supporting resources; bounded implement-software-plan references; profile manifests; capability bundle verification and isolated fixtures."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if a profile grants authority, becomes independently invokable, duplicates implementation, or activates in the authoring workspace."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Full and incremental implementation resolve identical profile bytes; profiles remain non-invokable, inert, and authority-free."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W100",
+      "requiredOutcome": "Register and package maintain-software, route bounded changes, enforce the mandatory distributable/inert capability standard, and prove isolated initialization.",
+      "sequence": 100,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W090"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w100",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".agent-capabilities canonical definitions, Codex and Claude templates, index, navigation, bundle manifest/package, initializer policy, locks, conformance fixtures, tests, docs, and package locks."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the capability can start autonomously, bypass material design, auto-upgrade, activate while authored, or write outside the selected consumer workspace."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Capability completeness, thin wrappers, bundle digests, authoring deny, no global writes, isolated initialization, drift checks, upgrade approval, and availability backing pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKTCH-W110",
+      "requiredOutcome": "Prove and close the complete architecture with an isolated typed Console consumer, exact evidence, full gates, and final reviewed history.",
+      "sequence": 110,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKTCH-W080",
+        "PKTCH-W100"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:typed-console-host-generation",
+          "version": "1.0.0",
+          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pktch-w110",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "typed Console conformance fixture; generated expected bytes; unit/conformance harnesses; docs; review-set validation; implementation evidence."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop on any required failure, nondeterminism, active authoring capability, incomplete evidence, publication requirement, or material design deviation."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Locked restore, private/public source gates, full build/unit/conformance suites, child processes, determinism, tamper, repair, build/publish rejection, capability isolation, and changed-file review pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "closure",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    }
+  ],
+  "parallelGroups": [],
+  "trace": [
+    {
+      "requirementId": "PKTCH-R001",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W010",
+        "PKTCH-W060",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Open Console has language-neutral schema and implementation ownership with no CLR or Spectre vocabulary.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Open Console has language-neutral schema and implementation ownership with no CLR or Spectre vocabulary."
+    },
+    {
+      "requirementId": "PKTCH-R002",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W020",
+        "PKTCH-W030",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "An explicit .NET binding maps every command to verified CLR request, handler, optional validator, feature, and default contracts.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "An explicit .NET binding maps every command to verified CLR request, handler, optional validator, feature, and default contracts."
+    },
+    {
+      "requirementId": "PKTCH-R003",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W030",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Consumer contracts are verified against exact reference-assembly metadata without loading or executing consumer code.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Consumer contracts are verified against exact reference-assembly metadata without loading or executing consumer code."
+    },
+    {
+      "requirementId": "PKTCH-R004",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W040",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Console generation emits a complete deterministic executable project using exact Spectre and CShells package versions.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Console generation emits a complete deterministic executable project using exact Spectre and CShells package versions."
+    },
+    {
+      "requirementId": "PKTCH-R005",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W050",
+        "PKTCH-W060",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Generated commands enforce document validation, optional consumer validation, and handler invocation in the fixed host-owned order.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Generated commands enforce document validation, optional consumer validation, and handler invocation in the fixed host-owned order."
+    },
+    {
+      "requirementId": "PKTCH-R006",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W060",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Parsing, help, completion, diagnostics, cancellation, and exit codes conform to Open Console through the pinned .NET projection.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Parsing, help, completion, diagnostics, cancellation, and exit codes conform to Open Console through the pinned .NET projection."
+    },
+    {
+      "requirementId": "PKTCH-R007",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W050",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Exactly one Console shell feature and exact handler/validator registration cardinality fail closed through explicit DI composition.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Exactly one Console shell feature and exact handler/validator registration cardinality fail closed through explicit DI composition."
+    },
+    {
+      "requirementId": "PKTCH-R008",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W070",
+        "PKTCH-W080",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Every generated host tree is sealed and offline-verifiable through a host-kind-neutral manifest and external anchor.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Every generated host tree is sealed and offline-verifiable through a host-kind-neutral manifest and external anchor."
+    },
+    {
+      "requirementId": "PKTCH-R009",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W080",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Build and publication reject generated drift without adding runtime source-tree verification.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Build and publication reject generated drift without adding runtime source-tree verification."
+    },
+    {
+      "requirementId": "PKTCH-R010",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W070",
+        "PKTCH-W080",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Refresh is deterministic and atomic; explicit repair quarantines drift and regenerates from authoritative inputs.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Refresh is deterministic and atomic; explicit repair quarantines drift and regenerates from authoritative inputs."
+    },
+    {
+      "requirementId": "PKTCH-R011",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W090",
+        "PKTCH-W100",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "maintain-software reuses the same backed completion profiles as full implementation and records coherent reversible history.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "maintain-software reuses the same backed completion profiles as full implementation and records coherent reversible history."
+    },
+    {
+      "requirementId": "PKTCH-R012",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W100",
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "Program Kit product capabilities are inert, installable, version-locked, drift-verifiable, and forbidden from authoring-workspace activation.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Program Kit product capabilities are inert, installable, version-locked, drift-verifiable, and forbidden from authoring-workspace activation."
+    },
+    {
+      "requirementId": "PKTCH-R013",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:typed-console-host-generation",
+        "version": "1.0.0",
+        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      },
+      "workUnitIds": [
+        "PKTCH-W110"
+      ],
+      "implementationOutcome": "A real isolated consumer proves typed commands, validation, exit codes, determinism, integrity, repair, and capability installation end to end.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "A real isolated consumer proves typed commands, validation, exit codes, determinism, integrity, repair, and capability installation end to end."
+    }
+  ],
+  "unresolvedDecisions": [],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:typed-console-host-generation",
+    "version": "1.0.0",
+    "digest": "sha256:f81924fa3edee264e6ff726943b96431009aff21377964c87246d17e690e004b"
+  },
+  "staticConformanceState": "reuse-existing",
+  "gateDesign": {
+    "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "selectionLock": {
+    "identity": "pkid:selection-lock:program-kit:typed-console-host-generation-private-gate",
+    "version": "1.0.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:249f944f0315e4d78131d70d6c85dbf61708d6f3cb64651a9b6a7d5051dcedaa"
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
+    "version": "1.0.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:c4b247449959317dd95eca5aab4baf61d709ff27155e84cae0a9d111f0e4b09b"
+  }
+}

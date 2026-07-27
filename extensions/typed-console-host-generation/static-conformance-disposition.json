@@ -1,0 +1,68 @@
+{
+  "softwareDesign": {
+    "identity": "pkid:design:program-kit:typed-console-host-generation-static-basis",
+    "version": "1.0.0",
+    "digest": "sha256:c25be962da2ce4e7ed23d21d683e9acca6c101d3012b89075649394671484ee1"
+  },
+  "invariantAllocations": [
+    {
+      "identity": "pkid:invariant:program-kit:typed-console-repository-source-conformance",
+      "invariant": "Program Kit-owned handwritten and generated C# satisfies the private repository source-quality policy.",
+      "layer": "roslyn-compiler",
+      "rationale": "The existing private PKCS analyzer and build spine already enforce repository source structure and behavioral rules."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:typed-console-project-package-direction",
+      "invariant": "New projects and package references preserve the approved Program Kit dependency direction and exact package pins.",
+      "layer": "project-package",
+      "rationale": "The existing build spine, explicit solution graph, locked restore, and architecture conformance tests own graph enforcement."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:typed-console-generated-source-contract",
+      "invariant": "Generated consumer-host C# carries the selected public Program Kit generated-source contract without private analyzer leakage.",
+      "layer": "roslyn-compiler",
+      "rationale": "The existing public generated-source analyzer is selected only in generated consumer hosts; Program Kit implementation remains on the private gate."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:typed-console-binding-integrity",
+      "invariant": "Bindings, reference assemblies, generated trees, capability payloads, and process behavior conform to their exact non-static contracts.",
+      "layer": "executable-test",
+      "rationale": "Metadata, digest, capability, determinism, and process invariants require dedicated validators and executable conformance rather than a new C# analyzer."
+    }
+  ],
+  "disposition": "reuse-existing",
+  "gateSelections": [
+    {
+      "gate": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      }
+    }
+  ],
+  "linkedGateDesigns": [],
+  "rationale": "The existing private Program Kit C# gate is compatible with this repository implementation. Public generated-host source uses the already-established public generated-source contract only through an explicit consumer-host selection. No new analyzer or gate is justified.",
+  "residualRisks": [
+    "The private Program Kit gate remains a repository-specific monolith with an MSBuild trust boundary.",
+    "Static analysis does not prove binding metadata, generated-tree integrity, capability isolation, runtime process behavior, or human architectural quality."
+  ],
+  "nonStaticClaims": [
+    "Executable binding, validation-order, process-exit, help, completion, determinism, tamper, repair, publication, and capability-installation behavior requires dedicated tests.",
+    "Human review remains authoritative for framework fit, semantic ownership, and material design deviation."
+  ],
+  "decisionSource": {
+    "source": {
+      "identity": "pkid:decision-source:program-kit:typed-console-host-generation-static-conformance",
+      "version": "1.0.0",
+      "digest": "sha256:2d7661af8eea08285c21b3217643067215e430f2b0702d4a8d59a8a4f3fdff15"
+    },
+    "jsonPointer": "/decision"
+  },
+  "emptySelectionAcceptance": null,
+  "blockers": []
+}

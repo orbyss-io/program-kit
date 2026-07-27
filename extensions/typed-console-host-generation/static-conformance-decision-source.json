@@ -1,0 +1,17 @@
+{
+  "artifactId": "pkid:decision-source:program-kit:typed-console-host-generation-static-conformance",
+  "artifactVersion": "1.0.0",
+  "designBasis": {
+    "identity": "pkid:design:program-kit:typed-console-host-generation-static-basis",
+    "version": "1.0.0",
+    "digest": "sha256:c25be962da2ce4e7ed23d21d683e9acca6c101d3012b89075649394671484ee1"
+  },
+  "decision": {
+    "disposition": "reuse-existing",
+    "provider": "codex",
+    "taskId": "019fa3b9-c0ba-7eb3-816a-12bd68a65c1a",
+    "statement": "I approve.",
+    "conditions": []
+  },
+  "authorityBoundary": "The human decision selects the existing private Program Kit C# gate for repository implementation and grants no new gate, analyzer, suppression, activation, publication, or consumer authority."
+}
