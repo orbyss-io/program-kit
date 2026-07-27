@@ -28,14 +28,14 @@
       "artifactVersion": "1.0.0",
       "role": "non-circular-static-conformance-design-basis",
       "path": "extensions/typed-console-host-generation/static-conformance-design-basis.json",
-      "sha256": "c25be962da2ce4e7ed23d21d683e9acca6c101d3012b89075649394671484ee1"
+      "sha256": "fbeebf71beb52330af62f3d5097514e8ca644fb637ad5a5b496d2592fa7857f4"
     },
     {
       "artifactId": "pkid:decision-source:program-kit:typed-console-host-generation-static-conformance",
       "artifactVersion": "1.0.0",
       "role": "human-static-conformance-decision-source",
       "path": "extensions/typed-console-host-generation/static-conformance-decision-source.json",
-      "sha256": "2d7661af8eea08285c21b3217643067215e430f2b0702d4a8d59a8a4f3fdff15"
+      "sha256": "032fdf296e5c98d0432e78c47b118043c48fc13032b124eb8cbfbaac8711b828"
     },
     {
       "artifactId": "pkid:static-conformance-disposition:program-kit:typed-console-host-generation",
@@ -45,14 +45,14 @@
       "contractVersion": "1.0.0",
       "contractSha256": "834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd",
       "path": "extensions/typed-console-host-generation/static-conformance-disposition.json",
-      "sha256": "f81924fa3edee264e6ff726943b96431009aff21377964c87246d17e690e004b"
+      "sha256": "2eb816a60ecc136f7561b18080b94cad8231c3e1e92a72a6adc72bd938b4f34e"
     },
     {
       "artifactId": "pkid:selection-lock:program-kit:typed-console-host-generation-private-gate",
       "artifactVersion": "1.0.0",
       "role": "materialized-private-gate-selection-lock",
       "path": "extensions/typed-console-host-generation/program-kit-private-gate-selection-lock.json",
-      "sha256": "249f944f0315e4d78131d70d6c85dbf61708d6f3cb64651a9b6a7d5051dcedaa"
+      "sha256": "de9964f2f3f51fcc1581c11fc63b25d4e83a47d37aa18810faa56780469b14a5"
     },
     {
       "artifactId": "pkid:design:program-kit:typed-console-host-generation",
@@ -62,7 +62,7 @@
       "contractVersion": "2.0.0",
       "contractSha256": "2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198",
       "path": "extensions/typed-console-host-generation/architecture-design.json",
-      "sha256": "6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+      "sha256": "72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:typed-console-host-generation-design-markdown",
@@ -70,7 +70,7 @@
       "role": "human-readable-design-projection",
       "canonicalDesignId": "pkid:design:program-kit:typed-console-host-generation",
       "canonicalDesignVersion": "1.0.0",
-      "canonicalDesignSha256": "6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b",
+      "canonicalDesignSha256": "72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca",
       "path": "extensions/typed-console-host-generation/architecture-design.md",
       "sha256": "8ef752fb3ba851f93d458a28cbe16ebc83769ee8b9c690d8d3ada0ca72e6405e"
     },
@@ -83,9 +83,9 @@
       "contractSha256": "0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6",
       "designId": "pkid:design:program-kit:typed-console-host-generation",
       "designVersion": "1.0.0",
-      "designSha256": "6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b",
+      "designSha256": "72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca",
       "path": "extensions/typed-console-host-generation/implementation-plan.json",
-      "sha256": "9e53b1b6bbd91b0f5262bf4643f899fb9c1ac7ae3dd1c60e92512dd0e598223b"
+      "sha256": "207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:typed-console-host-generation-plan-markdown",
@@ -93,7 +93,7 @@
       "role": "human-readable-plan-projection",
       "canonicalPlanId": "pkid:plan:program-kit:typed-console-host-generation",
       "canonicalPlanVersion": "1.0.0",
-      "canonicalPlanSha256": "9e53b1b6bbd91b0f5262bf4643f899fb9c1ac7ae3dd1c60e92512dd0e598223b",
+      "canonicalPlanSha256": "207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273",
       "path": "extensions/typed-console-host-generation/implementation-plan.md",
       "sha256": "203605044ffc31d15fcc5103eab9b497122fcf557957d5c763a0c9dcaa3e6ad0"
     },
@@ -102,14 +102,14 @@
       "artifactVersion": "1.0.0",
       "role": "design-validation-report",
       "path": "extensions/typed-console-host-generation/validation-report.md",
-      "sha256": "dd1ba92c3c27f22a3892d2ae14f69be1c7c33f4cfb922d320bca2102401c9eba"
+      "sha256": "2ffe62679f2f00594b59da46a92b037e2940d2521598a0bd83f74133bb3d6ec7"
     },
     {
       "artifactId": "pkid:tool:program-kit:typed-console-host-generation-review-materializer",
       "artifactVersion": "1.0.0",
       "role": "deterministic-review-materializer",
       "path": "extensions/typed-console-host-generation/materialize-review-set.ps1",
-      "sha256": "4444f50520d7b86e433d0328c673e39ddc94b3b3cfbf0362ed4fcbe9f77bb9c8"
+      "sha256": "22df215a320843d81be9bd005ef09181a5291c0896c15c4c4ef6285ee5e2efbe"
     },
     {
       "artifactId": "pkid:guide:program-kit:typed-console-host-generation-review",
@@ -121,8 +121,8 @@
   ],
   "approvalBoundary": {
     "requiredDecision": "explicit-human-approval-of-exact-canonical-design-and-plan-digests",
-    "candidateDesignSha256": "6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b",
-    "candidatePlanSha256": "9e53b1b6bbd91b0f5262bf4643f899fb9c1ac7ae3dd1c60e92512dd0e598223b",
+    "candidateDesignSha256": "72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca",
+    "candidatePlanSha256": "207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273",
     "acceptedScope": "PKTCH-W010 through PKTCH-W110 exactly as represented by the canonical Architecture 2.0 and Planning 3.0 artifacts.",
     "doesNotAuthorize": [
       "implementation before exact digest approval",
@@ -146,7 +146,7 @@
     "runtimeImplementationOrExecution": "not performed under design authority"
   },
   "provenance": {
-    "startingCommit": "65a102b83dd35cc16fb433793e49c25e0f4c098f",
+    "startingCommit": "60006928a7f29423dd777ee5971aa1431ea263cf",
     "branch": "main",
     "sourceThreadId": "019fa3b9-c0ba-7eb3-816a-12bd68a65c1a",
     "source": "human-started Program Kit typed Console host generation redesign",

@@ -20,7 +20,7 @@
     "The generated host root is entirely Program Kit-owned and consumer-owned source remains outside it.",
     "Portable process exit codes are 0 through 255; the managed entry point preserves the exact handler integer while the operating system owns wider-value encoding.",
     "The merged reusable C# build-gate implementation at source commit ",
-    "65a102b83dd35cc16fb433793e49c25e0f4c098f",
+    "60006928a7f29423dd777ee5971aa1431ea263cf",
     " is current source truth."
   ],
   "unresolvedDecisions": [],
@@ -518,7 +518,7 @@
           "version": "2.0.0",
           "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
         },
-        "provenancePolicy": "Exact converged human intent and source commit 65a102b83dd35cc16fb433793e49c25e0f4c098f are named; implementation cannot become design authority.",
+        "provenancePolicy": "Exact converged human intent and source commit 60006928a7f29423dd777ee5971aa1431ea263cf are named; implementation cannot become design authority.",
         "digestPolicy": "The review manifest and Planning v3 plan bind exact canonical bytes; material change requires revalidation, new digests, and renewed human approval.",
         "consumerIds": [
           "pkid:component:program-kit:dotnet-spectre-console-generator",
@@ -738,6 +738,6 @@
   "staticConformanceDisposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:typed-console-host-generation",
     "version": "1.0.0",
-    "digest": "sha256:f81924fa3edee264e6ff726943b96431009aff21377964c87246d17e690e004b"
+    "digest": "sha256:2eb816a60ecc136f7561b18080b94cad8231c3e1e92a72a6adc72bd938b4f34e"
   }
 }

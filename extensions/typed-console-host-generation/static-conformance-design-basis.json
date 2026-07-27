@@ -1,7 +1,7 @@
 {
   "identity": "pkid:design:program-kit:typed-console-host-generation-static-basis",
   "version": "1.0.0",
-  "sourceCommit": "65a102b83dd35cc16fb433793e49c25e0f4c098f",
+  "sourceCommit": "60006928a7f29423dd777ee5971aa1431ea263cf",
   "intent": {
     "identity": "pkid:intent:program-kit:typed-console-host-generation",
     "version": "1.0.0",

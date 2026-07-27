@@ -2,7 +2,7 @@
   "design": {
     "identity": "pkid:design:program-kit:typed-console-host-generation",
     "version": "1.0.0",
-    "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+    "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
   },
   "ownerId": "pkid:domain:program-kit:toolkit",
   "state": "ready-for-human-decision",
@@ -32,7 +32,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -92,7 +92,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -152,7 +152,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -212,7 +212,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -272,7 +272,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -332,7 +332,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -392,7 +392,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -453,7 +453,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -513,7 +513,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -573,7 +573,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -634,7 +634,7 @@
         {
           "identity": "pkid:design:program-kit:typed-console-host-generation",
           "version": "1.0.0",
-          "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+          "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
         }
       ],
       "outputs": [
@@ -691,7 +691,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W010",
@@ -710,7 +710,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W020",
@@ -729,7 +729,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W030",
@@ -747,7 +747,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W040",
@@ -765,7 +765,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W050",
@@ -784,7 +784,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W060",
@@ -802,7 +802,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W050",
@@ -820,7 +820,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W070",
@@ -839,7 +839,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W080",
@@ -857,7 +857,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W070",
@@ -876,7 +876,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W090",
@@ -895,7 +895,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W100",
@@ -913,7 +913,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:typed-console-host-generation",
         "version": "1.0.0",
-        "digest": "sha256:6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b"
+        "digest": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca"
       },
       "workUnitIds": [
         "PKTCH-W110"
@@ -929,7 +929,7 @@
   "staticConformanceDisposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:typed-console-host-generation",
     "version": "1.0.0",
-    "digest": "sha256:f81924fa3edee264e6ff726943b96431009aff21377964c87246d17e690e004b"
+    "digest": "sha256:2eb816a60ecc136f7561b18080b94cad8231c3e1e92a72a6adc72bd938b4f34e"
   },
   "staticConformanceState": "reuse-existing",
   "gateDesign": {
@@ -947,7 +947,7 @@
     "identity": "pkid:selection-lock:program-kit:typed-console-host-generation-private-gate",
     "version": "1.0.0",
     "state": "materialized",
-    "integrityDigest": "sha256:249f944f0315e4d78131d70d6c85dbf61708d6f3cb64651a9b6a7d5051dcedaa"
+    "integrityDigest": "sha256:de9964f2f3f51fcc1581c11fc63b25d4e83a47d37aa18810faa56780469b14a5"
   },
   "activationEvidence": {
     "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",

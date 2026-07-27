@@ -1,5 +1,6 @@
 param(
-    [string] $ExtensionRoot = $PSScriptRoot
+    [string] $ExtensionRoot = $PSScriptRoot,
+    [string] $SourceCommit = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -110,13 +111,34 @@ function New-WorkUnit(
     }
 }
 
-$sourceCommit = (
+$designBasisPath = Join-Path `
+    $ExtensionRoot `
+    'static-conformance-design-basis.json'
+if ([string]::IsNullOrWhiteSpace($SourceCommit) -and
+    (Test-Path -LiteralPath $designBasisPath -PathType Leaf)) {
+    $SourceCommit = (
+        Get-Content -Raw -LiteralPath $designBasisPath |
+            ConvertFrom-Json
+    ).sourceCommit
+}
+if ([string]::IsNullOrWhiteSpace($SourceCommit)) {
+    $SourceCommit = (
+        git -C $repositoryRoot `
+            -c "safe.directory=$($repositoryRoot.Replace('\', '/'))" `
+            rev-parse HEAD
+    ).Trim()
+}
+$sourceCommit = $SourceCommit.Trim().ToLowerInvariant()
+if ($sourceCommit -notmatch '^[0-9a-f]{40}$') {
+    throw 'Could not resolve the exact Program Kit source commit.'
+}
+$resolvedSourceCommit = (
     git -C $repositoryRoot `
         -c "safe.directory=$($repositoryRoot.Replace('\', '/'))" `
-        rev-parse HEAD
-).Trim()
-if ($LASTEXITCODE -ne 0 -or $sourceCommit -notmatch '^[0-9a-f]{40}$') {
-    throw 'Could not resolve the exact Program Kit source commit.'
+        rev-parse "$sourceCommit^{commit}"
+).Trim().ToLowerInvariant()
+if ($LASTEXITCODE -ne 0 -or $resolvedSourceCommit -ne $sourceCommit) {
+    throw "Source commit is not an exact local Program Kit commit: $sourceCommit"
 }
 
 $intentDigest = Get-Digest `

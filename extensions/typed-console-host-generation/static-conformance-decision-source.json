@@ -4,7 +4,7 @@
   "designBasis": {
     "identity": "pkid:design:program-kit:typed-console-host-generation-static-basis",
     "version": "1.0.0",
-    "digest": "sha256:c25be962da2ce4e7ed23d21d683e9acca6c101d3012b89075649394671484ee1"
+    "digest": "sha256:fbeebf71beb52330af62f3d5097514e8ca644fb637ad5a5b496d2592fa7857f4"
   },
   "decision": {
     "disposition": "reuse-existing",

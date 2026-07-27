@@ -8,10 +8,10 @@ host-kind-neutral generated-output integrity, safe refresh/repair flow, and
 inert installable maintenance capability converged with the human reviewer.
 
 Canonical Architecture Design `2.0.0` instance:
-`6014341c0a94aaf7dd58f5d90adb82915ce60bf36455403a3084d67ee6231f1b`.
+`72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca`.
 
 Canonical Planning `3.0.0` instance:
-`9e53b1b6bbd91b0f5262bf4643f899fb9c1ac7ae3dd1c60e92512dd0e598223b`.
+`207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273`.
 
 Implementation remains blocked until the human explicitly approves those two
 exact digests together.
@@ -19,7 +19,7 @@ exact digests together.
 ## Source truth and disposition
 
 - Source commit:
-  `65a102b83dd35cc16fb433793e49c25e0f4c098f` on `main`.
+  `60006928a7f29423dd777ee5971aa1431ea263cf` on `main`.
 - The reusable C# build-gates implementation is integrated into that source
   truth.
 - Static-conformance disposition `reuse-existing` is exact, schema-valid, and

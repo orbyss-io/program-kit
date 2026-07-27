@@ -4,7 +4,7 @@
   "disposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:typed-console-host-generation",
     "version": "1.0.0",
-    "digest": "sha256:f81924fa3edee264e6ff726943b96431009aff21377964c87246d17e690e004b"
+    "digest": "sha256:2eb816a60ecc136f7561b18080b94cad8231c3e1e92a72a6adc72bd938b4f34e"
   },
   "gateDefinition": {
     "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
@@ -26,7 +26,7 @@
     "version": "1.0.0",
     "digest": "sha256:c4b247449959317dd95eca5aab4baf61d709ff27155e84cae0a9d111f0e4b09b"
   },
-  "sourceCommit": "65a102b83dd35cc16fb433793e49c25e0f4c098f",
+  "sourceCommit": "60006928a7f29423dd777ee5971aa1431ea263cf",
   "scope": "Program Kit-owned implementation source only; never consumer-owned source.",
   "state": "active"
 }
