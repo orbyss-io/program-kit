@@ -4,9 +4,13 @@
   "reviewSetId": "pkid:approval:program-kit:typed-console-host-generation-review-set",
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-typed-console-host-generation",
-  "reviewState": "awaiting-human-approval",
-  "implementationStatus": "not-started",
-  "approvalRecord": null,
+  "reviewState": "approved",
+  "implementationStatus": "approved-not-started",
+  "approvalRecord": {
+    "identity": "pkid:approval-record:program-kit:typed-console-host-generation",
+    "version": "1.0.0",
+    "digest": "sha256:9467ecf970c19af7cbc572c7ba11284966f34536854ed59ed07c4ae17847f568"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -117,10 +121,17 @@
       "role": "review-navigation",
       "path": "extensions/typed-console-host-generation/README.md",
       "sha256": "be5d83d3ed3025488bc70e94c15ba004ef9d0d4ede465b895a03a731ba39835f"
+    },
+    {
+      "artifactId": "pkid:approval-record:program-kit:typed-console-host-generation",
+      "artifactVersion": "1.0.0",
+      "role": "exact-design-plan-human-approval",
+      "path": "extensions/typed-console-host-generation/design-plan-approval.json",
+      "sha256": "9467ecf970c19af7cbc572c7ba11284966f34536854ed59ed07c4ae17847f568"
     }
   ],
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-and-plan-digests",
+    "requiredDecision": "satisfied-by-exact-human-approval-record",
     "candidateDesignSha256": "72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca",
     "candidatePlanSha256": "207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273",
     "acceptedScope": "PKTCH-W010 through PKTCH-W110 exactly as represented by the canonical Architecture 2.0 and Planning 3.0 artifacts.",
