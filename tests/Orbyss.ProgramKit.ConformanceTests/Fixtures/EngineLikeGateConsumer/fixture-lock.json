@@ -1,0 +1,53 @@
+{
+  "identity": "pkid:lock:program-kit:engine-like-gate-consumer-fixture",
+  "version": "1.0.0",
+  "inputs": [
+    {
+      "path": "Analyzer/Engine.Semantics.Analyzers.csproj",
+      "digest": "sha256:668ecee80282992d5082c96b093941a6923e131c6f33cc766c6c948d290fdf94"
+    },
+    {
+      "path": "Analyzer/Generation/EngineSemanticsAnalyzersParticipationReceiptGenerator.cs",
+      "digest": "sha256:78a3046e4d41c709e0ab13b64c1a4a438d0d4e2c0d69de471cad8c1df87ffed5"
+    },
+    {
+      "path": "Analyzer/Rules/ENGINE0001Analyzer.cs",
+      "digest": "sha256:cc296d76bd288b3a36ae06398d4bb95cc3feb7a371aca105e5df5feb2ef8506e"
+    },
+    {
+      "path": "Analyzer/gate/ownership-manifest.json",
+      "digest": "sha256:e4fbf1dd5aaabcf8b3734e893163dafa9dbdfe5515183224f556d81c4a43dacd"
+    },
+    {
+      "path": "Analyzer/gate/public-analyzer-selections.json",
+      "digest": "sha256:fb92870d4d502fb5d13520d8867594f4ce1993b1c234e80a17b7066beee2d25c"
+    },
+    {
+      "path": "Analyzer/packages.lock.json",
+      "digest": "sha256:98540f8c8005e000cc83cffb4598281f61900a13426b470f1d1114c62b54a63d"
+    },
+    {
+      "path": "Consumer/EngineKernel.cs",
+      "digest": "sha256:4e879f29f786db00dfac1c024e3c2d0fca6b61af1c62411b2007b65034dd8893"
+    },
+    {
+      "path": "Consumer/EngineLike.Consumer.csproj",
+      "digest": "sha256:e815baced14684c8c81fede6f0925f8b526dacc4af1236e8ba7fa032e26b52fa"
+    },
+    {
+      "path": "Consumer/ProgramKitGenerated/Feature/GeneratedContract.cs",
+      "digest": "sha256:7b8fa91514e247eb596c38aed54f0e18f0b023b7b4850c1e718dd6eec152833d"
+    },
+    {
+      "path": "Consumer/packages.lock.json",
+      "digest": "sha256:98540f8c8005e000cc83cffb4598281f61900a13426b470f1d1114c62b54a63d"
+    },
+    {
+      "path": "fixture-manifest.json",
+      "digest": "sha256:6caa69fb39e415124b3a18026a222adb00cc987b8b34e5bc2122c11047f4686b"
+    }
+  ],
+  "packageVersionsFloating": false,
+  "privateProgramKitAnalyzerSelected": false,
+  "generalCodeGeneratorGranted": false
+}

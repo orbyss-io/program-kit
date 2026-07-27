@@ -10,6 +10,7 @@ using Orbyss.ProgramKit.CommandLine.Operations;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
+using Orbyss.ProgramKit.CommandLine.Operations.CSharpBuildGates;
 using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
@@ -21,6 +22,10 @@ using Orbyss.ProgramKit.CommandLine.Operations.Publishing;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
 using Orbyss.ProgramKit.CommandLine.Operations.Validation;
 using Orbyss.ProgramKit.Development.Schemas;
+using Orbyss.ProgramKit.CSharpBuildGates.Authoring.Composition.Scaffolding;
+using Orbyss.ProgramKit.CSharpBuildGates.Authoring.Operations.Scaffolding;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Validation;
+using Orbyss.ProgramKit.CSharpBuildGates.Testing.Operations.Execution;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Generation;
@@ -42,6 +47,7 @@ using Orbyss.ProgramKit.Tasks.Schedules.Schemas;
 using Orbyss.ProgramKit.Workbench.Operations.Schemas;
 using Orbyss.ProgramKit.Workbench.Composition.Generation;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
+using Orbyss.ProgramKit.Workbench.Operations.CSharpBuildGates;
 
 namespace Orbyss.ProgramKit.CommandLine.Composition;
 
@@ -71,6 +77,8 @@ public static class CommandLineComposition
         dotNetJson.Register(jsonBuilder);
         LocalOperationsJsonProfileRegistration localOperationsJson = new();
         localOperationsJson.Register(jsonBuilder);
+        CSharpGateJsonProfileRegistration csharpGateJson = new();
+        csharpGateJson.Register(jsonBuilder);
         var canonicalizer = new ProgramKitJsonCanonicalizer();
         var serializer = new ProgramKitJsonSerializer(
             jsonBuilder.Freeze(),
@@ -199,6 +207,18 @@ public static class CommandLineComposition
                     fileSystem,
                     new CapabilityBundleManifestReader(),
                     new CapabilityInitializationLockSerializer()));
+        ICSharpBuildGateOperationService csharpGateOperations =
+            new CSharpBuildGateOperationService(
+                new CSharpBuildGateDefinitionValidator(),
+                new CSharpBuildGateSelectionLockValidator(),
+                new ConsumerAnalyzerScaffoldingService(
+                    new FileSystemConsumerAnalyzerScaffoldWorkspace()),
+                new PinnedDotNetCSharpGateCompilerHarness());
+        ICSharpGateCommandService csharpGateCommands =
+            new CSharpGateCommandService(
+                fileSystem,
+                serializer,
+                csharpGateOperations);
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {
@@ -221,6 +241,14 @@ public static class CommandLineComposition
                 "capabilities.render-catalog" => capabilityCatalogOperation,
                 "capabilities.verify-bundle" => capabilityBundleOperation,
                 "capabilities.initialize" => capabilityInitializationOperation,
+                "csharp-gate.validate-definition" or
+                "csharp-gate.render-definition" or
+                "csharp-gate.scaffold" or
+                "csharp-gate.bind" or
+                "csharp-gate.verify" =>
+                    new CSharpGateCommandOperation(
+                        descriptor.Key,
+                        csharpGateCommands),
                 _ => new UnavailableCommandOperation(
                     descriptor.Key,
                     BackingWorkUnit(descriptor.Key)),

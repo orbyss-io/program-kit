@@ -21,6 +21,7 @@ public static class ArchitectureDiagnosticCatalog
         AddRange(definitions, 400, 407);
         AddRange(definitions, 500, 505);
         AddRange(definitions, 600, 640);
+        AddRange(definitions, 700, 711);
         return definitions.DrainToImmutable();
     }
 

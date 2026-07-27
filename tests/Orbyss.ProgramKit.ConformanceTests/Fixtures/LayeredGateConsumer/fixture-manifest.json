@@ -1,0 +1,31 @@
+{
+  "identity": "pkid:fixture:program-kit:layered-gate-consumer",
+  "version": "1.0.0",
+  "consumerOwnerId": "pkid:owner:acme:quality",
+  "components": [
+    {
+      "identity": "pkid:analyzer:program-kit:generated-source-contract",
+      "kind": "program-kit-public-contract",
+      "semanticOwnerId": "pkid:domain:program-kit:generated-source-contract",
+      "diagnosticIds": ["PKCC001"]
+    },
+    {
+      "identity": "pkid:analyzer:acme:quality",
+      "kind": "consumer-owned",
+      "semanticOwnerId": "pkid:owner:acme:quality",
+      "diagnosticIds": ["ACME0001"]
+    }
+  ],
+  "forbiddenComponents": [
+    "Orbyss.ProgramKit.CSharpGate.dll"
+  ],
+  "scenarios": [
+    "combined-positive",
+    "public-contract-negative",
+    "consumer-policy-negative",
+    "combined-negative",
+    "consumer-suppression",
+    "private-analyzer-attachment",
+    "runtime-closure"
+  ]
+}

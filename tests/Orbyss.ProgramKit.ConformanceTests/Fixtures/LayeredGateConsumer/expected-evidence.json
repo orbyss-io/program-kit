@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0.0",
+  "consumerOwnerId": "pkid:owner:acme:quality",
+  "expectedDiagnosticOwners": {
+    "PKCC001": "pkid:domain:program-kit:generated-source-contract",
+    "ACME0001": "pkid:owner:acme:quality"
+  },
+  "expectedReceiptKinds": [
+    "public-generated-source-contract",
+    "consumer-owned-acme-quality"
+  ],
+  "privateProgramKitPolicyExpected": false,
+  "runtimeAnalyzerAssetsExpected": false,
+  "absolutePathsExpected": false
+}

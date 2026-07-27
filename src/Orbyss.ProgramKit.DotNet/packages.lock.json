@@ -30,6 +30,18 @@
       "orbyss.programkit.artifacts": {
         "type": "Project"
       },
+      "orbyss.programkit.csharpbuildgates.authoring": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.CSharpBuildGates.Contracts": "[0.1.0-alpha.1, )"
+        }
+      },
+      "orbyss.programkit.csharpbuildgates.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+        }
+      },
       "orbyss.programkit.development": {
         "type": "Project",
         "dependencies": {
@@ -101,6 +113,8 @@
           "JsonSchema.Net": "[9.3.0, 9.3.0]",
           "Orbyss.ProgramKit.Architecture": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.CSharpBuildGates.Authoring": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.CSharpBuildGates.Contracts": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Development": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.1, )",

@@ -1,6 +1,9 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Definitions;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Locks;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Verification;
 
 namespace Orbyss.ProgramKit.ConformanceTests.Schemas;
 
@@ -42,6 +45,20 @@ public sealed class SchemaModelConformanceTests
         Root<MigrationAssessment>("artifacts/migration-assessment.schema.json"),
         Root<ArchitectureDesignDocument>(
             "architecture/architecture-design.schema.json"),
+        Root<ArchitectureDesignDocumentV2>(
+            "architecture/architecture-design-2.0.0.schema.json"),
+        Root<StaticConformanceDisposition>(
+            "architecture/static-conformance-disposition.schema.json"),
+        Root<CSharpBuildGateDefinitionDocument>(
+            "csharp-build-gates/csharp-build-gate-definition-1.0.0.schema.json"),
+        Root<CSharpBuildGateSelectionLockDocument>(
+            "csharp-build-gates/csharp-build-gate-selection-lock-1.0.0.schema.json"),
+        Root<CSharpGateSuppressionLedger>(
+            "csharp-build-gates/csharp-build-gate-suppression-ledger-1.0.0.schema.json"),
+        Root<CSharpGateParticipationReceiptDocument>(
+            "csharp-build-gates/csharp-build-gate-participation-receipt-1.0.0.schema.json"),
+        Root<CSharpBuildGateVerificationEvidenceDocument>(
+            "csharp-build-gates/csharp-build-gate-verification-evidence-1.0.0.schema.json"),
         Root<ArtifactDecision>("architecture/artifact-decision.schema.json"),
         Root<DotNetTargetProfile>(
             "architecture/dotnet-target-profile.schema.json"),
@@ -53,6 +70,8 @@ public sealed class SchemaModelConformanceTests
         Root<IndependentReview>("quality/independent-review.schema.json"),
         Root<ImplementationPlanDocument>(
             "planning/implementation-plan-2.0.0.schema.json"),
+        Root<ImplementationPlanDocumentV3>(
+            "planning/implementation-plan-3.0.0.schema.json"),
         Nested<PlanWorkUnit>(
             "planning/definitions-2.0.0.schema.json",
             "$defs",
@@ -61,6 +80,10 @@ public sealed class SchemaModelConformanceTests
             "planning/definitions-2.0.0.schema.json",
             "$defs",
             "plannedArtifactReference"),
+        Nested<PlanWorkUnitV3>(
+            "planning/definitions-3.0.0.schema.json",
+            "$defs",
+            "planWorkUnit"),
         Root<DesignPlanApprovalRecord>(
             "planning/design-plan-approval.schema.json"),
         Root<OperationContractDescriptor>(

@@ -20,6 +20,11 @@ program-kit dotnet generate-client --openapi <file> --tool-manifest <file> --too
 program-kit capabilities render-catalog <index> --output <file|->
 program-kit capabilities verify-bundle <bundle>
 program-kit capabilities initialize --provider <claude|codex> --workspace-root <dir> --program-kit-root <dir>
+program-kit csharp-gate validate-definition <definition>
+program-kit csharp-gate render-definition <definition> --output <file>
+program-kit csharp-gate scaffold <request> --output <dir>
+program-kit csharp-gate bind <request> --output <file>
+program-kit csharp-gate verify <request> --output <file>
 ```
 
 Every command also accepts `--diagnostics text|json`. Exit codes are `0` for
@@ -37,7 +42,7 @@ operations are backed by W065. W070 backs capability catalog rendering and
 exact `.nupkg` bundle verification. Catalog rendering accepts the canonical
 `.agent-capabilities/capabilities/INDEX.md` path, preserves `available`/`unavailable`
 values, and includes the exact source SHA-256. Bundle verification requires the
-three distributable canonical definitions and their separately listed inert
+four distributable canonical definitions and their separately listed inert
 Codex and Claude Code adapter templates; it rejects the index, the authoring
 capability, the repository-only local-publish capability, unlisted bytes, and
 tampering.
@@ -72,3 +77,14 @@ all match exactly. The operation rejects external `$ref` values and publishes
 only a complete generated C# tree containing `kiota-lock.json` and
 `program-kit.client-generation.json`. It performs no package download, feed
 lookup, login, or ambient tool/cache discovery.
+
+The C# build-gate commands are transports over five finite Workbench
+operations. Validation and rendering are data-only. Scaffolding is
+transactional. Binding reads only an explicitly ordered local asset inventory
+and performs no restore, feed lookup, discovery, or assembly load.
+Verification selects one pinned build, test, pack, publish, or
+generated-project-verification template; neither an executable nor arbitrary
+arguments can be supplied. Successful evidence is promoted atomically after
+receipt, exception-use, package-isolation, performance, and cancellation
+checks. These commands do not approve a gate, an empty selection, a temporary
+exception, or activation.

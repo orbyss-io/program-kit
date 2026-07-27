@@ -1,0 +1,54 @@
+{
+  "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
+  "version": "0.1.0-alpha.1",
+  "mechanicsVersion": "1.0.0",
+  "sourceInventory": {
+    "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
+    "digest": "sha256:193cfc84f90b88df1ab5f82a5448d16bcdaeee4063984bc5d61b2904b20ea330",
+    "paths": [
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/CSharpBuildGateActivationResult.cs",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/CSharpBuildGateTaskSupport.cs",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/PrepareCSharpBuildGateTask.cs",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/VerifyCSharpBuildGateTask.cs",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Orbyss.ProgramKit.CSharpBuildGates.Build.csproj",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/README.md",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/build/Orbyss.ProgramKit.CSharpBuildGates.Build.props",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/build/Orbyss.ProgramKit.CSharpBuildGates.Build.targets",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Build/packages.lock.json"
+    ]
+  },
+  "requiredPackageAssets": [
+    "build/Orbyss.ProgramKit.CSharpBuildGates.Build.props",
+    "build/Orbyss.ProgramKit.CSharpBuildGates.Build.targets",
+    "tools/net10.0/Orbyss.ProgramKit.CSharpBuildGates.Build.dll",
+    "README.md"
+  ],
+  "forbiddenPackagePrefixes": [
+    "lib/",
+    "ref/",
+    "runtime/",
+    "buildTransitive/",
+    "analyzers/"
+  ],
+  "selectedAnalyzerKinds": [
+    "program-kit-public-contract",
+    "consumer-owned"
+  ],
+  "forbiddenAnalyzerFileName": "Orbyss.ProgramKit.CSharpGate.dll",
+  "commands": [
+    "build",
+    "test",
+    "pack",
+    "publish",
+    "generated-project-verify"
+  ],
+  "temporaryExceptionKinds": [
+    "exact-toolchain-incompatibility",
+    "exact-target-framework-incompatibility",
+    "unavailable-generated-input",
+    "gate-establishment-boundary"
+  ],
+  "requiresExactInputInventory": true,
+  "requiresPerAnalyzerSameAssemblyReceipt": true,
+  "explicitVerificationSubstitutesForNormalInvocation": false
+}

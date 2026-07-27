@@ -1,0 +1,95 @@
+{
+  "nodes": [
+    {
+      "revision": {
+        "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+      },
+      "kind": "implementation",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:package:program-kit:csharp-build-gates-build",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+      },
+      "kind": "package",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "pkid:edge:program-kit:csharp-build-gates-build-uses-selection-lock",
+      "source": {
+        "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+      },
+      "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
+      "kind": "uses-contract",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
+        "version": "1.0.0",
+        "digest": "sha256:efde4229bf3b43901aa97d72935cc6d09ea5ecaa66645fb1b23a1f6c29a2809f"
+      },
+      "exposure": "private",
+      "compatibilityDimensions": [
+        "binary-abi",
+        "semantic-behavior",
+        "generated-artifacts"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:csharp-build-gates-build-package-exposes-implementation",
+      "source": {
+        "identity": "pkid:package:program-kit:csharp-build-gates-build",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+      },
+      "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-build",
+      "kind": "publicly-exposes",
+      "acceptedRange": "[0.1.0-alpha.1]",
+      "resolution": {
+        "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "binary-abi",
+        "generated-artifacts"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "identity": "pkid:fixture:program-kit:engine-like-gate-consumer",
+  "version": "1.0.0",
+  "consumerOwnerId": "pkid:owner:engine-fixture:semantics",
+  "fictionalConsumer": true,
+  "siblingRepositorySourceUsed": false,
+  "consumerAnalyzer": {
+    "project": "Analyzer/Engine.Semantics.Analyzers.csproj",
+    "packable": false,
+    "recipeIdentity": "pkid:recipe:program-kit:forbid-type-name-suffix",
+    "recipeVersion": "1.0.0",
+    "diagnosticId": "ENGINE0001"
+  },
+  "publicContractAnalyzer": {
+    "identity": "pkid:analyzer:program-kit:generated-source-contract",
+    "version": "0.1.0-alpha.1",
+    "diagnosticId": "PKCC001"
+  },
+  "forbiddenComponents": [
+    "Orbyss.ProgramKit.CSharpGate.dll"
+  ],
+  "authority": {
+    "generalCodeGenerator": false,
+    "narrowParticipationReceiptGenerator": true
+  },
+  "operations": [
+    "build",
+    "test",
+    "pack",
+    "publish",
+    "final-verify"
+  ],
+  "closure": {
+    "runtimeAnalyzerAssets": false,
+    "packageAnalyzerAssets": false,
+    "privateProgramKitPolicy": false
+  }
+}

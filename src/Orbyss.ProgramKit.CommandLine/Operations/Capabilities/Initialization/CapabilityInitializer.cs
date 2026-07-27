@@ -26,6 +26,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
     private const int MaximumLockBytes = 128 * 1024;
     private static readonly string[] DistributedCapabilityIds =
     [
+        "design-csharp-build-gate",
         "design-software",
         "develop-software",
         "implement-software-plan",
@@ -262,7 +263,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 out var lockedSkillRoot) ||
             !string.Equals(
                 value.BundleVersion,
-                "2.0.0",
+                "2.1.0",
                 StringComparison.Ordinal) ||
             !IsDigest(value.ManifestSha256) ||
             !IsSafeStoredRelativePath(

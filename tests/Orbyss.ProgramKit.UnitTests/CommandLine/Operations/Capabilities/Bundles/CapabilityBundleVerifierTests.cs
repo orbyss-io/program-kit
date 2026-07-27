@@ -13,6 +13,7 @@ public sealed class CapabilityBundleVerifierTests
 {
     private static readonly string[] CapabilityIds =
     [
+        "design-csharp-build-gate",
         "develop-software",
         "design-software",
         "implement-software-plan",
@@ -349,7 +350,7 @@ public sealed class CapabilityBundleVerifierTests
         IReadOnlyList<BundleTestEntry> capabilities,
         IReadOnlyList<BundleTestEntry> adapters) =>
         string.Concat(
-            "{\"bundleVersion\":\"2.0.0\",\"capabilities\":[",
+            "{\"bundleVersion\":\"2.1.0\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(

@@ -3,6 +3,12 @@ digraph ProgramKitDependencies {
   node [shape="box"];
 
   "Architecture" -> "Artifacts";
+  "CSharpBuildGates.Authoring" -> "CSharpBuildGates.Contracts";
+  "CSharpBuildGates.Build" -> "CSharpBuildGates.Contracts";
+  "CSharpBuildGates.Contracts" -> "Artifacts";
+  "CSharpBuildGates.Testing" -> "CSharpBuildGates.Contracts";
+  "CSharpBuildGates.Testing" -> "Workbench";
+  "CommandLine" -> "CSharpBuildGates.Testing";
   "CommandLine" -> "DotNet";
   "CommandLine" -> "Operations";
   "CommandLine" -> "SecretResolution";
@@ -37,6 +43,8 @@ digraph ProgramKitDependencies {
   "Tasks.Schedules.Cronos" -> "Tasks.Schedules";
   "Workbench" -> "Architecture";
   "Workbench" -> "Artifacts";
+  "Workbench" -> "CSharpBuildGates.Authoring";
+  "Workbench" -> "CSharpBuildGates.Contracts";
   "Workbench" -> "Development";
   "Workbench" -> "Planning";
   "Workbench" -> "Quality";

@@ -8,9 +8,15 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="JsonSchema.Net" />
     <Compile Remove="Fixtures\**\*.cs" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Authoring\Orbyss.ProgramKit.CSharpBuildGates.Authoring.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Build\Orbyss.ProgramKit.CSharpBuildGates.Build.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Contracts\Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
@@ -89,6 +95,9 @@
     <None Include="..\..\.agent-capabilities\capabilities\develop-software\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/develop-software/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\capabilities\design-csharp-build-gate\CAPABILITY.md"
+          Link="ConformanceInputs/Capabilities/design-csharp-build-gate/CAPABILITY.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\capabilities\design-software\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/design-software/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />
@@ -104,6 +113,9 @@
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/codex/develop-software/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\codex\design-csharp-build-gate\SKILL.md"
+          Link="ConformanceInputs/Capabilities/Wrappers/codex/design-csharp-build-gate/SKILL.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\design-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/codex/design-software/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
@@ -118,6 +130,9 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/claude/develop-software/SKILL.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-csharp-build-gate\SKILL.md"
+          Link="ConformanceInputs/Capabilities/Wrappers/claude/design-csharp-build-gate/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-software\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/claude/design-software/SKILL.md"

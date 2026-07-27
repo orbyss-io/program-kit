@@ -1,0 +1,20 @@
+{
+  "identity": "pkid:lock:program-kit:layered-gate-consumer-fixture",
+  "version": "1.0.0",
+  "inputs": [
+    {
+      "path": "expected-evidence.json",
+      "digest": "sha256:127077bba50e8ec999f0ea71364186637a25750d8b163b888d2518db5493a157"
+    },
+    {
+      "path": "fixture-manifest.json",
+      "digest": "sha256:3830c5bb316137b922f6d5e375a71b16e2da6f8d2dccc5f18795a90e09e4a2a6"
+    }
+  ],
+  "generatedAnalyzerPackable": false,
+  "selectionKinds": [
+    "program-kit-public-contract",
+    "consumer-owned"
+  ],
+  "privateProgramKitAnalyzerSelected": false
+}

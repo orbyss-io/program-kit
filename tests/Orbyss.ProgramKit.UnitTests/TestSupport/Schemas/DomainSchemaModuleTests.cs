@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas;
 
 namespace Orbyss.ProgramKit.UnitTests.TestSupport.Schemas;
 
@@ -17,7 +18,11 @@ public sealed class DomainSchemaModuleTests
             (
                 new PlanningSchemaModule(),
                 "pkid:package:program-kit:planning",
-                5),
+                7),
+            (
+                new CSharpBuildGateSchemaModule(),
+                "pkid:package:program-kit:csharp-build-gates-contracts",
+                6),
             (
                 new DevelopmentSchemaModule(),
                 "pkid:package:program-kit:development",

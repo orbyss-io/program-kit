@@ -12,8 +12,6 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Architecture.Schemas.";
     private static readonly SemanticVersion SchemaVersion = new("1.0.0");
-    private static readonly SemanticVersionRange ExactSchemaVersion =
-        new("[1.0.0]");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:architecture");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -37,46 +35,44 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:architecture"),
             "pk-w010-approved-review-set-0-3-0");
-    private static readonly ArtifactCompatibility SchemaCompatibility =
-        new(
-            new ProgramKitIdentifier(
-                "pkid:contract:program-kit:schema-compatibility-policy"),
-            [
-                new CompatibilityClaim(
-                    CompatibilityDimension.WireRead,
-                    CompatibilityClassification.Unknown,
-                    []),
-                new CompatibilityClaim(
-                    CompatibilityDimension.WireWrite,
-                    CompatibilityClassification.Unknown,
-                    []),
-            ],
-            ExactSchemaVersion,
-            ExactSchemaVersion,
-            []);
-
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
         Create(
             "architecture-design",
+            "1.0.0",
             "architecture-design.schema.json",
             "https://schemas.orbyss.io/program-kit/architecture/1.0.0/architecture-design.schema.json",
             "19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2"),
         Create(
             "artifact-decision",
+            "1.0.0",
             "artifact-decision.schema.json",
             "https://schemas.orbyss.io/program-kit/architecture/1.0.0/artifact-decision.schema.json",
             "e07d865c896aa23d63c0294b0832c4f1820c4863737d181cb6723f2e4d813025"),
         Create(
             "dotnet-target-profile",
+            "1.0.0",
             "dotnet-target-profile.schema.json",
             "https://schemas.orbyss.io/program-kit/architecture/1.0.0/dotnet-target-profile.schema.json",
             "ded80622b97322feaf7a67b5cb738870249c55588fc9b7ae22a0997261f87f18"),
         Create(
             "structural-pattern-catalog",
+            "1.0.0",
             "structural-pattern-catalog.schema.json",
             "https://schemas.orbyss.io/program-kit/architecture/1.0.0/structural-pattern-catalog.schema.json",
             "ebfeebc5d37bb37f9ccecbb8f68c444e1dbbb217cf5ab111f2b8bf09f8632c7d"),
+        Create(
+            "architecture-design",
+            "2.0.0",
+            "architecture-design-2.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/architecture/2.0.0/architecture-design.schema.json",
+            "2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"),
+        Create(
+            "static-conformance-disposition",
+            "1.0.0",
+            "static-conformance-disposition.schema.json",
+            "https://schemas.orbyss.io/program-kit/architecture/1.0.0/static-conformance-disposition.schema.json",
+            "834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"),
     ];
 
     /// <summary>Initializes an explicitly composed schema module.</summary>
@@ -118,13 +114,35 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
 
     private static ProgramKitSchemaResource Create(
         string name,
+        string version,
         string resourceName,
         string canonicalUri,
-        string digest) =>
+        string digest)
+    {
+        var schemaVersion = new SemanticVersion(version);
+        var exactSchemaVersion = new SemanticVersionRange(
+            string.Concat("[", version, "]"));
+        var compatibility = new ArtifactCompatibility(
+            new ProgramKitIdentifier(
+                "pkid:contract:program-kit:schema-compatibility-policy"),
+            [
+                new CompatibilityClaim(
+                    CompatibilityDimension.WireRead,
+                    CompatibilityClassification.Unknown,
+                    []),
+                new CompatibilityClaim(
+                    CompatibilityDimension.WireWrite,
+                    CompatibilityClassification.Unknown,
+                    []),
+            ],
+            exactSchemaVersion,
+            exactSchemaVersion,
+            []);
+        return
         new(
             new ArtifactReference(
                 new ProgramKitIdentifier(string.Concat("pkid:schema:program-kit:", name)),
-                SchemaVersion,
+                schemaVersion,
                 new Sha256Digest(string.Concat("sha256:", digest))),
             new Uri(canonicalUri, UriKind.Absolute),
             resourceName,
@@ -133,7 +151,8 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
             ArtifactStatus.Implemented,
             SchemaConsumers,
             SchemaProvenance,
-            SchemaCompatibility);
+            compatibility);
+    }
 
     private static string ExactKey(ArtifactReference reference) =>
         string.Concat(

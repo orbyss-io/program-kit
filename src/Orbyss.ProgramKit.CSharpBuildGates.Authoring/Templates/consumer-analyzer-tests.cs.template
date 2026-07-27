@@ -1,0 +1,27 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace {{ROOT_NAMESPACE}}.Tests;
+
+[TestClass]
+public sealed class {{ANALYZER_CLASS}}Tests
+{
+    [TestMethod]
+    public async Task Reports{{DIAGNOSTIC_ID}}ForTheApprovedNegativeFixture()
+    {
+        const string source = "internal sealed class Sample{{FORBIDDEN_SUFFIX}} { }";
+        var compilation = CSharpCompilation.Create(
+            "NegativeFixture",
+            [CSharpSyntaxTree.ParseText(source)],
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+        DiagnosticAnalyzer analyzer = new {{ROOT_NAMESPACE}}.{{ANALYZER_CLASS}}();
+
+        var diagnostics = await compilation
+            .WithAnalyzers([analyzer])
+            .GetAnalyzerDiagnosticsAsync();
+
+        Assert.ContainsSingle(diagnostics);
+        Assert.AreEqual("{{DIAGNOSTIC_ID}}", diagnostics[0].Id);
+    }
+}

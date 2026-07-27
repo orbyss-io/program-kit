@@ -1,0 +1,228 @@
+{
+  "identity": "pkid:gate:consumer:software",
+  "version": "1.0.0",
+  "revisionDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "ownerId": "pkid:domain:consumer:software",
+  "consumerPolicyId": "pkid:policy:consumer:software",
+  "disposition": {
+    "identity": "pkid:static-conformance-disposition:consumer:software",
+    "version": "1.0.0",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "compatibilityPolicy": {
+    "identity": "pkid:compatibility-policy:consumer:software",
+    "version": "1.0.0",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "semanticOwners": [
+    {
+      "identity": "pkid:domain:consumer:software",
+      "kind": "consumer-owned",
+      "governingContract": {
+        "identity": "pkid:contract:consumer:boundary",
+        "version": "1.0.0",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "diagnosticPrefix": "DSE"
+    }
+  ],
+  "analyzerComponents": [
+    {
+      "identity": "pkid:analyzer:consumer:boundary",
+      "kind": "consumer-owned",
+      "semanticOwnerId": "pkid:domain:consumer:software",
+      "artifact": {
+        "kind": "local-non-packable-project",
+        "repositoryRelativeProjectPath": "analyzers/Consumer.Analyzers/Consumer.Analyzers.csproj",
+        "package": null,
+        "assemblyFileName": "Consumer.Analyzers.dll",
+        "assemblyDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "isPackable": false,
+        "hasRuntimeAssets": false,
+        "hasBuildTransitiveAssets": false
+      },
+      "ruleIds": [
+        "pkid:rule:consumer:boundary"
+      ],
+      "receiptGeneratorRevisions": [
+        {
+          "identity": "pkid:receipt-generator:consumer:boundary",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "sdkRange": "[1.0.0]",
+      "compilerRoslynRange": "[1.0.0]",
+      "languageRange": "[1.0.0]",
+      "targetFrameworkRange": "[1.0.0]",
+      "programKitMechanicsRange": "[1.0.0]"
+    }
+  ],
+  "ruleCatalog": {
+    "identity": "pkid:catalog:consumer:rules",
+    "version": "1.0.0",
+    "rules": [
+      {
+        "identity": "pkid:rule:consumer:boundary",
+        "revision": "1.0.0",
+        "kind": "consumer-owned",
+        "semanticOwnerId": "pkid:domain:consumer:software",
+        "sourceContract": {
+          "identity": "pkid:contract:consumer:boundary",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "diagnosticId": "DSE0001",
+        "title": "Consumer boundary",
+        "category": "Architecture",
+        "defaultSeverity": "error",
+        "rationale": "The approved boundary must remain explicit.",
+        "remediation": "Move the reference behind the approved contract.",
+        "compilationObservableClaim": "A forbidden namespace reference is present.",
+        "layer": "compiler",
+        "claimsOutsideRule": [],
+        "projectProfileIds": [
+          "pkid:profile:consumer:project"
+        ],
+        "sourceProfileIds": [
+          "pkid:profile:consumer:physical"
+        ],
+        "suppressionDisposition": "source-local-ledger",
+        "positiveFixture": {
+          "identity": "pkid:fixture:consumer:positive",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "negativeFixture": {
+          "identity": "pkid:fixture:consumer:negative",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "compatibility": {
+          "identity": "pkid:compatibility:consumer:rule",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "migration": {
+          "identity": "pkid:migration:consumer:rule",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "deprecation": null,
+        "retirement": null,
+        "supersession": null,
+        "locationContract": "Report the forbidden syntax location.",
+        "messageContract": "Use a deterministic invariant message.",
+        "focusedBudgetMilliseconds": 100,
+        "fullBudgetMilliseconds": 1000
+      }
+    ],
+    "diagnostics": [
+      {
+        "diagnosticId": "DSE0001",
+        "semanticOwnerId": "pkid:domain:consumer:software",
+        "ruleId": "pkid:rule:consumer:boundary",
+        "ruleRevision": "1.0.0",
+        "title": "Consumer boundary",
+        "category": "Architecture",
+        "defaultSeverity": "error",
+        "messageFormat": "Consumer boundary violation."
+      }
+    ]
+  },
+  "profiles": {
+    "projects": [
+      {
+        "identity": "pkid:profile:consumer:project",
+        "projectId": "pkid:project:consumer:software",
+        "repositoryRelativeProjectPath": "src/Consumer/Consumer.csproj",
+        "targetFrameworks": [
+          "net10.0"
+        ],
+        "allowedProjectDependencies": [],
+        "allowedPackageDependencies": []
+      }
+    ],
+    "inputs": [
+      {
+        "identity": "pkid:profile:consumer:physical",
+        "kind": "physical-source",
+        "inventory": [
+          {
+            "repositoryRelativePath": "src/Consumer/Service.cs",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "applicableRuleIds": [
+          "pkid:rule:consumer:boundary"
+        ]
+      }
+    ],
+    "generatedSources": []
+  },
+  "activationMatrix": {
+    "identity": "pkid:activation-matrix:consumer:software",
+    "version": "1.0.0",
+    "activations": [
+      {
+        "projectProfileId": "pkid:profile:consumer:project",
+        "sourceProfileId": "pkid:profile:consumer:physical",
+        "command": "build",
+        "boundary": "work-unit",
+        "verificationProfile": "work-unit",
+        "analyzerComponentIds": [
+          "pkid:analyzer:consumer:boundary"
+        ]
+      }
+    ]
+  },
+  "temporaryExceptions": [],
+  "suppressionLedger": {
+    "identity": "pkid:ledger:consumer:suppressions",
+    "version": "1.0.0",
+    "entries": []
+  },
+  "assurance": {
+    "compatibility": {
+      "sdkRange": "[1.0.0]",
+      "compilerRoslynRange": "[1.0.0]",
+      "languageRange": "[1.0.0]",
+      "targetFrameworkRange": "[1.0.0]",
+      "programKitMechanicsRange": "[1.0.0]"
+    },
+    "migrations": [],
+    "threats": [
+      {
+        "identity": "pkid:threat:consumer:analyzer-removal",
+        "threat": "The selected analyzer is removed.",
+        "boundary": "Compiler attachment",
+        "mitigations": [
+          {
+            "identity": "pkid:fixture:consumer:tamper",
+            "version": "1.0.0",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "residualRisk": "Compiler defects remain outside this proof."
+      }
+    ],
+    "fixtures": [
+      {
+        "identity": "pkid:fixture:consumer:positive",
+        "kind": "positive",
+        "input": {
+          "identity": "pkid:fixture-input:consumer:positive",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "expectedDiagnosticsDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "expectedEvidenceDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "performance": {
+      "focusedMilliseconds": 100,
+      "fullClosureMilliseconds": 1000,
+      "maximumAllocatedMegabytes": 256
+    }
+  }
+}

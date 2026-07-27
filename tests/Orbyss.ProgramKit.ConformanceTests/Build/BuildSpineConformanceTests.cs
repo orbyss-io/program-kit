@@ -11,15 +11,32 @@ namespace Orbyss.ProgramKit.ConformanceTests.Build;
 [TestClass]
 public sealed class BuildSpineConformanceTests
 {
+    private static readonly string[] ApprovedRoslynRawReferences =
+    [
+        "Microsoft.CodeAnalysis",
+        "Microsoft.CodeAnalysis.CSharp",
+    ];
+
+    private static readonly string[] ApprovedMSBuildRawReferences =
+    [
+        "Microsoft.Build.Framework",
+        "Microsoft.Build.Utilities.Core",
+    ];
+
     private static readonly ImmutableArray<string> ProductProjectNames =
     [
         "Orbyss.ProgramKit.Architecture",
         "Orbyss.ProgramKit.Artifacts",
         "Orbyss.ProgramKit.CapabilityBundle",
         "Orbyss.ProgramKit.CommandLine",
+        "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
+        "Orbyss.ProgramKit.CSharpBuildGates.Build",
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+        "Orbyss.ProgramKit.CSharpBuildGates.Testing",
         "Orbyss.ProgramKit.Development",
         "Orbyss.ProgramKit.DevContainers",
         "Orbyss.ProgramKit.DotNet",
+        "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
         "Orbyss.ProgramKit.Modularity",
         "Orbyss.ProgramKit.Modularity.InProcess",
         "Orbyss.ProgramKit.Operations",
@@ -229,7 +246,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(35, projectLines);
+        Assert.HasCount(40, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -276,7 +293,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(21, projectFiles);
+        Assert.HasCount(26, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -314,7 +331,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(24, projectFiles);
+        Assert.HasCount(29, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -370,6 +387,17 @@ public sealed class BuildSpineConformanceTests
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Authoring"] =
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Build"] =
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"] =
+                ["Orbyss.ProgramKit.Artifacts"],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Testing"] =
+                [
+                    "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+                    "Orbyss.ProgramKit.Workbench",
+                ],
                 ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.SecretResolution"] =
                 ["Orbyss.ProgramKit.Artifacts"],
@@ -381,8 +409,10 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
                 ["Orbyss.ProgramKit.DevContainers"] =
                 ["Orbyss.ProgramKit.Artifacts"],
+                ["Orbyss.ProgramKit.GeneratedSourceContract.Analyzers"] = [],
                 ["Orbyss.ProgramKit.CommandLine"] =
                 [
+                    "Orbyss.ProgramKit.CSharpBuildGates.Testing",
                     "Orbyss.ProgramKit.DotNet",
                     "Orbyss.ProgramKit.Operations",
                     "Orbyss.ProgramKit.SecretResolution",
@@ -425,6 +455,8 @@ public sealed class BuildSpineConformanceTests
                 [
                     "Orbyss.ProgramKit.Artifacts",
                     "Orbyss.ProgramKit.Architecture",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
                     "Orbyss.ProgramKit.Development",
                     "Orbyss.ProgramKit.Planning",
                     "Orbyss.ProgramKit.Quality",
@@ -436,6 +468,10 @@ public sealed class BuildSpineConformanceTests
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Authoring"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Build"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Testing"] = [],
                 ["Orbyss.ProgramKit.Operations"] = [],
                 ["Orbyss.ProgramKit.SecretResolution"] = [],
                 ["Orbyss.ProgramKit.Architecture"] = [],
@@ -443,6 +479,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Planning"] = [],
                 ["Orbyss.ProgramKit.Development"] = [],
                 ["Orbyss.ProgramKit.DevContainers"] = [],
+                ["Orbyss.ProgramKit.GeneratedSourceContract.Analyzers"] = [],
                 ["Orbyss.ProgramKit.CommandLine"] = [],
                 ["Orbyss.ProgramKit.DotNet"] = [],
                 ["Orbyss.ProgramKit.Modularity"] = [],
@@ -475,7 +512,32 @@ public sealed class BuildSpineConformanceTests
             Assert.IsNotNull(sdkAttribute, projectName);
             Assert.AreEqual("Microsoft.NET.Sdk", sdkAttribute.Value, projectName);
             Assert.IsEmpty(document.Descendants("FrameworkReference"), projectName);
-            Assert.IsEmpty(document.Descendants("Reference"), projectName);
+            if (projectName is
+                "Orbyss.ProgramKit.CSharpBuildGates.Authoring" or
+                "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers")
+            {
+                Assert.AreSequenceEqual(
+                    ApprovedRoslynRawReferences,
+                    document
+                        .Descendants("Reference")
+                        .Select(reference =>
+                            RequiredAttribute(reference, "Include"))
+                        .Order(StringComparer.Ordinal));
+            }
+            else if (projectName is "Orbyss.ProgramKit.CSharpBuildGates.Build")
+            {
+                Assert.AreSequenceEqual(
+                    ApprovedMSBuildRawReferences,
+                    document
+                        .Descendants("Reference")
+                        .Select(reference =>
+                            RequiredAttribute(reference, "Include"))
+                        .Order(StringComparer.Ordinal));
+            }
+            else
+            {
+                Assert.IsEmpty(document.Descendants("Reference"), projectName);
+            }
             Assert.IsEmpty(document.Descendants("COMReference"), projectName);
             Assert.IsEmpty(document.Descendants("COMFileReference"), projectName);
             Assert.IsEmpty(document.Descendants("AddModules"), projectName);
@@ -514,6 +576,14 @@ public sealed class BuildSpineConformanceTests
         {
             ["Orbyss.ProgramKit.Artifacts"] = [],
             ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+            ["Orbyss.ProgramKit.CSharpBuildGates.Authoring"] = [],
+            ["Orbyss.ProgramKit.CSharpBuildGates.Build"] = [],
+            ["Orbyss.ProgramKit.CSharpBuildGates.Testing"] =
+            [
+                "Orbyss.ProgramKit.Artifacts",
+                "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+                "Orbyss.ProgramKit.Workbench",
+            ],
             ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
             ["Orbyss.ProgramKit.SecretResolution"] =
                 ["Orbyss.ProgramKit.Artifacts"],
@@ -527,6 +597,9 @@ public sealed class BuildSpineConformanceTests
                 [
                     "Orbyss.ProgramKit.Architecture",
                     "Orbyss.ProgramKit.Artifacts",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Testing",
                     "Orbyss.ProgramKit.Development",
                     "Orbyss.ProgramKit.DotNet",
                     "Orbyss.ProgramKit.Operations",
@@ -589,18 +662,31 @@ public sealed class BuildSpineConformanceTests
                 [
                     "Orbyss.ProgramKit.Architecture",
                     "Orbyss.ProgramKit.Artifacts",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
+                    "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
                     "Orbyss.ProgramKit.Serialization.JSON",
                 ],
         };
 
         foreach (var pair in allowed)
         {
-            var references = pair.Key ==
-                "Orbyss.ProgramKit.Tasks.Schedules.Cronos"
+            var references = pair.Key is
+                "Orbyss.ProgramKit.Tasks.Schedules.Cronos" or
+                "Orbyss.ProgramKit.CSharpBuildGates.Build"
                     ? ReadProgramKitAssemblyReferences(
-                        Path.Combine(
-                            AppContext.BaseDirectory,
-                            string.Concat(pair.Key, ".dll")))
+                        pair.Key ==
+                            "Orbyss.ProgramKit.CSharpBuildGates.Build"
+                            ? Path.Combine(
+                                ConformanceInputs.ProgramKitRoot,
+                                "src",
+                                pair.Key,
+                                "bin",
+                                "Debug",
+                                "net10.0",
+                                string.Concat(pair.Key, ".dll"))
+                            : Path.Combine(
+                                AppContext.BaseDirectory,
+                                string.Concat(pair.Key, ".dll")))
                     : Assembly.Load(pair.Key)
                         .GetReferencedAssemblies()
                         .Select(reference => reference.Name)

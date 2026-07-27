@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.CSharpBuildGates.Build</PackageId>
+    <RootNamespace>Orbyss.ProgramKit.CSharpBuildGates.Build</RootNamespace>
+    <Description>Direct opt-in C# build-gate attachment, inventory reconciliation, activation, exception, and receipt mechanics.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Contracts\Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework"
+               HintPath="$(MSBuildToolsPath)\Microsoft.Build.Framework.dll"
+               Private="false" />
+    <Reference Include="Microsoft.Build.Utilities.Core"
+               HintPath="$(MSBuildToolsPath)\Microsoft.Build.Utilities.Core.dll"
+               Private="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(TargetPath)"
+          Pack="true"
+          PackagePath="tools/net10.0/"
+          Visible="false" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="build\Orbyss.ProgramKit.CSharpBuildGates.Build.props"
+          Pack="true"
+          PackagePath="build/" />
+    <None Include="build\Orbyss.ProgramKit.CSharpBuildGates.Build.targets"
+          Pack="true"
+          PackagePath="build/" />
+  </ItemGroup>
+</Project>

@@ -30,6 +30,9 @@ material architectural deviation.
 Inputs:
 
 - The exact versioned design and implementation plan.
+- For Implementation Plan `3.0.0`, the exact static-conformance disposition,
+  gate design/definition/selection lock, activation matrix/profile references,
+  and current compatible activation evidence.
 - A valid, non-superseded human approval binding both exact digests.
 - Current repository-owned source truth and applicable `AGENTS.md` guidance.
 - Explicit secrets, network, provider, or destructive-action authority if a
@@ -67,6 +70,11 @@ Outputs:
 
 - Do not weaken or bypass approval, compiler, analyzer, test, package, or
   conformance gates.
+- Do not run Program Kit's private `Orbyss.ProgramKit.CSharpGate` on
+  consumer-owned source. Execute only exact selected public Program Kit
+  contract analyzers and exact selected consumer-owned analyzers there.
+- Do not silently design, scaffold, select, implement, activate, suppress, or
+  accept an empty gate, and do not renew a temporary exception.
 - Do not silently redesign architecture or broaden the approved scope.
 - Do not overwrite unrelated user changes, reset history, or delete broad paths.
 - Do not inspect sibling repositories or unrelated history.
@@ -80,7 +88,11 @@ Stop before mutation when approval is absent, mismatched, rejected, conditional,
 or superseded. Stop when current source truth makes a plan step unsafe or
 materially different, a required file lies outside the approved work unit, a
 gate can pass only by weakening policy, or new human authority is required.
-Report the exact deviation and smallest safe decision needed.
+For Implementation Plan `3.0.0`, also stop when the disposition or its exact
+artifacts are missing, accepted-empty lacks its human decision, blocked is
+selected, reuse lacks a compatible active lock, or product/closure work is
+requested before create/extend activation evidence. Report the exact deviation
+and smallest safe decision needed.
 
 ## Source of truth and freshness
 
@@ -96,19 +108,33 @@ implementation state.
    boundary.
 2. Load applicable guidance and validate the exact design, plan, and approval
    relationship.
-3. Inspect working-tree and recent commit state; preserve unrelated human work.
-4. Restate the current work unit's allowed edits, outputs, verification, and
+3. Validate the Implementation Plan `3.0.0` static-conformance disposition and
+   gate admission state. `reuse-existing` requires a compatible active
+   selection lock at preflight. `create-new` and `extend-existing` admit only
+   dependency-ready `gate-establishment` units until exact activation evidence
+   exists. Human-accepted `not-justified` admits only the exact approved empty
+   plan. `blocked-unavailable` admits no work.
+4. Inspect working-tree and recent commit state; preserve unrelated human work.
+5. Restate the current work unit's allowed edits, outputs, verification, and
    stop conditions.
-5. Implement the smallest complete slice without speculative architecture.
-6. Run focused verification while developing, then every required work-unit
-   gate. Correct failures without weakening policy.
-7. Compare the result with the approved design and plan. If a material deviation
+6. Implement the smallest complete slice without speculative architecture.
+   When establishment is required, implement the approved consumer-owned
+   analyzer, gate definition, selection, activation, bootstrap evidence, and
+   compatible lock in dependency order before starting product work.
+7. Run focused verification while developing, then every required work-unit
+   gate. At preflight, each applicable gate-establishment/product unit,
+   generated output, and final closure, execute the finite applicable profiles.
+   On consumer-owned source, run exact public `PKCC...` analyzers for public
+   Program Kit contract semantics and exact consumer-owned analyzers for
+   consumer-specific policy. Require per-analyzer participation and
+   exception-use receipts. Correct failures without weakening policy.
+8. Compare the result with the approved design and plan. If a material deviation
    exists, stop for human review.
-8. Review the diff for scope, secrets, generated noise, version/digest updates,
+9. Review the diff for scope, secrets, generated noise, version/digest updates,
    and deliberately omitted work.
-9. Commit and push the completed work unit with an understandable message when
+10. Commit and push the completed work unit with an understandable message when
    repository guidance requires it.
-10. Bind evidence and, when requested, emit a receipt for the actual registered
+11. Bind evidence and, when requested, emit a receipt for the actual registered
     capability event. Report completion and the next unstarted work unit.
 
 Judgment decides whether observed differences are material deviations.
@@ -121,7 +147,10 @@ Report exact commands, passing counts, warnings, failures, assumptions, and
 checks that could not run. Verify the final diff is within the work-unit
 allow-list, the working tree contains no unintended changes, and pushed commit
 identity matches the reviewed result. A partial implementation is never
-reported as a completed work unit.
+reported as a completed work unit. For gated plans, verify exact project/input
+inventories, finite applicability, distinct analyzer ownership, required
+receipts, active lock compatibility, and zero private-analyzer or runtime
+leakage.
 
 ## Authority and safety boundaries
 

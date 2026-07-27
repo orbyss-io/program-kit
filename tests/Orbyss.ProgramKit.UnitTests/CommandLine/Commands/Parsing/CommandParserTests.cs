@@ -199,4 +199,47 @@ public sealed class CommandParserTests
             "claude",
             initializeClaude.RequiredOption("provider"));
     }
+
+    [TestMethod]
+    public void ParsesOnlyTheFiveFiniteCSharpGateCommands()
+    {
+        CommandParser sut = new(CommandDescriptorCatalog.All);
+
+        var commands = new[]
+        {
+            ("validate-definition", "definition.json", false),
+            ("render-definition", "definition.json", true),
+            ("scaffold", "scaffold.json", true),
+            ("bind", "binding.json", true),
+            ("verify", "verification.json", true),
+        };
+        foreach (var command in commands)
+        {
+            var arguments = new List<string>
+            {
+                "csharp-gate",
+                command.Item1,
+                command.Item2,
+            };
+            if (command.Item3)
+            {
+                arguments.Add("--output");
+                arguments.Add("output");
+            }
+
+            var invocation = sut.Parse([.. arguments]);
+            Assert.AreEqual(
+                string.Concat("csharp-gate.", command.Item1),
+                invocation.Descriptor.Key);
+        }
+
+        Assert.ThrowsExactly<CommandInvocationException>(
+            () => sut.Parse(
+            [
+                "csharp-gate",
+                "execute",
+                "--executable",
+                "anything",
+            ]));
+    }
 }

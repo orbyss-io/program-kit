@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Orbyss.ProgramKit.CapabilityBundle</PackageId>
-    <Description>Exact-byte content bundle for the three distributable Orbyss Program Kit development capabilities.</Description>
+    <Description>Exact-byte content bundle for the four distributable Orbyss Program Kit development capabilities.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
@@ -17,6 +17,10 @@
           Link="Payload\.agent-capabilities\capabilities\develop-software\CAPABILITY.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/capabilities/develop-software/" />
+    <None Include="..\..\.agent-capabilities\capabilities\design-csharp-build-gate\CAPABILITY.md"
+          Link="Payload\.agent-capabilities\capabilities\design-csharp-build-gate\CAPABILITY.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/" />
     <None Include="..\..\.agent-capabilities\capabilities\design-software\CAPABILITY.md"
           Link="Payload\.agent-capabilities\capabilities\design-software\CAPABILITY.md"
           Pack="true"
@@ -29,6 +33,10 @@
           Link="Payload\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/develop-software/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\codex\design-csharp-build-gate\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\codex\design-csharp-build-gate\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/design-csharp-build-gate/" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\design-software\SKILL.md"
           Link="Payload\.agent-capabilities\provider-adapters\codex\design-software\SKILL.md"
           Pack="true"
@@ -41,6 +49,10 @@
           Link="Payload\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/develop-software/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-csharp-build-gate\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\claude\design-csharp-build-gate\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/design-csharp-build-gate/" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\design-software\SKILL.md"
           Link="Payload\.agent-capabilities\provider-adapters\claude\design-software\SKILL.md"
           Pack="true"

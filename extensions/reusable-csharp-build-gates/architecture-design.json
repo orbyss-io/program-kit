@@ -1,0 +1,544 @@
+{
+  "title": "Program Kit reusable consumer-owned C# build gates",
+  "intent": "Provide reusable, deterministic mechanics for designing, establishing, activating, and verifying consumer-owned C# build gates while keeping Program Kit private policy off consumer-owned source and preserving explicit human authority over every selected or empty static-conformance disposition.",
+  "scope": [
+    "A required StaticConformanceDisposition in every formal Program Kit-backed software design, with explicit human acceptance of either exact consumer-owned gate selections or an exact empty selection.",
+    "A human-started design-csharp-build-gate capability for composing standard baselines, narrow Program Kit public contract-conformance analyzers, and consumer-owned analyzers under exact profiles, activation, temporary exceptions, bootstrap, verification, compatibility, and migration.",
+    "Reusable Program Kit contracts, non-policy authoring primitives, direct opt-in build mechanics, compiler-backed testing, deterministic operations, and evidence for C# 14 on the .NET 10 SDK.",
+    "Implementation-plan semantics that establish and activate a required gate before dependent product work and execute its exact profile throughout implementation.",
+    "Preservation of the existing Orbyss.ProgramKit.CSharpGate and PKCS policy as Program Kit-private enforcement on Program Kit-owned source."
+  ],
+  "nonGoals": [
+    "No reuse, export, packaging, or execution of Orbyss.ProgramKit.CSharpGate or PKCS policy on consumer-owned source.",
+    "No Program Kit ownership of consumer-specific rule meaning, diagnostic identity, project applicability, suppression approval, or acceptance decisions, and no consumer ownership of Program Kit public contract diagnostic meaning.",
+    "No automatic creation, implementation, activation, or approval of a consumer-owned gate.",
+    "No arbitrary script, Boolean expression, environment-variable switch, warning demotion, or command-line skip flag as an activation or temporary-disable condition.",
+    "No buildTransitive activation, runtime dependency, analyzer asset, authoring asset, test asset, capability, or provider adapter in a consumer runtime or package closure.",
+    "No speculative public metadata package, source annotation model, general compiler abstraction, assembly discovery, plugin system, or general process runner.",
+    "No migration of Program Kit's private gate onto the reusable mechanics without a separate reviewed equivalence design."
+  ],
+  "assumptions": [
+    "The existing Program Kit private gate supplies useful source-inventory, compiler-participation, tamper, fixture, and evidence research but must be classified into private policy, public-contract candidates, optional recipes, standard baselines, and generic mechanics before any reuse.",
+    "Public Program Kit contract semantics that are statically observable should be single-sourced in narrow owner-controlled conformance analyzers or another exact conformance layer rather than copied into consumer-owned policy.",
+    "A consumer may need a predictable, temporary, bounded activation exception, so exceptions must be typed, digest-bound, human-authorized, evidenced, and fail closed.",
+    "A new or extended gate may require several bounded establishment work units; every such unit precedes dependent product mutation.",
+    "Passing a layered static gate is structural evidence and does not replace architecture, executable tests, integration evidence, or human semantic review."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:reusable-csharp-build-gates-intent",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:intent:program-kit:reusable-csharp-build-gates",
+        "version": "1.0.0",
+        "digest": "sha256:c466222d095b873d03a63ff2892df1586dc8c84ad01db765ce051d63f28979d5"
+      },
+      "sourcePath": "extensions/reusable-csharp-build-gates/design-intent.md",
+      "governs": "The requested ownership boundary, human authority, mandatory design and implementation-flow integration, evidence, terminology, and review-only scope."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:private-csharp-gate-policy",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "sourcePath": "governance/csharp-source-quality-gate.md",
+      "governs": "The implemented Program Kit-private policy boundary and the mechanics that may be researched without exporting PKCS policy."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:toolkit",
+      "purpose": "Own universal deterministic development contracts, operations, projections, conformance mechanics, and provider adapters without owning consumer software policy.",
+      "vocabulary": [
+        {
+          "term": "consumer-owned analyzer",
+          "meaning": "A Roslyn analyzer assembly whose rule meanings, diagnostics, applicability, suppressions, compatibility, activation, and lifecycle are owned by the consuming software.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Program Kit public contract-conformance analyzer",
+          "meaning": "A narrow explicitly selected analyzer whose invariant and diagnostic meaning remain owned by one exact public Program Kit contract and which is activated only for consumers selecting that contract or profile.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "consumer-owned gate",
+          "meaning": "The consumer-controlled composition, selection, activation, exception, suppression, and acceptance boundary over exact compiler baselines, Program Kit public contract-conformance analyzers, and consumer-owned analyzers.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "static-conformance disposition",
+          "meaning": "The exact human-selected formal-design decision to reuse, extend, create, explicitly omit, or block on unavailable consumer-owned static enforcement.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "activation matrix",
+          "meaning": "A finite digest-bound mapping across exact projects, inputs, commands, implementation boundaries, and verification profiles that determines when each selected analyzer component must execute.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "temporary activation exception",
+          "meaning": "A bounded human-authorized typed condition that makes an otherwise selected gate temporarily inapplicable and produces a non-execution receipt; it is not a suppression or bypass.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "gate establishment",
+          "meaning": "The approved work that creates or extends, proves, binds, and activates a consumer-owned gate before dependent product mutation.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:static-conformance-disposition",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The formal design decision and exact evidence boundary for selected consumer-owned gates or an explicitly accepted empty selection.",
+      "termContractIds": [],
+      "invariants": "Exactly one disposition exists. Missing, null, defaulted, or implicitly empty values are invalid. not-justified requires an exact empty selection, rationale, residual risk, and explicit human acceptance. blocked-unavailable blocks implementation."
+    },
+    {
+      "identity": "pkid:model:program-kit:csharp-build-gate",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "The consumer-controlled composition of standard baselines, public Program Kit contract-conformance rules, consumer-owned rules, analyzer components, profiles, activation matrix, temporary exceptions, suppressions, bootstrap, selection lock, receipts, verification, compatibility, and migration for one C# build gate.",
+      "termContractIds": [],
+      "invariants": "Only explicitly selected standard, public Program Kit contract-conformance, and consumer-owned analyzer components run on consumer-owned source. The private Orbyss.ProgramKit.CSharpGate never runs there. Public and consumer diagnostic semantics remain with their respective owners. Every non-execution is either outside exact applicability or justified by a valid typed temporary exception receipt; ambiguity and stale authority fail closed."
+    },
+    {
+      "identity": "pkid:model:program-kit:gate-aware-implementation-plan",
+      "ownerDomainId": "pkid:domain:program-kit:toolkit",
+      "meaning": "An implementation plan whose work-unit kinds, dependencies, selected gate locks, activation matrices, and verification profiles prove that gate establishment precedes affected product mutation.",
+      "termContractIds": [],
+      "invariants": "reuse-existing requires a compatible lock at preflight. create-new and extend-existing permit only exact approved gate-establishment units until activation evidence passes. product and closure units execute the exact applicable profiles. not-justified requires the exact accepted empty disposition."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:static-conformance-contracts",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "domain-core",
+      "purpose": "Add Architecture v2 static-conformance disposition and Planning v3 gate-aware work-unit contracts with explicit migrations.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Architecture v1 to v2 and Planning v2 to v3 schema, model, validation, normalization, migration, digest, and exact-reference semantics."
+    },
+    {
+      "identity": "pkid:component:program-kit:csharp-build-gate-contracts",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "domain-core",
+      "purpose": "Own gate definitions, analyzer-component ownership kinds, rule and profile catalogs, activation matrices, typed temporary exceptions, selection locks, suppression ledgers, receipts, evidence, schemas, and validators.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Exact C#, SDK, compiler, Roslyn, framework, schema, catalog, condition-kind, lock, evidence, and migration revisions."
+    },
+    {
+      "identity": "pkid:component:program-kit:csharp-build-gate-authoring",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "design-time-source",
+      "purpose": "Provide non-analyzer Roslyn helpers, optional rule recipes, and deterministic scaffolding primitives that render consumer-owned analyzer source from explicit consumer bindings.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Exact Roslyn packages, recipe catalogs, templates, scaffold revisions, and prohibition on analyzer or generator registrations in Program Kit recipe assemblies."
+    },
+    {
+      "identity": "pkid:component:program-kit:csharp-build-gate-build",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "bridge",
+      "purpose": "Attach exact selected public Program Kit contract-conformance and consumer-owned analyzers and prove controlled inputs, inventories, per-analyzer same-assembly participation receipts, tamper resistance, and automatic command invocation through direct opt-in build assets.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Exact MSBuild, compiler command, SDK, analyzer, receipt, inventory, activation-matrix, condition-evaluation, and build-package revisions."
+    },
+    {
+      "identity": "pkid:component:program-kit:public-contract-conformance-analyzers",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "design-time-source",
+      "purpose": "Host only narrow PKCC public contract-conformance rules whose static invariant and diagnostic meaning remain with an exact Program Kit public contract; no unrelated or private policy is aggregated.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Exact owning public contract/profile, rule and diagnostic revisions, analyzer package and assembly bytes, Roslyn toolchain, fixtures, receipt generator, suppression policy, and activation selection."
+    },
+    {
+      "identity": "pkid:component:program-kit:csharp-build-gate-testing",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Run compiler-backed fixtures, deterministic comparison, tamper cases, cancellation, performance, packaging, isolated-consumer, bootstrap, and temporary-exception conformance.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Exact fixture corpus, compiler harness, performance budgets, package inspection, teardown, and evidence schema."
+    },
+    {
+      "identity": "pkid:component:program-kit:csharp-build-gate-operations",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "focused-helper",
+      "purpose": "Implement finite validate-definition, render-definition, scaffold, bind, and verify operations without discovery, network lookup, arbitrary assembly loading, or general process execution.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Independent operation contracts, deterministic input and output bytes, bounded toolchain templates, typed failures, and cancellation semantics."
+    },
+    {
+      "identity": "pkid:component:program-kit:csharp-build-gate-capabilities",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "kind": "design-time-source",
+      "purpose": "After all backing exists, integrate the mandatory disposition into design-software, add human-started design-csharp-build-gate, and make implement-software-plan enforce establishment-first execution.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Canonical capability definitions, exact CapabilityBundle inventory, registered provider adapter templates, initializer ownership, lock digests, and human-start boundaries."
+    }
+  ],
+  "projects": [],
+  "packages": [],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:no-private-gate-on-consumer-source",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Consumer product projects, consumer analyzer projects, consumer build integration, generated consumer projects, fixtures, packages, runtime closure, and capability guidance",
+      "referencedScope": "Orbyss.ProgramKit.CSharpGate, PKCS diagnostics, Program Kit-private source profiles, private allow lists, and private warning ledger as consumer policy or analyzer execution",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:c466222d095b873d03a63ff2892df1586dc8c84ad01db765ce051d63f28979d5"
+        },
+        "path": "design-intent.md#ownership-boundary"
+      },
+      "rationale": "Program Kit private policy may inform generic mechanics but cannot become consumer policy."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-ambient-public-contract-analyzers",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Consumer product projects, consumer build integration, generated projects, gate selections, packages, capabilities, and verification",
+      "referencedScope": "Any Program Kit public contract-conformance analyzer without its exact owning public contract/profile, analyzer revision, activation matrix, direct private-assets selection, selection lock, fixtures, and applicable project/input scope",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:c466222d095b873d03a63ff2892df1586dc8c84ad01db765ce051d63f28979d5"
+        },
+        "path": "design-intent.md#consumer-owned-execution"
+      },
+      "rationale": "Public Program Kit diagnostic semantics must remain consistent and single-sourced without turning one contract selection or Program Kit installation into universal policy activation."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-silent-gate-bypass",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Formal design, implementation preflight, build integration, verification, activation, temporary exceptions, suppressions, and completion evidence",
+      "referencedScope": "Missing or implicit empty selection, arbitrary skip condition, environment-variable bypass, warning demotion, analyzer removal, unapproved suppression, stale exception, ambiguous condition, or failed gate presented as non-applicability",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:c466222d095b873d03a63ff2892df1586dc8c84ad01db765ce051d63f28979d5"
+        },
+        "path": "design-intent.md#static-conformance-disposition"
+      },
+      "rationale": "Every selected, empty, temporarily inapplicable, blocked, or failed state must be explicit, typed, reviewable, and fail closed."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-runtime-gate-assets",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "disposition": "forbidden",
+      "referencingScope": "Consumer runtime assemblies, runtime projects, published outputs, and package dependency closure",
+      "referencedScope": "Program Kit gate contracts, authoring, build, testing, capability, provider adapters, public contract-conformance analyzers, consumer-owned analyzer assemblies, Roslyn workspaces, or MSBuild implementation assets as runtime dependencies",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:c466222d095b873d03a63ff2892df1586dc8c84ad01db765ce051d63f28979d5"
+        },
+        "path": "design-intent.md#runtime-boundary"
+      },
+      "rationale": "Build-time enforcement and development-session capabilities must not become runtime architecture."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "requestedOutcome": "Represent the reusable consumer-owned C# build-gate extension as a validated canonical design and separate exact implementation plan.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The review set grants no implementation, analyzer execution, gate activation, capability execution, or consumer authority."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "Canonical design bytes are schema-validated, manually projected because no architecture renderer is registered, compared with the projection and plan, and digest-bound for human review."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review set is addressed through explicit repository paths and exact artifact references."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "No capability, wrapper, hook, watcher, analyzer, build import, or autonomous procedure is created by this design."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit architecture reviewer and later consumer-software reviewers.",
+        "decisionAuthorityBoundary": "Only explicit human approval of the exact canonical design and implementation-plan digests authorizes implementation. Each consumer later approves its exact non-empty or empty static-conformance disposition.",
+        "rationale": "The extension changes architecture and planning contracts, build enforcement, capability behavior, and consumer authority boundaries."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "No generated navigation artifact is required for the review set."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:reusable-csharp-build-gates",
+        "ownerId": "pkid:domain:program-kit:toolkit",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "1.0.0",
+          "digest": "sha256:19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2"
+        },
+        "provenancePolicy": "The exact human intent and implemented Program Kit source truth govern; the rejected prior draft and implementation observations are research evidence only.",
+        "digestPolicy": "The review manifest binds exact canonical design, human projection, static-conformance candidate, and implementation-plan bytes; any change requires revalidation, new digests, and a new human decision.",
+        "consumerIds": [],
+        "compatibilityPolicy": "Changing ownership, disposition, activation, temporary-exception, bootstrap, receipt, runtime-isolation, operation, package, planning, or capability semantics requires a newly reviewed design version.",
+        "migrationPolicy": "Architecture v1 and Planning v2 remain readable through explicit migrations. New writers emit Architecture v2 and Planning v3 only after the corresponding work units pass."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "The design contains no credentials, source payloads, private repository material, runtime paths, tokens, or analyzer execution output.",
+        "externalizationPolicy": "Only committed review artifacts and exact digests may be shared.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Compiler temporary roots, build outputs, analyzer binaries, test workspaces, execution receipts, and local paths remain outside the design."
+      },
+      "rationale": "A canonical schema instance and separate plan keep the extension exact, reviewable, migration-aware, and non-executable until human approval."
+    }
+  ],
+  "representationRelationships": [],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Build-gate mechanics validate controlled inputs, exact toolchains, analyzer participation, tamper state, and bounded evidence without claiming broader software security.",
+      "guarantees": [
+        "Unknown or changed analyzers, inputs, condition kinds, exception parameters, receipts, locks, suppressions, or evidence fail closed."
+      ],
+      "exclusions": [
+        "No claim that static conformance alone proves security, privacy, authorization, runtime safety, or semantic correctness."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Humans start design and implementation work and explicitly accept every exact selected or empty disposition, temporary exception, suppression authority, and plan.",
+      "guarantees": [
+        "Capability availability, package installation, scaffolding, previous selection, silence, timeout, or generated files grant no authority."
+      ],
+      "exclusions": [
+        "No silent gate creation, implementation, activation, disablement, renewal, approval, or product mutation."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Gate definitions, locks, diagnostics, receipts, and durable evidence contain only reviewed identifiers, digests, classifications, bounded paths, and outcomes.",
+      "guarantees": [
+        "The generic mechanics require explicit redaction policy and reject sensitive compiler arguments or source content in durable evidence."
+      ],
+      "exclusions": [
+        "No credentials, tokens, secrets, raw source payloads, environment dumps, or unrestricted compiler logs become durable evidence."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Only canonical contracts, consumer-owned source, exact locks, reviewed configuration, bounded receipts, and redacted evidence are durable.",
+      "guarantees": [
+        "Bootstrap and verification own unique bounded temporary roots and prove teardown."
+      ],
+      "exclusions": [
+        "No stale compiler output, analyzer cache, discovered package, mutable global registry, or ambient build state becomes source truth."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Definition, mechanics, analyzer build, attachment, inventory, source policy, suppression, activation exception, tamper, evidence, performance, package/runtime, toolchain, and internal-regression failures remain distinct.",
+      "guarantees": [
+        "A failed, unavailable, ambiguous, stale, disabled, or substituted gate cannot be presented as an approved empty selection or a valid temporary exception."
+      ],
+      "exclusions": [
+        "No Boolean success value collapses transport, tooling, public-contract policy, consumer policy, source, evidence, architecture, or human-decision failures."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Each bootstrap and verification execution owns an exact isolated root, nonce, compilation identity, receipt set, and evidence target.",
+      "guarantees": [
+        "Parallel runs cannot share candidate outputs, receipts, temporary-exception use counts, or cleanup ownership."
+      ],
+      "exclusions": [
+        "No shared mutable analyzer cache, global receipt root, or unscoped temporary state."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Cancellation propagates through bounded validation, compilation, fixture, and process templates and always enters owned-state teardown.",
+      "guarantees": [
+        "Partial diagnostics, exception receipts, locks, and evidence are not promoted after cancellation."
+      ],
+      "exclusions": [
+        "No claim that cancellation rolls back source edits or state outside the exact operation commit boundary."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Evidence identifies exact inputs, operation revisions, analyzer participation, applicability decisions, temporary-exception use, suppressions, diagnostics, outcomes, and teardown without becoming authority.",
+      "guarantees": [
+        "Every applicable non-execution has one exact fail-closed explanation and receipt."
+      ],
+      "exclusions": [
+        "No log, metric, receipt, generated report, or prior successful run approves a policy, suppression, temporary exception, or disposition."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Architecture, planning, gate contracts, schemas, public contract-conformance analyzers, consumer-owned analyzers, rules, diagnostics, profiles, condition kinds, matrices, locks, recipes, operations, packages, toolchains, capabilities, and consumer gates have independent exact clocks.",
+      "guarantees": [
+        "Migrations and Version Map edges are explicit; mixed, partial, floating, or stale selections fail."
+      ],
+      "exclusions": [
+        "No assembly version, package version, schema version, capability version, rule revision, or bundle inventory silently substitutes for another clock."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:formal-design-static-conformance-decision",
+      "actor": "Human-started design-software session",
+      "intent": "Produce exactly one accepted static-conformance disposition before finalizing a software design.",
+      "preconditions": [
+        "The human has started formal software design and repository source truth is available."
+      ],
+      "steps": [
+        "Enumerate statically decidable invariants and allocate each to its narrowest reliable enforcement layer.",
+        "Inspect exact available consumer-owned gate selections and any previously accepted empty selection.",
+        "When neither exists, ask the human whether to reuse, extend, create, or explicitly proceed without a consumer-owned gate.",
+        "If the human selects create or extend, run the human-started design-csharp-build-gate subflow and return its exact design reference.",
+        "Bind the exact human-selected disposition, gate selections or empty rationale, activation matrices, residual risks, and non-static claims into the final review set."
+      ],
+      "outcomes": [
+        "The final design references one exact non-empty or explicitly accepted empty disposition."
+      ],
+      "failureOutcomes": [
+        "Missing, null, defaulted, implicit-empty, unavailable, or unaccepted state prevents finalization."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:establish-gate-before-product-work",
+      "actor": "Human-started implement-software-plan session",
+      "intent": "Establish and activate a required consumer-owned gate before dependent product mutation and execute it throughout implementation.",
+      "preconditions": [
+        "The exact architecture and implementation plan are human-approved.",
+        "The plan contains an exact create-new or extend-existing disposition and gate-establishment work units."
+      ],
+      "steps": [
+        "Permit only the exact approved gate-establishment work units while the new compatible selection lock is absent.",
+        "Build each locally owned candidate twice in isolated clean roots, validate selected Program Kit public analyzer evidence, run the combined corpus, prove per-analyzer same-assembly participation, bind exact bytes, and activate direct build integration.",
+        "Prove automatic invocation and exact verification profiles before unblocking dependent product work.",
+        "Execute the selected gate at each applicable product work-unit, generated-output, and final-closure boundary.",
+        "Stop on policy ambiguity, gate defect, incompatible lock, changed activation, unapproved suppression, or invalid temporary exception."
+      ],
+      "outcomes": [
+        "No affected product project is implemented without its required consumer-owned gate active under the exact approved matrix."
+      ],
+      "failureOutcomes": [
+        "Absent, disabled, substituted, stale, inapplicable-by-ambiguous-condition, or failing gates block affected product mutation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:compose-public-and-consumer-analyzers",
+      "actor": "Consumer-owned gate establisher",
+      "intent": "Compose one exact public Program Kit contract-conformance analyzer with one consumer-owned analyzer without exporting private Program Kit policy or duplicating public diagnostic meaning.",
+      "preconditions": [
+        "The consumer selected the exact public Program Kit contract/profile and analyzer revision plus its exact consumer-owned analyzer definition.",
+        "Both components have compatible toolchain, project, input, command, boundary, suppression, receipt, and verification profiles."
+      ],
+      "steps": [
+        "Validate the public rule and diagnostic against its owning Program Kit contract and lock its analyzer-only package.",
+        "Build and validate the consumer-owned analyzer under its consumer-owned rule catalog.",
+        "Reject diagnostic collisions, copied ownership, private PKCS attachment, unrelated public rules, runtime assets, buildTransitive activation, or profile ambiguity.",
+        "Attach both exact analyzers directly, execute the applicable combined corpus, and require one same-assembly participation receipt per analyzer and covered compilation.",
+        "Record distinct Program Kit public-contract, consumer-policy, and mechanics outcomes."
+      ],
+      "outcomes": [
+        "Program Kit public semantics are checked consistently while consumer-specific semantics remain consumer-owned and the consumer retains gate selection and activation authority."
+      ],
+      "failureOutcomes": [
+        "Missing owner contract, semantic duplication, unrelated rule activation, private analyzer leakage, collision, receipt failure, or runtime leakage rejects the composed gate."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:temporary-gate-exception",
+      "actor": "Consumer-owned gate verifier",
+      "intent": "Temporarily treat an exact selected gate scope as inapplicable only when one approved predictable condition is satisfied.",
+      "preconditions": [
+        "A human-approved typed exception binds exact scope, condition kind and parameters, owner, rationale, residual risk, compensating verification, evidence, expiry or removal trigger, and renewal authority."
+      ],
+      "steps": [
+        "Evaluate the condition from controlled digest-bound inputs.",
+        "Reject unknown, missing, ambiguous, changed, expired, widened, exhausted, forged, or unapproved-renewal state.",
+        "Run the exact compensating verification.",
+        "Emit a non-execution receipt bound to the compilation, evaluated inputs, exception digest, outcome, remaining lifetime, and use count.",
+        "Require removal, explicit renewal, or supersession at the recorded trigger."
+      ],
+      "outcomes": [
+        "The predictable edge case is handled without pretending the gate ran or creating an ambient bypass."
+      ],
+      "failureOutcomes": [
+        "Any invalid evaluation or missing evidence fails closed and blocks affected work."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:reusable-csharp-build-gates",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:c466222d095b873d03a63ff2892df1586dc8c84ad01db765ce051d63f28979d5"
+        },
+        {
+          "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+          "version": "1.10.0",
+          "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+        }
+      ],
+      "claim": "The design is ready for schema, semantic, terminology, projection, plan-trace, digest, and human validation; no implementation or consumer gate activation is approved."
+    }
+  ]
+}

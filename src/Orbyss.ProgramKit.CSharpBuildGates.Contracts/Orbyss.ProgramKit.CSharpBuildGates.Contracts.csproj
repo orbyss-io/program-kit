@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.CSharpBuildGates.Contracts</PackageId>
+    <RootNamespace>Orbyss.ProgramKit.CSharpBuildGates</RootNamespace>
+    <Description>Versioned consumer-owned C# build-gate definitions, locks, profiles, receipts, evidence, and deterministic validation contracts.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <EmbeddedResource Include="..\..\schemas\csharp-build-gates\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\csharp-build-gates\**\*.json"
+          Pack="true"
+          PackagePath="schemas/csharp-build-gates/%(RecursiveDir)"
+          Link="Schemas/CSharpBuildGates/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

@@ -9,6 +9,8 @@
     <ProjectReference Include="..\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Contracts\Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Authoring\Orbyss.ProgramKit.CSharpBuildGates.Authoring.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Serialization.JSON\Orbyss.ProgramKit.Serialization.JSON.csproj" />
     <PackageReference Include="JsonSchema.Net"
                       ExcludeAssets="compile"

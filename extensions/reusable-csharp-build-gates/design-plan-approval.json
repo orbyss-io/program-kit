@@ -1,0 +1,45 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+  },
+  "plan": {
+    "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+  },
+  "acceptedScope": "the Program Kit reusable consumer-owned C# build-gate architecture and exact PKCG-W010 through PKCG-W110 implementation plan",
+  "approvingPrincipal": {
+    "kind": "human-session-participant",
+    "provider": "codex",
+    "identifier": "019fa38e-9998-7032-9100-5e49128a2280",
+    "role": "human-requester"
+  },
+  "authority": {
+    "kind": "review-set-approval-boundary",
+    "source": {
+      "identity": "pkid:approval:program-kit:reusable-csharp-build-gates-review-set",
+      "version": "1.0.0",
+      "digest": "sha256:590a90e2b200bb53edaa8abb174a0902fc2c936b4904134ab233fc1a097b0cf5"
+    },
+    "jsonPointer": "/approvalBoundary",
+    "ownerId": "pkid:domain:program-kit:toolkit"
+  },
+  "decisionEvidence": [
+    {
+      "kind": "human-session-statement",
+      "provider": "codex",
+      "referenceId": "task:019fa38e-9998-7032-9100-5e49128a2280/turn:019fa3dc-19e4-7cf1-8582-eb5e35a3062b/item:item-61",
+      "digest": "sha256:7a5390aaa5067ffb4d3cb5961c6ad97f8665a970df8336513186b6def2b4400e"
+    }
+  ],
+  "correlationId": "codex:019fa38e-9998-7032-9100-5e49128a2280:019fa3dc-19e4-7cf1-8582-eb5e35a3062b",
+  "decisionTime": "2026-07-27T13:55:38.000Z",
+  "decision": "approved",
+  "conditions": [],
+  "supersession": {
+    "state": "active",
+    "supersededBy": null
+  }
+}

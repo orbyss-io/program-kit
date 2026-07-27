@@ -1,8 +1,9 @@
 # Orbyss.ProgramKit.CapabilityBundle
 
-This content-only package carries exact copies of the three distributable
+This content-only package carries exact copies of the four distributable
 Program Kit development capabilities:
 
+- `design-csharp-build-gate`
 - `develop-software`
 - `design-software`
 - `implement-software-plan`
@@ -12,7 +13,7 @@ provider adapters. The repository-only `publish-dotnet-application-locally`
 capability, the capability index, generated catalog, authoring capability, and
 Release Cycle reservations are deliberately excluded.
 
-Bundle revision `2.0.0` uses the unique `.agent-capabilities` source tree. Its
+Bundle revision `2.1.0` uses the unique `.agent-capabilities` source tree. Its
 canonical definitions stay in Program Kit. They are never copied into a
 human-led workspace.
 

@@ -1,0 +1,170 @@
+{
+  "design": {
+    "identity": "pkid:design:consumer:software",
+    "version": "1.0.0",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "ownerId": "pkid:domain:consumer:software",
+  "state": "ready-for-human-decision",
+  "requirementIds": [
+    "R1"
+  ],
+  "workUnits": [
+    {
+      "workUnitId": "G1",
+      "requiredOutcome": "Establish the selected consumer-owned gate.",
+      "sequence": 10,
+      "parallelGroupId": null,
+      "dependsOn": [],
+      "inputs": [
+        {
+          "identity": "pkid:design:consumer:layered-build-gate",
+          "version": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:gate-definition:consumer:layered-build",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        },
+        {
+          "identity": "pkid:selection-lock:consumer:layered-build",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        },
+        {
+          "identity": "pkid:evidence:consumer:layered-build-activation",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "build/"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the gate cannot be activated compatibly."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Gate activation passes."
+        }
+      ],
+      "selectedTests": []
+    },
+    {
+      "workUnitId": "P1",
+      "requiredOutcome": "Implement the approved product.",
+      "sequence": 20,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "G1"
+      ],
+      "inputs": [],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:consumer:product",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "src/"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop on architectural deviation."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Product verification passes."
+        }
+      ],
+      "selectedTests": []
+    },
+    {
+      "workUnitId": "C1",
+      "requiredOutcome": "Close the approved implementation.",
+      "sequence": 30,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "P1"
+      ],
+      "inputs": [],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:consumer:closure",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "evidence/"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if closure evidence is incomplete."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Closure verification passes."
+        }
+      ],
+      "selectedTests": []
+    }
+  ],
+  "parallelGroups": [],
+  "trace": [
+    {
+      "requirementId": "R1",
+      "ownerId": "pkid:domain:consumer:software",
+      "contractOrArtifact": {
+        "identity": "pkid:contract:consumer:software",
+        "version": "1.0.0",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "workUnitIds": [
+        "G1",
+        "P1",
+        "C1"
+      ],
+      "implementationOutcome": "Implement the approved software.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The approved software is implemented."
+    }
+  ],
+  "unresolvedDecisions": []
+}
