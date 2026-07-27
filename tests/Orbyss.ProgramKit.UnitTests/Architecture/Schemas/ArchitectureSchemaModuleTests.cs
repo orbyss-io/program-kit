@@ -118,7 +118,7 @@ public sealed class ArchitectureSchemaModuleTests
         var missing = Encoding.UTF8.GetBytes(source.ToJsonString());
         source["staticConformanceDisposition"] = JsonNode.Parse(
             ReferenceJson(
-                "pkid:schema:program-kit:static-conformance-disposition"));
+                "pkid:static-conformance-disposition:program-kit:reusable-csharp-build-gates"));
         var exact = Encoding.UTF8.GetBytes(source.ToJsonString());
         source["staticConformanceDisposition"] = null;
         var explicitNull = Encoding.UTF8.GetBytes(source.ToJsonString());

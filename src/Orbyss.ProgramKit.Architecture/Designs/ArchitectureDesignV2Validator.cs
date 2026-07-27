@@ -9,8 +9,6 @@ namespace Orbyss.ProgramKit.Architecture.Designs;
 public sealed class ArchitectureDesignV2Validator :
     IProgramKitSemanticValidator<ArchitectureDesignDocumentV2>
 {
-    private static readonly ProgramKitIdentifier DispositionSchema =
-        new("pkid:schema:program-kit:static-conformance-disposition");
     private static readonly SemanticVersion DispositionVersion = new("1.0.0");
     private readonly IProgramKitSemanticValidator<ArchitectureDesignDocument>
         versionOneValidator;
@@ -41,13 +39,16 @@ public sealed class ArchitectureDesignV2Validator :
             value.StaticConformanceDisposition,
             "/staticConformanceDisposition");
         if (value.StaticConformanceDisposition is not null &&
-            (value.StaticConformanceDisposition.Identity != DispositionSchema ||
+            (!string.Equals(
+                 value.StaticConformanceDisposition.Identity.Kind,
+                 "static-conformance-disposition",
+                 StringComparison.Ordinal) ||
              value.StaticConformanceDisposition.Version != DispositionVersion))
         {
             diagnostics.Error(
                 ArchitectureDiagnosticIds.Pkarc711,
                 "/staticConformanceDisposition",
-                "Architecture Design 2.0 requires an exact StaticConformanceDisposition@1.0.0 reference.");
+                "Architecture Design 2.0 requires an exact static-conformance-disposition artifact at version 1.0.0.");
         }
 
         return diagnostics.ToResult();

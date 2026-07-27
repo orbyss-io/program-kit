@@ -115,7 +115,7 @@ public sealed class StaticConformanceDispositionTests
     {
         var source = CreateLegacyDesign();
         var disposition = Reference(
-            "pkid:schema:program-kit:static-conformance-disposition");
+            "pkid:static-conformance-disposition:consumer:software");
         var sourceSnapshot = source with { };
         var first = ArchitectureDesignV1ToV2Migration.Migrate(source, disposition);
         var second = ArchitectureDesignV1ToV2Migration.Migrate(source, disposition);
@@ -125,6 +125,31 @@ public sealed class StaticConformanceDispositionTests
         Assert.AreEqual(disposition, first.StaticConformanceDisposition);
         Assert.ThrowsExactly<ArgumentNullException>(() =>
             ArchitectureDesignV1ToV2Migration.Migrate(source, null!));
+    }
+
+    [TestMethod]
+    public void ArchitectureV2RequiresDispositionInstanceRatherThanItsSchema()
+    {
+        ArchitectureDesignValidator v1Validator = new(
+            new ArtifactDecisionValidator(
+                new SupportedArtifactKindOwnershipResolver()));
+        ArchitectureDesignV2Validator sut = new(v1Validator);
+        var exact = ArchitectureDesignV1ToV2Migration.Migrate(
+            CreateLegacyDesign(),
+            Reference("pkid:static-conformance-disposition:consumer:software"));
+        var schema = exact with
+        {
+            StaticConformanceDisposition = Reference(
+                "pkid:schema:program-kit:static-conformance-disposition"),
+        };
+
+        var exactResult = sut.Validate(exact);
+        var schemaResult = sut.Validate(schema);
+
+        Assert.IsFalse(exactResult.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id == ArchitectureDiagnosticIds.Pkarc711));
+        Assert.IsTrue(schemaResult.Diagnostics.Any(static diagnostic =>
+            diagnostic.Id == ArchitectureDiagnosticIds.Pkarc711));
     }
 
     private static StaticConformanceDisposition Create(
