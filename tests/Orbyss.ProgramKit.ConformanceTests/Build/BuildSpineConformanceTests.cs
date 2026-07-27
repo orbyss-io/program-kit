@@ -17,6 +17,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Artifacts",
         "Orbyss.ProgramKit.CapabilityBundle",
         "Orbyss.ProgramKit.CommandLine",
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
         "Orbyss.ProgramKit.Development",
         "Orbyss.ProgramKit.DevContainers",
         "Orbyss.ProgramKit.DotNet",
@@ -229,7 +230,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(35, projectLines);
+        Assert.HasCount(36, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -276,7 +277,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(21, projectFiles);
+        Assert.HasCount(22, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -314,7 +315,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(24, projectFiles);
+        Assert.HasCount(25, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -370,6 +371,8 @@ public sealed class BuildSpineConformanceTests
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"] =
+                ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.Operations"] = ["Orbyss.ProgramKit.Artifacts"],
                 ["Orbyss.ProgramKit.SecretResolution"] =
                 ["Orbyss.ProgramKit.Artifacts"],
@@ -436,6 +439,7 @@ public sealed class BuildSpineConformanceTests
             {
                 ["Orbyss.ProgramKit.Artifacts"] = [],
                 ["Orbyss.ProgramKit.CapabilityBundle"] = [],
+                ["Orbyss.ProgramKit.CSharpBuildGates.Contracts"] = [],
                 ["Orbyss.ProgramKit.Operations"] = [],
                 ["Orbyss.ProgramKit.SecretResolution"] = [],
                 ["Orbyss.ProgramKit.Architecture"] = [],

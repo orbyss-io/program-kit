@@ -1,0 +1,162 @@
+using System.Collections.Immutable;
+using Orbyss.ProgramKit.Artifacts.Compatibility;
+using Orbyss.ProgramKit.Artifacts.Envelopes;
+using Orbyss.ProgramKit.Artifacts.Primitives;
+using Orbyss.ProgramKit.Artifacts.References;
+using Orbyss.ProgramKit.Artifacts.Schemas;
+
+namespace Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas;
+
+/// <summary>
+/// Explicit immutable allow-list of C# build-gate contract schemas. No
+/// directory or assembly discovery is performed.
+/// </summary>
+public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
+{
+    private const string ResourcePrefix =
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas.";
+    private static readonly SemanticVersion VersionOne = new("1.0.0");
+    private static readonly ProgramKitIdentifier Owner =
+        new("pkid:package:program-kit:csharp-build-gates-contracts");
+    private static readonly ArtifactProvenance Provenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:reusable-csharp-build-gates"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:reusable-csharp-build-gates"),
+                    new SemanticVersion("1.0.0"),
+                    new Sha256Digest(
+                        "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4")),
+            ],
+            new ProgramKitIdentifier(
+                "pkid:project:program-kit:csharp-build-gates-contracts"),
+            "pkcg-w030-approved-review-set-1-0-0");
+    private static readonly ArtifactCompatibility Compatibility =
+        new(
+            new ProgramKitIdentifier(
+                "pkid:contract:program-kit:schema-compatibility-policy"),
+            [
+                new CompatibilityClaim(
+                    CompatibilityDimension.WireRead,
+                    CompatibilityClassification.Unknown,
+                    []),
+                new CompatibilityClaim(
+                    CompatibilityDimension.WireWrite,
+                    CompatibilityClassification.Unknown,
+                    []),
+            ],
+            new SemanticVersionRange("[1.0.0]"),
+            new SemanticVersionRange("[1.0.0]"),
+            []);
+
+    private static readonly ImmutableArray<ProgramKitSchemaResource>
+        SchemaResources =
+        [
+            Create(
+                "csharp-build-gate-definitions",
+                "definitions-1.0.0.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/1.0.0/definitions.schema.json",
+                "274f99017fc649f442ea39ffdeebef798ddcae599dae8ac716010f93bb15f32e"),
+            Create(
+                "csharp-build-gate-definition",
+                "csharp-build-gate-definition-1.0.0.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/definition/1.0.0/schema.json",
+                "79aa72a795bb1741ea5fb62f7e1571bd17b854cab106b4a7e0435886b0828001"),
+            Create(
+                "csharp-build-gate-selection-lock",
+                "csharp-build-gate-selection-lock-1.0.0.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/selection-lock/1.0.0/schema.json",
+                "efde4229bf3b43901aa97d72935cc6d09ea5ecaa66645fb1b23a1f6c29a2809f"),
+            Create(
+                "csharp-build-gate-suppression-ledger",
+                "csharp-build-gate-suppression-ledger-1.0.0.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/suppression-ledger/1.0.0/schema.json",
+                "a5ef64253b4f70819ca69e11536e248866fe8d30c4bfd537f9d9091fae1efc9a"),
+            Create(
+                "csharp-build-gate-participation-receipt",
+                "csharp-build-gate-participation-receipt-1.0.0.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/participation-receipt/1.0.0/schema.json",
+                "6896ab5449a501eaa161e36e554a6706ca5550e359acf2c7109567f8cae97da7"),
+            Create(
+                "csharp-build-gate-verification-evidence",
+                "csharp-build-gate-verification-evidence-1.0.0.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/verification-evidence/1.0.0/schema.json",
+                "4cabcf61400e55ced9e1dcd2b036b0259b887ece2d026d19b976d0f116397423"),
+        ];
+
+    /// <inheritdoc />
+    public ProgramKitIdentifier Identity { get; } =
+        new("pkid:catalog:program-kit:csharp-build-gate-schemas");
+
+    /// <inheritdoc />
+    public SemanticVersion Version => VersionOne;
+
+    /// <inheritdoc />
+    public ImmutableArray<ProgramKitSchemaResource> Resources => SchemaResources;
+
+    /// <inheritdoc />
+    public Stream OpenRead(ArtifactReference schemaReference)
+    {
+        ArgumentNullException.ThrowIfNull(schemaReference);
+        var exact = ExactKey(schemaReference);
+        var resource = SchemaResources.FirstOrDefault(candidate =>
+            string.Equals(
+                ExactKey(candidate.SchemaReference),
+                exact,
+                StringComparison.Ordinal));
+        if (resource is null)
+        {
+            throw new KeyNotFoundException(
+                string.Concat(
+                    "The exact C# build-gate schema is not registered: ",
+                    exact));
+        }
+
+        return typeof(CSharpBuildGateSchemaModule).Assembly
+                   .GetManifestResourceStream(
+                       string.Concat(ResourcePrefix, resource.ResourceName))
+               ?? throw new InvalidOperationException(
+                   string.Concat(
+                       "The registered C# build-gate schema is unavailable: ",
+                       resource.ResourceName));
+    }
+
+    private static ProgramKitSchemaResource Create(
+        string name,
+        string resourceName,
+        string canonicalUri,
+        string digest) =>
+        new(
+            new ArtifactReference(
+                new ProgramKitIdentifier(
+                    string.Concat("pkid:schema:program-kit:", name)),
+                VersionOne,
+                new Sha256Digest(string.Concat("sha256:", digest))),
+            new Uri(canonicalUri, UriKind.Absolute),
+            resourceName,
+            "application/schema+json",
+            Owner,
+            ArtifactStatus.Implemented,
+            [
+                new ProgramKitIdentifier(
+                    "pkid:test:program-kit:conformance-tests"),
+                new ProgramKitIdentifier(
+                    "pkid:project:program-kit:csharp-build-gates-operations"),
+            ],
+            Provenance,
+            Compatibility);
+
+    private static string ExactKey(ArtifactReference reference) =>
+        string.Concat(
+            reference.Identity.Value,
+            "@",
+            reference.Version.Value,
+            "#",
+            reference.Digest.Value);
+}

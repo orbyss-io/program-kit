@@ -1,6 +1,9 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Definitions;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Locks;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Verification;
 
 namespace Orbyss.ProgramKit.ConformanceTests.Schemas;
 
@@ -46,6 +49,16 @@ public sealed class SchemaModelConformanceTests
             "architecture/architecture-design-2.0.0.schema.json"),
         Root<StaticConformanceDisposition>(
             "architecture/static-conformance-disposition.schema.json"),
+        Root<CSharpBuildGateDefinitionDocument>(
+            "csharp-build-gates/csharp-build-gate-definition-1.0.0.schema.json"),
+        Root<CSharpBuildGateSelectionLockDocument>(
+            "csharp-build-gates/csharp-build-gate-selection-lock-1.0.0.schema.json"),
+        Root<CSharpGateSuppressionLedger>(
+            "csharp-build-gates/csharp-build-gate-suppression-ledger-1.0.0.schema.json"),
+        Root<CSharpGateParticipationReceiptDocument>(
+            "csharp-build-gates/csharp-build-gate-participation-receipt-1.0.0.schema.json"),
+        Root<CSharpBuildGateVerificationEvidenceDocument>(
+            "csharp-build-gates/csharp-build-gate-verification-evidence-1.0.0.schema.json"),
         Root<ArtifactDecision>("architecture/artifact-decision.schema.json"),
         Root<DotNetTargetProfile>(
             "architecture/dotnet-target-profile.schema.json"),
