@@ -1,0 +1,154 @@
+{
+  "nodes": [
+    {
+      "revision": {
+        "identity": "pkid:contract:program-kit:generated-source-convention",
+        "version": "1.0.0",
+        "digest": "sha256:32beba7214f2b52af50eb03c8339203db83946ebd1d8ef73214368410c1f989c"
+      },
+      "kind": "contract",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:schema:program-kit:public-generated-source-contract",
+        "version": "1.0.0",
+        "digest": "sha256:6216bdd5d53d8238abd88f28f0f5e700922b5100cda3eaad4b9ed2a2f8e1ea8f"
+      },
+      "kind": "schema",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:contract:program-kit:generated-source-convention",
+          "version": "1.0.0",
+          "digest": "sha256:32beba7214f2b52af50eb03c8339203db83946ebd1d8ef73214368410c1f989c"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+      },
+      "kind": "implementation",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:contract:program-kit:generated-source-convention",
+          "version": "1.0.0",
+          "digest": "sha256:32beba7214f2b52af50eb03c8339203db83946ebd1d8ef73214368410c1f989c"
+        }
+      ]
+    },
+    {
+      "revision": {
+        "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+      },
+      "kind": "package",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:contract:program-kit:generated-source-convention",
+          "version": "1.0.0",
+          "digest": "sha256:32beba7214f2b52af50eb03c8339203db83946ebd1d8ef73214368410c1f989c"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "pkid:edge:program-kit:generated-source-schema-is-wire-schema-of-contract",
+      "source": {
+        "identity": "pkid:schema:program-kit:public-generated-source-contract",
+        "version": "1.0.0",
+        "digest": "sha256:6216bdd5d53d8238abd88f28f0f5e700922b5100cda3eaad4b9ed2a2f8e1ea8f"
+      },
+      "targetIdentity": "pkid:contract:program-kit:generated-source-convention",
+      "kind": "wire-schema-of",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:contract:program-kit:generated-source-convention",
+        "version": "1.0.0",
+        "digest": "sha256:32beba7214f2b52af50eb03c8339203db83946ebd1d8ef73214368410c1f989c"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "wire-read",
+        "wire-write"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:generated-source-analyzer-implements-contract",
+      "source": {
+        "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+      },
+      "targetIdentity": "pkid:contract:program-kit:generated-source-convention",
+      "kind": "implements",
+      "acceptedRange": "[1.0.0]",
+      "resolution": {
+        "identity": "pkid:contract:program-kit:generated-source-convention",
+        "version": "1.0.0",
+        "digest": "sha256:32beba7214f2b52af50eb03c8339203db83946ebd1d8ef73214368410c1f989c"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "semantic-behavior",
+        "source-api"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    },
+    {
+      "id": "pkid:edge:program-kit:generated-source-analyzer-package-exposes-implementation",
+      "source": {
+        "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+      },
+      "targetIdentity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
+      "kind": "publicly-exposes",
+      "acceptedRange": "[0.1.0-alpha.1]",
+      "resolution": {
+        "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+      },
+      "exposure": "public",
+      "compatibilityDimensions": [
+        "binary-abi",
+        "generated-artifacts"
+      ],
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+          "version": "1.0.0",
+          "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+        }
+      ]
+    }
+  ]
+}

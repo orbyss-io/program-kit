@@ -572,6 +572,39 @@ public sealed class CSharpBuildGateContractTests
         Assert.HasCount(6, map.Edges);
     }
 
+    [TestMethod]
+    public void PublicAnalyzerVersionMapIsSchemaAndModelValid()
+    {
+        var bytes = File.ReadAllBytes(Path.Combine(
+            FindProgramKitRoot().FullName,
+            "extensions",
+            "reusable-csharp-build-gates",
+            "public-generated-source-contract-version-map.json"));
+        ArtifactsSchemaModule module = new();
+        var schema = module.Resources.Single(static resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:version-map");
+        JsonSchemaWorkbenchValidator schemaValidator = new(
+            new ProgramKitJsonCanonicalizer(),
+            new ProgramKitSchemaModuleValidator());
+        using var json = JsonDocument.Parse(bytes);
+        var map = ReadVersionMap(json.RootElement);
+        VersionMapDocumentValidator modelValidator = new(
+            new DefaultArtifactEnvelopeValidator());
+
+        var schemaValidation = schemaValidator.Validate(
+            bytes,
+            module,
+            schema.SchemaReference,
+            JsonSerializationLimits.Default);
+        var modelValidation = modelValidator.Validate(map);
+
+        Assert.IsTrue(schemaValidation.IsValid, Format(schemaValidation));
+        Assert.IsTrue(modelValidation.IsValid, Format(modelValidation));
+        Assert.HasCount(4, map.Nodes);
+        Assert.HasCount(3, map.Edges);
+    }
+
     private static CSharpBuildGateDefinitionDocument Definition()
     {
         var ownerId = Id("domain", "software");
@@ -799,7 +832,15 @@ public sealed class CSharpBuildGateContractTests
     private static VersionRevisionNode ReadVersionNode(JsonElement value) =>
         new(
             ReadReference(value.GetProperty("revision")),
-            VersionBoundaryKind.Schema,
+            value.GetProperty("kind").GetString() switch
+            {
+                "contract" => VersionBoundaryKind.Contract,
+                "schema" => VersionBoundaryKind.Schema,
+                "implementation" => VersionBoundaryKind.Implementation,
+                "package" => VersionBoundaryKind.Package,
+                _ => throw new InvalidDataException(
+                    "Unexpected version boundary kind."),
+            },
             new ProgramKitIdentifier(value.GetProperty("ownerId").GetString()!),
             value.GetProperty("evidenceReferences")
                 .EnumerateArray()
@@ -812,17 +853,34 @@ public sealed class CSharpBuildGateContractTests
             ReadReference(value.GetProperty("source")),
             new ProgramKitIdentifier(
                 value.GetProperty("targetIdentity").GetString()!),
-            VersionDependencyKind.UsesContract,
+            value.GetProperty("kind").GetString() switch
+            {
+                "implements" => VersionDependencyKind.Implements,
+                "uses-contract" => VersionDependencyKind.UsesContract,
+                "wire-schema-of" => VersionDependencyKind.WireSchemaOf,
+                "publicly-exposes" =>
+                    VersionDependencyKind.PubliclyExposes,
+                _ => throw new InvalidDataException(
+                    "Unexpected version dependency kind."),
+            },
             new SemanticVersionRange(
                 value.GetProperty("acceptedRange").GetString()!),
             ReadReference(value.GetProperty("resolution")),
-            DependencyExposure.Public,
+            value.GetProperty("exposure").GetString() == "public"
+                ? DependencyExposure.Public
+                : DependencyExposure.Private,
             value.GetProperty("compatibilityDimensions")
                 .EnumerateArray()
                 .Select(static item => item.GetString() switch
                 {
                     "wire-read" => CompatibilityDimension.WireRead,
                     "wire-write" => CompatibilityDimension.WireWrite,
+                    "semantic-behavior" =>
+                        CompatibilityDimension.SemanticBehavior,
+                    "source-api" => CompatibilityDimension.SourceApi,
+                    "binary-abi" => CompatibilityDimension.BinaryAbi,
+                    "generated-artifacts" =>
+                        CompatibilityDimension.GeneratedArtifacts,
                     _ => throw new InvalidDataException(
                         "Unexpected compatibility dimension."),
                 })

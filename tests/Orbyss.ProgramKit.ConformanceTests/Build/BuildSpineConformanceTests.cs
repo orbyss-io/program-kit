@@ -11,6 +11,12 @@ namespace Orbyss.ProgramKit.ConformanceTests.Build;
 [TestClass]
 public sealed class BuildSpineConformanceTests
 {
+    private static readonly string[] PublicAnalyzerRawReferences =
+    [
+        "Microsoft.CodeAnalysis",
+        "Microsoft.CodeAnalysis.CSharp",
+    ];
+
     private static readonly ImmutableArray<string> ProductProjectNames =
     [
         "Orbyss.ProgramKit.Architecture",
@@ -21,6 +27,7 @@ public sealed class BuildSpineConformanceTests
         "Orbyss.ProgramKit.Development",
         "Orbyss.ProgramKit.DevContainers",
         "Orbyss.ProgramKit.DotNet",
+        "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
         "Orbyss.ProgramKit.Modularity",
         "Orbyss.ProgramKit.Modularity.InProcess",
         "Orbyss.ProgramKit.Operations",
@@ -230,7 +237,7 @@ public sealed class BuildSpineConformanceTests
             .Where(line => line.Contains(".csproj\"", StringComparison.Ordinal))
             .ToArray();
 
-        Assert.HasCount(36, projectLines);
+        Assert.HasCount(37, projectLines);
         foreach (var productProjectName in ProductProjectNames)
         {
             Assert.ContainsSingle(
@@ -277,7 +284,7 @@ public sealed class BuildSpineConformanceTests
     {
         var projectFiles = ConformanceInputs.Files("Projects", "*.csproj");
 
-        Assert.HasCount(22, projectFiles);
+        Assert.HasCount(23, projectFiles);
         foreach (var projectFile in projectFiles)
         {
             var project = XDocument.Load(projectFile);
@@ -315,7 +322,7 @@ public sealed class BuildSpineConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-        Assert.HasCount(25, projectFiles);
+        Assert.HasCount(26, projectFiles);
         foreach (var buildFile in new[]
                  {
                      Path.Combine(programKitRoot, "Directory.Build.props"),
@@ -384,6 +391,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Artifacts", "Orbyss.ProgramKit.Planning"],
                 ["Orbyss.ProgramKit.DevContainers"] =
                 ["Orbyss.ProgramKit.Artifacts"],
+                ["Orbyss.ProgramKit.GeneratedSourceContract.Analyzers"] = [],
                 ["Orbyss.ProgramKit.CommandLine"] =
                 [
                     "Orbyss.ProgramKit.DotNet",
@@ -447,6 +455,7 @@ public sealed class BuildSpineConformanceTests
                 ["Orbyss.ProgramKit.Planning"] = [],
                 ["Orbyss.ProgramKit.Development"] = [],
                 ["Orbyss.ProgramKit.DevContainers"] = [],
+                ["Orbyss.ProgramKit.GeneratedSourceContract.Analyzers"] = [],
                 ["Orbyss.ProgramKit.CommandLine"] = [],
                 ["Orbyss.ProgramKit.DotNet"] = [],
                 ["Orbyss.ProgramKit.Modularity"] = [],
@@ -479,7 +488,21 @@ public sealed class BuildSpineConformanceTests
             Assert.IsNotNull(sdkAttribute, projectName);
             Assert.AreEqual("Microsoft.NET.Sdk", sdkAttribute.Value, projectName);
             Assert.IsEmpty(document.Descendants("FrameworkReference"), projectName);
-            Assert.IsEmpty(document.Descendants("Reference"), projectName);
+            if (projectName ==
+                "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers")
+            {
+                Assert.AreSequenceEqual(
+                    PublicAnalyzerRawReferences,
+                    document
+                        .Descendants("Reference")
+                        .Select(reference =>
+                            RequiredAttribute(reference, "Include"))
+                        .Order(StringComparer.Ordinal));
+            }
+            else
+            {
+                Assert.IsEmpty(document.Descendants("Reference"), projectName);
+            }
             Assert.IsEmpty(document.Descendants("COMReference"), projectName);
             Assert.IsEmpty(document.Descendants("COMFileReference"), projectName);
             Assert.IsEmpty(document.Descendants("AddModules"), projectName);

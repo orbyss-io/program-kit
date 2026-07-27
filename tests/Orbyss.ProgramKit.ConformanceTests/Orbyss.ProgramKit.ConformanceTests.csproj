@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="JsonSchema.Net" />
     <Compile Remove="Fixtures\**\*.cs" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
