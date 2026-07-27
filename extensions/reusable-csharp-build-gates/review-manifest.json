@@ -4,9 +4,19 @@
   "reviewSetId": "pkid:approval:program-kit:reusable-csharp-build-gates-review-set",
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-extension",
-  "reviewState": "ready-for-human-decision",
+  "reviewState": "approved",
   "implementationStatus": "not-started",
-  "approvalRecord": null,
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:reusable-csharp-build-gates-review-set-1-0-0",
+    "recordVersion": "1.0.0",
+    "contract": "pkid:schema:program-kit:design-plan-approval",
+    "contractVersion": "1.0.0",
+    "path": "extensions/reusable-csharp-build-gates/design-plan-approval.json",
+    "sha256": "95d0ea4c020570115dcde6c2929848ae72d4ab7f311d607f40c2d88d7a1b0e85",
+    "authoritySourcePath": "extensions/reusable-csharp-build-gates/approval-authority-source.json",
+    "authoritySourceSha256": "590a90e2b200bb53edaa8abb174a0902fc2c936b4904134ab233fc1a097b0cf5",
+    "decisionEvidenceReference": "task:019fa38e-9998-7032-9100-5e49128a2280/turn:019fa3dc-19e4-7cf1-8582-eb5e35a3062b/item:item-61"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -93,7 +103,7 @@
       "artifactVersion": "1.0.0",
       "role": "review-set-validator",
       "path": "extensions/reusable-csharp-build-gates/validate-review-set.ps1",
-      "sha256": "4ec6acec5c9969cf5d5a8fd3365d63427cdde975e96aa4dbd27b464ecd592559"
+      "sha256": "5ca8de22874cbafa7022513aad7d7d5349bfb335621a905048b67e361bf1ccfb"
     },
     {
       "artifactId": "pkid:evidence:program-kit:reusable-csharp-build-gates-design-validation",
@@ -107,7 +117,23 @@
       "artifactVersion": "1.0.0",
       "role": "review-navigation",
       "path": "extensions/reusable-csharp-build-gates/README.md",
-      "sha256": "265cc5d631d7382477627042ca4ef864d3a247abcc1383dd7116b88f2a93b296"
+      "sha256": "d24269e32a31be6733e4cded896e18854cd3c78506aa72f81131e2172ae80d82"
+    },
+    {
+      "artifactId": "pkid:approval:program-kit:reusable-csharp-build-gates-review-set",
+      "artifactVersion": "1.0.0",
+      "role": "approval-authority-source",
+      "path": "extensions/reusable-csharp-build-gates/approval-authority-source.json",
+      "sha256": "590a90e2b200bb53edaa8abb174a0902fc2c936b4904134ab233fc1a097b0cf5"
+    },
+    {
+      "artifactId": "pkid:approval-record:program-kit:reusable-csharp-build-gates-review-set-1-0-0",
+      "artifactVersion": "1.0.0",
+      "role": "human-design-plan-approval",
+      "contract": "pkid:schema:program-kit:design-plan-approval",
+      "contractVersion": "1.0.0",
+      "path": "extensions/reusable-csharp-build-gates/design-plan-approval.json",
+      "sha256": "95d0ea4c020570115dcde6c2929848ae72d4ab7f311d607f40c2d88d7a1b0e85"
     }
   ],
   "approvalBoundary": {
@@ -137,13 +163,15 @@
     "requirementTrace": "passed: PKCG-R001 through PKCG-R032 are assigned across the exact dependency-ordered PKCG-W010 through PKCG-W110 units",
     "reviewSemantics": "passed: ownership, terminology, explicit empty selection, activation matrix, typed temporary exceptions, exact analyzer composition, gate-establishment ordering, digests, LF/no-BOM, and manual projection markers",
     "architectureRenderer": "unavailable in the current registered CLI; architecture-design.md is explicitly a manually checked projection rather than a claimed backed render",
+    "approvalValidation": "passed: design-plan-approval@1.0.0 schema and semantic validation; exact design and plan digest binding; approved decision; no conditions; active supersession; exact authority source and human-session evidence",
     "implementation": "not started"
   },
   "provenance": {
     "createdDate": "2026-07-27",
+    "approvedDate": "2026-07-27",
     "startingCommit": "fe52a2f",
     "branch": "codex/design-reusable-csharp-build-gates",
     "source": "human-started Program Kit extension design",
-    "details": "The review set replaces no approved Program Kit bytes, treats unapproved commit 0040db0 as research only, incorporates the human-approved public-contract plus consumer-owned analyzer composition direction, and awaits one exact final human design/plan decision."
+    "details": "The review set replaces no prior approved Program Kit bytes, treats unapproved commit 0040db0 as research only, and binds the exact approved design and plan to the human statement in Codex task 019fa38e-9998-7032-9100-5e49128a2280, turn 019fa3dc-19e4-7cf1-8582-eb5e35a3062b, item item-61 at 2026-07-27T13:55:38.000Z."
   }
 }

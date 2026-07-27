@@ -1,0 +1,50 @@
+{
+  "artifactId": "pkid:approval:program-kit:reusable-csharp-build-gates-review-set",
+  "artifactVersion": "1.0.0",
+  "reviewManifestReadyDigest": "sha256:2bba14be60ece7f019f21efa99181fcb23f82119c2ae697a37f132d01819e9c4",
+  "design": {
+    "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+  },
+  "plan": {
+    "identity": "pkid:plan:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:307bf4097b469e6d1aa307e79653f8f3568e0385409433ff5f5ca13a0056e1d4"
+  },
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:c27877ff34ae12aa2ed8aa1842253262be92850acbcd7880e5f6fc59158246d2",
+    "candidateDisposition": "reuse-existing"
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-review-set-version-and-exact-canonical-design-plan-and-static-conformance-digests",
+    "acceptedScope": "the Program Kit reusable consumer-owned C# build-gate architecture and exact PKCG-W010 through PKCG-W110 implementation plan",
+    "requiresParentApproval": false,
+    "doesNotAuthorize": [
+      "implementation outside PKCG-W010 through PKCG-W110",
+      "consumer execution of Orbyss.ProgramKit.CSharpGate or PKCS policy",
+      "automatic activation of unrelated Program Kit public contract analyzers",
+      "copying Program Kit public diagnostic meaning into consumer ownership",
+      "an implicit or unaccepted empty consumer analyzer selection",
+      "a temporary activation exception without exact separate human authority",
+      "capability availability before its implementation evidence passes",
+      "a separate analyzer implementation capability",
+      "migration of the private Program Kit gate",
+      "Domain Semantic Engine or sibling-repository implementation",
+      "a material deviation from the reviewed design or plan"
+    ]
+  },
+  "humanDecisionSource": {
+    "provider": "codex",
+    "taskId": "019fa38e-9998-7032-9100-5e49128a2280",
+    "turnId": "019fa3dc-19e4-7cf1-8582-eb5e35a3062b",
+    "itemId": "item-61",
+    "decisionTime": "2026-07-27T13:55:38.000Z",
+    "normalization": "UTF-8 without BOM, LF line endings, one terminal LF",
+    "statementSha256": "sha256:7a5390aaa5067ffb4d3cb5961c6ad97f8665a970df8336513186b6def2b4400e",
+    "decision": "approved",
+    "conditions": []
+  }
+}

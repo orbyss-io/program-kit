@@ -15,6 +15,8 @@ $requiredFiles = @(
     'materialize-implementation-plan.ps1',
     'validate-review-set.ps1',
     'validation-report.md',
+    'approval-authority-source.json',
+    'design-plan-approval.json',
     'review-manifest.json'
 )
 
@@ -56,6 +58,8 @@ $planMarkdownPath = Join-Path $ExtensionRoot 'implementation-plan.md'
 $dispositionPath = Join-Path `
     $ExtensionRoot `
     'static-conformance-disposition.md'
+$authorityPath = Join-Path $ExtensionRoot 'approval-authority-source.json'
+$approvalPath = Join-Path $ExtensionRoot 'design-plan-approval.json'
 
 $design = Get-Content -LiteralPath $designPath -Raw | ConvertFrom-Json
 $plan = Get-Content -LiteralPath $planPath -Raw | ConvertFrom-Json
@@ -67,7 +71,10 @@ $designMarkdown = [IO.File]::ReadAllText($designMarkdownPath)
 $planMarkdown = [IO.File]::ReadAllText($planMarkdownPath)
 $intent = [IO.File]::ReadAllText($intentPath)
 $disposition = [IO.File]::ReadAllText($dispositionPath)
+$authority = Get-Content -LiteralPath $authorityPath -Raw | ConvertFrom-Json
+$approval = Get-Content -LiteralPath $approvalPath -Raw | ConvertFrom-Json
 $designDigest = Digest $designPath
+$planDigest = Digest $planPath
 
 Assert-Condition (
     $design.title -eq 'Program Kit reusable consumer-owned C# build gates'
@@ -212,9 +219,28 @@ Assert-Condition (
 $repositoryRoot = [IO.Path]::GetFullPath(
     (Join-Path $ExtensionRoot '..\..'))
 Assert-Condition (
-    $manifest.reviewState -eq 'ready-for-human-decision' -and
-    $null -eq $manifest.approvalRecord
-) 'Review manifest incorrectly claims approval.'
+    $manifest.reviewState -eq 'approved' -and
+    $manifest.approvalRecord.path -eq
+        'extensions/reusable-csharp-build-gates/design-plan-approval.json' -and
+    $manifest.approvalRecord.sha256 -eq (Digest $approvalPath) -and
+    $manifest.approvalRecord.authoritySourceSha256 -eq
+        (Digest $authorityPath)
+) 'Review manifest does not bind the exact approval evidence.'
+Assert-Condition (
+    $authority.design.digest -eq ('sha256:' + $designDigest) -and
+    $authority.plan.digest -eq ('sha256:' + $planDigest) -and
+    $authority.humanDecisionSource.statementSha256 -eq
+        'sha256:7a5390aaa5067ffb4d3cb5961c6ad97f8665a970df8336513186b6def2b4400e'
+) 'Approval authority does not bind the exact design, plan, and statement.'
+Assert-Condition (
+    $approval.decision -eq 'approved' -and
+    @($approval.conditions).Count -eq 0 -and
+    $approval.supersession.state -eq 'active' -and
+    $approval.design.digest -eq ('sha256:' + $designDigest) -and
+    $approval.plan.digest -eq ('sha256:' + $planDigest) -and
+    $approval.authority.source.digest -eq
+        ('sha256:' + (Digest $authorityPath))
+) 'Approval record is not an active unconditional exact-byte approval.'
 foreach ($artifact in @($manifest.artifacts)) {
     $artifactPath = [IO.Path]::GetFullPath(
         (Join-Path $repositoryRoot $artifact.path))
@@ -236,4 +262,4 @@ Write-Output 'PASS manual-design-projection-markers'
 Write-Output 'PASS analyzer-ownership-and-terminology'
 Write-Output 'PASS static-conformance-candidate'
 Write-Output 'PASS exact-intent-digest'
-Write-Output 'PASS ready-unapproved-manifest-and-artifact-digests'
+Write-Output 'PASS exact-human-approval-and-artifact-digests'
