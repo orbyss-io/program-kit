@@ -327,7 +327,66 @@ current gate and activation-matrix versions/digests to the replacement
 canonical design. No new gate, gate extension, gate-establishment work unit,
 consumer attachment, or implementation authority is created by this decision.
 
+## Converged section 6: cold-session and cross-provider acceptance
+
+The human accepted this section without changes.
+
+Acceptance has four layers:
+
+1. Provider-neutral conformance constructs the test-only generated Console
+   fixture exclusively from exact prepared packages and proves deterministic
+   Open Console mapping, manifest construction, MCP initialize/discovery/call,
+   byte verification, timeout, cancellation, concurrency, exclusions, and
+   blocked side-effect policy without an AI provider.
+2. Provider configuration fixtures prove exact Codex `.codex/config.toml` and
+   Claude Code `.mcp.json` proposal, registration, collision refusal, unrelated
+   configuration preservation, update, tamper detection, and removal.
+3. A genuine Codex cold-session proof runs on the implementation machine.
+4. A genuine Claude Code cold-session proof runs on the human's other machine
+   using the exact same reviewed ProgramKit commit and neutral artifacts. The
+   returned evidence is validated in ProgramKit before cross-provider
+   acceptance closes.
+
+Each provider proof uses three isolated sessions:
+
+- Session A prepares exact local packages, constructs the fixture and neutral
+  bridge, reviews and applies the exact registration proposal, records the
+  registration evidence, and then ends completely with no surviving bridge,
+  consumer, or provider process.
+- Session B starts with no inherited conversation, executable path, command
+  syntax, process, environment hint, or manual shell instruction. The human
+  supplies only a semantic challenge. The provider discovers the tool solely
+  from persisted project registration, applies its own trust/permission flow,
+  invokes the exact operation, and records the canonical result.
+- Session C starts after explicit exact removal and cannot discover the removed
+  tool.
+
+Codex and Claude Code evidence must bind the same ProgramKit commit, consumer
+package/executable, Open Console document, declaration, manifest, selected
+operations, schemas, neutral MCP package/executable, fixture input, canonical
+result, and registration-proposal digests. Provider version, project
+configuration bytes, trust/permission observations, and provider-native
+evidence may differ and remain provider-labelled.
+
+The deterministic fixture result must be identical after canonicalization.
+There is no claim that prompts, provider behavior, model reasoning, or general
+application behavior are equivalent across providers.
+
+The implementation may be authored and statically/fixture-tested entirely in
+this repository. Overall cross-provider acceptance remains open until the human
+returns genuine Claude Code evidence and ProgramKit validates it. ProgramKit
+does not fabricate, pre-author, or infer that external evidence.
+
+Negative evidence covers missing or tampered bytes, incompatible packages or
+contracts, provider/server/tool collisions, denied provider permission,
+excluded and policy-blocked operations, new operations before explicit update,
+filesystem/network/secret denial, timeout, cancellation, concurrency,
+idempotency/retry prohibition, update, removal/non-discovery, package-only
+consumer construction, surviving prior-session processes, and every prohibited
+self-registration, permission, provider-call, capability-call, or autonomous
+loop behavior.
+
 ## Next convergence question
 
-Converge the cold-session acceptance proof and cross-provider evidence
-protocol.
+Converge compatibility/versioning, provider-contract drift, documentation
+ownership, deliberate deferrals, and the final implementation work-unit split.
