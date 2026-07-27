@@ -64,7 +64,8 @@ public sealed class GeneratedHostArtifactTests
                     host.Identity,
                     null,
                     console,
-                    null),
+                    null,
+                    ObservatoryDotNetContractFactory.ConsoleDocumentRevision()),
                 DotNetHostKind.Worker => new DotNetHostGenerationInput(
                     shell,
                     shellRevision,
@@ -95,6 +96,19 @@ public sealed class GeneratedHostArtifactTests
                 FixtureAssert.SequenceEqual(
                     first[index].Content.Span,
                     second[index].Content.Span);
+            }
+
+            if (host.Kind == DotNetHostKind.Console)
+            {
+                FixtureAssert.IsTrue(first.Any(static output =>
+                    output.RelativePath ==
+                    "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs"));
+                FixtureAssert.IsTrue(first.Any(static output =>
+                    output.RelativePath ==
+                    "ProgramKitGenerated/Commands/console-command-dispatch.lock.json"));
+                FixtureAssert.IsTrue(first.Any(static output =>
+                    output.RelativePath ==
+                    "ProgramKitGenerated/Evidence/console-command-dispatch.evidence.json"));
             }
         }
     }
