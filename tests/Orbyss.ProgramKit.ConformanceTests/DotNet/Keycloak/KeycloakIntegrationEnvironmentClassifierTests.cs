@@ -38,7 +38,7 @@ public sealed class KeycloakIntegrationEnvironmentClassifierTests
     }
 
     [TestMethod]
-    public void LinuxEnvironmentSelectionPinsExactToolingWithoutExecution()
+    public void LinuxEnvironmentSelectionPinsExactToolingAndHumanStartedResult()
     {
         var root = Path.Combine(
             ConformanceInputs.ProgramKitRoot,
@@ -65,7 +65,7 @@ public sealed class KeycloakIntegrationEnvironmentClassifierTests
             dockerfile);
         Assert.DoesNotContain("\nRUN ", dockerfile);
         Assert.AreEqual(
-            "selected-not-built-or-executed",
+            "built-and-executed-passed",
             selection.RootElement.GetProperty("status").GetString());
         Assert.AreEqual(
             "sha256:75ab20d4a5281a6ffe8c42749089c950a51f2a753f0b9f8ccbbede0f51a126ed",
@@ -77,6 +77,20 @@ public sealed class KeycloakIntegrationEnvironmentClassifierTests
         Assert.IsFalse(
             selection.RootElement.GetProperty("execution")
                 .GetProperty("automaticRun")
+                .GetBoolean());
+        Assert.AreEqual(
+            "sha256:acb4dacf6aeaa49be3be540455725184729a83d3f8ba995ff51ec3e6031726ee",
+            selection.RootElement.GetProperty("execution")
+                .GetProperty("derivedImageDigest")
+                .GetString());
+        Assert.AreEqual(
+            "passed",
+            selection.RootElement.GetProperty("execution")
+                .GetProperty("result")
+                .GetString());
+        Assert.IsTrue(
+            selection.RootElement.GetProperty("execution")
+                .GetProperty("exactTaskRuntimeRemoved")
                 .GetBoolean());
         Assert.AreEqual(
             "bounded-tls-pass-through",

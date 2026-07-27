@@ -2,7 +2,7 @@
   "capability": {
     "identity": "pkid:capability:program-kit:implement-software-plan",
     "version": "1.0.0",
-    "digest": "sha256:6d30143c1eaa00370c6ce8188318613a09bcc01a19adb1c3ebcae25f1f6c28df"
+    "digest": "sha256:702699d2caa34b1aeb01efc29f991c94909ee228dca46d2fd5b39cee1f55d7ac"
   },
   "requestOrIntent": {
     "identity": "pkid:request:program-kit:w080-continuation",

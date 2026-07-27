@@ -762,6 +762,7 @@ public sealed class KeycloakLocalFixtureGenerator :
                             trustDescriptor,
                             cancellationToken);
                         SetOwnedFileModes(
+                            ownedDirectory,
                             authorityCertificatePath,
                             serverCertificatePath,
                             serverPrivateKeyPath,
@@ -802,6 +803,7 @@ public sealed class KeycloakLocalFixtureGenerator :
                 }
 
                 private static void SetOwnedFileModes(
+                    string ownedDirectory,
                     string authorityCertificatePath,
                     string serverCertificatePath,
                     string serverPrivateKeyPath,
@@ -812,22 +814,30 @@ public sealed class KeycloakLocalFixtureGenerator :
                         return;
                     }
 
-                    var publicMode =
+                    var ownerOnlyFileMode =
                         global::System.IO.UnixFileMode.UserRead |
                         global::System.IO.UnixFileMode.UserWrite;
+                    var mountedPemMode =
+                        ownerOnlyFileMode |
+                        global::System.IO.UnixFileMode.GroupRead |
+                        global::System.IO.UnixFileMode.OtherRead;
+                    global::System.IO.File.SetUnixFileMode(
+                        ownedDirectory,
+                        global::System.IO.UnixFileMode.UserRead |
+                        global::System.IO.UnixFileMode.UserWrite |
+                        global::System.IO.UnixFileMode.UserExecute);
                     global::System.IO.File.SetUnixFileMode(
                         authorityCertificatePath,
-                        publicMode);
+                        ownerOnlyFileMode);
                     global::System.IO.File.SetUnixFileMode(
                         serverCertificatePath,
-                        publicMode);
+                        mountedPemMode);
                     global::System.IO.File.SetUnixFileMode(
                         serverPrivateKeyPath,
-                        global::System.IO.UnixFileMode.UserRead |
-                        global::System.IO.UnixFileMode.UserWrite);
+                        mountedPemMode);
                     global::System.IO.File.SetUnixFileMode(
                         trustDescriptorPath,
-                        publicMode);
+                        ownerOnlyFileMode);
                 }
 
                 private static void DeleteOwnedFiles(
@@ -906,19 +916,98 @@ public sealed class KeycloakLocalFixtureGenerator :
                     var descriptorPath = OwnedPath(
                         runtimeRoot,
                         "trust.runtime.json");
-                    using var descriptor = global::System.Text.Json.JsonDocument.Parse(
-                        global::System.IO.File.ReadAllText(descriptorPath));
-                    var root = descriptor.RootElement;
+                    var descriptorBytes =
+                        global::System.IO.File.ReadAllBytes(descriptorPath);
+                    var reader = new global::System.Text.Json.Utf8JsonReader(
+                        descriptorBytes,
+                        new global::System.Text.Json.JsonReaderOptions
+                        {
+                            AllowTrailingCommas = false,
+                            CommentHandling =
+                                global::System.Text.Json.JsonCommentHandling.Disallow,
+                            MaxDepth = 2,
+                        });
+                    string? profile = null;
+                    string? authorityCertificate = null;
+                    string? dotNetTrust = null;
+                    string? chromiumTrust = null;
+                    string? chromiumSpkiList = null;
+                    if (!reader.Read() ||
+                        reader.TokenType !=
+                            global::System.Text.Json.JsonTokenType.StartObject)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            "The fixture trust descriptor is not an object.");
+                    }
+
+                    while (reader.Read() &&
+                           reader.TokenType !=
+                               global::System.Text.Json.JsonTokenType.EndObject)
+                    {
+                        if (reader.TokenType !=
+                                global::System.Text.Json.JsonTokenType.PropertyName)
+                        {
+                            throw new global::System.InvalidOperationException(
+                                "The fixture trust descriptor shape is invalid.");
+                        }
+
+                        var propertyName = reader.GetString();
+                        if (!reader.Read() ||
+                            reader.TokenType !=
+                                global::System.Text.Json.JsonTokenType.String)
+                        {
+                            throw new global::System.InvalidOperationException(
+                                "The fixture trust descriptor value is invalid.");
+                        }
+
+                        var propertyValue = reader.GetString();
+                        switch (propertyName)
+                        {
+                            case "profile" when profile is null:
+                                profile = propertyValue;
+                                break;
+                            case "authorityCertificate"
+                                when authorityCertificate is null:
+                                authorityCertificate = propertyValue;
+                                break;
+                            case "dotNetTrust" when dotNetTrust is null:
+                                dotNetTrust = propertyValue;
+                                break;
+                            case "chromiumTrust" when chromiumTrust is null:
+                                chromiumTrust = propertyValue;
+                                break;
+                            case "chromiumSpkiList"
+                                when chromiumSpkiList is null:
+                                chromiumSpkiList = propertyValue;
+                                break;
+                            default:
+                                throw new global::System.InvalidOperationException(
+                                    "The fixture trust descriptor contains an unexpected or duplicate property.");
+                        }
+                    }
+
+                    if (reader.TokenType !=
+                            global::System.Text.Json.JsonTokenType.EndObject ||
+                        reader.Read())
+                    {
+                        throw new global::System.InvalidOperationException(
+                            "The fixture trust descriptor has trailing content.");
+                    }
+
                     if (!string.Equals(
-                            root.GetProperty("profile").GetString(),
+                            profile,
                             "{{tls.Identity.Value}}@{{tls.Version.Value}}",
                             global::System.StringComparison.Ordinal) ||
                         !string.Equals(
-                            root.GetProperty("dotNetTrust").GetString(),
+                            authorityCertificate,
+                            "tls/authority-certificate.pem",
+                            global::System.StringComparison.Ordinal) ||
+                        !string.Equals(
+                            dotNetTrust,
                             "{{tls.DotNetTrustMode}}",
                             global::System.StringComparison.Ordinal) ||
                         !string.Equals(
-                            root.GetProperty("chromiumTrust").GetString(),
+                            chromiumTrust,
                             "{{tls.ChromiumTrustMode}}",
                             global::System.StringComparison.Ordinal))
                     {
@@ -926,7 +1015,7 @@ public sealed class KeycloakLocalFixtureGenerator :
                             "The fixture trust descriptor does not match the reviewed profile.");
                     }
 
-                    var value = root.GetProperty("chromiumSpkiList").GetString() ??
+                    var value = chromiumSpkiList ??
                         throw new global::System.InvalidOperationException(
                             "The fixture Chromium SPKI list is missing.");
                     if (global::System.Convert.FromBase64String(value).Length != 32)

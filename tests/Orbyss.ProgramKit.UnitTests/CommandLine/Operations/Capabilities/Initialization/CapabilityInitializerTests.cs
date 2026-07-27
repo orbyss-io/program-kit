@@ -208,7 +208,8 @@ public sealed class CapabilityInitializerTests
     private static CapabilityInitializer CreateSubject() =>
         new(
             new CommandFileSystem(),
-            new CapabilityBundleManifestReader());
+            new CapabilityBundleManifestReader(),
+            new CapabilityInitializationLockSerializer());
 
     private static string CreateWorkspace()
     {

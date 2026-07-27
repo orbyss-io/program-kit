@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -1668,7 +1669,31 @@ public sealed class KeycloakLocalFixtureConformanceTests
             await confirmation.ClickAsync();
         }
 
-        await page.WaitForURLAsync("https://localhost:8443/");
+        if (!string.Equals(
+                page.Url,
+                "https://localhost:8443/",
+                StringComparison.Ordinal))
+        {
+            try
+            {
+                await page.WaitForURLAsync("https://localhost:8443/");
+            }
+            catch (Exception exception)
+                when (exception is PlaywrightException or TimeoutException)
+            {
+                throw new InvalidOperationException(
+                    string.Concat(
+                        "The confidential logout did not reach the exact final path. ",
+                        "Safe location: ",
+                        SafeBrowserLocation(page.Url),
+                        "; providerConfirmationControl: ",
+                        await confirmation.CountAsync() == 1
+                            ? "present"
+                            : "absent",
+                        "."));
+            }
+        }
+
         Assert.DoesNotContain(
             "__Host-program-kit-session",
             (await context.CookiesAsync(["https://localhost:8443/"]))
@@ -1716,6 +1741,39 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 RecordVideoDir = null,
             });
         var page = await context.NewPageAsync();
+        var failedResources = new ConcurrentQueue<string>();
+        var browserErrorClassifications = new ConcurrentQueue<string>();
+        var pageErrorCount = 0;
+        var consoleErrorCount = 0;
+        page.Response += (_, response) =>
+        {
+            if (response.Status >= 400)
+            {
+                failedResources.Enqueue(
+                    string.Concat(
+                        response.Status.ToString(CultureInfo.InvariantCulture),
+                        ":",
+                        SafeBrowserLocation(response.Url)));
+            }
+        };
+        page.PageError += (_, error) =>
+        {
+            Interlocked.Increment(ref pageErrorCount);
+            browserErrorClassifications.Enqueue(
+                ClassifyBrowserDiagnostic(error));
+        };
+        page.Console += (_, message) =>
+        {
+            if (string.Equals(
+                    message.Type,
+                    "error",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                Interlocked.Increment(ref consoleErrorCount);
+                browserErrorClassifications.Enqueue(
+                    ClassifyBrowserDiagnostic(message.Text));
+            }
+        };
         var tokenInUrl = false;
         page.Request += (_, request) =>
         {
@@ -1727,14 +1785,57 @@ public sealed class KeycloakLocalFixtureConformanceTests
                     "id_token=",
                     StringComparison.OrdinalIgnoreCase);
         };
-        await page.GotoAsync(
-            "https://localhost:7443/authentication/login?returnUrl=%2Ffixture%2Fprotected-api",
+        var navigation = await page.GotoAsync(
+            "https://localhost:7443/fixture/protected-api",
             new PageGotoOptions
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded,
             });
-        await page.Locator("#username").FillAsync(
-            Definition().TestPrincipalName);
+        var username = page.Locator("#username");
+        try
+        {
+            await username.WaitForAsync(
+                new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 5000,
+                });
+        }
+        catch (Exception exception)
+            when (exception is PlaywrightException or TimeoutException)
+        {
+            var providerError =
+                await page.Locator("#kc-error-message").CountAsync() > 0;
+            var loadingPlaceholder =
+                await page.Locator("#app").CountAsync() == 1 &&
+                string.Equals(
+                    await page.Locator("#app").InnerTextAsync(),
+                    "Loading...",
+                    StringComparison.Ordinal);
+            throw new InvalidOperationException(
+                string.Concat(
+                    "The public-browser flow did not reach the provider login control. ",
+                    "Safe location: ",
+                    SafeBrowserLocation(page.Url),
+                    "; navigationStatus: ",
+                    navigation?.Status.ToString(CultureInfo.InvariantCulture) ??
+                    "unavailable",
+                    "; providerErrorContainer: ",
+                    providerError ? "present" : "absent",
+                    "; loadingPlaceholder: ",
+                    loadingPlaceholder ? "present" : "absent",
+                    "; pageErrors: ",
+                    pageErrorCount.ToString(CultureInfo.InvariantCulture),
+                    "; consoleErrors: ",
+                    consoleErrorCount.ToString(CultureInfo.InvariantCulture),
+                    "; failedResources: ",
+                    failedResources.IsEmpty
+                        ? "none"
+                        : string.Join(",", failedResources.Take(10)),
+                    "."));
+        }
+
+        await username.FillAsync(Definition().TestPrincipalName);
         await page.Locator("#password").FillAsync(
             secrets.TestPrincipalPassword);
         var callback = page.WaitForURLAsync(
@@ -1742,12 +1843,37 @@ public sealed class KeycloakLocalFixtureConformanceTests
         await page.Locator("#kc-login").ClickAsync();
         await callback;
         await page.Locator("#call-protected-api").ClickAsync();
-        await page.Locator("#protected-api-outcome")
-            .WaitForAsync(
-                new LocatorWaitForOptions
-                {
-                    State = WaitForSelectorState.Visible,
-                });
+        try
+        {
+            await page.WaitForFunctionAsync(
+                "() => document.querySelector('#protected-api-outcome')?.textContent !== 'not-run'");
+        }
+        catch (TimeoutException exception)
+        {
+            throw new InvalidOperationException(
+                string.Concat(
+                    "The generated public-browser protected call did not complete. ",
+                    "Safe location: ",
+                    SafeBrowserLocation(page.Url),
+                    "; pageErrors: ",
+                    pageErrorCount.ToString(CultureInfo.InvariantCulture),
+                    "; consoleErrors: ",
+                    consoleErrorCount.ToString(CultureInfo.InvariantCulture),
+                    "; errorClassifications: ",
+                    browserErrorClassifications.IsEmpty
+                        ? "none"
+                        : string.Join(
+                            ",",
+                            browserErrorClassifications
+                                .Distinct(StringComparer.Ordinal)
+                                .Order(StringComparer.Ordinal)),
+                    "; failedResources: ",
+                    failedResources.IsEmpty
+                        ? "none"
+                        : string.Join(",", failedResources.Take(10)),
+                    "."),
+                exception);
+        }
         Assert.AreEqual(
             "accepted",
             await page.Locator("#protected-api-outcome").InnerTextAsync());
@@ -1757,25 +1883,62 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 "() => window.localStorage.length"));
         Assert.IsFalse(tokenInUrl);
 
-        await page.GotoAsync(
-            "https://localhost:7443/authentication/logout?returnUrl=%2F",
-            new PageGotoOptions
-            {
-                WaitUntil = WaitUntilState.DOMContentLoaded,
-            });
+        await page.Locator("#program-kit-logout").ClickAsync();
         var confirmation = page.Locator("#kc-logout");
         if (await confirmation.CountAsync() == 1)
         {
             await confirmation.ClickAsync();
         }
 
-        await page.WaitForURLAsync("https://localhost:7443/");
+        await page.WaitForURLAsync(
+            "https://localhost:7443/authentication/logged-out");
         Assert.AreEqual(
             0,
             await page.EvaluateAsync<int>(
                 "() => window.localStorage.length"));
         await context.ClearCookiesAsync();
         cancellationToken.ThrowIfCancellationRequested();
+    }
+
+    private static string ClassifyBrowserDiagnostic(string value)
+    {
+        if (value.Contains("access token", StringComparison.OrdinalIgnoreCase))
+        {
+            return "access-token";
+        }
+
+        if (value.Contains("cors", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("cross-origin", StringComparison.OrdinalIgnoreCase))
+        {
+            return "cors";
+        }
+
+        if (value.Contains("failed to fetch", StringComparison.OrdinalIgnoreCase))
+        {
+            return "fetch-failed";
+        }
+
+        if (value.Contains("certificate", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("ssl", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("tls", StringComparison.OrdinalIgnoreCase))
+        {
+            return "transport-trust";
+        }
+
+        if (value.Contains("401", StringComparison.Ordinal) ||
+            value.Contains("unauthorized", StringComparison.OrdinalIgnoreCase))
+        {
+            return "unauthorized";
+        }
+
+        if (value.Contains(
+                "unhandled exception rendering component",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return "component-exception";
+        }
+
+        return "other";
     }
 
     private static async Task RunBrowserCodeFlowAsync(

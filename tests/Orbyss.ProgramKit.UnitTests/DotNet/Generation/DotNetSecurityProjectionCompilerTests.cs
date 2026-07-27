@@ -44,6 +44,12 @@ public sealed class DotNetSecurityProjectionCompilerTests
         Assert.Contains("options.NonceCookie.Path = \"/\";", registration);
         Assert.Contains("options.MapInboundClaims = false", registration);
         Assert.Contains("options.SaveTokens = false", registration);
+        Assert.Contains(
+            "OnRedirectToIdentityProviderForSignOut",
+            registration);
+        Assert.Contains(
+            "context.ProtocolMessage.ClientId = context.Options.ClientId",
+            registration);
         Assert.Contains("ValidTypes = [\"at+jwt\"]", registration);
         Assert.Contains("ValidateIssuerSigningKey = true", registration);
         Assert.Contains("RequireAuthenticatedUser", registration);
@@ -57,6 +63,17 @@ public sealed class DotNetSecurityProjectionCompilerTests
         Assert.Contains("Microsoft.NET.Sdk.BlazorWebAssembly", source);
         Assert.Contains("AddOidcAuthentication", source);
         Assert.Contains("ResponseType = \"code\"", source);
+        Assert.Contains("<base href=\"/\" />", source);
+        Assert.Contains("<RedirectToLogin />", source);
+        Assert.Contains(
+            "Navigation.NavigateToLogin(\"authentication/login\")",
+            source);
+        Assert.Contains(
+            "Navigation.NavigateToLogout(\"authentication/logout\")",
+            source);
+        Assert.Contains(
+            "@using Microsoft.AspNetCore.Components.Web",
+            source);
         Assert.Contains("AuthenticationService.js", source);
         Assert.Contains("window.localStorage.length", source);
         Assert.Contains("RefreshTokenExpected = false", source);
@@ -92,6 +109,12 @@ public sealed class DotNetSecurityProjectionCompilerTests
         Assert.IsFalse(source.Contains("offline_access", StringComparison.OrdinalIgnoreCase));
         Assert.IsTrue(first.Any(static output =>
             output.RelativePath == "PublicBrowser/PublicBrowser.csproj"));
+        Assert.IsTrue(first.Any(static output =>
+            output.RelativePath ==
+            "PublicBrowser/Shared/RedirectToLogin.razor"));
+        Assert.IsTrue(first.Any(static output =>
+            output.RelativePath ==
+            "PublicBrowser/Shared/ProgramKitLogout.razor"));
         Assert.IsTrue(first.Any(static output =>
             output.RelativePath ==
             "PublicBrowserVerification/chromium.runsettings"));
