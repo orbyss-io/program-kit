@@ -1,7 +1,8 @@
-# Generated Console command dispatch review candidate
+# Generated Console command dispatch
 
-This directory contains the non-authoritative review candidate for the Program
-Kit generated Console command dispatch gap reported by a blocked consumer.
+This directory contains the approved design, exact implementation plan,
+approval record, and implementation evidence for the generated Console command
+dispatch gap reported by a blocked consumer.
 
 Review in this order:
 
@@ -18,13 +19,17 @@ Review in this order:
    deliberate omissions, and digests.
 7. `review-manifest.json` — exact artifact inventory and human approval
    boundary.
+8. `design-plan-approval.json` — the explicit human decision bound to the
+   approved design, plan, and review-set authority bytes.
+9. `implementation-evidence/closure.json` — exact work-unit commits, artifact
+   digests, gate outcomes, consumer-unblock boundary, and non-release state.
 
-The current candidate keeps generated parser and parse-result bytes unchanged,
+The implementation keeps generated parser and parse-result bytes unchanged,
 adds no Program Kit runtime generator dependency, and does not make the base
 CShells package optional. A plain Console command may use zero feature
 activations and therefore requires no CShells feature package.
 
-Implementation has not started. Creation, validation, commit, or push of this
-review set does not approve it. Implementation requires an explicit human
-decision over the exact canonical design and canonical plan digests in
-`review-manifest.json`.
+The Program Kit implementation is complete when the closure evidence and
+review manifest record all required gates as passed. That state makes the seam
+available for consumer integration; it does not modify JTest, complete any
+JTest work unit, publish a package, qualify a release, promote, or deploy.

@@ -4,9 +4,17 @@
   "reviewSetId": "pkid:approval:program-kit:console-command-dispatch-review-set",
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-extension",
-  "reviewState": "ready-for-human-decision",
-  "implementationStatus": "not-started",
-  "approvalRecord": null,
+  "reviewState": "approved",
+  "implementationStatus": "completed",
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:console-command-dispatch-review-set-1-0-0",
+    "recordVersion": "1.0.0",
+    "contract": "pkid:schema:program-kit:design-plan-approval",
+    "contractVersion": "1.0.0",
+    "path": "extensions/console-command-dispatch/design-plan-approval.json",
+    "sha256": "67f435667d0297fd3de23b6f21cd9dff4162ca80a7025191001460e8473db05d",
+    "authoritySourceSha256": "ab1e3f698f25e7747142fb6ebaf0e87a3e17eb6693c9c22c0142cb19f8548cb4"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -78,7 +86,21 @@
       "artifactVersion": "1.0.0",
       "role": "review-navigation",
       "path": "extensions/console-command-dispatch/README.md",
-      "sha256": "40f13556ae1a4aa68e9662cc47617ba9003c608963e592e73d00fae7a038cbd2"
+      "sha256": "0e1dabaef7b5c68bb08f9f8403b61d6184096332ec1cd0a796b0635a7c084a85"
+    },
+    {
+      "artifactId": "pkid:approval-record:program-kit:console-command-dispatch-review-set-1-0-0",
+      "artifactVersion": "1.0.0",
+      "role": "design-plan-approval",
+      "path": "extensions/console-command-dispatch/design-plan-approval.json",
+      "sha256": "67f435667d0297fd3de23b6f21cd9dff4162ca80a7025191001460e8473db05d"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:console-command-dispatch-closure",
+      "artifactVersion": "1.0.0",
+      "role": "implementation-closure-evidence",
+      "path": "extensions/console-command-dispatch/implementation-evidence/closure.json",
+      "sha256": "ef33453bf3fccaf0bfc8d6524a792bcab82bec8c953dd0d8b9a50ba8cbfa00d7"
     }
   ],
   "approvalBoundary": {
@@ -107,14 +129,17 @@
     "focusedValidator": "passed: one temporary review-only Program Kit unit-test harness test, zero failures; harness removed after execution",
     "lockedRestore": "passed: dotnet restore ProgramKit.sln --locked-mode",
     "standaloneGraph": "unavailable: standalone composition returned PKCLI004 because the Workbench graph adapter is not registered; not cited as evidence",
-    "runtimeImplementationOrExecution": "not performed under design authority",
-    "fullImplementationClosure": "deferred to approved PKCCD-W040"
+    "approvalValidation": "passed: the exact approved design and plan digests, unconditional human decision, empty conditions, active supersession, exact review-set authority source, and human-session statement are recorded in design-plan-approval.json",
+    "runtimeImplementationOrExecution": "passed: generated Console commands resolve one consumer dispatcher before host start, dispatch once, return its integer unchanged, pass application-stopping cancellation, and attempt bounded stop in finally",
+    "fullImplementationClosure": "passed: see implementation-evidence/closure.json"
   },
   "provenance": {
     "startingCommit": "fe52a2f7bb04dbafe42c65fcec412ae0c1cbc5ae",
+    "implementationSourceCommit": "fae899074711dba5177827a072591dd5b1a94365",
+    "completedDate": "2026-07-27",
     "branch": "main",
     "reportedConsumerBaseline": "74c1abc4379ea3dfc39f624ade22a3a4191787bb",
     "source": "human-started Program Kit generated Console dispatch design",
-    "details": "The review set is bounded to Program Kit repository source truth. JTest is consumer evidence only. No approval, implementation, release authority, or consumer completion claim is created by these artifacts."
+    "details": "The human approved the exact canonical design and plan digests without conditions in Codex task 019fa3b9-c0ba-7eb3-816a-12bd68a65c1a. The implementation is bounded to Program Kit repository source truth. JTest remains consumer evidence only: no JTest source was changed and no JTest work unit is marked complete. Implementation completion creates no package publication, release qualification, promotion, or deployment claim."
   }
 }

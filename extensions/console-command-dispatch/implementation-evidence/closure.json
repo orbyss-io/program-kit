@@ -1,0 +1,150 @@
+{
+  "evidenceKind": "program-kit-console-command-dispatch-closure",
+  "evidenceVersion": "1.0.0",
+  "recordedAtUtc": "2026-07-27T15:45:12.6279203Z",
+  "status": "passed",
+  "completionClaim": true,
+  "approval": {
+    "designSha256": "sha256:21afb73f5abc636f23a5fe0357d226bd04dc0697d280a18f3d2ace2ae3be6046",
+    "planSha256": "sha256:1eaec71ea9916512d0a3d15a7e601dd03f5474d9fb6faa9805734eca12439196",
+    "recordSha256": "sha256:67f435667d0297fd3de23b6f21cd9dff4162ca80a7025191001460e8473db05d",
+    "decision": "approved",
+    "conditions": []
+  },
+  "workUnits": [
+    {
+      "workUnit": "PKCCD-W010",
+      "commit": "2b6788d0a815a6e115ed0d250acf981069316f29",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKCCD-W020",
+      "commit": "12425401c6d9de2326a997057a677152d5650fa6",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKCCD-W030",
+      "commit": "fae899074711dba5177827a072591dd5b1a94365",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKCCD-W040",
+      "sourceCommit": "fae899074711dba5177827a072591dd5b1a94365",
+      "status": "passed",
+      "closureCommit": "the Git commit containing this immutable evidence"
+    }
+  ],
+  "artifacts": {
+    "dispatcherContractRevision": "sha256:cf6f6a66fc1a65af35e0349b118455e8dcb1b88e5fbafc13b78f1d0ff4556559",
+    "dispatcherContractSourceSha256": "sha256:503647fe8533d1bdecc1cddccdbb61829a421a81ae7d0914730fbdcf84ea2799",
+    "hostRendererSourceSha256": "sha256:9b121ffa8a435f4e8dcf961dc44c6c672ac3d16353c38ed2c12f8a17fba2b9b8",
+    "dispatchLockSchemaSha256": "sha256:396765c3a0edabed2fae5186593761400a21eec29716a630fcc37f1cb6fa1106",
+    "dispatchEvidenceSchemaSha256": "sha256:6a92aff0466f845c75d9eca4a6aa09a80981da09d329ab7594c7076aa5c710cf",
+    "consoleConsumerFixtureManifestSha256": "sha256:147fa18d509281c41c995c62f464fd60f1ef5dcc292c0d8df6f96bec340b73c9",
+    "observatoryArtifactManifestSha256": "sha256:803e01de4b07099a1e421d03664422444f1741a8f5f3c2893015340f4e3a6c23",
+    "parserGoldenSha256": "sha256:2e4434b1df81274c2d8d5a41911d7a23a837b5db63da93687aed6b1862538ec3",
+    "parseResultGoldenSha256": "sha256:a95b7bf78aea54d000c580e033faca7638b66accbe87ee7e8a7e9ebc734d1f61"
+  },
+  "verification": [
+    {
+      "gate": "locked-solution-restore",
+      "command": "dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode",
+      "result": "passed"
+    },
+    {
+      "gate": "format",
+      "command": "dotnet format ProgramKit.sln --no-restore --verify-no-changes",
+      "result": "passed"
+    },
+    {
+      "gate": "strict-release-build-and-source-gate-self-validation",
+      "command": "dotnet build ProgramKit.sln --no-restore --configuration Release --no-incremental",
+      "result": "passed",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "gate": "unit",
+      "command": "dotnet test tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj --configuration Release --no-build --no-restore",
+      "result": "passed",
+      "tests": 451
+    },
+    {
+      "gate": "ordinary-and-exhaustive-release-conformance",
+      "command": "dotnet test tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj --configuration Release --no-build --no-restore --filter TestCategory!=ContainerIntegration",
+      "result": "passed",
+      "tests": 140
+    },
+    {
+      "gate": "canonical-csharp-gate-plan",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File build/Invoke-CSharpGateTestPlan.ps1 -Profile Exhaustive",
+      "result": "passed",
+      "routinePassed": 120,
+      "routineSkipped": 1,
+      "exhaustivePassed": 20
+    },
+    {
+      "gate": "observatory-fixture",
+      "command": "dotnet test fixtures/observatory-scheduling/tests/ObservatoryScheduling.Tests/ObservatoryScheduling.Tests.csproj --configuration Release --no-restore",
+      "result": "passed",
+      "tests": 15
+    },
+    {
+      "gate": "isolated-generated-console-process",
+      "command": "dotnet test tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj --no-restore --filter FullyQualifiedName~ConsoleCommandDispatchConformanceTests",
+      "result": "passed",
+      "tests": 1,
+      "observedProcessExitCodes": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "gate": "affected-package-build-and-content-inspection",
+      "command": "dotnet msbuild build/ProgramKit.Pack.proj -t:Pack with explicit DotNet and CommandLine projects and temporary output",
+      "result": "passed",
+      "warnings": 0,
+      "dotNetPackage": {
+        "sha256": "sha256:f211665671c6898ee603a34e73a5675b0938a74537001e79465359cf333ed63f",
+        "entries": 50
+      },
+      "commandLinePackage": {
+        "sha256": "sha256:3176208cbd1bc18651fcf709011751d244127efef7c8101c9954f7ad28e70f0f",
+        "entries": 62
+      }
+    },
+    {
+      "gate": "package-selection-license-lock-and-redaction",
+      "result": "passed",
+      "newExternalSelections": 0,
+      "lockChanges": 0,
+      "requiredSchemasPresent": true,
+      "existingOpenApiLicensePresent": true,
+      "machineOrConsumerRuntimeValuesPresent": false
+    }
+  ],
+  "observatoryDisposition": {
+    "typedGeneration": "passed with byte-identical repeated API, Console, and Worker outputs; Console asserts dispatcher contract, dispatch lock, and dispatch evidence",
+    "runnableHost": "the hand-composed Observatory Console remains fixture behavior and is not cited as process-dispatch proof",
+    "standaloneBackedProbe": "not cited as evidence: the pre-existing fixture shell.json stopped at PKCLI002 strict shell deserialization before Console generation; no dispatcher behavior was reached"
+  },
+  "compatibility": {
+    "existingSerializedContractChanged": false,
+    "migrationEdgeRequired": false,
+    "reason": "The dispatcher lock and evidence are new versioned 1.0.0 contracts; the generation input is an in-process record and existing Open Console parser and parse-result contracts are byte-stable."
+  },
+  "consumerAvailability": {
+    "status": "implemented-on-program-kit-main",
+    "acceptanceMet": true,
+    "jtestChanged": false,
+    "jtestWorkUnitCompleted": false
+  },
+  "releaseState": {
+    "packagesPublished": false,
+    "releaseQualified": false,
+    "promoted": false,
+    "deployed": false
+  }
+}

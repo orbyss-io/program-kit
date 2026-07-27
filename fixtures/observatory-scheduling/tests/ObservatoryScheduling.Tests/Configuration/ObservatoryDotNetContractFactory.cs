@@ -378,6 +378,13 @@ internal static class ObservatoryDotNetContractFactory
             new Sha256Digest(
                 "sha256:87e700b361625e78730e77f0287cd31d4da8645bd071af50981773553b3b6893"));
 
+    internal static ArtifactReference ConsoleDocumentRevision() =>
+        new(
+            Id("open-console-document", "observatory-console"),
+            new SemanticVersion("1.0.0"),
+            new Sha256Digest(
+                "sha256:29149ebed6f9dcf5264f3b229a0805d2d4141c0d1693084aece7096a49ae5e10"));
+
     internal static ArtifactReference VersionMapInputRevision() =>
         new(
             Id("version-map", "observatory-v2-input"),

@@ -56,6 +56,15 @@ each selected host identity to one exact integrator-document revision. This
 keeps shell and document digests independently verifiable and avoids inferred
 file naming.
 
+For `dotnet generate-host console`, the bound document revision must match the
+canonical Open Console document version and bytes. Successful generation
+includes the unchanged typed parser and parse-result record, the internal
+consumer dispatcher contract, and deterministic dispatch lock/evidence files.
+Consumer source supplies the generated `Program` partial composition method
+and registers exactly one dispatcher. Parsed commands return that dispatcher's
+integer as the process exit code; parse failures and information output retain
+their document-declared behavior without composing the host.
+
 Foreign-client generation accepts one explicit local JSON OpenAPI document and
 one explicit `Microsoft.OpenApi.Kiota` package archive. The reviewed tool
 manifest, package archive, entry assembly, version, language, and options must
