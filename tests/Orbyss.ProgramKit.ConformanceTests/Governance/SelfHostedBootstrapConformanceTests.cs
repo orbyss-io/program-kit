@@ -40,7 +40,7 @@ public sealed class SelfHostedBootstrapConformanceTests
             ["request-evidence.md"] =
                 "f0bd9c1aab4b78c82345dfa7c6714e3df59cb540aa66454121cc701893afec30",
             ["development-receipt.json"] =
-                "0288b6aa6b08db7e1e53ecc919f2739c3790d6c77656b9d38161061f779f0cb9",
+                "0e1713d680e8052484f35bf9819a6fd945a0c629fe3e16ecbd5e03c0b61868ff",
         };
 
     [TestMethod]
