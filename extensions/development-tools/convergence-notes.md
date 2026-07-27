@@ -386,7 +386,56 @@ consumer construction, surviving prior-session processes, and every prohibited
 self-registration, permission, provider-call, capability-call, or autonomous
 loop behavior.
 
-## Next convergence question
+## Converged section 7: compatibility, documentation, and plan shape
 
-Converge compatibility/versioning, provider-contract drift, documentation
-ownership, deliberate deferrals, and the final implementation work-unit split.
+The human accepted this section without changes.
+
+ProgramKit packages use the repository package version `0.1.0-alpha.1`.
+Development Tool contracts and schemas begin at `1.0.0`. The neutral bridge is
+pinned to stable MCP revision `2025-11-25`. Manifests, version maps,
+compatibility matrices, registration proposals, and locks bind exact semantic
+versions and SHA-256 digests; floating package, executable, schema, provider
+configuration, and protocol selections are forbidden.
+
+Every change, including a compatible one, requires an explicit reviewed update
+proposal. An incompatible contract/schema/provider change requires a reviewed
+migration or exact removal followed by fresh registration. Implementation and
+updates re-check authoritative Codex, Claude Code, and MCP sources; material
+provider-contract drift stops rather than being inferred through.
+
+Canonical technical documentation remains with
+`Orbyss.ProgramKit.Development`,
+`Orbyss.ProgramKit.DevelopmentTools.Mcp`, the `program-kit` CLI, and
+ProgramKit-owned schemas/evidence. A website may project reviewed documentation
+but cannot become technical authority.
+
+V1 deliberately defers remote MCP, provider-native bindings, Claude plugins,
+instructional skills as transport, providers beyond Codex and Claude Code,
+package-feed publication, deployment, release automation, production data,
+infrastructure, secret values, and every autonomous registration, invocation,
+provider call, capability call, or model/tool loop.
+
+The accepted dependency order for the replacement implementation plan is:
+
+1. contracts, schemas, version topology, and exact `reuse-existing` static-gate
+   binding;
+2. Open Console mapping, policy, and test-only generated fixture;
+3. provider-neutral MCP bridge and direct conformance;
+4. registration proposal, ownership lock, lifecycle, and collision handling;
+5. Codex configuration writer and cold-session proof;
+6. Claude Code configuration writer and locally executable fixtures; and
+7. external Claude Code evidence validation, cross-provider closure, and
+   canonical documentation.
+
+Implementation can construct and verify the Claude Code writer in this
+repository. Only final cross-provider closure waits for genuine evidence from
+the human's other machine.
+
+## Convergence result
+
+Sections 1 through 7 and the mandatory `reuse-existing`
+`StaticConformanceDisposition@1.0.0` are aligned. The next step is to reconcile
+the latest Console-generation source truth, issue replacement canonical design
+and Implementation Plan `3.0.0` artifacts, validate/render/digest the exact
+review set, and stop for explicit human approval. No implementation authority
+exists before that approval.
