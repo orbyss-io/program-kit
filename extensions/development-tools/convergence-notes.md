@@ -253,9 +253,78 @@ ProgramKit does not rename or repackage the application as a provider adapter.
 The generated Console proof package and executable remain test-only acceptance
 artifacts and are not a user-facing ProgramKit capability.
 
+## Converged section 5: explicit provider registration lifecycle
+
+The human accepted this section without changes.
+
+ProgramKit first produces a deterministic registration proposal. The proposal
+binds the exact provider, project root, registration and server identities,
+selected operation set, provider configuration change, consumer package and
+executable bytes, Development Tool manifest, neutral MCP package and executable
+bytes, current owned state, and resulting proposal digest. Provider mutation
+requires a human-started command accepting that exact proposal digest.
+
+The provider writers have these exact boundaries:
+
+- Codex writes only the owned project entry in `.codex/config.toml`.
+- Claude Code writes only the owned project entry in `.mcp.json`.
+- Claude Code registration never writes `.claude/settings.json`, approves the
+  project server, grants tool permission, or asserts workspace trust.
+- Neither writer changes user/global provider configuration or unrelated
+  project configuration.
+
+Ownership is recorded separately per provider and registration:
+
+```text
+.program-kit/development-tools/registrations/
+  codex/<registration-id>.lock.json
+  claude-code/<registration-id>.lock.json
+```
+
+The lock binds the exact registration proposal, owned configuration entry,
+manifest, packages, executables, schemas, selected operations, and provider
+contract evidence. It records no claimed provider trust or permission.
+
+Authority and process transitions are separate:
+
+1. registration verifies exact bytes and writes configuration/ownership
+   atomically, but starts no process;
+2. the human starts Codex or Claude Code in the registered project;
+3. the provider may start the neutral MCP bridge for discovery under its own
+   reviewed project/trust contract;
+4. the bridge verifies all locked bytes before advertising any operation;
+5. the provider applies its own permission flow to an actual tool call; and
+6. only then does the bridge start one fresh consumer Console process for that
+   invocation.
+
+The bridge never calls an AI provider, starts another model/tool loop, retries
+automatically, or keeps a consumer process alive for later calls.
+
+`status` is read-only and reports exact, missing, drifted, colliding, or
+provider-approval-unknown state without claiming inaccessible provider trust.
+`update` requires a new deterministic proposal and explicit digest acceptance;
+it reports every added, removed, and changed operation before mutation.
+`remove` verifies the lock and current owned entry, removes only that exact
+entry and lock, and preserves all unrelated bytes.
+
+Missing or changed package, executable, adapter, schema, manifest, lock, or
+owned configuration bytes; incompatible versions; registration/server/tool
+name collisions; an uncontained project path; or provider-contract drift fails
+without partial mutation or process start.
+
+## Mandatory static-conformance disposition
+
+The active design capability now requires one explicit
+`StaticConformanceDisposition@1.0.0`. Current source truth provides a compatible
+candidate: `reuse-existing` with the repository-private
+`pkid:policy:program-kit:csharp-source-quality-gate`, which already governs
+ProgramKit-owned C# through the repository build spine. This would not attach
+the private ProgramKit analyzer to generated consumer applications.
+
+This is a candidate recommendation only. It has not been accepted by the human
+and creates no gate-establishment or implementation authority.
+
 ## Next convergence question
 
-Converge the explicit registration, trust, permission, collision, update, and
-removal lifecycle for both Codex and Claude Code, including the exact point at
-which the provider may start the neutral MCP bridge and the bridge may start a
-consumer executable.
+Obtain the exact human static-conformance disposition, then converge the
+cold-session acceptance proof and cross-provider evidence protocol.
