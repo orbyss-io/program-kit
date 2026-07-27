@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.Artifacts.Schemas;
 using Orbyss.ProgramKit.DotNet.Schemas;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Schemas;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
@@ -30,7 +31,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(38, module.Resources);
+        Assert.HasCount(37, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -183,13 +184,18 @@ public sealed class DotNetSchemaModuleTests
         DotNetSchemaModule module = new(
             new OperationsSchemaModule(),
             new SecretResolutionSchemaModule());
+        OpenConsoleSchemaModule openConsoleModule = new();
         JsonSchemaWorkbenchValidator validator = new(
             canonicalizer,
             new ProgramKitSchemaModuleValidator());
 
         foreach (var document in documents)
         {
-            var schema = module.Resources.Single(resource =>
+            IProgramKitSchemaModule selectedModule =
+                document.Name == "open-console"
+                    ? openConsoleModule
+                    : module;
+            var schema = selectedModule.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
                 (document.Name != "dotnet-shell" ||
                  resource.SchemaReference.Version.Value == "11.0.0") &&
@@ -198,7 +204,7 @@ public sealed class DotNetSchemaModuleTests
 
             var result = validator.Validate(
                 document.Content,
-                module,
+                selectedModule,
                 schema.SchemaReference,
                 profile.MaximumLimits);
 

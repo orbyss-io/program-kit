@@ -2,7 +2,7 @@ global using Orbyss.ProgramKit.DotNet.Composition;
 global using Orbyss.ProgramKit.DotNet.Diagnostics;
 global using Orbyss.ProgramKit.DotNet.Documentation;
 global using Orbyss.ProgramKit.DotNet.Documentation.Api;
-global using Orbyss.ProgramKit.DotNet.Documentation.Console;
+global using Orbyss.ProgramKit.OpenConsole.Contracts;
 global using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 global using Orbyss.ProgramKit.DotNet.Generation;
 global using Orbyss.ProgramKit.DotNet.Health;

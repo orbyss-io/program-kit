@@ -4,6 +4,7 @@ using Orbyss.ProgramKit.DotNet.Generation.ConsoleCommands;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
 
 namespace Orbyss.ProgramKit.DotNet.Generation;
@@ -344,16 +345,29 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         DotNetHostDefinition host,
         DotNetHostKind requiredKind)
     {
-        var provenance = requiredKind switch
+        (
+            ArtifactReference ShellRevision,
+            ArtifactReference GeneratorRevision,
+            ImmutableArray<ArtifactReference> OperationRevisions
+        )? provenance = requiredKind switch
         {
-            DotNetHostKind.Api => input.OpenApi!.Provenance,
-            DotNetHostKind.Console => input.OpenConsole!.Provenance,
-            DotNetHostKind.Worker => input.OpenWorker!.Provenance,
+            DotNetHostKind.Api => (
+                input.OpenApi!.Provenance.ShellRevision,
+                input.OpenApi.Provenance.GeneratorRevision,
+                input.OpenApi.Provenance.OperationRevisions),
+            DotNetHostKind.Console => (
+                input.OpenConsole!.Provenance.ShellRevision,
+                input.OpenConsole.Provenance.GeneratorRevision,
+                input.OpenConsole.Provenance.OperationRevisions),
+            DotNetHostKind.Worker => (
+                input.OpenWorker!.Provenance.ShellRevision,
+                input.OpenWorker.Provenance.GeneratorRevision,
+                input.OpenWorker.Provenance.OperationRevisions),
             _ => null,
         };
         if (provenance is null ||
-            provenance.ShellRevision != input.ShellRevision ||
-            provenance.GeneratorRevision != host.GeneratorProfileRevision)
+            provenance.Value.ShellRevision != input.ShellRevision ||
+            provenance.Value.GeneratorRevision != host.GeneratorProfileRevision)
         {
             return false;
         }
@@ -361,7 +375,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         var bindingKeys = host.OperationBindings
             .Select(static binding => Exact(binding.OperationContract.OperationRevision))
             .ToHashSet(StringComparer.Ordinal);
-        var provenanceKeys = provenance.OperationRevisions
+        var provenanceKeys = provenance.Value.OperationRevisions
             .Select(Exact)
             .ToHashSet(StringComparer.Ordinal);
         if (!bindingKeys.SetEquals(provenanceKeys))
@@ -563,7 +577,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
 
     private static bool HasExactConsoleProjection(
         ImmutableArray<Operations.DotNetOperationBinding> bindings,
-        Documentation.Console.OpenConsoleDocument document)
+        OpenConsoleDocument document)
     {
         if (bindings.Length != document.Commands.Length)
         {
@@ -641,7 +655,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
 
     private static bool ContainsOrAbsent(
         ImmutableArray<ArtifactReference> references,
-        Documentation.Console.OpenConsoleStreamContract? stream) =>
+        OpenConsoleStreamContract? stream) =>
         stream is null || references.Contains(stream.SchemaRevision);
 
     private static bool ExactSet(

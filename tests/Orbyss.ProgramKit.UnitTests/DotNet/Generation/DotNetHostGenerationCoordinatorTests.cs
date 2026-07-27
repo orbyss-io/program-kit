@@ -3,7 +3,8 @@ using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Validation;
 using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -271,7 +272,7 @@ public sealed class DotNetHostGenerationCoordinatorTests
                 new DotNetSecurityProjectionCompiler(),
                 new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
-            new DotNetIntegratorDocumentValidator());
+            new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()));
     }
 
     private static DotNetDocumentWriter CreateDocumentWriter()

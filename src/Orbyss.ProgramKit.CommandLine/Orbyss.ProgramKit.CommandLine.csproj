@@ -11,6 +11,7 @@
       Condition="'$(ProgramKitCommandLineSelfPack)' == 'true'">bin\ProgramKitSelfPack\</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.OpenConsole\Orbyss.ProgramKit.OpenConsole.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Testing\Orbyss.ProgramKit.CSharpBuildGates.Testing.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />

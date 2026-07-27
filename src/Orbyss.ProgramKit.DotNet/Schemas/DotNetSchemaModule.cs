@@ -6,7 +6,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("11.3.0");
+    private static readonly SemanticVersion CatalogVersion = new("11.4.0");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -403,13 +403,6 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "6662822e3707c822b692753ae244316e861f6b17e0a8114db4f7dc4b91e6d85a",
             SchemaVersionV2,
             AzureKeyVaultProvenance),
-        Create(
-            "open-console",
-            "open-console.schema.json",
-            "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/open-console.schema.json",
-            "eed3583dd81b564dd7137e056f650468a17ad31076bdfe938a2520719a73c8e5",
-            SchemaVersionV1,
-            Provenance),
         Create(
             "dotnet-console-command-dispatch-lock",
             "dotnet-console-command-dispatch-lock-1.0.0.schema.json",

@@ -21,7 +21,7 @@
       "Orbyss.ProgramKit.DotNet.Inputs.DotNetArtifactInputManifest",
       "Orbyss.ProgramKit.DotNet.Shells.DotNetShellDocument",
       "Orbyss.ProgramKit.DotNet.Locks.DotNetShellLockDocument",
-      "Orbyss.ProgramKit.DotNet.Documentation.Console.OpenConsoleDocument",
+      "Orbyss.ProgramKit.OpenConsole.Contracts.OpenConsoleDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Worker.OpenWorkerDocument"
     ],
     "converters": [
@@ -36,7 +36,7 @@
       "Orbyss.ProgramKit.DotNet.Health.DotNetHealthDocumentationDisposition",
       "Orbyss.ProgramKit.DotNet.Health.DotNetHealthExposure",
       "Orbyss.ProgramKit.DotNet.Health.DotNetHealthEndpointKind",
-      "Orbyss.ProgramKit.DotNet.Documentation.Console.ConsoleOptionKind"
+      "Orbyss.ProgramKit.OpenConsole.Contracts.ConsoleOptionKind"
     ]
   }
 }

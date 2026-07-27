@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Generated completion query behavior.</summary>
 public sealed record OpenConsoleCompletion(

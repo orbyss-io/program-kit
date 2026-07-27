@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;

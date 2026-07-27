@@ -4,7 +4,7 @@ using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.References;
 using Orbyss.ProgramKit.DotNet.Documentation;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Composition;
@@ -377,7 +377,10 @@ internal static class DotNetTestContractFactory
         return new OpenConsoleDocument(
             "pkid:schema:program-kit:open-console@1.0.0",
             new SemanticVersion("1.0.0"),
-            new IntegratorDocumentInfo("sample", "Sample console.", new SemanticVersion("1.0.0")),
+            new OpenConsoleInfo(
+                "sample",
+                "Sample console.",
+                new SemanticVersion("1.0.0")),
             Ref("host", "console", 'e'),
             new OpenConsoleParsing(true, "--", true, true, "invariant", "bounded-by-occurrence"),
             [],
@@ -385,7 +388,7 @@ internal static class DotNetTestContractFactory
             new OpenConsoleHelp("help", "h", 0),
             new OpenConsoleCompletion("complete", true, true),
             Compatibility(),
-            Provenance(host, operation));
+            ConsoleProvenance(host, operation));
     }
 
     internal static DotNetConfigurationProviderDescriptor Provider(
@@ -853,6 +856,14 @@ internal static class DotNetTestContractFactory
         new(id, new SemanticVersion(version), Digest(digest));
 
     private static IntegratorDocumentProvenance Provenance(
+        DotNetHostDefinition host,
+        ArtifactReference operation) =>
+        new(
+            Ref("shell", "reviewed", '6'),
+            host.GeneratorProfileRevision,
+            [operation]);
+
+    private static OpenConsoleProvenance ConsoleProvenance(
         DotNetHostDefinition host,
         ArtifactReference operation) =>
         new(

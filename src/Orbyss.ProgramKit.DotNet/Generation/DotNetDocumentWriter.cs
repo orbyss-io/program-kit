@@ -1,6 +1,6 @@
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;

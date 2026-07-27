@@ -1,5 +1,5 @@
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;

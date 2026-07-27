@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Token-array example and its stable explanation.</summary>
 public sealed record OpenConsoleExample(

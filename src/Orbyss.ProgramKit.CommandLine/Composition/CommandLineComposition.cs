@@ -36,6 +36,9 @@ using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Planning.Schemas;
 using Orbyss.ProgramKit.Operations.Contracts.Schemas;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Schemas;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Validation;
 using Orbyss.ProgramKit.Quality.Schemas;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
@@ -107,6 +110,7 @@ public static class CommandLineComposition
             new SerializationJsonSchemaModule(),
             new TasksCoreSchemaModule(),
             new TaskSchedulesSchemaModule(),
+            new OpenConsoleSchemaModule(),
             new DotNetSchemaModule(
                 new OperationsSchemaModule(),
                 new Orbyss.ProgramKit.SecretResolution.Contracts.Schemas.SecretResolutionSchemaModule()));
@@ -138,7 +142,7 @@ public static class CommandLineComposition
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),
-            new DotNetIntegratorDocumentValidator());
+            new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()));
         IWorkbenchOutputWorkspace outputWorkspace =
             new FileSystemWorkbenchOutputWorkspace();
         IWorkbenchGenerationService<DotNetHostGenerationInput> apiGeneration =

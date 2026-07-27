@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Frozen operating-system-token parsing conventions.</summary>
 public sealed record OpenConsoleParsing(

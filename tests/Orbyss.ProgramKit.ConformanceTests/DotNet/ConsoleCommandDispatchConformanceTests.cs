@@ -365,7 +365,7 @@ public sealed class ConsoleCommandDispatchConformanceTests
         var document = new OpenConsoleDocument(
             "pkid:schema:program-kit:open-console@1.0.0",
             new SemanticVersion("1.0.0"),
-            new IntegratorDocumentInfo(
+            new OpenConsoleInfo(
                 "Console command consumer",
                 "Exercises generated consumer dispatch.",
                 new SemanticVersion("1.0.0")),
@@ -438,7 +438,7 @@ public sealed class ConsoleCommandDispatchConformanceTests
             new OpenConsoleHelp("help", "h", 0),
             new OpenConsoleCompletion("complete", true, true),
             compatibility,
-            new IntegratorDocumentProvenance(
+            new OpenConsoleProvenance(
                 shellRevision,
                 generatorRevision,
                 [operationRevision]));

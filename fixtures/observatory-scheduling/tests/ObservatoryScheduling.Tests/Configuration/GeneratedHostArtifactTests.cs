@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Validation;
 using Orbyss.ProgramKit.SecretResolution.Contracts.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
@@ -31,7 +32,8 @@ public sealed class GeneratedHostArtifactTests
             providerComposition.CreateBuiltInCatalog());
         var lockBuilder = new DotNetShellLockBuilder(shellValidator);
         var shellLock = lockBuilder.Build(shell, shellRevision);
-        var documentValidator = new DotNetIntegratorDocumentValidator();
+        var documentValidator = new DotNetIntegratorDocumentValidator(
+            new OpenConsoleDocumentValidator());
         var api = ObservatoryDotNetContractFactory.CreateApiDocument(shell);
         var console =
             ObservatoryDotNetContractFactory.CreateConsoleDocument(shell);
@@ -145,6 +147,7 @@ public sealed class GeneratedHostArtifactTests
                 new DotNetSecurityProjectionCompiler(),
                 new DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
-            new DotNetIntegratorDocumentValidator());
+                new DotNetIntegratorDocumentValidator(
+                    new OpenConsoleDocumentValidator()));
     }
 }

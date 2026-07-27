@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Complete parsing and contract descriptor for one option.</summary>
 public sealed record OpenConsoleOption(

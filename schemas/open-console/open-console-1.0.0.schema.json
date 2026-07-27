@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/open-console.schema.json",
+  "$id": "https://schemas.orbyss.io/program-kit/open-console/1.0.0/schema.json",
   "x-program-kit-identity": "pkid:schema:program-kit:open-console",
   "x-program-kit-version": "1.0.0",
   "title": "Open Console 1.0.0",

@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Minimum and maximum occurrences accepted in one invocation.</summary>
 public sealed record ConsoleOccurrence(

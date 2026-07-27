@@ -5,7 +5,7 @@ using Orbyss.ProgramKit.Artifacts.References;
 using Orbyss.ProgramKit.DotNet.Configuration;
 using Orbyss.ProgramKit.DotNet.Documentation;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Operations;
@@ -208,7 +208,7 @@ internal static class ObservatoryDotNetContractFactory
         return new OpenConsoleDocument(
             "pkid:schema:program-kit:open-console@1.0.0",
             new SemanticVersion("1.0.0"),
-            new IntegratorDocumentInfo(
+            new OpenConsoleInfo(
                 "observatory-scheduling",
                 "Schedules immediate or background viewing work.",
                 new SemanticVersion("2.0.0")),
@@ -332,7 +332,7 @@ internal static class ObservatoryDotNetContractFactory
             new OpenConsoleHelp("help", "h", 0),
             new OpenConsoleCompletion("complete", true, true),
             Compatibility(),
-            Provenance(host, [operation]));
+            ConsoleProvenance(host, [operation]));
     }
 
     internal static OpenWorkerDocument CreateWorkerDocument(
@@ -632,6 +632,14 @@ internal static class ObservatoryDotNetContractFactory
             host.Version.Value);
 
     private static IntegratorDocumentProvenance Provenance(
+        DotNetHostDefinition host,
+        ImmutableArray<ArtifactReference> operations) =>
+        new(
+            ShellRevision(),
+            host.GeneratorProfileRevision,
+            operations);
+
+    private static OpenConsoleProvenance ConsoleProvenance(
         DotNetHostDefinition host,
         ImmutableArray<ArtifactReference> operations) =>
         new(

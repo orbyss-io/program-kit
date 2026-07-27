@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Complete ordered positional-argument descriptor.</summary>
 public sealed record OpenConsoleArgument(

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
-using Orbyss.ProgramKit.DotNet.Diagnostics;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Diagnostics;
+using Orbyss.ProgramKit.OpenConsole.Contracts.Validation;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
 
@@ -13,7 +14,7 @@ public sealed class DotNetIntegratorDocumentValidatorTests
     public void TypedApiConsoleAndWorkerDocumentsPass()
     {
         var shell = DotNetTestContractFactory.Shell();
-        DotNetIntegratorDocumentValidator sut = new();
+        DotNetIntegratorDocumentValidator sut = new(new OpenConsoleDocumentValidator());
 
         var api = sut.Validate(DotNetTestContractFactory.ApiDocument(shell));
         var console = sut.Validate(DotNetTestContractFactory.ConsoleDocument(shell));
@@ -39,13 +40,13 @@ public sealed class DotNetIntegratorDocumentValidatorTests
         {
             Commands = [command with { Options = command.Options.Add(duplicate) }],
         };
-        DotNetIntegratorDocumentValidator sut = new();
+        DotNetIntegratorDocumentValidator sut = new(new OpenConsoleDocumentValidator());
 
         var result = sut.Validate(document);
 
         Assert.IsFalse(result.IsValid);
         Assert.IsTrue(result.Diagnostics.Any(static item =>
-            item.Id == DotNetDiagnosticIds.InvalidIntegratorDocument));
+            item.Id == OpenConsoleDiagnosticIds.InvalidDocument));
     }
 
     [TestMethod]
@@ -78,13 +79,13 @@ public sealed class DotNetIntegratorDocumentValidatorTests
                 ],
             },
         };
-        DotNetIntegratorDocumentValidator sut = new();
+        DotNetIntegratorDocumentValidator sut = new(new OpenConsoleDocumentValidator());
 
         var result = sut.Validate(document);
 
         Assert.IsFalse(result.IsValid);
         Assert.IsTrue(result.Diagnostics.Any(static item =>
-            item.Id == DotNetDiagnosticIds.InvalidIntegratorDocument));
+            item.Id == OpenConsoleDiagnosticIds.InvalidDocument));
     }
 
     [TestMethod]
@@ -106,7 +107,7 @@ public sealed class DotNetIntegratorDocumentValidatorTests
                 true),
         };
         document = document with { Commands = [command] };
-        DotNetIntegratorDocumentValidator sut = new();
+        DotNetIntegratorDocumentValidator sut = new(new OpenConsoleDocumentValidator());
 
         var result = sut.Validate(document);
 

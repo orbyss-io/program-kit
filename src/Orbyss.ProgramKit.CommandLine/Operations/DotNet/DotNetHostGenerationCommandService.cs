@@ -5,7 +5,7 @@ using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Documentation;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Inputs;
@@ -110,7 +110,7 @@ public sealed class DotNetHostGenerationCommandService :
             projection.Content,
             profile,
             limits);
-        var shellRevision = documentInput.Provenance.ShellRevision;
+        var shellRevision = documentInput.ShellRevision;
         EnsureShellDigest(shellBytes.Span, shellRevision.Digest);
         var shellLock = lockBuilder.Build(shell, shellRevision);
         var hostLock = lockSelector.Resolve(shellLock, hostIdentity, host.Kind);
@@ -235,15 +235,15 @@ public sealed class DotNetHostGenerationCommandService :
 
     private static DotNetDocumentInput FromApi(
         OpenApiDocumentProjection document) =>
-        new(document.Provenance, document, null, null);
+        new(document.Provenance.ShellRevision, document, null, null);
 
     private static DotNetDocumentInput FromConsole(
         OpenConsoleDocument document) =>
-        new(document.Provenance, null, document, null);
+        new(document.Provenance.ShellRevision, null, document, null);
 
     private static DotNetDocumentInput FromWorker(
         OpenWorkerDocument document) =>
-        new(document.Provenance, null, null, document);
+        new(document.Provenance.ShellRevision, null, null, document);
 
     private static void EnsureShellDigest(
         ReadOnlySpan<byte> shellBytes,

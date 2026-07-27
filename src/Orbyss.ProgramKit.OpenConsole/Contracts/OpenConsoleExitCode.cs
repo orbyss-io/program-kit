@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>Exhaustive stable process exit mapping.</summary>
 public sealed record OpenConsoleExitCode(

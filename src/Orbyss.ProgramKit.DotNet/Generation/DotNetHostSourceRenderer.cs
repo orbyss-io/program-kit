@@ -1,7 +1,7 @@
 using System.Text;
 using System.Globalization;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
-using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Generation.ConsoleCommands;
 using Orbyss.ProgramKit.DotNet.Generation.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Health;

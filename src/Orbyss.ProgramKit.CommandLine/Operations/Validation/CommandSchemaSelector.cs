@@ -14,6 +14,7 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
     private readonly IProgramKitSchemaModule serialization;
     private readonly IProgramKitSchemaModule tasksCore;
     private readonly IProgramKitSchemaModule taskSchedules;
+    private readonly IProgramKitSchemaModule openConsole;
     private readonly IProgramKitSchemaModule dotNet;
 
     /// <summary>Initializes the selector from exact package-owned schema modules.</summary>
@@ -26,6 +27,7 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         IProgramKitSchemaModule serialization,
         IProgramKitSchemaModule tasksCore,
         IProgramKitSchemaModule taskSchedules,
+        IProgramKitSchemaModule openConsole,
         IProgramKitSchemaModule dotNet)
     {
         this.artifacts = artifacts ?? throw new ArgumentNullException(nameof(artifacts));
@@ -37,6 +39,8 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         this.tasksCore = tasksCore ?? throw new ArgumentNullException(nameof(tasksCore));
         this.taskSchedules = taskSchedules ??
             throw new ArgumentNullException(nameof(taskSchedules));
+        this.openConsole = openConsole ??
+            throw new ArgumentNullException(nameof(openConsole));
         this.dotNet = dotNet ?? throw new ArgumentNullException(nameof(dotNet));
     }
 
@@ -81,6 +85,7 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         yield return serialization;
         yield return tasksCore;
         yield return taskSchedules;
+        yield return openConsole;
         yield return dotNet;
     }
 }

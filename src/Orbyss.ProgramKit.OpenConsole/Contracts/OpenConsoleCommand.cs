@@ -1,4 +1,4 @@
-namespace Orbyss.ProgramKit.DotNet.Documentation.Console;
+namespace Orbyss.ProgramKit.OpenConsole.Contracts;
 
 /// <summary>One operation-backed command descriptor shared by docs and parser generation.</summary>
 public sealed record OpenConsoleCommand(
