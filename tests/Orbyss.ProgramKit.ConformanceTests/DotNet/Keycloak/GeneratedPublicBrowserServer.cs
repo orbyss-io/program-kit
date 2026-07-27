@@ -1,6 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 
 namespace Orbyss.ProgramKit.ConformanceTests.DotNet.Keycloak;
@@ -58,8 +59,14 @@ internal sealed class GeneratedPublicBrowserServer : IAsyncDisposable
                     port,
                     endpoint => endpoint.UseHttps(certificate)));
             var application = builder.Build();
+            FileExtensionContentTypeProvider contentTypes = new();
+            contentTypes.Mappings[".dat"] = "application/octet-stream";
             application.UseDefaultFiles();
-            application.UseStaticFiles();
+            application.UseStaticFiles(
+                new StaticFileOptions
+                {
+                    ContentTypeProvider = contentTypes,
+                });
             application.MapFallbackToFile("index.html");
             await application.StartAsync(cancellationToken);
             return new GeneratedPublicBrowserServer(application, certificate);

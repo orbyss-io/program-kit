@@ -71,7 +71,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "LangVersion", "14.0");
         AssertProperty(document, "ProgramKitTargetProfileId", "pkid:profile:program-kit:dotnet-10");
         AssertProperty(document, "ProgramKitTargetProfileVersion", "1.0.0");
-        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W090");
+        AssertProperty(document, "ProgramKitCurrentWorkUnit", "PK-W110");
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
@@ -159,6 +159,7 @@ public sealed class BuildSpineConformanceTests
 
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            ["Aspire.Hosting.Keycloak"] = "[13.4.6-preview.1.26319.6]",
             ["Azure.Extensions.AspNetCore.Configuration.Secrets"] = "[1.5.1]",
             ["MSTest.Sdk"] = "[4.3.2]",
             ["JsonSchema.Net"] = "[9.3.0]",

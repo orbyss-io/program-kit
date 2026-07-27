@@ -171,8 +171,8 @@
       <_ProgramKitExpectedGeneratedEditorConfigPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig'))</_ProgramKitExpectedGeneratedEditorConfigPath>
       <_ProgramKitApprovedMSTestAnalyzerConfigPath></_ProgramKitApprovedMSTestAnalyzerConfigPath>
       <_ProgramKitApprovedMSTestAnalyzerTargetsPath></_ProgramKitApprovedMSTestAnalyzerTargetsPath>
-      <_ProgramKitApprovedMSTestAnalyzerConfigPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\globalconfigs\mstest-all.globalconfig'))</_ProgramKitApprovedMSTestAnalyzerConfigPath>
-      <_ProgramKitApprovedMSTestAnalyzerTargetsPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\buildTransitive\MSTest.Analyzers.targets'))</_ProgramKitApprovedMSTestAnalyzerTargetsPath>
+      <_ProgramKitApprovedMSTestAnalyzerConfigPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/mstest.analyzers/4.3.2/globalconfigs/mstest-all.globalconfig'))</_ProgramKitApprovedMSTestAnalyzerConfigPath>
+      <_ProgramKitApprovedMSTestAnalyzerTargetsPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/mstest.analyzers/4.3.2/buildTransitive/MSTest.Analyzers.targets'))</_ProgramKitApprovedMSTestAnalyzerTargetsPath>
     </PropertyGroup>
     <ItemGroup>
       <_ProgramKitCSharpGateProjectReference Remove="@(_ProgramKitCSharpGateProjectReference)" />
@@ -439,7 +439,7 @@
           DependsOnTargets="ResolveProjectReferences"
           BeforeTargets="ValidateProgramKitResolvedAnalyzerSet">
     <PropertyGroup>
-      <_ProgramKitExpectedHumanizerAnalyzerPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)humanizer.core\3.0.10\analyzers\dotnet\roslyn4.14\cs\Humanizer.Analyzers.dll'))</_ProgramKitExpectedHumanizerAnalyzerPath>
+      <_ProgramKitExpectedHumanizerAnalyzerPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/humanizer.core/3.0.10/analyzers/dotnet/roslyn4.14/cs/Humanizer.Analyzers.dll'))</_ProgramKitExpectedHumanizerAnalyzerPath>
     </PropertyGroup>
     <ItemGroup>
       <_ProgramKitAllHumanizerAnalyzer Remove="@(_ProgramKitAllHumanizerAnalyzer)" />
@@ -466,37 +466,37 @@
           DependsOnTargets="ResolveProjectReferences;RemoveProgramKitUnselectedHumanizerAnalyzer"
           BeforeTargets="CoreCompile">
     <PropertyGroup>
-      <_ProgramKitNetAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\analyzers\Microsoft.CodeAnalysis.NetAnalyzers.dll'))</_ProgramKitNetAnalyzerPath>
-      <_ProgramKitCSharpNetAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\analyzers\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll'))</_ProgramKitCSharpNetAnalyzerPath>
-      <_ProgramKitCodeStyleAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\codestyle\cs\Microsoft.CodeAnalysis.CodeStyle.dll'))</_ProgramKitCodeStyleAnalyzerPath>
-      <_ProgramKitCodeStyleFixAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\codestyle\cs\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll'))</_ProgramKitCodeStyleFixAnalyzerPath>
-      <_ProgramKitCSharpCodeStyleAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\codestyle\cs\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll'))</_ProgramKitCSharpCodeStyleAnalyzerPath>
-      <_ProgramKitCSharpCodeStyleFixAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\codestyle\cs\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll'))</_ProgramKitCSharpCodeStyleFixAnalyzerPath>
+      <_ProgramKitNetAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/analyzers/Microsoft.CodeAnalysis.NetAnalyzers.dll'))</_ProgramKitNetAnalyzerPath>
+      <_ProgramKitCSharpNetAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/analyzers/Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll'))</_ProgramKitCSharpNetAnalyzerPath>
+      <_ProgramKitCodeStyleAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CodeStyle.dll'))</_ProgramKitCodeStyleAnalyzerPath>
+      <_ProgramKitCodeStyleFixAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CodeStyle.Fixes.dll'))</_ProgramKitCodeStyleFixAnalyzerPath>
+      <_ProgramKitCSharpCodeStyleAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CSharp.CodeStyle.dll'))</_ProgramKitCSharpCodeStyleAnalyzerPath>
+      <_ProgramKitCSharpCodeStyleFixAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll'))</_ProgramKitCSharpCodeStyleFixAnalyzerPath>
       <_ProgramKitMSTestAnalyzerPath></_ProgramKitMSTestAnalyzerPath>
       <_ProgramKitMSTestCodeFixAnalyzerPath></_ProgramKitMSTestCodeFixAnalyzerPath>
-      <_ProgramKitMSTestAnalyzerPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\analyzers\dotnet\cs\MSTest.Analyzers.dll'))</_ProgramKitMSTestAnalyzerPath>
-      <_ProgramKitMSTestCodeFixAnalyzerPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll'))</_ProgramKitMSTestCodeFixAnalyzerPath>
-      <_ProgramKitTUnitAssertionsAnalyzerRoot Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)tunit.assertions\1.60.0\analyzers\dotnet\cs'))\</_ProgramKitTUnitAssertionsAnalyzerRoot>
-      <_ProgramKitTUnitCoreAnalyzerRoot Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)tunit.core\1.60.0\analyzers\dotnet'))\</_ProgramKitTUnitCoreAnalyzerRoot>
+      <_ProgramKitMSTestAnalyzerPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/mstest.analyzers/4.3.2/analyzers/dotnet/cs/MSTest.Analyzers.dll'))</_ProgramKitMSTestAnalyzerPath>
+      <_ProgramKitMSTestCodeFixAnalyzerPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/mstest.analyzers/4.3.2/analyzers/dotnet/cs/MSTest.Analyzers.CodeFixes.dll'))</_ProgramKitMSTestCodeFixAnalyzerPath>
+      <_ProgramKitTUnitAssertionsAnalyzerRoot Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/tunit.assertions/1.60.0/analyzers/dotnet/cs'))$([System.IO.Path]::DirectorySeparatorChar)</_ProgramKitTUnitAssertionsAnalyzerRoot>
+      <_ProgramKitTUnitCoreAnalyzerRoot Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/tunit.core/1.60.0/analyzers/dotnet'))$([System.IO.Path]::DirectorySeparatorChar)</_ProgramKitTUnitCoreAnalyzerRoot>
       <_ProgramKitLegacyMSTestProject
         Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' or
                    '$(MSBuildProjectName)' == 'Orbyss.ProgramKit.ConformanceTests'">true</_ProgramKitLegacyMSTestProject>
       <_ProgramKitLoggingGeneratorPath></_ProgramKitLoggingGeneratorPath>
       <_ProgramKitOptionsGeneratorPath></_ProgramKitOptionsGeneratorPath>
       <_ProgramKitConfigurationBinderGeneratorPath></_ProgramKitConfigurationBinderGeneratorPath>
-      <_ProgramKitLoggingGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.logging.abstractions\10.0.10\analyzers\dotnet\roslyn4.4\cs\Microsoft.Extensions.Logging.Generators.dll'))</_ProgramKitLoggingGeneratorPath>
-      <_ProgramKitOptionsGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.options\10.0.10\analyzers\dotnet\roslyn4.4\cs\Microsoft.Extensions.Options.SourceGeneration.dll'))</_ProgramKitOptionsGeneratorPath>
-      <_ProgramKitConfigurationBinderGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)microsoft.extensions.configuration.binder\10.0.10\analyzers\dotnet\cs\Microsoft.Extensions.Configuration.Binder.SourceGeneration.dll'))</_ProgramKitConfigurationBinderGeneratorPath>
-      <_ProgramKitFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.NETCore.App.Ref'))\</_ProgramKitFrameworkAnalyzerRoot>
-      <_ProgramKitAspNetFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..\packs\Microsoft.AspNetCore.App.Ref\10.0.10\analyzers\dotnet\cs'))\</_ProgramKitAspNetFrameworkAnalyzerRoot>
-      <_ProgramKitWebSdkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Web\analyzers\cs'))\</_ProgramKitWebSdkAnalyzerRoot>
-      <_ProgramKitSystemClientModelGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)system.clientmodel\1.10.0\analyzers\dotnet\cs\System.ClientModel.SourceGeneration.dll'))</_ProgramKitSystemClientModelGeneratorPath>
-      <_ProgramKitRazorGeneratorRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk.Razor\source-generators'))\</_ProgramKitRazorGeneratorRoot>
-      <_ProgramKitExpectedGeneratedSourceProbeProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\CSharpGate\GeneratedSource\Generator\GeneratedSourceProbe.csproj'))</_ProgramKitExpectedGeneratedSourceProbeProjectPath>
+      <_ProgramKitLoggingGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/microsoft.extensions.logging.abstractions/10.0.10/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll'))</_ProgramKitLoggingGeneratorPath>
+      <_ProgramKitOptionsGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/microsoft.extensions.options/10.0.10/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll'))</_ProgramKitOptionsGeneratorPath>
+      <_ProgramKitConfigurationBinderGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/microsoft.extensions.configuration.binder/10.0.10/analyzers/dotnet/cs/Microsoft.Extensions.Configuration.Binder.SourceGeneration.dll'))</_ProgramKitConfigurationBinderGeneratorPath>
+      <_ProgramKitFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/../../packs/Microsoft.NETCore.App.Ref'))$([System.IO.Path]::DirectorySeparatorChar)</_ProgramKitFrameworkAnalyzerRoot>
+      <_ProgramKitAspNetFrameworkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/../../packs/Microsoft.AspNetCore.App.Ref/10.0.10/analyzers/dotnet/cs'))$([System.IO.Path]::DirectorySeparatorChar)</_ProgramKitAspNetFrameworkAnalyzerRoot>
+      <_ProgramKitWebSdkAnalyzerRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk.Web/analyzers/cs'))$([System.IO.Path]::DirectorySeparatorChar)</_ProgramKitWebSdkAnalyzerRoot>
+      <_ProgramKitSystemClientModelGeneratorPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/system.clientmodel/1.10.0/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll'))</_ProgramKitSystemClientModelGeneratorPath>
+      <_ProgramKitRazorGeneratorRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk.Razor/source-generators'))$([System.IO.Path]::DirectorySeparatorChar)</_ProgramKitRazorGeneratorRoot>
+      <_ProgramKitExpectedGeneratedSourceProbeProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests/Orbyss.ProgramKit.ConformanceTests/Fixtures/CSharpGate/GeneratedSource/Generator/GeneratedSourceProbe.csproj'))</_ProgramKitExpectedGeneratedSourceProbeProjectPath>
       <_ProgramKitResolvedGeneratedSourceProbeProjectPath></_ProgramKitResolvedGeneratedSourceProbeProjectPath>
       <_ProgramKitGeneratedSourceProbeAnalyzerPath></_ProgramKitGeneratedSourceProbeAnalyzerPath>
       <_ProgramKitResolvedGeneratedSourceProbeProjectPath Condition="'$(ProgramKitGeneratedSourceProbeProject)' != ''">$([System.IO.Path]::GetFullPath('$(ProgramKitGeneratedSourceProbeProject)'))</_ProgramKitResolvedGeneratedSourceProbeProjectPath>
-      <_ProgramKitGeneratedSourceProbeAnalyzerPath Condition="'$(ProgramKitGeneratedSourceProbeProject)' != ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Fixtures\CSharpGate\GeneratedSource\Generator\bin\$(Configuration)\$(TargetFramework)\GeneratedSourceProbe.dll'))</_ProgramKitGeneratedSourceProbeAnalyzerPath>
+      <_ProgramKitGeneratedSourceProbeAnalyzerPath Condition="'$(ProgramKitGeneratedSourceProbeProject)' != ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests/Orbyss.ProgramKit.ConformanceTests/Fixtures/CSharpGate/GeneratedSource/Generator/bin/$(Configuration)/$(TargetFramework)/GeneratedSourceProbe.dll'))</_ProgramKitGeneratedSourceProbeAnalyzerPath>
     </PropertyGroup>
     <Error Condition="'$(ProgramKitGeneratedSourceProbeProject)' != '' and
                       '$(_ProgramKitResolvedGeneratedSourceProbeProjectPath)' != '$(_ProgramKitExpectedGeneratedSourceProbeProjectPath)'"
@@ -672,11 +672,11 @@
     <PropertyGroup>
       <_ProgramKitCs1701CompatibilityRawReferenceUnitTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.UnitTests\Orbyss.ProgramKit.UnitTests.csproj'))</_ProgramKitCs1701CompatibilityRawReferenceUnitTestProjectPath>
       <_ProgramKitCs1701CompatibilityRawReferenceConformanceTestProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tests\Orbyss.ProgramKit.ConformanceTests\Orbyss.ProgramKit.ConformanceTests.csproj'))</_ProgramKitCs1701CompatibilityRawReferenceConformanceTestProjectPath>
-      <_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testframework\4.3.2\buildTransitive\net9.0\MSTest.TestFramework.targets'))</_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath>
-      <_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTest.TestAdapter.targets'))</_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath>
-      <_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testframework\4.3.2\buildTransitive\net9.0\MSTest.TestFramework.Extensions.dll'))</_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath>
-      <_ProgramKitCs1701CompatibilityMSTestAdapterPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTest.TestAdapter.dll'))</_ProgramKitCs1701CompatibilityMSTestAdapterPath>
-      <_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net9.0\MSTestAdapter.PlatformServices.dll'))</_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath>
+      <_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath>$([System.IO.Path]::Combine('$(NuGetPackageRoot)', 'mstest.testframework', '4.3.2', 'buildTransitive', 'net9.0', 'MSTest.TestFramework.targets'))</_ProgramKitCs1701CompatibilityMSTestFrameworkTargetsPath>
+      <_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath>$([System.IO.Path]::Combine('$(NuGetPackageRoot)', 'mstest.testadapter', '4.3.2', 'buildTransitive', 'net9.0', 'MSTest.TestAdapter.targets'))</_ProgramKitCs1701CompatibilityMSTestAdapterTargetsPath>
+      <_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath>$([System.IO.Path]::Combine('$(NuGetPackageRoot)', 'mstest.testframework', '4.3.2', 'buildTransitive', 'net9.0', 'MSTest.TestFramework.Extensions.dll'))</_ProgramKitCs1701CompatibilityMSTestFrameworkExtensionsPath>
+      <_ProgramKitCs1701CompatibilityMSTestAdapterPath>$([System.IO.Path]::Combine('$(NuGetPackageRoot)', 'mstest.testadapter', '4.3.2', 'buildTransitive', 'net9.0', 'MSTest.TestAdapter.dll'))</_ProgramKitCs1701CompatibilityMSTestAdapterPath>
+      <_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath>$([System.IO.Path]::Combine('$(NuGetPackageRoot)', 'mstest.testadapter', '4.3.2', 'buildTransitive', 'net9.0', 'MSTestAdapter.PlatformServices.dll'))</_ProgramKitCs1701CompatibilityMSTestPlatformServicesPath>
       <_ProgramKitCs1701CompatibilityCanonicalProject
         Condition="'$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityRawReferenceUnitTestProjectPath)' or
                    '$(MSBuildProjectFullPath)' == '$(_ProgramKitCs1701CompatibilityRawReferenceConformanceTestProjectPath)'">true</_ProgramKitCs1701CompatibilityCanonicalProject>
@@ -955,26 +955,26 @@
     </ItemGroup>
     <ItemGroup Condition="'$(_ProgramKitCs1701CompatibilityKind)' == 'MSTest'">
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)mstest.testframework\4.3.2\lib\net10.0\MSTest.TestFramework.dll"
-        Condition="Exists('$(NuGetPackageRoot)mstest.testframework\4.3.2\lib\net10.0\MSTest.TestFramework.dll')" />
+        Include="$(NuGetPackageRoot)/mstest.testframework/4.3.2/lib/net10.0/MSTest.TestFramework.dll"
+        Condition="Exists('$(NuGetPackageRoot)/mstest.testframework/4.3.2/lib/net10.0/MSTest.TestFramework.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net10.0\MSTest.TestAdapter.dll"
-        Condition="Exists('$(NuGetPackageRoot)mstest.testadapter\4.3.2\buildTransitive\net10.0\MSTest.TestAdapter.dll')" />
+        Include="$(NuGetPackageRoot)/mstest.testadapter/4.3.2/buildTransitive/net10.0/MSTest.TestAdapter.dll"
+        Condition="Exists('$(NuGetPackageRoot)/mstest.testadapter/4.3.2/buildTransitive/net10.0/MSTest.TestAdapter.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.platform/2.3.2/lib/net10.0/Microsoft.Testing.Platform.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.platform/2.3.2/lib/net10.0/Microsoft.Testing.Platform.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.platform.msbuild/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.MSBuild.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.platform.msbuild/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.MSBuild.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.extensions.telemetry/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.Telemetry.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.extensions.telemetry/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.Telemetry.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.extensions.trxreport/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.TrxReport.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.extensions.trxreport/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.TrxReport.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.extensions.codecoverage/18.9.0/lib/net10.0/Microsoft.Testing.Extensions.CodeCoverage.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.extensions.codecoverage/18.9.0/lib/net10.0/Microsoft.Testing.Extensions.CodeCoverage.dll')" />
     </ItemGroup>
     <PropertyGroup Condition="'$(_ProgramKitCs1701CompatibilityExpectedProjectPath)' != ''">
       <_ProgramKitCs1701CompatibilityPreCompilerLockHash>@(_ProgramKitCs1701CompatibilityLockFileHash->'%(FileHash)')</_ProgramKitCs1701CompatibilityPreCompilerLockHash>
@@ -1047,20 +1047,20 @@
                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '1.60.0' and
                    $([System.String]::Copy('%(ReferencePathWithRefAssemblies.PathInPackage)').StartsWith('lib/net10.0/', System.StringComparison.Ordinal))" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net10.0\Microsoft.Testing.Platform.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.platform/2.3.2/lib/net10.0/Microsoft.Testing.Platform.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.platform/2.3.2/lib/net10.0/Microsoft.Testing.Platform.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.platform.msbuild\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.MSBuild.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.platform.msbuild/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.MSBuild.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.platform.msbuild/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.MSBuild.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.telemetry\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.Telemetry.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.extensions.telemetry/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.Telemetry.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.extensions.telemetry/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.Telemetry.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.trxreport\2.3.2\lib\net10.0\Microsoft.Testing.Extensions.TrxReport.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.extensions.trxreport/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.TrxReport.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.extensions.trxreport/2.3.2/lib/net10.0/Microsoft.Testing.Extensions.TrxReport.dll')" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll"
-        Condition="Exists('$(NuGetPackageRoot)microsoft.testing.extensions.codecoverage\18.9.0\lib\net10.0\Microsoft.Testing.Extensions.CodeCoverage.dll')" />
+        Include="$(NuGetPackageRoot)/microsoft.testing.extensions.codecoverage/18.9.0/lib/net10.0/Microsoft.Testing.Extensions.CodeCoverage.dll"
+        Condition="Exists('$(NuGetPackageRoot)/microsoft.testing.extensions.codecoverage/18.9.0/lib/net10.0/Microsoft.Testing.Extensions.CodeCoverage.dll')" />
     </ItemGroup>
     <Error Condition="'$(_ProgramKitCs1701CompatibilityKind)' == 'TUnit' and
                       ('$(_ProgramKitCs1701CompatibilityPreCompilerLockHash)' == '' or
@@ -1089,8 +1089,8 @@
                    '%(ReferencePathWithRefAssemblies.NuGetPackageVersion)' == '10.0.10' and
                    '%(ReferencePathWithRefAssemblies.FusionName)' == 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'" />
       <_ProgramKitCs1701AvailableNet10Asset
-        Include="$(NuGetPackageRoot)cronos\0.13.0\lib\net10.0\Cronos.dll"
-        Condition="Exists('$(NuGetPackageRoot)cronos\0.13.0\lib\net10.0\Cronos.dll')" />
+        Include="$(NuGetPackageRoot)/cronos/0.13.0/lib/net10.0/Cronos.dll"
+        Condition="Exists('$(NuGetPackageRoot)/cronos/0.13.0/lib/net10.0/Cronos.dll')" />
     </ItemGroup>
     <GetFileHash Files="@(ReferencePathWithRefAssemblies)"
                  Algorithm="SHA256"
@@ -1303,7 +1303,7 @@
     <PropertyGroup>
       <_ProgramKitExpectedSdkAnalyzerConfigPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\analyzers\build\config\analysislevel_10_recommended_warnaserror.globalconfig'))</_ProgramKitExpectedSdkAnalyzerConfigPath>
       <_ProgramKitExpectedMSTestAnalyzerConfigPath></_ProgramKitExpectedMSTestAnalyzerConfigPath>
-      <_ProgramKitExpectedMSTestAnalyzerConfigPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)mstest.analyzers\4.3.2\globalconfigs\mstest-all.globalconfig'))</_ProgramKitExpectedMSTestAnalyzerConfigPath>
+      <_ProgramKitExpectedMSTestAnalyzerConfigPath Condition="'$(NuGetPackageRoot)' != ''">$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/mstest.analyzers/4.3.2/globalconfigs/mstest-all.globalconfig'))</_ProgramKitExpectedMSTestAnalyzerConfigPath>
     </PropertyGroup>
     <ItemGroup>
       <_ProgramKitCompilerExecutionReceipt

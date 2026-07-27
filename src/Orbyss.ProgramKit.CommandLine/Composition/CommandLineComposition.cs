@@ -197,7 +197,8 @@ public static class CommandLineComposition
             new InitializeCapabilitiesCommandOperation(
                 new CapabilityInitializer(
                     fileSystem,
-                    new CapabilityBundleManifestReader()));
+                    new CapabilityBundleManifestReader(),
+                    new CapabilityInitializationLockSerializer()));
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {

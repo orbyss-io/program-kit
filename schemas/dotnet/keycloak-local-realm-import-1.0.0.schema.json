@@ -1,6 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.orbyss.io/program-kit/dotnet/keycloak-local-realm-import/1.0.0/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-keycloak-local-realm-import",
+  "x-program-kit-version": "1.0.0",
   "title": "Program Kit bounded Keycloak local realm import",
   "type": "object",
   "additionalProperties": false,
@@ -68,8 +70,8 @@
     },
     "clients": {
       "type": "array",
-      "minItems": 4,
-      "maxItems": 4,
+      "minItems": 5,
+      "maxItems": 5,
       "items": {
         "$ref": "#/$defs/client"
       }
@@ -191,9 +193,39 @@
         "standardFlowEnabled",
         "implicitFlowEnabled",
         "directAccessGrantsEnabled",
-        "serviceAccountsEnabled",
-        "defaultClientScopes",
-        "attributes"
+        "serviceAccountsEnabled"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "bearerOnly"
+          ],
+          "properties": {
+            "publicClient": {
+              "const": false
+            },
+            "bearerOnly": {
+              "const": true
+            },
+            "standardFlowEnabled": {
+              "const": false
+            },
+            "serviceAccountsEnabled": {
+              "const": false
+            }
+          }
+        },
+        {
+          "required": [
+            "defaultClientScopes",
+            "attributes"
+          ],
+          "not": {
+            "required": [
+              "bearerOnly"
+            ]
+          }
+        }
       ],
       "properties": {
         "clientId": {
@@ -203,6 +235,9 @@
           "const": "openid-connect"
         },
         "publicClient": {
+          "type": "boolean"
+        },
+        "bearerOnly": {
           "type": "boolean"
         },
         "clientAuthenticatorType": {
@@ -284,6 +319,9 @@
       "additionalProperties": false,
       "required": [
         "username",
+        "firstName",
+        "lastName",
+        "email",
         "enabled",
         "emailVerified",
         "credentials"
@@ -291,6 +329,15 @@
       "properties": {
         "username": {
           "$ref": "#/$defs/stableName"
+        },
+        "firstName": {
+          "const": "Fixture"
+        },
+        "lastName": {
+          "const": "Principal"
+        },
+        "email": {
+          "const": "fixture-principal@example.invalid"
         },
         "enabled": {
           "const": true

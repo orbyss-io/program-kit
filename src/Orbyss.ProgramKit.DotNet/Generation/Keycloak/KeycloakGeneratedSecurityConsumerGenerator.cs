@@ -576,6 +576,7 @@ internal static class KeycloakGeneratedSecurityConsumerGenerator
 
         <button id="call-protected-api" @onclick="CallAsync">Call protected API</button>
         <output id="protected-api-outcome">@outcome</output>
+        <ProgramKitLogout />
 
         @code {
             private string outcome = "not-run";

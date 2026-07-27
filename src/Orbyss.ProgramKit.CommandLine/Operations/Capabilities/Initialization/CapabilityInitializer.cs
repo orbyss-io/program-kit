@@ -41,16 +41,20 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         throwOnInvalidBytes: true);
     private readonly ICommandFileSystem fileSystem;
     private readonly ICapabilityBundleManifestReader manifestReader;
+    private readonly ICapabilityInitializationLockSerializer lockSerializer;
 
     /// <summary>Initializes the operation with explicit filesystem boundaries.</summary>
     public CapabilityInitializer(
         ICommandFileSystem fileSystem,
-        ICapabilityBundleManifestReader manifestReader)
+        ICapabilityBundleManifestReader manifestReader,
+        ICapabilityInitializationLockSerializer lockSerializer)
     {
         this.fileSystem = fileSystem ??
             throw new ArgumentNullException(nameof(fileSystem));
         this.manifestReader = manifestReader ??
             throw new ArgumentNullException(nameof(manifestReader));
+        this.lockSerializer = lockSerializer ??
+            throw new ArgumentNullException(nameof(lockSerializer));
     }
 
     /// <inheritdoc />
@@ -214,10 +218,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                             candidate.OutputRelativePath,
                             candidate.OutputSha256))
                 .ToArray());
-        var lockBytes = JsonSerializer.SerializeToUtf8Bytes(
-            outputLock,
-            CapabilityInitializationJsonContext.Default
-                .CapabilityInitializationLock);
+        var lockBytes = lockSerializer.Write(outputLock);
         await fileSystem.WriteAllBytesAsync(
             ResolveUnder(workspace, LockPath, "/lock"),
             lockBytes,
@@ -242,11 +243,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         CapabilityInitializationLock value;
         try
         {
-            value = JsonSerializer.Deserialize(
-                    bytes.Span,
-                    CapabilityInitializationJsonContext.Default
-                        .CapabilityInitializationLock) ??
-                throw new JsonException();
+            value = lockSerializer.Read(bytes.Span);
         }
         catch (JsonException)
         {

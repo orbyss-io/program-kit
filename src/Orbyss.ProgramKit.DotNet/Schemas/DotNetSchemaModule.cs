@@ -368,7 +368,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "dotnet-keycloak-local-realm-import",
             "keycloak-local-realm-import-1.0.0.schema.json",
             "https://schemas.orbyss.io/program-kit/dotnet/keycloak-local-realm-import/1.0.0/schema.json",
-            "2a13f360095c8ba8859fd3ebc3c9d2092dda68f6775ad332960ee1cd4567e024",
+            "e07e6a18cca49f4449bc82346a1a089a53573ac3b58390fdeeed86a77042ba3c",
             SchemaVersionV1,
             KeycloakFixtureProvenance),
         Create(

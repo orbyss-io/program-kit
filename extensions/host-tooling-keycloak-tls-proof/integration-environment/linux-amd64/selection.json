@@ -35,7 +35,9 @@
     "automaticBuild": false,
     "automaticRun": false,
     "fixtureGate": "PROGRAM_KIT_RUN_KEYCLOAK_FIXTURE=1",
-    "derivedImageDigest": null
+    "derivedImageDigest": "sha256:acb4dacf6aeaa49be3be540455725184729a83d3f8ba995ff51ec3e6031726ee",
+    "result": "passed",
+    "exactTaskRuntimeRemoved": true
   },
-  "status": "selected-not-built-or-executed"
+  "status": "built-and-executed-passed"
 }

@@ -104,7 +104,7 @@ public sealed class WorkbenchDependencyConformanceTests
         Assert.AreEqual("analyzers", (string?)packageReference.Attribute("PrivateAssets"));
         var targets = ConformanceInputs.Read("Directory.Build.targets");
         Assert.Contains("RemoveProgramKitUnselectedHumanizerAnalyzer", targets);
-        Assert.Contains("humanizer.core\\3.0.10\\analyzers", targets);
+        Assert.Contains("humanizer.core/3.0.10/analyzers", targets);
         Assert.Contains("NuGetPackageId)' == 'Humanizer.Core'", targets);
         Assert.Contains("NuGetPackageVersion)' == '3.0.10'", targets);
     }

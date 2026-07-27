@@ -138,6 +138,9 @@ public sealed class KeycloakLocalFixtureGeneratorTests
         var browser = Text(
             result,
             "KeycloakFixture/GeneratedConsumers/PublicBrowser/Program.cs");
+        var browserProbe = Text(
+            result,
+            "KeycloakFixture/GeneratedConsumers/PublicBrowser/Pages/FixtureProtectedApiProbe.razor");
         var evidence = Text(
             result,
             "KeycloakFixture/GeneratedConsumers/generated-security-profiles.json");
@@ -153,6 +156,7 @@ public sealed class KeycloakLocalFixtureGeneratorTests
         Assert.Contains("keycloak-token-exchange", catalog);
         Assert.Contains("AddOidcAuthentication", browser);
         Assert.Contains("ResponseType = \"code\"", browser);
+        Assert.Contains("<ProgramKitLogout />", browserProbe);
         Assert.Contains("\"rfc8693-token-exchange\"", evidence);
         Assert.Contains("\"directProtocolReplacementAllowed\": false", evidence);
         Assert.DoesNotContain("Orbyss.ProgramKit", project);
@@ -231,6 +235,10 @@ public sealed class KeycloakLocalFixtureGeneratorTests
             tls);
         Assert.Contains("chromiumSpkiList", tls);
         Assert.Contains("File.SetUnixFileMode(", tls);
+        Assert.Contains(
+            "global::System.IO.File.SetUnixFileMode(\n            ownedDirectory,",
+            tls);
+        Assert.Contains("UnixFileMode.OtherRead", tls);
         Assert.DoesNotContain(string.Concat("X509", "Store"), tls);
         Assert.DoesNotContain(string.Concat("Ignore", "HTTPSErrors"), tls);
         Assert.DoesNotContain(string.Concat("Dangerous", "AcceptAny"), tls);

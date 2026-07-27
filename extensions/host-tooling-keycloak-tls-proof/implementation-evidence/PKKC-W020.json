@@ -2,9 +2,9 @@
   "evidenceKind": "program-kit-keycloak-corrective-work-unit",
   "evidenceVersion": "1.0.0",
   "workUnit": "PKKC-W020",
-  "recordedAtUtc": "2026-07-26T21:58:56.341Z",
-  "status": "checkpoint-awaiting-separate-human-started-linux-execution",
-  "completionClaim": false,
+  "recordedAtUtc": "2026-07-27T11:33:07.940Z",
+  "status": "passed",
+  "completionClaim": true,
   "approval": {
     "parentDesignSha256": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57",
     "parentPlanSha256": "sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5",
@@ -29,10 +29,26 @@
       "passed": 13
     },
     "focusedConformanceTests": {
-      "total": 4,
-      "passed": 3,
-      "skipped": 1,
-      "skipReason": "exact Linux fixture execution was not separately human-started"
+      "total": 5,
+      "passed": 5,
+      "skipped": 0
+    },
+    "liveLinuxIntegration": {
+      "total": 1,
+      "passed": 1,
+      "duration": "approximately-62-seconds",
+      "generatedProfiles": [
+        "oidc-confidential-code-pkce",
+        "oidc-public-browser-code-pkce",
+        "rfc9068-jwt-resource-server",
+        "oauth-client-credentials",
+        "rfc8693-token-exchange"
+      ],
+      "additiveVectors": [
+        "adversarial-rejection",
+        "signing-key-rollover",
+        "protected-browser-login-api-and-logout"
+      ]
     },
     "generatedConsumerProjectsBuilt": [
       "security-host",
@@ -41,20 +57,24 @@
     ],
     "strictReleaseSolutionBuild": "passed-zero-warnings-zero-errors",
     "fullUnitTests": {
-      "total": 437,
-      "passed": 437
+      "total": 441,
+      "passed": 441
+    },
+    "ordinaryNonContainerConformance": {
+      "total": 119,
+      "passed": 119
     },
     "prohibitedMutationAndBypassScan": "passed"
   },
   "linuxEnvironment": {
-    "status": "selected-not-built-or-executed",
+    "status": "built-and-executed-passed",
     "operatingSystem": "linux",
     "architecture": "amd64",
-    "dockerfileSha256": "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+    "dockerfileSha256": "sha256:75ab20d4a5281a6ffe8c42749089c950a51f2a753f0b9f8ccbbede0f51a126ed",
     "dotNetSdkManifestSha256": "sha256:3dae2f7699441af56216ff64d5c9b6dfce7cd7dc7f4f71d353d29662b10a384f",
     "playwrightManifestSha256": "sha256:72d804504ac23fcc83c770ca68c88c7e6b3e3462c9ad02f220197b95d46237db",
-    "derivedImageDigest": null,
-    "executionHumanStarted": false
+    "derivedImageDigest": "sha256:acb4dacf6aeaa49be3be540455725184729a83d3f8ba995ff51ec3e6031726ee",
+    "executionHumanStarted": true
   },
   "windowsBlocker": {
     "classificationKind": "synthetic-bounded-test-only",
@@ -64,19 +84,23 @@
     "triggersRemediation": false
   },
   "safety": {
-    "fixtureStarted": false,
-    "browserStarted": false,
-    "imagePulled": false,
-    "containerStarted": false,
+    "fixtureStarted": true,
+    "browserStarted": true,
+    "imagePulled": true,
+    "containerStarted": true,
     "hostCertificateStoreChanged": false,
     "hostNetworkChanged": false,
     "dockerNetworkChanged": false,
+    "manualDockerNetworkChanged": false,
+    "aspireFixtureNetworkingDisposable": true,
+    "exactTaskContainersAndVolumeRemoved": true,
     "sensitiveOrMachineSpecificDurableEvidence": false
   },
   "sourceSha256": {
-    "generatedSecurityConsumerGenerator": "sha256:f20dd4bdb9ed12609626c3454cd40acce25599f8c74473657ad79beb473147f4",
-    "securityProjectionCompiler": "sha256:a99552d756258e3cb0170d36e54db44dbc0b39d8305ca57cc967c503ec08c5a4",
-    "integrationConformance": "sha256:d4de6513d5ca959cf2c6058d6b82471910b6f8fc193c1a3fed8672f07c1e7b93"
+    "generatedSecurityConsumerGenerator": "sha256:4c0e9ae27a18e5e921357b0d1eacedc646fdfce6b3052657e6b4d4c55990b195",
+    "securityProjectionCompiler": "sha256:4b928bb15697372db24425b2bf7f08dfd57c789bc5f7dad7805ec6598039e565",
+    "keycloakFixtureGenerator": "sha256:85f84c832475922059176073d14663bde1c6d296a39764eea768d3f7f263a173",
+    "integrationConformance": "sha256:487ff2b04f399ef2d9f2548dba13aa297b20e66b82ec7199b47b0d5fe00f4893"
   },
-  "remainingRequiredGate": "build and separately human-start the exact Linux environment, bind its derived image digest, pass every live generated-profile and additive vector checkpoint, and prove teardown"
+  "remainingRequiredGate": null
 }
