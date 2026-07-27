@@ -2,9 +2,9 @@
   "manifestKind": "program-kit-design-review",
   "manifestVersion": "1.0.0",
   "reviewSetId": "pkid:approval:program-kit:development-tools-review-set",
-  "reviewSetVersion": "1.0.0",
+  "reviewSetVersion": "2.0.0",
   "owner": "human-led-program-kit-development-tools",
-  "reviewState": "convergence-in-progress",
+  "reviewState": "awaiting-human-approval",
   "implementationStatus": "not-started",
   "approvalRecord": null,
   "digestProfile": {
@@ -18,133 +18,184 @@
   "artifacts": [
     {
       "artifactId": "pkid:intent:program-kit:development-tools",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "2.0.0",
       "role": "human-intent-record",
       "path": "extensions/development-tools/design-intent.md",
-      "sha256": "335b9332d5c6f244382a7fb02bd0e60ba06b272506b577685e0226fb334c7fdd"
-    },
-    {
-      "artifactId": "pkid:design:program-kit:development-tools",
-      "artifactVersion": "1.0.0",
-      "role": "canonical-design",
-      "contract": "pkid:schema:program-kit:architecture-design",
-      "contractVersion": "1.0.0",
-      "contractSha256": "19606f994af588d3d48284391af3880e1ade0315980189ad681026d7e43976e2",
-      "path": "extensions/development-tools/architecture-design.json",
-      "sha256": "6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-    },
-    {
-      "artifactId": "pkid:ai-artifact:program-kit:development-tools-design-markdown",
-      "artifactVersion": "1.0.0",
-      "role": "human-readable-design-projection",
-      "canonicalDesignId": "pkid:design:program-kit:development-tools",
-      "canonicalDesignVersion": "1.0.0",
-      "canonicalDesignSha256": "6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2",
-      "path": "extensions/development-tools/architecture-design.md",
-      "sha256": "cfd6819dececc0a01a13b4ed763a768b4019ae1d8a6e81542c85f4ff0dbce6d5"
-    },
-    {
-      "artifactId": "pkid:plan:program-kit:development-tools",
-      "artifactVersion": "1.0.0",
-      "role": "canonical-implementation-plan",
-      "contract": "pkid:schema:program-kit:implementation-plan",
-      "contractVersion": "2.0.0",
-      "contractSha256": "119bc1a17ed4f1c2eef193e5c0c75df0c7c4ea9b33b55d206b871bca4614c32d",
-      "designId": "pkid:design:program-kit:development-tools",
-      "designVersion": "1.0.0",
-      "designSha256": "6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2",
-      "path": "extensions/development-tools/implementation-plan.json",
-      "sha256": "3b44ee514087fc6934a094766453434f9e9d0f6f04f84d909438fe2eb4752e85"
-    },
-    {
-      "artifactId": "pkid:ai-artifact:program-kit:development-tools-plan-markdown",
-      "artifactVersion": "1.0.0",
-      "role": "human-readable-plan-projection",
-      "canonicalPlanId": "pkid:plan:program-kit:development-tools",
-      "canonicalPlanVersion": "1.0.0",
-      "canonicalPlanSha256": "3b44ee514087fc6934a094766453434f9e9d0f6f04f84d909438fe2eb4752e85",
-      "path": "extensions/development-tools/implementation-plan.md",
-      "sha256": "eea02bd7adb2f77dffdcbf73cd59ccf8d85dc20a69092e00b2089892c7cea89d"
-    },
-    {
-      "artifactId": "pkid:evidence:program-kit:development-tools-provider-contract",
-      "artifactVersion": "1.0.0",
-      "role": "provider-contract-source-evidence",
-      "path": "extensions/development-tools/provider-contract-evidence.json",
-      "sha256": "fc690b1f93b1967fcfeba6ffec704b948416595bf98a1a2c3a809d2b6ec57cb9"
-    },
-    {
-      "artifactId": "pkid:fixture-catalog:program-kit:development-tools-acceptance",
-      "artifactVersion": "1.0.0",
-      "role": "prospective-deterministic-acceptance-fixtures",
-      "path": "extensions/development-tools/acceptance-fixtures.json",
-      "sha256": "17df8912351ebbe35afe0103416ed4022af713a81def15efe533d5516404c056"
-    },
-    {
-      "artifactId": "pkid:evidence:program-kit:development-tools-validation",
-      "artifactVersion": "1.0.0",
-      "role": "design-validation-report",
-      "path": "extensions/development-tools/validation-report.md",
-      "sha256": "48112bd903d6b3be27287a07812fa9e779d62ce074b25af30abceba326f1d86d"
+      "sha256": "35cf45c4821ffd2a9b8ccd684cf5108eb29167b3c643d65d91648c51abd12280"
     },
     {
       "artifactId": "pkid:decision-log:program-kit:development-tools-convergence",
       "artifactVersion": "1.0.0",
-      "role": "human-convergence-status-and-provider-research",
+      "role": "section-by-section-human-convergence-record",
       "path": "extensions/development-tools/convergence-notes.md",
       "sha256": "f1a9d15d2c7cab51e0f242c532dab5b2160c1f7eea51acffd0500eb910351bff"
     },
     {
-      "artifactId": "pkid:guide:program-kit:development-tools-review",
+      "artifactId": "pkid:design:program-kit:development-tools-static-basis",
       "artifactVersion": "1.0.0",
+      "role": "non-circular-static-conformance-design-basis",
+      "path": "extensions/development-tools/static-conformance-design-basis.json",
+      "sha256": "509530b736991ef06141f76c71e1a345b3a9087d12a68a32f6e53dd0ad0d5f09"
+    },
+    {
+      "artifactId": "pkid:decision-source:program-kit:development-tools-static-conformance",
+      "artifactVersion": "1.0.0",
+      "role": "human-static-conformance-decision-source",
+      "path": "extensions/development-tools/static-conformance-decision-source.json",
+      "sha256": "e65c604f7f9c5aee09d1840b5d9f8562bbb14358d08bb7e1d97dd4657d002fd5"
+    },
+    {
+      "artifactId": "pkid:static-conformance-disposition:program-kit:development-tools",
+      "artifactVersion": "1.0.0",
+      "role": "static-conformance-disposition",
+      "contract": "pkid:schema:program-kit:static-conformance-disposition",
+      "contractVersion": "1.0.0",
+      "contractSha256": "834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd",
+      "path": "extensions/development-tools/static-conformance-disposition.json",
+      "sha256": "6092894ece0f6691dcd59a27ca24eb6365bac2c01739a54bfb45856a86960697"
+    },
+    {
+      "artifactId": "pkid:selection-lock:program-kit:development-tools-private-gate",
+      "artifactVersion": "1.0.0",
+      "role": "materialized-private-gate-selection-lock",
+      "path": "extensions/development-tools/program-kit-private-gate-selection-lock.json",
+      "sha256": "66a62b56eea04e09fc905f6074cc991b88096648415ffa670c7a8641bd1edde4"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:development-tools-provider-contract",
+      "artifactVersion": "2.0.0",
+      "role": "official-provider-and-protocol-contract-evidence",
+      "path": "extensions/development-tools/provider-contract-evidence.json",
+      "sha256": "c9044e62f3079c3e87e4affc5ff2e63c170cd97bf1eb89eb105ad932c4cc9130"
+    },
+    {
+      "artifactId": "pkid:matrix:program-kit:development-tools-compatibility",
+      "artifactVersion": "1.0.0",
+      "role": "exact-version-compatibility-and-migration-matrix",
+      "path": "extensions/development-tools/compatibility-version-matrix.json",
+      "sha256": "10975980347a97a482266f5edba5161f1254361e0272b1b5ae421c551b07e4e2"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:development-tools",
+      "artifactVersion": "2.0.0",
+      "role": "canonical-design",
+      "contract": "pkid:schema:program-kit:architecture-design",
+      "contractVersion": "2.0.0",
+      "contractSha256": "2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198",
+      "path": "extensions/development-tools/architecture-design.json",
+      "sha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:development-tools-design-markdown",
+      "artifactVersion": "2.0.0",
+      "role": "human-readable-design-projection",
+      "canonicalDesignId": "pkid:design:program-kit:development-tools",
+      "canonicalDesignVersion": "2.0.0",
+      "canonicalDesignSha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb",
+      "path": "extensions/development-tools/architecture-design.md",
+      "sha256": "be3bd4dd74e4d5a147889de61a87c8cb91b0abef1b9b00e5e783374453d2d75a"
+    },
+    {
+      "artifactId": "pkid:fixture-catalog:program-kit:development-tools-acceptance",
+      "artifactVersion": "2.0.0",
+      "role": "prospective-deterministic-and-genuine-provider-acceptance-fixtures",
+      "path": "extensions/development-tools/acceptance-fixtures.json",
+      "sha256": "c30eae168b826977c6cb18c3d57aebf16c357dcc25ec62504a8d06abe65e4388"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:development-tools",
+      "artifactVersion": "2.0.0",
+      "role": "canonical-implementation-plan",
+      "contract": "pkid:schema:program-kit:implementation-plan",
+      "contractVersion": "3.0.0",
+      "contractSha256": "0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6",
+      "designId": "pkid:design:program-kit:development-tools",
+      "designVersion": "2.0.0",
+      "designSha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb",
+      "path": "extensions/development-tools/implementation-plan.json",
+      "sha256": "051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:development-tools-plan-markdown",
+      "artifactVersion": "2.0.0",
+      "role": "human-readable-plan-projection",
+      "canonicalPlanId": "pkid:plan:program-kit:development-tools",
+      "canonicalPlanVersion": "2.0.0",
+      "canonicalPlanSha256": "051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56",
+      "path": "extensions/development-tools/implementation-plan.md",
+      "sha256": "9ead5f48a5e7a68805ce7b9dc73ab499f46a46c6009097e4f5217f4a5fb6b760"
+    },
+    {
+      "artifactId": "pkid:tool:program-kit:development-tools-plan-materializer",
+      "artifactVersion": "1.0.0",
+      "role": "deterministic-plan-materializer",
+      "path": "extensions/development-tools/materialize-implementation-plan.ps1",
+      "sha256": "52a587f9b18b2c8f18f6256ff1030cfb3e40790f0466e977a272d1623f2d2bf9"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:development-tools-validation",
+      "artifactVersion": "2.0.0",
+      "role": "design-validation-report",
+      "path": "extensions/development-tools/validation-report.md",
+      "sha256": "2d4345f5523c27573a0f016f22e2c8314fa60b7d910af48cb974c28cb163d9df"
+    },
+    {
+      "artifactId": "pkid:guide:program-kit:development-tools-review",
+      "artifactVersion": "2.0.0",
       "role": "review-navigation",
       "path": "extensions/development-tools/README.md",
-      "sha256": "d7544e2e6f2f5611459eed16f49d058c4468a11bf023a12ae5d79ae5ec763855"
+      "sha256": "1e247c2a5a4394227f3b1a564e497a2b3767d4305320e86ac1729d64c90afc8f"
     }
   ],
   "approvalBoundary": {
-    "requiredDecision": "none-current-review-reopened-for-human-convergence",
-    "acceptedScope": "No current approval candidate. A replacement version must converge the concrete tool outcome, provider-neutral executable and MCP bridge identities, and explicit Codex and Claude Code registration and acceptance contracts.",
+    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-and-plan-digests",
+    "candidateDesignSha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb",
+    "candidatePlanSha256": "051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56",
+    "acceptedScope": "PKDT-W010 through PKDT-W070 exactly as represented by the canonical Architecture Design 2.0.0 and Planning 3.0.0 artifacts.",
     "requiresParentApproval": false,
     "independentFrom": [
-      "pkid:approval:program-kit:corrective-reconstruction-review-set@1.0.0"
+      "pkid:approval:program-kit:corrective-reconstruction-review-set@1.0.0",
+      "pkid:approval:program-kit:typed-console-host-generation-review-set@1.0.0"
     ],
     "doesNotAuthorize": [
-      "implementation before explicit approval",
-      "approval or implementation of the superseded 1.0.0 canonical design and plan",
+      "implementation before explicit approval of both exact candidate digests",
+      "material deviation from the approved design or plan",
       "Corrective Reconstruction or any cross-review integration",
-      "self-registration, self-permission, automatic start, AI/provider invocation, development-capability invocation, or autonomous behavior",
-      "any MCP server, provider binding, provider wrapper, capability, plugin, or skill outside the exact approved work units",
-      "provider-native transport, remote MCP, additional providers, or undocumented provider APIs",
+      "self-registration, self-permission, automatic provider start, AI/provider invocation, development-capability invocation, automatic retry, nested tool calls, or autonomous behavior",
+      "provider/global trust, approval, permission, settings, or unrelated project configuration mutation",
+      "remote MCP, provider-native transport, plugins, skills as transport, additional providers, or undocumented provider APIs",
       "ProgramKit project references, source/file includes, assembly hint paths, build-output coupling, or uncontrolled first-party package sources in consumers",
-      "package-feed publication, release, deployment, website authority, or external repository changes",
-      "a material deviation from the canonical design or plan"
+      "package-feed publication, release, deployment, production data, infrastructure, secrets, operational history, website authority, or external repository changes",
+      "a claim of cross-model, prompt, reasoning, provider, or general behavioral equivalence",
+      "overall cross-provider acceptance before genuine returned Claude Code evidence validates"
     ]
   },
   "validation": {
-    "jsonSyntax": "passed for all canonical, provider-evidence, fixture, and manifest JSON",
-    "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:architecture-design@1.0.0",
-    "architectureSemanticValidation": "passed through ArchitectureDesignValidator",
-    "canonicalPlanSchema": "passed through JsonSchemaWorkbenchValidator against pkid:schema:program-kit:implementation-plan@2.0.0",
-    "planSemanticValidation": "passed through ImplementationPlanDocumentValidator",
-    "designPlanBinding": "passed: every canonical plan design reference equals the exact canonical design SHA-256",
-    "requirementTrace": "passed: PKDT-R001 through PKDT-R012 each have one exact trace entry across serial PKDT-W010 through PKDT-W050",
-    "fixtureCatalog": "passed: PKDT-F001 through PKDT-F012 are unique and JSON-valid; runtime outcomes are prospective until approved work units",
-    "projectionBinding": "passed: reviewer Markdown names the exact canonical digest",
-    "focusedValidator": "passed: two temporary review-only ProgramKit tests, zero failures; harness removed",
-    "lockedRestore": "passed: dotnet restore ProgramKit.sln --locked-mode",
-    "unitBuildAndTests": "passed: mandatory C# gate build zero warnings/errors; 451/451 unit tests passed",
-    "conformanceSuite": "not completed: clean bounded 124-second run produced no result and was stopped; not cited as pass or fail",
-    "standaloneRender": "unavailable: returned PKCLI004 because the Workbench renderer adapter is not registered; not cited as evidence",
+    "jsonSyntax": "passed for every review JSON artifact",
+    "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against Architecture Design 2.0.0",
+    "architectureSemanticValidation": "passed through ArchitectureDesignV2Validator over ArchitectureDesignValidator and ArtifactDecisionValidator",
+    "canonicalPlanSchema": "passed through JsonSchemaWorkbenchValidator against Planning 3.0.0",
+    "planSemanticValidation": "passed through ImplementationPlanDocumentV3Validator over ImplementationPlanDocumentValidator",
+    "staticConformanceDispositionSchema": "passed through JsonSchemaWorkbenchValidator against StaticConformanceDisposition 1.0.0",
+    "designPlanBinding": "passed: every plan design reference equals the exact canonical design SHA-256",
+    "requirementTrace": "passed: PKDT-R001 through PKDT-R016 each have one exact trace entry across serial PKDT-W010 through PKDT-W070",
+    "fixtureCatalog": "passed: PKDT-F001 through PKDT-F032 are unique and partition exactly once across five evidence profiles; runtime outcomes remain prospective",
+    "materializerDeterminism": "passed: two consecutive runs produced byte-identical canonical plan bytes",
+    "projectionBinding": "passed: reviewer Markdown names the exact canonical design and plan digests",
+    "focusedBuilds": "passed: Architecture and Planning projects built with mandatory private C# gate, zero warnings and zero errors",
+    "standaloneCheckAndRender": "unavailable: returned PKCLI004 because standalone Workbench check/render adapters are not registered",
+    "lockedRestore": "unavailable: sandbox could not read user-level NuGet configuration; unsandboxed authenticated/unspecified-feed access was not authorized",
+    "fullUnitBuildAndTests": "not established: --no-restore found existing assemblies but ran zero tests and returned exit 5; not cited as a pass or product failure",
     "runtimeImplementationOrExecution": "not performed under design authority",
-    "fullImplementationClosure": "deferred to approved PKDT-W050"
+    "genuineProviderAcceptance": "prospective; Codex belongs to PKDT-W050 and returned Claude Code evidence to PKDT-W070",
+    "scopeReview": "passed for Development Tools paths; concurrent typed Console and web-publication work preserved and excluded"
   },
   "provenance": {
-    "startingCommit": "b4b14cd88a1e931531cbcdeddc2c2273ad96f4f4",
+    "startingCommit": "ce97d8601523b9112207a6a05fd9fb6bb7c56f83",
     "branch": "main",
     "sourceHostId": "slingshot:env_e_6a2540f8230883239e211be5649f94f4",
     "sourceThreadId": "019fa450-92ad-71f2-9050-f1f36d346160",
-    "source": "human-started ProgramKit Development Tools design",
-    "details": "Bounded to ProgramKit repository source truth. No parent Domain Semantic Engine path or program-kit-website path was edited. No approval, implementation, registration, permission, release, or provider authority is created by this review set."
+    "source": "human-started ProgramKit Development Tools design and seven-section convergence",
+    "details": "Bounded to ProgramKit repository source truth. No parent Domain Semantic Engine path or program-kit-website path was edited. No approval, implementation, registration, permission, release, provider, or autonomous authority is created by this candidate."
   }
 }

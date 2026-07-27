@@ -1,478 +1,985 @@
 {
-  "design": {
-    "identity": "pkid:design:program-kit:development-tools",
-    "version": "1.0.0",
-    "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-  },
-  "ownerId": "pkid:domain:program-kit:development-tools",
-  "state": "ready-for-human-decision",
-  "requirementIds": [
-    "PKDT-R001",
-    "PKDT-R002",
-    "PKDT-R003",
-    "PKDT-R004",
-    "PKDT-R005",
-    "PKDT-R006",
-    "PKDT-R007",
-    "PKDT-R008",
-    "PKDT-R009",
-    "PKDT-R010",
-    "PKDT-R011",
-    "PKDT-R012"
-  ],
-  "workUnits": [
-    {
-      "workUnitId": "PKDT-W010",
-      "requiredOutcome": "Add the provider-neutral Development Tool manifest, registration lock, invocation evidence, compatibility/migration, canonical serialization, and validator contracts with exact identity, schemas, execution, access, side-effect, timeout, cancellation, concurrency, idempotency, documentation, and evidence semantics.",
-      "sequence": 10,
-      "parallelGroupId": null,
-      "dependsOn": [],
-      "inputs": [
-        {
-          "identity": "pkid:design:program-kit:development-tools",
-          "version": "1.0.0",
-          "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-        }
-      ],
-      "outputs": [
-        {
-          "identity": "pkid:plan-output:program-kit:pkdt-w010",
-          "version": "1.0.0",
-          "state": "prospective",
-          "integrityDigest": null
-        }
-      ],
-      "allowedEdits": [
-        "schemas/development-tools; Development and Artifacts projects; serialization profiles/contexts; schema registry; version topology/migrations; corresponding unit and fixture evidence."
-      ],
-      "sourceDependencies": [],
-      "externalDependencies": [],
-      "migrations": [],
-      "compatibility": [],
-      "stopConditions": [
-        "Stop if the contract cannot represent every exact identity/execution/access/evidence field, if permission enforcement is replaced by descriptive annotations, if a secret value can persist, or if an existing ProgramKit contract already owns the same semantics."
-      ],
-      "verification": [
-        {
-          "executable": "dotnet",
-          "arguments": [
-            "test",
-            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
-            "--no-restore"
-          ],
-          "workingDirectory": ".",
-          "expectedObservation": "Exact valid manifests/locks/evidence validate and round trip canonically; unknown fields/enums, missing digests, undeclared access, invalid timeouts/concurrency/idempotency, secret values, and incompatible revisions fail."
-        }
-      ],
-      "selectedTests": []
-    },
-    {
-      "workUnitId": "PKDT-W020",
-      "requiredOutcome": "Construct and package the exact generated Console proof as Orbyss.ProgramKit.DevelopmentTool.ConsoleProof@0.1.0-alpha.1 with executable program-kit-development-tool-console-proof, provider-neutral stdin/stdout invocation, exact exit codes, and package-only ProgramKit consumption.",
-      "sequence": 20,
-      "parallelGroupId": null,
-      "dependsOn": [
-        "PKDT-W010"
-      ],
-      "inputs": [
-        {
-          "identity": "pkid:design:program-kit:development-tools",
-          "version": "1.0.0",
-          "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-        }
-      ],
-      "outputs": [
-        {
-          "identity": "pkid:plan-output:program-kit:pkdt-w020",
-          "version": "1.0.0",
-          "state": "prospective",
-          "integrityDigest": null
-        }
-      ],
-      "allowedEdits": [
-        "Development Tool Console proof fixture/project and manifest; local package workspace/version selections; Console generation fixtures; direct executable conformance and package-leak tests; canonical technical documentation."
-      ],
-      "sourceDependencies": [],
-      "externalDependencies": [],
-      "migrations": [],
-      "compatibility": [],
-      "stopConditions": [
-        "Stop on ProgramKit project/source/include/hint/build-output coupling, generated Console behavior inconsistent with current renderer source, extra stdout, ambient path discovery, implicit retry, or any provider/registration implementation."
-      ],
-      "verification": [
-        {
-          "executable": "dotnet",
-          "arguments": [
-            "test",
-            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
-            "--no-restore"
-          ],
-          "workingDirectory": ".",
-          "expectedObservation": "Exact local packages construct the proof; package/source mapping is controlled; provider-neutral success/failure/rejection/internal exit semantics, deterministic JSON, access denial, timeout/cancellation/concurrency/idempotency, and no ProgramKit source/build leak are proven."
-        }
-      ],
-      "selectedTests": []
-    },
-    {
-      "workUnitId": "PKDT-W030",
-      "requiredOutcome": "After re-verifying authoritative Codex and stable MCP contracts, implement and package only the thin stdio adapter Orbyss.ProgramKit.DevelopmentTool.Adapter.Codex.Mcp@0.1.0-alpha.1, projecting one exact server/tool identity and enforcing manifest policy without adding domain meaning or authority.",
-      "sequence": 30,
-      "parallelGroupId": null,
-      "dependsOn": [
-        "PKDT-W010",
-        "PKDT-W020"
-      ],
-      "inputs": [
-        {
-          "identity": "pkid:design:program-kit:development-tools",
-          "version": "1.0.0",
-          "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-        }
-      ],
-      "outputs": [
-        {
-          "identity": "pkid:plan-output:program-kit:pkdt-w030",
-          "version": "1.0.0",
-          "state": "prospective",
-          "integrityDigest": null
-        }
-      ],
-      "allowedEdits": [
-        "Codex MCP adapter project/package; exact stable-MCP fixture messages; provider-contract evidence; adapter unit/conformance tests; adapter documentation."
-      ],
-      "sourceDependencies": [],
-      "externalDependencies": [],
-      "migrations": [],
-      "compatibility": [],
-      "stopConditions": [
-        "Stop on material drift in official Codex MCP config or stable MCP 2025-11-25, a need for an undocumented provider API, extra server tools/resources/prompts/sampling, an adapter permission grant, self-registration, AI/provider invocation, autonomous behavior, or runtime use of a ProgramKit development capability."
-      ],
-      "verification": [
-        {
-          "executable": "dotnet",
-          "arguments": [
-            "test",
-            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
-            "--no-restore"
-          ],
-          "workingDirectory": ".",
-          "expectedObservation": "Stable MCP initialize/tools-list/tools-call, schemas/structured results, error mapping, cancellation/progress, timeout, approval metadata, concurrency, byte verification, stdout discipline, and process-per-invocation behavior pass exact fixtures."
-        }
-      ],
-      "selectedTests": []
-    },
-    {
-      "workUnitId": "PKDT-W040",
-      "requiredOutcome": "Implement explicit ProgramKit registration, status verification, update, and removal for only mcp_servers.program_kit_console_proof in trusted project-scoped .codex/config.toml with exact byte checks, collision refusal, normalized owned-table locking, unrelated-TOML preservation, and package-only adapter materialization.",
-      "sequence": 40,
-      "parallelGroupId": null,
-      "dependsOn": [
-        "PKDT-W030"
-      ],
-      "inputs": [
-        {
-          "identity": "pkid:design:program-kit:development-tools",
-          "version": "1.0.0",
-          "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-        }
-      ],
-      "outputs": [
-        {
-          "identity": "pkid:plan-output:program-kit:pkdt-w040",
-          "version": "1.0.0",
-          "state": "prospective",
-          "integrityDigest": null
-        }
-      ],
-      "allowedEdits": [
-        "CommandLine Development Tool registration command descriptors/composition/operations; TOML table projection; registration-lock serialization; collision/ownership/update/removal fixtures; command documentation."
-      ],
-      "sourceDependencies": [],
-      "externalDependencies": [],
-      "migrations": [],
-      "compatibility": [],
-      "stopConditions": [
-        "Stop if registration is automatic or tool-owned, if unrelated TOML cannot be preserved, if a collision/changed table/missing lock can be overwritten, if user-global config is required, if exact bytes are not verified, or if removal deletes anything not exactly owned."
-      ],
-      "verification": [
-        {
-          "executable": "dotnet",
-          "arguments": [
-            "test",
-            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
-            "--no-restore"
-          ],
-          "workingDirectory": ".",
-          "expectedObservation": "Registration, idempotent verification, explicit compatible update, removal, collision refusal, package/adapter/table tamper refusal, missing-lock refusal, trust/project containment, and unrelated TOML byte preservation pass."
-        }
-      ],
-      "selectedTests": []
-    },
-    {
-      "workUnitId": "PKDT-W050",
-      "requiredOutcome": "Execute the genuine session-A/session-B cold-discovery proof and all negative lifecycle/permission fixtures, publish exact redacted acceptance evidence and canonical technical documentation in ProgramKit, and close only the approved review set.",
-      "sequence": 50,
-      "parallelGroupId": null,
-      "dependsOn": [
-        "PKDT-W040"
-      ],
-      "inputs": [
-        {
-          "identity": "pkid:design:program-kit:development-tools",
-          "version": "1.0.0",
-          "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-        }
-      ],
-      "outputs": [
-        {
-          "identity": "pkid:plan-output:program-kit:pkdt-w050",
-          "version": "1.0.0",
-          "state": "prospective",
-          "integrityDigest": null
-        }
-      ],
-      "allowedEdits": [
-        "Development Tool cold-session fixtures/evidence/documentation/review closure; focused conformance manifests; exact review-manifest implementation-status update."
-      ],
-      "sourceDependencies": [],
-      "externalDependencies": [],
-      "migrations": [],
-      "compatibility": [],
-      "stopConditions": [
-        "Stop if session B inherits conversation/path/syntax/process/environment/manual-shell state, if discovery is not solely persisted registration, if removal is not followed by cold non-discovery, if evidence contains sensitive payloads, or if any excluded provider/release/deployment work is required."
-      ],
-      "verification": [
-        {
-          "executable": "dotnet",
-          "arguments": [
-            "test",
-            "ProgramKit.sln",
-            "--no-restore"
-          ],
-          "workingDirectory": ".",
-          "expectedObservation": "All unit/conformance tests pass and exact evidence proves session separation, discovery/invocation, missing/tampered adapter, incompatible package, collisions, denied permissions, timeout/cancellation/concurrency/idempotency, explicit update, explicit removal, and cold non-discovery."
-        }
-      ],
-      "selectedTests": []
-    }
-  ],
-  "parallelGroups": [],
-  "trace": [
-    {
-      "requirementId": "PKDT-R001",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W010"
-      ],
-      "implementationOutcome": "Versioned provider-neutral manifest and evidence contracts bind exact package, executable, operation schemas, execution, access, compatibility, and documentation facts.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Valid examples round trip canonically and missing, unknown, incompatible, or permission-unsafe facts fail."
-    },
-    {
-      "requirementId": "PKDT-R002",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W010",
-        "PKDT-W020"
-      ],
-      "implementationOutcome": "Exact JSON stdin/stdout and exit-code semantics are shared by the contract and Console proof.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Exit 0/1/2/3 and host timeout are distinguishable without extra stdout or inferred aliases."
-    },
-    {
-      "requirementId": "PKDT-R003",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W010",
-        "PKDT-W020",
-        "PKDT-W030"
-      ],
-      "implementationOutcome": "Permissions, side effects, filesystem/network/secrets, timeout/cancellation/concurrency/idempotency, and no-retry rules are declared and enforced.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Undeclared access and execution outside policy are refused and redacted evidence is emitted."
-    },
-    {
-      "requirementId": "PKDT-R004",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W020"
-      ],
-      "implementationOutcome": "The exact Console proof package/executable uses current generated Console dispatch and lifecycle source truth.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "The generated proof dispatches exactly once and returns the consumer integer under the reviewed tool result mapping."
-    },
-    {
-      "requirementId": "PKDT-R005",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W020",
-        "PKDT-W030",
-        "PKDT-W050"
-      ],
-      "implementationOutcome": "All proof consumers use exact locally prepared ProgramKit packages and controlled NuGet source mapping only.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Project/source/include/hint/build-output coupling and uncontrolled first-party restores fail conformance."
-    },
-    {
-      "requirementId": "PKDT-R006",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W030"
-      ],
-      "implementationOutcome": "One thin stable MCP stdio adapter exposes the exact reviewed server/tool and no additional provider surface.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Codex-compatible initialize/list/call/structured-result/cancellation/progress exchanges pass exact fixtures."
-    },
-    {
-      "requirementId": "PKDT-R007",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W030",
-        "PKDT-W040"
-      ],
-      "implementationOutcome": "Provider-contract sources are reverified before adapter/registration implementation and material drift stops work.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Evidence names exact current official Codex configuration and stable MCP revisions used."
-    },
-    {
-      "requirementId": "PKDT-R008",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W040"
-      ],
-      "implementationOutcome": "Human-started register/update/remove verifies exact bytes, refuses collisions/drift, owns one project table, and preserves unrelated TOML.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Tamper, collision, missing lock, changed table, or incompatible package prevents mutation; exact removal affects only owned state."
-    },
-    {
-      "requirementId": "PKDT-R009",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W030",
-        "PKDT-W040",
-        "PKDT-W050"
-      ],
-      "implementationOutcome": "Tool and adapter never self-register, grant permissions, auto-start, invoke provider/capabilities, or form an autonomous loop.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Static/runtime conformance finds only provider-neutral child invocation and human-started registration entry points."
-    },
-    {
-      "requirementId": "PKDT-R010",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W050"
-      ],
-      "implementationOutcome": "A genuine cold session discovers and invokes solely from persisted registration after session A and all its processes end.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Session B succeeds without inherited conversation, path, syntax, process, environment hint, or manual shell instruction."
-    },
-    {
-      "requirementId": "PKDT-R011",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W050"
-      ],
-      "implementationOutcome": "Negative evidence covers missing/tampered adapters, incompatible packages, collisions, permissions, timeout/cancellation/concurrency/idempotency, update, removal, and cold non-discovery.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Every named negative fixture fails at its intended boundary with deterministic redacted evidence."
-    },
-    {
-      "requirementId": "PKDT-R012",
-      "ownerId": "pkid:domain:program-kit:development-tools",
-      "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:development-tools",
-        "version": "1.0.0",
-        "digest": "sha256:6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2"
-      },
-      "workUnitIds": [
-        "PKDT-W020",
-        "PKDT-W030",
-        "PKDT-W040",
-        "PKDT-W050"
-      ],
-      "implementationOutcome": "Canonical technical documentation remains with ProgramKit or a future owning Development Tool repository and records transport alternatives/deferrals honestly.",
-      "dependencyOrExtensionImpact": [],
-      "tests": [],
-      "evidence": [],
-      "observableAcceptanceOutcome": "Website, skill, plugin, provider-native, remote, extra-provider, release, and deployment work remain explicitly unimplemented."
-    }
-  ],
-  "unresolvedDecisions": []
+    "design":  {
+                   "identity":  "pkid:design:program-kit:development-tools",
+                   "version":  "2.0.0",
+                   "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+               },
+    "ownerId":  "pkid:domain:program-kit:development-tools",
+    "state":  "ready-for-human-decision",
+    "requirementIds":  [
+                           "PKDT-R001",
+                           "PKDT-R002",
+                           "PKDT-R003",
+                           "PKDT-R004",
+                           "PKDT-R005",
+                           "PKDT-R006",
+                           "PKDT-R007",
+                           "PKDT-R008",
+                           "PKDT-R009",
+                           "PKDT-R010",
+                           "PKDT-R011",
+                           "PKDT-R012",
+                           "PKDT-R013",
+                           "PKDT-R014",
+                           "PKDT-R015",
+                           "PKDT-R016"
+                       ],
+    "workUnits":  [
+                      {
+                          "workUnitId":  "PKDT-W010",
+                          "requiredOutcome":  "Establish exact Development Tool 1.0.0 contracts and schemas in Orbyss.ProgramKit.Development, package/component version topology, canonical serialization and compatibility rules, and the approved reuse-existing static-gate binding.",
+                          "sequence":  10,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w010",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "schemas/development-tools; src/Orbyss.ProgramKit.Development; exact component/version maps; schema registration; focused fixtures, tests, documentation, solution, and lock files."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop if current accepted/implemented Console source materially conflicts with host-profile-neutral projection, a contract requires consumer semantics, topology cannot represent affected components, or implementation would create/extend a static gate."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Schemas validate and canonicalize deterministically; compatibility/version topology and the unchanged private ProgramKit gate binding pass with zero gate, build, or test failures."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "product",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      },
+                      {
+                          "workUnitId":  "PKDT-W020",
+                          "requiredOutcome":  "Implement complete Open Console mapping/reporting, default-all exact-revision selection, fail-closed access policy, structured schema/token/result projection, and the minimal package-only generated Console challenge fixture.",
+                          "sequence":  20,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+                                            "PKDT-W010"
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w020",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "Bounded Open Console Development Tool projection; declaration/mapping/manifest validation; isolated acceptance fixture and package preparation; controlled NuGet.Config/source mapping; focused tests, docs, solution, and lock files."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop if any operation is silently omitted or weakened, side effects/access are inferred, output is non-canonical/non-JSON, blocked selection cannot be represented, or the consumer uses ProgramKit project/source/build-output coupling."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Complete mapping, selection, blocked diagnostics, structured projection, denied defaults, exact side effects, deterministic fixture output, repeated package-only construction, and every forbidden consumer-coupling test pass."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "product",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      },
+                      {
+                          "workUnitId":  "PKDT-W030",
+                          "requiredOutcome":  "Add Orbyss.ProgramKit.DevelopmentTools.Mcp and program-kit-development-tools-mcp as the single provider-neutral MCP 2025-11-25 stdio bridge with exact discovery, call/result, byte, process, timeout, cancellation, concurrency, idempotency, and failure behavior.",
+                          "sequence":  30,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+                                            "PKDT-W020"
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w030",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "src/Orbyss.ProgramKit.DevelopmentTools.Mcp; exact MCP dependency/version topology; neutral bridge fixtures, process harnesses, tests, canonical docs, solution, and lock files."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+                                                       {
+                                                           "artifact":  {
+                                                                            "identity":  "pkid:evidence:program-kit:development-tools-provider-contract",
+                                                                            "version":  "2.0.0",
+                                                                            "digest":  "sha256:c9044e62f3079c3e87e4affc5ff2e63c170cd97bf1eb89eb105ad932c4cc9130"
+                                                                        },
+                                                           "purpose":  "Recheck exact MCP 2025-11-25 tools, stdio, and cancellation sources."
+                                                       }
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop on material MCP drift, stdout contamination, provider-specific runtime code, missing byte verification, unbounded behavior, automatic retry, implicit idempotency, shared consumers, provider/capability calls, or nested loops."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Direct executable and raw MCP initialize/list/call, structured result, byte tamper, schema, timeout, cancellation race, concurrency, idempotency, stderr/stdout, process freshness, and non-autonomy conformance pass."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "product",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      },
+                      {
+                          "workUnitId":  "PKDT-W040",
+                          "requiredOutcome":  "Implement deterministic registration proposal, exact digest acceptance, provider-specific ownership locks, atomic project mutation, read-only status, explicit update diff, exact removal, collision handling, and fail-closed drift detection in program-kit.",
+                          "sequence":  40,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+                                            "PKDT-W030"
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w040",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "src/Orbyss.ProgramKit.CommandLine Development Tools grammar/transport; src/Orbyss.ProgramKit.Development registration core; normalized provider-entry adapters; registration fixtures, tests, docs, solution, and lock files."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop if mutation can precede exact proposal acceptance, ownership/collision is ambiguous, status mutates, writes are non-atomic/uncontained, removal adopts/deletes unrelated state, or any command starts a process/provider/tool."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Proposal determinism, digest refusal, status classifications, atomic register/update/remove, operation diff, ownership lock, path safety, unrelated-byte preservation, crash recovery, and no-process-start tests pass."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "product",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      },
+                      {
+                          "workUnitId":  "PKDT-W050",
+                          "requiredOutcome":  "Implement the Codex project writer and prove genuine Codex sessions A, B, and C discover, invoke, update, remove, and cease discovering the exact tool solely through persisted project registration.",
+                          "sequence":  50,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+                                            "PKDT-W040"
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w050",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "Codex provider-entry writer in bounded registration code; .codex/config.toml fixtures; isolated acceptance workspaces; Codex evidence schemas/records/validators; tests and canonical docs."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+                                                       {
+                                                           "artifact":  {
+                                                                            "identity":  "pkid:evidence:program-kit:development-tools-provider-contract",
+                                                                            "version":  "2.0.0",
+                                                                            "digest":  "sha256:c9044e62f3079c3e87e4affc5ff2e63c170cd97bf1eb89eb105ad932c4cc9130"
+                                                                        },
+                                                           "purpose":  "Recheck official Codex MCP/config sources and bind genuine isolated Codex A/B/C acceptance."
+                                                       }
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop on material Codex drift, unisolated sessions, inherited executable/path/command knowledge, user/global/trust/permission mutation, process survival, non-genuine discovery, or incomplete evidence."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Codex fixtures and genuine isolated A registration, cold B semantic-only discovery/invocation, update/negatives, exact removal, and cold C non-discovery evidence validate."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "product",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      },
+                      {
+                          "workUnitId":  "PKDT-W060",
+                          "requiredOutcome":  "Implement the Claude Code project writer, locally prove exact .mcp.json proposal/register/status/update/remove behavior and provider-independent negatives, and package a deterministic external A/B/C acceptance kit.",
+                          "sequence":  60,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+                                            "PKDT-W050"
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w060",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "Claude Code provider-entry writer in bounded registration code; .mcp.json fixtures; external acceptance-kit manifest/instructions/validators; Claude evidence schemas; tests and canonical docs."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+                                                       {
+                                                           "artifact":  {
+                                                                            "identity":  "pkid:evidence:program-kit:development-tools-provider-contract",
+                                                                            "version":  "2.0.0",
+                                                                            "digest":  "sha256:c9044e62f3079c3e87e4affc5ff2e63c170cd97bf1eb89eb105ad932c4cc9130"
+                                                                        },
+                                                           "purpose":  "Recheck official Claude Code MCP, permissions, and settings sources."
+                                                       }
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop on material Claude Code drift, any need to write settings/trust/approval/permission state, user/global writes, hidden machine assumptions, non-deterministic kit bytes, or inability to validate returned evidence without local Claude."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Claude .mcp.json lifecycle fixtures, collision/tamper/permission-boundary negatives, unrelated-byte preservation, kit determinism, and returned-evidence validator tests pass without claiming genuine runtime acceptance."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "product",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      },
+                      {
+                          "workUnitId":  "PKDT-W070",
+                          "requiredOutcome":  "Validate genuine returned Claude Code A/B/C evidence, close the exact cross-provider acceptance matrix, complete canonical package/CLI/schema documentation, and record final evidence without overstating cross-model behavior.",
+                          "sequence":  70,
+                          "parallelGroupId":  null,
+                          "dependsOn":  [
+                                            "PKDT-W060"
+                                        ],
+                          "inputs":  [
+                                         {
+                                             "identity":  "pkid:design:program-kit:development-tools",
+                                             "version":  "2.0.0",
+                                             "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                         }
+                                     ],
+                          "outputs":  [
+                                          {
+                                              "identity":  "pkid:plan-output:program-kit:pkdt-w070",
+                                              "version":  "1.0.0",
+                                              "state":  "prospective",
+                                              "integrityDigest":  null
+                                          }
+                                      ],
+                          "allowedEdits":  [
+                                               "Returned Claude Code evidence under the exact schema; cross-provider closure records; package/CLI/schema canonical documentation; acceptance fixtures/goldens; review validation and implementation evidence."
+                                           ],
+                          "sourceDependencies":  [
+
+                                                 ],
+                          "externalDependencies":  [
+
+                                                   ],
+                          "migrations":  [
+
+                                         ],
+                          "compatibility":  [
+
+                                            ],
+                          "stopConditions":  [
+                                                 "Stop and leave closure open if Claude evidence is missing, changed, fabricated, non-cold, incomplete, secret-bearing, or from different bytes; also stop on any suite, package-only, gate, documentation-authority, or scope failure."
+                                             ],
+                          "verification":  [
+                                               {
+                                                   "executable":  "dotnet",
+                                                   "arguments":  [
+                                                                     "test",
+                                                                     "ProgramKit.sln",
+                                                                     "--no-restore",
+                                                                     "--maxcpucount:1",
+                                                                     "--property:UseSharedCompilation=false"
+                                                                 ],
+                                                   "workingDirectory":  ".",
+                                                   "expectedObservation":  "Locked restore, private gate, build, full unit/conformance suites, package-only proof, deterministic result, genuine Codex/Claude A/B/C evidence, complete negatives, closure, documentation ownership, and changed-file scope pass."
+                                               }
+                                           ],
+                          "selectedTests":  [
+
+                                            ],
+                          "workUnitKind":  "closure",
+                          "activationMatrix":  {
+                                                   "identity":  "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+                                                   "version":  "1.0.0",
+                                                   "digest":  "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+                                               },
+                          "verificationProfile":  {
+                                                      "identity":  "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+                                                      "version":  "1.0.0",
+                                                      "digest":  "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+                                                  }
+                      }
+                  ],
+    "parallelGroups":  [
+
+                       ],
+    "trace":  [
+                  {
+                      "requirementId":  "PKDT-R001",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W010",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Exact Development Tool, schema, package, executable, and MCP identities are versioned and digest-bound.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Exact Development Tool, schema, package, executable, and MCP identities are versioned and digest-bound."
+                  },
+                  {
+                      "requirementId":  "PKDT-R002",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W010",
+                                          "PKDT-W020",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Every Open Console operation is selected, exactly excluded, or selected-but-blocked; none is silently omitted.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Every Open Console operation is selected, exactly excluded, or selected-but-blocked; none is silently omitted."
+                  },
+                  {
+                      "requirementId":  "PKDT-R003",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W020",
+                                          "PKDT-W030",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Structured projection invokes one fresh consumer process and validates one canonical JSON result.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Structured projection invokes one fresh consumer process and validates one canonical JSON result."
+                  },
+                  {
+                      "requirementId":  "PKDT-R004",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W010",
+                                          "PKDT-W020",
+                                          "PKDT-W030",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Side effects, resources, timeout, cancellation, concurrency, retry, and idempotency are fail-closed.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Side effects, resources, timeout, cancellation, concurrency, retry, and idempotency are fail-closed."
+                  },
+                  {
+                      "requirementId":  "PKDT-R005",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W020",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "The proof consumer uses only exact locally prepared packages and controlled NuGet source mapping.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "The proof consumer uses only exact locally prepared packages and controlled NuGet source mapping."
+                  },
+                  {
+                      "requirementId":  "PKDT-R006",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W030",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Both providers use the same exact neutral MCP bridge.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Both providers use the same exact neutral MCP bridge."
+                  },
+                  {
+                      "requirementId":  "PKDT-R007",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W040",
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Proposal/register/status/update/remove preserve exact ownership and human authority.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Proposal/register/status/update/remove preserve exact ownership and human authority."
+                  },
+                  {
+                      "requirementId":  "PKDT-R008",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W040",
+                                          "PKDT-W050",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Codex owns only one reviewed project MCP entry.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Codex owns only one reviewed project MCP entry."
+                  },
+                  {
+                      "requirementId":  "PKDT-R009",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W040",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Claude Code owns only one reviewed project MCP entry and no settings/trust/permission state.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Claude Code owns only one reviewed project MCP entry and no settings/trust/permission state."
+                  },
+                  {
+                      "requirementId":  "PKDT-R010",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W030",
+                                          "PKDT-W040",
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Missing, tampered, incompatible, colliding, changed, or unowned bytes fail closed.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Missing, tampered, incompatible, colliding, changed, or unowned bytes fail closed."
+                  },
+                  {
+                      "requirementId":  "PKDT-R011",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Both providers prove isolated A/B/C cold-session behavior.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Both providers prove isolated A/B/C cold-session behavior."
+                  },
+                  {
+                      "requirementId":  "PKDT-R012",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W020",
+                                          "PKDT-W030",
+                                          "PKDT-W040",
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "The complete negative matrix has deterministic or genuine provider evidence.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "The complete negative matrix has deterministic or genuine provider evidence."
+                  },
+                  {
+                      "requirementId":  "PKDT-R013",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Shared neutral digests match; provider observations remain labelled; closure waits for genuine Claude evidence.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Shared neutral digests match; provider observations remain labelled; closure waits for genuine Claude evidence."
+                  },
+                  {
+                      "requirementId":  "PKDT-R014",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W030",
+                                          "PKDT-W040",
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "No autonomous behavior exists and canonical documentation remains in ProgramKit.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "No autonomous behavior exists and canonical documentation remains in ProgramKit."
+                  },
+                  {
+                      "requirementId":  "PKDT-R015",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W010",
+                                          "PKDT-W040",
+                                          "PKDT-W050",
+                                          "PKDT-W060",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "Every change requires explicit reviewed update or migration/removal and fresh registration.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "Every change requires explicit reviewed update or migration/removal and fresh registration."
+                  },
+                  {
+                      "requirementId":  "PKDT-R016",
+                      "ownerId":  "pkid:domain:program-kit:development-tools",
+                      "contractOrArtifact":  {
+                                                 "identity":  "pkid:design:program-kit:development-tools",
+                                                 "version":  "2.0.0",
+                                                 "digest":  "sha256:918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
+                                             },
+                      "workUnitIds":  [
+                                          "PKDT-W010",
+                                          "PKDT-W020",
+                                          "PKDT-W070"
+                                      ],
+                      "implementationOutcome":  "ProgramKit C# reuses the exact private gate and affected units recheck current Console source truth.",
+                      "dependencyOrExtensionImpact":  [
+
+                                                      ],
+                      "tests":  [
+
+                                ],
+                      "evidence":  [
+
+                                   ],
+                      "observableAcceptanceOutcome":  "ProgramKit C# reuses the exact private gate and affected units recheck current Console source truth."
+                  }
+              ],
+    "unresolvedDecisions":  [
+
+                            ],
+    "staticConformanceDisposition":  {
+                                         "identity":  "pkid:static-conformance-disposition:program-kit:development-tools",
+                                         "version":  "1.0.0",
+                                         "digest":  "sha256:6092894ece0f6691dcd59a27ca24eb6365bac2c01739a54bfb45856a86960697"
+                                     },
+    "staticConformanceState":  "reuse-existing",
+    "gateDesign":  {
+                       "identity":  "pkid:design:program-kit:reusable-csharp-build-gates",
+                       "version":  "1.0.0",
+                       "digest":  "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+                   },
+    "gateDefinition":  {
+                           "identity":  "pkid:policy:program-kit:csharp-source-quality-gate",
+                           "version":  "1.10.0",
+                           "state":  "materialized",
+                           "integrityDigest":  "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+                       },
+    "selectionLock":  {
+                          "identity":  "pkid:selection-lock:program-kit:development-tools-private-gate",
+                          "version":  "1.0.0",
+                          "state":  "materialized",
+                          "integrityDigest":  "sha256:66a62b56eea04e09fc905f6074cc991b88096648415ffa670c7a8641bd1edde4"
+                      },
+    "activationEvidence":  {
+                               "identity":  "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
+                               "version":  "1.0.0",
+                               "state":  "materialized",
+                               "integrityDigest":  "sha256:c4b247449959317dd95eca5aab4baf61d709ff27155e84cae0a9d111f0e4b09b"
+                           }
 }
