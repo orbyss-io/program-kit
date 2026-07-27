@@ -1,0 +1,44 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:dotnet-shell",
+  "sourceRange": "[2.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:dotnet-shell",
+    "version": "3.0.0",
+    "digest": "sha256:6f3d60cee34c8baf00f27940790a1220676b452f8bf027eeaafdf8c5ab83d60e"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "owner-authored-configuration-declarations",
+      "description": "Every non-empty v2 binding has explicit owner-authored provider, typed definition, validation, classification, lifetime, reload, reaction, and compatibility declarations.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:dotnet-configuration-v2-to-v3",
+    "version": "1.0.0",
+    "digest": "sha256:2ea7e9e2cbeb259a0ce5882b3b6e8ec5494008d42b8fdc293d2d9bc6f33ab9e8"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-configuration-v2-empty",
+      "version": "2.0.0",
+      "digest": "sha256:d5ba6bf4b5765d2902707ccdb2684218623ca4fe6339a2a049cd9d001cc236dc"
+    },
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-configuration-v3-empty",
+      "version": "3.0.0",
+      "digest": "sha256:fec4386fbc0c80eec217dc379caec595dfa08f21d0a9237144619da962943096"
+    }
+  ]
+}

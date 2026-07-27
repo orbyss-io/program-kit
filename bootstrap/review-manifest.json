@@ -1,0 +1,79 @@
+{
+  "manifestKind": "program-kit-bootstrap-review",
+  "manifestVersion": "1.1.0",
+  "reviewSetId": "pkid:approval:program-kit:bootstrap-review-set",
+  "reviewSetVersion": "0.3.0",
+  "owner": "human-led-program-kit-bootstrap",
+  "reviewState": "approved",
+  "implementationStatus": "scaffolded",
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:bootstrap-review-set:0.3.0",
+    "recordVersion": "1.0.0",
+    "path": "program-kit/bootstrap/bootstrap-approval-record.json",
+    "sha256": "c5b037e391191ab4d5623a8e8fe20e41b58b6b0c50d02425423e95c465087509"
+  },
+  "bootstrapException": true,
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf",
+    "attributes": "/.gitattributes"
+  },
+  "artifacts": [
+    {
+      "artifactId": "pkid:design:program-kit:baseline",
+      "artifactVersion": "0.3.0",
+      "intendedContract": "pkid:schema:program-kit:architecture-design",
+      "intendedContractVersion": "1.0.0",
+      "path": "program-kit/bootstrap/architecture-design.md",
+      "sha256": "dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:baseline",
+      "artifactVersion": "0.3.0",
+      "intendedContract": "pkid:schema:program-kit:implementation-plan",
+      "intendedContractVersion": "1.0.0",
+      "designId": "pkid:design:program-kit:baseline",
+      "designVersion": "0.3.0",
+      "designSha256": "dbe65ea112a172761f5725c210add00867b8b9f7a180a8b5ee6f80e42dace1c9",
+      "path": "program-kit/bootstrap/implementation-plan.md",
+      "sha256": "6d7396d5eb71e0d064231110e2ccfcae2aea838ca851b1420ff310df127cd951"
+    }
+  ],
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-review-set-version-and-both-exact-digests",
+    "acceptedScope": "the Program Kit architecture and implementation outcomes bounded by the two review artifacts",
+    "includesBootstrapReceiptException": true,
+    "doesNotAuthorize": [
+      "Domain Semantic Engine domain design or behavior",
+      "CShells packages, APIs, or asset selections other than the exact source-verified baseline",
+      "a JSON runtime other than System.Text.Json, Newtonsoft.Json compatibility, or unallow-listed JsonElement, JsonNode, or JsonDocument use",
+      "relaxation of the reviewed model-first serialization, frozen-profile, or canonicalization rules",
+      "React, desktop, or host profiles other than the approved API, Console, and Worker profiles",
+      "an Orbyss.ProgramKit.DotNet.Metadata package, Program Kit source annotations, or compiler-symbol adapter without a separately approved design",
+      "durable or distributed task queues, schedulers, execution, or workflow orchestration",
+      "Release Cycle behavior or Release Cycle capability registration",
+      "artifact-feed publication, deployment, signing, or release publication",
+      "a material deviation from the reviewed design or plan"
+    ]
+  },
+  "provenance": {
+    "createdDate": "2026-07-22",
+    "revisedDate": "2026-07-23",
+    "source": "human-authored bootstrap exception",
+    "details": "The consulted source set is enumerated in architecture-design.md; this manifest binds review bytes and is not a Program Kit-generated artifact."
+  },
+  "revises": {
+    "reviewSetVersion": "0.2.0",
+    "design": {
+      "artifactVersion": "0.2.0",
+      "sha256": "829407d25e7cb637d036031134989095308c0ee31b600523982c4a9252048d5e"
+    },
+    "plan": {
+      "artifactVersion": "0.2.0",
+      "sha256": "f1582a0cca76676c2ea4046c8553172020b6551c7f9c0b95701926aa32eb71d5"
+    }
+  }
+}

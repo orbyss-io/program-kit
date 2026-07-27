@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ProgramKit.IsolatedConsumers.FixtureComposition</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ObservatoryScheduling.Constraints.DarknessWindow" Version="[0.1.0-fixture.1]" />
+    <PackageReference Include="ObservatoryScheduling.Scheduling.FirstAvailable" Version="[0.1.0-fixture.1]" />
+    <PackageReference Include="ObservatoryScheduling.Visibility.Static" Version="[0.1.0-fixture.1]" />
+  </ItemGroup>
+</Project>

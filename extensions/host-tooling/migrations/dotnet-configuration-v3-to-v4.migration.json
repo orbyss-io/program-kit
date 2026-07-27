@@ -1,0 +1,44 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:dotnet-shell",
+  "sourceRange": "[3.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:dotnet-shell",
+    "version": "4.0.0",
+    "digest": "sha256:689fd7bfec2e545f91a17eeab73f649fc3e09ff2d51af45868ffc9324665a9e0"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "exact-reviewed-provider-selection",
+      "description": "Every v3 source resolves to one exact reviewed v4 provider descriptor whose package, reload, secret, and development constraints accept the preserved declaration.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:dotnet-configuration-v3-to-v4",
+    "version": "1.0.0",
+    "digest": "sha256:a57107c2437d93a561c142553ba765908c508b1824754499a3fac241981be02d"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-configuration-v3-empty",
+      "version": "3.0.0",
+      "digest": "sha256:fec4386fbc0c80eec217dc379caec595dfa08f21d0a9237144619da962943096"
+    },
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-configuration-v4-empty",
+      "version": "4.0.0",
+      "digest": "sha256:fec4386fbc0c80eec217dc379caec595dfa08f21d0a9237144619da962943096"
+    }
+  ]
+}

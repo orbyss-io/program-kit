@@ -1,0 +1,110 @@
+{
+  "identity": "pkid:selection:program-kit:dotnet-keycloak-local-fixture",
+  "version": "1.0.0",
+  "owner": "pkid:domain:program-kit:toolkit",
+  "selection": {
+    "dotnetSdk": "10.0.302",
+    "targetFramework": "net10.0",
+    "aspireVersion": "13.4.6",
+    "aspireSourceRepository": "https://github.com/microsoft/aspire",
+    "aspireSourceCommit": "87fe259e4fc244c599019a7b1304c85a1488f248",
+    "aspireLicense": "MIT",
+    "aspireLicenseSha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+    "keycloakVersion": "26.7.0",
+    "keycloakSourceRepository": "https://github.com/keycloak/keycloak",
+    "keycloakSourceCommit": "6c73e3027811d9c7b22683edd825e839272e9547",
+    "keycloakLicense": "Apache-2.0",
+    "keycloakLicenseSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  "directPackages": [
+    {
+      "id": "Aspire.AppHost.Sdk",
+      "version": "13.4.6",
+      "sha256": "9025bd9ffd26a1f8a174cfdc71c0bbde6815b86101033bd3f669df5a484b6d95",
+      "role": "apphost-project-sdk"
+    },
+    {
+      "id": "Aspire.Hosting.AppHost",
+      "version": "13.4.6",
+      "sha256": "f387c6ec2839ff25cc7da9b14278d8e24eaada2843579751cafd1a59f18f6a55",
+      "role": "core-apphost-integration"
+    },
+    {
+      "id": "Aspire.Hosting.Keycloak",
+      "version": "13.4.6-preview.1.26319.6",
+      "sha256": "bdc92e34c141dc18f9ee0b523a48927650298fd23991137d320e7afc714f58c2",
+      "assemblySha256": "3ad7f4f243ec894d489ba2b5b286856663a6dfec1f50c10068eae08815e58521",
+      "targetFramework": "net8.0",
+      "role": "fixture-only-keycloak-hosting-integration",
+      "stability": "preview"
+    }
+  ],
+  "containerImage": {
+    "reference": "quay.io/keycloak/keycloak:26.7.0",
+    "digest": "sha256:0f198be292568439d700cdbfb893e69a6009bb43a94a06a945b1d3d506c76b13",
+    "observedPlatform": "linux/amd64",
+    "ociSource": "https://github.com/keycloak-rel/keycloak-rel",
+    "ociRevision": "df15afa5a3a8a2b10021f879ffa93b30fb36c73a",
+    "ociLicense": "Apache-2.0"
+  },
+  "tlsProfile": {
+    "identity": "pkid:profile:program-kit:keycloak-fixture-tls",
+    "version": "1.0.0",
+    "serverHostName": "localhost",
+    "providerHttpsTargetPort": 8443,
+    "certificateAlgorithm": "RSA-SHA256",
+    "certificateAuthorityKeySize": 3072,
+    "serverKeySize": 3072,
+    "notBeforeSkewMinutes": 5,
+    "certificateAuthorityValidityHours": 24,
+    "serverCertificateValidityHours": 8,
+    "serverExtendedKeyUsageOid": "1.3.6.1.5.5.7.3.1",
+    "runtimeOwnership": "one exact program-kit-keycloak-* root with one tls subdirectory",
+    "containerMounts": "exact server certificate and private key read-only",
+    "dotNetTrust": "custom-root-trust scoped to the fixture authority",
+    "chromiumTrust": "exact generated server SPKI list",
+    "providerHttpEnabled": false,
+    "hostTrustMutation": false,
+    "hostNetworkMutation": false
+  },
+  "protocolCapabilities": {
+    "oidcAuthorizationCodePkce": "supported",
+    "oauthClientCredentials": "supported",
+    "rfc9068AccessTokenHeaderType": {
+      "supported": true,
+      "clientAttribute": "access.token.header.type.rfc9068"
+    },
+    "rfc8693StandardTokenExchange": {
+      "supported": true,
+      "feature": "token-exchange-standard:v2",
+      "defaultFeatureState": "enabled",
+      "clientAttribute": "standard.token.exchange.enabled",
+      "resourceParameter": "not-supported-by-provider"
+    },
+    "delegation": "not-selected",
+    "impersonation": "not-selected"
+  },
+  "policies": {
+    "generationNetwork": "forbidden",
+    "generationExecution": "forbidden",
+    "runtimeExecution": "separately-human-started-disposable-profile-only",
+    "realmImport": "minimal-startup-import-only-not-backup-migration-or-production-provisioning",
+    "state": "session-lifetime-no-data-volume",
+    "secretMaterial": "runtime-only-typed-references-and-environment-placeholders",
+    "tls": "runtime-only fixture-owned authority and localhost server certificate; provider HTTPS only; exact process-isolated .NET custom-root and Chromium SPKI trust; no machine/user trust or operating-system network mutation",
+    "evidence": "redacted-non-authoritative-outcomes-only",
+    "providerMeaning": "none"
+  },
+  "sources": [
+    "https://aspire.dev/integrations/security/keycloak/",
+    "https://www.nuget.org/packages/Aspire.Hosting.Keycloak/13.4.6-preview.1.26319.6",
+    "https://www.keycloak.org/server/containers",
+    "https://www.keycloak.org/server/importExport",
+    "https://www.keycloak.org/securing-apps/token-exchange",
+    "https://www.keycloak.org/securing-apps/specifications"
+  ],
+  "design": "pkid:design:program-kit:host-tooling@1.3.0#sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57",
+  "plan": "pkid:plan:program-kit:host-tooling@1.3.0#sha256:8144a67d5d919211f87a2d30a4d7a870f299c126e138986c6f079e133734f9a5",
+  "correctiveDesign": "pkid:design:program-kit:host-tooling-keycloak-tls-proof@1.0.0#sha256:094459fa8813d04f3ab0f97764770d80564657d27be04762c78e6a726d9d6a11",
+  "correctivePlan": "pkid:plan:program-kit:host-tooling-keycloak-tls-proof@1.0.0#sha256:a7aae926ae5916f2ccdbda28a2dc70dfc008e43236718c3a5ed1ee644831c39a"
+}

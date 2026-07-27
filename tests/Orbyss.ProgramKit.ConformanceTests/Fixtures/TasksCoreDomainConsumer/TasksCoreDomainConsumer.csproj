@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Orbyss.ProgramKit.TasksCoreDomainConsumerFixture</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit.TasksCoreDomainConsumerFixture</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Tasks.Core\Orbyss.ProgramKit.Tasks.Core.csproj" />
+  </ItemGroup>
+</Project>

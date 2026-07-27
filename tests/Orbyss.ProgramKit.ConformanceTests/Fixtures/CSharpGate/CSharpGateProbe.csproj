@@ -1,0 +1,376 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GateCase Condition="'$(GateCase)' == ''">Valid</GateCase>
+    <OutputType
+      Condition="'$(GateCase)' == 'TypeFreeSource' or '$(GateCase)' == 'TopLevelWithType'">Exe</OutputType>
+    <RootNamespace>Orbyss.ProgramKit.CSharpGateProbe</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalGateDisabled'">
+    <ProgramKitCSharpGateEnabled>false</ProgramKitCSharpGateEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalNoWarn'">
+    <NoWarn>CS0168</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalWarningsNotAsErrors'">
+    <WarningsNotAsErrors>CS0168</WarningsNotAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalMSBuildWarningsAsMessages'">
+    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalRunAnalyzersDisabled'">
+    <RunAnalyzers>false</RunAnalyzers>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalWarningLevelDisabled'">
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalRuleSet'">
+    <CodeAnalysisRuleSet>Configurations\DisableGate.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalAnalysisMode'">
+    <AnalysisMode>None</AnalysisMode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'ConsumerSelfValidationAnalyzer'">
+    <ProgramKitSelfValidate>true</ProgramKitSelfValidate>
+    <ProgramKitSelfValidationAnalyzerPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll</ProgramKitSelfValidationAnalyzerPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'LocalDisabledWarnings'">
+    <DisabledWarnings>CS0168</DisabledWarnings>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(GateCase)' == 'Root'">
+    <Compile Include="RootProbe.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateCase)' != 'Root'">
+    <Compile Include="Cases\$(GateCase)\*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RemoveAnalyzerProjectReference'">
+    <ProjectReference Remove="$(ProgramKitCSharpGateProjectPath)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'DuplicateAnalyzerProjectReference'">
+    <ProjectReference Include="$(ProgramKitCSharpGateProjectPath)"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'BuildReferenceFalse'">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      BuildReference="false" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ProgramKitConformanceValidatedGateDigest)' != ''">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      Targets="GetTargetPath" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'TargetsGetTargetPath'">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      Targets="GetTargetPath" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'SkipGetTargetFrameworkProperties'">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'ProjectReferenceAdditionalProperties'">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      AdditionalProperties="ProgramKitProbeInjectedProperty=true" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'ProjectReferenceGlobalPropertiesToRemove'">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      GlobalPropertiesToRemove="Configuration" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RemoveProjectDirectoryCompilerProperty'">
+    <CompilerVisibleProperty Remove="MSBuildProjectDirectory" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RemoveProjectNameCompilerProperty'">
+    <CompilerVisibleProperty Remove="MSBuildProjectName" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RemoveGeneratedSourceRootCompilerProperty'">
+    <CompilerVisibleProperty Remove="ProgramKitGeneratedSourceRoot" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RemoveWarningApprovalLedgerPathCompilerProperty'">
+    <CompilerVisibleProperty Remove="ProgramKitWarningApprovalLedgerPath" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RemoveApprovalLedger'">
+    <AdditionalFiles Remove="$(ProgramKitWarningApprovalLedgerPath)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'AddSecondApprovalLedger'">
+    <AdditionalFiles Include="Configurations\approved-warning-suppressions.tsv" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'AnalyzerConfig'">
+    <EditorConfigFiles Include="Configurations\DisableGate.globalconfig" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'AnalyzerConfigInSdk'">
+    <EditorConfigFiles Include="$(MSBuildSDKsPath)\Microsoft.NET.Sdk\analyzers\build\config\analysislevel_10_none.globalconfig" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RestoreAuditSuppress'">
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-0000-0000-0000" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'PackageReferenceNoWarn'">
+    <PackageReference Include="ProgramKit.RestoreProbe"
+                      Version="1.0.0"
+                      NoWarn="NU1903" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'ProjectReferenceNoWarn'">
+    <ProjectReference Update="$(ProgramKitCSharpGateProjectPath)"
+                      NoWarn="NU1903" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'CompilerResponseFileItem'">
+    <CompilerResponseFile Include="Configurations\compiler.rsp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'InjectedAnalyzer'">
+    <Analyzer Include="$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'RawAssemblyReference'">
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'AliasedAssemblyReference'">
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>false</Private>
+      <Aliases>ProbeAlias</Aliases>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'LinkedInteropReference'">
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>false</Private>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'ComReference'">
+    <COMReference Include="ProgramKitProbeComReference">
+      <Guid>{00000000-0000-0000-0000-000000000001}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'AddedCompilerModule'">
+    <AddModules Include="RootProbe.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GateMutation)' == 'ConsumerSelfValidationAnalyzer'">
+    <Analyzer Include="$(ProgramKitSelfValidationAnalyzerPath)" />
+  </ItemGroup>
+  <Target Name="CreateIntermediateAnalyzerConfig"
+          BeforeTargets="ValidateProgramKitCSharpGateConfiguration"
+          Condition="'$(GateMutation)' == 'AnalyzerConfigInIntermediate'">
+    <MakeDir Directories="$(BaseIntermediateOutputPath)" />
+    <WriteLinesToFile
+      File="$(BaseIntermediateOutputPath)disable-gate.globalconfig"
+      Lines="is_global = true"
+      Overwrite="true" />
+    <ItemGroup>
+      <EditorConfigFiles Include="$(BaseIntermediateOutputPath)disable-gate.globalconfig" />
+    </ItemGroup>
+  </Target>
+  <Target Name="DetachResolvedProgramKitAnalyzer"
+          AfterTargets="ResolveProjectReferences"
+          BeforeTargets="ValidateProgramKitCSharpGateConfiguration"
+          Condition="'$(GateMutation)' == 'DetachResolvedAnalyzer'">
+    <ItemGroup>
+      <Analyzer Remove="$(ProgramKitCSharpGateAssemblyPath)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="DuplicateResolvedProgramKitAnalyzer"
+          AfterTargets="ResolveProjectReferences"
+          BeforeTargets="ValidateProgramKitCSharpGateConfiguration"
+          Condition="'$(GateMutation)' == 'DuplicateResolvedAnalyzer'">
+    <ItemGroup>
+      <Analyzer Include="$(ProgramKitCSharpGateAssemblyPath)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="DetachRootNamespaceCompilerProperty"
+          BeforeTargets="ValidateProgramKitCSharpGateConfiguration"
+          Condition="'$(GateMutation)' == 'RemoveRootNamespaceCompilerProperty'">
+    <ItemGroup>
+      <CompilerVisibleProperty Remove="RootNamespace" />
+    </ItemGroup>
+  </Target>
+  <Target Name="DetachResolvedSdkAnalyzer"
+          BeforeTargets="ValidateProgramKitResolvedAnalyzerSet"
+          Condition="'$(GateMutation)' == 'RemoveSdkAnalyzer'">
+    <PropertyGroup>
+      <SdkAnalyzerProbePath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\analyzers\Microsoft.CodeAnalysis.NetAnalyzers.dll'))</SdkAnalyzerProbePath>
+    </PropertyGroup>
+    <ItemGroup>
+      <Analyzer
+        Remove="@(Analyzer)"
+        Condition="'%(Analyzer.FullPath)' == '$(SdkAnalyzerProbePath)'" />
+    </ItemGroup>
+  </Target>
+  <Target Name="ReplaceCodeStyleFixAnalyzer"
+          BeforeTargets="ValidateProgramKitResolvedAnalyzerSet"
+          Condition="'$(GateMutation)' == 'SpoofPrivateAnalyzerRoot'">
+    <ItemGroup>
+      <Analyzer Remove="$(MSBuildToolsPath)\Sdks\Microsoft.NET.Sdk\codestyle\cs\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" />
+      <Analyzer Include="$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll" />
+    </ItemGroup>
+  </Target>
+  <Target Name="RemoveProgramKitAnalyzerAfterValidation"
+          DependsOnTargets="ValidateProgramKitCSharpGateConfiguration;ValidateProgramKitResolvedAnalyzerSet;ValidateProgramKitOwnedSourceInventory"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationRemoveAnalyzer'">
+    <ItemGroup>
+      <Analyzer Remove="$(ProgramKitCSharpGateAssemblyPath)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="RemoveProgramKitSourceAfterValidation"
+          DependsOnTargets="ValidateProgramKitCSharpGateConfiguration;ValidateProgramKitResolvedAnalyzerSet;ValidateProgramKitOwnedSourceInventory"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationRemoveSource'">
+    <ItemGroup>
+      <Compile Remove="Cases\$(GateCase)\ValidProbe.cs" />
+    </ItemGroup>
+  </Target>
+  <Target Name="DemoteCompilerWarningsAfterValidation"
+          DependsOnTargets="ValidateProgramKitCSharpGateConfiguration;ValidateProgramKitResolvedAnalyzerSet;ValidateProgramKitOwnedSourceInventory"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationWarningDemotion'">
+    <PropertyGroup>
+      <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SkipCompilerAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationSkipCompilerExecution'">
+    <PropertyGroup>
+      <SkipCompilerExecution>true</SkipCompilerExecution>
+    </PropertyGroup>
+  </Target>
+  <Target Name="AddCompilerResponseFileAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationCompilerResponseFile'">
+    <PropertyGroup>
+      <CompilerResponseFile>Configurations\compiler.rsp</CompilerResponseFile>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SubstituteCompilerAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationCscToolSubstitution'">
+    <PropertyGroup>
+      <CscToolPath>$(MSBuildToolsPath)\Roslyn\bincore</CscToolPath>
+      <CscToolExe>csc.exe</CscToolExe>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SkipAnalyzersAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationSkipAnalyzers'">
+    <PropertyGroup>
+      <RunAnalyzers>false</RunAnalyzers>
+    </PropertyGroup>
+  </Target>
+  <Target Name="DisableGeneratedReceiptAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationDisableGeneratedReceipt'">
+    <PropertyGroup>
+      <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+  </Target>
+  <Target Name="EnableSharedCompilationAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationEnableSharedCompilation'">
+    <PropertyGroup>
+      <UseSharedCompilation>true</UseSharedCompilation>
+    </PropertyGroup>
+  </Target>
+  <Target Name="EnableHostCompilerAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationEnableHostCompiler'">
+    <PropertyGroup>
+      <UseHostCompilerIfAvailable>true</UseHostCompilerIfAvailable>
+    </PropertyGroup>
+  </Target>
+  <Target Name="ChangeTargetFrameworkAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationTargetFramework'">
+    <PropertyGroup>
+      <TargetFramework>net9.0</TargetFramework>
+    </PropertyGroup>
+  </Target>
+  <Target Name="AddCompilationHookAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationCompilationHook'">
+    <PropertyGroup>
+      <TargetsTriggeredByCompilation>ProgramKitPostCompilationProbe</TargetsTriggeredByCompilation>
+    </PropertyGroup>
+  </Target>
+  <Target Name="ProgramKitPostCompilationProbe" />
+  <Target Name="RemoveReferenceAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationRemoveReference'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Remove="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Xml.XPath.XDocument'" />
+    </ItemGroup>
+  </Target>
+  <Target Name="MutateResolvedFrameworkIdentity"
+          AfterTargets="ResolveReferences"
+          BeforeTargets="ValidateProgramKitResolvedReferenceSet"
+          Condition="'$(GateMutation)' == 'ResolvedFrameworkIdentityMutation'">
+    <PropertyGroup>
+      <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+      <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+      <TargetFrameworkMoniker>.NETFramework,Version=v4.8</TargetFrameworkMoniker>
+    </PropertyGroup>
+  </Target>
+  <Target Name="MutateResolvedFrameworkVersion"
+          AfterTargets="ResolveReferences"
+          BeforeTargets="ValidateProgramKitResolvedReferenceSet"
+          Condition="'$(GateMutation)' == 'ResolvedFrameworkVersionMutation'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Include="$(MSBuildToolsPath)\..\..\packs\Microsoft.NETCore.App.Ref\10.0.10\ref\net10.0\System.Runtime.dll">
+        <NuGetPackageId>Microsoft.NETCore.App.Ref</NuGetPackageId>
+        <NuGetPackageVersion>10.0.9</NuGetPackageVersion>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+  <Target Name="MutateAnalyzerConfigurationAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationMutateAnalyzerConfig'">
+    <WriteLinesToFile
+      File="$(GeneratedMSBuildEditorConfigFile)"
+      Lines="dotnet_diagnostic.CA1822.severity = none"
+      Overwrite="false" />
+  </Target>
+  <Target Name="EstablishNonProducingCompilerInvocation"
+          BeforeTargets="ValidateProgramKitCSharpGateConfiguration"
+          Condition="'$(GateMutation)' == 'PostValidationDesignTimeBecomesProducing' or
+                     '$(GateMutation)' == 'PostValidationDesignTimeControlMutation'">
+    <PropertyGroup>
+      <DesignTimeBuild>true</DesignTimeBuild>
+      <BuildingProject>false</BuildingProject>
+      <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+      <SkipCompilerExecution>true</SkipCompilerExecution>
+    </PropertyGroup>
+  </Target>
+  <Target Name="ChangeNonProducingCompilerInvocationAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationDesignTimeBecomesProducing'">
+    <PropertyGroup>
+      <BuildingProject>true</BuildingProject>
+    </PropertyGroup>
+  </Target>
+  <Target Name="ChangeNonProducingCompilerControlAfterFinalValidation"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GateMutation)' == 'PostValidationDesignTimeControlMutation'">
+    <PropertyGroup>
+      <RunAnalyzers>false</RunAnalyzers>
+    </PropertyGroup>
+  </Target>
+</Project>

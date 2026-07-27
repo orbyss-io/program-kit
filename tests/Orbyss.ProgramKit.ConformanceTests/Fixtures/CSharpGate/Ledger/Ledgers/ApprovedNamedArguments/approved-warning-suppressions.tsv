@@ -1,0 +1,1 @@
+CS1591	DirectAnalyzerProbe	Configuration/ApprovedNamedArguments/ApprovedNamedArgumentsProbe.cs	SuppressMessageAttribute	assembly|attribute-target:assembly|scope:default|message-id:-	human-approval:csharp-gate-conformance	2026-07-23	Conformance-only semantic named-argument binding fixture.

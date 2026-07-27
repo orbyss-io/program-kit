@@ -1,0 +1,71 @@
+{
+  "VersionMapReference": {
+    "identity": "pkid:version-map:program-kit:full-baseline",
+    "version": "1.0.0",
+    "digest": "sha256:49ac5b7a602bc14d79dd63b48443474ef78abd7011b72a266867e0dd2678bc20"
+  },
+  "VersionSelectionReference": {
+    "identity": "pkid:version-selection:program-kit:full-baseline",
+    "version": "1.0.0",
+    "digest": "sha256:5a5463c71aebc7eb776ff9ff8e7f36105f705cf8025d0a57ba612aaeebd4bfb8"
+  },
+  "ChangedRevisions": [
+    {
+      "identity": "pkid:artifact:capability:publish-dotnet-application-locally",
+      "version": "1.0.0",
+      "digest": "sha256:c8c834b3c842edc43e1266637e224a94f8ad9bac94894a8e6db17a7fc5ae68bc"
+    }
+  ],
+  "Impacts": [
+    {
+      "Observed": {
+        "identity": "pkid:artifact:capability:publish-dotnet-application-locally",
+        "version": "1.0.0",
+        "digest": "sha256:c8c834b3c842edc43e1266637e224a94f8ad9bac94894a8e6db17a7fc5ae68bc"
+      },
+      "Target": {
+        "identity": "pkid:artifact:capability:publish-dotnet-application-locally",
+        "version": "1.0.0",
+        "digest": "sha256:c8c834b3c842edc43e1266637e224a94f8ad9bac94894a8e6db17a7fc5ae68bc"
+      },
+      "OwnerId": "pkid:owner:development:human-led",
+      "Disposition": "unaffected-with-proof",
+      "RequiredActions": [],
+      "RequiredEvidence": [
+        {
+          "identity": "pkid:evidence:program-kit:w090-full-closure",
+          "version": "1.0.0",
+          "digest": "sha256:e1d352b2b8fb8fb83e02e9c67143c8e2f3c56eab0a246a937f0c7127866bdc58"
+        }
+      ],
+      "CausalPaths": [
+        {
+          "ChangedRoot": {
+            "identity": "pkid:artifact:capability:publish-dotnet-application-locally",
+            "version": "1.0.0",
+            "digest": "sha256:c8c834b3c842edc43e1266637e224a94f8ad9bac94894a8e6db17a7fc5ae68bc"
+          },
+          "EdgeIds": []
+        }
+      ],
+      "Rationale": "The selected capability revision is current, human-invoked development tooling and has no incoming runtime or publish dependency edge in the full baseline map."
+    }
+  ],
+  "Waves": [
+    {
+      "Ordinal": 0,
+      "Cohorts": [
+        {
+          "Id": "pkid:cohort:program-kit:w090-capability-proof",
+          "Members": [
+            {
+              "identity": "pkid:artifact:capability:publish-dotnet-application-locally",
+              "version": "1.0.0",
+              "digest": "sha256:c8c834b3c842edc43e1266637e224a94f8ad9bac94894a8e6db17a7fc5ae68bc"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

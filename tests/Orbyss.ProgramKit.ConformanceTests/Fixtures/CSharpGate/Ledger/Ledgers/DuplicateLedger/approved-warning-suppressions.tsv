@@ -1,0 +1,2 @@
+CS1591	DirectAnalyzerProbe	Configuration/DuplicateLedger/DuplicateLedgerProbe.cs	SuppressMessageAttribute	assembly|attribute-target:assembly|scope:default|message-id:-	human-approval:csharp-gate-conformance	2026-07-23	Conformance-only duplicate suppression fixture.
+CS1591	DirectAnalyzerProbe	Configuration/DuplicateLedger/DuplicateLedgerProbe.cs	SuppressMessageAttribute	assembly|attribute-target:assembly|scope:default|message-id:-	human-approval:csharp-gate-conformance	2026-07-23	Conformance-only duplicate suppression fixture.

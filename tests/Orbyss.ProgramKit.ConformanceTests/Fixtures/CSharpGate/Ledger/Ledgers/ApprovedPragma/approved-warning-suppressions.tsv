@@ -1,0 +1,1 @@
+CS0168	DirectAnalyzerProbe	Configuration/ApprovedPragma/ApprovedPragmaProbe.cs	PragmaWarningDisable	lines:7-9	human-approval:csharp-gate-conformance	2026-07-23	Conformance-only exact pragma range consumption fixture.

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/task-schedules/1.0.0/fixed-delay.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:fixed-delay-schedule-descriptor",
+  "x-program-kit-version": "1.0.0",
+  "title": "FixedDelayScheduleDescriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "delay"
+  ],
+  "properties": {
+    "delay": {
+      "type": "string",
+      "pattern": "^(?:[0-9]+\\.)?(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,7})?$",
+      "not": {
+        "const": "00:00:00"
+      }
+    }
+  }
+}

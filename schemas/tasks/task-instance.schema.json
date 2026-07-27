@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/1.0.0/task-instance.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-instance",
+  "x-program-kit-version": "1.0.0",
+  "title": "TaskInstance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "requestRevision",
+    "definitionRevision",
+    "requestContract",
+    "responseContract",
+    "failureContract",
+    "acceptedAt",
+    "idempotencyKey",
+    "occurrenceRevision"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "requestRevision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "definitionRevision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "requestContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "responseContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "failureContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "acceptedAt": {
+      "$ref": "definitions.schema.json#/$defs/timestamp"
+    },
+    "idempotencyKey": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "occurrenceRevision": {
+      "$ref": "definitions.schema.json#/$defs/optionalArtifactReference"
+    }
+  }
+}

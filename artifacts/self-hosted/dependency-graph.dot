@@ -1,0 +1,44 @@
+digraph ProgramKitDependencies {
+  graph [label="Program Kit project dependencies", labelloc="t", rankdir="LR"];
+  node [shape="box"];
+
+  "Architecture" -> "Artifacts";
+  "CommandLine" -> "DotNet";
+  "CommandLine" -> "Operations";
+  "CommandLine" -> "SecretResolution";
+  "CommandLine" -> "Workbench";
+  "Development" -> "Artifacts";
+  "Development" -> "Planning";
+  "DevContainers" -> "Artifacts";
+  "DotNet" -> "Architecture";
+  "DotNet" -> "Operations";
+  "DotNet" -> "Planning";
+  "DotNet" -> "Quality";
+  "DotNet" -> "SecretResolution";
+  "DotNet" -> "Serialization.JSON";
+  "DotNet" -> "Tasks";
+  "DotNet" -> "Tasks.Core";
+  "DotNet" -> "Tasks.Schedules";
+  "DotNet" -> "Workbench";
+  "Modularity" -> "Artifacts";
+  "Modularity.InProcess" -> "Modularity";
+  "Operations" -> "Artifacts";
+  "Planning" -> "Artifacts";
+  "Planning" -> "Quality";
+  "Quality" -> "Artifacts";
+  "SecretResolution" -> "Artifacts";
+  "Serialization.JSON" -> "Artifacts";
+  "Tasks" -> "Modularity";
+  "Tasks" -> "Tasks.Core";
+  "Tasks.Core" -> "Artifacts";
+  "Tasks.Hosting" -> "Tasks";
+  "Tasks.InProcess" -> "Tasks";
+  "Tasks.Schedules" -> "Tasks.Core";
+  "Tasks.Schedules.Cronos" -> "Tasks.Schedules";
+  "Workbench" -> "Architecture";
+  "Workbench" -> "Artifacts";
+  "Workbench" -> "Development";
+  "Workbench" -> "Planning";
+  "Workbench" -> "Quality";
+  "Workbench" -> "Serialization.JSON";
+}

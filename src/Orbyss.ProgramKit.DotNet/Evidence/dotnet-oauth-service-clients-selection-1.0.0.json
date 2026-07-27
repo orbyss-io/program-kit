@@ -1,0 +1,52 @@
+{
+  "identity": "pkid:evidence:program-kit:dotnet-oauth-service-clients-selection",
+  "version": "1.0.0",
+  "selection": {
+    "targetFramework": "net10.0",
+    "sdk": "10.0.302",
+    "sharedFramework": "Microsoft.AspNetCore.App@10.0.10",
+    "generatorSha256": "ec322d653d077644a8f8c5c2983db90d72e55cba68c985c29e1e9440be02c8ab",
+    "httpClientFactory": "Microsoft.Extensions.Http shared-framework implementation",
+    "profiles": [
+      "OAuth 2.0 client credentials",
+      "OAuth 2.0 token exchange RFC 8693"
+    ],
+    "automaticRetry": false,
+    "ambientCurrentUserToken": false,
+    "domainAuthorizationMeaning": "excluded"
+  },
+  "directPackages": [],
+  "frameworkSelection": {
+    "source": "https://github.com/dotnet/aspnetcore/tree/v10.0.10",
+    "license": "MIT",
+    "runtimeLicense": "https://github.com/dotnet/aspnetcore/blob/v10.0.10/LICENSE.txt"
+  },
+  "standards": [
+    {
+      "name": "OAuth 2.0 Authorization Framework",
+      "revision": "RFC 6749",
+      "uri": "https://www.rfc-editor.org/rfc/rfc6749",
+      "reviewedBehavior": "client-credentials grant and token endpoint client authentication"
+    },
+    {
+      "name": "OAuth 2.0 Token Exchange",
+      "revision": "RFC 8693",
+      "uri": "https://www.rfc-editor.org/rfc/rfc8693",
+      "reviewedBehavior": "subject and actor token distinction, requested and issued token types, resource, audience and scope"
+    },
+    {
+      "name": "Resource Indicators for OAuth 2.0",
+      "revision": "RFC 8707",
+      "uri": "https://www.rfc-editor.org/rfc/rfc8707",
+      "reviewedBehavior": "explicit resource request parameter"
+    }
+  ],
+  "boundaries": {
+    "clientAuthentication": "classified secret reference or assertion-service reference; values resolve only at runtime",
+    "subjectAndActor": "explicit non-ambient sources with distinct provenance and token types",
+    "cache": "bounded in-memory storage keyed by every security-relevant profile, subject, actor, resource, audience, scope and token-type dimension",
+    "diagnostics": "client identity, grant kind and outcome only; no token, assertion, secret or response body",
+    "authority": "transport token only; no permission, downscope, on-behalf-of, delegation or impersonation conclusion",
+    "failure": "cancellation and outage fail closed; no automatic retry"
+  }
+}

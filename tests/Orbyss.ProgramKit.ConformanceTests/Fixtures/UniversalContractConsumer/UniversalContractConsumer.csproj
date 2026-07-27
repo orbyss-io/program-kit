@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Orbyss.ProgramKit.UniversalContractConsumerFixture</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit.UniversalContractConsumerFixture</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Development\Orbyss.ProgramKit.Development.csproj" />
+  </ItemGroup>
+</Project>

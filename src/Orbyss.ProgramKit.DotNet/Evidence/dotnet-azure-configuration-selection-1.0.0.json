@@ -1,0 +1,65 @@
+{
+  "identity": "pkid:evidence:program-kit:dotnet-azure-configuration-selection",
+  "version": "1.0.0",
+  "target": {
+    "targetFramework": "net10.0",
+    "sdk": "10.0.302",
+    "microsoftExtensionsClosure": "10.0.10",
+    "generatorSha256": "a405b64ffe3704b4233ab03d87551bc9bda960eaa21d297b8350d6233e6e8b43"
+  },
+  "availableAdapters": [
+    {
+      "name": "Azure Key Vault configuration",
+      "package": "Azure.Extensions.AspNetCore.Configuration.Secrets",
+      "version": "1.5.1",
+      "packageSha256": "49d51e8fb944bb9614ef180d685a1d4e41d81691ae1290bc981aeeccb684a7f8",
+      "net10AssemblySha256": "33a09f94d3a8c7dc933a4bfae11aa3f082dc92836533f029b5685fbdd6c216fe",
+      "sourceRevision": "80c56f7d199f3f45855d67d68c9015f6aad0d0ac",
+      "source": "https://github.com/Azure/azure-sdk-for-net",
+      "license": "MIT",
+      "targetAsset": "lib/net10.0/Azure.Extensions.AspNetCore.Configuration.Secrets.dll",
+      "directDependencies": [
+        "Azure.Core@1.54.0",
+        "Azure.Security.KeyVault.Secrets@4.10.0",
+        "Microsoft.Extensions.Configuration@10.0.3"
+      ],
+      "strictNet10Compilation": "passed",
+      "liveCredentialOrCloudMutation": false
+    }
+  ],
+  "transitiveCompilerParticipants": [
+    {
+      "package": "System.ClientModel",
+      "version": "1.10.0",
+      "path": "analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll",
+      "sha256": "85eff0b8a4d80d78a0bddbdd137f67f6e892eb6a48b4b6f20b768381dd74b9a5",
+      "allowlist": "exact package, version, and resolved path"
+    }
+  ],
+  "deferredAdapters": [
+    {
+      "name": "Azure App Configuration",
+      "reviewedPackages": [
+        {
+          "version": "8.5.0",
+          "status": "rejected"
+        },
+        {
+          "version": "8.6.0-preview",
+          "status": "rejected"
+        }
+      ],
+      "reason": "Actual provider API compilation under the Program Kit Microsoft.Extensions 10 closure produces CS1701 assembly-unification warnings against Microsoft.Extensions 8 and Azure.Core 1.50 references.",
+      "policy": "No warning suppression, dependency downgrade, compatibility shim, reflection activation, or provider reimplementation is permitted.",
+      "availability": "not registered, generated, packaged, or advertised"
+    }
+  ],
+  "securityBoundaries": {
+    "credential": "consumer-supplied TokenCredential-compatible native capability resolved from a classified secret-resolution reference",
+    "generatedMaterial": "endpoint identity and reference identity only",
+    "secretValues": "never accepted as canonical input or emitted as source or evidence",
+    "endpointEvidence": "SHA-256 digest only",
+    "activeSecretPolicy": "disabled, expired, and not-yet-valid secrets are excluded",
+    "reload": "exact optional provider polling interval; provider-specific failure behavior is not generalized"
+  }
+}

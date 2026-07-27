@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Operations</PackageId>
+    <Description>Product-neutral operation catalog, invocation, progress, and result contracts for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Orbyss.ProgramKit.Artifacts.Compatibility" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Diagnostics" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Envelopes" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Primitives" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.References" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Schemas" />
+    <Using Include="Orbyss.ProgramKit.Artifacts.Validation" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="System.Text.Json.Serialization" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\operations\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Operations.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\operations\**\*.json"
+          Pack="true"
+          PackagePath="schemas/operations/%(RecursiveDir)"
+          Link="Schemas/Operations/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

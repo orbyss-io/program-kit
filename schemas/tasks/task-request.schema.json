@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/1.0.0/task-request.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-request",
+  "x-program-kit-version": "1.0.0",
+  "title": "TaskRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "definitionRevision",
+    "requestContract",
+    "responseContract",
+    "failureContract",
+    "requestedBy",
+    "requestedAt",
+    "payload",
+    "idempotencyKey",
+    "causalReferences",
+    "occurrenceRevision"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "definitionRevision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "requestContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "responseContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "failureContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "requestedBy": {
+      "$ref": "definitions.schema.json#/$defs/programKitIdentifier"
+    },
+    "requestedAt": {
+      "$ref": "definitions.schema.json#/$defs/timestamp"
+    },
+    "payload": true,
+    "idempotencyKey": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "causalReferences": {
+      "$ref": "definitions.schema.json#/$defs/artifactReferenceArray"
+    },
+    "occurrenceRevision": {
+      "$ref": "definitions.schema.json#/$defs/optionalArtifactReference"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Orbyss.ProgramKit.OperationsConsumerFixture</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit.OperationsConsumerFixture</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
+  </ItemGroup>
+</Project>

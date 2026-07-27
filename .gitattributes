@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+bootstrap/*.md text eol=lf
+bootstrap/*.json text eol=lf
+extensions/**/*.md text eol=lf
+.agents/**/*.md text eol=lf
+.codex/**/*.md text eol=lf
+global.json text eol=lf
+**/*.cs text eol=lf
+**/*.csproj text eol=lf
+**/*.dot text eol=lf
+**/*.json text eol=lf
+**/*.props text eol=lf
+**/*.targets text eol=lf
+**/*.sln text eol=lf
+NuGet.Config text eol=lf

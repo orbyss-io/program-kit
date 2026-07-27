@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/1.0.0/task-occurrence.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-occurrence",
+  "x-program-kit-version": "1.0.0",
+  "title": "TaskOccurrence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "scheduleRevision",
+    "definitionRevision",
+    "descriptorRevision",
+    "occurrenceCalculatorProfile",
+    "sequence",
+    "scheduledFor",
+    "evaluatedAt"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "scheduleRevision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "definitionRevision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "descriptorRevision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "occurrenceCalculatorProfile": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scheduledFor": {
+      "$ref": "definitions.schema.json#/$defs/timestamp"
+    },
+    "evaluatedAt": {
+      "$ref": "definitions.schema.json#/$defs/timestamp"
+    }
+  }
+}

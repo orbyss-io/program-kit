@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>ObservatoryScheduling.Tests</RootNamespace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Core\ObservatoryScheduling.Core.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Scheduling.FirstAvailable\ObservatoryScheduling.Scheduling.FirstAvailable.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Scheduling.Api\ObservatoryScheduling.Scheduling.Api.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Visibility.Static\ObservatoryScheduling.Visibility.Static.csproj" />
+    <ProjectReference Include="..\..\src\ObservatoryScheduling.Constraints.DarknessWindow\ObservatoryScheduling.Constraints.DarknessWindow.csproj" />
+    <ProjectReference Include="..\..\hosts\ObservatoryScheduling.Api\ObservatoryScheduling.Api.csproj" />
+    <ProjectReference Include="..\..\hosts\ObservatoryScheduling.Console\ObservatoryScheduling.Console.csproj" />
+    <ProjectReference Include="..\..\hosts\ObservatoryScheduling.Worker\ObservatoryScheduling.Worker.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
+    <PackageReference Include="TUnit" />
+  </ItemGroup>
+</Project>

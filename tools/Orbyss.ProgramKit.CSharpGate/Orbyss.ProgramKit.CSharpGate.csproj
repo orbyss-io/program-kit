@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <ProgramKitCSharpGateEnabled>false</ProgramKitCSharpGateEnabled>
+    <RootNamespace>Orbyss.ProgramKit.CSharpGate</RootNamespace>
+    <ProgramKitSelfValidationAnalyzerPath
+      Condition="'$(ProgramKitSelfValidate)' == 'true' and '$(ProgramKitSelfValidationAnalyzerPath)' == ''">$(TargetPath)</ProgramKitSelfValidationAnalyzerPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+      <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(ProgramKitSelfValidate)' == 'true' and Exists('$(ProgramKitSelfValidationAnalyzerPath)')">
+    <Analyzer Include="$(ProgramKitSelfValidationAnalyzerPath)" />
+  </ItemGroup>
+  <Target Name="RequireExistingAnalyzerForSelfValidation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(ProgramKitSelfValidate)' == 'true'">
+    <Error Condition="!Exists('$(ProgramKitSelfValidationAnalyzerPath)')"
+           Code="PKCS100"
+           Text="Build the C# gate once and provide ProgramKitSelfValidationAnalyzerPath before requesting self-validation." />
+  </Target>
+</Project>

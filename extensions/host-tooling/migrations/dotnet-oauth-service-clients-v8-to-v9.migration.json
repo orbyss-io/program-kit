@@ -1,0 +1,44 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:dotnet-shell",
+  "sourceRange": "[8.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:dotnet-shell",
+    "version": "9.0.0",
+    "digest": "sha256:f25df5b350c36a4189a4007f2dad7908f72b40df50e705933913315d53c11d7b"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "explicit-oauth-service-client-boundaries",
+      "description": "Every enabled OAuth client has exact endpoints, classified client authentication, one resource and audience, bounded caching, no ambient token provenance and no automatic retry.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:dotnet-oauth-service-clients-v8-to-v9",
+    "version": "1.0.0",
+    "digest": "sha256:6883f61c6ba23bc74713f5b60e55804116fbbae7670ed638d66578c070ae05cf"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-oauth-service-clients-v8-absent",
+      "version": "8.0.0",
+      "digest": "sha256:4eec772988e50b5548a86061d12ed271ae95492fbf033c168e30014ccc5257a1"
+    },
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-oauth-service-clients-v9-disabled",
+      "version": "9.0.0",
+      "digest": "sha256:9921fccbdebe80fea28566f06873132a55bfc542eccda91cee06a8ba0109bbb4"
+    }
+  ]
+}

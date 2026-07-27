@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Orbyss.ProgramKit.UnitTests</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GateMutation)' == 'MSTestAnalysisModeDisabled'">
+    <MSTestAnalysisMode>None</MSTestAnalysisMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <Analyzer Include="$(NuGetPackageRoot)mstest.analyzers\4.3.2\analyzers\dotnet\cs\MSTest.Analyzers.dll">
+      <NuGetPackageId>MSTest.Analyzers</NuGetPackageId>
+      <NuGetPackageVersion>4.3.2</NuGetPackageVersion>
+    </Analyzer>
+    <Compile
+      Include="Artifacts\NotAProductIntent\MisalignedTests.cs"
+      Condition="'$(GateMutation)' != 'ConcreteTestDependency'" />
+    <Compile
+      Include="Modularity\Composition\*.cs"
+      Condition="'$(GateMutation)' == 'ConcreteTestDependency'" />
+  </ItemGroup>
+  <Target Name="DetachResolvedMSTestAnalyzer"
+          BeforeTargets="ValidateProgramKitResolvedAnalyzerSet"
+          Condition="'$(GateMutation)' == 'RemoveMSTestAnalyzer'">
+    <ItemGroup>
+      <Analyzer Remove="$(NuGetPackageRoot)mstest.analyzers\4.3.2\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
+    </ItemGroup>
+  </Target>
+</Project>

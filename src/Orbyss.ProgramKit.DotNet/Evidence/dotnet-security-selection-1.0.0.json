@@ -1,0 +1,62 @@
+{
+  "identity": "pkid:evidence:program-kit:dotnet-security-selection",
+  "version": "1.0.0",
+  "selection": {
+    "targetFramework": "net10.0",
+    "sdk": "10.0.302",
+    "protocolProfiles": [
+      "OpenID Connect confidential authorization code with PKCE",
+      "OAuth JWT access token profile RFC 9068"
+    ],
+    "claimMapping": "preserve provider claim names",
+    "domainAuthorizationMeaning": "excluded"
+  },
+  "directPackages": [
+    {
+      "id": "Microsoft.AspNetCore.Authentication.JwtBearer",
+      "version": "10.0.10",
+      "sha256": "227969a5f04118c87e03733291d4a4a8a3568dd537bf6509f917f241c1256b3d",
+      "net10Dependencies": [
+        "Microsoft.IdentityModel.Protocols.OpenIdConnect@8.19.2"
+      ]
+    },
+    {
+      "id": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+      "version": "10.0.10",
+      "sha256": "d085d75e5a52fa30826d399fea8567c88b7ac43b143e67ccd4b03dc1ee2219c8",
+      "net10Dependencies": [
+        "Microsoft.IdentityModel.Protocols.OpenIdConnect@8.19.2"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "ASP.NET Core OpenID Connect web authentication",
+      "uri": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication?view=aspnetcore-10.0",
+      "reviewedBehavior": "confidential code flow with PKCE, secure cookies, client secret or assertion, PAR behavior, explicit claim mapping, and HTTPS metadata"
+    },
+    {
+      "name": "ASP.NET Core JWT bearer authentication",
+      "uri": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0",
+      "reviewedBehavior": "access-token signature, issuer, audience, expiry, and HTTPS validation"
+    },
+    {
+      "name": "RFC 9068 JWT Profile for OAuth 2.0 Access Tokens",
+      "uri": "https://www.rfc-editor.org/rfc/rfc9068",
+      "reviewedBehavior": "at+jwt token type and access-token-only resource-server profile"
+    },
+    {
+      "name": "OpenID Connect Core 1.0",
+      "uri": "https://openid.net/specs/openid-connect-core-1_0.html",
+      "reviewedBehavior": "authorization code, ID token, nonce, state, and token validation protocol boundaries"
+    }
+  ],
+  "policies": {
+    "identityProviders": "provider products bind through protocol profiles; no generic provider switch",
+    "clientMaterial": "classified secret reference or assertion-service reference only; no secret value in shell, source, evidence, or logs",
+    "authorization": "named ASP.NET Core host policies and standard challenge/forbid only; roles, grants, principals, and domain policy meaning remain consumer-owned",
+    "operationAttachment": "every generated operation is explicitly anonymous or bound to one named host policy",
+    "openApi": "security schemes and operation attachments must match runtime declarations exactly",
+    "tokens": "JWT resource server accepts only signed, unexpired at+jwt access tokens with exact issuer, audience, and algorithm allow-list"
+  }
+}

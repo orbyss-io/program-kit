@@ -1,0 +1,31 @@
+<Project>
+  <PropertyGroup>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(ProgramKitBuildRoot)\Directory.Build.props" />
+
+  <PropertyGroup>
+    <GeneratedGateCase Condition="'$(GeneratedGateCase)' == ''">Valid</GeneratedGateCase>
+    <DefaultItemExcludes Condition="'$(GeneratedGateCase)' == 'DefaultItemExcludesOmission'">$(DefaultItemExcludes);Hosting\OwnedHostMarker.cs</DefaultItemExcludes>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Orbyss.ProgramKit.GeneratedProbe</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="GeneratedGateCase" />
+    <ProjectReference
+      Include="$(ProgramKitGeneratedSourceProbeProject)"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+      PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(GeneratedGateCase)' == 'OmittedPhysicalSource'">
+    <Compile Remove="Hosting\OwnedHostMarker.cs" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(ProgramKitBuildRoot)\Directory.Build.targets" />
+</Project>

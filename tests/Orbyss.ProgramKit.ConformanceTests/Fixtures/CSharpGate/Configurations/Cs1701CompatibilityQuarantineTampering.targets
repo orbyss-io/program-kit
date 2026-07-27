@@ -1,0 +1,114 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                        '$(Cs1701CompatibilityMutation)' == 'RawLowerTargetReference'">
+    <Reference Include="$(NuGetPackageRoot)microsoft.testing.platform\2.3.2\lib\net9.0\Microsoft.Testing.Platform.dll" />
+  </ItemGroup>
+
+  <Target Name="ChangeCs1701CompatibilityRuntimeIdentity"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongRuntimeIdentity'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime'">
+        <FusionName>System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</FusionName>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeCs1701CompatibilityPackageVersion"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongPackageVersion'">
+    <PropertyGroup>
+      <MSTestVersion>4.3.1</MSTestVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ChangeCs1701CompatibilityDiagnostic"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongDiagnostic'">
+    <PropertyGroup>
+      <NoWarn>1702</NoWarn>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ChangeCronosCs1701CompatibilityRuntimeIdentity"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.Tasks.Schedules.Cronos' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongCronosRuntimeIdentity'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime'">
+        <FusionName>System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</FusionName>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeCronosCs1701CompatibilityReference"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.Tasks.Schedules.Cronos' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongCronosReference'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'Cronos'">
+        <NuGetPackageVersion>0.12.0</NuGetPackageVersion>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeTUnitCs1701CompatibilityRuntimeIdentity"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'ObservatoryScheduling.Tests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongTUnitRuntimeIdentity'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'System.Runtime'">
+        <FusionName>System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</FusionName>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeTUnitCs1701CompatibilityReference"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'ObservatoryScheduling.Tests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongTUnitReference'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.Filename)' == 'Microsoft.Testing.Platform'">
+        <NuGetPackageVersion>2.3.1</NuGetPackageVersion>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ChangeTUnitNet10FrameworkAsset"
+          BeforeTargets="ValidateProgramKitCs1701CompatibilityApproval"
+          Condition="'$(MSBuildProjectName)' == 'ObservatoryScheduling.Tests' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongTUnitFrameworkAsset'">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies
+        Update="@(ReferencePathWithRefAssemblies)"
+        Condition="'%(ReferencePathWithRefAssemblies.NuGetPackageId)' == 'TUnit.Engine'">
+        <PathInPackage>lib/net9.0/TUnit.Engine.dll</PathInPackage>
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ForgeCs1701CompatibilityApprovalForWrongProject"
+          DependsOnTargets="PrepareProgramKitCompilerInvocation"
+          BeforeTargets="CoreCompile"
+          Condition="'$(MSBuildProjectName)' == 'CSharpGateProbe' and
+                     '$(Cs1701CompatibilityMutation)' == 'WrongProject'">
+    <PropertyGroup>
+      <_ProgramKitCs1701CompatibilityApproved>true</_ProgramKitCs1701CompatibilityApproved>
+      <NoWarn>1701</NoWarn>
+    </PropertyGroup>
+  </Target>
+</Project>

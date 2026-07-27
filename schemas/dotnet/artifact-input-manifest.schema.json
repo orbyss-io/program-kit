@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/artifact-input-manifest.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-artifact-input-manifest",
+  "x-program-kit-version": "1.0.0",
+  "title": "Program Kit .NET Artifact Input Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "version", "inputs", "hostDocuments"],
+  "properties": {
+    "$schema": {
+      "const": "pkid:schema:program-kit:dotnet-artifact-input-manifest@1.0.0"
+    },
+    "version": {
+      "const": "1.0.0"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["revision", "relativePath"],
+        "properties": {
+          "revision": {"$ref": "#/$defs/reference"},
+          "relativePath": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(/|$))(?!.*\\\\)[^/]+(?:/[^/]+)*$"
+          }
+        }
+      }
+    },
+    "hostDocuments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hostIdentity", "documentRevision"],
+        "properties": {
+          "hostIdentity": {"type": "string", "minLength": 1},
+          "documentRevision": {"$ref": "#/$defs/reference"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "digest"],
+      "properties": {
+        "identity": {"type": "string", "pattern": "^pkid:[a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+$"},
+        "version": {"type": "string"},
+        "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

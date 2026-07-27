@@ -1,0 +1,10 @@
+{
+  "$schema": "pkid:schema:program-kit:dotnet-configuration-provider-catalog@1.0.0",
+  "version": "1.0.0",
+  "providers": [
+    {
+      "identity": "pkid:provider:program-kit:json-file",
+      "reloadCapabilities": ["none", "change-token"]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Tasks.Schedules.Cronos</PackageId>
+    <Description>Optional source-verified Cronos 0.13 occurrence calculation and time-zone rule selection for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Tasks.Schedules\Orbyss.ProgramKit.Tasks.Schedules.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Cronos" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\task-schedules-cronos\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Tasks.Schedules.Cronos.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\task-schedules-cronos\**\*.json"
+          Pack="true"
+          PackagePath="schemas/task-schedules-cronos/%(RecursiveDir)"
+          Link="Schemas/TaskSchedulesCronos/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="Evidence\cronos-0.13.0.json"
+          Pack="true"
+          PackagePath="provider-evidence/"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

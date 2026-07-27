@@ -1,0 +1,10 @@
+{
+  "$schema": "pkid:schema:program-kit:dotnet-shell@9.0.0",
+  "version": "9.0.0",
+  "hosts": [
+    {
+      "identity": "pkid:host:fixture:api",
+      "azureConfiguration": null
+    }
+  ]
+}

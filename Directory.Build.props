@@ -1,0 +1,109 @@
+<Project TreatAsLocalProperty="NonExistentFile;
+                               ProgramKitCompilerInvocationSentinel;
+                               ProgramKitCompilerInvocationNonce;
+                               ProgramKitCurrentWorkUnit">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace Condition="'$(RootNamespace)' == ''">$(MSBuildProjectName)</RootNamespace>
+
+    <ProgramKitTargetProfileId>pkid:profile:program-kit:dotnet-10</ProgramKitTargetProfileId>
+    <ProgramKitTargetProfileVersion>1.0.0</ProgramKitTargetProfileVersion>
+    <ProgramKitCurrentWorkUnit>PK-W100</ProgramKitCurrentWorkUnit>
+    <ProgramKitSdkVersion>10.0.302</ProgramKitSdkVersion>
+    <ProgramKitSdkRollForward>disable</ProgramKitSdkRollForward>
+    <ProgramKitAllowPrereleaseSdk>false</ProgramKitAllowPrereleaseSdk>
+    <ProgramKitTargetFramework>net10.0</ProgramKitTargetFramework>
+    <ProgramKitLanguageVersion>14.0</ProgramKitLanguageVersion>
+
+    <Version>0.1.0-alpha.1</Version>
+    <PackageVersion>0.1.0-alpha.1</PackageVersion>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Authors>Orbyss</Authors>
+    <Company>Orbyss</Company>
+    <Product>Orbyss Program Kit</Product>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/orbyss-io/program-kit</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <ProgramKitPackageRole>program-kit</ProgramKitPackageRole>
+
+    <Deterministic>true</Deterministic>
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <DebugType>portable</DebugType>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
+    <RestoreTreatWarningsAsErrors>true</RestoreTreatWarningsAsErrors>
+    <NoWarn>__ProgramKitNoWarningSuppression__</NoWarn>
+    <WarningsNotAsErrors>__ProgramKitNoWarningDemotion__</WarningsNotAsErrors>
+    <MSBuildWarningsAsMessages>__ProgramKitNoMSBuildWarningDemotion__</MSBuildWarningsAsMessages>
+    <WarningLevel>9999</WarningLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <RunAnalyzers>true</RunAnalyzers>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <UseHostCompilerIfAvailable>false</UseHostCompilerIfAvailable>
+    <TargetsTriggeredByCompilation></TargetsTriggeredByCompilation>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <ProgramKitCompilerInvocationNonce>$([System.Guid]::NewGuid().ToString('N'))</ProgramKitCompilerInvocationNonce>
+    <ProgramKitCompilerGeneratedFilesOutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\obj\ProgramKitCompilerGenerated\$(TargetFramework)\$(ProgramKitCompilerInvocationNonce)'))</ProgramKitCompilerGeneratedFilesOutputPath>
+    <CompilerGeneratedFilesOutputPath>$(ProgramKitCompilerGeneratedFilesOutputPath)</CompilerGeneratedFilesOutputPath>
+    <OptimizeImplicitlyTriggeredBuild>false</OptimizeImplicitlyTriggeredBuild>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ProgramKitCompilerInvocationSentinel>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\obj\.program-kit-force-compiler-invocation.nonexistent'))</ProgramKitCompilerInvocationSentinel>
+    <NonExistentFile>$(ProgramKitCompilerInvocationSentinel)</NonExistentFile>
+
+    <ProgramKitGeneratedSourceRoot>ProgramKitGenerated</ProgramKitGeneratedSourceRoot>
+    <ProgramKitCSharpGateProjectPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)tools\Orbyss.ProgramKit.CSharpGate\Orbyss.ProgramKit.CSharpGate.csproj'))</ProgramKitCSharpGateProjectPath>
+    <ProgramKitWarningApprovalLedgerPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)governance\approved-warning-suppressions.tsv'))</ProgramKitWarningApprovalLedgerPath>
+    <MSTestAnalysisMode
+      Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.UnitTests' or
+                 '$(MSBuildProjectName)' == 'Orbyss.ProgramKit.ConformanceTests'">All</MSTestAnalysisMode>
+
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
+    <RestoreIgnoreFailedSources>false</RestoreIgnoreFailedSources>
+    <RestoreDisableParallel>false</RestoreDisableParallel>
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+
+    <IsPackable>true</IsPackable>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Orbyss.ProgramKit.CSharpGate'">
+    <ProgramKitCSharpGateEnabled>true</ProgramKitCSharpGateEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
+    <CompilerVisibleProperty Include="MSBuildProjectName" />
+    <CompilerVisibleProperty Include="ProgramKitGeneratedSourceRoot" />
+    <CompilerVisibleProperty Include="ProgramKitCompilerInvocationNonce" />
+    <CompilerVisibleProperty Include="ProgramKitWarningApprovalLedgerPath" />
+    <CompilerVisibleProperty Include="RootNamespace" />
+    <AdditionalFiles Include="$(ProgramKitWarningApprovalLedgerPath)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Orbyss.ProgramKit.CSharpGate'">
+    <ProjectReference
+      Include="$(ProgramKitCSharpGateProjectPath)"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+      PrivateAssets="all" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.Planning</PackageId>
+    <Description>Implementation-plan, requirement-trace, and exact human approval contracts for Orbyss Program Kit.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\schemas\planning\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Planning.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\planning\**\*.json"
+          Pack="true"
+          PackagePath="schemas/planning/%(RecursiveDir)"
+          Link="Schemas/Planning/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

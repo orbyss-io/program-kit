@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>ObservatoryScheduling.Visibility.Static</PackageId>
+    <RootNamespace>ObservatoryScheduling.Visibility.Fixed</RootNamespace>
+    <Version>0.1.0-fixture.1</Version>
+    <PackageVersion>0.1.0-fixture.1</PackageVersion>
+    <ProgramKitPackageRole>fixture</ProgramKitPackageRole>
+    <Description>Fictional static visibility provider used only by the Program Kit vertical proof.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ObservatoryScheduling.Core\ObservatoryScheduling.Core.csproj" />
+    <PackageReference Include="CShells.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

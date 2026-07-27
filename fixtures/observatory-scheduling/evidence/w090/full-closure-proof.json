@@ -1,0 +1,95 @@
+{
+  "$schema": "pkid:schema:program-kit:w090-full-closure-proof@1.0.0",
+  "version": "1.0.0",
+  "observedAt": "2026-07-25T06:54:00Z",
+  "sdkVersion": "10.0.302",
+  "temporaryProofRoot": "C:/tmp/program-kit-w090-20260725-closure",
+  "packageRoot": {
+    "manifestFileSha256": "sha256:4c89caee4375e8508496106fd9caf5bf4df1792db02b36e10370f9e2db947c99",
+    "packageCount": 22,
+    "externalPackageCount": 20,
+    "inputVersionMapRevision": {
+      "identity": "pkid:version-map:fixture:observatory-v2-input",
+      "version": "2.0.0",
+      "digest": "sha256:d0c3e2caaf4322a861c4f3859435f60eef250286a5dc960ceafbd99b7ed3e40c"
+    },
+    "inputVersionSelectionRevision": {
+      "identity": "pkid:version-selection:fixture:observatory-v2-input",
+      "version": "2.0.0",
+      "digest": "sha256:f9df715f82efdfbbdfc692c1aefeff7b2a1a9c9292b522ea6dc9c34d9dbc2612"
+    }
+  },
+  "publishes": [
+    {
+      "hostIdentity": "pkid:host:fixture:observatory-api",
+      "hostVersion": "2.0.0",
+      "targetFramework": "net10.0",
+      "configuration": "Release",
+      "deploymentMode": "framework-dependent",
+      "fileCount": 32,
+      "manifestIntegrityDigest": "sha256:f3c807990bd3b656ed4ed61f328032dba201b43b3e00beb1fa43ab72a92ba88a",
+      "manifestFileSha256": "sha256:ecab158ceb54c81730b34193f807a662652d5787db6b61005067476428181248"
+    },
+    {
+      "hostIdentity": "pkid:host:fixture:observatory-console",
+      "hostVersion": "2.0.0",
+      "targetFramework": "net10.0",
+      "configuration": "Release",
+      "deploymentMode": "framework-dependent",
+      "fileCount": 31,
+      "manifestIntegrityDigest": "sha256:0a13c08da514ba2b883180af71f76e1c893d5c73f207ef8466a9d370388486dc",
+      "manifestFileSha256": "sha256:e1137016138cc39a2d36b468ec86b0d45bddc1ab6c5c8434b0cc2ef1f8349c62"
+    },
+    {
+      "hostIdentity": "pkid:host:fixture:observatory-worker",
+      "hostVersion": "2.0.0",
+      "targetFramework": "net10.0",
+      "configuration": "Release",
+      "deploymentMode": "framework-dependent",
+      "fileCount": 31,
+      "manifestIntegrityDigest": "sha256:5cd305434dfa6481ac0862ebb1833270cc79799cde484ae0f0aa32de57951d78",
+      "manifestFileSha256": "sha256:765d734213b78614f3eeaba39dbeea6efd024b6b2910e95e49d3783a2e23dcce"
+    }
+  ],
+  "isolatedConsumerProof": {
+    "fileSha256": "sha256:36bc9a174231f7b50eda3ca5edc4e2c2d19c4229e03ff9f68ef8111ad1326e32",
+    "consumerCount": 5,
+    "consumers": [
+      "pkid:consumer:fixture:contracts-only",
+      "pkid:consumer:fixture:dotnet-contracts",
+      "pkid:consumer:fixture:command-line",
+      "pkid:consumer:fixture:schema-discovery",
+      "pkid:consumer:fixture:observatory-composition"
+    ]
+  },
+  "verification": {
+    "releaseBuild": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "sharedCompilation": false
+    },
+    "unitTests": {
+      "passed": 319,
+      "failed": 0,
+      "skipped": 0
+    },
+    "routineConformanceTests": {
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0
+    },
+    "exhaustiveGateTests": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "workers": 1,
+      "duration": "00:21:19.149"
+    },
+    "fixtureTests": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    }
+  }
+}

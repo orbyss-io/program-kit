@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/1.0.0/task-definition.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-definition",
+  "x-program-kit-version": "1.0.0",
+  "title": "TaskDefinition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "owner",
+    "requestContract",
+    "responseContract",
+    "failureContract",
+    "authorityPolicy",
+    "cancellationPolicy",
+    "idempotencyPolicy",
+    "retryPolicy",
+    "observabilityPolicy",
+    "resourcePolicy"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "owner": {
+      "$ref": "definitions.schema.json#/$defs/programKitIdentifier"
+    },
+    "requestContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "responseContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "failureContract": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "authorityPolicy": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "cancellationPolicy": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "idempotencyPolicy": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "retryPolicy": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "observabilityPolicy": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    },
+    "resourcePolicy": {
+      "$ref": "definitions.schema.json#/$defs/artifactReference"
+    }
+  }
+}

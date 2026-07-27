@@ -1,0 +1,146 @@
+# implement-software-plan
+
+## Identity and trigger
+
+`implement-software-plan` owns execution of an exact human-approved software
+implementation plan. Use it when a human directly requests implementation and
+supplies or identifies the exact approved design, plan, and approval record, or
+explicitly continues a routed request into this flow.
+
+## Purpose
+
+Implement the bounded approved plan against current repository source truth,
+verify each work unit, preserve reviewability, bind evidence, and stop on any
+material architectural deviation.
+
+## Non-goals
+
+- Do not design a materially different architecture under implementation
+  authority.
+- Do not infer, create, repair, or supersede human approval.
+- Do not expand into release, deployment, promotion, feed transport, or
+  unrelated repository work.
+- Do not create hooks, watchers, autonomous loops, MCP bindings, tool bindings,
+  or speculative capabilities.
+- Do not backdate a receipt or claim this capability produced bootstrap work
+  completed before registration.
+
+## Inputs and outputs
+
+Inputs:
+
+- The exact versioned design and implementation plan.
+- A valid, non-superseded human approval binding both exact digests.
+- Current repository-owned source truth and applicable `AGENTS.md` guidance.
+- Explicit secrets, network, provider, or destructive-action authority if a
+  bounded plan task genuinely requires it.
+
+Outputs:
+
+- Scoped source, test, schema, fixture, and documentation changes.
+- Per-work-unit verification and review notes.
+- Commits and pushes required by repository guidance.
+- Evidence binding exact inputs, outputs, diagnostics, and test results.
+- A development receipt for the actual implementation event when requested.
+- A clear deviation/blocker report when implementation must stop.
+
+## Preconditions
+
+- The human has requested implementation.
+- The design and plan bytes match an `approved`, non-superseded decision with no
+  open conditions.
+- The working repository and branch are explicit and safe to modify.
+- The planned work unit permits the intended files and behavior.
+- Required active-provider capability registration is current.
+
+## Allowed actions
+
+- Read current repository source truth and exact approved artifacts.
+- Edit only files within the active approved work unit.
+- Run deterministic builds, tests, formatters, analyzers, package checks, and
+  bounded fixture commands.
+- Request scoped approval for an in-plan network, secret, provider, or
+  destructive action when the environment requires it.
+- Commit and push each completed work unit as required by repository guidance.
+
+## Prohibited actions
+
+- Do not weaken or bypass approval, compiler, analyzer, test, package, or
+  conformance gates.
+- Do not silently redesign architecture or broaden the approved scope.
+- Do not overwrite unrelated user changes, reset history, or delete broad paths.
+- Do not inspect sibling repositories or unrelated history.
+- Do not expose secrets in source, logs, receipts, commits, or responses.
+- Do not publish packages, deploy applications, or create release state unless
+  a separately approved future flow owns that work.
+
+## Stop conditions
+
+Stop before mutation when approval is absent, mismatched, rejected, conditional,
+or superseded. Stop when current source truth makes a plan step unsafe or
+materially different, a required file lies outside the approved work unit, a
+gate can pass only by weakening policy, or new human authority is required.
+Report the exact deviation and smallest safe decision needed.
+
+## Source of truth and freshness
+
+The current repository, exact approved artifact bytes, approval record, and
+human instructions are authoritative. Revalidate approval and working-tree
+state before the first edit and before each materially dependent work unit. Do
+not rely on cached artifact digests, sibling repositories, or remembered
+implementation state.
+
+## Procedure
+
+1. Confirm the human implementation request, repository, branch, and work-unit
+   boundary.
+2. Load applicable guidance and validate the exact design, plan, and approval
+   relationship.
+3. Inspect working-tree and recent commit state; preserve unrelated human work.
+4. Restate the current work unit's allowed edits, outputs, verification, and
+   stop conditions.
+5. Implement the smallest complete slice without speculative architecture.
+6. Run focused verification while developing, then every required work-unit
+   gate. Correct failures without weakening policy.
+7. Compare the result with the approved design and plan. If a material deviation
+   exists, stop for human review.
+8. Review the diff for scope, secrets, generated noise, version/digest updates,
+   and deliberately omitted work.
+9. Commit and push the completed work unit with an understandable message when
+   repository guidance requires it.
+10. Bind evidence and, when requested, emit a receipt for the actual registered
+    capability event. Report completion and the next unstarted work unit.
+
+Judgment decides whether observed differences are material deviations.
+Deterministic tools implement mechanical changes and verify evidence; they do
+not extend authority.
+
+## Verification and failure reporting
+
+Report exact commands, passing counts, warnings, failures, assumptions, and
+checks that could not run. Verify the final diff is within the work-unit
+allow-list, the working tree contains no unintended changes, and pushed commit
+identity matches the reviewed result. A partial implementation is never
+reported as a completed work unit.
+
+## Authority and safety boundaries
+
+The approved plan authorizes only its bounded implementation work. Secrets,
+network access, provider actions, destructive operations, deployment, and
+release actions remain separately controlled. Resolve and validate exact
+filesystem targets before destructive actions and prefer recoverable behavior.
+
+## Compatibility and versioning
+
+Preserve this stable capability ID for compatible execution refinements.
+Changes to approval validation, deviation handling, mutation authority, or
+evidence semantics require explicit compatibility review and an updated digest.
+Renames, splits, supersession, or retirement require human approval, index and
+wrapper migration, and removal of stale registration.
+
+## Provider wrapper mapping and drift check
+
+The Codex wrapper at
+`.codex/skills/implement-software-plan/SKILL.md` must only register and load this
+canonical file. Verify the exact pointer, absence of copied procedure text, and
+index links to both canonical and wrapper paths.

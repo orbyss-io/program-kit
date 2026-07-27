@@ -1,0 +1,43 @@
+{
+  "evidenceVersion": "1.0.0",
+  "provider": "cshells",
+  "packageVersion": "0.0.28",
+  "source": {
+    "repository": "https://github.com/valence-works/cshells",
+    "historicalRepository": "https://github.com/sfmskywalker/cshells",
+    "commit": "29fe542835696131278fcacc6cdb9a6186fc0447",
+    "license": "MIT",
+    "licenseSha256": "9447cc96460b01c8c6ed647705a3423d15b3a9936cb67154cdf26d1dddfb598d"
+  },
+  "contracts": {
+    "feature": "CShells.Features.IShellFeature.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)",
+    "webFeature": "CShells.AspNetCore.Features.IWebShellFeature.MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder, Microsoft.Extensions.Hosting.IHostEnvironment)"
+  },
+  "packages": [
+    {
+      "id": "CShells.Abstractions",
+      "catalogSha512": "+AdhE7p4mrhk3KHyWXCpaWpF+cuWUUN63rRl1rRwTnyA/6FRFeXqAF6ZowkABXDNfzeyLe5fx7jWcVyWHbj1tQ==",
+      "nupkgSha256": "ae1a15e770445b9b9e912312e6ba3257b7ec3ea63559a5be71ac6065c0d2c7c4",
+      "net10AssemblySha256": "758829021180f6642c4307b1b27ad71ec50f3349646e866b6a5bb842b377d2e2"
+    },
+    {
+      "id": "CShells.AspNetCore.Abstractions",
+      "catalogSha512": "E5eySQPEiCwCaQ5ckw+L5HTTaMu5KNbqIM0pzRLa0yCaMKr+2yoj8J+7afmppgRVbQTcjuIAgTJh8HnS99Tfjg==",
+      "nupkgSha256": "2770a11cae2d9d6e1537ddae8d7757bd7b8af3aa548f3e2d94cc16feaf43d01d",
+      "net10AssemblySha256": "344bba7a15aef0178d808414d416821e97a365d6502c2b68b8d1939e13a53ad4"
+    },
+    {
+      "id": "CShells",
+      "catalogSha512": "yO2OuMpd9B94021n9o9FeBAwbae1wpNu1Zq/FdO7mTCzuRStPzSqejjFtQxJ0o7fcN8qK7T0jook5OnOxjKZ5g==",
+      "nupkgSha256": "ac99877eea0132799e0a55c0b351480067dad34f9166fc835acb73cc77fe7ab0",
+      "net10AssemblySha256": "b3ef22f666403cb8e020b5beab69f054b8bd2adb9fba21b398eb93430766ba0b"
+    },
+    {
+      "id": "CShells.AspNetCore",
+      "catalogSha512": "2md72TbS2KWYAnOdFrZ8oVZX+ZQVaDn0F/swjOWhNd2BCRGHVZQN4syRARLIpCeV7TbFHGuvAts84XUTQup5dw==",
+      "nupkgSha256": "3fd728566376da2a7cbf7ebd12a2a7fa9171e35c756ab261e45680c37131658e",
+      "net10AssemblySha256": "8efe299a0070c95dbe247e9e4d95678f1be39422fe24793fbd6b54515a530e77"
+    }
+  ],
+  "verifiedAt": "2026-07-24"
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/azure-key-vault-composition/1.0.0/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-azure-key-vault-composition",
+  "x-program-kit-version": "1.0.0",
+  "title": "Program Kit .NET Azure Key Vault composition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileRevision",
+    "generatorRevision",
+    "bindings"
+  ],
+  "properties": {
+    "profileRevision": {"$ref": "#/$defs/reference"},
+    "generatorRevision": {"$ref": "#/$defs/reference"},
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/binding"}
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^pkid:[a-z0-9][a-z0-9-]*(?::[a-z0-9][a-z0-9-]*){2,}$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "digest"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identifier"},
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceIdentity",
+        "providerKind",
+        "endpoint",
+        "credentialResolution",
+        "credentialResolutionTimeoutSeconds",
+        "keyVault",
+        "redactOperationalMetadata"
+      ],
+      "properties": {
+        "sourceIdentity": {"$ref": "#/$defs/identifier"},
+        "providerKind": {"const": "key-vault"},
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "credentialResolution": {
+          "$ref": "https://schemas.orbyss.io/program-kit/secret-resolution/secret-resolution-contract/1.0.0/schema.json"
+        },
+        "credentialResolutionTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "keyVault": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reloadIntervalSeconds",
+            "valueRotationReaction",
+            "excludeExpiredOrNotYetValidSecrets"
+          ],
+          "properties": {
+            "reloadIntervalSeconds": {
+              "oneOf": [
+                {"type": "null"},
+                {"type": "integer", "minimum": 1}
+              ]
+            },
+            "valueRotationReaction": {
+              "enum": [
+                "hot-replacement",
+                "host-restart-request",
+                "manual"
+              ]
+            },
+            "excludeExpiredOrNotYetValidSecrets": {"const": true}
+          }
+        },
+        "redactOperationalMetadata": {"const": true}
+      }
+    }
+  }
+}

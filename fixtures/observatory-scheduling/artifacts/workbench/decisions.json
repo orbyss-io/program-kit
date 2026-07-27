@@ -1,0 +1,31 @@
+{
+  "identity": "pkid:decisions:fixture:observatory-scheduling",
+  "version": "2.0.0",
+  "decisions": [
+    {
+      "id": "feature-boundaries",
+      "choice": "Keep scheduling, visibility, darkness constraints, and endpoint mapping as separately packaged features.",
+      "reason": "The proof must exercise direct CShells feature composition and explicit dependency boundaries."
+    },
+    {
+      "id": "task-runtime",
+      "choice": "Define task contracts in Core and register handlers, middleware, occurrence factories, and schedules in FirstAvailable.",
+      "reason": "The feature owns the work behavior while Core remains runtime-independent."
+    },
+    {
+      "id": "schedule-provider",
+      "choice": "Use the exact Cronos 0.13 provider behind Program Kit schedule contracts.",
+      "reason": "The fixture needs one source-verified lightweight CRON calculation without making CRON universal task semantics."
+    },
+    {
+      "id": "json",
+      "choice": "Use one owned typed converter and source-generated metadata contribution; do not expose JsonElement or JsonNode.",
+      "reason": "Serialization must remain predictable, canonicalizable, and model-first."
+    },
+    {
+      "id": "pending-work",
+      "choice": "Drain accepted v1 task instances on their v1 handler before activating the v2 handler and recreate future occurrences from the v2 schedule.",
+      "reason": "Accepted work retains the exact semantics under which it was accepted."
+    }
+  ]
+}

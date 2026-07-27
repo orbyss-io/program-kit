@@ -1,0 +1,44 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:dotnet-shell",
+  "sourceRange": "[6.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:dotnet-shell",
+    "version": "7.0.0",
+    "digest": "sha256:6a57c35bb1ee533be1667f23a2b0cc763cd2ce727800cb934ee0e8a23f9473f0"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "explicit-provider-neutral-transport-security",
+      "description": "Every enabled v7 security composition declares exact OIDC or OAuth mechanics, classified client authentication references, named host policies, and operation attachments without domain authorization inference.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:host-tooling",
+          "version": "1.3.0",
+          "digest": "sha256:a9ad015470f3996ea09811d57007ec4ab90e3b2cbff91245e625bfdd82ad0d57"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:dotnet-security-v6-to-v7",
+    "version": "1.0.0",
+    "digest": "sha256:56a7e9e22e630af3a15846838cb39fc21a537aab17a88afcd7c1cda222d3d1de"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-security-v6-absent",
+      "version": "6.0.0",
+      "digest": "sha256:c07bdf1d166138d05583a1f710cbcfb5a9ad903d76f1c959cec05f01075a6091"
+    },
+    {
+      "identity": "pkid:fixture:program-kit:dotnet-security-v7-disabled",
+      "version": "7.0.0",
+      "digest": "sha256:9ba545f97f84e041b248704371d55cfa0bfe03026c2689ac9935979fa2a585bf"
+    }
+  ]
+}
