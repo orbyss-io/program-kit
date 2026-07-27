@@ -2,6 +2,7 @@ using System.Text;
 using System.Globalization;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Documentation.Console;
+using Orbyss.ProgramKit.DotNet.Generation.ConsoleCommands;
 using Orbyss.ProgramKit.DotNet.Generation.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Health;
 using Orbyss.ProgramKit.DotNet.Locks;
@@ -74,6 +75,10 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         outputs.AddRange(fastEndpointsCompiler.Compile(host, openApiDocument));
         if (host.Kind == DotNetHostKind.Console && consoleDocument is not null)
         {
+            outputs.Add(new GeneratedOutput(
+                DotNetConsoleCommandDispatchContract.DispatcherContractPath,
+                DotNetSourceText.Utf8(
+                    DotNetConsoleCommandDispatchContract.DispatcherSource)));
             outputs.Add(new GeneratedOutput(
                 "ProgramKitGenerated/Commands/GeneratedConsoleParseResult.cs",
                 DotNetSourceText.Utf8(RenderParseResult())));
@@ -257,8 +262,63 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         }
 
         RenderTaskRuntime(builder, host);
+        if (host.Kind == DotNetHostKind.Console)
+        {
+            builder.AppendLine("ConfigureProgramKitConsoleServices(builder.Services);");
+            RenderConsoleInvocation(
+                builder,
+                web,
+                host,
+                transportFailureMiddleware,
+                telemetryMiddleware,
+                securityMiddleware);
+        }
+        else
+        {
+            builder.AppendLine(web
+                ? "var app = builder.Build();"
+                : "using var host = builder.Build();");
+            if (web)
+            {
+                builder.Append(transportFailureMiddleware);
+                builder.Append(telemetryMiddleware);
+                builder.Append(securityMiddleware);
+                RenderHealthMappings(builder, host.Health);
+                builder.AppendLine("app.MapShells();");
+                builder.AppendLine("await app.RunAsync();");
+            }
+            else
+            {
+                builder.AppendLine("await host.RunAsync();");
+            }
+
+            builder.AppendLine("return 0;");
+        }
+
+        builder.AppendLine("    }");
+        if (host.Kind == DotNetHostKind.Console)
+        {
+            builder.AppendLine();
+            builder.AppendLine("    static partial void ConfigureProgramKitConsoleServices(");
+            builder.AppendLine("        IServiceCollection services);");
+        }
+
+        builder.AppendLine("}");
+
+        return builder.ToString();
+    }
+
+    private static void RenderConsoleInvocation(
+        StringBuilder builder,
+        bool web,
+        DotNetHostDefinition host,
+        string transportFailureMiddleware,
+        string telemetryMiddleware,
+        string securityMiddleware)
+    {
+        var application = web ? "app" : "host";
         builder.AppendLine(web
-            ? "var app = builder.Build();"
+            ? "await using var app = builder.Build();"
             : "using var host = builder.Build();");
         if (web)
         {
@@ -267,18 +327,44 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
             builder.Append(securityMiddleware);
             RenderHealthMappings(builder, host.Health);
             builder.AppendLine("app.MapShells();");
-            builder.AppendLine("await app.RunAsync();");
-        }
-        else
-        {
-            builder.AppendLine("await host.RunAsync();");
         }
 
-        builder.AppendLine("return 0;");
-        builder.AppendLine("    }");
+        builder
+            .Append("var dispatchers = ")
+            .Append(application)
+            .AppendLine(".Services");
+        builder.AppendLine("    .GetServices<GeneratedHost.Commands.IProgramKitConsoleCommandDispatcher>()");
+        builder.AppendLine("    .ToArray();");
+        builder.AppendLine("if (dispatchers.Length != 1)");
+        builder.AppendLine("{");
+        builder.AppendLine("    throw new InvalidOperationException(");
+        builder.AppendLine("        \"Exactly one IProgramKitConsoleCommandDispatcher registration is required.\");");
         builder.AppendLine("}");
-
-        return builder.ToString();
+        builder.AppendLine("var dispatcher = dispatchers[0];");
+        builder
+            .Append("var applicationLifetime = ")
+            .Append(application)
+            .AppendLine(".Services.GetRequiredService<");
+        builder.AppendLine("    global::Microsoft.Extensions.Hosting.IHostApplicationLifetime>();");
+        builder.AppendLine("try");
+        builder.AppendLine("{");
+        builder
+            .Append("    await ")
+            .Append(application)
+            .AppendLine(".StartAsync();");
+        builder.AppendLine("    return await dispatcher.DispatchAsync(");
+        builder.AppendLine("        parseResult,");
+        builder.AppendLine("        applicationLifetime.ApplicationStopping);");
+        builder.AppendLine("}");
+        builder.AppendLine("finally");
+        builder.AppendLine("{");
+        builder.AppendLine("    using var stopCancellation = new CancellationTokenSource(");
+        builder.AppendLine("        TimeSpan.FromSeconds(30));");
+        builder
+            .Append("    await ")
+            .Append(application)
+            .AppendLine(".StopAsync(stopCancellation.Token);");
+        builder.AppendLine("}");
     }
 
     private static void RenderHttpLoggingRegistration(StringBuilder builder)

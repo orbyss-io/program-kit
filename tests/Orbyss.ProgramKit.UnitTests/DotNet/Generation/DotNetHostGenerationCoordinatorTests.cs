@@ -10,6 +10,7 @@ using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
+using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
 using Orbyss.ProgramKit.UnitTests.DotNet.TestSupport;
 
@@ -54,6 +55,56 @@ public sealed class DotNetHostGenerationCoordinatorTests
             output.RelativePath == "docs/open-console.json"));
         Assert.IsTrue(outputs.Any(static output =>
             output.RelativePath == "shell.lock.json"));
+        Assert.IsTrue(outputs.Any(static output =>
+            output.RelativePath ==
+            "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs"));
+        var dispatchLockOutput = outputs.Single(static output =>
+            output.RelativePath ==
+            "ProgramKitGenerated/Commands/console-command-dispatch.lock.json");
+        var evidenceOutput = outputs.Single(static output =>
+            output.RelativePath ==
+            "ProgramKitGenerated/Evidence/console-command-dispatch.evidence.json");
+        var serializer = CreateSerializer();
+        var dispatchLock = serializer.Read<DotNetConsoleCommandDispatchLockDocument>(
+            dispatchLockOutput.Content,
+            DotNetJsonProfiles.ShellBootstrap.Reference,
+            JsonSerializationLimits.Default);
+        var evidence = serializer.Read<DotNetConsoleCommandDispatchEvidenceDocument>(
+            evidenceOutput.Content,
+            DotNetJsonProfiles.ShellBootstrap.Reference,
+            JsonSerializationLimits.Default);
+        Assert.AreEqual(shellRevision, dispatchLock.ShellRevision);
+        Assert.AreEqual(
+            input.OpenConsoleDocumentRevision,
+            dispatchLock.OpenConsoleDocumentRevision);
+        Assert.AreEqual(
+            host.GeneratorProfileRevision,
+            dispatchLock.HostGeneratorRevision);
+        Assert.AreEqual(
+            "sha256:2e4434b1df81274c2d8d5a41911d7a23a837b5db63da93687aed6b1862538ec3",
+            evidence.ParserDigest.Value);
+        Assert.AreEqual(
+            "sha256:a95b7bf78aea54d000c580e033faca7638b66accbe87ee7e8a7e9ebc734d1f61",
+            evidence.ParseResultDigest.Value);
+        Assert.AreEqual(
+            "return-dispatcher-integer-unchanged",
+            evidence.ExitCodePolicy);
+        Assert.IsTrue(evidence.RequiredDispatcherResolution);
+        Assert.IsTrue(evidence.ResolutionBeforeHostStart);
+
+        var repeated = await sut.GenerateAsync(
+            input,
+            CancellationToken.None);
+        Assert.AreSequenceEqual(
+            outputs.Select(static output => output.RelativePath).ToArray(),
+            repeated.Select(static output => output.RelativePath).ToArray());
+        foreach (var output in outputs)
+        {
+            Assert.AreSequenceEqual(
+                output.Content.ToArray(),
+                repeated.Single(candidate =>
+                    candidate.RelativePath == output.RelativePath).Content.ToArray());
+        }
     }
 
     [TestMethod]
@@ -225,6 +276,16 @@ public sealed class DotNetHostGenerationCoordinatorTests
 
     private static DotNetDocumentWriter CreateDocumentWriter()
     {
+        var serializer = CreateSerializer();
+        ProgramKitJsonCanonicalizer canonicalizer = new();
+        OpenApiDocumentWriter openApiWriter = new(canonicalizer);
+        return new DotNetDocumentWriter(
+            openApiWriter,
+            serializer);
+    }
+
+    private static ProgramKitJsonSerializer CreateSerializer()
+    {
         ProgramKitJsonRegistryFactory registryFactory = new();
         ProgramKitJsonBuilder jsonBuilder = new(registryFactory);
         DotNetJsonProfileRegistration registration = new();
@@ -233,11 +294,7 @@ public sealed class DotNetHostGenerationCoordinatorTests
         ProgramKitJsonSerializer serializer = new(
             jsonBuilder.Freeze(),
             canonicalizer);
-        OpenApiDocumentWriter openApiWriter = new(canonicalizer);
-        DotNetDocumentWriter documentWriter = new(
-            openApiWriter,
-            serializer);
-        return documentWriter;
+        return serializer;
     }
 
     private static ArtifactReference DocumentRevision(
