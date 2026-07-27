@@ -69,7 +69,7 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
       "version": "0.1.0-alpha.1",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:5fab508f5af70dbb8a8fbbda0d42e48364d205eb1d56db3828c049ae59465184"
+      "sha256": "sha256:8c3921673812ca6162dd32c1247ec949984d7f827bc787e85ad979904133c054"
     },
     {
       "clockId": "capabilities",
@@ -178,7 +178,7 @@
       "source": "capabilities",
       "target": "operations",
       "acceptedVersion": "[0.1.0-alpha.1]",
-      "acceptedSha256": "sha256:5fab508f5af70dbb8a8fbbda0d42e48364d205eb1d56db3828c049ae59465184"
+      "acceptedSha256": "sha256:8c3921673812ca6162dd32c1247ec949984d7f827bc787e85ad979904133c054"
     },
     {
       "source": "capability-bundle",

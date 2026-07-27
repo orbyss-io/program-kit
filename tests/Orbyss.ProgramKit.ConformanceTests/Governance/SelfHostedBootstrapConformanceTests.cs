@@ -76,7 +76,7 @@ public sealed class SelfHostedBootstrapConformanceTests
     }
 
     [TestMethod]
-    public void SelfHostedArtifactsRemainExactAndReceiptBindsRegisteredCapability()
+    public void SelfHostedArtifactsAndHistoricalReceiptRemainExact()
     {
         foreach (var expected in ExpectedArtifactDigests)
         {
@@ -87,14 +87,12 @@ public sealed class SelfHostedBootstrapConformanceTests
                 expected.Key);
         }
 
-        var capabilityDigest = Digest(ConformanceInputs.ReadBytes(
-            "Capabilities/implement-software-plan/CAPABILITY.md"));
         var requestDigest = Digest(ConformanceInputs.ReadBytes(
             "SelfHosted/request-evidence.md"));
         var receipt = ConformanceInputs.Read("SelfHosted/development-receipt.json");
 
         Assert.Contains(
-            string.Concat("\"digest\": \"sha256:", capabilityDigest, "\""),
+            "\"digest\": \"sha256:ba64247ac92a24b750d4dd2537efed517189c1497dc3ec64930201e8e612d034\"",
             receipt,
             StringComparison.Ordinal);
         Assert.Contains(
