@@ -116,9 +116,47 @@ Converged outcome:
 > minimal test-only Console fixture proves that path; ProgramKit does not
 > prescribe application operation semantics.
 
+## Converged section 2: Open Console mapping and selection
+
+The human accepted the source-of-truth and policy recommendations with one
+correction: selection defaults to all current Open Console operations, and the
+application owner explicitly unselects only the operations that must not be
+Development Tools.
+
+ProgramKit maps and reports every operation from the exact bound Open Console
+document. It derives operation revision, command path, aliases, description,
+arguments, options, referenced schemas, standard-input/output/error contracts,
+exit-code meanings, examples, and authority reference from that document.
+Aliases remain alternate Console syntax and do not become duplicate Development
+Tool identities.
+
+The selection contract has these invariants:
+
+- `defaultSelection` is `all`.
+- Exclusions bind exact operation revisions, never display names, aliases, or
+  positions.
+- The mapping report lists every operation and classifies it as selected,
+  explicitly excluded, or blocked from projection with an exact diagnostic.
+- An operation that cannot satisfy the Development Tool contract is never
+  silently omitted or weakened. Construction fails until the owner corrects
+  the operation or explicitly excludes its exact revision.
+- Selection does not register a provider tool, approve a server, grant a
+  permission, or invoke an operation.
+- The selected set and exact Open Console document digest are frozen into the
+  generated Development Tool manifest and registration lock.
+- A later Open Console revision may default-select a newly added operation when
+  constructing a new manifest, but it cannot silently alter an existing Codex
+  or Claude Code registration. The changed document/manifest digest requires an
+  explicit human-started update that reports the added, removed, and changed
+  operations before provider configuration changes.
+
+Open Console remains the source of truth for operation semantics. The separate
+Development Tool declaration owns only the AI execution and access policy that
+Open Console does not currently express. Exact policy fields and their safe
+defaults remain the next convergence decision.
+
 ## Next convergence question
 
-Define the minimum provider-neutral declaration an application owner must
-supply for one consumer-owned operation to become an AI-usable Development
-Tool, and decide which parts ProgramKit may derive from the existing Open
-Console document without creating a second source of truth.
+Define the structured invocation contract and safe defaults for side effects,
+filesystem, network, secrets, timeout, cancellation, concurrency, and
+idempotency without duplicating the Open Console command contract.
