@@ -1,0 +1,216 @@
+{
+  "identity": "pkid:version-map:program-kit:reusable-csharp-build-gates",
+  "version": "1.0.0",
+  "selectionPolicy": {
+    "floatingVersionsAllowed": false,
+    "mixedRevisionsAllowed": false,
+    "partialSelectionsAllowed": false,
+    "staleDigestsAllowed": false
+  },
+  "clocks": [
+    {
+      "clockId": "architecture",
+      "identity": "pkid:schema:program-kit:architecture-design",
+      "version": "2.0.0",
+      "path": "schemas/architecture/architecture-design-2.0.0.schema.json",
+      "sha256": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+    },
+    {
+      "clockId": "planning",
+      "identity": "pkid:schema:program-kit:implementation-plan",
+      "version": "3.0.0",
+      "path": "schemas/planning/implementation-plan-3.0.0.schema.json",
+      "sha256": "sha256:0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6"
+    },
+    {
+      "clockId": "disposition",
+      "identity": "pkid:schema:program-kit:static-conformance-disposition",
+      "version": "1.0.0",
+      "path": "schemas/architecture/static-conformance-disposition.schema.json",
+      "sha256": "sha256:834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"
+    },
+    {
+      "clockId": "gate-contracts",
+      "identity": "pkid:schema:program-kit:csharp-build-gate-definitions",
+      "version": "1.0.0",
+      "path": "schemas/csharp-build-gates/definitions-1.0.0.schema.json",
+      "sha256": "sha256:274f99017fc649f442ea39ffdeebef798ddcae599dae8ac716010f93bb15f32e"
+    },
+    {
+      "clockId": "public-analyzers",
+      "identity": "pkid:analyzer:program-kit:generated-source-contract",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/reusable-csharp-build-gates/public-generated-source-analyzer-manifest.json",
+      "sha256": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+    },
+    {
+      "clockId": "consumer-owned-analyzers",
+      "identity": "pkid:analyzer:engine-fixture:semantics",
+      "version": "1.0.0",
+      "path": "tests/Orbyss.ProgramKit.ConformanceTests/Fixtures/EngineLikeGateConsumer/fixture-lock.json",
+      "sha256": "sha256:d7408d8da740ec32bc8003bb1f4ce1bba8f5bdb561de0bef13b133ca7d440024"
+    },
+    {
+      "clockId": "recipes",
+      "identity": "pkid:recipe:program-kit:forbid-type-name-suffix",
+      "version": "1.0.0",
+      "path": "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Recipes/forbid-type-name-suffix-1.0.0.json",
+      "sha256": "sha256:81e56d5ab5fca42512e7fc0669ca0ee0de433b0a12238e60171b4aa55c293904"
+    },
+    {
+      "clockId": "build-mechanics",
+      "identity": "pkid:package:program-kit:csharp-build-gates-build",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/reusable-csharp-build-gates/build-package-manifest.json",
+      "sha256": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+    },
+    {
+      "clockId": "operations",
+      "identity": "pkid:package:program-kit:csharp-build-gates-testing",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
+      "sha256": "sha256:5fab508f5af70dbb8a8fbbda0d42e48364d205eb1d56db3828c049ae59465184"
+    },
+    {
+      "clockId": "capabilities",
+      "identity": "pkid:capability:program-kit:design-csharp-build-gate",
+      "version": "1.0.0",
+      "path": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
+      "sha256": "sha256:b3a6621d4518551f638ab12127616cc585d7dd47473049d0299cdf277b185d3d"
+    },
+    {
+      "clockId": "capability-bundle",
+      "identity": "pkid:bundle:program-kit:capabilities",
+      "version": "2.1.0",
+      "path": ".agent-capabilities/capability-bundle-manifest.json",
+      "sha256": "sha256:7c8587d2ff6d0ef287fac5b8fbb232ec5a5c9de7e38fa64de8f8af7b46deebeb"
+    },
+    {
+      "clockId": "toolchain",
+      "identity": "pkid:toolchain:program-kit:dotnet-csharp",
+      "version": "10.0.302",
+      "path": "global.json",
+      "sha256": "sha256:41a6d137d2c3ca409ff021d548d009831d09a7a64be443962ae1ac0368a9eb22"
+    },
+    {
+      "clockId": "selection-locks",
+      "identity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
+      "version": "1.0.0",
+      "path": "schemas/csharp-build-gates/csharp-build-gate-selection-lock-1.0.0.schema.json",
+      "sha256": "sha256:efde4229bf3b43901aa97d72935cc6d09ea5ecaa66645fb1b23a1f6c29a2809f"
+    },
+    {
+      "clockId": "evidence",
+      "identity": "pkid:schema:program-kit:csharp-build-gate-verification-evidence",
+      "version": "1.0.0",
+      "path": "schemas/csharp-build-gates/csharp-build-gate-verification-evidence-1.0.0.schema.json",
+      "sha256": "sha256:4cabcf61400e55ced9e1dcd2b036b0259b887ece2d026d19b976d0f116397423"
+    }
+  ],
+  "edges": [
+    {
+      "source": "planning",
+      "target": "architecture",
+      "acceptedVersion": "[2.0.0]",
+      "acceptedSha256": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+    },
+    {
+      "source": "planning",
+      "target": "disposition",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"
+    },
+    {
+      "source": "planning",
+      "target": "selection-locks",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:efde4229bf3b43901aa97d72935cc6d09ea5ecaa66645fb1b23a1f6c29a2809f"
+    },
+    {
+      "source": "public-analyzers",
+      "target": "gate-contracts",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:274f99017fc649f442ea39ffdeebef798ddcae599dae8ac716010f93bb15f32e"
+    },
+    {
+      "source": "consumer-owned-analyzers",
+      "target": "recipes",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:81e56d5ab5fca42512e7fc0669ca0ee0de433b0a12238e60171b4aa55c293904"
+    },
+    {
+      "source": "consumer-owned-analyzers",
+      "target": "public-analyzers",
+      "acceptedVersion": "[0.1.0-alpha.1]",
+      "acceptedSha256": "sha256:2a35edf51f75b14128676708ae47400d6c4288b9fe66e262190896513863f5cf"
+    },
+    {
+      "source": "build-mechanics",
+      "target": "gate-contracts",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:274f99017fc649f442ea39ffdeebef798ddcae599dae8ac716010f93bb15f32e"
+    },
+    {
+      "source": "build-mechanics",
+      "target": "selection-locks",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:efde4229bf3b43901aa97d72935cc6d09ea5ecaa66645fb1b23a1f6c29a2809f"
+    },
+    {
+      "source": "build-mechanics",
+      "target": "evidence",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:4cabcf61400e55ced9e1dcd2b036b0259b887ece2d026d19b976d0f116397423"
+    },
+    {
+      "source": "build-mechanics",
+      "target": "toolchain",
+      "acceptedVersion": "[10.0.302]",
+      "acceptedSha256": "sha256:41a6d137d2c3ca409ff021d548d009831d09a7a64be443962ae1ac0368a9eb22"
+    },
+    {
+      "source": "operations",
+      "target": "build-mechanics",
+      "acceptedVersion": "[0.1.0-alpha.1]",
+      "acceptedSha256": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207"
+    },
+    {
+      "source": "capabilities",
+      "target": "operations",
+      "acceptedVersion": "[0.1.0-alpha.1]",
+      "acceptedSha256": "sha256:5fab508f5af70dbb8a8fbbda0d42e48364d205eb1d56db3828c049ae59465184"
+    },
+    {
+      "source": "capability-bundle",
+      "target": "capabilities",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:b3a6621d4518551f638ab12127616cc585d7dd47473049d0299cdf277b185d3d"
+    },
+    {
+      "source": "selection-locks",
+      "target": "gate-contracts",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:274f99017fc649f442ea39ffdeebef798ddcae599dae8ac716010f93bb15f32e"
+    },
+    {
+      "source": "evidence",
+      "target": "selection-locks",
+      "acceptedVersion": "[1.0.0]",
+      "acceptedSha256": "sha256:efde4229bf3b43901aa97d72935cc6d09ea5ecaa66645fb1b23a1f6c29a2809f"
+    }
+  ],
+  "migrations": [
+    {
+      "source": "architecture@1.0.0",
+      "target": "architecture@2.0.0",
+      "manifest": "extensions/reusable-csharp-build-gates/migrations/architecture-design-v1-to-v2.migration.json",
+      "humanDecisionRequired": true
+    },
+    {
+      "source": "planning@2.0.0",
+      "target": "planning@3.0.0",
+      "manifest": "extensions/reusable-csharp-build-gates/migrations/implementation-plan-v2-to-v3.migration.json",
+      "humanDecisionRequired": true
+    }
+  ]
+}
