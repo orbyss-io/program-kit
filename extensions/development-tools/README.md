@@ -1,8 +1,17 @@
 # ProgramKit Development Tools review set
 
-This is one independent, human-led review set. It designs a provider-neutral
-executable Development Tool contract, an exact generated Console proof, and one
-explicitly registered thin Codex MCP adapter. It implements none of them.
+Status: **convergence in progress**.
+
+This is the sole active, human-led review set. The original `1.0.0` artifacts
+remain a validated baseline, but they are no longer an approval candidate. The
+human reopened the design to include Claude Code alongside Codex and to converge
+the product section by section before a replacement exact review set is issued.
+See `convergence-notes.md` for the current rulings and provider research.
+
+The converging shape is a provider-neutral executable Development Tool
+contract, one provider-neutral MCP stdio bridge, an exact generated Console
+proof, and thin explicit-registration integrations for Codex and Claude Code.
+It implements none of them.
 
 Review in this order:
 
@@ -18,8 +27,10 @@ Review in this order:
 8. `validation-report.md` — validation, digests, assumptions, and deferrals.
 9. `review-manifest.json` — exact approval boundary and artifact digests.
 
-Approval must name review set
-`pkid:approval:program-kit:development-tools-review-set@1.0.0` and the exact
-canonical design and plan SHA-256 values in the manifest. Approval authorizes
-only `PKDT-W010` through `PKDT-W050` through the registered
-`implement-software-plan` flow. Corrective Reconstruction is a separate review.
+Do not approve or implement the current `1.0.0` canonical design and plan. A
+replacement review set with new versions and digests will be rendered and
+validated after convergence. Only the replacement exact review set may be
+approved through the registered `implement-software-plan` flow.
+
+Corrective Reconstruction is held on the backlog and is not part of this
+convergence.

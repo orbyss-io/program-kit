@@ -1,5 +1,13 @@
 # ProgramKit corrective reconstruction review set
 
+Status: **held on the backlog for goal definition**.
+
+The human has decided not to converge or approve this review set yet. Its
+validated `1.0.0` artifacts are preserved as exploratory source material, but
+they are not a current approval candidate. Resume only after defining a
+concrete starting condition, first consumer, human decision to support, and
+observable reconstruction outcome.
+
 This is one independent, human-led review set. It designs exact implementation
 ownership, human corrective decisions, package-only clean-room reconstruction,
 and honest cross-model/review evidence. It implements none of them.
@@ -16,8 +24,7 @@ Review in this order:
 7. `validation-report.md` — validation, digests, assumptions, and deferrals.
 8. `review-manifest.json` — exact approval boundary and artifact digests.
 
-Approval must name review set
-`pkid:approval:program-kit:corrective-reconstruction-review-set@1.0.0` and the
-exact canonical design and plan SHA-256 values in the manifest. Approval
-authorizes only `PKCR-W010` through `PKCR-W060` through the registered
-`implement-software-plan` flow. Development Tools is a separate review.
+Do not approve or implement the current design and plan. If this concern is
+resumed, the human-led design flow must first restate the goal and decide
+whether the preserved artifacts still describe the right product. Development
+Tools remains a separate review.

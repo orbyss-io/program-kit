@@ -4,7 +4,7 @@
   "reviewSetId": "pkid:approval:program-kit:development-tools-review-set",
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-development-tools",
-  "reviewState": "ready-for-human-decision",
+  "reviewState": "convergence-in-progress",
   "implementationStatus": "not-started",
   "approvalRecord": null,
   "digestProfile": {
@@ -85,25 +85,33 @@
       "artifactVersion": "1.0.0",
       "role": "design-validation-report",
       "path": "extensions/development-tools/validation-report.md",
-      "sha256": "50cb04376b9006eb4b957e5454093e7b6e575ec5374f8ca99765c95b5a56af0e"
+      "sha256": "48112bd903d6b3be27287a07812fa9e779d62ce074b25af30abceba326f1d86d"
+    },
+    {
+      "artifactId": "pkid:decision-log:program-kit:development-tools-convergence",
+      "artifactVersion": "1.0.0",
+      "role": "human-convergence-status-and-provider-research",
+      "path": "extensions/development-tools/convergence-notes.md",
+      "sha256": "952d18fe6be7488b5c87cfa27f7ad076d8e01b5bab4015308fd9c551c7e1e5a0"
     },
     {
       "artifactId": "pkid:guide:program-kit:development-tools-review",
       "artifactVersion": "1.0.0",
       "role": "review-navigation",
       "path": "extensions/development-tools/README.md",
-      "sha256": "3164e73faddac52cce43c93479b4de181a796657609f2482cb323565cc3d29b7"
+      "sha256": "d7544e2e6f2f5611459eed16f49d058c4468a11bf023a12ae5d79ae5ec763855"
     }
   ],
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-review-set-version-and-exact-canonical-design-and-canonical-plan-digests",
-    "acceptedScope": "PKDT-W010 through PKDT-W050: provider-neutral executable Development Tool contracts; exact generated Console proof; thin Codex stable-MCP stdio adapter; explicit project-scoped register/status/update/remove ownership lifecycle; package-only conformance; genuine cold-session discovery, negative fixtures, evidence, and canonical documentation.",
+    "requiredDecision": "none-current-review-reopened-for-human-convergence",
+    "acceptedScope": "No current approval candidate. A replacement version must converge the concrete tool outcome, provider-neutral executable and MCP bridge identities, and explicit Codex and Claude Code registration and acceptance contracts.",
     "requiresParentApproval": false,
     "independentFrom": [
       "pkid:approval:program-kit:corrective-reconstruction-review-set@1.0.0"
     ],
     "doesNotAuthorize": [
       "implementation before explicit approval",
+      "approval or implementation of the superseded 1.0.0 canonical design and plan",
       "Corrective Reconstruction or any cross-review integration",
       "self-registration, self-permission, automatic start, AI/provider invocation, development-capability invocation, or autonomous behavior",
       "any MCP server, provider binding, provider wrapper, capability, plugin, or skill outside the exact approved work units",

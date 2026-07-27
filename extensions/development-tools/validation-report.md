@@ -2,10 +2,12 @@
 
 ## Result
 
-The review set is ready for an explicit human decision. Design artifacts only
-were created. No executable-tool contract, Console proof, adapter, MCP server,
-registration, provider binding/wrapper, capability, permission, or runtime
-behavior was implemented.
+The validated `1.0.0` review set has been reopened for human-led convergence and
+is not an approval candidate. The replacement must cover Codex and Claude Code,
+and its product goal will be converged section by section. Design artifacts
+only were created. No executable-tool contract, Console proof, adapter, MCP
+server, registration, provider binding/wrapper, capability, permission, or
+runtime behavior was implemented.
 
 Canonical design:
 `6ec7ac36df528e838ec2423d6f2bf3838e27b31edd93f5c09a66c3730b1f44b2`.
@@ -81,10 +83,14 @@ and plan digests. Renderer availability is not cited as evidence.
 
 Official Codex documentation currently defines trusted project-scoped
 `.codex/config.toml`, MCP stdio configuration, server requirements, timeouts,
-tool allow/deny lists, and approval modes. Stable MCP `2025-11-25` defines
-tool discovery/call, schemas/results, stdio transport, cancellation, progress,
-and security expectations. Exact URLs and governed facts are captured in
-`provider-contract-evidence.json`.
+tool allow/deny lists, and approval modes. Official Claude Code documentation
+defines project-scoped `.mcp.json`, explicit server trust/approval, MCP
+management, provider permission rules, and project-server settings. Stable MCP
+`2025-11-25` defines tool discovery/call, schemas/results, stdio transport,
+cancellation, progress, and security expectations. The Codex baseline remains
+in `provider-contract-evidence.json`; the Claude findings and source URLs are
+recorded in `convergence-notes.md` and must be incorporated into the replacement
+canonical evidence.
 
 Assumptions:
 
@@ -97,12 +103,12 @@ Material provider drift is the one canonical open decision and blocks PKDT-W030.
 
 ## Deliberate deferrals
 
-Deferred: provider-native binding, plugins, remote MCP, additional providers,
-instructional skill workflow, Development Tool repository split, package-feed
-publication, release, deployment, website projection, and any autonomous
-behavior. Canonical technical documentation stays in ProgramKit or a later
-owning Development Tool repository.
+Deferred: provider-native binding, Claude plugins, remote MCP, providers beyond
+Codex and Claude Code, instructional skill workflow, Development Tool
+repository split, package-feed publication, release, deployment, website
+projection, and any autonomous behavior. Canonical technical documentation
+stays in ProgramKit or a later owning Development Tool repository.
 
-Implementation remains blocked until the human approves review set
-`pkid:approval:program-kit:development-tools-review-set@1.0.0` and both exact
-canonical digests.
+The current canonical digests must not be approved. Implementation remains
+blocked until convergence produces a replacement review-set version and the
+human approves its exact canonical design and plan digests.

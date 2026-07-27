@@ -4,7 +4,7 @@
   "reviewSetId": "pkid:approval:program-kit:corrective-reconstruction-review-set",
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-corrective-reconstruction",
-  "reviewState": "ready-for-human-decision",
+  "reviewState": "held-for-goal-definition",
   "implementationStatus": "not-started",
   "approvalRecord": null,
   "digestProfile": {
@@ -78,25 +78,26 @@
       "artifactVersion": "1.0.0",
       "role": "design-validation-report",
       "path": "extensions/corrective-reconstruction/validation-report.md",
-      "sha256": "fb06208f0bf4f58e8bedb8307e754c28e68abfbf18ad69733cf29cf9588c6b63"
+      "sha256": "021a4e2b3ad160771a888931bdf6181ad77f6641c7ff10d2835da85ddb90d403"
     },
     {
       "artifactId": "pkid:guide:program-kit:corrective-reconstruction-review",
       "artifactVersion": "1.0.0",
       "role": "review-navigation",
       "path": "extensions/corrective-reconstruction/README.md",
-      "sha256": "c67fbecf013434c08a463113fc9bbd7347eb20dd53beb7e7124bc23d6c6058b6"
+      "sha256": "efd48d28abe47b8b82b5a41dc557021d7ba3b30837072f239e27bc4c901aa990"
     }
   ],
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-review-set-version-and-exact-canonical-design-and-canonical-plan-digests",
-    "acceptedScope": "PKCR-W010 through PKCR-W060: exact accepted-source ownership and reconstruction-receipt contracts; source/analyzer/build-policy topology enforcement; existing migration-assessment composition and only semantically missing repair/logic actions; human-started package-only clean-room reconstruction; deterministic structural identity; isolated cross-model and causal review-surface evidence; canonical documentation.",
+    "requiredDecision": "none-review-held-until-human-defines-a-concrete-goal",
+    "acceptedScope": "No current approval candidate. The validated 1.0.0 artifacts are preserved as exploratory source material only.",
     "requiresParentApproval": false,
     "independentFrom": [
       "pkid:approval:program-kit:development-tools-review-set@1.0.0"
     ],
     "doesNotAuthorize": [
       "implementation before explicit approval",
+      "approval or implementation while the review is held for goal definition",
       "Development Tools, provider/MCP/binding/wrapper/capability work, or any cross-review integration",
       "automatic corrective selection, repair, regeneration, reimplementation, adapter, migration, rollback, or autonomous behavior",
       "production data, infrastructure, secrets, operational history, deployment, release, or package-feed publication",

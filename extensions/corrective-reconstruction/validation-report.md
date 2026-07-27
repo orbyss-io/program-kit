@@ -2,10 +2,13 @@
 
 ## Result
 
-The review set is ready for an explicit human decision. Design artifacts only
-were created. No accepted-source contract, analyzer/build-policy change,
-migration action, reconstruction command/runtime, provider integration,
-capability, or autonomous behavior was implemented.
+The validated `1.0.0` artifacts are held on the backlog for goal definition and
+are not an approval candidate. The human found the concern intriguing but too
+abstract: it lacks a concrete starting condition, first consumer, triggering
+scenario, and observable outcome. Design artifacts only were created. No
+accepted-source contract, analyzer/build-policy change, migration action,
+reconstruction command/runtime, provider integration, capability, or
+autonomous behavior was implemented.
 
 Canonical design:
 `df36e241b7d8e9c58f1ed71d0d4d72153bcb4df789ee8548deab23d74d0d01d3`.
@@ -109,6 +112,6 @@ release, package-feed publication, automatic rollback, destructive history
 rewriting, autonomous behavior, and any general cross-model behavioral-
 equivalence claim. Line counts are not review evidence.
 
-Implementation remains blocked until the human approves review set
-`pkid:approval:program-kit:corrective-reconstruction-review-set@1.0.0` and both
-exact canonical digests.
+Implementation is not planned while this concern is held. Resume through the
+human-led design flow only after the goal is concretely restated; the current
+canonical digests must not be approved.
