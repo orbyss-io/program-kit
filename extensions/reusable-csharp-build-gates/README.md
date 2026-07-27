@@ -26,3 +26,9 @@ This review set approves the exact canonical design and plan digests for
 implementation through `PKCG-W010` to `PKCG-W110`. It does not itself
 implement, register, or activate a gate, schema, package, operation,
 capability, or provider adapter.
+
+Implementation evidence is added beside, but never folded back into, the
+approved review bytes. In particular, `testing-package-manifest.json` binds
+the exact W070 compiler-harness and five-operation source inventories, and
+`testing-version-map.json` gives the Testing package, implementation, and
+finite command surface independent exact revisions.

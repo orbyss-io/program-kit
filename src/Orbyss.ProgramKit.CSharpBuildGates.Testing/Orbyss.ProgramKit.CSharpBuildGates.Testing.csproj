@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.CSharpBuildGates.Testing</PackageId>
+    <RootNamespace>Orbyss.ProgramKit.CSharpBuildGates.Testing</RootNamespace>
+    <Description>Finite compiler-backed C# build-gate verification, evidence, cancellation, package, and teardown harness.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Contracts\Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

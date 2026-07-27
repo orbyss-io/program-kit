@@ -145,6 +145,31 @@ public static class CommandDescriptorCatalog
                 new("program-kit-root", true, true),
                 Diagnostics(),
             ]),
+        Create(
+            "csharp-gate.validate-definition",
+            ["csharp-gate", "validate-definition"],
+            [new("definition", true, false)],
+            [Diagnostics()]),
+        Create(
+            "csharp-gate.render-definition",
+            ["csharp-gate", "render-definition"],
+            [new("definition", true, false)],
+            [new("output", true, true), Diagnostics()]),
+        Create(
+            "csharp-gate.scaffold",
+            ["csharp-gate", "scaffold"],
+            [new("request", true, false)],
+            [new("output", true, true), Diagnostics()]),
+        Create(
+            "csharp-gate.bind",
+            ["csharp-gate", "bind"],
+            [new("request", true, false)],
+            [new("output", true, true), Diagnostics()]),
+        Create(
+            "csharp-gate.verify",
+            ["csharp-gate", "verify"],
+            [new("request", true, false)],
+            [new("output", true, true), Diagnostics()]),
     ];
 
     private static CommandOptionDefinition Diagnostics() =>

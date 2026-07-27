@@ -55,4 +55,28 @@ public static class CommandLineJsonProfiles
                 DisallowReferencePreservation: true,
                 RequireNfcStrings: true),
             JsonSerializationLimits.Default);
+
+    /// <summary>Gets the closed profile for C# build-gate operation inputs.</summary>
+    public static JsonSerializationProfile CSharpBuildGates { get; } =
+        new(
+            new JsonSerializationProfileRef(
+                new ProgramKitIdentifier(
+                    "pkid:profile:program-kit:json-csharp-build-gates"),
+                new SemanticVersion("1.0.0"),
+                new Sha256Digest(
+                    "sha256:ab0ea24e692162b5852e35b8cef9b1b9579e996162004a90afd4f6c2503199a9")),
+            ProgramKitJsonProfiles.CanonicalJsonRfc8785,
+            JsonProfileExtensibility.None,
+            new JsonSerializationRules(
+                SourceGeneratedMetadataOnly: true,
+                SchemaDeclaredPropertyNames: true,
+                CaseSensitiveReads: true,
+                DisallowComments: true,
+                DisallowTrailingCommas: true,
+                DisallowUnmappedMembers: true,
+                WriteNullProperties: true,
+                StrictNumbers: true,
+                DisallowReferencePreservation: true,
+                RequireNfcStrings: true),
+            JsonSerializationLimits.Default);
 }

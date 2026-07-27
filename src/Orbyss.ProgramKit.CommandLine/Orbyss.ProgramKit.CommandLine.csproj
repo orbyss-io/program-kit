@@ -12,6 +12,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Testing\Orbyss.ProgramKit.CSharpBuildGates.Testing.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />
@@ -30,5 +31,6 @@
           PackagePath="contentFiles/any/any/.config/dotnet-tools.json"
           CopyToOutputDirectory="PreserveNewest" />
     <EmbeddedResource Include="Operations\Serialization\Profiles\json-local-operations-1.0.0.json" />
+    <EmbeddedResource Include="Operations\Serialization\Profiles\json-csharp-build-gates-1.0.0.json" />
   </ItemGroup>
 </Project>

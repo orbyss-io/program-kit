@@ -1,0 +1,77 @@
+{
+  "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
+  "version": "0.1.0-alpha.1",
+  "operationsVersion": "1.0.0",
+  "sourceInventory": {
+    "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
+    "digest": "sha256:8ef95928d176139bc535bacc621e766d74b02a54ed7e8b1d5fc86bac976462ad",
+    "paths": [
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/FiniteProcessResult.cs",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/PinnedDotNetCSharpGateCompilerHarness.cs",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Orbyss.ProgramKit.CSharpBuildGates.Testing.csproj",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/README.md",
+      "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/packages.lock.json"
+    ]
+  },
+  "operationSourceInventory": {
+    "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
+    "digest": "sha256:4e36b6ac04ac41dbc45c9cc4ef56bd70291db7094c537f2784f9ea2ff5b3633d",
+    "paths": [
+      "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Contracts/Descriptors/CommandDescriptorCatalog.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/CSharpBuildGates/CSharpGateCommandOperation.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/CSharpBuildGates/CSharpGateCommandService.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/CSharpBuildGates/ICSharpGateCommandService.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateJsonContext.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateJsonProfileMarker.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateJsonProfileRegistration.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateWireJsonContext.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CommandLineJsonProfiles.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/Converters/CommandCSharpGateModelJsonConverter.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/Converters/CommandRoundTripDateTimeOffsetJsonConverter.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/ICSharpGateJsonProfileRegistration.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/Profiles/json-csharp-build-gates-1.0.0.json",
+      "src/Orbyss.ProgramKit.CommandLine/Orbyss.ProgramKit.CommandLine.csproj",
+      "src/Orbyss.ProgramKit.CommandLine/README.md",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpBuildGateOperationException.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpBuildGateOperationService.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateBindRequest.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateCompilerHarnessResult.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLocalAssetBinding.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateVerificationRequest.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/ICSharpBuildGateOperationService.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/ICSharpGateCompilerHarness.cs",
+      "src/Orbyss.ProgramKit.Workbench/Orbyss.ProgramKit.Workbench.csproj"
+    ]
+  },
+  "requiredPackageAssets": [
+    "lib/net10.0/Orbyss.ProgramKit.CSharpBuildGates.Testing.dll",
+    "README.md"
+  ],
+  "forbiddenPackagePrefixes": [
+    "analyzers/",
+    "build/",
+    "buildTransitive/",
+    "runtime/",
+    "runtimes/"
+  ],
+  "operations": [
+    "validate-definition",
+    "render-definition",
+    "scaffold",
+    "bind",
+    "verify"
+  ],
+  "verificationCommands": [
+    "build",
+    "test",
+    "pack",
+    "publish",
+    "generated-project-verify"
+  ],
+  "validationOrBindingLoadsAnalyzerAssemblies": false,
+  "bindingUsesRestoreNetworkOrDiscovery": false,
+  "verificationExposesExecutableOrArguments": false,
+  "requiresAtomicPathRedactedEvidence": true,
+  "requiresProcessTreeTeardownOnCancellation": true
+}
