@@ -606,7 +606,10 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
             .Append(profile.RemoteAuthenticationTimeoutSeconds.ToString(CultureInfo.InvariantCulture))
             .AppendLine(");");
         builder.AppendLine("    options.ProtocolValidator.RequireNonce = true;");
-        builder.AppendLine("    options.ProtocolValidator.RequireStateValidation = true;");
+        builder.AppendLine(
+            "    // OpenIdConnectHandler validates protected state and correlation before protocol validation.");
+        builder.AppendLine(
+            "    options.ProtocolValidator.RequireStateValidation = false;");
         builder.Append("    options.PushedAuthorizationBehavior = ")
             .Append(profile.PushedAuthorization switch
             {
@@ -722,6 +725,8 @@ public sealed class DotNetSecurityProjectionCompiler : IDotNetSecurityProjection
             .AppendLine(".HttpOnly = true;");
         builder.Append("    ").Append(target)
             .AppendLine(".SecurePolicy = global::Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;");
+        builder.Append("    ").Append(target)
+            .AppendLine(".Path = \"/\";");
         builder.Append("    ").Append(target).Append(".SameSite = ")
             .Append(profile.SameSite == DotNetCookieSameSite.Lax
                 ? "global::Microsoft.AspNetCore.Http.SameSiteMode.Lax"

@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -327,10 +329,15 @@ public sealed class KeycloakLocalFixtureConformanceTests
         }
 
         Assert.AreEqual(
-            "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+            "sha256:75ab20d4a5281a6ffe8c42749089c950a51f2a753f0b9f8ccbbede0f51a126ed",
             Environment.GetEnvironmentVariable(
                 "PROGRAM_KIT_KEYCLOAK_LINUX_ENVIRONMENT"),
             "The exact reviewed Linux environment selection was not bound.");
+        Assert.AreEqual(
+            "host.docker.internal",
+            Environment.GetEnvironmentVariable(
+                "PROGRAM_KIT_KEYCLOAK_DOCKER_HOST"),
+            "The exact Docker Desktop gateway binding was not selected.");
 
         var fixtureBase = ResolveFixtureBase();
         var root = Path.Combine(
@@ -341,13 +348,12 @@ public sealed class KeycloakLocalFixtureConformanceTests
         Directory.CreateDirectory(root);
         Process? appHost = null;
         Process? securityHost = null;
-        Process? publicBrowser = null;
+        GeneratedPublicBrowserServer? publicBrowser = null;
         Task<string>? standardOutput = null;
         Task<string>? standardError = null;
         Task<string>? securityHostOutput = null;
         Task<string>? securityHostError = null;
-        Task<string>? publicBrowserOutput = null;
-        Task<string>? publicBrowserError = null;
+        KeycloakLoopbackTransportBridge? loopbackBridge = null;
         var secrets = CreateRuntimeSecrets();
         var baselineContainers = await GetKeycloakContainerIdsAsync(
             TestContext.CancellationToken);
@@ -386,6 +392,9 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 secrets,
                 TestContext.CancellationToken);
 
+            loopbackBridge = KeycloakLoopbackTransportBridge.Start(
+                "host.docker.internal",
+                Definition().Authority.Port);
             var startInfo = AppHostStartInfo(
                 appHostDirectory,
                 root,
@@ -480,26 +489,18 @@ public sealed class KeycloakLocalFixtureConformanceTests
                        null,
                        TestContext.CancellationToken))
             {
-                Assert.AreEqual(HttpStatusCode.OK, roundTrip.StatusCode);
-            }
-
-            var initialKeyIds = JsonWebKeyIds(jsonWebKeySet);
-            await RotateFixtureSigningKeyAsync(
-                client,
-                secrets,
-                TestContext.CancellationToken);
-            var rotatedKeys = await WaitForJsonWebKeyRolloverAsync(
-                client,
-                metadata,
-                initialKeyIds,
-                TestContext.CancellationToken);
-            Assert.IsGreaterThan(0, rotatedKeys.Except(initialKeyIds).Count());
-            using (var rollover = await client.PostAsync(
-                       "https://localhost:8443/oauth/protected-roundtrip-after-rollover",
-                       null,
-                       TestContext.CancellationToken))
-            {
-                Assert.AreEqual(HttpStatusCode.OK, rollover.StatusCode);
+                if (roundTrip.StatusCode != HttpStatusCode.OK)
+                {
+                    await StopProcessAsync(securityHost);
+                    Assert.Fail(
+                        string.Concat(
+                            "The generated JWT resource server rejected the generated service token. ",
+                            "Allowlisted diagnostic classification: ",
+                            ClassifyJwtFailure(
+                                await securityHostOutput,
+                                await securityHostError),
+                            "."));
+                }
             }
 
             var publicBrowserDirectory = Path.Combine(
@@ -507,31 +508,40 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 "KeycloakFixture",
                 "GeneratedConsumers",
                 "PublicBrowser");
-            publicBrowser = Process.Start(
-                    GeneratedConsumerStartInfo(
-                        publicBrowserDirectory,
-                        "PublicBrowser.csproj",
-                        "https://localhost:7443",
-                        root,
-                        secrets)) ??
-                throw new InvalidOperationException(
-                    "The generated public browser host did not start.");
-            publicBrowserOutput = publicBrowser.StandardOutput.ReadToEndAsync(
+            var tlsRoot = Path.Combine(root, "tls");
+            publicBrowser = await GeneratedPublicBrowserServer.StartAsync(
+                Path.Combine(
+                    publicBrowserDirectory,
+                    "ProgramKitPublished",
+                    "wwwroot"),
+                Path.Combine(tlsRoot, "keycloak-server-certificate.pem"),
+                Path.Combine(tlsRoot, "keycloak-server-private-key.pem"),
+                Definition().PublicBrowserOrigin.Port,
                 TestContext.CancellationToken);
-            publicBrowserError = publicBrowser.StandardError.ReadToEndAsync(
-                TestContext.CancellationToken);
-            await WaitForGeneratedConsumerAsync(
+            await WaitForGeneratedAddressAsync(
                 client,
                 Definition().PublicBrowserOrigin,
-                publicBrowser,
-                publicBrowserOutput,
-                publicBrowserError,
-                secrets,
                 TestContext.CancellationToken);
-            await RunGeneratedConfidentialFlowAsync(
-                trust.ChromiumSpkiList,
-                secrets,
-                TestContext.CancellationToken);
+            try
+            {
+                await RunGeneratedConfidentialFlowAsync(
+                    trust.ChromiumSpkiList,
+                    secrets,
+                    TestContext.CancellationToken);
+            }
+            catch (InvalidOperationException exception)
+            {
+                await StopProcessAsync(securityHost);
+                throw new InvalidOperationException(
+                    string.Concat(
+                        exception.Message,
+                        " Allowlisted OIDC diagnostic classification: ",
+                        ClassifyOidcFailure(
+                            await securityHostOutput,
+                            await securityHostError),
+                        "."),
+                    exception);
+            }
             await RunGeneratedPublicBrowserFlowAsync(
                 trust.ChromiumSpkiList,
                 secrets,
@@ -586,10 +596,40 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 trust.ChromiumSpkiList,
                 secrets,
                 TestContext.CancellationToken);
+
+            var initialKeyIds = JsonWebKeyIds(jsonWebKeySet);
+            await RotateFixtureSigningKeyAsync(
+                client,
+                secrets,
+                TestContext.CancellationToken);
+            var rotatedKeys = await WaitForJsonWebKeyRolloverAsync(
+                client,
+                metadata,
+                initialKeyIds,
+                TestContext.CancellationToken);
+            Assert.IsGreaterThan(0, rotatedKeys.Except(initialKeyIds).Count());
+            if (!await WaitForGeneratedRolloverAsync(
+                    client,
+                    TestContext.CancellationToken))
+            {
+                await StopProcessAsync(securityHost);
+                Assert.Fail(
+                    string.Concat(
+                        "The generated JWT resource server did not converge after signing-key rollover. ",
+                        "Allowlisted diagnostic classification: ",
+                        ClassifyJwtFailure(
+                            await securityHostOutput,
+                            await securityHostError),
+                        "."));
+            }
         }
         finally
         {
-            await StopProcessAsync(publicBrowser);
+            if (publicBrowser is not null)
+            {
+                await publicBrowser.DisposeAsync();
+            }
+
             await StopProcessAsync(securityHost);
             if (appHost is { HasExited: false })
             {
@@ -598,18 +638,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
             }
 
             appHost?.Dispose();
-            publicBrowser?.Dispose();
             securityHost?.Dispose();
-            if (publicBrowserOutput is not null)
-            {
-                _ = Sanitize(await publicBrowserOutput, secrets);
-            }
-
-            if (publicBrowserError is not null)
-            {
-                _ = Sanitize(await publicBrowserError, secrets);
-            }
-
             if (securityHostOutput is not null)
             {
                 _ = Sanitize(await securityHostOutput, secrets);
@@ -627,6 +656,11 @@ public sealed class KeycloakLocalFixtureConformanceTests
             if (standardError is not null)
             {
                 _ = Sanitize(await standardError, secrets);
+            }
+
+            if (loopbackBridge is not null)
+            {
+                await loopbackBridge.DisposeAsync();
             }
 
             await WaitForOwnedContainersToStopAsync(
@@ -753,8 +787,41 @@ public sealed class KeycloakLocalFixtureConformanceTests
         startInfo.ArgumentList.Add("--no-restore");
         startInfo.ArgumentList.Add("--configuration");
         startInfo.ArgumentList.Add("Release");
+        startInfo.ArgumentList.Add("--no-launch-profile");
+        var dashboardPort = Definition().Authority.Port + 11;
+        var dashboardOtlpPort = Definition().Authority.Port + 13;
+        var resourceServicePort = Definition().Authority.Port + 14;
         startInfo.Environment["DOTNET_ENVIRONMENT"] = "Development";
         startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
+        startInfo.Environment["ASPNETCORE_URLS"] = string.Concat(
+            "https://localhost:",
+            dashboardPort.ToString(CultureInfo.InvariantCulture));
+        startInfo.Environment[
+            "ASPNETCORE_Kestrel__Certificates__Default__Path"] = Path.Combine(
+                runtimeRoot,
+                "tls",
+                "keycloak-server-certificate.pem");
+        startInfo.Environment[
+            "ASPNETCORE_Kestrel__Certificates__Default__KeyPath"] = Path.Combine(
+                runtimeRoot,
+                "tls",
+                "keycloak-server-private-key.pem");
+        startInfo.Environment[
+            "ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOINT_URL"] = string.Concat(
+                "https://localhost:",
+                dashboardOtlpPort.ToString(CultureInfo.InvariantCulture));
+        startInfo.Environment[
+            "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL"] = string.Concat(
+                "https://localhost:",
+                resourceServicePort.ToString(CultureInfo.InvariantCulture));
+        startInfo.Environment["SSL_CERT_FILE"] = Path.Combine(
+            runtimeRoot,
+            "tls",
+            "authority-certificate.pem");
+        startInfo.Environment["ASPIRE_VERSION_CHECK_DISABLED"] = "true";
+        startInfo.Environment["ASPIRE_DASHBOARD_TELEMETRY_OPTOUT"] = "true";
+        startInfo.Environment["ASPIRE_DASHBOARD_AI_DISABLED"] = "true";
+        startInfo.Environment["ASPIRE_ENABLE_CONTAINER_TUNNEL"] = "false";
         startInfo.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
         startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         startInfo.Environment["DOTNET_NOLOGO"] = "1";
@@ -831,6 +898,28 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 0,
                 build.ExitCode,
                 Sanitize(build.Output, secrets));
+            if (string.Equals(
+                    relativeProject,
+                    "PublicBrowser/PublicBrowser.csproj",
+                    StringComparison.Ordinal))
+            {
+                var publish = await RunDotNetAsync(
+                    projectRoot,
+                    cancellationToken,
+                    "publish",
+                    Path.GetFileName(project),
+                    "--no-restore",
+                    "--configuration",
+                    "Release",
+                    "--output",
+                    "ProgramKitPublished",
+                    "--verbosity",
+                    "minimal");
+                Assert.AreEqual(
+                    0,
+                    publish.ExitCode,
+                    Sanitize(publish.Output, secrets));
+            }
         }
     }
 
@@ -936,6 +1025,48 @@ public sealed class KeycloakLocalFixtureConformanceTests
 
         throw new TimeoutException(
             "A generated consumer did not become ready within 45 seconds.");
+    }
+
+    private static async Task WaitForGeneratedAddressAsync(
+        HttpClient client,
+        Uri address,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(15);
+        HttpStatusCode? lastStatus = null;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            try
+            {
+                using var response = await client.GetAsync(
+                    address,
+                    cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+
+                lastStatus = response.StatusCode;
+            }
+            catch (HttpRequestException)
+            {
+            }
+            catch (TaskCanceledException)
+                when (!cancellationToken.IsCancellationRequested)
+            {
+            }
+
+            await Task.Delay(
+                TimeSpan.FromMilliseconds(250),
+                cancellationToken);
+        }
+
+        throw new TimeoutException(
+            string.Concat(
+                "The generated public-browser assets did not become ready within 15 seconds. ",
+                "Last HTTP status: ",
+                lastStatus?.ToString() ?? "unreachable",
+                "."));
     }
 
     private static async Task StopProcessAsync(Process? process)
@@ -1397,6 +1528,34 @@ public sealed class KeycloakLocalFixtureConformanceTests
             "The disposable provider did not publish the generated rollover key.");
     }
 
+    private static async Task<bool> WaitForGeneratedRolloverAsync(
+        HttpClient client,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(10);
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            using var response = await client.PostAsync(
+                "https://localhost:8443/oauth/protected-roundtrip-after-rollover",
+                null,
+                cancellationToken);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return true;
+            }
+
+            Assert.AreEqual(
+                HttpStatusCode.Unauthorized,
+                response.StatusCode,
+                "Only signing-key refresh convergence may be retried.");
+            await Task.Delay(
+                TimeSpan.FromMilliseconds(250),
+                cancellationToken);
+        }
+
+        return false;
+    }
+
     private static async Task RunGeneratedConfidentialFlowAsync(
         string chromiumSpkiList,
         KeycloakFixtureRuntimeSecrets secrets,
@@ -1433,20 +1592,59 @@ public sealed class KeycloakLocalFixtureConformanceTests
                     "id_token=",
                     StringComparison.OrdinalIgnoreCase);
         };
-        await page.GotoAsync(
+        var navigation = await page.GotoAsync(
             "https://localhost:8443/confidential/login",
             new PageGotoOptions
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded,
             });
-        await page.Locator("#username").FillAsync(
-            Definition().TestPrincipalName);
+        var username = page.Locator("#username");
+        try
+        {
+            await username.WaitForAsync(
+                new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 5000,
+                });
+        }
+        catch (Exception exception)
+            when (exception is PlaywrightException or TimeoutException)
+        {
+            var providerError =
+                await page.Locator("#kc-error-message").CountAsync() > 0;
+            throw new InvalidOperationException(
+                string.Concat(
+                    "The confidential flow did not reach the provider login control. ",
+                    "Safe location: ",
+                    SafeBrowserLocation(page.Url),
+                    "; navigationStatus: ",
+                    navigation?.Status.ToString(CultureInfo.InvariantCulture) ??
+                    "unavailable",
+                    "; providerErrorContainer: ",
+                    providerError ? "present" : "absent",
+                    "."));
+        }
+
+        await username.FillAsync(Definition().TestPrincipalName);
         await page.Locator("#password").FillAsync(
             secrets.TestPrincipalPassword);
-        var callback = page.WaitForURLAsync(
-            "https://localhost:8443/confidential/session");
-        await page.Locator("#kc-login").ClickAsync();
-        await callback;
+        try
+        {
+            var callback = page.WaitForURLAsync(
+                "https://localhost:8443/confidential/session");
+            await page.Locator("#kc-login").ClickAsync();
+            await callback;
+        }
+        catch (Exception exception)
+            when (exception is PlaywrightException or TimeoutException)
+        {
+            throw new InvalidOperationException(
+                string.Concat(
+                    "The confidential callback did not complete. Safe location: ",
+                    SafeBrowserLocation(page.Url),
+                    "."));
+        }
         Assert.Contains(
             "\"authenticated\":true",
             await page.Locator("body").InnerTextAsync());
@@ -1476,6 +1674,22 @@ public sealed class KeycloakLocalFixtureConformanceTests
             (await context.CookiesAsync(["https://localhost:8443/"]))
             .Select(static cookie => cookie.Name));
         await context.ClearCookiesAsync();
+    }
+
+    private static string SafeBrowserLocation(string value)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var location))
+        {
+            return "unparseable";
+        }
+
+        return string.Concat(
+            location.Scheme,
+            "://",
+            location.Host,
+            ":",
+            location.Port.ToString(CultureInfo.InvariantCulture),
+            location.AbsolutePath);
     }
 
     private static async Task RunGeneratedPublicBrowserFlowAsync(
@@ -1592,7 +1806,7 @@ public sealed class KeycloakLocalFixtureConformanceTests
                 ["redirect_uri"] = redirectUri.AbsoluteUri,
                 ["response_type"] = "code",
                 ["scope"] = string.Concat(
-                    "openid profile ",
+                    "openid ",
                     Definition().ApiScope),
                 ["code_challenge"] = challenge,
                 ["code_challenge_method"] = "S256",
@@ -1781,6 +1995,115 @@ public sealed class KeycloakLocalFixtureConformanceTests
             DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             payload.RootElement.GetProperty("exp").GetInt64());
         VerifySignature(segments, header.RootElement, jsonWebKeySet);
+    }
+
+    private static string ClassifyJwtFailure(params string[] outputs)
+    {
+        string[] allowlistedMarkers =
+        [
+            "IDX10205",
+            "IDX10214",
+            "IDX10223",
+            "IDX10257",
+            "IDX10500",
+            "IDX10501",
+            "IDX10503",
+            "SecurityTokenInvalidAudienceException",
+            "SecurityTokenInvalidIssuerException",
+            "SecurityTokenInvalidLifetimeException",
+            "SecurityTokenInvalidSignatureException",
+            "SecurityTokenInvalidTypeException",
+            "SecurityTokenSignatureKeyNotFoundException",
+        ];
+        var matches = allowlistedMarkers
+            .Where(marker => outputs.Any(output =>
+                output.Contains(marker, StringComparison.Ordinal)))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        return matches.Length == 0
+            ? "no-allowlisted-jwt-diagnostic"
+            : string.Join(",", matches);
+    }
+
+    private static string ClassifyOidcFailure(params string[] outputs)
+    {
+        (string Marker, string Classification)[] allowlistedMarkers =
+        [
+            ("IDX20803", "IDX20803"),
+            ("IDX20804", "IDX20804"),
+            ("IDX20806", "IDX20806"),
+            ("IDX20807", "IDX20807"),
+            ("AuthenticationFailureException", "AuthenticationFailureException"),
+            ("Correlation failed", "callback-correlation-failed"),
+            ("CryptographicException", "CryptographicException"),
+            ("HttpRequestException", "HttpRequestException"),
+            ("IDX10205", "IDX10205"),
+            ("IDX10214", "IDX10214"),
+            ("IDX10500", "IDX10500"),
+            ("IDX10501", "IDX10501"),
+            ("IDX10503", "IDX10503"),
+            ("IDX21323", "IDX21323"),
+            ("IDX21329", "IDX21329"),
+            ("IDX21336", "IDX21336"),
+            ("IDX21337", "IDX21337"),
+            ("IOException", "IOException"),
+            ("JsonException", "JsonException"),
+            ("OpenIdConnectProtocolException", "OpenIdConnectProtocolException"),
+            (
+                "OpenIdConnectProtocolValidationException",
+                "OpenIdConnectProtocolValidationException"),
+            ("PushedAuthorization", "PushedAuthorization"),
+            (
+                "SecurityTokenInvalidAudienceException",
+                "SecurityTokenInvalidAudienceException"),
+            (
+                "SecurityTokenInvalidIssuerException",
+                "SecurityTokenInvalidIssuerException"),
+            (
+                "SecurityTokenInvalidLifetimeException",
+                "SecurityTokenInvalidLifetimeException"),
+            (
+                "SecurityTokenInvalidSignatureException",
+                "SecurityTokenInvalidSignatureException"),
+            (
+                "SecurityTokenSignatureKeyNotFoundException",
+                "SecurityTokenSignatureKeyNotFoundException"),
+            ("invalid_grant", "protocol-error-invalid-grant"),
+            ("invalid_client", "protocol-error-invalid-client"),
+            ("invalid_request", "protocol-error-invalid-request"),
+            ("invalid_request_uri", "protocol-error-invalid-request-uri"),
+            ("invalid_scope", "protocol-error-invalid-scope"),
+            ("request_not_supported", "protocol-error-request-not-supported"),
+            ("unauthorized_client", "protocol-error-unauthorized-client"),
+            ("Authentication failed", "provider-client-authentication-failed"),
+            ("Invalid client credentials", "provider-invalid-client-credentials"),
+            ("Invalid client secret", "provider-invalid-client-secret"),
+            ("Invalid parameter: redirect_uri", "provider-invalid-redirect-uri"),
+            ("Invalid parameter: response_mode", "provider-invalid-response-mode"),
+            ("Invalid parameter: response_type", "provider-invalid-response-type"),
+            ("Invalid scopes: profile", "provider-invalid-profile-scope"),
+            ("Invalid scopes: program-kit.api", "provider-invalid-api-scope"),
+            ("Invalid scopes", "provider-invalid-scopes"),
+            ("Missing parameter: client_id", "provider-missing-client-id"),
+            ("Missing parameter: response_type", "provider-missing-response-type"),
+            ("code_challenge", "provider-pkce-validation"),
+            ("request_uri or request", "provider-request-object-required"),
+            ("Response status code does not indicate success: 400", "upstream-http-400"),
+            ("Response status code does not indicate success: 401", "upstream-http-401"),
+            ("Response status code does not indicate success: 403", "upstream-http-403"),
+            ("Response status code does not indicate success: 404", "upstream-http-404"),
+            ("Response status code does not indicate success: 500", "upstream-http-500"),
+        ];
+        var matches = allowlistedMarkers
+            .Where(item => outputs.Any(output =>
+                output.Contains(item.Marker, StringComparison.Ordinal)))
+            .Select(static item => item.Classification)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        return matches.Length == 0
+            ? "no-allowlisted-oidc-diagnostic"
+            : string.Join(",", matches);
     }
 
     private static void VerifyIdToken(
@@ -2135,27 +2458,50 @@ public sealed class KeycloakLocalFixtureConformanceTests
     private static async Task<ImmutableHashSet<string>> GetKeycloakContainerIdsAsync(
         CancellationToken cancellationToken)
     {
-        ProcessStartInfo startInfo = new("docker")
+        SocketsHttpHandler handler = new()
         {
-            RedirectStandardError = true,
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
+            ConnectCallback = async (_, token) =>
+            {
+                Socket socket = new(
+                    AddressFamily.Unix,
+                    SocketType.Stream,
+                    ProtocolType.Unspecified);
+                try
+                {
+                    await socket.ConnectAsync(
+                        new UnixDomainSocketEndPoint(
+                            "/var/run/docker.sock"),
+                        token);
+                    return new NetworkStream(socket, ownsSocket: true);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+            },
         };
-        startInfo.ArgumentList.Add("ps");
-        startInfo.ArgumentList.Add("--filter");
-        startInfo.ArgumentList.Add("ancestor=quay.io/keycloak/keycloak:26.7.0");
-        startInfo.ArgumentList.Add("--format");
-        startInfo.ArgumentList.Add("{{.ID}}");
-        using var process = Process.Start(startInfo) ??
-            throw new InvalidOperationException(
-                "The bounded Docker inspection did not start.");
-        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
-        Assert.AreEqual(0, process.ExitCode);
-        return output.Split(
-                ['\r', '\n'],
-                StringSplitOptions.RemoveEmptyEntries |
-                StringSplitOptions.TrimEntries)
+        using HttpClient client = new(handler)
+        {
+            BaseAddress = new Uri("http://localhost"),
+            Timeout = TimeSpan.FromSeconds(10),
+        };
+        const string filters =
+            """{"ancestor":["quay.io/keycloak/keycloak:26.7.0"]}""";
+        using var response = await client.GetAsync(
+            string.Concat(
+                "/containers/json?filters=",
+                Uri.EscapeDataString(filters)),
+            cancellationToken);
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        using var document = JsonDocument.Parse(
+            await response.Content.ReadAsStreamAsync(cancellationToken));
+        return document.RootElement
+            .EnumerateArray()
+            .Select(static container =>
+                container.GetProperty("Id").GetString() ??
+                throw new InvalidOperationException(
+                    "Docker returned a container without an identity."))
             .ToImmutableHashSet(StringComparer.Ordinal);
     }
 

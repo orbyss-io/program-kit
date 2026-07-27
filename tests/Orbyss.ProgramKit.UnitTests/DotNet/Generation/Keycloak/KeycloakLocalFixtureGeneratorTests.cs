@@ -67,15 +67,30 @@ public sealed class KeycloakLocalFixtureGeneratorTests
         var clients = document.RootElement.GetProperty("clients")
             .EnumerateArray()
             .ToArray();
-        Assert.HasCount(4, clients);
+        Assert.HasCount(5, clients);
+        Assert.IsTrue(clients.Single(client =>
+            client.GetProperty("clientId").GetString() == "program-kit-api")
+            .GetProperty("bearerOnly")
+            .GetBoolean());
         Assert.IsTrue(clients.Single(client =>
             client.GetProperty("clientId").GetString() == "program-kit-public")
             .GetProperty("publicClient")
             .GetBoolean());
         Assert.AreEqual(
             "S256",
-            clients[0].GetProperty("attributes")
+            clients.Single(client =>
+                    client.GetProperty("clientId").GetString() ==
+                    "program-kit-public")
+                .GetProperty("attributes")
                 .GetProperty("pkce.code.challenge.method")
+                .GetString());
+        Assert.AreEqual(
+            "https://localhost:8443/signout-callback-oidc##",
+            clients.Single(client =>
+                    client.GetProperty("clientId").GetString() ==
+                    "program-kit-confidential")
+                .GetProperty("attributes")
+                .GetProperty("post.logout.redirect.uris")
                 .GetString());
         Assert.AreEqual(
             "true",
@@ -186,6 +201,7 @@ public sealed class KeycloakLocalFixtureGeneratorTests
         Assert.Contains(
             ".WithHttpEndpoint(port: 5444, targetPort: 9000, name: \"management\")",
             program);
+        Assert.Contains(".WithEndpointProxySupport(false)", program);
         Assert.Contains("ContainerLifetime.Session", program);
         Assert.DoesNotContain("UseEphemeralDataProtectionProvider", program);
         Assert.DoesNotContain(string.Concat("WithData", "Volume"), program);

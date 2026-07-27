@@ -215,6 +215,8 @@ public sealed class KeycloakLocalFixtureGenerator :
         builder.AppendLine("    }");
         builder.AppendLine("  ],");
         builder.AppendLine("  \"clients\": [");
+        RenderResourceClient(builder, definition);
+        builder.AppendLine(",");
         RenderBrowserClient(builder, definition);
         builder.AppendLine(",");
         RenderConfidentialClient(builder, definition);
@@ -237,6 +239,14 @@ public sealed class KeycloakLocalFixtureGenerator :
         builder.AppendLine("  \"users\": [");
         builder.AppendLine("    {");
         JsonProperty(builder, 3, "username", definition.TestPrincipalName, true);
+        JsonProperty(builder, 3, "firstName", "Fixture", true);
+        JsonProperty(builder, 3, "lastName", "Principal", true);
+        JsonProperty(
+            builder,
+            3,
+            "email",
+            "fixture-principal@example.invalid",
+            true);
         builder.AppendLine("      \"enabled\": true,");
         builder.AppendLine("      \"emailVerified\": false,");
         builder.AppendLine("      \"credentials\": [");
@@ -251,6 +261,22 @@ public sealed class KeycloakLocalFixtureGenerator :
         builder.AppendLine("  ]");
         builder.AppendLine("}");
         return builder.ToString();
+    }
+
+    private static void RenderResourceClient(
+        StringBuilder builder,
+        KeycloakLocalFixtureDefinition definition)
+    {
+        builder.AppendLine("    {");
+        JsonProperty(builder, 3, "clientId", definition.ApiAudience, true);
+        builder.AppendLine("      \"protocol\": \"openid-connect\",");
+        builder.AppendLine("      \"publicClient\": false,");
+        builder.AppendLine("      \"bearerOnly\": true,");
+        builder.AppendLine("      \"standardFlowEnabled\": false,");
+        builder.AppendLine("      \"implicitFlowEnabled\": false,");
+        builder.AppendLine("      \"directAccessGrantsEnabled\": false,");
+        builder.AppendLine("      \"serviceAccountsEnabled\": false");
+        builder.Append("    }");
     }
 
     private static void RenderBrowserClient(
@@ -323,7 +349,17 @@ public sealed class KeycloakLocalFixtureGenerator :
         builder.AppendLine("      ],");
         builder.AppendLine("      \"attributes\": {");
         builder.AppendLine("        \"pkce.code.challenge.method\": \"S256\",");
-        builder.AppendLine("        \"access.token.header.type.rfc9068\": \"true\"");
+        builder.AppendLine(
+            "        \"access.token.header.type.rfc9068\": \"true\",");
+        JsonProperty(
+            builder,
+            4,
+            "post.logout.redirect.uris",
+            string.Concat(
+                definition.ConfidentialRedirectUri.GetLeftPart(
+                    UriPartial.Authority),
+                "/signout-callback-oidc##"),
+            false);
         builder.AppendLine("      }");
         builder.Append("    }");
     }
@@ -497,6 +533,8 @@ public sealed class KeycloakLocalFixtureGenerator :
             builder,
             "PROGRAM_KIT_TOKEN_EXCHANGE_CLIENT_SECRET",
             "tokenExchangeClientSecret");
+        builder.AppendLine(
+            "    .WithEndpointProxySupport(false)");
         builder.AppendLine(
             "    .WithLifetime(global::Aspire.Hosting.ApplicationModel.ContainerLifetime.Session);");
         builder.AppendLine();

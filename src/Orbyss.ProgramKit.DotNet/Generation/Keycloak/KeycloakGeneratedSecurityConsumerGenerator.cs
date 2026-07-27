@@ -119,7 +119,7 @@ internal static class KeycloakGeneratedSecurityConsumerGenerator
                 definition.ConfidentialRedirectUri.AbsolutePath,
                 "/signout-callback-oidc",
                 "/signout-oidc",
-                ["openid", "profile", definition.ApiScope],
+                ["openid", definition.ApiScope],
                 ["RS256"],
                 DotNetOidcPushedAuthorizationBehavior.UseIfAvailable,
                 DotNetTransportClaimMapping.PreserveProviderClaimNames,
@@ -149,7 +149,7 @@ internal static class KeycloakGeneratedSecurityConsumerGenerator
                 "ProgramKit.PublicBrowser",
                 [definition.PublicBrowserOrigin],
                 ["GET"],
-                ["openid", "profile", definition.ApiScope],
+                ["openid", definition.ApiScope],
                 DotNetPublicBrowserTokenStorage.BrowserSession,
                 DotNetPublicBrowserRefreshDisposition.Absent,
                 Reference("acceptance", "keycloak-public-browser-threat-model"),
@@ -358,12 +358,23 @@ internal static class KeycloakGeneratedSecurityConsumerGenerator
             var runtimeRoot = Environment.GetEnvironmentVariable(
                 "PROGRAM_KIT_KEYCLOAK_RUNTIME_ROOT")
                 ?? throw new InvalidOperationException("The owned fixture runtime root is unavailable.");
-            builder.Services.PostConfigure<OpenIdConnectOptions>("ProgramKit.Oidc", options =>
+            builder.Services.Configure<OpenIdConnectOptions>("ProgramKit.Oidc", options =>
+                options.BackchannelHttpHandler =
+                    ProgramKitFixtureTrust.CreateHttpHandler(runtimeRoot));
+            builder.Services.Configure<JwtBearerOptions>("ProgramKit.Jwt", options =>
                 options.BackchannelHttpHandler =
                     ProgramKitFixtureTrust.CreateHttpHandler(runtimeRoot));
             builder.Services.PostConfigure<JwtBearerOptions>("ProgramKit.Jwt", options =>
-                options.BackchannelHttpHandler =
-                    ProgramKitFixtureTrust.CreateHttpHandler(runtimeRoot));
+            {
+                if (options.ConfigurationManager is not
+                    global::Microsoft.IdentityModel.Tokens.BaseConfigurationManager manager)
+                {
+                    throw new InvalidOperationException(
+                        "The generated JWT metadata manager is unavailable.");
+                }
+
+                manager.RefreshInterval = global::System.TimeSpan.FromSeconds(1);
+            });
             foreach (var clientName in new[]
                      {
                          "keycloak-service",

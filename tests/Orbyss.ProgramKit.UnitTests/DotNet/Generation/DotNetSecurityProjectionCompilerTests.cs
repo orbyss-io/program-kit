@@ -35,7 +35,13 @@ public sealed class DotNetSecurityProjectionCompilerTests
 
         Assert.Contains("options.UsePkce = true", registration);
         Assert.Contains("RequireNonce = true", registration);
-        Assert.Contains("RequireStateValidation = true", registration);
+        Assert.Contains(
+            "OpenIdConnectHandler validates protected state and correlation",
+            registration);
+        Assert.Contains("RequireStateValidation = false", registration);
+        Assert.Contains("options.Cookie.Path = \"/\";", registration);
+        Assert.Contains("options.CorrelationCookie.Path = \"/\";", registration);
+        Assert.Contains("options.NonceCookie.Path = \"/\";", registration);
         Assert.Contains("options.MapInboundClaims = false", registration);
         Assert.Contains("options.SaveTokens = false", registration);
         Assert.Contains("ValidTypes = [\"at+jwt\"]", registration);

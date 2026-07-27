@@ -58,12 +58,18 @@ public sealed class KeycloakIntegrationEnvironmentClassifierTests
         Assert.Contains(
             "v1.61.0-noble@sha256:72d804504ac23fcc83c770ca68c88c7e6b3e3462c9ad02f220197b95d46237db",
             dockerfile);
+        Assert.Contains(
+            "29.6.2-cli@sha256:feb2d49bd65f274b3e4b4620beabe2f4691e5287e496da9fbc9830ed5f780676",
+            dockerfile);
+        Assert.Contains(
+            "/usr/local/libexec/docker/cli-plugins/docker-buildx",
+            dockerfile);
         Assert.DoesNotContain("\nRUN ", dockerfile);
         Assert.AreEqual(
             "selected-not-built-or-executed",
             selection.RootElement.GetProperty("status").GetString());
         Assert.AreEqual(
-            "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+            "sha256:75ab20d4a5281a6ffe8c42749089c950a51f2a753f0b9f8ccbbede0f51a126ed",
             selection.RootElement.GetProperty("dockerfileSha256").GetString());
         Assert.IsTrue(
             selection.RootElement.GetProperty("execution")
@@ -73,5 +79,10 @@ public sealed class KeycloakIntegrationEnvironmentClassifierTests
             selection.RootElement.GetProperty("execution")
                 .GetProperty("automaticRun")
                 .GetBoolean());
+        Assert.AreEqual(
+            "bounded-tls-pass-through",
+            selection.RootElement.GetProperty("containerRuntime")
+                .GetProperty("loopbackBridge")
+                .GetString());
     }
 }

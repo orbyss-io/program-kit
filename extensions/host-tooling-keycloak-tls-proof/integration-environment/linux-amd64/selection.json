@@ -3,11 +3,18 @@
   "selectionVersion": "1.0.0",
   "operatingSystem": "linux",
   "architecture": "amd64",
-  "dockerfileSha256": "sha256:f66fd68d1888b33b7b3419e124b0482ff73c9000832446c8338ac7b9d0e77e35",
+  "dockerfileSha256": "sha256:75ab20d4a5281a6ffe8c42749089c950a51f2a753f0b9f8ccbbede0f51a126ed",
   "dotNetSdk": {
     "version": "10.0.302",
     "image": "mcr.microsoft.com/dotnet/sdk:10.0.302-noble-amd64",
     "manifestSha256": "sha256:3dae2f7699441af56216ff64d5c9b6dfce7cd7dc7f4f71d353d29662b10a384f"
+  },
+  "dockerCli": {
+    "version": "29.6.2",
+    "image": "docker:29.6.2-cli",
+    "manifestSha256": "sha256:feb2d49bd65f274b3e4b4620beabe2f4691e5287e496da9fbc9830ed5f780676",
+    "purpose": "aspire-container-runtime-discovery-and-tunnel-build-only",
+    "buildxVersion": "0.35.0"
   },
   "browserEnvironment": {
     "packageVersion": "1.61.0",
@@ -18,6 +25,8 @@
   },
   "containerRuntime": {
     "selection": "explicit-mounted-compatible-docker-socket",
+    "dockerHostGateway": "host.docker.internal",
+    "loopbackBridge": "bounded-tls-pass-through",
     "ownsProgramKitSemantics": false,
     "directDockerFixtureReplacement": false
   },
