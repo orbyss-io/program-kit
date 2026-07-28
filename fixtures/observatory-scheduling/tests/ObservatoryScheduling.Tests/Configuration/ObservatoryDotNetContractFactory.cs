@@ -215,11 +215,14 @@ internal static class ObservatoryDotNetContractFactory
             HostRevision(host),
             new OpenConsoleParsing(
                 true,
-                "--",
+                null,
                 true,
                 true,
                 "invariant",
-                "bounded-by-occurrence"),
+                "last-value-wins",
+                "accumulate",
+                "idempotent"),
+            new OpenConsoleHostExitCodeRoles(2, 1, 3),
             [
                 new OpenConsoleOption(
                     "format",
@@ -306,6 +309,10 @@ internal static class ObservatoryDotNetContractFactory
                         false),
                     [
                         new OpenConsoleExitCode(0, "Scheduled.", []),
+                        new OpenConsoleExitCode(
+                            1,
+                            "Cancelled.",
+                            [diagnosticSchema]),
                         new OpenConsoleExitCode(
                             2,
                             "Invalid invocation.",

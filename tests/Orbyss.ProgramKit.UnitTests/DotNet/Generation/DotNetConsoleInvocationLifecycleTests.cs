@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -67,21 +68,19 @@ public sealed class DotNetConsoleInvocationLifecycleTests
         var candidate = GenerateCandidate(
             typeof(MetadataFixtureWithValidatorFeature));
 
-        var exception =
-            await Assert.ThrowsExactlyAsync<
-                global::Spectre.Console.Cli.CommandRuntimeException>(
-                async () => await RunAsync(
-                    candidate,
-                    [
-                        "execute",
-                        "target-1",
-                        "--count",
-                        "1",
-                        "--force",
-                        "--confirm",
-                    ]));
+        var result = await RunAsync(
+            candidate,
+            [
+                "execute",
+                "target-1",
+                "--count",
+                "1",
+                "--force",
+                "--confirm",
+            ]);
 
-        Assert.Contains("Conflicting options", exception.Message);
+        Assert.AreEqual(2, result.ExitCode);
+        Assert.Contains("Conflicting options", result.StandardError);
         Assert.AreEqual(0, MetadataFixtureInvocationRecorder.ValidatorCalls);
         Assert.AreEqual(0, MetadataFixtureInvocationRecorder.HandlerCalls);
     }
@@ -98,12 +97,12 @@ public sealed class DotNetConsoleInvocationLifecycleTests
     {
         var candidate = GenerateCandidate(featureType);
 
-        var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            async () => await RunAsync(
-                candidate,
-                ["execute", "target-1"]));
+        var result = await RunAsync(
+            candidate,
+            ["execute", "target-1"]);
 
-        Assert.IsFalse(string.IsNullOrWhiteSpace(exception.Message));
+        Assert.AreEqual(3, result.ExitCode);
+        Assert.Contains("Unexpected internal", result.StandardError);
         Assert.AreEqual(0, MetadataFixtureInvocationRecorder.ValidatorCalls);
         Assert.AreEqual(0, MetadataFixtureInvocationRecorder.HandlerCalls);
     }
@@ -133,6 +132,166 @@ public sealed class DotNetConsoleInvocationLifecycleTests
             program.IndexOf(
                 "ProgramKitServiceRegistrationAudit.Audit(services);",
                 StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    [DataRow("Execute", "target-1")]
+    [DataRow("execute", "target-1", "--unknown")]
+    [DataRow("execute", "target-1", "--count", "not-an-int")]
+    public async Task ParseFailuresExitTwoBeforeConsumerCode(
+        params string[] arguments)
+    {
+        var candidate = GenerateCandidate(typeof(MetadataFixtureFeature));
+
+        var result = await RunProcessAsync(candidate, arguments);
+
+        Assert.AreEqual(2, result.ExitCode);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(result.StandardError));
+    }
+
+    [TestMethod]
+    public async Task EqualsAliasAndCanonicalDefaultFollowPinnedProfile()
+    {
+        var candidate = GenerateCandidate(typeof(MetadataFixtureFeature));
+
+        var equals = await RunProcessAsync(
+            candidate,
+            ["execute", "target-1", "--count=7", "--confirm"]);
+        Assert.AreEqual(7, equals.ExitCode);
+
+        var canonical = await RunProcessAsync(
+            candidate,
+            ["observe", "run", "target-1"]);
+        Assert.AreEqual(1, canonical.ExitCode);
+    }
+
+    [TestMethod]
+    public async Task DuplicateScalarOptionUsesDeclaredLastValueWinsPolicy()
+    {
+        var candidate = GenerateCandidate(typeof(MetadataFixtureFeature));
+
+        var result = await RunProcessAsync(
+            candidate,
+            [
+                "execute",
+                "target-1",
+                "--count",
+                "3",
+                "--count",
+                "4",
+                "--confirm",
+            ]);
+
+        Assert.AreEqual(4, result.ExitCode);
+    }
+
+    [TestMethod]
+    public async Task NativeAndRepeatedValuesUseSpectreBindingWithInvariantCulture()
+    {
+        var candidate = GenerateCandidate(typeof(MetadataFixtureFeature));
+
+        var result = await RunProcessAsync(
+            candidate,
+            [
+                "execute",
+                "native-types",
+                "--total=9223372036854775000",
+                "--ratio=1234.50",
+                "--correlation=67ed4ad8-cc28-4f98-aecb-852a50d7b04f",
+                "--at=2026-07-28T08:15:30.0000000+02:00",
+                "--tag=alpha",
+                "--tag=beta",
+            ]);
+
+        Assert.AreEqual(37, result.ExitCode, result.StandardError);
+    }
+
+    [TestMethod]
+    public async Task OptionTerminatorIsNotPartOfTheDeclaredProfile()
+    {
+        var candidate = GenerateCandidate(typeof(MetadataFixtureFeature));
+
+        var result = await RunProcessAsync(
+            candidate,
+            ["execute", "--", "--literal-target"]);
+
+        Assert.AreEqual(2, result.ExitCode);
+    }
+
+    [TestMethod]
+    public async Task HelpAndCompletionNeverComposeConsumerFeature()
+    {
+        var candidate = GenerateCandidate(
+            typeof(MissingHandlerMetadataFixtureFeature));
+
+        var help = await RunProcessAsync(candidate, ["execute", "--help"]);
+        Assert.AreEqual(0, help.ExitCode, help.StandardError);
+        Assert.Contains("USAGE", help.StandardOutput);
+
+        var completion = await RunProcessAsync(candidate, ["--complete"]);
+        Assert.AreEqual(0, completion.ExitCode);
+        Assert.Contains("--count=<int32>", completion.StandardOutput);
+        Assert.Contains("observe run", completion.StandardOutput);
+    }
+
+    [TestMethod]
+    public async Task UnexpectedConsumerFailureUsesDeclaredInternalCode()
+    {
+        var candidate = GenerateCandidate(
+            typeof(ThrowingMetadataFixtureFeature));
+
+        var result = await RunProcessAsync(
+            candidate,
+            ["execute", "target-1"]);
+
+        Assert.AreEqual(3, result.ExitCode);
+        Assert.Contains("Unexpected internal", result.StandardError);
+        Assert.DoesNotContain("Consumer exception detail", result.StandardError);
+    }
+
+    [TestMethod]
+    public async Task CancelledInvocationUsesDeclaredCancellationCode()
+    {
+        var candidate = GenerateCandidate(typeof(MetadataFixtureFeature));
+        AssemblyLoadContext context = new(
+            string.Concat(
+                "ProgramKitConsoleCancellation-",
+                Guid.NewGuid().ToString("N")),
+            isCollectible: true);
+        context.Resolving += ResolveFromCurrentProcess;
+        try
+        {
+            using MemoryStream stream = new(
+                candidate.AssemblyBytes.ToArray(),
+                writable: false);
+            var assembly = context.LoadFromStream(stream);
+            var outcome = assembly.GetType(
+                "GeneratedHost.Hosting.ProgramKitInvocationOutcome",
+                throwOnError: true) ??
+                throw new AssertFailedException(
+                    "The generated cancellation outcome type is missing.");
+            var run = outcome.GetMethod(
+                "RunAsync",
+                BindingFlags.Static | BindingFlags.NonPublic) ??
+                throw new AssertFailedException(
+                    "The generated cancellation outcome method is missing.");
+            using CancellationTokenSource cancellation = new();
+            cancellation.Cancel();
+            Func<Task<int>> invocation = () =>
+                Task.FromCanceled<int>(cancellation.Token);
+            var task = run.Invoke(
+                null,
+                [invocation, cancellation.Token]) as Task<int> ??
+                throw new AssertFailedException(
+                    "The generated cancellation outcome has an invalid shape.");
+
+            Assert.AreEqual(1, await task);
+        }
+        finally
+        {
+            context.Resolving -= ResolveFromCurrentProcess;
+            context.Unload();
+        }
     }
 
     private static (
@@ -190,7 +349,10 @@ public sealed class DotNetConsoleInvocationLifecycleTests
         return (outputs, compilation.AssemblyBytes);
     }
 
-    private static async Task<(int ExitCode, string StandardOutput)> RunAsync(
+    private static async Task<(
+        int ExitCode,
+        string StandardOutput,
+        string StandardError)> RunAsync(
         (
             ImmutableArray<GeneratedOutput> Outputs,
             ImmutableArray<byte> AssemblyBytes
@@ -204,8 +366,11 @@ public sealed class DotNetConsoleInvocationLifecycleTests
             isCollectible: true);
         context.Resolving += ResolveFromCurrentProcess;
         var originalOutput = Console.Out;
+        var originalError = Console.Error;
         using StringWriter output = new(CultureInfo.InvariantCulture);
+        using StringWriter error = new(CultureInfo.InvariantCulture);
         Console.SetOut(output);
+        Console.SetError(error);
         try
         {
             using MemoryStream stream = new(
@@ -227,7 +392,7 @@ public sealed class DotNetConsoleInvocationLifecycleTests
                 _ => throw new AssertFailedException(
                     "The generated entry point has an unsupported return shape."),
             };
-            return (exitCode, output.ToString());
+            return (exitCode, output.ToString(), error.ToString());
         }
         catch (TargetInvocationException exception)
             when (exception.InnerException is not null)
@@ -240,8 +405,71 @@ public sealed class DotNetConsoleInvocationLifecycleTests
         finally
         {
             Console.SetOut(originalOutput);
+            Console.SetError(originalError);
             context.Resolving -= ResolveFromCurrentProcess;
             context.Unload();
+        }
+    }
+
+    private static async Task<(
+        int ExitCode,
+        string StandardOutput,
+        string StandardError)> RunProcessAsync(
+        (
+            ImmutableArray<GeneratedOutput> Outputs,
+            ImmutableArray<byte> AssemblyBytes
+        ) candidate,
+        string[] arguments)
+    {
+        var candidatePath = Path.Combine(
+            AppContext.BaseDirectory,
+            string.Concat(
+                "ProgramKitConsoleProcess-",
+                Guid.NewGuid().ToString("N"),
+                ".dll"));
+        await File.WriteAllBytesAsync(
+            candidatePath,
+            candidate.AssemblyBytes.ToArray());
+        try
+        {
+            ProcessStartInfo start = new("dotnet")
+            {
+                WorkingDirectory = AppContext.BaseDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+            };
+            start.ArgumentList.Add("exec");
+            start.ArgumentList.Add("--runtimeconfig");
+            start.ArgumentList.Add(
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Orbyss.ProgramKit.UnitTests.runtimeconfig.json"));
+            start.ArgumentList.Add("--depsfile");
+            start.ArgumentList.Add(
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Orbyss.ProgramKit.UnitTests.deps.json"));
+            start.ArgumentList.Add(candidatePath);
+            foreach (var argument in arguments)
+            {
+                start.ArgumentList.Add(argument);
+            }
+
+            using var process = Process.Start(start) ??
+                throw new AssertFailedException(
+                    "The generated Console process did not start.");
+            var standardOutput = process.StandardOutput.ReadToEndAsync();
+            var standardError = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            return (
+                process.ExitCode,
+                await standardOutput,
+                await standardError);
+        }
+        finally
+        {
+            File.Delete(candidatePath);
         }
     }
 

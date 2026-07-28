@@ -7,6 +7,7 @@ public sealed record OpenConsoleDocument(
     [property: JsonPropertyName("info")] OpenConsoleInfo Info,
     [property: JsonPropertyName("hostRevision")] ArtifactReference HostRevision,
     [property: JsonPropertyName("parsing")] OpenConsoleParsing Parsing,
+    [property: JsonPropertyName("hostExitCodeRoles")] OpenConsoleHostExitCodeRoles HostExitCodeRoles,
     [property: JsonPropertyName("globalOptions")] ImmutableArray<OpenConsoleOption> GlobalOptions,
     [property: JsonPropertyName("commands")] ImmutableArray<OpenConsoleCommand> Commands,
     [property: JsonPropertyName("help")] OpenConsoleHelp Help,

@@ -10,7 +10,7 @@ public sealed class OpenConsoleSchemaModule : IProgramKitSchemaModule
             new ProgramKitIdentifier("pkid:schema:program-kit:open-console"),
             new SemanticVersion("1.0.0"),
             new Sha256Digest(
-                "sha256:f8e5128e6c81ad7f9e6d2ae43beb345c5c404bf4cf6f6bfa6ed1bfbe796cb780"));
+                "sha256:72392d78970462ca3e7344b3b1949bb2dadd0bcdcfb33c802755fb943c0afc15"));
     private static readonly ProgramKitSchemaResource Schema =
         new(
             SchemaReference,

@@ -108,13 +108,22 @@ public sealed class DotNetHostGenerationCoordinatorTests
             "return await handler.HandleAsync(request, cancellationToken)",
             commandSource);
         var program = Text(outputs, "ProgramKitGenerated/Program.cs");
-        Assert.Contains(".AddBranch(\"observe\"", program);
+        Assert.Contains(
+            "ProgramKitInformationProtocol.TryRunCompletion(args",
+            program);
+        Assert.Contains(
+            "ProgramKitCommandConfiguration.Configure",
+            program);
+        var configuration = Text(
+            outputs,
+            "ProgramKitGenerated/Hosting/ProgramKitCommandConfiguration.cs");
+        Assert.Contains(".AddBranch(\"observe\"", configuration);
         Assert.Contains(
             ".AddCommand<global::GeneratedHost.Commands.ObserveRunCommand>(\"execute\")",
-            program);
+            configuration);
         Assert.Contains(
             ".AddCommand<global::GeneratedHost.Commands.ObserveRunCommand>(\"run-observation\")",
-            program);
+            configuration);
         foreach (var output in outputs)
         {
             Assert.IsFalse(

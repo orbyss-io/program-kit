@@ -62,13 +62,16 @@ keeps shell and document digests independently verifiable and avoids inferred
 file naming.
 
 For `dotnet generate-host console`, the bound document revision must match the
-canonical Open Console document version and bytes. Successful generation
-includes the unchanged typed parser and parse-result record, the internal
-consumer dispatcher contract, and deterministic dispatch lock/evidence files.
-Consumer source supplies the generated `Program` partial composition method
-and registers exactly one dispatcher. Parsed commands return that dispatcher's
-integer as the process exit code; parse failures and information output retain
-their document-declared behavior without composing the host.
+canonical Open Console document version and bytes, and the .NET binding must
+identify exact consumer contract-project and reference-assembly bytes.
+Successful generation emits the complete executable Spectre Console project:
+entry point, command tree, typed settings, request factories, validation,
+service-registration audit, and exact project/package references. Consumer
+source owns only the bound request, handler, optional validator, and one
+parameterless CShell feature. Spectre is the sole command parser. Handler
+integers become process exit codes unchanged; parse, validation, cancellation,
+and internal failures use the document-declared host roles. Help and static
+completion do not compose consumer services.
 
 Foreign-client generation accepts one explicit local JSON OpenAPI document and
 one explicit `Microsoft.OpenApi.Kiota` package archive. The reviewed tool

@@ -9,5 +9,11 @@ internal sealed record DotNetConsoleHostProjection(
     string ConsumerProjectPath,
     DotNetConsoleClrTypeDescriptor FeatureType,
     DotNetConsoleClrTypeDescriptor ValidationResultType,
+    int InvalidInvocationExitCode,
+    int CancellationExitCode,
+    int InternalFailureExitCode,
+    int HelpExitCode,
+    string CompletionOption,
+    ImmutableArray<string> CompletionCandidates,
     ImmutableArray<DotNetConsoleCommandProjection> Commands,
     ImmutableArray<DotNetConsoleCommandTrieNode> CommandTrie);

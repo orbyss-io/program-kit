@@ -72,6 +72,57 @@ internal static class DotNetConsoleBindingTestFactory
                             "confirm",
                             DotNetConsoleDefaultKind.None,
                             null),
+                        Parameter(
+                            4,
+                            "total",
+                            Type(
+                                "System.Int64",
+                                DotNetConsoleReferenceNullability.NotApplicable),
+                            DotNetConsoleBindingSourceKind.Option,
+                            "total",
+                            DotNetConsoleDefaultKind.Canonical,
+                            "8"),
+                        Parameter(
+                            5,
+                            "ratio",
+                            Type(
+                                "System.Decimal",
+                                DotNetConsoleReferenceNullability.NotApplicable),
+                            DotNetConsoleBindingSourceKind.Option,
+                            "ratio",
+                            DotNetConsoleDefaultKind.Canonical,
+                            "1.5"),
+                        Parameter(
+                            6,
+                            "correlation",
+                            Type(
+                                "System.Guid",
+                                DotNetConsoleReferenceNullability.NotApplicable),
+                            DotNetConsoleBindingSourceKind.Option,
+                            "correlation",
+                            DotNetConsoleDefaultKind.Canonical,
+                            "d2719a8c-3ae5-49b1-a6ab-f57ad42f51ee"),
+                        Parameter(
+                            7,
+                            "at",
+                            Type(
+                                "System.DateTimeOffset",
+                                DotNetConsoleReferenceNullability.NotApplicable),
+                            DotNetConsoleBindingSourceKind.Option,
+                            "at",
+                            DotNetConsoleDefaultKind.Canonical,
+                            "2026-01-01T00:00:00.0000000+00:00"),
+                        Parameter(
+                            8,
+                            "tags",
+                            new DotNetConsoleClrTypeDescriptor(
+                                "System.Collections.Immutable.ImmutableArray`1",
+                                [Type("System.String")],
+                                DotNetConsoleReferenceNullability.NotApplicable),
+                            DotNetConsoleBindingSourceKind.Option,
+                            "tag",
+                            DotNetConsoleDefaultKind.None,
+                            null),
                     ]),
             ]);
     }

@@ -17,8 +17,11 @@ public static class DotNetConsoleGenerationComposition
             new DotNetConsoleProjectionCompiler(),
             new DotNetConsoleHostRenderer(
                 [
-                    new DotNetConsoleProjectRenderer(),
-                    new DotNetConsoleSettingsRenderer(),
+            new DotNetConsoleProjectRenderer(),
+            new DotNetConsoleApplicationConfigurationRenderer(),
+            new DotNetConsoleInformationRenderer(),
+            new DotNetConsoleInvocationFailureRenderer(),
+            new DotNetConsoleSettingsRenderer(),
                     new DotNetConsoleRequestFactoryRenderer(),
                     new DotNetConsoleCommandRenderer(),
                     new DotNetConsoleServiceAuditRenderer(),

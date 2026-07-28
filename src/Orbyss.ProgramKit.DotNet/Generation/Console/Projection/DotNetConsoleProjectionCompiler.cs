@@ -26,6 +26,7 @@ internal sealed class DotNetConsoleProjectionCompiler :
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(binding);
         var diagnostics = ImmutableArray.CreateBuilder<ProgramKitDiagnostic>();
+        ValidateProjectionProfile(document, diagnostics);
         var commands = ImmutableArray.CreateBuilder<DotNetConsoleCommandProjection>();
         var bindingByOperation = binding.Operations.ToDictionary(
             static operation => Exact(operation.OperationRevision),
@@ -62,8 +63,7 @@ internal sealed class DotNetConsoleProjectionCompiler :
                     operation.RequestType,
                     operation.HandlerType,
                     operation.ValidatorType,
-                    command.ExitCodes.Single(static item =>
-                        item.Code == 2).Code,
+                    document.HostExitCodeRoles.InvalidInvocation,
                     values));
         }
 
@@ -103,9 +103,86 @@ internal sealed class DotNetConsoleProjectionCompiler :
                 binding.ConsumerProject.RelativeProjectPath,
                 binding.FeatureType,
                 binding.ValidationResultType,
+                document.HostExitCodeRoles.InvalidInvocation,
+                document.HostExitCodeRoles.Cancellation,
+                document.HostExitCodeRoles.InternalFailure,
+                document.Help.ExitCode,
+                string.Concat("--", document.Completion.LongOption),
+                CompileCompletionCandidates(document),
                 commandArray,
                 trie),
             diagnostics.ToImmutable());
+    }
+
+    private static void ValidateProjectionProfile(
+        OpenConsoleDocument document,
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+    {
+        if (!document.Parsing.ConsumesOperatingSystemTokenArray ||
+            document.Parsing.OptionTerminator is not null ||
+            !document.Parsing.SupportsLongEqualsSyntax ||
+            !document.Parsing.CaseSensitive ||
+            document.Parsing.ConversionCulture != "invariant" ||
+            document.Parsing.SingleValueDuplicatePolicy != "last-value-wins" ||
+            document.Parsing.MultiValueDuplicatePolicy != "accumulate" ||
+            document.Parsing.FlagDuplicatePolicy != "idempotent")
+        {
+            Error(
+                diagnostics,
+                "Spectre.Console.Cli 0.55.0 requires the frozen Program Kit parsing profile.",
+                "/parsing");
+        }
+
+        if (document.Help.LongOption != "help" ||
+            document.Help.ShortOption != "h")
+        {
+            Error(
+                diagnostics,
+                "Spectre.Console.Cli 0.55.0 projects the documented --help and -h information options.",
+                "/help");
+        }
+    }
+
+    private static ImmutableArray<string> CompileCompletionCandidates(
+        OpenConsoleDocument document)
+    {
+        var candidates = ImmutableArray.CreateBuilder<string>();
+        foreach (var command in document.Commands)
+        {
+            candidates.Add(string.Join(" ", command.Path));
+            if (document.Completion.IncludesAliases)
+            {
+                candidates.AddRange(command.Aliases.Select(static alias =>
+                    string.Join(" ", alias)));
+            }
+
+            foreach (var option in document.GlobalOptions.Concat(command.Options))
+            {
+                var hint = document.Completion.IncludesValueHints &&
+                    option.Kind == ConsoleOptionKind.Value
+                    ? string.Concat("=<", option.ValueType, ">")
+                    : string.Empty;
+                candidates.Add(string.Concat("--", option.LongName, hint));
+                if (option.ShortName is not null)
+                {
+                    candidates.Add(string.Concat("-", option.ShortName));
+                }
+
+                if (document.Completion.IncludesAliases)
+                {
+                    candidates.AddRange(option.Aliases.Select(alias =>
+                        string.Concat(alias, hint)));
+                }
+            }
+        }
+
+        candidates.Add(string.Concat("--", document.Help.LongOption));
+        candidates.Add(string.Concat("-", document.Help.ShortOption));
+        candidates.Add(string.Concat("--", document.Completion.LongOption));
+        return candidates
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToImmutableArray();
     }
 
     private static ImmutableArray<DotNetConsoleValueProjection> CompileValues(

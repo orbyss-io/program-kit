@@ -25,15 +25,33 @@ public sealed class OpenConsoleDocumentValidator :
         if (document.Schema != "pkid:schema:program-kit:open-console@1.0.0" ||
             document.DocumentVersion.Value != "1.0.0" ||
             !document.Parsing.ConsumesOperatingSystemTokenArray ||
-            document.Parsing.OptionTerminator != "--" ||
+            document.Parsing.OptionTerminator is not null ||
             !document.Parsing.SupportsLongEqualsSyntax ||
             !document.Parsing.CaseSensitive ||
-            document.Parsing.ConversionCulture != "invariant")
+            document.Parsing.ConversionCulture != "invariant" ||
+            document.Parsing.SingleValueDuplicatePolicy != "last-value-wins" ||
+            document.Parsing.MultiValueDuplicatePolicy != "accumulate" ||
+            document.Parsing.FlagDuplicatePolicy != "idempotent")
         {
             Error(
                 diagnostics,
                 "Open Console must select the exact 1.0.0 schema and frozen token-array parsing conventions.",
                 string.Empty);
+        }
+
+        var hostExitCodes = new[]
+        {
+            document.HostExitCodeRoles.InvalidInvocation,
+            document.HostExitCodeRoles.Cancellation,
+            document.HostExitCodeRoles.InternalFailure,
+        };
+        if (hostExitCodes.Any(static code => code < 0) ||
+            hostExitCodes.Distinct().Count() != hostExitCodes.Length)
+        {
+            Error(
+                diagnostics,
+                "Open Console host exit-code roles must be explicit, non-negative, and unique.",
+                "/hostExitCodeRoles");
         }
 
         if (document.Commands.IsDefaultOrEmpty ||
@@ -94,13 +112,18 @@ public sealed class OpenConsoleDocumentValidator :
             ValidateOptions(document.GlobalOptions, command.Options, diagnostics);
             if (command.ExitCodes.IsDefaultOrEmpty ||
                 !command.ExitCodes.Any(static exit => exit.Code == 0) ||
-                !command.ExitCodes.Any(static exit => exit.Code == 2) ||
+                !command.ExitCodes.Any(exit =>
+                    exit.Code == document.HostExitCodeRoles.InvalidInvocation) ||
+                !command.ExitCodes.Any(exit =>
+                    exit.Code == document.HostExitCodeRoles.Cancellation) ||
+                !command.ExitCodes.Any(exit =>
+                    exit.Code == document.HostExitCodeRoles.InternalFailure) ||
                 command.ExitCodes.Select(static exit => exit.Code).Distinct().Count() !=
                 command.ExitCodes.Length)
             {
                 Error(
                     diagnostics,
-                    "Each command requires an exhaustive unique exit map including success code 0 and invalid-invocation code 2.",
+                    "Each command requires an exhaustive unique exit map including success and every host exit-code role.",
                     "/commands/exitCodes");
             }
         }

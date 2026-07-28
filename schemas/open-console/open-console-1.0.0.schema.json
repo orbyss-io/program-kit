@@ -12,6 +12,7 @@
     "info",
     "hostRevision",
     "parsing",
+    "hostExitCodeRoles",
     "globalOptions",
     "commands",
     "help",
@@ -42,15 +43,29 @@
         "supportsLongEqualsSyntax",
         "caseSensitive",
         "conversionCulture",
-        "duplicateOptionPolicy"
+        "singleValueDuplicatePolicy",
+        "multiValueDuplicatePolicy",
+        "flagDuplicatePolicy"
       ],
       "properties": {
         "consumesOperatingSystemTokenArray": {"const": true},
-        "optionTerminator": {"const": "--"},
+        "optionTerminator": {"const": null},
         "supportsLongEqualsSyntax": {"const": true},
         "caseSensitive": {"const": true},
         "conversionCulture": {"const": "invariant"},
-        "duplicateOptionPolicy": {"enum": ["reject", "bounded-by-occurrence"]}
+        "singleValueDuplicatePolicy": {"const": "last-value-wins"},
+        "multiValueDuplicatePolicy": {"const": "accumulate"},
+        "flagDuplicatePolicy": {"const": "idempotent"}
+      }
+    },
+    "hostExitCodeRoles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invalidInvocation", "cancellation", "internalFailure"],
+      "properties": {
+        "invalidInvocation": {"type": "integer", "minimum": 0},
+        "cancellation": {"type": "integer", "minimum": 0},
+        "internalFailure": {"type": "integer", "minimum": 0}
       }
     },
     "globalOptions": {"type": "array", "items": {"$ref": "#/$defs/option"}},

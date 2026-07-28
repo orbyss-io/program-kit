@@ -24,7 +24,16 @@ public sealed class DotNetConsoleCandidateCompilerTests
                     {
                         /// <summary>Creates the typed consumer request.</summary>
                         public global::Orbyss.ProgramKit.ConsoleContractFixtures.Contracts.MetadataFixtureRequest Create() =>
-                            new("target", 1, false, false);
+                            new(
+                                "target",
+                                1,
+                                false,
+                                false,
+                                8L,
+                                1.5M,
+                                global::System.Guid.Parse("d2719a8c-3ae5-49b1-a6ab-f57ad42f51ee"),
+                                global::System.DateTimeOffset.Parse("2026-01-01T00:00:00.0000000+00:00"),
+                                global::System.Collections.Immutable.ImmutableArray<string>.Empty);
                     }
                     """),
             ],
