@@ -1,0 +1,216 @@
+{
+  "evidenceKind": "program-kit-typed-console-host-generation-closure",
+  "evidenceVersion": "1.0.0",
+  "recordedAtUtc": "2026-07-28T09:29:10.6343359Z",
+  "status": "passed",
+  "completionClaim": true,
+  "approval": {
+    "designSha256": "sha256:72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca",
+    "planSha256": "sha256:207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273",
+    "recordSha256": "sha256:9467ecf970c19af7cbc572c7ba11284966f34536854ed59ed07c4ae17847f568",
+    "decision": "approved",
+    "conditions": []
+  },
+  "workUnits": [
+    {
+      "workUnit": "PKTCH-W010",
+      "commit": "a30b4af",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W020",
+      "commit": "ce97d86",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W030",
+      "commit": "e303f2c",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W040",
+      "commit": "f76d4ac",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W050",
+      "commit": "4d9549c",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W060",
+      "commit": "48fadba",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W070",
+      "commit": "abc3799",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W080",
+      "commit": "62ce3d2",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W090",
+      "commit": "f3bf367",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W100",
+      "commit": "41f2943",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKTCH-W110",
+      "sourceCommit": "41f29431dfe49129fd6aa60ccf8c9a3d13804787",
+      "closureCommit": "the Git commit containing this immutable evidence",
+      "status": "passed"
+    }
+  ],
+  "integratedConsumerProof": {
+    "consumerShape": "isolated JTest-shaped consumer contract fixture",
+    "commands": [
+      "run",
+      "validate",
+      "describe"
+    ],
+    "contracts": {
+      "typedRequests": 3,
+      "mandatoryHandlers": 3,
+      "optionalValidators": 1,
+      "shellFeatures": 1
+    },
+    "actualProcessOutcomes": {
+      "runExitCode": 17,
+      "validateExitCode": 23,
+      "describeExitCode": 29,
+      "wrongTypedValueExitCode": 2,
+      "consumerValidationFailureExitCode": 2,
+      "consumerValidationPreventedHandler": true,
+      "commandWithoutValidatorInvokedHandler": true
+    },
+    "parsingAuthority": "Spectre.Console.Cli 0.55.0 is the sole generated-host token parser and native scalar binder",
+    "forbiddenGeneratedMechanismsAbsent": [
+      "secondary generated parser",
+      "untyped parse-result dictionary"
+    ],
+    "deterministicRegeneration": "passed byte-for-byte across two generations"
+  },
+  "verification": [
+    {
+      "gate": "locked-restore",
+      "command": "dotnet restore ProgramKit.sln --locked-mode",
+      "result": "passed"
+    },
+    {
+      "gate": "mandatory-source-and-analyzer-build",
+      "command": "dotnet build ProgramKit.sln --no-restore --maxcpucount:1 --property:UseSharedCompilation=false",
+      "result": "passed",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "gate": "unit",
+      "command": "Program Kit unit test application",
+      "result": "passed",
+      "tests": 562,
+      "passed": 562,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "gate": "full-conformance",
+      "command": "Program Kit conformance test application",
+      "result": "passed",
+      "tests": 172,
+      "passed": 171,
+      "failed": 0,
+      "skipped": 1,
+      "skipDisposition": "pre-existing opt-in disposable Linux Keycloak profile; set PROGRAM_KIT_RUN_KEYCLOAK_FIXTURE=1 only after a human starts that profile"
+    },
+    {
+      "gate": "generated-output-integrity",
+      "result": "passed",
+      "proofs": [
+        "immediate verification",
+        "modified generated file detection",
+        "missing generated file detection",
+        "unexpected generated file detection",
+        "consumer-owned file exclusion",
+        "build rejection before compilation",
+        "publication rejection",
+        "explicit repair with digest-addressed quarantine"
+      ]
+    },
+    {
+      "gate": "capability-bundle",
+      "result": "passed",
+      "packageVersion": "0.1.0-alpha.1",
+      "bundleVersion": "3.0.0",
+      "providers": [
+        "claude",
+        "codex"
+      ],
+      "distributedCapabilities": 5,
+      "proofs": [
+        "actual package creation",
+        "backed CLI bundle verification",
+        "isolated consumer initialization",
+        "five thin Codex wrappers",
+        "source-authoring workspace rejection",
+        "no user-global writes"
+      ]
+    },
+    {
+      "gate": "format",
+      "command": "dotnet format ProgramKit.sln --no-restore --verify-no-changes",
+      "result": "passed"
+    }
+  ],
+  "pinnedInputs": {
+    "dotnetSdk": "10.0.302",
+    "targetFramework": "net10.0",
+    "csharpLanguage": "14.0",
+    "spectreConsole": "0.55.0",
+    "spectreConsoleCli": "0.55.0",
+    "cShells": "0.0.28",
+    "microsoftExtensionsDependencyInjection": "10.0.10"
+  },
+  "generatedOutput": {
+    "hostProject": "GeneratedHost.csproj",
+    "entryPoint": "ProgramKitGenerated/Program.cs",
+    "commandRoot": "ProgramKitGenerated/Commands",
+    "compositionRoot": "ProgramKitGenerated/Hosting",
+    "contractsSource": "consumer project selected by the exact .NET binding document",
+    "buildOutputs": "sibling .program-kit-build directory outside the sealed generated source tree"
+  },
+  "closureReconciliation": {
+    "reason": "The separately merged reusable C# build-gates closure preceded overlapping Console, Open Console, command-line, capability, and private-rule changes.",
+    "behaviorChanged": false,
+    "reconciledEvidence": [
+      "Open Console project dependency edges and self-hosted receipt",
+      "PKCS179 private repository-rule classification",
+      "C# gate operation source inventory and testing version map",
+      "compatibility matrix capability and package digests",
+      "approved Roslyn candidate-compiler dependency boundary"
+    ]
+  },
+  "boundaries": {
+    "secondTokenParserIntroduced": false,
+    "runtimeSourceTreeVerificationIntroduced": false,
+    "compatibilityOrMigrationLayerIntroduced": false,
+    "capabilityActivatedInAuthoringWorkspace": false,
+    "autonomousCapabilityStartIntroduced": false,
+    "programKitAutoUpgradeIntroduced": false,
+    "jTestRepositoryChanged": false,
+    "externalRepositoryChanged": false
+  },
+  "releaseState": {
+    "packagesPublished": false,
+    "releaseQualified": false,
+    "promoted": false,
+    "deployed": false
+  }
+}

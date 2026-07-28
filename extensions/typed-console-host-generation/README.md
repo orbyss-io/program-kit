@@ -18,10 +18,13 @@ Review order:
 9. `review-manifest.json` — exact approval boundary and artifact inventory.
 10. `design-plan-approval.json` — created only after explicit human approval of
    the exact canonical design and plan digests.
+11. `implementation-evidence/closure.json` — immutable work-unit, integrated
+    consumer, verification, reconciliation, and release-boundary evidence.
 
 `materialize-review-set.ps1` deterministically rebuilds the non-circular design
 basis, decision source, disposition, selection lock, canonical design, and
 canonical plan from current exact source truth.
 
-The review set does not publish packages, release Program Kit, modify JTest, or
-activate distributable capabilities in the Program Kit authoring workspace.
+Implementation completed without publishing packages, releasing Program Kit,
+modifying JTest, or activating distributable capabilities in the Program Kit
+authoring workspace.

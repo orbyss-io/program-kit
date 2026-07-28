@@ -11,6 +11,7 @@ digraph ProgramKitDependencies {
   "CommandLine" -> "CSharpBuildGates.Testing";
   "CommandLine" -> "DotNet";
   "CommandLine" -> "GeneratedOutputIntegrity";
+  "CommandLine" -> "OpenConsole";
   "CommandLine" -> "Operations";
   "CommandLine" -> "SecretResolution";
   "CommandLine" -> "Workbench";
@@ -28,9 +29,11 @@ digraph ProgramKitDependencies {
   "DotNet" -> "Tasks.Schedules";
   "DotNet" -> "Workbench";
   "DotNet" -> "GeneratedOutputIntegrity";
+  "DotNet" -> "OpenConsole";
   "GeneratedOutputIntegrity.Build" -> "GeneratedOutputIntegrity";
   "Modularity" -> "Artifacts";
   "Modularity.InProcess" -> "Modularity";
+  "OpenConsole" -> "Artifacts";
   "Operations" -> "Artifacts";
   "Planning" -> "Artifacts";
   "Planning" -> "Quality";

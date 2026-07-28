@@ -189,6 +189,132 @@ internal static class DotNetConsoleBindingTestFactory
                 throw new InvalidOperationException(
                     "The fixture feature has no metadata name.")),
         };
+        return GenerationInput(binding, assemblyPath);
+    }
+
+    internal static DotNetConsoleGenerationInput JTestGenerationInput(
+        OpenConsoleDocument openConsole,
+        ArtifactReference documentRevision)
+    {
+        var assemblyPath = typeof(JTestRunRequest).Assembly.Location;
+        var digest = Digest(assemblyPath);
+        var binding = new DotNetConsoleBindingDocument(
+            "pkid:schema:program-kit:dotnet-console-binding@1.0.0",
+            new SemanticVersion("1.0.0"),
+            documentRevision,
+            new DotNetConsoleConsumerProject(
+                DotNetTestContractFactory.Id("project", "jtest-contracts"),
+                "JTest.Contracts",
+                "src/JTest.Contracts/JTest.Contracts.csproj",
+                "net10.0",
+                typeof(JTestRunRequest).Assembly.GetName().Name ??
+                    throw new InvalidOperationException(),
+                "artifacts/JTest.Contracts/ref/net10.0/JTest.Contracts.dll",
+                digest),
+            Type(
+                typeof(JTestFixtureFeature).FullName ??
+                    throw new InvalidOperationException()),
+            Type(
+                typeof(MetadataFixtureValidationResult).FullName ??
+                    throw new InvalidOperationException()),
+            [
+                Operation(
+                    openConsole,
+                    "run",
+                    "Run",
+                    typeof(JTestRunRequest),
+                    typeof(IJTestRunHandler),
+                    typeof(IJTestRunValidator),
+                    [
+                        Parameter(
+                            0,
+                            "suite",
+                            Type("System.String"),
+                            DotNetConsoleBindingSourceKind.Argument,
+                            "suite",
+                            DotNetConsoleDefaultKind.None,
+                            null),
+                        Parameter(
+                            1,
+                            "maximumParallelism",
+                            Type(
+                                "System.Int32",
+                                DotNetConsoleReferenceNullability.NotApplicable),
+                            DotNetConsoleBindingSourceKind.Option,
+                            "maximum-parallelism",
+                            DotNetConsoleDefaultKind.Canonical,
+                            "1"),
+                    ]),
+                Operation(
+                    openConsole,
+                    "validate",
+                    "Validate",
+                    typeof(JTestValidateRequest),
+                    typeof(IJTestValidateHandler),
+                    null,
+                    [
+                        Parameter(
+                            0,
+                            "path",
+                            Type("System.String"),
+                            DotNetConsoleBindingSourceKind.Argument,
+                            "path",
+                            DotNetConsoleDefaultKind.None,
+                            null),
+                    ]),
+                Operation(
+                    openConsole,
+                    "describe",
+                    "Describe",
+                    typeof(JTestDescribeRequest),
+                    typeof(IJTestDescribeHandler),
+                    null,
+                    [
+                        Parameter(
+                            0,
+                            "suite",
+                            Type("System.String"),
+                            DotNetConsoleBindingSourceKind.Argument,
+                            "suite",
+                            DotNetConsoleDefaultKind.None,
+                            null),
+                    ]),
+            ]);
+        return GenerationInput(binding, assemblyPath);
+    }
+
+    private static DotNetConsoleOperationBinding Operation(
+        OpenConsoleDocument document,
+        string commandName,
+        string generatedSymbol,
+        Type requestType,
+        Type handlerType,
+        Type? validatorType,
+        ImmutableArray<DotNetConsoleConstructorParameter> parameters)
+    {
+        var command = document.Commands.Single(item =>
+            item.Path.SequenceEqual([commandName]));
+        return new DotNetConsoleOperationBinding(
+            command.OperationRevision,
+            generatedSymbol,
+            Type(
+                requestType.FullName ??
+                    throw new InvalidOperationException()),
+            Type(
+                handlerType.FullName ??
+                    throw new InvalidOperationException()),
+            validatorType is null
+                ? null
+                : Type(
+                    validatorType.FullName ??
+                        throw new InvalidOperationException()),
+            parameters);
+    }
+
+    private static DotNetConsoleGenerationInput GenerationInput(
+        DotNetConsoleBindingDocument binding,
+        string assemblyPath)
+    {
         var trustedPlatformAssemblies = (
             AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ??
             string.Empty)

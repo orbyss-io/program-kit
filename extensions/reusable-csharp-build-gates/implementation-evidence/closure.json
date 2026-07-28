@@ -73,7 +73,6 @@
     }
   ],
   "coordinatedMainlineIntegration": {
-    "consoleDispatchFinalCommit": "b4b14cd88a1e931531cbcdeddc2c2273ad96f4f4",
     "integrationCommits": [
       "dd6b749",
       "cfb7d35"
@@ -81,12 +80,12 @@
     "overlapDisposition": "integrated before overlapping Program Kit work; no unresolved file or semantic conflict"
   },
   "artifacts": {
-    "compatibilityVersionMatrixSha256": "sha256:952ad8b037fdc3f441944dbf59926e9052393e7d6190153acac349650d2136c2",
+    "compatibilityVersionMatrixSha256": "sha256:fe40853a521f0b7033a120feb2333c16f1175c8829984bbbc040bdb35ee3d099",
     "engineLikeFixtureLockSha256": "sha256:d7408d8da740ec32bc8003bb1f4ce1bba8f5bdb561de0bef13b133ca7d440024",
     "authoringPackageManifestSha256": "sha256:cc133213d2638fa7c1556982d7d48a97da484bd2e397a366e4293b79bc424a98",
     "buildPackageManifestSha256": "sha256:ea2637712214726ff4091daf6b126e9cecb525b554240b28da90dcd22046d207",
-    "testingPackageManifestSha256": "sha256:8c3921673812ca6162dd32c1247ec949984d7f827bc787e85ad979904133c054",
-    "capabilityBundleManifestSha256": "sha256:7c8587d2ff6d0ef287fac5b8fbb232ec5a5c9de7e38fa64de8f8af7b46deebeb",
+    "testingPackageManifestSha256": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a",
+    "capabilityBundleManifestSha256": "sha256:fc140ee74a2c060909f17f0bfce6639882127e200cde3ac90eb86f3f96247199",
     "privateGatePlanSha256": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
   },
   "verification": [

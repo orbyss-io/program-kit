@@ -6,18 +6,17 @@ namespace Orbyss.ProgramKit.ConformanceTests.DotNet.Dependencies;
 public sealed class DotNetDependencyBoundaryTests
 {
     [TestMethod]
-    public void DotNetKitHasNoCshellsRoslynCommandParserOrNewtonsoftRuntimeReference()
+    public void DotNetKitUsesOnlyTheApprovedCompilerWithoutHostRuntimeLeakage()
     {
         var references = typeof(DotNetShellDocument).Assembly
             .GetReferencedAssemblies()
             .Select(static assembly => assembly.Name!)
             .ToArray();
 
+        Assert.Contains("Microsoft.CodeAnalysis", references);
+        Assert.Contains("Microsoft.CodeAnalysis.CSharp", references);
         Assert.DoesNotContain(
             static name => name.StartsWith("CShells", StringComparison.Ordinal),
-            references);
-        Assert.DoesNotContain(
-            static name => name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal),
             references);
         Assert.DoesNotContain(
             static name => name.Contains("CommandLine", StringComparison.Ordinal),

@@ -294,6 +294,98 @@ public sealed class DotNetConsoleInvocationLifecycleTests
         }
     }
 
+    [TestMethod]
+    public async Task JTestShapedConsumerUsesTypedSpectreCommandsAndExactExitCodes()
+    {
+        var candidate = GenerateJTestCandidate();
+
+        var run = await RunProcessAsync(
+            candidate,
+            ["run", "all", "--maximum-parallelism=7"]);
+        var validate = await RunProcessAsync(
+            candidate,
+            ["validate", "jtest.json"]);
+        var describe = await RunProcessAsync(
+            candidate,
+            ["describe", "all"]);
+        var wrongType = await RunProcessAsync(
+            candidate,
+            ["run", "all", "--maximum-parallelism", "many"]);
+
+        Assert.AreEqual(17, run.ExitCode, run.StandardError);
+        Assert.AreEqual(23, validate.ExitCode, validate.StandardError);
+        Assert.AreEqual(29, describe.ExitCode, describe.StandardError);
+        Assert.AreEqual(2, wrongType.ExitCode);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(wrongType.StandardError));
+    }
+
+    [TestMethod]
+    public async Task JTestConsumerValidationPrecedesHandlerAndIsOptionalPerCommand()
+    {
+        var candidate = GenerateJTestCandidate();
+
+        var rejected = await RunProcessAsync(candidate, ["run", "missing"]);
+        Assert.AreEqual(
+            2,
+            rejected.ExitCode,
+            string.Concat(rejected.StandardOutput, rejected.StandardError));
+        Assert.Contains(
+            "suite 'missing' is unavailable",
+            rejected.StandardOutput);
+        Assert.DoesNotContain(
+            "run handler invoked",
+            rejected.StandardOutput);
+
+        var unvalidated = await RunProcessAsync(
+            candidate,
+            ["validate", "jtest.json"]);
+        Assert.AreEqual(23, unvalidated.ExitCode);
+        Assert.Contains(
+            "validate handler invoked",
+            unvalidated.StandardOutput);
+        Assert.DoesNotContain(
+            "Consumer validation failed",
+            unvalidated.StandardOutput);
+    }
+
+    [TestMethod]
+    public void JTestGenerationIsByteIdenticalAndContainsNoSecondParser()
+    {
+        var first = GenerateJTestCandidate().Outputs;
+        var second = GenerateJTestCandidate().Outputs;
+
+        Assert.AreSequenceEqual(
+            first.Select(static item => item.RelativePath).ToArray(),
+            second.Select(static item => item.RelativePath).ToArray());
+        for (var index = 0; index < first.Length; index++)
+        {
+            Assert.AreSequenceEqual(
+                first[index].Content.ToArray(),
+                second[index].Content.ToArray(),
+                first[index].RelativePath);
+        }
+
+        Assert.IsTrue(first.Any(static item =>
+            item.RelativePath ==
+                "ProgramKitGenerated/Commands/Run/RunCommand.cs"));
+        Assert.IsTrue(first.Any(static item =>
+            item.RelativePath ==
+                "ProgramKitGenerated/Commands/Validate/ValidateCommand.cs"));
+        Assert.IsTrue(first.Any(static item =>
+            item.RelativePath ==
+                "ProgramKitGenerated/Commands/Describe/DescribeCommand.cs"));
+        var generatedText = string.Join(
+            Environment.NewLine,
+            first
+                .Where(static item =>
+                    item.RelativePath.EndsWith(".cs", StringComparison.Ordinal))
+                .Select(static item => Encoding.UTF8.GetString(item.Content.Span)));
+        Assert.Contains("Spectre.Console.Cli.CommandApp", generatedText);
+        Assert.DoesNotContain("GeneratedConsoleParser", generatedText);
+        Assert.DoesNotContain("ConsoleCommandDispatcher", generatedText);
+        Assert.DoesNotContain("GeneratedConsoleParseResult", generatedText);
+    }
+
     private static (
         ImmutableArray<GeneratedOutput> Outputs,
         ImmutableArray<byte> AssemblyBytes
@@ -320,6 +412,60 @@ public sealed class DotNetConsoleInvocationLifecycleTests
                     "lifecycle",
                     '8'),
                 featureType);
+        var outputs = DotNetConsoleGenerationComposition.Create().Generate(
+            host,
+            hostLock,
+            document,
+            input,
+            CancellationToken.None);
+        var sources = outputs
+            .Where(static output =>
+                output.RelativePath.EndsWith(
+                    ".cs",
+                    StringComparison.Ordinal))
+            .Select(static output => new DotNetConsoleSourceFile(
+                output.RelativePath,
+                Encoding.UTF8.GetString(output.Content.Span)))
+            .ToImmutableArray();
+        DotNetConsoleCandidateCompiler compiler = new();
+        var compilation = compiler.Compile(
+            sources,
+            input.CompilationReferences,
+            CancellationToken.None);
+        Assert.IsTrue(
+            compilation.IsValid,
+            string.Join(
+                Environment.NewLine,
+                compilation.Diagnostics.Select(static item =>
+                    item.Message)));
+        return (outputs, compilation.AssemblyBytes);
+    }
+
+    private static (
+        ImmutableArray<GeneratedOutput> Outputs,
+        ImmutableArray<byte> AssemblyBytes
+    ) GenerateJTestCandidate()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var host = shell.Hosts.Single(static item =>
+            item.Kind == DotNetHostKind.Console);
+        var document = DotNetTestContractFactory.JTestConsoleDocument(shell);
+        var shellRevision = DotNetTestContractFactory.Ref(
+            "shell",
+            "jtest-lifecycle",
+            '7');
+        DotNetShellLockBuilder lockBuilder = new(CreateValidator());
+        var hostLock = lockBuilder
+            .Build(shell, shellRevision)
+            .HostLocks.Single(static item =>
+                item.Kind == DotNetHostKind.Console);
+        var documentRevision = DotNetTestContractFactory.Ref(
+            "document",
+            "jtest-console",
+            '6');
+        var input = DotNetConsoleBindingTestFactory.JTestGenerationInput(
+            document,
+            documentRevision);
         var outputs = DotNetConsoleGenerationComposition.Create().Generate(
             host,
             hostLock,

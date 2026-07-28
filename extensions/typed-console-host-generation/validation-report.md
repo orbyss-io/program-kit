@@ -2,10 +2,11 @@
 
 ## Result
 
-The `1.0.0` review set is a validated approval candidate. It materializes the
-fully generated Spectre Console host, explicit .NET binding compiler,
-host-kind-neutral generated-output integrity, safe refresh/repair flow, and
-inert installable maintenance capability converged with the human reviewer.
+The `1.0.0` review set and its exact approved implementation are complete. They
+materialize the fully generated Spectre Console host, explicit .NET binding
+compiler, host-kind-neutral generated-output integrity, safe refresh/repair
+flow, and inert installable maintenance capability converged with the human
+reviewer.
 
 Canonical Architecture Design `2.0.0` instance:
 `72bfa056c3e0f19d1765d9feae9aa5eb4ccb546a07896f2682a276294abcd4ca`.
@@ -13,8 +14,8 @@ Canonical Architecture Design `2.0.0` instance:
 Canonical Planning `3.0.0` instance:
 `207c47c0150bb91df564937225fdbb44f30dd2b403f21c6468d6abac70fbe273`.
 
-Implementation remains blocked until the human explicitly approves those two
-exact digests together.
+The human approved both exact digests together. PKTCH-W010 through PKTCH-W110
+then completed without a material design deviation.
 
 ## Source truth and disposition
 
@@ -67,12 +68,36 @@ It is not cited as validation evidence.
 
 ## Authority and exclusions
 
-The review set does not implement runtime or generator code, publish packages,
-release or deploy Program Kit, modify JTest, initialize a capability, activate
-a provider wrapper, write user-global configuration, or grant autonomous
-authority.
+Implementation did not publish packages, release or deploy Program Kit, modify
+JTest, activate a provider wrapper in the Program Kit authoring workspace,
+write user-global configuration, or grant autonomous authority. Package
+publication, release qualification, promotion, deployment, JTest changes,
+external repositories, and material architectural deviations still require
+separate authority.
 
-Implementation may begin only after exact design/plan approval and must follow
-PKTCH-W010 through PKTCH-W110. Package publication, release qualification,
-promotion, deployment, JTest changes, external repositories, and material
-architectural deviations require separate authority.
+## Implementation closure
+
+- The generated .NET host uses pinned Spectre.Console.Cli `0.55.0` as its sole
+  token parser and native scalar binder. No second parser, untyped parse-result
+  dictionary, or indirect command-routing layer exists.
+- An isolated JTest-shaped fixture proves `run`, `validate`, and `describe`
+  through three typed requests, three mandatory handlers, one optional
+  validator, and one CShells feature. Actual child-process exit codes `17`,
+  `23`, and `29` pass through unchanged.
+- Wrong native input and consumer validation failures exit `2`; consumer
+  validation prevents its handler; commands without validators invoke their
+  handlers directly.
+- Two generations produced byte-identical outputs.
+- Generated-output integrity passed modified, missing, unexpected,
+  consumer-owned-file, build-rejection, publication-rejection, and explicit
+  quarantine/repair proofs without runtime source-tree verification.
+- Locked restore and the full mandatory-gate solution build passed with zero
+  warnings and errors. All `562` unit tests passed. Full conformance passed
+  `171` tests with zero failures and one pre-existing opt-in Linux Keycloak
+  skip.
+- The exact capability bundle packed and verified, and explicit initialization
+  into an isolated consumer produced five owned Codex wrappers. Source
+  authoring and user-global initialization remain fail-closed.
+- `dotnet format ProgramKit.sln --no-restore --verify-no-changes` passed.
+- Detailed immutable evidence is recorded in
+  `implementation-evidence/closure.json`.

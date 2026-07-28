@@ -477,6 +477,111 @@ internal static class DotNetTestContractFactory
             ConsoleProvenance(host, operation));
     }
 
+    internal static OpenConsoleDocument JTestConsoleDocument(
+        DotNetShellDocument shell)
+    {
+        var source = ConsoleDocument(shell);
+        var template = source.Commands.Single();
+        var argument = template.Arguments.Single();
+        var count = template.Options.Single(static item =>
+            item.LongName == "count");
+        var runRevision = Ref("operation", "jtest-run", 'a');
+        var validateRevision = Ref("operation", "jtest-validate", 'b');
+        var describeRevision = Ref("operation", "jtest-describe", 'c');
+        var run = template with
+        {
+            OperationRevision = runRevision,
+            Path = ["run"],
+            Aliases = [],
+            Summary = "Runs selected test suites.",
+            Arguments =
+            [
+                argument with
+                {
+                    Name = "suite",
+                    Summary = "Suite selector.",
+                },
+            ],
+            Options =
+            [
+                count with
+                {
+                    LongName = "maximum-parallelism",
+                    ShortName = "p",
+                    Aliases = [],
+                    ConfigurationBinding = null,
+                    Conflicts = [],
+                    Prerequisites = [],
+                    Summary = "Maximum parallel suite count.",
+                },
+            ],
+            Examples =
+            [
+                new OpenConsoleExample(
+                    ["run", "all", "--maximum-parallelism=4"],
+                    "Runs all suites with four workers."),
+            ],
+        };
+        var validate = template with
+        {
+            OperationRevision = validateRevision,
+            Path = ["validate"],
+            Aliases = [],
+            Summary = "Validates test input.",
+            Arguments =
+            [
+                argument with
+                {
+                    Name = "path",
+                    Summary = "Input path.",
+                },
+            ],
+            Options = [],
+            Examples =
+            [
+                new OpenConsoleExample(
+                    ["validate", "jtest.json"],
+                    "Validates one input document."),
+            ],
+        };
+        var describe = template with
+        {
+            OperationRevision = describeRevision,
+            Path = ["describe"],
+            Aliases = [],
+            Summary = "Describes a test suite.",
+            Arguments =
+            [
+                argument with
+                {
+                    Name = "suite",
+                    Summary = "Suite selector.",
+                },
+            ],
+            Options = [],
+            Examples =
+            [
+                new OpenConsoleExample(
+                    ["describe", "all"],
+                    "Describes all suites."),
+            ],
+        };
+        return source with
+        {
+            Info = source.Info with
+            {
+                Name = "jtest",
+                Summary = "JTest typed console fixture.",
+            },
+            Commands = [run, validate, describe],
+            Provenance = source.Provenance with
+            {
+                OperationRevisions =
+                    [runRevision, validateRevision, describeRevision],
+            },
+        };
+    }
+
     internal static DotNetConfigurationProviderDescriptor Provider(
         DotNetConfigurationProviderKind kind) =>
         ProviderCatalog().Providers.Single(

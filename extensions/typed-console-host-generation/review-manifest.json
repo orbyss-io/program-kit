@@ -5,7 +5,7 @@
   "reviewSetVersion": "1.0.0",
   "owner": "human-led-program-kit-typed-console-host-generation",
   "reviewState": "approved",
-  "implementationStatus": "approved-not-started",
+  "implementationStatus": "completed",
   "approvalRecord": {
     "identity": "pkid:approval-record:program-kit:typed-console-host-generation",
     "version": "1.0.0",
@@ -106,7 +106,7 @@
       "artifactVersion": "1.0.0",
       "role": "design-validation-report",
       "path": "extensions/typed-console-host-generation/validation-report.md",
-      "sha256": "2ffe62679f2f00594b59da46a92b037e2940d2521598a0bd83f74133bb3d6ec7"
+      "sha256": "2ceb68e06172058aff4fa33733c6bd95deff43f9b6ed0da696c99350114900ee"
     },
     {
       "artifactId": "pkid:tool:program-kit:typed-console-host-generation-review-materializer",
@@ -120,7 +120,14 @@
       "artifactVersion": "1.0.0",
       "role": "review-navigation",
       "path": "extensions/typed-console-host-generation/README.md",
-      "sha256": "be5d83d3ed3025488bc70e94c15ba004ef9d0d4ede465b895a03a731ba39835f"
+      "sha256": "115717bafd253e4d4233f180392725b20effd7313f5003441583fd9704d5929e"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:typed-console-host-generation-closure",
+      "artifactVersion": "1.0.0",
+      "role": "implementation-closure-evidence",
+      "path": "extensions/typed-console-host-generation/implementation-evidence/closure.json",
+      "sha256": "f6b657155e65ec438c1d8baf8282336aa99cb4bd45cc2c413a94663dad054319"
     },
     {
       "artifactId": "pkid:approval-record:program-kit:typed-console-host-generation",
@@ -153,14 +160,16 @@
     "materializerDeterminism": "passed: two consecutive runs produced byte-identical materialized JSON",
     "lockedRestore": "passed",
     "solutionBuild": "passed with mandatory C# gate, zero warnings and zero errors",
-    "unitTests": "passed 502 of 502",
-    "runtimeImplementationOrExecution": "not performed under design authority"
+    "unitTests": "passed 562 of 562",
+    "conformanceTests": "passed 171, failed 0, skipped 1 pre-existing opt-in Linux Keycloak profile",
+    "runtimeImplementationOrExecution": "passed through isolated generated Console child processes",
+    "implementationClosure": "passed PKTCH-W010 through PKTCH-W110 without material design deviation"
   },
   "provenance": {
     "startingCommit": "60006928a7f29423dd777ee5971aa1431ea263cf",
     "branch": "main",
     "sourceThreadId": "019fa3b9-c0ba-7eb3-816a-12bd68a65c1a",
     "source": "human-started Program Kit typed Console host generation redesign",
-    "details": "Bounded to Program Kit repository source truth. The superseded console-command-dispatch review artifacts are removed without migration. No implementation, package publication, release, deployment, JTest mutation, or capability activation is authorized by this candidate."
+    "details": "Bounded to Program Kit repository source truth. The implementation contains one Spectre parser authority and no Console compatibility layer. No package publication, release, deployment, JTest mutation, or capability activation occurred."
   }
 }
