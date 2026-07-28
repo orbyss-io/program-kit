@@ -32,4 +32,10 @@ public static class WorkbenchDiagnosticIds
 
     /// <summary>Migration reverse closure exceeded its explicit limits.</summary>
     public const string MigrationClosureLimitExceeded = "PKVER003";
+
+    /// <summary>A bounded version-intent inventory request is incomplete or inconsistent.</summary>
+    public const string InvalidVersionIntentInventoryRequest = "PKVER004";
+
+    /// <summary>An explicit alpha progression proposal does not satisfy its policy.</summary>
+    public const string InvalidAlphaVersionProgressionProposal = "PKVER005";
 }

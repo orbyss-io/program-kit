@@ -909,7 +909,7 @@ public sealed class BuildSpineConformanceTests
                 "\"x-program-kit-identity\": \"pkid:schema:program-kit:",
                 schema);
             Assert.IsTrue(
-                Version.TryParse(schemaVersion, out _),
+                SemanticVersion.TryParse(schemaVersion, out _),
                 $"{schemaFile} must declare a valid schema version.");
             Assert.Contains(
                 string.Concat("/", schemaVersion, "/"),

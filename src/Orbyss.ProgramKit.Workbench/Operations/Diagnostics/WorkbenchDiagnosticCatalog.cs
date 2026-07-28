@@ -11,6 +11,12 @@ public static class WorkbenchDiagnosticCatalog
         Error(
             WorkbenchDiagnosticIds.MigrationClosureLimitExceeded,
             "Migration closure limit exceeded"),
+        Error(
+            WorkbenchDiagnosticIds.InvalidVersionIntentInventoryRequest,
+            "Invalid version-intent inventory request"),
+        Error(
+            WorkbenchDiagnosticIds.InvalidAlphaVersionProgressionProposal,
+            "Invalid alpha version progression proposal"),
         Error(WorkbenchDiagnosticIds.InvalidExtensionSelection, "Invalid extension selection"),
         Error(WorkbenchDiagnosticIds.SchemaValidationFailed, "Schema validation failed"),
         Error(WorkbenchDiagnosticIds.StaleProjection, "Stale generated projection"),

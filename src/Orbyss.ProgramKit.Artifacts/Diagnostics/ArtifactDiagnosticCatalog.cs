@@ -25,6 +25,12 @@ public static class ArtifactDiagnosticCatalog
         Error(ArtifactDiagnosticIds.InvalidVersionMap, "Invalid version map"),
         Error(ArtifactDiagnosticIds.InvalidVersionSelection, "Invalid version selection"),
         Error(ArtifactDiagnosticIds.RevisionDigestConflict, "Conflicting revision digest"),
+        Error(
+            ArtifactDiagnosticIds.InvalidVersionIntentInventory,
+            "Invalid version-intent inventory"),
+        Error(
+            ArtifactDiagnosticIds.InvalidAlphaVersionProgression,
+            "Invalid alpha version progression"),
         Error(ArtifactDiagnosticIds.InvalidMigrationDefinition, "Invalid migration definition"),
         Error(ArtifactDiagnosticIds.InvalidMigrationAssessment, "Invalid migration assessment"),
         Error(ArtifactDiagnosticIds.InvalidMigrationDisposition, "Invalid migration disposition"),

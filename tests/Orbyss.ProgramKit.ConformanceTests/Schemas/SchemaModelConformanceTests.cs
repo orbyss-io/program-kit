@@ -43,6 +43,22 @@ public sealed class SchemaModelConformanceTests
         Root<VersionSelectionDocument>("artifacts/version-selection.schema.json"),
         Root<MigrationDefinition>("artifacts/migration-definition.schema.json"),
         Root<MigrationAssessment>("artifacts/migration-assessment.schema.json"),
+        Root<VersionIntentInventoryDocument>(
+            "versioning/version-intent-inventory-0.1.0-alpha.1.schema.json"),
+        Nested<VersionIntentInventoryEntry>(
+            "versioning/version-intent-inventory-0.1.0-alpha.1.schema.json",
+            "$defs",
+            "inventoryEntry"),
+        Root<AlphaVersionProgressionDocument>(
+            "versioning/alpha-version-progression-0.1.0-alpha.1.schema.json"),
+        Nested<AlphaVersionProgressionPolicy>(
+            "versioning/alpha-version-progression-0.1.0-alpha.1.schema.json",
+            "$defs",
+            "policy"),
+        Nested<AlphaVersionProgressionProposal>(
+            "versioning/alpha-version-progression-0.1.0-alpha.1.schema.json",
+            "$defs",
+            "proposal"),
         Root<ArchitectureDesignDocument>(
             "architecture/architecture-design.schema.json"),
         Root<ArchitectureDesignDocumentV2>(

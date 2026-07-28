@@ -12,6 +12,8 @@ public sealed class WorkbenchDependencyConformanceTests
         "PKVER001",
         "PKVER002",
         "PKVER003",
+        "PKVER004",
+        "PKVER005",
         "PKWB001",
         "PKWB002",
         "PKWB003",

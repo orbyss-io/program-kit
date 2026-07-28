@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/versioning/0.1.0-alpha.1/alpha-version-progression.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:alpha-version-progression",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit alpha version progression",
+  "description": "One explicit owned-artifact revision proposal bound to a replaceable alpha ordinal policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policy",
+    "proposal"
+  ],
+  "properties": {
+    "policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "proposal": {
+      "$ref": "#/$defs/proposal"
+    }
+  },
+  "$defs": {
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policyRevision",
+        "coreVersion",
+        "prereleaseLabel",
+        "initialOrdinal",
+        "ordinalStep",
+        "replacementPolicyContract"
+      ],
+      "properties": {
+        "policyRevision": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/artifactReference"
+        },
+        "coreVersion": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/semanticVersion"
+        },
+        "prereleaseLabel": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "initialOrdinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ordinalStep": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "replacementPolicyContract": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/programKitIdentifier"
+        }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "intent",
+        "currentVersion",
+        "currentDigest",
+        "currentOrdinal",
+        "proposedVersion",
+        "proposedDigest",
+        "canonicalBytesChanged",
+        "compatibilityDisposition",
+        "migrationDisposition",
+        "migrationReferences",
+        "rationale"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/programKitIdentifier"
+        },
+        "intent": {
+          "const": "owned-artifact-revision"
+        },
+        "currentVersion": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/semanticVersion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currentDigest": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/sha256Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currentOrdinal": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "proposedVersion": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/semanticVersion"
+        },
+        "proposedDigest": {
+          "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/sha256Digest"
+        },
+        "canonicalBytesChanged": {
+          "type": "boolean"
+        },
+        "compatibilityDisposition": {
+          "enum": [
+            "new-identity",
+            "unchanged",
+            "compatible",
+            "incompatible"
+          ]
+        },
+        "migrationDisposition": {
+          "enum": [
+            "not-required",
+            "required"
+          ]
+        },
+        "migrationReferences": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json#/$defs/artifactReference"
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

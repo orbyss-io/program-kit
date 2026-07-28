@@ -17,9 +17,15 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\schemas\artifacts\**\*.json"
                       LogicalName="Orbyss.ProgramKit.Artifacts.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\schemas\versioning\**\*.json"
+                      LogicalName="Orbyss.ProgramKit.Artifacts.Schemas.%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="..\..\schemas\artifacts\**\*.json"
           Pack="true"
           PackagePath="schemas/artifacts/%(RecursiveDir)"
           Link="Schemas/Artifacts/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\schemas\versioning\**\*.json"
+          Pack="true"
+          PackagePath="schemas/versioning/%(RecursiveDir)"
+          Link="Schemas/Versioning/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

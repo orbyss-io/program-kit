@@ -56,6 +56,12 @@ public static class ArtifactDiagnosticIds
     /// <summary>The same identity and version resolve to different digests.</summary>
     public const string RevisionDigestConflict = "PKART023";
 
+    /// <summary>A version-intent inventory is incomplete or contradictory.</summary>
+    public const string InvalidVersionIntentInventory = "PKART024";
+
+    /// <summary>An alpha progression policy or explicit proposal is invalid.</summary>
+    public const string InvalidAlphaVersionProgression = "PKART025";
+
     /// <summary>A migration definition violates a migration invariant.</summary>
     public const string InvalidMigrationDefinition = "PKART030";
 
