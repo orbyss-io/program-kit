@@ -43,6 +43,19 @@ public sealed class ImplementationPlanV3AdmissionEvaluator
                     .ToImmutableArray());
         }
 
+        return EvaluateValidated(
+            plan,
+            completedWorkUnitIds,
+            disposition,
+            snapshot);
+    }
+
+    internal static PlanWorkUnitAdmission EvaluateValidated(
+        ImplementationPlanDocumentV3 plan,
+        ImmutableArray<string> completedWorkUnitIds,
+        StaticConformanceDispositionSnapshot? disposition,
+        StaticConformanceExecutionSnapshot? snapshot)
+    {
         if (!DispositionIsCompatible(plan, disposition))
         {
             return new PlanWorkUnitAdmission(

@@ -71,8 +71,12 @@ public sealed class SchemaModelConformanceTests
             "architecture/architecture-design.schema.json"),
         Root<ArchitectureDesignDocumentV2>(
             "architecture/architecture-design-2.0.0.schema.json"),
+        Root<ArchitectureDesignDocumentAlpha2>(
+            "architecture/architecture-design-0.1.0-alpha.2.schema.json"),
         Root<StaticConformanceDisposition>(
             "architecture/static-conformance-disposition.schema.json"),
+        Root<StaticConformanceDispositionAlpha1>(
+            "architecture/static-conformance-disposition-0.1.0-alpha.1.schema.json"),
         Root<CSharpBuildGateDefinitionDocument>(
             "csharp-build-gates/csharp-build-gate-definition-1.0.0.schema.json"),
         Root<CSharpBuildGateSelectionLockDocument>(
@@ -96,6 +100,8 @@ public sealed class SchemaModelConformanceTests
             "planning/implementation-plan-2.0.0.schema.json"),
         Root<ImplementationPlanDocumentV3>(
             "planning/implementation-plan-3.0.0.schema.json"),
+        Root<ImplementationPlanDocumentAlpha3>(
+            "planning/implementation-plan-0.1.0-alpha.3.schema.json"),
         Nested<PlanWorkUnit>(
             "planning/definitions-2.0.0.schema.json",
             "$defs",
@@ -213,24 +219,41 @@ public sealed class SchemaModelConformanceTests
             return new SchemaLocation(schemaFile, pointer);
         }
 
-        var bytes = File.ReadAllBytes(schemaFile);
-        var reference = ReadStringAtPath(bytes, ["$ref"]);
-        if (reference is null)
+        var currentFile = schemaFile;
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        while (visited.Add(currentFile))
         {
-            return new SchemaLocation(schemaFile, []);
+            var bytes = File.ReadAllBytes(currentFile);
+            var reference = ReadStringAtPath(bytes, ["$ref"]);
+            if (reference is null)
+            {
+                return new SchemaLocation(currentFile, []);
+            }
+
+            var hashIndex = reference.IndexOf('#');
+            var schemaId = hashIndex < 0 ? reference : reference[..hashIndex];
+            Assert.IsTrue(
+                schemasById.TryGetValue(schemaId, out var referencedFile),
+                reference);
+            var fragment = hashIndex < 0
+                ? string.Empty
+                : reference[(hashIndex + 1)..];
+            var segments = fragment
+                .Split('/', StringSplitOptions.RemoveEmptyEntries)
+                .Select(segment => segment
+                    .Replace("~1", "/", StringComparison.Ordinal)
+                    .Replace("~0", "~", StringComparison.Ordinal))
+                .ToArray();
+            if (segments.Length != 0)
+            {
+                return new SchemaLocation(referencedFile, segments);
+            }
+
+            currentFile = referencedFile;
         }
 
-        var hashIndex = reference.IndexOf('#');
-        var schemaId = hashIndex < 0 ? reference : reference[..hashIndex];
-        Assert.IsTrue(schemasById.TryGetValue(schemaId, out var referencedFile), reference);
-        var fragment = hashIndex < 0 ? string.Empty : reference[(hashIndex + 1)..];
-        var segments = fragment
-            .Split('/', StringSplitOptions.RemoveEmptyEntries)
-            .Select(segment => segment
-                .Replace("~1", "/", StringComparison.Ordinal)
-                .Replace("~0", "~", StringComparison.Ordinal))
-            .ToArray();
-        return new SchemaLocation(referencedFile, segments);
+        throw new AssertFailedException(
+            $"A root-level schema reference cycle starts at {schemaFile}.");
     }
 
     private static HashSet<string> GetWireConstructorParameters(Type modelType)

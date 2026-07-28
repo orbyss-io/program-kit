@@ -18,6 +18,8 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
+    private static readonly SemanticVersion SchemaVersionAlpha3 =
+        new("0.1.0-alpha.3");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:planning");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -75,6 +77,24 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:planning"),
             "pkcg-w020-approved-review-set-1-0-0");
+    private static readonly ArtifactProvenance AlphaTransitionProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:alpha-version-transition"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:alpha-version-transition"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:66e37776c11cda3ee17747b6dd3165286e4a2901e17dca41464a243f1f2e750f")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:planning"),
+            "pkav-w020-approved-review-set-0-1-0-alpha-1");
 
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
@@ -127,6 +147,13 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             "0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6",
             SchemaVersionV3,
             BuildGateSchemaProvenance),
+        Create(
+            "implementation-plan",
+            "implementation-plan-0.1.0-alpha.3.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/implementation-plan/0.1.0-alpha.3/schema.json",
+            "774c6b945ac2b63c2e4beca0afab9c282669274f0c7d4eb4b9e936ba38460c7c",
+            SchemaVersionAlpha3,
+            AlphaTransitionProvenance),
     ];
 
     /// <summary>Initializes an explicitly composed schema module.</summary>

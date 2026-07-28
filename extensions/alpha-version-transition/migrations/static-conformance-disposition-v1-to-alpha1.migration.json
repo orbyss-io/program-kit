@@ -1,0 +1,39 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:static-conformance-disposition",
+  "sourceRange": "[1.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:static-conformance-disposition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "exact-alpha-architecture-design",
+      "description": "The human-supplied migrated artifact set contains one exact Architecture Design 0.1.0-alpha.2 reference; migration must not infer or default it.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:approval-record:program-kit:alpha-version-transition-review-set",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:041db5465840ff63f549af878e36eccf3f2b235eaebcd9d7ed06951f51f0b9c9"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:static-conformance-disposition-v1-to-alpha1",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:6ed7fb871a9d7bc4e131298a72ebec3f707058d043367036e3856d0bf2f2f97b"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:static-conformance-disposition-v1-to-alpha1",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:35dfdfd26fbe18829f79dd093fe9b42549574423b7acd25da5d866d20b3de752"
+    }
+  ]
+}

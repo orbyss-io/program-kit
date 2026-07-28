@@ -1,0 +1,6 @@
+{
+  "sourceVersion": "1.0.0",
+  "targetVersion": "0.1.0-alpha.1",
+  "suppliedArchitectureDesignVersion": "0.1.0-alpha.2",
+  "preservationRule": "All five human decision states and every decision field are preserved; only the exact migrated software-design reference is supplied for the alpha target."
+}

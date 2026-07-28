@@ -1,0 +1,6 @@
+{
+  "sourceVersion": "2.0.0",
+  "targetVersion": "0.1.0-alpha.2",
+  "suppliedStaticConformanceDispositionVersion": "0.1.0-alpha.1",
+  "preservationRule": "Every Architecture Design 2.0 field is preserved; only the exact static-conformance disposition reference is supplied for the alpha target."
+}

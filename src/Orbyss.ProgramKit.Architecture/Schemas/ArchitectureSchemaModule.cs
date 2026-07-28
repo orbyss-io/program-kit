@@ -35,6 +35,24 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:architecture"),
             "pk-w010-approved-review-set-0-3-0");
+    private static readonly ArtifactProvenance AlphaTransitionProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:alpha-version-transition"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:alpha-version-transition"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:66e37776c11cda3ee17747b6dd3165286e4a2901e17dca41464a243f1f2e750f")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:architecture"),
+            "pkav-w020-approved-review-set-0-1-0-alpha-1");
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
         Create(
@@ -68,11 +86,25 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
             "https://schemas.orbyss.io/program-kit/architecture/2.0.0/architecture-design.schema.json",
             "2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"),
         Create(
+            "architecture-design",
+            "0.1.0-alpha.2",
+            "architecture-design-0.1.0-alpha.2.schema.json",
+            "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.2/architecture-design.schema.json",
+            "e94b5e1dab8292066669ccee5069f27a6e220962906051931fc1f1607fe2dbf7",
+            AlphaTransitionProvenance),
+        Create(
             "static-conformance-disposition",
             "1.0.0",
             "static-conformance-disposition.schema.json",
             "https://schemas.orbyss.io/program-kit/architecture/1.0.0/static-conformance-disposition.schema.json",
             "834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd"),
+        Create(
+            "static-conformance-disposition",
+            "0.1.0-alpha.1",
+            "static-conformance-disposition-0.1.0-alpha.1.schema.json",
+            "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.1/static-conformance-disposition.schema.json",
+            "9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811",
+            AlphaTransitionProvenance),
     ];
 
     /// <summary>Initializes an explicitly composed schema module.</summary>
@@ -117,7 +149,8 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
         string version,
         string resourceName,
         string canonicalUri,
-        string digest)
+        string digest,
+        ArtifactProvenance? provenance = null)
     {
         var schemaVersion = new SemanticVersion(version);
         var exactSchemaVersion = new SemanticVersionRange(
@@ -150,7 +183,7 @@ public sealed class ArchitectureSchemaModule : IProgramKitSchemaModule
             SchemaOwner,
             ArtifactStatus.Implemented,
             SchemaConsumers,
-            SchemaProvenance,
+            provenance ?? SchemaProvenance,
             compatibility);
     }
 

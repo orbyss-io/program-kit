@@ -152,6 +152,71 @@ public sealed class StaticConformanceDispositionTests
             diagnostic.Id == ArchitectureDiagnosticIds.Pkarc711));
     }
 
+    [TestMethod]
+    public void AlphaMigrationsAreDeterministicAndRequireExactAlphaCounterparts()
+    {
+        var legacyDisposition = Reference(
+            "pkid:static-conformance-disposition:consumer:software");
+        var versionTwo = ArchitectureDesignV1ToV2Migration.Migrate(
+            CreateLegacyDesign(),
+            legacyDisposition);
+        var alphaDisposition = Reference(
+            "pkid:static-conformance-disposition:consumer:software",
+            "0.1.0-alpha.1");
+        var firstDesign = ArchitectureDesignV2ToAlpha2Migration.Migrate(
+            versionTwo,
+            alphaDisposition);
+        var secondDesign = ArchitectureDesignV2ToAlpha2Migration.Migrate(
+            versionTwo,
+            alphaDisposition);
+        ArchitectureDesignValidator versionOneValidator = new(
+            new ArtifactDecisionValidator(
+                new SupportedArtifactKindOwnershipResolver()));
+        ArchitectureDesignAlpha2Validator designValidator =
+            new(versionOneValidator);
+
+        Assert.AreEqual(firstDesign, secondDesign);
+        Assert.AreEqual(alphaDisposition, firstDesign.StaticConformanceDisposition);
+        Assert.IsFalse(designValidator.Validate(firstDesign).Diagnostics.Any(
+            static diagnostic =>
+                diagnostic.Id == ArchitectureDiagnosticIds.Pkarc711));
+        Assert.IsTrue(designValidator.Validate(firstDesign with
+        {
+            StaticConformanceDisposition = legacyDisposition,
+        }).Diagnostics.Any(static diagnostic =>
+            diagnostic.Id == ArchitectureDiagnosticIds.Pkarc711));
+
+        var sourceDisposition = Create(
+            StaticConformanceDispositionKind.NotJustified,
+            [],
+            [],
+            EmptyAcceptance,
+            []);
+        var alphaDesign = Reference(
+            "pkid:design:consumer:software",
+            "0.1.0-alpha.2");
+        var firstDisposition =
+            StaticConformanceDispositionV1ToAlpha1Migration.Migrate(
+                sourceDisposition,
+                alphaDesign);
+        var secondDisposition =
+            StaticConformanceDispositionV1ToAlpha1Migration.Migrate(
+                sourceDisposition,
+                alphaDesign);
+        StaticConformanceDispositionAlpha1Validator dispositionValidator =
+            new(new StaticConformanceDispositionValidator());
+
+        Assert.AreEqual(firstDisposition, secondDisposition);
+        Assert.AreEqual(alphaDesign, firstDisposition.SoftwareDesign);
+        Assert.IsTrue(dispositionValidator.Validate(firstDisposition).IsValid);
+        Assert.IsFalse(dispositionValidator.Validate(firstDisposition with
+        {
+            SoftwareDesign = Reference(
+                "pkid:design:consumer:software",
+                "2.0.0"),
+        }).IsValid);
+    }
+
     private static StaticConformanceDisposition Create(
         StaticConformanceDispositionKind kind,
         ImmutableArray<StaticConformanceGateSelection> selections,
@@ -206,10 +271,12 @@ public sealed class StaticConformanceDispositionTests
             [],
             []);
 
-    private static ArtifactReference Reference(string identity) =>
+    private static ArtifactReference Reference(
+        string identity,
+        string version = "1.0.0") =>
         new(
             new ProgramKitIdentifier(identity),
-            new SemanticVersion("1.0.0"),
+            new SemanticVersion(version),
             new Sha256Digest(
                 "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
 

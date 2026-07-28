@@ -9,7 +9,8 @@ namespace Orbyss.ProgramKit.Architecture.Designs;
 public sealed class ArchitectureDesignV2Validator :
     IProgramKitSemanticValidator<ArchitectureDesignDocumentV2>
 {
-    private static readonly SemanticVersion DispositionVersion = new("1.0.0");
+    private static readonly SemanticVersion LegacyDispositionVersion =
+        new("1.0.0");
     private readonly IProgramKitSemanticValidator<ArchitectureDesignDocument>
         versionOneValidator;
 
@@ -22,7 +23,19 @@ public sealed class ArchitectureDesignV2Validator :
     }
 
     /// <inheritdoc />
-    public ProgramKitValidationResult Validate(ArchitectureDesignDocumentV2 value)
+    public ProgramKitValidationResult Validate(ArchitectureDesignDocumentV2 value) =>
+        ValidateVersioned(
+            value,
+            versionOneValidator,
+            LegacyDispositionVersion,
+            "2.0");
+
+    internal static ProgramKitValidationResult ValidateVersioned(
+        ArchitectureDesignDocumentV2 value,
+        IProgramKitSemanticValidator<ArchitectureDesignDocument>
+            versionOneValidator,
+        SemanticVersion dispositionVersion,
+        string designVersion)
     {
         var diagnostics = ImmutableArray.CreateBuilder<ProgramKitDiagnostic>();
         if (value is null)
@@ -30,7 +43,10 @@ public sealed class ArchitectureDesignV2Validator :
             diagnostics.Error(
                 ArchitectureDiagnosticIds.Pkarc600,
                 "/",
-                "An Architecture Design 2.0 document is required.");
+                string.Concat(
+                    "An Architecture Design ",
+                    designVersion,
+                    " document is required."));
             return diagnostics.ToResult();
         }
 
@@ -43,12 +59,17 @@ public sealed class ArchitectureDesignV2Validator :
                  value.StaticConformanceDisposition.Identity.Kind,
                  "static-conformance-disposition",
                  StringComparison.Ordinal) ||
-             value.StaticConformanceDisposition.Version != DispositionVersion))
+             value.StaticConformanceDisposition.Version != dispositionVersion))
         {
             diagnostics.Error(
                 ArchitectureDiagnosticIds.Pkarc711,
                 "/staticConformanceDisposition",
-                "Architecture Design 2.0 requires an exact static-conformance-disposition artifact at version 1.0.0.");
+                string.Concat(
+                    "Architecture Design ",
+                    designVersion,
+                    " requires an exact static-conformance-disposition artifact at version ",
+                    dispositionVersion.Value,
+                    "."));
         }
 
         return diagnostics.ToResult();

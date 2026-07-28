@@ -143,6 +143,62 @@ public sealed class ImplementationPlanV3Tests
     }
 
     [TestMethod]
+    public void AlphaMigrationAndAdmissionRequireExactAlphaDesignFlowRevisions()
+    {
+        var source = CreatePlan(
+            StaticConformancePlanState.AcceptedEmpty,
+            [EmptyUnit("P1", PlanWorkUnitKind.Product, [])],
+            includeGateArtifacts: false);
+        var alphaDesign = Reference(
+            "pkid:design:consumer:software",
+            "0.1.0-alpha.2");
+        var alphaDisposition = Reference(
+            "pkid:static-conformance-disposition:consumer:software",
+            "0.1.0-alpha.1");
+        var first = ImplementationPlanV3ToAlpha3Migration.Migrate(
+            source,
+            alphaDesign,
+            alphaDisposition);
+        var second = ImplementationPlanV3ToAlpha3Migration.Migrate(
+            source,
+            alphaDesign,
+            alphaDisposition);
+        ImplementationPlanDocumentValidator versionTwo =
+            new(new DefaultArtifactEnvelopeValidator());
+        ImplementationPlanDocumentAlpha3Validator validator = new(versionTwo);
+        ImplementationPlanAlpha3AdmissionEvaluator evaluator = new(validator);
+
+        var validation = validator.Validate(first);
+        var admission = evaluator.Evaluate(
+            first,
+            [],
+            new StaticConformanceDispositionSnapshot(
+                first.StaticConformanceDisposition,
+                first.StaticConformanceState),
+            null);
+        var staleDesign = validator.Validate(first with
+        {
+            Design = source.Design,
+        });
+        var staleDisposition = validator.Validate(first with
+        {
+            StaticConformanceDisposition =
+                source.StaticConformanceDisposition,
+        });
+
+        Assert.AreEqual(first, second);
+        Assert.IsTrue(validation.IsValid, Format(validation));
+        Assert.AreSequenceEqual(["P1"], admission.AdmissibleWorkUnitIds);
+        Assert.IsFalse(staleDesign.IsValid);
+        Assert.IsFalse(staleDisposition.IsValid);
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
+            ImplementationPlanV3ToAlpha3Migration.Migrate(
+                source,
+                null!,
+                alphaDisposition));
+    }
+
+    [TestMethod]
     public void CreateAdmissionAllowsOnlyEstablishmentUntilCompatibleActivation()
     {
         var plan = CreatePlan(
@@ -314,6 +370,10 @@ public sealed class ImplementationPlanV3Tests
             resource.SchemaReference.Identity.Value ==
                 "pkid:schema:program-kit:implementation-plan" &&
             resource.SchemaReference.Version.Value == "3.0.0");
+        var alphaSchema = schemas.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:implementation-plan" &&
+            resource.SchemaReference.Version.Value == "0.1.0-alpha.3");
         JsonSchemaWorkbenchValidator sut = new(
             new ProgramKitJsonCanonicalizer(),
             new ProgramKitSchemaModuleValidator());
@@ -328,8 +388,19 @@ public sealed class ImplementationPlanV3Tests
                 MaxTokens: 100_000,
                 MaxObjectMembers: 100_000,
                 MaxBufferedObjectBytes: 1_000_000));
+        var alphaResult = sut.Validate(
+            bytes,
+            schemas,
+            alphaSchema.SchemaReference,
+            new JsonSerializationLimits(
+                MaxUtf8Bytes: 1_000_000,
+                MaxDepth: 64,
+                MaxTokens: 100_000,
+                MaxObjectMembers: 100_000,
+                MaxBufferedObjectBytes: 1_000_000));
 
         Assert.IsTrue(result.IsValid, Format(result));
+        Assert.IsTrue(alphaResult.IsValid, Format(alphaResult));
     }
 
     private static ImplementationPlanDocumentV3Validator CreateValidator()
@@ -545,10 +616,12 @@ public sealed class ImplementationPlanV3Tests
                     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                 : null);
 
-    private static ArtifactReference Reference(string identity) =>
+    private static ArtifactReference Reference(
+        string identity,
+        string version = "1.0.0") =>
         new(
             new ProgramKitIdentifier(identity),
-            new SemanticVersion("1.0.0"),
+            new SemanticVersion(version),
             new Sha256Digest(
                 "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
 

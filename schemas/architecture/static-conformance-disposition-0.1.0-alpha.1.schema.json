@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.1/static-conformance-disposition.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:static-conformance-disposition",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit static-conformance disposition alpha revision 1",
+  "description": "An exact human-selected static-conformance disposition for one software-design revision.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "softwareDesign",
+    "invariantAllocations",
+    "disposition",
+    "gateSelections",
+    "linkedGateDesigns",
+    "rationale",
+    "residualRisks",
+    "nonStaticClaims",
+    "decisionSource",
+    "emptySelectionAcceptance",
+    "blockers"
+  ],
+  "properties": {
+    "softwareDesign": {
+      "$ref": "#/$defs/artifactReference"
+    },
+    "invariantAllocations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/invariantAllocation"
+      }
+    },
+    "disposition": {
+      "enum": [
+        "reuse-existing",
+        "extend-existing",
+        "create-new",
+        "not-justified",
+        "blocked-unavailable"
+      ]
+    },
+    "gateSelections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gateSelection"
+      }
+    },
+    "linkedGateDesigns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifactReference"
+      }
+    },
+    "rationale": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "residualRisks": {
+      "$ref": "#/$defs/nonEmptyStringList"
+    },
+    "nonStaticClaims": {
+      "$ref": "#/$defs/nonEmptyStringList"
+    },
+    "decisionSource": {
+      "$ref": "#/$defs/decisionSource"
+    },
+    "emptySelectionAcceptance": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/artifactReference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "reuse-existing"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gateSelections": {
+            "minItems": 1
+          },
+          "emptySelectionAcceptance": {
+            "type": "null"
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "extend-existing"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gateSelections": {
+            "minItems": 1
+          },
+          "linkedGateDesigns": {
+            "minItems": 1
+          },
+          "emptySelectionAcceptance": {
+            "type": "null"
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "create-new"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "linkedGateDesigns": {
+            "minItems": 1
+          },
+          "emptySelectionAcceptance": {
+            "type": "null"
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "not-justified"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gateSelections": {
+            "maxItems": 0
+          },
+          "linkedGateDesigns": {
+            "maxItems": 0
+          },
+          "emptySelectionAcceptance": {
+            "$ref": "#/$defs/artifactReference"
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "blocked-unavailable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "emptySelectionAcceptance": {
+            "type": "null"
+          },
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nonEmptyStringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "pkid": {
+      "type": "string",
+      "pattern": "^pkid:[a-z0-9][a-z0-9.-]*(?::[a-z0-9][a-z0-9._-]*)+$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "version",
+        "digest"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/pkid"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "invariantAllocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "invariant",
+        "layer",
+        "rationale"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/pkid"
+        },
+        "invariant": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "layer": {
+          "enum": [
+            "language-type-system",
+            "project-package",
+            "roslyn-compiler",
+            "msbuild",
+            "architecture-test",
+            "executable-test",
+            "human-review"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "gateSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "activationMatrix"
+      ],
+      "properties": {
+        "gate": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "activationMatrix": {
+          "$ref": "#/$defs/artifactReference"
+        }
+      }
+    },
+    "decisionSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "jsonPointer"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "jsonPointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~0|~1)*)*$"
+        }
+      }
+    }
+  }
+}

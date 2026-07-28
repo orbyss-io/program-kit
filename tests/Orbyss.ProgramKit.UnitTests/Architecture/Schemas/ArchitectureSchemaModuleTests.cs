@@ -18,7 +18,9 @@ public sealed class ArchitectureSchemaModuleTests
         "dotnet-target-profile.schema.json",
         "structural-pattern-catalog.schema.json",
         "architecture-design-2.0.0.schema.json",
+        "architecture-design-0.1.0-alpha.2.schema.json",
         "static-conformance-disposition.schema.json",
+        "static-conformance-disposition-0.1.0-alpha.1.schema.json",
     ];
 
     [TestMethod]
@@ -61,7 +63,8 @@ public sealed class ArchitectureSchemaModuleTests
         ]);
         var schema = schemas.Resources.Single(resource =>
             resource.SchemaReference.Identity.Value ==
-                "pkid:schema:program-kit:static-conformance-disposition");
+                "pkid:schema:program-kit:static-conformance-disposition" &&
+            resource.SchemaReference.Version.Value == "1.0.0");
         JsonSchemaWorkbenchValidator sut = CreateValidator();
         var acceptedEmpty = Encoding.UTF8.GetBytes(
             DispositionJson(
@@ -130,6 +133,49 @@ public sealed class ArchitectureSchemaModuleTests
         Assert.IsFalse(missingResult.IsValid);
         Assert.IsTrue(exactResult.IsValid, Format(exactResult));
         Assert.IsFalse(nullResult.IsValid);
+    }
+
+    [TestMethod]
+    public void AlphaAliasesResolveExactLegacyWireShapes()
+    {
+        ArchitectureCompositeSchemaModule schemas = new(
+        [
+            new ArtifactsSchemaModule(),
+            new ArchitectureSchemaModule(),
+        ]);
+        var designSchema = schemas.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:architecture-design" &&
+            resource.SchemaReference.Version.Value == "0.1.0-alpha.2");
+        var dispositionSchema = schemas.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:static-conformance-disposition" &&
+            resource.SchemaReference.Version.Value == "0.1.0-alpha.1");
+        var root = FindProgramKitRoot();
+        var designSource = JsonNode.Parse(File.ReadAllBytes(Path.Combine(
+            root.FullName,
+            "extensions",
+            "reusable-csharp-build-gates",
+            "architecture-design.json")))!.AsObject();
+        designSource["staticConformanceDisposition"] = JsonNode.Parse(
+            ReferenceJson(
+                "pkid:static-conformance-disposition:program-kit:alpha-version-transition"));
+        var design = Encoding.UTF8.GetBytes(designSource.ToJsonString());
+        var disposition = File.ReadAllBytes(Path.Combine(
+            root.FullName,
+            "extensions",
+            "reusable-csharp-build-gates",
+            "migrations",
+            "fixtures",
+            "program-kit-reuse-existing.static-conformance-disposition.json"));
+        JsonSchemaWorkbenchValidator sut = CreateValidator();
+
+        var designResult = Validate(sut, design, schemas, designSchema);
+        var dispositionResult =
+            Validate(sut, disposition, schemas, dispositionSchema);
+
+        Assert.IsTrue(designResult.IsValid, Format(designResult));
+        Assert.IsTrue(dispositionResult.IsValid, Format(dispositionResult));
     }
 
     [TestMethod]

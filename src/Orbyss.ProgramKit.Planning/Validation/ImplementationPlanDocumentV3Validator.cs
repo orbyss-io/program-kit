@@ -15,7 +15,7 @@ namespace Orbyss.ProgramKit.Planning.Validation;
 public sealed class ImplementationPlanDocumentV3Validator :
     IProgramKitSemanticValidator<ImplementationPlanDocumentV3>
 {
-    private static readonly SemanticVersion StaticConformanceDispositionVersion =
+    private static readonly SemanticVersion LegacyDispositionVersion =
         new("1.0.0");
     private readonly IProgramKitSemanticValidator<ImplementationPlanDocument>
         versionTwoValidator;
@@ -30,14 +30,29 @@ public sealed class ImplementationPlanDocumentV3Validator :
     }
 
     /// <inheritdoc />
-    public ProgramKitValidationResult Validate(ImplementationPlanDocumentV3 value)
+    public ProgramKitValidationResult Validate(ImplementationPlanDocumentV3 value) =>
+        ValidateVersioned(
+            value,
+            versionTwoValidator,
+            LegacyDispositionVersion,
+            "3.0");
+
+    internal static ProgramKitValidationResult ValidateVersioned(
+        ImplementationPlanDocumentV3 value,
+        IProgramKitSemanticValidator<ImplementationPlanDocument>
+            versionTwoValidator,
+        SemanticVersion staticConformanceDispositionVersion,
+        string planVersion)
     {
         var diagnostics = ImmutableArray.CreateBuilder<ProgramKitDiagnostic>();
         if (value is null)
         {
             diagnostics.Add(PlanningValidation.Error(
                 PlanningDiagnosticIds.Pkpln142,
-                "A Planning 3.0 implementation plan is required.",
+                string.Concat(
+                    "A Planning ",
+                    planVersion,
+                    " implementation plan is required."),
                 "$"));
             return ProgramKitValidationResult.From(diagnostics);
         }
@@ -55,11 +70,16 @@ public sealed class ImplementationPlanDocumentV3Validator :
             PlanningDiagnosticIds.Pkpln143);
         if (value.StaticConformanceDisposition is not null &&
             value.StaticConformanceDisposition.Version !=
-            StaticConformanceDispositionVersion)
+            staticConformanceDispositionVersion)
         {
             diagnostics.Add(PlanningValidation.Error(
                 PlanningDiagnosticIds.Pkpln143,
-                "Planning 3.0 requires static-conformance-disposition version 1.0.0.",
+                string.Concat(
+                    "Planning ",
+                    planVersion,
+                    " requires static-conformance-disposition version ",
+                    staticConformanceDispositionVersion.Value,
+                    "."),
                 "$.staticConformanceDisposition"));
         }
         if (!Enum.IsDefined(value.StaticConformanceState))
