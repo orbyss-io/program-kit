@@ -13,6 +13,8 @@ public sealed class TaskSchedulesSchemaModule : IProgramKitSchemaModule
     private const string ResourcePrefix =
         "Orbyss.ProgramKit.Tasks.Schedules.Schemas.";
     private static readonly SemanticVersion SchemaVersion = new("1.0.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.1");
     private static readonly SemanticVersionRange ExactSchemaVersion =
         new("[1.0.0]");
     private static readonly ProgramKitIdentifier SchemaOwner =
@@ -77,7 +79,7 @@ public sealed class TaskSchedulesSchemaModule : IProgramKitSchemaModule
         new("pkid:catalog:program-kit:task-schedule-schemas");
 
     /// <inheritdoc />
-    public SemanticVersion Version => SchemaVersion;
+    public SemanticVersion Version => CatalogVersion;
 
     /// <inheritdoc />
     public ImmutableArray<ProgramKitSchemaResource> Resources => Registered;

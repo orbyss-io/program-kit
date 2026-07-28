@@ -1,0 +1,34 @@
+{
+  "source": {
+    "$id": "https://schemas.orbyss.io/program-kit/example/2.0.0/example.schema.json",
+    "x-program-kit-identity": "pkid:schema:program-kit:example",
+    "x-program-kit-version": "2.0.0",
+    "properties": {
+      "version": {
+        "const": "2.0.0"
+      },
+      "dependency": {
+        "$ref": "https://schemas.orbyss.io/program-kit/dependency/1.0.0/dependency.schema.json"
+      }
+    }
+  },
+  "selection": {
+    "sourceVersion": "2.0.0",
+    "targetVersion": "0.1.0-alpha.2",
+    "dependencySourceId": "https://schemas.orbyss.io/program-kit/dependency/1.0.0/dependency.schema.json",
+    "dependencyTargetId": "https://schemas.orbyss.io/program-kit/dependency/0.1.0-alpha.1/dependency.schema.json"
+  },
+  "expected": {
+    "$id": "https://schemas.orbyss.io/program-kit/example/0.1.0-alpha.2/example.schema.json",
+    "x-program-kit-identity": "pkid:schema:program-kit:example",
+    "x-program-kit-version": "0.1.0-alpha.2",
+    "properties": {
+      "version": {
+        "const": "0.1.0-alpha.2"
+      },
+      "dependency": {
+        "$ref": "https://schemas.orbyss.io/program-kit/dependency/0.1.0-alpha.1/dependency.schema.json"
+      }
+    }
+  }
+}

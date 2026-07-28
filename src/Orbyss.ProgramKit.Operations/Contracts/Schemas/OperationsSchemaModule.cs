@@ -7,6 +7,8 @@ public sealed class OperationsSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Operations.Schemas.";
     private static readonly SemanticVersion SchemaVersion = new("1.0.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.1");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:operations");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -92,7 +94,7 @@ public sealed class OperationsSchemaModule : IProgramKitSchemaModule
         new("pkid:catalog:program-kit:operations-schemas");
 
     /// <inheritdoc />
-    public SemanticVersion Version => SchemaVersion;
+    public SemanticVersion Version => CatalogVersion;
 
     /// <inheritdoc />
     public ImmutableArray<ProgramKitSchemaResource> Resources => SchemaResources;

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/0.1.0-alpha.1/task-schedule-definition.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-schedule-definition",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "TaskScheduleDefinition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "definitionRevision",
+    "activationBindingRevision",
+    "descriptorRevision",
+    "descriptorSchema",
+    "occurrenceCalculatorProfile"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "definitionRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "activationBindingRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "descriptorRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "descriptorSchema": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "occurrenceCalculatorProfile": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    }
+  }
+}

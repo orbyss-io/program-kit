@@ -6,7 +6,8 @@ namespace Orbyss.ProgramKit.Artifacts.Schemas;
 public sealed class ArtifactsSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Artifacts.Schemas.";
-    private static readonly SemanticVersion CatalogVersion = new("1.0.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.1");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:artifacts");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -105,6 +106,13 @@ public sealed class ArtifactsSchemaModule : IProgramKitSchemaModule
             "version-intent-inventory-0.1.0-alpha.1.schema.json",
             "https://schemas.orbyss.io/program-kit/versioning/0.1.0-alpha.1/version-intent-inventory.schema.json",
             "1212989f6406610b3ed304063a410baa683985b42b7c9c2c43bf6bee3dd1249c",
+            TransitionSchemaProvenance),
+        Create(
+            "version-intent-inventory",
+            "0.1.0-alpha.2",
+            "version-intent-inventory-0.1.0-alpha.2.schema.json",
+            "https://schemas.orbyss.io/program-kit/versioning/0.1.0-alpha.2/version-intent-inventory.schema.json",
+            "935ed5616a14fb3b8be4726db6c52c0b14c2a8608ad419826f5f9d4549d33702",
             TransitionSchemaProvenance),
         Create(
             "alpha-version-progression",

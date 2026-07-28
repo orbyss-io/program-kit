@@ -80,7 +80,7 @@ public sealed class VersionIntentInventoryDocumentValidator :
             return;
         }
 
-        var paths = new HashSet<string>(StringComparer.Ordinal);
+        var sourceKeys = new HashSet<string>(StringComparer.Ordinal);
         for (var index = 0; index < inventory.Entries.Length; index++)
         {
             var entry = inventory.Entries[index];
@@ -103,13 +103,21 @@ public sealed class VersionIntentInventoryDocumentValidator :
             diagnostics.Add(Sha256Digest.Validate(
                 entry.SourceDigest.Value,
                 ArtifactReferenceValidator.Path(path, "sourceDigest")));
-            if (!IsNormalizedPath(entry.SourcePath, allowDot: false) ||
-                !paths.Add(entry.SourcePath))
+            if (!IsNormalizedPath(entry.SourcePath, allowDot: false))
             {
                 diagnostics.Error(
                     ArtifactDiagnosticIds.InvalidVersionIntentInventory,
-                    "Entry paths must be unique normalized repository-relative paths.",
+                    "Entry paths must be normalized repository-relative paths.",
                     ArtifactReferenceValidator.Path(path, "sourcePath"));
+            }
+
+            if (!IsNormalizedLocator(entry.SourceLocator) ||
+                !sourceKeys.Add(SourceKey(entry.SourcePath, entry.SourceLocator)))
+            {
+                diagnostics.Error(
+                    ArtifactDiagnosticIds.InvalidVersionIntentInventory,
+                    "Entry path and locator pairs must be unique and every locator must be an absolute JSON Pointer.",
+                    ArtifactReferenceValidator.Path(path, "sourceLocator"));
             }
 
             if (!IsWithinAnyRoot(entry.SourcePath, inventory.SourceRoots))
@@ -151,9 +159,7 @@ public sealed class VersionIntentInventoryDocumentValidator :
             VersionIntent.OwnedArtifactRevision =>
                 entry.IsActive &&
                 entry.OwnedRevisionOrdinal is > 0 &&
-                entry.TransitionDisposition ==
-                    VersionTransitionDisposition.MigrateOwnedRevision &&
-                SemanticVersion.TryParse(entry.CurrentValue, out _),
+                IsValidOwnedDisposition(entry),
             VersionIntent.ExternalSelection =>
                 entry.OwnedRevisionOrdinal is null &&
                 entry.TransitionDisposition ==
@@ -176,6 +182,70 @@ public sealed class VersionIntentInventoryDocumentValidator :
                 "Intent, active state, owned ordinal, version text, and transition disposition are contradictory.",
                 path);
         }
+    }
+
+    private static bool IsValidOwnedDisposition(
+        VersionIntentInventoryEntry entry)
+    {
+        if (!SemanticVersion.TryParse(entry.CurrentValue, out var version))
+        {
+            return false;
+        }
+
+        return entry.TransitionDisposition switch
+        {
+            VersionTransitionDisposition.MigrateOwnedRevision =>
+                !version.Value.StartsWith("0.1.0-alpha.", StringComparison.Ordinal),
+            VersionTransitionDisposition.RetainOwnedRevision =>
+                string.Equals(
+                    version.Value,
+                    string.Concat(
+                        "0.1.0-alpha.",
+                        entry.OwnedRevisionOrdinal!.Value.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture)),
+                    StringComparison.Ordinal),
+            _ => false,
+        };
+    }
+
+    private static string SourceKey(string path, string locator) =>
+        string.Concat(path, "\n", locator);
+
+    private static bool IsNormalizedLocator(string? locator)
+    {
+        if (string.IsNullOrWhiteSpace(locator) ||
+            !locator.StartsWith('/'))
+        {
+            return false;
+        }
+
+        return locator
+            .Split('/', StringSplitOptions.None)
+            .Skip(1)
+            .All(static segment =>
+                segment.Length > 0 &&
+                IsEscapedJsonPointerSegment(segment));
+    }
+
+    private static bool IsEscapedJsonPointerSegment(string segment)
+    {
+        for (var index = 0; index < segment.Length; index++)
+        {
+            if (segment[index] != '~')
+            {
+                continue;
+            }
+
+            if (index + 1 >= segment.Length ||
+                segment[index + 1] is not ('0' or '1'))
+            {
+                return false;
+            }
+
+            index++;
+        }
+
+        return true;
     }
 
     private static bool IsWithinAnyRoot(

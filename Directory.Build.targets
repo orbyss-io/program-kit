@@ -148,7 +148,7 @@
     <Error Condition="'$(ProgramKitTargetProfileId)' != 'pkid:profile:program-kit:dotnet-10'"
            Code="PKNET005"
            Text="The Program Kit target-profile identity is invalid." />
-    <Error Condition="'$(ProgramKitTargetProfileVersion)' != '1.0.0'"
+    <Error Condition="'$(ProgramKitTargetProfileVersion)' != '0.1.0-alpha.1'"
            Code="PKNET006"
            Text="The Program Kit target-profile version is invalid." />
     <Error Condition="'$(ProgramKitSdkRollForward)' != 'disable'"

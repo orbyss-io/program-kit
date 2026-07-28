@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/operations/operation-result/0.1.0-alpha.1/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:operation-result",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "$ref": "https://schemas.orbyss.io/program-kit/operations/0.1.0-alpha.1/definitions.schema.json#/$defs/operationResultDocument"
+}

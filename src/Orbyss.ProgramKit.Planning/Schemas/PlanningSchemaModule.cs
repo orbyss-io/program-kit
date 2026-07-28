@@ -14,7 +14,8 @@ namespace Orbyss.ProgramKit.Planning.Schemas;
 public sealed class PlanningSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Planning.Schemas.";
-    private static readonly SemanticVersion CatalogVersion = new("3.0.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.3");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");

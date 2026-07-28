@@ -1,0 +1,39 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:version-intent-inventory",
+  "sourceRange": "[0.1.0-alpha.1]",
+  "target": {
+    "identity": "pkid:schema:program-kit:version-intent-inventory",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:935ed5616a14fb3b8be4726db6c52c0b14c2a8608ad419826f5f9d4549d33702"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "exact-source-locator",
+      "description": "The maintainer supplies one exact JSON Pointer for each already digest-bound source value.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:version-intent-inventory-alpha1-to-alpha2",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:67a86db81ef7239dc5343b4a4e0151b7ef5086c7a66161cedbc84311cc754dd3"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:version-intent-inventory-alpha1-to-alpha2",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:ccab9d2a2dd5270dfd179e2fdf72462dfbf7ac0c0f65eaaa0f6d6e51b8d3bab0"
+    }
+  ]
+}

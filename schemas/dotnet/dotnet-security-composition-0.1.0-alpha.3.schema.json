@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/0.1.0-alpha.3/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-security-composition",
+  "x-program-kit-version": "0.1.0-alpha.3",
+  "title": "Program Kit .NET transport security with OAuth service clients",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileRevision",
+    "defaults",
+    "oidcConfidentialInteractive",
+    "oidcPublicBrowser",
+    "jwtResourceServer",
+    "oauthClientCredentials",
+    "oauthTokenExchanges",
+    "policies",
+    "operationBindings"
+  ],
+  "properties": {
+    "profileRevision": {
+      "$ref": "#/$defs/reference"
+    },
+    "defaults": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json#/properties/defaults"
+    },
+    "oidcConfidentialInteractive": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json#/properties/oidcConfidentialInteractive"
+    },
+    "oidcPublicBrowser": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json#/properties/oidcPublicBrowser"
+    },
+    "jwtResourceServer": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json#/properties/jwtResourceServer"
+    },
+    "oauthClientCredentials": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/clientCredentials"
+      }
+    },
+    "oauthTokenExchanges": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/tokenExchange"
+      }
+    },
+    "policies": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json#/properties/policies"
+    },
+    "operationBindings": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/2.0.0/schema.json#/properties/operationBindings"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "$ref": "https://schemas.orbyss.io/program-kit/operations/0.1.0-alpha.1/definitions.schema.json#/$defs/identifier"
+    },
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/operations/0.1.0-alpha.1/definitions.schema.json#/$defs/reference"
+    },
+    "httpsUri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "scopeSet": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tokenKind": {
+      "enum": [
+        "access-token",
+        "jwt"
+      ]
+    },
+    "authentication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "reference",
+        "configurationKey"
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "client-secret-basic",
+            "client-secret-post",
+            "private-key-jwt-assertion"
+          ]
+        },
+        "reference": {
+          "$ref": "https://schemas.orbyss.io/program-kit/dotnet/security-composition/1.0.0/schema.json#/$defs/secretReference"
+        },
+        "configurationKey": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    },
+    "cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "expirySkewSeconds",
+        "maximumLifetimeSeconds"
+      ],
+      "properties": {
+        "enabled": {
+          "const": true
+        },
+        "expirySkewSeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 300
+        },
+        "maximumLifetimeSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        }
+      }
+    },
+    "tokenSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceIdentity",
+        "provenanceRevision",
+        "tokenType"
+      ],
+      "properties": {
+        "sourceIdentity": {
+          "$ref": "#/$defs/identifier"
+        },
+        "provenanceRevision": {
+          "$ref": "#/$defs/reference"
+        },
+        "tokenType": {
+          "$ref": "#/$defs/tokenKind"
+        }
+      }
+    },
+    "commonProperties": {
+      "type": "object",
+      "properties": {
+        "profileRevision": {
+          "$ref": "#/$defs/reference"
+        },
+        "clientName": {
+          "$ref": "#/$defs/name"
+        },
+        "metadataAddress": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "tokenEndpoint": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "clientId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authentication": {
+          "$ref": "#/$defs/authentication"
+        },
+        "resource": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopes": {
+          "$ref": "#/$defs/scopeSet"
+        },
+        "expectedIssuedTokenType": {
+          "$ref": "#/$defs/tokenKind"
+        },
+        "requestedLifetimeSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "requestTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "cache": {
+          "$ref": "#/$defs/cache"
+        },
+        "cancellationRequired": {
+          "const": true
+        },
+        "failClosedOnOutage": {
+          "const": true
+        },
+        "redactTokenMaterial": {
+          "const": true
+        },
+        "automaticRetry": {
+          "const": false
+        },
+        "retrieveAmbientCurrentUserToken": {
+          "const": false
+        }
+      }
+    },
+    "clientCredentials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileRevision",
+        "clientName",
+        "metadataAddress",
+        "tokenEndpoint",
+        "clientId",
+        "authentication",
+        "resource",
+        "audience",
+        "scopes",
+        "expectedIssuedTokenType",
+        "requestedLifetimeSeconds",
+        "requestTimeoutSeconds",
+        "cache",
+        "cancellationRequired",
+        "failClosedOnOutage",
+        "redactTokenMaterial",
+        "automaticRetry",
+        "retrieveAmbientCurrentUserToken"
+      ],
+      "properties": {
+        "profileRevision": {
+          "$ref": "#/$defs/commonProperties/properties/profileRevision"
+        },
+        "clientName": {
+          "$ref": "#/$defs/commonProperties/properties/clientName"
+        },
+        "metadataAddress": {
+          "$ref": "#/$defs/commonProperties/properties/metadataAddress"
+        },
+        "tokenEndpoint": {
+          "$ref": "#/$defs/commonProperties/properties/tokenEndpoint"
+        },
+        "clientId": {
+          "$ref": "#/$defs/commonProperties/properties/clientId"
+        },
+        "authentication": {
+          "$ref": "#/$defs/commonProperties/properties/authentication"
+        },
+        "resource": {
+          "$ref": "#/$defs/commonProperties/properties/resource"
+        },
+        "audience": {
+          "$ref": "#/$defs/commonProperties/properties/audience"
+        },
+        "scopes": {
+          "$ref": "#/$defs/commonProperties/properties/scopes"
+        },
+        "expectedIssuedTokenType": {
+          "$ref": "#/$defs/commonProperties/properties/expectedIssuedTokenType"
+        },
+        "requestedLifetimeSeconds": {
+          "$ref": "#/$defs/commonProperties/properties/requestedLifetimeSeconds"
+        },
+        "requestTimeoutSeconds": {
+          "$ref": "#/$defs/commonProperties/properties/requestTimeoutSeconds"
+        },
+        "cache": {
+          "$ref": "#/$defs/commonProperties/properties/cache"
+        },
+        "cancellationRequired": {
+          "const": true
+        },
+        "failClosedOnOutage": {
+          "const": true
+        },
+        "redactTokenMaterial": {
+          "const": true
+        },
+        "automaticRetry": {
+          "const": false
+        },
+        "retrieveAmbientCurrentUserToken": {
+          "const": false
+        }
+      }
+    },
+    "tokenExchange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileRevision",
+        "clientName",
+        "metadataAddress",
+        "tokenEndpoint",
+        "clientId",
+        "authentication",
+        "subjectToken",
+        "actorToken",
+        "exchangeMode",
+        "requestedTokenType",
+        "expectedIssuedTokenType",
+        "resource",
+        "audience",
+        "scopes",
+        "requestedLifetimeSeconds",
+        "requestTimeoutSeconds",
+        "cache",
+        "cancellationRequired",
+        "failClosedOnOutage",
+        "redactTokenMaterial",
+        "automaticRetry",
+        "retrieveAmbientCurrentUserToken"
+      ],
+      "properties": {
+        "profileRevision": {
+          "$ref": "#/$defs/commonProperties/properties/profileRevision"
+        },
+        "clientName": {
+          "$ref": "#/$defs/commonProperties/properties/clientName"
+        },
+        "metadataAddress": {
+          "$ref": "#/$defs/commonProperties/properties/metadataAddress"
+        },
+        "tokenEndpoint": {
+          "$ref": "#/$defs/commonProperties/properties/tokenEndpoint"
+        },
+        "clientId": {
+          "$ref": "#/$defs/commonProperties/properties/clientId"
+        },
+        "authentication": {
+          "$ref": "#/$defs/commonProperties/properties/authentication"
+        },
+        "subjectToken": {
+          "$ref": "#/$defs/tokenSource"
+        },
+        "actorToken": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/tokenSource"
+            }
+          ]
+        },
+        "exchangeMode": {
+          "enum": [
+            "delegation",
+            "impersonation"
+          ]
+        },
+        "requestedTokenType": {
+          "$ref": "#/$defs/tokenKind"
+        },
+        "expectedIssuedTokenType": {
+          "$ref": "#/$defs/commonProperties/properties/expectedIssuedTokenType"
+        },
+        "resource": {
+          "$ref": "#/$defs/commonProperties/properties/resource"
+        },
+        "audience": {
+          "$ref": "#/$defs/commonProperties/properties/audience"
+        },
+        "scopes": {
+          "$ref": "#/$defs/commonProperties/properties/scopes"
+        },
+        "requestedLifetimeSeconds": {
+          "$ref": "#/$defs/commonProperties/properties/requestedLifetimeSeconds"
+        },
+        "requestTimeoutSeconds": {
+          "$ref": "#/$defs/commonProperties/properties/requestTimeoutSeconds"
+        },
+        "cache": {
+          "$ref": "#/$defs/commonProperties/properties/cache"
+        },
+        "cancellationRequired": {
+          "const": true
+        },
+        "failClosedOnOutage": {
+          "const": true
+        },
+        "redactTokenMaterial": {
+          "const": true
+        },
+        "automaticRetry": {
+          "const": false
+        },
+        "retrieveAmbientCurrentUserToken": {
+          "const": false
+        }
+      }
+    }
+  }
+}

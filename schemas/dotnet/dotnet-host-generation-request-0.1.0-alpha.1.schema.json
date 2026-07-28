@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/host-generation-request/0.1.0-alpha.1/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-host-generation-request",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit .NET host generation request 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "programKitVersion",
+    "kind",
+    "shellPath",
+    "hostIdentity",
+    "artifactManifestPath",
+    "outputRoot",
+    "consumerBuild"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1.0-alpha.1"
+    },
+    "programKitVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "enum": [
+        "api",
+        "console",
+        "worker"
+      ]
+    },
+    "shellPath": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "hostIdentity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactManifestPath": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "outputRoot": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "consumerBuild": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/consumerBuild"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^(?:[A-Za-z]:|/|\\\\)"
+          },
+          {
+            "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)"
+          }
+        ]
+      }
+    },
+    "relativePathArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relativePath"
+      },
+      "uniqueItems": true
+    },
+    "consumerBuild": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workingDirectory",
+        "projectPath",
+        "evidenceOutputPath",
+        "participationReceiptPaths",
+        "exceptionUseReceiptPaths",
+        "packagePaths",
+        "maximumCapturedOutputBytes",
+        "performanceBudgetMilliseconds"
+      ],
+      "properties": {
+        "workingDirectory": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "projectPath": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "evidenceOutputPath": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "participationReceiptPaths": {
+          "$ref": "#/$defs/relativePathArray"
+        },
+        "exceptionUseReceiptPaths": {
+          "$ref": "#/$defs/relativePathArray"
+        },
+        "packagePaths": {
+          "$ref": "#/$defs/relativePathArray"
+        },
+        "maximumCapturedOutputBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1048576
+        },
+        "performanceBudgetMilliseconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

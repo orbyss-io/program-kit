@@ -69,7 +69,7 @@ public sealed class OpenConsoleSchemaModule : IProgramKitSchemaModule
         new("pkid:catalog:program-kit:open-console-schemas");
 
     /// <inheritdoc />
-    public SemanticVersion Version { get; } = new("1.0.0");
+    public SemanticVersion Version { get; } = new("0.1.0-alpha.1");
 
     /// <inheritdoc />
     public ImmutableArray<ProgramKitSchemaResource> Resources => [Schema];

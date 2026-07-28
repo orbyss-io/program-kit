@@ -16,6 +16,8 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
     private const string ResourcePrefix =
         "Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas.";
     private static readonly SemanticVersion VersionOne = new("1.0.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.1");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:csharp-build-gates-contracts");
     private static readonly ArtifactProvenance Provenance =
@@ -95,7 +97,7 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
         new("pkid:catalog:program-kit:csharp-build-gate-schemas");
 
     /// <inheritdoc />
-    public SemanticVersion Version => VersionOne;
+    public SemanticVersion Version => CatalogVersion;
 
     /// <inheritdoc />
     public ImmutableArray<ProgramKitSchemaResource> Resources => SchemaResources;

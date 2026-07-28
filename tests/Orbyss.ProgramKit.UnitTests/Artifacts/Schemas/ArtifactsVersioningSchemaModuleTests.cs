@@ -8,6 +8,7 @@ public sealed class ArtifactsVersioningSchemaModuleTests
     private static readonly string[] VersioningResourceNames =
     [
         "version-intent-inventory-0.1.0-alpha.1.schema.json",
+        "version-intent-inventory-0.1.0-alpha.2.schema.json",
         "alpha-version-progression-0.1.0-alpha.1.schema.json",
     ];
 
@@ -18,7 +19,9 @@ public sealed class ArtifactsVersioningSchemaModuleTests
         ProgramKitSchemaModuleValidator validator = new();
         var resources = module.Resources
             .Where(static resource =>
-                resource.SchemaReference.Version.Value == "0.1.0-alpha.1")
+                resource.ResourceName.Contains(
+                    "0.1.0-alpha.",
+                    StringComparison.Ordinal))
             .ToArray();
 
         var result = validator.Validate(module);

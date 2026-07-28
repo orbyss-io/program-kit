@@ -11,6 +11,7 @@ public sealed class VersionIntentAndAlphaProgressionTests
             .Reverse()
             .Select(static entry => new VersionBearingSourceObservation(
                 entry.SourcePath,
+                entry.SourceLocator,
                 entry.CurrentValue,
                 entry.SourceDigest))
             .ToImmutableArray();
@@ -59,6 +60,7 @@ public sealed class VersionIntentAndAlphaProgressionTests
             .Skip(1)
             .Select(static entry => new VersionBearingSourceObservation(
                 entry.SourcePath,
+                entry.SourceLocator,
                 entry.CurrentValue,
                 entry.SourceDigest))
             .ToImmutableArray();
@@ -84,10 +86,12 @@ public sealed class VersionIntentAndAlphaProgressionTests
         var observations = inventory.Entries
             .Select(static entry => new VersionBearingSourceObservation(
                 entry.SourcePath,
+                entry.SourceLocator,
                 entry.CurrentValue,
                 entry.SourceDigest))
             .Append(new VersionBearingSourceObservation(
                 inventory.Entries[0].SourcePath,
+                inventory.Entries[0].SourceLocator,
                 inventory.Entries[0].CurrentValue,
                 inventory.Entries[0].SourceDigest))
             .ToImmutableArray();
@@ -104,6 +108,79 @@ public sealed class VersionIntentAndAlphaProgressionTests
         Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
             diagnostic.Id ==
                 WorkbenchDiagnosticIds.InvalidVersionIntentInventoryRequest));
+    }
+
+    [TestMethod]
+    public void InventoryAcceptsDistinctLocatorsInOneSourceFile()
+    {
+        var inventory = Inventory();
+        var first = inventory.Entries[0];
+        var second = first with
+        {
+            Identity = Id("pkid:release:program-kit:package"),
+            SourceLocator = "/packageVersion",
+        };
+        inventory = inventory with
+        {
+            Entries = [first, second, .. inventory.Entries[1..]],
+        };
+        var observations = inventory.Entries
+            .Select(static entry => new VersionBearingSourceObservation(
+                entry.SourcePath,
+                entry.SourceLocator,
+                entry.CurrentValue,
+                entry.SourceDigest))
+            .ToImmutableArray();
+        var sut = new VersionIntentInventoryEvaluator(
+            new VersionIntentInventoryDocumentValidator());
+
+        var result = sut.Evaluate(
+            new VersionIntentInventoryValidationRequest(
+                inventory,
+                observations,
+                observations.Length));
+
+        Assert.IsTrue(result.IsValid, Format(result));
+    }
+
+    [TestMethod]
+    public void InventoryAcceptsExactAlreadyAlphaOwnedRevision()
+    {
+        var inventory = Inventory();
+        var retained = inventory.Entries[1] with
+        {
+            CurrentValue = "0.1.0-alpha.1",
+            TransitionDisposition =
+                VersionTransitionDisposition.RetainOwnedRevision,
+        };
+        var sut = new VersionIntentInventoryDocumentValidator();
+
+        var result = sut.Validate(inventory with
+        {
+            Entries = [inventory.Entries[0], retained, .. inventory.Entries[2..]],
+        });
+
+        Assert.IsTrue(result.IsValid, Format(result));
+    }
+
+    [TestMethod]
+    public void InventoryRejectsRetainedAlphaOrdinalMismatch()
+    {
+        var inventory = Inventory();
+        var retained = inventory.Entries[1] with
+        {
+            CurrentValue = "0.1.0-alpha.2",
+            TransitionDisposition =
+                VersionTransitionDisposition.RetainOwnedRevision,
+        };
+        var sut = new VersionIntentInventoryDocumentValidator();
+
+        var result = sut.Validate(inventory with
+        {
+            Entries = [inventory.Entries[0], retained, .. inventory.Entries[2..]],
+        });
+
+        Assert.IsFalse(result.IsValid);
     }
 
     [TestMethod]
@@ -276,6 +353,7 @@ public sealed class VersionIntentAndAlphaProgressionTests
             Id(identity),
             Id("pkid:domain:program-kit:version-governance"),
             path,
+            "/version",
             currentValue,
             Digest(digestMarker),
             intent,

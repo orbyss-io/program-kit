@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.1/migration-assessment.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:migration-assessment",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "MigrationAssessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "versionMapReference",
+    "versionSelectionReference",
+    "changedRevisions",
+    "impacts",
+    "waves"
+  ],
+  "properties": {
+    "versionMapReference": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "versionSelectionReference": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "changedRevisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+      },
+      "uniqueItems": true
+    },
+    "impacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/impact"
+      }
+    },
+    "waves": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/wave"
+      }
+    }
+  },
+  "$defs": {
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observed",
+        "target",
+        "ownerId",
+        "disposition",
+        "requiredActions",
+        "requiredEvidence",
+        "causalPaths",
+        "rationale"
+      ],
+      "properties": {
+        "observed": {
+          "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+        },
+        "target": {
+          "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+        },
+        "ownerId": {
+          "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/programKitIdentifier"
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "unaffected-with-proof",
+            "compatible-after-actions",
+            "major-upgrade",
+            "redesign",
+            "manual-review",
+            "blocked"
+          ]
+        },
+        "requiredActions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "retest",
+              "regenerate",
+              "recompile",
+              "repackage-or-relock",
+              "migrate-artifact",
+              "migrate-configuration",
+              "add-adapter",
+              "drain-or-migrate-pending-work"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "requiredEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+          },
+          "uniqueItems": true
+        },
+        "causalPaths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/causalPath"
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "causalPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "changedRoot",
+        "edgeIds"
+      ],
+      "properties": {
+        "changedRoot": {
+          "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+        },
+        "edgeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/programKitIdentifier"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "wave": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "cohorts"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cohorts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/cohort"
+          }
+        }
+      }
+    },
+    "cohort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "members"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/programKitIdentifier"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

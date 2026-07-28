@@ -1,0 +1,508 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/telemetry-composition/0.1.0-alpha.1/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-telemetry-composition",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit .NET telemetry composition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileRevision",
+    "specificationRevision",
+    "semanticConventionRevision",
+    "packages",
+    "resource",
+    "loggerEvents",
+    "activities",
+    "metrics",
+    "instrumentations",
+    "sampling",
+    "otlpExporter",
+    "httpDiagnostics",
+    "baggageAllowList",
+    "loggingFilterConfigurationKey",
+    "providerGraphReloadable",
+    "shutdownTimeoutMilliseconds"
+  ],
+  "properties": {
+    "profileRevision": {
+      "$ref": "#/$defs/reference"
+    },
+    "specificationRevision": {
+      "$ref": "#/$defs/reference"
+    },
+    "semanticConventionRevision": {
+      "$ref": "#/$defs/reference"
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/package"
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "serviceName",
+        "serviceNamespace",
+        "serviceVersion",
+        "deploymentEnvironment"
+      ],
+      "properties": {
+        "serviceName": {
+          "$ref": "#/$defs/stableName"
+        },
+        "serviceNamespace": {
+          "$ref": "#/$defs/stableName"
+        },
+        "serviceVersion": {
+          "$ref": "#/$defs/version"
+        },
+        "deploymentEnvironment": {
+          "$ref": "#/$defs/stableName"
+        }
+      }
+    },
+    "loggerEvents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/loggerEvent"
+      }
+    },
+    "activities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/activity"
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/metric"
+      }
+    },
+    "instrumentations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "traces",
+          "metrics",
+          "recordExceptions"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "asp-net-core",
+              "http-client"
+            ]
+          },
+          "traces": {
+            "type": "boolean"
+          },
+          "metrics": {
+            "type": "boolean"
+          },
+          "recordExceptions": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "ratio"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "always-on",
+            "always-off",
+            "parent-based-trace-id-ratio"
+          ]
+        },
+        "ratio": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ]
+        }
+      }
+    },
+    "otlpExporter": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/otlpExporter"
+        }
+      ]
+    },
+    "httpDiagnostics": {
+      "$ref": "#/$defs/httpDiagnostics"
+    },
+    "baggageAllowList": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "loggingFilterConfigurationKey": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "const": "Logging:LogLevel"
+        }
+      ]
+    },
+    "providerGraphReloadable": {
+      "const": false
+    },
+    "shutdownTimeoutMilliseconds": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 30000
+    }
+  },
+  "$defs": {
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/4.0.0/dotnet-shell.schema.json#/$defs/reference"
+    },
+    "package": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/4.0.0/dotnet-shell.schema.json#/$defs/package"
+    },
+    "version": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/3.0.0/dotnet-shell.schema.json#/$defs/version"
+    },
+    "stableName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "attribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "cardinalityLimit",
+        "allowedValues"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/stableName"
+        },
+        "cardinalityLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "allowedValues": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        }
+      }
+    },
+    "loggerEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "eventId",
+        "eventName",
+        "level",
+        "messageTemplate",
+        "scopeFields"
+      ],
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/stableName"
+        },
+        "eventId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "eventName": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "level": {
+          "enum": [
+            "trace",
+            "debug",
+            "information",
+            "warning",
+            "error",
+            "critical"
+          ]
+        },
+        "messageTemplate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "scopeFields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "operation.identity",
+              "operation.invocation_id",
+              "correlation.id"
+            ]
+          }
+        }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceName",
+        "sourceVersion",
+        "name",
+        "kind",
+        "attributes"
+      ],
+      "properties": {
+        "sourceName": {
+          "$ref": "#/$defs/stableName"
+        },
+        "sourceVersion": {
+          "$ref": "#/$defs/version"
+        },
+        "name": {
+          "$ref": "#/$defs/stableName"
+        },
+        "kind": {
+          "enum": [
+            "internal",
+            "producer",
+            "consumer"
+          ]
+        },
+        "attributes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/attribute"
+          }
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meterName",
+        "meterVersion",
+        "name",
+        "kind",
+        "unit",
+        "description",
+        "attributes"
+      ],
+      "properties": {
+        "meterName": {
+          "$ref": "#/$defs/stableName"
+        },
+        "meterVersion": {
+          "$ref": "#/$defs/version"
+        },
+        "name": {
+          "$ref": "#/$defs/stableName"
+        },
+        "kind": {
+          "enum": [
+            "counter",
+            "histogram"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "attributes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/attribute"
+          }
+        }
+      }
+    },
+    "otlpExporter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpointConfigurationKey",
+        "protocol",
+        "maxQueueSize",
+        "maxExportBatchSize",
+        "scheduledDelayMilliseconds",
+        "exportTimeoutMilliseconds",
+        "failureDisposition"
+      ],
+      "properties": {
+        "endpointConfigurationKey": {
+          "const": "Telemetry:Otlp:Endpoint"
+        },
+        "protocol": {
+          "enum": [
+            "grpc",
+            "http-protobuf"
+          ]
+        },
+        "maxQueueSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8192
+        },
+        "maxExportBatchSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2048
+        },
+        "scheduledDelayMilliseconds": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 30000
+        },
+        "exportTimeoutMilliseconds": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 30000
+        },
+        "failureDisposition": {
+          "const": "drop-and-report"
+        }
+      }
+    },
+    "httpDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "includeMethod",
+        "includePath",
+        "includeStatusCode",
+        "includeDuration",
+        "requestHeaders",
+        "responseHeaders",
+        "includeRequestBody",
+        "includeResponseBody"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "includeMethod": {
+          "type": "boolean"
+        },
+        "includePath": {
+          "type": "boolean"
+        },
+        "includeStatusCode": {
+          "type": "boolean"
+        },
+        "includeDuration": {
+          "type": "boolean"
+        },
+        "requestHeaders": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "responseHeaders": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "includeRequestBody": {
+          "const": false
+        },
+        "includeResponseBody": {
+          "const": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            },
+            "required": [
+              "enabled"
+            ]
+          },
+          "then": {
+            "properties": {
+              "includeMethod": {
+                "const": true
+              },
+              "includePath": {
+                "const": true
+              },
+              "includeStatusCode": {
+                "const": true
+              },
+              "includeDuration": {
+                "const": true
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "includeMethod": {
+                "const": false
+              },
+              "includePath": {
+                "const": false
+              },
+              "includeStatusCode": {
+                "const": false
+              },
+              "includeDuration": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

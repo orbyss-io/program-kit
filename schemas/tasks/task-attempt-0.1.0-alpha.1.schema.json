@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/0.1.0-alpha.1/task-attempt.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-attempt",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "TaskAttempt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "instanceRevision",
+    "activationBindingRevision",
+    "number",
+    "state",
+    "startedAt",
+    "completedAt",
+    "failureRevision"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "instanceRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "activationBindingRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "startedAt": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/timestamp"
+    },
+    "completedAt": {
+      "anyOf": [
+        {
+          "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "failureRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/optionalArtifactReference"
+    }
+  }
+}

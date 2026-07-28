@@ -9,6 +9,8 @@ public sealed class DevContainerSchemaModule : IProgramKitSchemaModule
     private const string OfficialResourceName =
         "Orbyss.ProgramKit.DevContainers.Schemas.Vendor.devContainer.base.schema.json";
     private static readonly SemanticVersion SchemaVersion = new("1.0.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.1");
     private static readonly ArtifactReference SchemaReferenceValue =
         new(
             new ProgramKitIdentifier("pkid:schema:devcontainers:base"),
@@ -78,7 +80,7 @@ public sealed class DevContainerSchemaModule : IProgramKitSchemaModule
         new("pkid:catalog:program-kit:dev-container-schemas");
 
     /// <inheritdoc />
-    public SemanticVersion Version => SchemaVersion;
+    public SemanticVersion Version => CatalogVersion;
 
     /// <inheritdoc />
     public ImmutableArray<ProgramKitSchemaResource> Resources => [SchemaResource];

@@ -84,6 +84,7 @@ public sealed class VersionIntentInventoryEvaluator :
             var path = string.Concat("/observedSources/", index);
             if (observation is null ||
                 string.IsNullOrWhiteSpace(observation.SourcePath) ||
+                string.IsNullOrWhiteSpace(observation.SourceLocator) ||
                 string.IsNullOrWhiteSpace(observation.CurrentValue))
             {
                 diagnostics.Add(WorkbenchDiagnostics.Error(
@@ -97,13 +98,15 @@ public sealed class VersionIntentInventoryEvaluator :
                 observation.SourceDigest.Value,
                 string.Concat(path, "/sourceDigest")).Diagnostics);
             if (!observations.TryAdd(
-                    observation.SourcePath,
+                    SourceKey(
+                        observation.SourcePath,
+                        observation.SourceLocator),
                     observation))
             {
                 diagnostics.Add(WorkbenchDiagnostics.Error(
                     WorkbenchDiagnosticIds.InvalidVersionIntentInventoryRequest,
-                    "Observed source paths must be unique.",
-                    string.Concat(path, "/sourcePath")));
+                    "Observed source path and locator pairs must be unique.",
+                    string.Concat(path, "/sourceLocator")));
             }
         }
 
@@ -116,7 +119,9 @@ public sealed class VersionIntentInventoryEvaluator :
         var entries = request.Inventory.Entries
             .Where(static entry => entry is not null)
             .ToDictionary(
-                static entry => entry.SourcePath,
+                static entry => SourceKey(
+                    entry.SourcePath,
+                    entry.SourceLocator),
                 StringComparer.Ordinal);
         if (entries.Count != observations.Count ||
             entries.Keys.Except(
@@ -135,7 +140,8 @@ public sealed class VersionIntentInventoryEvaluator :
 
         foreach (var entry in entries.Values)
         {
-            var observation = observations[entry.SourcePath];
+            var observation = observations[
+                SourceKey(entry.SourcePath, entry.SourceLocator)];
             if (!string.Equals(
                     entry.CurrentValue,
                     observation.CurrentValue,
@@ -147,8 +153,12 @@ public sealed class VersionIntentInventoryEvaluator :
                     "Observed value and digest must exactly match the classified entry.",
                     string.Concat(
                         "/observedSources/",
-                        entry.SourcePath)));
+                        entry.SourcePath,
+                        entry.SourceLocator)));
             }
         }
     }
+
+    private static string SourceKey(string path, string locator) =>
+        string.Concat(path, "\n", locator);
 }

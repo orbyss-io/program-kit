@@ -1,0 +1,39 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:task-attempt",
+  "sourceRange": "[1.0.0]",
+  "target": {
+    "identity": "pkid:schema:program-kit:task-attempt",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:c75a4fdebd93c518c23fe4ec71898591bf43920d81bb2a80d8cc80ee9a55b8a4"
+  },
+  "mode": "artifact-transform",
+  "preconditions": [
+    {
+      "code": "exact-legacy-source",
+      "description": "The source identity, version, and complete-file digest must match the reviewed selection before transformation.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "lossless",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:active-owned-schema-alpha-rewrite",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:e2dda89d7850f751dcb4f14b3076b377bf42485f3284f039829a02e0d225ee99"
+    }
+  ]
+}

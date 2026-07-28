@@ -9,6 +9,9 @@ public enum VersionTransitionDisposition
     /// <summary>Create and select an explicit migrated owned-artifact revision.</summary>
     MigrateOwnedRevision,
 
+    /// <summary>Retain an owned artifact that already uses the selected alpha revision.</summary>
+    RetainOwnedRevision,
+
     /// <summary>Retain an external owner's exact selected value.</summary>
     PreserveExternalSelection,
 

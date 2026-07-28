@@ -1,0 +1,74 @@
+{
+  "identity": "pkid:evidence:program-kit:version-intent-observation-boundary",
+  "version": "0.1.0-alpha.1",
+  "repositoryRoot": ".",
+  "authoritativeSourceClasses": [
+    {
+      "classification": "product-release",
+      "paths": [
+        "Directory.Build.props",
+        "Directory.Build.targets",
+        ".agent-capabilities/capability-bundle-manifest.json",
+        "src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs",
+        "src/Orbyss.ProgramKit.CommandLine/Operations/DotNet/DotNetHostGenerationCommandService.cs",
+        "src/Orbyss.ProgramKit.CommandLine/Operations/DotNet/Refresh/DotNetHostRefreshService.cs",
+        "src/Orbyss.ProgramKit.DotNet/Generation/Console/Rendering/DotNetConsoleProjectRenderer.cs",
+        "src/Orbyss.ProgramKit.DotNet/Generation/DotNetHostSourceRenderer.cs"
+      ]
+    },
+    {
+      "classification": "owned-artifact-revision",
+      "paths": [
+        "schemas",
+        "src/**/Schemas/*SchemaModule.cs",
+        "governance/csharp-source-quality-gate.md",
+        ".agent-capabilities/authoring-workspace.json",
+        ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
+        ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json"
+      ]
+    },
+    {
+      "classification": "external-selection",
+      "paths": [
+        "Directory.Packages.props",
+        "global.json",
+        "Directory.Build.props"
+      ]
+    }
+  ],
+  "protectedSourceClasses": [
+    {
+      "classification": "historical-evidence-revision",
+      "paths": [
+        "extensions",
+        "governance/approvals",
+        "governance/evidence"
+      ],
+      "rule": "Digest-bound approval, closure, review, receipt, and migration-source bytes are immutable and are not active selectors."
+    },
+    {
+      "classification": "fixture-revision",
+      "paths": [
+        "tests/**/Fixtures",
+        "extensions/**/fixtures"
+      ],
+      "rule": "Synthetic version values remain fixture-owned unless an exact fixture migration is separately selected."
+    },
+    {
+      "classification": "external-selection",
+      "paths": [
+        "**/packages.lock.json",
+        "schemas/**/vendor"
+      ],
+      "rule": "Derived package locks and vendored schemas preserve external owner versions; first-party package references are verified separately by the product-release drift check."
+    }
+  ],
+  "exclusions": [
+    "bin",
+    "obj",
+    ".git",
+    "TestResults",
+    "local package outputs"
+  ],
+  "completenessRule": "Every active authoritative selector is enumerated by exact path and source locator in version-intent-inventory.json; protected roots are classified here and are not rewritten by the transition."
+}

@@ -10,7 +10,7 @@
     <RootNamespace Condition="'$(RootNamespace)' == ''">$(MSBuildProjectName)</RootNamespace>
 
     <ProgramKitTargetProfileId>pkid:profile:program-kit:dotnet-10</ProgramKitTargetProfileId>
-    <ProgramKitTargetProfileVersion>1.0.0</ProgramKitTargetProfileVersion>
+    <ProgramKitTargetProfileVersion>0.1.0-alpha.1</ProgramKitTargetProfileVersion>
     <ProgramKitCurrentWorkUnit>PK-W110</ProgramKitCurrentWorkUnit>
     <ProgramKitSdkVersion>10.0.302</ProgramKitSdkVersion>
     <ProgramKitSdkRollForward>disable</ProgramKitSdkRollForward>

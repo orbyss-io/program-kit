@@ -6,7 +6,8 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule operationsSchemas;
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
-    private static readonly SemanticVersion CatalogVersion = new("11.5.0");
+    private static readonly SemanticVersion CatalogVersion =
+        new("0.1.0-alpha.16");
     private static readonly SemanticVersion SchemaVersionAlpha1 =
         new("0.1.0-alpha.1");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");

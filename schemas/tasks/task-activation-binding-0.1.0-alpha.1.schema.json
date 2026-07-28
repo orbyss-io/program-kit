@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/tasks/0.1.0-alpha.1/task-activation-binding.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:task-activation-binding",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "TaskActivationBinding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "definitionRevision",
+    "handlerRevision",
+    "owningFeatureRevision",
+    "activationIdentity",
+    "runtimeRevision",
+    "middlewareRevisions",
+    "retryPolicyRevision",
+    "idempotencyPolicyRevision",
+    "scheduleRevision",
+    "misfirePolicyRevision",
+    "overlapPolicyRevision"
+  ],
+  "properties": {
+    "revision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "definitionRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "handlerRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "owningFeatureRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "activationIdentity": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/programKitIdentifier"
+    },
+    "runtimeRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "middlewareRevisions": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReferenceArray"
+    },
+    "retryPolicyRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "idempotencyPolicyRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/artifactReference"
+    },
+    "scheduleRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/optionalArtifactReference"
+    },
+    "misfirePolicyRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/optionalArtifactReference"
+    },
+    "overlapPolicyRevision": {
+      "$ref": "definitions-0.1.0-alpha.1.schema.json#/$defs/optionalArtifactReference"
+    }
+  }
+}
