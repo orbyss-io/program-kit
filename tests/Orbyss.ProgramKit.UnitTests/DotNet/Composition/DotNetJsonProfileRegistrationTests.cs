@@ -1,7 +1,7 @@
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
 using Orbyss.ProgramKit.DotNet.Composition;
-using Orbyss.ProgramKit.DotNet.Locks;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
@@ -35,7 +35,9 @@ public sealed class DotNetJsonProfileRegistrationTests
             DotNetJsonProfiles.ShellBootstrap.MaximumLimits);
 
         Assert.AreEqual(shell.Version, roundTrip.Version);
-        Assert.AreEqual(shell.Composition.Provider, roundTrip.Composition.Provider);
+        Assert.AreEqual(
+            shell.Composition.Provider,
+            roundTrip.Composition.Provider);
         Assert.HasCount(3, roundTrip.Hosts);
         var json = Encoding.UTF8.GetString(canonical.ToArray());
         Assert.Contains("\"inputVersionMapRevision\"", json);
@@ -44,7 +46,9 @@ public sealed class DotNetJsonProfileRegistrationTests
         Assert.Contains("\"oauthClientCredentials\"", json);
         Assert.Contains("\"oauthTokenExchanges\"", json);
         Assert.Contains("\"exchangeMode\":\"delegation\"", json);
-        Assert.Contains("\"targetKind\":\"blazor-web-assembly-oidc\"", json);
+        Assert.Contains(
+            "\"targetKind\":\"blazor-web-assembly-oidc\"",
+            json);
         Assert.Contains("\"web-kit\"", json);
         Assert.DoesNotContain("\"InputVersionMapRevision\"", json);
         Assert.DoesNotContain("JsonElement", json);
@@ -71,7 +75,7 @@ public sealed class DotNetJsonProfileRegistrationTests
     }
 
     [TestMethod]
-    public void FixedProfileCanonicallyRoundTripsConsoleDispatchLockAndEvidence()
+    public void FixedProfileCanonicallyRoundTripsTypedConsoleBinding()
     {
         ProgramKitJsonRegistryFactory registryFactory = new();
         ProgramKitJsonBuilder builder = new(registryFactory);
@@ -80,43 +84,12 @@ public sealed class DotNetJsonProfileRegistrationTests
         ProgramKitJsonSerializer serializer = new(
             builder.Freeze(),
             new ProgramKitJsonCanonicalizer());
-        var reference = DotNetTestContractFactory.Ref(
-            "document",
-            "console",
-            'a');
-        var dispatchLock = new DotNetConsoleCommandDispatchLockDocument(
-            "pkid:schema:program-kit:dotnet-console-command-dispatch-lock@1.0.0",
-            new SemanticVersion("1.0.0"),
-            reference,
-            reference,
-            reference,
-            reference,
-            reference);
-        var evidence = new DotNetConsoleCommandDispatchEvidenceDocument(
-            "pkid:schema:program-kit:dotnet-console-command-dispatch-evidence@1.0.0",
-            new SemanticVersion("1.0.0"),
-            reference,
-            "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs",
-            "ConfigureProgramKitConsoleServices",
-            true,
-            true,
-            [
-                "parse",
-                "compose",
-                "resolve-single-dispatcher",
-                "start-host",
-                "dispatch-once",
-                "stop-host-finally",
-                "return-dispatcher-integer-unchanged",
-            ],
-            "ProgramKitGenerated/Commands/GeneratedConsoleParser.cs",
-            DotNetTestContractFactory.Digest('b'),
-            "ProgramKitGenerated/Commands/GeneratedConsoleParseResult.cs",
-            DotNetTestContractFactory.Digest('c'),
-            "return-dispatcher-integer-unchanged");
+        var shell = DotNetTestContractFactory.Shell();
+        var document = DotNetTestContractFactory.ConsoleDocument(shell);
+        DotNetConsoleBindingDocument binding =
+            DotNetConsoleBindingTestFactory.Binding(document);
 
-        AssertCanonicalRoundTrip(serializer, dispatchLock);
-        AssertCanonicalRoundTrip(serializer, evidence);
+        AssertCanonicalRoundTrip(serializer, binding);
     }
 
     private static void AssertCanonicalRoundTrip<T>(

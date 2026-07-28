@@ -21,7 +21,6 @@ public sealed class DotNetGenerateHostCommandOperationTests
 
     [TestMethod]
     [DataRow("api", "docs/openapi.json")]
-    [DataRow("console", "docs/open-console.json")]
     [DataRow("worker", "docs/open-worker.json")]
     public async Task HostGenerationUsesOnlyManifestBoundExactInputs(
         string kindValue,

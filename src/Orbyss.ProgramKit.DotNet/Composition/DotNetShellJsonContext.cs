@@ -32,8 +32,6 @@ namespace Orbyss.ProgramKit.DotNet.Composition;
 [JsonSerializable(typeof(DotNetArtifactInputManifest))]
 [JsonSerializable(typeof(DotNetShellLockDocument))]
 [JsonSerializable(typeof(DotNetConsoleBindingDocument))]
-[JsonSerializable(typeof(DotNetConsoleCommandDispatchLockDocument))]
-[JsonSerializable(typeof(DotNetConsoleCommandDispatchEvidenceDocument))]
 [JsonSerializable(typeof(OpenApiDocumentProjection))]
 [JsonSerializable(typeof(OpenConsoleDocument))]
 [JsonSerializable(typeof(OpenWorkerDocument))]

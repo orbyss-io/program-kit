@@ -142,7 +142,8 @@ public static class CommandLineComposition
             new DotNetDocumentWriter(
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),
-            new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()));
+            new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()),
+            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create());
         IWorkbenchOutputWorkspace outputWorkspace =
             new FileSystemWorkbenchOutputWorkspace();
         IWorkbenchGenerationService<DotNetHostGenerationInput> apiGeneration =

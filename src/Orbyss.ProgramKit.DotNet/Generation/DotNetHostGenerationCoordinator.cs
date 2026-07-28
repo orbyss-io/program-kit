@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
-using Orbyss.ProgramKit.DotNet.Generation.ConsoleCommands;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
@@ -17,6 +17,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
     private readonly IDotNetHostLockSelector lockSelector;
     private readonly IDotNetHostSourceRenderer sourceRenderer;
     private readonly IDotNetShellValidator shellValidator;
+    private readonly IDotNetConsoleHostGenerator consoleHostGenerator;
 
     /// <summary>Initializes the coordinator with injected validation and rendering behavior.</summary>
     public DotNetHostGenerationCoordinator(
@@ -24,7 +25,8 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         IDotNetHostLockSelector lockSelector,
         IDotNetHostSourceRenderer sourceRenderer,
         IDotNetDocumentWriter documentWriter,
-        IDotNetIntegratorDocumentValidator documentValidator)
+        IDotNetIntegratorDocumentValidator documentValidator,
+        IDotNetConsoleHostGenerator consoleHostGenerator)
     {
         this.shellValidator = shellValidator ??
             throw new ArgumentNullException(nameof(shellValidator));
@@ -36,6 +38,8 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             throw new ArgumentNullException(nameof(documentWriter));
         this.documentValidator = documentValidator ??
             throw new ArgumentNullException(nameof(documentValidator));
+        this.consoleHostGenerator = consoleHostGenerator ??
+            throw new ArgumentNullException(nameof(consoleHostGenerator));
     }
 
     /// <inheritdoc />
@@ -66,12 +70,18 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             .Where(feature => selectedActivations.Contains(feature.ActivationIdentity))
             .OrderBy(static feature => feature.ActivationIdentity.Value, StringComparer.Ordinal)
             .ToImmutableArray();
-        var outputs = sourceRenderer.Render(
-            host,
-            hostLock,
-            features,
-            input.OpenApi,
-            input.OpenConsole).ToBuilder();
+        var outputs = requiredKind == DotNetHostKind.Console
+            ? consoleHostGenerator.Generate(
+                host,
+                hostLock,
+                input.OpenConsole!,
+                input.ConsoleGeneration!,
+                cancellationToken).ToBuilder()
+            : sourceRenderer.Render(
+                host,
+                hostLock,
+                features,
+                input.OpenApi).ToBuilder();
         outputs.Add(new GeneratedOutput("shell.lock.json", documentWriter.Write(input.Lock)));
         if (input.OpenApi is not null)
         {
@@ -81,6 +91,9 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         if (input.OpenConsole is not null)
         {
             outputs.Add(new GeneratedOutput("docs/open-console.json", documentWriter.Write(input.OpenConsole)));
+            outputs.Add(new GeneratedOutput(
+                "docs/dotnet-console-binding.json",
+                documentWriter.Write(input.ConsoleGeneration!.Binding)));
         }
 
         if (input.OpenWorker is not null)
@@ -88,102 +101,11 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             outputs.Add(new GeneratedOutput("docs/open-worker.json", documentWriter.Write(input.OpenWorker)));
         }
 
-        if (requiredKind == DotNetHostKind.Console)
-        {
-            AddConsoleDispatchIntegrityOutputs(
-                outputs,
-                input,
-                host);
-        }
-
         return ValueTask.FromResult(
             outputs
                 .OrderBy(static output => output.RelativePath, StringComparer.Ordinal)
                 .ToImmutableArray());
     }
-
-    private void AddConsoleDispatchIntegrityOutputs(
-        ImmutableArray<GeneratedOutput>.Builder outputs,
-        DotNetHostGenerationInput input,
-        DotNetHostDefinition host)
-    {
-        var dispatcher = FindOutput(
-            outputs,
-            DotNetConsoleCommandDispatchContract.DispatcherContractPath);
-        if (Digest(dispatcher.Content.Span) !=
-            DotNetConsoleCommandDispatchContract.DispatcherRevision.Digest)
-        {
-            throw DotNetKitException.Create(
-                DotNetDiagnosticIds.GenerationFailed,
-                "The generated Console dispatcher contract differs from its exact revision.",
-                "/generation/consoleCommandDispatcher");
-        }
-
-        var parser = FindOutput(
-            outputs,
-            DotNetConsoleCommandDispatchContract.ParserPath);
-        var parseResult = FindOutput(
-            outputs,
-            DotNetConsoleCommandDispatchContract.ParseResultPath);
-        var dispatchLock = new DotNetConsoleCommandDispatchLockDocument(
-            DotNetConsoleCommandDispatchContract.LockSchema,
-            new SemanticVersion("1.0.0"),
-            input.OpenConsole!.HostRevision,
-            input.ShellRevision,
-            input.OpenConsoleDocumentRevision!,
-            host.GeneratorProfileRevision,
-            DotNetConsoleCommandDispatchContract.DispatcherRevision);
-        var dispatchLockBytes = documentWriter.Write(dispatchLock);
-        var dispatchLockRevision = new ArtifactReference(
-            new ProgramKitIdentifier(
-                "pkid:lock:program-kit:console-command-dispatch"),
-            dispatchLock.Version,
-            Digest(dispatchLockBytes.Span));
-        var evidence = new DotNetConsoleCommandDispatchEvidenceDocument(
-            DotNetConsoleCommandDispatchContract.EvidenceSchema,
-            new SemanticVersion("1.0.0"),
-            dispatchLockRevision,
-            DotNetConsoleCommandDispatchContract.DispatcherContractPath,
-            DotNetConsoleCommandDispatchContract.RegistrationMethod,
-            true,
-            true,
-            DotNetConsoleCommandDispatchContract.LifecycleOrder,
-            DotNetConsoleCommandDispatchContract.ParserPath,
-            Digest(parser.Content.Span),
-            DotNetConsoleCommandDispatchContract.ParseResultPath,
-            Digest(parseResult.Content.Span),
-            DotNetConsoleCommandDispatchContract.ExitCodePolicy);
-        outputs.Add(new GeneratedOutput(
-            DotNetConsoleCommandDispatchContract.DispatchLockPath,
-            dispatchLockBytes));
-        outputs.Add(new GeneratedOutput(
-            DotNetConsoleCommandDispatchContract.DispatchEvidencePath,
-            documentWriter.Write(evidence)));
-    }
-
-    private static GeneratedOutput FindOutput(
-        ImmutableArray<GeneratedOutput>.Builder outputs,
-        string relativePath)
-    {
-        var matches = outputs
-            .Where(output =>
-                string.Equals(
-                    output.RelativePath,
-                    relativePath,
-                    StringComparison.Ordinal))
-            .ToArray();
-        return matches.Length == 1
-            ? matches[0]
-            : throw DotNetKitException.Create(
-                DotNetDiagnosticIds.GenerationFailed,
-                "Console generation did not produce one required dispatch artifact.",
-                "/generation/outputs");
-    }
-
-    private static Sha256Digest Digest(ReadOnlySpan<byte> content) =>
-        new(string.Concat(
-            "sha256:",
-            Convert.ToHexStringLower(SHA256.HashData(content))));
 
     private static DotNetHostDefinition ResolveHost(
         ImmutableArray<DotNetHostDefinition> hosts,
@@ -243,7 +165,8 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             DotNetHostKind.Console =>
                 input.OpenApi is null &&
                 input.OpenConsole is not null &&
-                input.OpenWorker is null,
+                input.OpenWorker is null &&
+                input.ConsoleGeneration is not null,
             DotNetHostKind.Worker =>
                 input.OpenApi is null &&
                 input.OpenConsole is null &&
@@ -256,6 +179,15 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                 DotNetDiagnosticIds.InvalidIntegratorDocument,
                 "Exactly the integrator document matching the selected host kind is required.",
                 "/documentation");
+        }
+
+        if (requiredKind != DotNetHostKind.Console &&
+            input.ConsoleGeneration is not null)
+        {
+            throw DotNetKitException.Create(
+                DotNetDiagnosticIds.InvalidIntegratorDocument,
+                "Only Console generation accepts typed Console generation inputs.",
+                "/consoleGeneration");
         }
     }
 
@@ -331,6 +263,13 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         {
             throw InvalidOpenConsoleRevision(
                 "The Open Console revision must match the canonical document version and bytes exactly.");
+        }
+
+        if (input.ConsoleGeneration!.Binding.OpenConsoleDocumentRevision !=
+            revision)
+        {
+            throw InvalidOpenConsoleRevision(
+                "The Console binding must select the exact accepted Open Console document revision.");
         }
     }
 

@@ -222,24 +222,6 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pkkc-w010-approved-correction-1-0-0");
-    private static readonly ArtifactProvenance ConsoleDispatchProvenance =
-        new(
-            [
-                new ArtifactReference(
-                    new ProgramKitIdentifier(
-                        "pkid:design:program-kit:console-command-dispatch"),
-                    new SemanticVersion("1.0.0"),
-                    new Sha256Digest(
-                        "sha256:21afb73f5abc636f23a5fe0357d226bd04dc0697d280a18f3d2ace2ae3be6046")),
-                new ArtifactReference(
-                    new ProgramKitIdentifier(
-                        "pkid:plan:program-kit:console-command-dispatch"),
-                    new SemanticVersion("1.0.0"),
-                    new Sha256Digest(
-                        "sha256:1eaec71ea9916512d0a3d15a7e601dd03f5474d9fb6faa9805734eca12439196")),
-            ],
-            new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
-            "pkccd-w010-approved-review-set-1-0-0");
     private static readonly ArtifactProvenance TypedConsoleProvenance =
         new(
             [
@@ -421,20 +403,6 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "6662822e3707c822b692753ae244316e861f6b17e0a8114db4f7dc4b91e6d85a",
             SchemaVersionV2,
             AzureKeyVaultProvenance),
-        Create(
-            "dotnet-console-command-dispatch-lock",
-            "dotnet-console-command-dispatch-lock-1.0.0.schema.json",
-            "https://schemas.orbyss.io/program-kit/dotnet/console-command-dispatch-lock/1.0.0/schema.json",
-            "396765c3a0edabed2fae5186593761400a21eec29716a630fcc37f1cb6fa1106",
-            SchemaVersionV1,
-            ConsoleDispatchProvenance),
-        Create(
-            "dotnet-console-command-dispatch-evidence",
-            "dotnet-console-command-dispatch-evidence-1.0.0.schema.json",
-            "https://schemas.orbyss.io/program-kit/dotnet/console-command-dispatch-evidence/1.0.0/schema.json",
-            "6a92aff0466f845c75d9eca4a6aa09a80981da09d329ab7594c7076aa5c710cf",
-            SchemaVersionV1,
-            ConsoleDispatchProvenance),
         Create(
             "dotnet-console-binding",
             "dotnet-console-binding-1.0.0.schema.json",

@@ -10,6 +10,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="Spectre.Console"
+                      PrivateAssets="all" />
+    <PackageReference Include="Spectre.Console.Cli"
+                      PrivateAssets="all" />
     <ProjectReference Include="..\Orbyss.ProgramKit.ConsoleContractFixtures\Orbyss.ProgramKit.ConsoleContractFixtures.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Artifacts\Orbyss.ProgramKit.Artifacts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />

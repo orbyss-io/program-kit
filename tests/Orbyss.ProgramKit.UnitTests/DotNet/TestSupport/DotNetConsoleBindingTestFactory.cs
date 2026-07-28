@@ -1,4 +1,6 @@
 using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Compilation;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.ConsoleContractFixtures.Contracts;
 
@@ -122,6 +124,39 @@ internal static class DotNetConsoleBindingTestFactory
         };
     }
 
+    internal static DotNetConsoleGenerationInput GenerationInput(
+        OpenConsoleDocument openConsole,
+        ArtifactReference documentRevision)
+    {
+        var assemblyPath = typeof(MetadataFixtureRequest).Assembly.Location;
+        var binding = MetadataBinding(openConsole, assemblyPath) with
+        {
+            OpenConsoleDocumentRevision = documentRevision,
+        };
+        var trustedPlatformAssemblies = (
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ??
+            string.Empty)
+            .Split(
+                Path.PathSeparator,
+                StringSplitOptions.RemoveEmptyEntries);
+        var outputAssemblies = Directory.GetFiles(
+            AppContext.BaseDirectory,
+            "*.dll",
+            SearchOption.TopDirectoryOnly);
+        var references = trustedPlatformAssemblies
+            .Concat(outputAssemblies)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.Ordinal)
+            .Select(static path => new DotNetConsoleCompilationReference(
+                path,
+                Digest(path)))
+            .ToImmutableArray();
+        return new DotNetConsoleGenerationInput(
+            binding,
+            assemblyPath,
+            references);
+    }
+
     internal static DotNetConsoleClrTypeDescriptor Type(
         string metadataName,
         DotNetConsoleReferenceNullability nullability =
@@ -144,4 +179,12 @@ internal static class DotNetConsoleBindingTestFactory
             new DotNetConsoleDefaultDisposition(
                 defaultKind,
                 canonicalDefault));
+
+    private static Sha256Digest Digest(string path) =>
+        new(
+            string.Concat(
+                "sha256:",
+                Convert.ToHexStringLower(
+                    System.Security.Cryptography.SHA256.HashData(
+                        File.ReadAllBytes(path)))));
 }

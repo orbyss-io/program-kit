@@ -125,4 +125,7 @@ public static class DotNetDiagnosticIds
 
     /// <summary>An isolated generated Console candidate does not compile.</summary>
     public const string ConsoleCandidateCompilationFailed = "PKNET041";
+
+    /// <summary>An Open Console document cannot be projected into the pinned Console host profile.</summary>
+    public const string ConsoleProjectionFailed = "PKNET042";
 }

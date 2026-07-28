@@ -34,6 +34,7 @@ public sealed class DotNetHostGenerationCoordinatorTests
         var lockDocument = CreateLock(shell, shellRevision);
         var coordinator = CreateCoordinator();
         ConsoleHostGenerator sut = new(coordinator);
+        var documentRevision = DocumentRevision(document);
         var input = new DotNetHostGenerationInput(
             shell,
             shellRevision,
@@ -42,7 +43,10 @@ public sealed class DotNetHostGenerationCoordinatorTests
             null,
             document,
             null,
-            DocumentRevision(document));
+            documentRevision,
+            DotNetConsoleBindingTestFactory.GenerationInput(
+                document,
+                documentRevision));
 
         var outputs = await sut.GenerateAsync(
             input,
@@ -51,47 +55,74 @@ public sealed class DotNetHostGenerationCoordinatorTests
         Assert.IsTrue(outputs.Any(static output =>
             output.RelativePath == "GeneratedHost.csproj"));
         Assert.IsTrue(outputs.Any(static output =>
-            output.RelativePath == "ProgramKitGenerated/Commands/GeneratedConsoleParser.cs"));
+            output.RelativePath == "ProgramKitGenerated/Commands/ObserveRun/ObserveRunSettings.cs"));
+        Assert.IsTrue(outputs.Any(static output =>
+            output.RelativePath == "ProgramKitGenerated/Commands/ObserveRun/ObserveRunCommand.cs"));
+        Assert.IsTrue(outputs.Any(static output =>
+            output.RelativePath == "ProgramKitGenerated/Commands/ObserveRun/ObserveRunRequestFactory.cs"));
+        Assert.IsTrue(outputs.Any(static output =>
+            output.RelativePath == "ProgramKitGenerated/Program.cs"));
         Assert.IsTrue(outputs.Any(static output =>
             output.RelativePath == "docs/open-console.json"));
         Assert.IsTrue(outputs.Any(static output =>
             output.RelativePath == "shell.lock.json"));
         Assert.IsTrue(outputs.Any(static output =>
-            output.RelativePath ==
-            "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs"));
-        var dispatchLockOutput = outputs.Single(static output =>
-            output.RelativePath ==
-            "ProgramKitGenerated/Commands/console-command-dispatch.lock.json");
-        var evidenceOutput = outputs.Single(static output =>
-            output.RelativePath ==
-            "ProgramKitGenerated/Evidence/console-command-dispatch.evidence.json");
-        var serializer = CreateSerializer();
-        var dispatchLock = serializer.Read<DotNetConsoleCommandDispatchLockDocument>(
-            dispatchLockOutput.Content,
-            DotNetJsonProfiles.ShellBootstrap.Reference,
-            JsonSerializationLimits.Default);
-        var evidence = serializer.Read<DotNetConsoleCommandDispatchEvidenceDocument>(
-            evidenceOutput.Content,
-            DotNetJsonProfiles.ShellBootstrap.Reference,
-            JsonSerializationLimits.Default);
-        Assert.AreEqual(shellRevision, dispatchLock.ShellRevision);
-        Assert.AreEqual(
-            input.OpenConsoleDocumentRevision,
-            dispatchLock.OpenConsoleDocumentRevision);
-        Assert.AreEqual(
-            host.GeneratorProfileRevision,
-            dispatchLock.HostGeneratorRevision);
-        Assert.AreEqual(
-            "sha256:2e4434b1df81274c2d8d5a41911d7a23a837b5db63da93687aed6b1862538ec3",
-            evidence.ParserDigest.Value);
-        Assert.AreEqual(
-            "sha256:a95b7bf78aea54d000c580e033faca7638b66accbe87ee7e8a7e9ebc734d1f61",
-            evidence.ParseResultDigest.Value);
-        Assert.AreEqual(
-            "return-dispatcher-integer-unchanged",
-            evidence.ExitCodePolicy);
-        Assert.IsTrue(evidence.RequiredDispatcherResolution);
-        Assert.IsTrue(evidence.ResolutionBeforeHostStart);
+            output.RelativePath == "docs/dotnet-console-binding.json"));
+        Assert.IsFalse(outputs.Any(static output =>
+            output.RelativePath.Contains(
+                "Dispatcher",
+                StringComparison.Ordinal)));
+        Assert.IsFalse(outputs.Any(static output =>
+            output.RelativePath.Contains(
+                "Parser",
+                StringComparison.Ordinal)));
+        var project = Text(outputs, "GeneratedHost.csproj");
+        Assert.Contains(
+            "<PackageReference Include=\"Spectre.Console.Cli\" Version=\"[0.55.0]\" />",
+            project);
+        Assert.Contains(
+            "<ProjectReference Include=\"src/Sample.Console.Contracts/Sample.Console.Contracts.csproj\" />",
+            project);
+        var settings = Text(
+            outputs,
+            "ProgramKitGenerated/Commands/ObserveRun/ObserveRunSettings.cs");
+        Assert.Contains(
+            "[global::Spectre.Console.Cli.CommandArgument(0, \"<target>\")]",
+            settings);
+        Assert.Contains(
+            "public global::System.Int32? Value1",
+            settings);
+        var requestFactory = Text(
+            outputs,
+            "ProgramKitGenerated/Commands/ObserveRun/ObserveRunRequestFactory.cs");
+        Assert.Contains(
+            "settings.Value1 ?? 1",
+            requestFactory);
+        var commandSource = Text(
+            outputs,
+            "ProgramKitGenerated/Commands/ObserveRun/ObserveRunCommand.cs");
+        Assert.Contains(
+            "global::Orbyss.ProgramKit.ConsoleContractFixtures.Contracts.IMetadataFixtureHandler handler",
+            commandSource);
+        Assert.Contains(
+            "return await handler.HandleAsync(request, cancellationToken)",
+            commandSource);
+        var program = Text(outputs, "ProgramKitGenerated/Program.cs");
+        Assert.Contains(".AddBranch(\"observe\"", program);
+        Assert.Contains(
+            ".AddCommand<global::GeneratedHost.Commands.ObserveRunCommand>(\"execute\")",
+            program);
+        Assert.Contains(
+            ".AddCommand<global::GeneratedHost.Commands.ObserveRunCommand>(\"run-observation\")",
+            program);
+        foreach (var output in outputs)
+        {
+            Assert.IsFalse(
+                output.Content.Span.StartsWith(
+                    new byte[] { 0xEF, 0xBB, 0xBF }));
+            Assert.IsFalse(
+                output.Content.Span.Contains((byte)'\r'));
+        }
 
         var repeated = await sut.GenerateAsync(
             input,
@@ -131,6 +162,7 @@ public sealed class DotNetHostGenerationCoordinatorTests
         };
         var coordinator = CreateCoordinator();
         ConsoleHostGenerator sut = new(coordinator);
+        var revision = DocumentRevision(document);
         var input = new DotNetHostGenerationInput(
             shell,
             shellRevision,
@@ -139,7 +171,10 @@ public sealed class DotNetHostGenerationCoordinatorTests
             null,
             document,
             null,
-            DocumentRevision(document));
+            revision,
+            DotNetConsoleBindingTestFactory.GenerationInput(
+                document,
+                revision));
 
         var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(
             async () => await sut.GenerateAsync(
@@ -189,7 +224,10 @@ public sealed class DotNetHostGenerationCoordinatorTests
             null,
             document,
             null,
-            revision);
+            revision,
+            DotNetConsoleBindingTestFactory.GenerationInput(
+                document,
+                exactRevision));
 
         var exception = await Assert.ThrowsExactlyAsync<DotNetKitException>(
             async () => await sut.GenerateAsync(
@@ -253,6 +291,13 @@ public sealed class DotNetHostGenerationCoordinatorTests
         return builder.Build(shell, shellRevision);
     }
 
+    private static string Text(
+        ImmutableArray<Orbyss.ProgramKit.Workbench.Operations.Generation.GeneratedOutput> outputs,
+        string relativePath) =>
+        System.Text.Encoding.UTF8.GetString(
+            outputs.Single(output =>
+                output.RelativePath == relativePath).Content.Span);
+
     private static DotNetHostGenerationCoordinator CreateCoordinator()
     {
         var documentWriter = CreateDocumentWriter();
@@ -272,7 +317,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
                 new DotNetSecurityProjectionCompiler(),
                 new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
-            new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()));
+            new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()),
+            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create());
     }
 
     private static DotNetDocumentWriter CreateDocumentWriter()

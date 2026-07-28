@@ -26,8 +26,6 @@
       "Orbyss.ProgramKit.DotNet.Operations.Security.DotNetSecurityConfiguration",
       "Orbyss.ProgramKit.DotNet.Locks.DotNetShellLockDocument",
       "Orbyss.ProgramKit.DotNet.Generation.Console.Binding.DotNetConsoleBindingDocument",
-      "Orbyss.ProgramKit.DotNet.Locks.DotNetConsoleCommandDispatchLockDocument",
-      "Orbyss.ProgramKit.DotNet.Locks.DotNetConsoleCommandDispatchEvidenceDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Api.OpenApiDocumentProjection",
       "Orbyss.ProgramKit.OpenConsole.Contracts.OpenConsoleDocument",
       "Orbyss.ProgramKit.DotNet.Documentation.Worker.OpenWorkerDocument",

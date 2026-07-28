@@ -2,6 +2,7 @@ using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Locks;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
 
 namespace Orbyss.ProgramKit.DotNet.Generation;
 
@@ -20,9 +21,6 @@ public interface IDotNetDocumentWriter
     /// <summary>Writes the selected deterministic shell lock.</summary>
     ReadOnlyMemory<byte> Write(DotNetShellLockDocument document);
 
-    /// <summary>Writes the exact Console command-dispatch lock.</summary>
-    ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchLockDocument document);
-
-    /// <summary>Writes deterministic Console command-dispatch evidence.</summary>
-    ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchEvidenceDocument document);
+    /// <summary>Writes the exact typed Console binding.</summary>
+    ReadOnlyMemory<byte> Write(DotNetConsoleBindingDocument document);
 }

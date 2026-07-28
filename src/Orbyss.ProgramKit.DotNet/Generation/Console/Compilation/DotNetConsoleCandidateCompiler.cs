@@ -122,8 +122,15 @@ public sealed class DotNetConsoleCandidateCompiler :
             return Invalid(diagnostics);
         }
 
+        var outputKind = sources.Any(static source =>
+            string.Equals(
+                source.RelativePath,
+                "ProgramKitGenerated/Program.cs",
+                StringComparison.Ordinal))
+            ? OutputKind.ConsoleApplication
+            : OutputKind.DynamicallyLinkedLibrary;
         CSharpCompilationOptions compilationOptions = new(
-            OutputKind.DynamicallyLinkedLibrary,
+            outputKind,
             optimizationLevel: OptimizationLevel.Release,
             checkOverflow: true,
             allowUnsafe: false,

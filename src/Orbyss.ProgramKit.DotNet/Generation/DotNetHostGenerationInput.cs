@@ -3,6 +3,7 @@ using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
 
 namespace Orbyss.ProgramKit.DotNet.Generation;
 
@@ -15,4 +16,5 @@ public sealed record DotNetHostGenerationInput(
     OpenApiDocumentProjection? OpenApi,
     OpenConsoleDocument? OpenConsole,
     OpenWorkerDocument? OpenWorker,
-    ArtifactReference? OpenConsoleDocumentRevision = null);
+    ArtifactReference? OpenConsoleDocumentRevision = null,
+    DotNetConsoleGenerationInput? ConsoleGeneration = null);

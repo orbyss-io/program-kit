@@ -3,6 +3,7 @@ using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Locks;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
 
@@ -42,11 +43,7 @@ public sealed class DotNetDocumentWriter : IDotNetDocumentWriter
         WriteCanonical(document);
 
     /// <inheritdoc />
-    public ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchLockDocument document) =>
-        WriteCanonical(document);
-
-    /// <inheritdoc />
-    public ReadOnlyMemory<byte> Write(DotNetConsoleCommandDispatchEvidenceDocument document) =>
+    public ReadOnlyMemory<byte> Write(DotNetConsoleBindingDocument document) =>
         WriteCanonical(document);
 
     private ReadOnlyMemory<byte> WriteCanonical<T>(T document)

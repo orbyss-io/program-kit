@@ -47,7 +47,8 @@ public sealed class GeneratedHostArtifactTests
         FixtureAssert.HasCount(3, shellLock.HostLocks);
 
         var coordinator = CreateCoordinator();
-        foreach (var host in shell.Hosts)
+        foreach (var host in shell.Hosts.Where(static host =>
+                     host.Kind != DotNetHostKind.Console))
         {
             var input = host.Kind switch
             {
@@ -99,19 +100,6 @@ public sealed class GeneratedHostArtifactTests
                     first[index].Content.Span,
                     second[index].Content.Span);
             }
-
-            if (host.Kind == DotNetHostKind.Console)
-            {
-                FixtureAssert.IsTrue(first.Any(static output =>
-                    output.RelativePath ==
-                    "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs"));
-                FixtureAssert.IsTrue(first.Any(static output =>
-                    output.RelativePath ==
-                    "ProgramKitGenerated/Commands/console-command-dispatch.lock.json"));
-                FixtureAssert.IsTrue(first.Any(static output =>
-                    output.RelativePath ==
-                    "ProgramKitGenerated/Evidence/console-command-dispatch.evidence.json"));
-            }
         }
     }
 
@@ -147,7 +135,8 @@ public sealed class GeneratedHostArtifactTests
                 new DotNetSecurityProjectionCompiler(),
                 new DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
-                new DotNetIntegratorDocumentValidator(
-                    new OpenConsoleDocumentValidator()));
+            new DotNetIntegratorDocumentValidator(
+                new OpenConsoleDocumentValidator()),
+            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create());
     }
 }

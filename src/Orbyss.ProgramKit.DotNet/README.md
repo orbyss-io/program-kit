@@ -4,39 +4,24 @@ This package contains the Program Kit's .NET 10 contracts, validation, and
 deterministic source generators. Generated applications do not reference the
 generator package at runtime.
 
-## Generated Console command dispatch
+## Generated typed Console hosts
 
-Console host generation preserves the typed Open Console parser and adds one
-host-local internal `IProgramKitConsoleCommandDispatcher`. Consumer-owned
-source implements that interface and registers exactly one implementation
-through the generated `Program` partial method:
+Console generation accepts an Open Console document, an exact .NET binding
+document, one digest-locked consumer reference assembly, and explicit
+digest-locked compilation references. It verifies that every declared command
+maps exactly to the consumer-owned request, handler, optional validator,
+validation-result, and single CShells feature contracts before rendering.
 
-```csharp
-static partial void ConfigureProgramKitConsoleServices(
-    IServiceCollection services)
-{
-    services.AddSingleton<
-        IProgramKitConsoleCommandDispatcher,
-        ConsumerConsoleCommandDispatcher>();
-}
-```
+The deterministic output is a complete executable project. It references the
+consumer project in one direction and pins CShells 0.0.28,
+Spectre.Console 0.55.0, and Spectre.Console.Cli 0.55.0 exactly. Per-command
+settings, request factories, and Spectre commands are generated in stable
+paths. Spectre owns parsing and native scalar conversion; generated settings
+preserve whether each value was explicitly supplied.
 
-Parse failures, help, and completion return before host composition. For a
-successfully parsed command, generated code builds the host, requires exactly
-one dispatcher before start, starts once, dispatches once with
-`IHostApplicationLifetime.ApplicationStopping`, attempts a bounded stop in
-`finally`, and returns the dispatcher's integer unchanged.
-
-The consumer owns command selection, output, exceptions, and exit-code
-meaning. Missing or duplicate dispatcher registration fails closed; Program
-Kit does not map consumer results. Plain service dispatch may use zero feature
-activations and no CShells feature package, although dotnet-shell v11 still
-requires one shell identity and the base `CShells` 0.0.28 package.
-
-Generation emits a deterministic dispatch lock and evidence record binding the
-exact Open Console document revision, dispatcher contract, parser and
-parse-result digests, registration seam, lifecycle, and pass-through policy.
-Generated runtime projects do not reference Program Kit tooling.
+The consumer owns only the referenced contracts and their implementations.
+Generated runtime projects do not reference Program Kit tooling, perform
+runtime source verification, or contain an untyped command-selection seam.
 
 ## Aspire AppHost generation
 

@@ -31,7 +31,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(38, module.Resources);
+        Assert.HasCount(36, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -85,52 +85,6 @@ public sealed class DotNetSchemaModuleTests
             consoleDocument,
             profile.Reference,
             profile.MaximumLimits);
-        var consoleDocumentRevision = new ArtifactReference(
-            DotNetTestContractFactory.Id("document", "console"),
-            consoleDocument.DocumentVersion,
-            Digest(consoleDocumentBytes.ToArray()));
-        var consoleHost = shell.Hosts.Single(static host =>
-            host.Kind == Orbyss.ProgramKit.DotNet.Shells.DotNetHostKind.Console);
-        var dispatchLock = new DotNetConsoleCommandDispatchLockDocument(
-            "pkid:schema:program-kit:dotnet-console-command-dispatch-lock@1.0.0",
-            new SemanticVersion("1.0.0"),
-            consoleDocument.HostRevision,
-            shellRevision,
-            consoleDocumentRevision,
-            consoleHost.GeneratorProfileRevision,
-            DotNetTestContractFactory.Ref(
-                "contract",
-                "console-command-dispatcher",
-                'e'));
-        var dispatchLockBytes = serializer.Write(
-            dispatchLock,
-            profile.Reference,
-            profile.MaximumLimits);
-        var dispatchEvidence = new DotNetConsoleCommandDispatchEvidenceDocument(
-            "pkid:schema:program-kit:dotnet-console-command-dispatch-evidence@1.0.0",
-            new SemanticVersion("1.0.0"),
-            new ArtifactReference(
-                DotNetTestContractFactory.Id("lock", "console-dispatch"),
-                new SemanticVersion("1.0.0"),
-                Digest(dispatchLockBytes.ToArray())),
-            "ProgramKitGenerated/Commands/IProgramKitConsoleCommandDispatcher.cs",
-            "ConfigureProgramKitConsoleServices",
-            true,
-            true,
-            [
-                "parse",
-                "compose",
-                "resolve-single-dispatcher",
-                "start-host",
-                "dispatch-once",
-                "stop-host-finally",
-                "return-dispatcher-integer-unchanged",
-            ],
-            "ProgramKitGenerated/Commands/GeneratedConsoleParser.cs",
-            DotNetTestContractFactory.Digest('c'),
-            "ProgramKitGenerated/Commands/GeneratedConsoleParseResult.cs",
-            DotNetTestContractFactory.Digest('d'),
-            "return-dispatcher-integer-unchanged");
         var documents = new[]
         {
             (
@@ -165,15 +119,6 @@ public sealed class DotNetSchemaModuleTests
             (
                 Name: "open-console",
                 Content: consoleDocumentBytes.ToArray()),
-            (
-                Name: "dotnet-console-command-dispatch-lock",
-                Content: dispatchLockBytes.ToArray()),
-            (
-                Name: "dotnet-console-command-dispatch-evidence",
-                Content: serializer.Write(
-                    dispatchEvidence,
-                    profile.Reference,
-                    profile.MaximumLimits).ToArray()),
             (
                 Name: "open-worker",
                 Content: serializer.Write(
@@ -221,9 +166,4 @@ public sealed class DotNetSchemaModuleTests
                             diagnostic.Message))));
         }
     }
-
-    private static Sha256Digest Digest(ReadOnlySpan<byte> content) =>
-        new(string.Concat(
-            "sha256:",
-            Convert.ToHexStringLower(SHA256.HashData(content))));
 }
