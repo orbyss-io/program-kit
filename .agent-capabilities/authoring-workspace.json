@@ -1,0 +1,5 @@
+{
+  "capabilityInitialization": "denied",
+  "policyVersion": "1.0.0",
+  "reason": "Program Kit capability source authoring, building, packing, and fixture verification must remain inert."
+}

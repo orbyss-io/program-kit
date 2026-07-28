@@ -18,6 +18,11 @@ grant authority, or start work. See
 contract and [capabilities/INDEX.md](capabilities/INDEX.md) for Program Kit's
 canonical availability catalog.
 
+The source tree carries `authoring-workspace.json`; explicit initialization
+fails closed while that marker is present. Consumer initialization uses the
+verified content-only capability bundle, which deliberately excludes the
+marker, and rejects user-home global provider roots.
+
 Non-discoverable supporting resources live below `supporting-resources/`.
 They may hold exact shared procedure bytes referenced by canonical
 capabilities, but they are not capabilities, provider adapters, triggers, or

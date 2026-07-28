@@ -19,14 +19,17 @@ public sealed class CapabilityDeliveryConformanceTests
         "design-software",
         "develop-software",
         "implement-software-plan",
+        "maintain-software",
     ];
 
     private static readonly string[] RegisteredCapabilityIds =
     [
+        "author-and-maintain-skills",
         "design-csharp-build-gate",
         "design-software",
         "develop-software",
         "implement-software-plan",
+        "maintain-software",
         "publish-dotnet-application-locally",
     ];
 
@@ -173,6 +176,79 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
+    public void MaintenanceFlowIsBoundedSharedAndExactlyHumanUpgraded()
+    {
+        var routing = ConformanceInputs.Read(
+            "Capabilities/develop-software/CAPABILITY.md");
+        var maintenance = ConformanceInputs.Read(
+            "Capabilities/maintain-software/CAPABILITY.md");
+
+        Assert.Contains(
+            "one small architecture-compatible change -> `maintain-software`",
+            routing);
+        Assert.Contains(
+            "materially changed architecture",
+            routing);
+        Assert.Contains(
+            "../../supporting-resources/completion-profiles/software-change/" +
+            "completion-profile-set-1.0.0.json",
+            maintenance);
+        Assert.Contains(
+            "exact human-approved Program Kit version",
+            maintenance);
+        Assert.Contains(
+            "Do not auto-upgrade Program Kit",
+            maintenance);
+        Assert.Contains(
+            "mapping is unambiguous",
+            maintenance);
+        Assert.Contains(
+            "route to `design-software`",
+            maintenance);
+        Assert.Contains(
+            "one reversible",
+            maintenance);
+    }
+
+    [TestMethod]
+    public void ProductCapabilityStandardIsDistributableAndAuthoringInert()
+    {
+        var authoring = ConformanceInputs.Read(
+            "Capabilities/author-and-maintain-skills/CAPABILITY.md");
+        Assert.Contains(
+            "## Product capability distribution standard",
+            authoring);
+        Assert.Contains(
+            "Every new or updated Program Kit product capability",
+            authoring);
+        Assert.Contains(
+            "user-home global provider roots",
+            authoring);
+        Assert.Contains(
+            "authoring, build, pack, and fixture verification remain inert",
+            authoring);
+
+        using var marker = JsonDocument.Parse(
+            ConformanceInputs.ReadBytes(
+                "Capabilities/authoring-workspace.json"));
+        Assert.AreEqual(
+            "denied",
+            marker.RootElement
+                .GetProperty("capabilityInitialization")
+                .GetString());
+        Assert.IsFalse(
+            Directory.Exists(
+                Path.Combine(
+                    ConformanceInputs.ProgramKitRoot,
+                    ".codex")));
+        Assert.IsFalse(
+            Directory.Exists(
+                Path.Combine(
+                    ConformanceInputs.ProgramKitRoot,
+                    ".claude")));
+    }
+
+    [TestMethod]
     public void IndexAndGeneratedCatalogAgreeAtExactCurrentBytes()
     {
         var indexBytes = ConformanceInputs.ReadBytes(
@@ -223,7 +299,7 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
-    public void BundleManifestAllowsExactlyFourDefinitionsAndTheirAdapters()
+    public void BundleManifestAllowsExactlyFiveDefinitionsAndTheirAdapters()
     {
         CapabilityBundleManifestReader reader = new();
         var manifest = reader.Read(
@@ -420,7 +496,7 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            22,
+            25,
             project
                 .Descendants("None")
                 .Where(

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Orbyss.ProgramKit.CapabilityBundle</PackageId>
-    <Description>Exact-byte content bundle for the four distributable Orbyss Program Kit development capabilities.</Description>
+    <Description>Exact-byte content bundle for the five distributable Orbyss Program Kit development capabilities.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
@@ -65,6 +65,10 @@
           Link="Payload\.agent-capabilities\capabilities\implement-software-plan\CAPABILITY.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/" />
+    <None Include="..\..\.agent-capabilities\capabilities\maintain-software\CAPABILITY.md"
+          Link="Payload\.agent-capabilities\capabilities\maintain-software\CAPABILITY.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/capabilities/maintain-software/" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Link="Payload\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Pack="true"
@@ -81,6 +85,10 @@
           Link="Payload\.agent-capabilities\provider-adapters\codex\implement-software-plan\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/implement-software-plan/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\codex\maintain-software\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\codex\maintain-software\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/maintain-software/" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Link="Payload\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Pack="true"
@@ -97,5 +105,9 @@
           Link="Payload\.agent-capabilities\provider-adapters\claude\implement-software-plan\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/implement-software-plan/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\maintain-software\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\claude\maintain-software\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/maintain-software/" />
   </ItemGroup>
 </Project>

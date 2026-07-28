@@ -4,8 +4,8 @@
 
 `develop-software` owns development-flow routing for a human-started software
 request. Use it when a human asks to develop software but has not selected the
-design or approved-plan implementation flow, or asks which backed development
-flow should handle the work.
+design, approved-plan implementation, or bounded maintenance flow, or asks
+which backed development flow should handle the work.
 
 ## Purpose
 
@@ -33,6 +33,8 @@ Inputs:
 - The canonical `.agent-capabilities/capabilities/INDEX.md`.
 - Any named design, plan, approval, or supersession evidence needed to classify
   the request.
+- Accepted architecture and current source truth needed to distinguish a
+  bounded compatible change from material new intent.
 
 Outputs:
 
@@ -72,10 +74,11 @@ Outputs:
 ## Stop conditions
 
 Stop with `human-decision-required` when intent, scope, repository, accepted
-artifact state, or the choice between design and implementation is ambiguous.
-Stop with `flow-unavailable` when the requested flow is absent or unavailable,
-including release, qualification, or promotion flows. Stop without routing when
-a named approval is missing, changed, rejected, conditional, or superseded.
+artifact state, semantic mapping, or the choice among maintenance, design, and
+approved-plan implementation is ambiguous. Stop with `flow-unavailable` when
+the requested flow is absent or unavailable, including release, qualification,
+or promotion flows. Stop without routing when a named approval is missing,
+changed, rejected, conditional, or superseded.
 
 ## Source of truth and freshness
 
@@ -92,12 +95,16 @@ mechanics, not procedure or availability sources.
 2. Read applicable `AGENTS.md` guidance and the canonical capability index.
 3. Identify explicit accepted design, plan, and approval artifacts without
    searching unrelated history.
-4. Validate any artifact needed to distinguish a new/changed intent from an
-   exactly approved implementation plan.
+4. Validate any artifact needed to distinguish a bounded compatible change,
+   new/material intent, and an exactly approved implementation plan.
 5. Classify:
-   - new or materially changed intent -> `design-software`;
+   - one small architecture-compatible change -> `maintain-software`;
+   - new or materially changed architecture, mechanism, schema kind, security
+     boundary, package family, compatibility, deployment, or runtime topology
+     -> `design-software`;
    - exact valid approved plan -> `implement-software-plan`;
-   - unclear choice or missing decision -> `human-decision-required`;
+   - unclear semantics, mapping, scope, or missing decision ->
+     `human-decision-required`;
    - unavailable flow -> `flow-unavailable`.
 6. Confirm the selected capability is available and record at most one next
    capability.

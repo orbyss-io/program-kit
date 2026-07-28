@@ -12,6 +12,11 @@ provider. It owns only:
 An adapter never copies canonical procedure, authority, safety, or verification
 rules. Installing an adapter does not grant authority or begin work.
 
+Initialization is project-scoped only. It rejects the Program Kit source
+authoring marker, filesystem roots, and the user-home root so provider-global
+`.codex` or `.claude` configuration cannot be written. Building, packing, and
+testing adapter templates never renders a wrapper.
+
 ## Implemented provider: Codex
 
 Codex templates live under `provider-adapters/codex/<capability-id>/SKILL.md`.

@@ -1,16 +1,16 @@
 {
-  "bundleVersion": "2.2.0",
+  "bundleVersion": "3.0.0",
   "capabilities": [
     {
       "capabilityId": "develop-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/develop-software/CAPABILITY.md",
-      "sha256": "sha256:997d034b62d80835721fc1814545d34349f0c8c9fb753d302ba77918c1d90252",
+      "sha256": "sha256:d45f4db86f68064f53744548ed3134a84d751e6623ff825d9ce3fd7cf5d0bb69",
       "sourcePath": ".agent-capabilities/capabilities/develop-software/CAPABILITY.md"
     },
     {
       "capabilityId": "design-csharp-build-gate",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:bd841c85f335bcd330745ff7e818eb5785990a6f233296dd1ea353cf8e98f24f",
+      "sha256": "sha256:c498d0da7cdc9e0e6a3f320848980bb5a8f26f998da3f6dd8dfb1c382ddc4852",
       "sourcePath": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md"
     },
     {
@@ -24,6 +24,12 @@
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md",
       "sha256": "sha256:a42d76fdf4659b790404fa462ec832bb732a845836c53ce33485d307f0416161",
       "sourcePath": ".agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md"
+    },
+    {
+      "capabilityId": "maintain-software",
+      "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/maintain-software/CAPABILITY.md",
+      "sha256": "sha256:26f3f21036ba46d879c020fed233e5034276fe1d90f9d4baafbf40f74be8405d",
+      "sourcePath": ".agent-capabilities/capabilities/maintain-software/CAPABILITY.md"
     }
   ],
   "kitVersion": "0.1.0-alpha.1",
@@ -57,6 +63,13 @@
       "sourcePath": ".agent-capabilities/provider-adapters/codex/implement-software-plan/SKILL.md"
     },
     {
+      "capabilityId": "maintain-software",
+      "packagePath": "contentFiles/any/any/.agent-capabilities/provider-adapters/codex/maintain-software/SKILL.md",
+      "provider": "codex",
+      "sha256": "sha256:3f15eddf3027b21160e73b4998f484a460b4789672e40a14b333cc8d15f5064c",
+      "sourcePath": ".agent-capabilities/provider-adapters/codex/maintain-software/SKILL.md"
+    },
+    {
       "capabilityId": "develop-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/provider-adapters/claude/develop-software/SKILL.md",
       "provider": "claude",
@@ -83,6 +96,13 @@
       "provider": "claude",
       "sha256": "sha256:26420a4a78cf192a55b2cc2a73f09f3097e8946a20983d041fbc292551d665a0",
       "sourcePath": ".agent-capabilities/provider-adapters/claude/implement-software-plan/SKILL.md"
+    },
+    {
+      "capabilityId": "maintain-software",
+      "packagePath": "contentFiles/any/any/.agent-capabilities/provider-adapters/claude/maintain-software/SKILL.md",
+      "provider": "claude",
+      "sha256": "sha256:c844a0b66ff1fef902a9eaaf4d37d67bd475f6fefe04d95fceaa0092ed9dd413",
+      "sourcePath": ".agent-capabilities/provider-adapters/claude/maintain-software/SKILL.md"
     }
   ],
   "supportingResources": [

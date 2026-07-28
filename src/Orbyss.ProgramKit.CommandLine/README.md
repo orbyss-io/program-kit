@@ -44,10 +44,10 @@ operations are backed by W065. W070 backs capability catalog rendering and
 exact `.nupkg` bundle verification. Catalog rendering accepts the canonical
 `.agent-capabilities/capabilities/INDEX.md` path, preserves `available`/`unavailable`
 values, and includes the exact source SHA-256. Bundle verification requires the
-four distributable canonical definitions and their separately listed inert
+five distributable canonical definitions and their separately listed inert
 Codex and Claude Code adapter templates; it rejects the index, the authoring
 capability, the repository-only local-publish capability, unlisted bytes, and
-tampering. Bundle `2.2.0` also binds the non-discoverable software-change
+tampering. Bundle `3.0.0` also binds the non-discoverable software-change
 completion profile set shared by full implementation and incremental
 maintenance. These supporting bytes are not independently invokable and grant
 no authority.
@@ -60,7 +60,10 @@ portable relative pointer to the canonical definition, and records exact
 ownership in `.program-kit/capabilities.lock.json`. The lock records the most
 recently initialized provider. It never copies canonical capability semantics
 into the human-led workspace, never writes `.agents`, never scans for
-providers, and refuses to overwrite an unowned or modified wrapper.
+providers, rejects the Program Kit source authoring marker and user-home global
+root, and refuses to overwrite an unowned or modified wrapper. Exact legacy
+ownership locks migrate only during an explicit initialization against the
+human-selected Program Kit root.
 Host generation requires `hostDocuments[]` in the artifact manifest, binding
 each selected host identity to one exact integrator-document revision. This
 keeps shell and document digests independently verifiable and avoids inferred

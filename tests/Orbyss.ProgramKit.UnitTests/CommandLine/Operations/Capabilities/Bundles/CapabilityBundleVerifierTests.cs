@@ -17,6 +17,7 @@ public sealed class CapabilityBundleVerifierTests
         "develop-software",
         "design-software",
         "implement-software-plan",
+        "maintain-software",
     ];
     private static readonly string[] Providers =
     [
@@ -431,7 +432,7 @@ public sealed class CapabilityBundleVerifierTests
         IReadOnlyList<BundleTestEntry> adapters,
         IReadOnlyList<BundleTestEntry> resources) =>
         string.Concat(
-            "{\"bundleVersion\":\"2.2.0\",\"capabilities\":[",
+            "{\"bundleVersion\":\"3.0.0\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(

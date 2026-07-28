@@ -21,6 +21,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         "design-software",
         "develop-software",
         "implement-software-plan",
+        "maintain-software",
     ];
     private static readonly string[] RegisteredProviders =
     [
@@ -226,7 +227,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     {
         if (!string.Equals(
                 manifest.BundleVersion,
-                "2.2.0",
+                "3.0.0",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
@@ -265,7 +266,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 StringComparer.Ordinal))
         {
             throw InvalidBundle(
-                "The canonical payload must contain exactly the four distributable development capabilities.",
+                "The canonical payload must contain exactly the five distributable development capabilities.",
                 "/bundle/manifest/capabilities");
         }
 

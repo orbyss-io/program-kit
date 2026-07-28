@@ -109,6 +109,9 @@
     <None Include="..\..\.agent-capabilities\capabilities\implement-software-plan\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/implement-software-plan/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\capabilities\maintain-software\CAPABILITY.md"
+          Link="ConformanceInputs/Capabilities/maintain-software/CAPABILITY.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\capabilities\publish-dotnet-application-locally\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/publish-dotnet-application-locally/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />
@@ -126,6 +129,9 @@
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\implement-software-plan\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/codex/implement-software-plan/SKILL.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\codex\maintain-software\SKILL.md"
+          Link="ConformanceInputs/Capabilities/Wrappers/codex/maintain-software/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\publish-dotnet-application-locally\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/codex/publish-dotnet-application-locally/SKILL.md"
@@ -145,11 +151,17 @@
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\implement-software-plan\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/claude/implement-software-plan/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\maintain-software\SKILL.md"
+          Link="ConformanceInputs/Capabilities/Wrappers/claude/maintain-software/SKILL.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\publish-dotnet-application-locally\SKILL.md"
           Link="ConformanceInputs/Capabilities/Wrappers/claude/publish-dotnet-application-locally/SKILL.md"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\capability-bundle-manifest.json"
           Link="ConformanceInputs/Capabilities/capability-bundle-manifest.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\authoring-workspace.json"
+          Link="ConformanceInputs/Capabilities/authoring-workspace.json"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\supporting-resources\**\*"
           Link="ConformanceInputs/Capabilities/SupportingResources/%(RecursiveDir)%(Filename)%(Extension)"

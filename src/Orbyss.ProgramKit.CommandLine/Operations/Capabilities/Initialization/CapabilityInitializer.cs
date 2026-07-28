@@ -19,6 +19,8 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}";
     private const string SourceManifestPath =
         ".agent-capabilities/capability-bundle-manifest.json";
+    private const string AuthoringWorkspaceMarkerPath =
+        ".agent-capabilities/authoring-workspace.json";
     private const string LockPath =
         ".program-kit/capabilities.lock.json";
     private const string LockVersion = "1.0.0";
@@ -30,6 +32,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         "design-software",
         "develop-software",
         "implement-software-plan",
+        "maintain-software",
     ];
     private static readonly Dictionary<string, string> ProviderSkillRoots =
         new(StringComparer.Ordinal)
@@ -75,6 +78,18 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
 
         var workspace = FullDirectory(workspaceRoot, "/workspaceRoot");
         var kit = FullDirectory(programKitRoot, "/programKitRoot");
+        EnsureNotUserGlobalWorkspace(workspace);
+        var authoringMarkerPath = ResolveUnder(
+            kit,
+            AuthoringWorkspaceMarkerPath,
+            "/programKitRoot");
+        if (fileSystem.FileExists(authoringMarkerPath))
+        {
+            throw InvalidInitialization(
+                "Program Kit capabilities cannot be initialized from the source authoring workspace.",
+                "/programKitRoot");
+        }
+
         EnsureWithinOrEqual(workspace, kit, "/programKitRoot");
 
         var manifestPath = ResolveUnder(
@@ -278,15 +293,15 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             !ProviderSkillRoots.TryGetValue(
                 value.Provider,
                 out var lockedSkillRoot) ||
-            !string.Equals(
-                value.BundleVersion,
-                "2.2.0",
-                StringComparison.Ordinal) ||
+            !IsSupportedBundleVersion(value.BundleVersion) ||
             !IsDigest(value.ManifestSha256) ||
             !IsSafeStoredRelativePath(
                 value.ProgramKitRoot,
                 allowCurrentDirectory: true) ||
-            !HasExactValidLockEntries(value.Capabilities, lockedSkillRoot))
+            !HasExactValidLockEntries(
+                value.Capabilities,
+                lockedSkillRoot,
+                value.BundleVersion))
         {
             throw InvalidInitialization(
                 "The existing Program Kit capability ownership lock is unsupported.",
@@ -409,6 +424,23 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         throw InvalidInitialization(
             "Program Kit must be the workspace root or a directory beneath it.",
             diagnosticPath);
+    }
+
+    private static void EnsureNotUserGlobalWorkspace(string workspace)
+    {
+        var userProfile = Environment.GetFolderPath(
+            Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrWhiteSpace(userProfile) &&
+            string.Equals(
+                workspace,
+                Path.TrimEndingDirectorySeparator(
+                    Path.GetFullPath(userProfile)),
+                PathComparison()))
+        {
+            throw InvalidInitialization(
+                "A user-global provider root cannot be used as a capability workspace.",
+                "/workspaceRoot");
+        }
     }
 
     private static string ResolveUnder(
@@ -545,10 +577,29 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
 
     private static bool HasExactValidLockEntries(
         CapabilityInitializationLockEntry[]? entries,
-        string providerSkillRoot)
+        string providerSkillRoot,
+        string bundleVersion)
     {
+        string[] expectedCapabilityIds = bundleVersion switch
+        {
+            "2.0.0" =>
+            [
+                "design-software",
+                "develop-software",
+                "implement-software-plan",
+            ],
+            "2.1.0" or "2.2.0" =>
+            [
+                "design-csharp-build-gate",
+                "design-software",
+                "develop-software",
+                "implement-software-plan",
+            ],
+            "3.0.0" => DistributedCapabilityIds,
+            _ => [],
+        };
         if (entries is null ||
-            entries.Length != DistributedCapabilityIds.Length)
+            entries.Length != expectedCapabilityIds.Length)
         {
             return false;
         }
@@ -558,7 +609,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             .Order(StringComparer.Ordinal)
             .ToArray();
         if (!actualIds.SequenceEqual(
-                DistributedCapabilityIds,
+                expectedCapabilityIds,
                 StringComparer.Ordinal))
         {
             return false;
@@ -587,6 +638,9 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
 
         return true;
     }
+
+    private static bool IsSupportedBundleVersion(string value) =>
+        value is "2.0.0" or "2.1.0" or "2.2.0" or "3.0.0";
 
     private static bool IsSafeStoredRelativePath(
         string value,

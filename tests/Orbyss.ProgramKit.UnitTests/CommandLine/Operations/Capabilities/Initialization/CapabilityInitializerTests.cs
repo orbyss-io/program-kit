@@ -21,6 +21,7 @@ public sealed class CapabilityInitializerTests
         "design-software",
         "develop-software",
         "implement-software-plan",
+        "maintain-software",
     ];
     private static readonly string[] Providers =
     [
@@ -149,6 +150,80 @@ public sealed class CapabilityInitializerTests
             Assert.Contains(
                 "../../../vendor/program-kit/.agent-capabilities/capabilities/design-software/CAPABILITY.md",
                 wrapper);
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task UpgradesExactLegacyOwnershipLockAfterHumanSelectedNewKit()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var kit = Path.Combine(workspace, "program-kit");
+            CreateKit(kit);
+            CapabilityInitializer sut = CreateSubject();
+            await sut.InitializeAsync(
+                "codex",
+                workspace,
+                kit,
+                TestContext.CancellationToken);
+            var lockPath = Path.Combine(
+                workspace,
+                ".program-kit",
+                "capabilities.lock.json");
+            CapabilityInitializationLockSerializer serializer = new();
+            var current = serializer.Read(
+                await File.ReadAllBytesAsync(
+                    lockPath,
+                    TestContext.CancellationToken));
+            var legacy = current with
+            {
+                BundleVersion = "2.2.0",
+                Capabilities = current.Capabilities
+                    .Where(
+                        entry =>
+                            !string.Equals(
+                                entry.CapabilityId,
+                                "maintain-software",
+                                StringComparison.Ordinal))
+                    .ToArray(),
+            };
+            await File.WriteAllBytesAsync(
+                lockPath,
+                serializer.Write(legacy),
+                TestContext.CancellationToken);
+            File.Delete(
+                Path.Combine(
+                    workspace,
+                    ".codex",
+                    "skills",
+                    "maintain-software",
+                    "SKILL.md"));
+
+            await sut.InitializeAsync(
+                "codex",
+                workspace,
+                kit,
+                TestContext.CancellationToken);
+
+            Assert.IsTrue(
+                File.Exists(
+                    Path.Combine(
+                        workspace,
+                        ".codex",
+                        "skills",
+                        "maintain-software",
+                        "SKILL.md")));
+            var upgraded = serializer.Read(
+                await File.ReadAllBytesAsync(
+                    lockPath,
+                    TestContext.CancellationToken));
+            Assert.AreEqual("3.0.0", upgraded.BundleVersion);
+            Assert.HasCount(5, upgraded.Capabilities);
         }
         finally
         {
@@ -435,6 +510,72 @@ public sealed class CapabilityInitializerTests
         Assert.AreEqual("/provider", exception.Path);
     }
 
+    [TestMethod]
+    public async Task RejectsProgramKitSourceAuthoringWorkspaceWithoutOutput()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var kit = Path.Combine(workspace, "program-kit");
+            CreateKit(kit);
+            Write(
+                kit,
+                ".agent-capabilities/authoring-workspace.json",
+                Encoding.UTF8.GetBytes(
+                    "{\"capabilityInitialization\":\"denied\"}"));
+            CapabilityInitializer sut = CreateSubject();
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.InitializeAsync(
+                        "codex",
+                        workspace,
+                        kit,
+                        TestContext.CancellationToken).AsTask());
+
+            Assert.AreEqual("PKCLI008", exception.DiagnosticId);
+            Assert.AreEqual("/programKitRoot", exception.Path);
+            Assert.Contains("source authoring workspace", exception.Message);
+            Assert.IsFalse(
+                Directory.Exists(
+                    Path.Combine(workspace, ".codex")));
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task RejectsUserGlobalProviderWorkspaceBeforeContainment()
+    {
+        var kit = CreateWorkspace();
+        try
+        {
+            CreateKit(kit);
+            var userProfile = Environment.GetFolderPath(
+                Environment.SpecialFolder.UserProfile);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(userProfile));
+            CapabilityInitializer sut = CreateSubject();
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.InitializeAsync(
+                        "codex",
+                        userProfile,
+                        kit,
+                        TestContext.CancellationToken).AsTask());
+
+            Assert.AreEqual("PKCLI008", exception.DiagnosticId);
+            Assert.AreEqual("/workspaceRoot", exception.Path);
+            Assert.Contains("user-global", exception.Message);
+        }
+        finally
+        {
+            Directory.Delete(kit, recursive: true);
+        }
+    }
+
     private static CapabilityInitializer CreateSubject() =>
         new(
             new CommandFileSystem(),
@@ -520,7 +661,7 @@ public sealed class CapabilityInitializerTests
                 })
             .ToArray();
         var manifest = new CapabilityBundleManifest(
-            "2.2.0",
+            "3.0.0",
             capabilities.ToArray(),
             "0.1.0-alpha.1",
             adapters.ToArray(),
