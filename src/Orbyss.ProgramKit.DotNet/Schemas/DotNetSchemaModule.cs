@@ -7,6 +7,8 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
     private static readonly SemanticVersion CatalogVersion = new("11.5.0");
+    private static readonly SemanticVersion SchemaVersionAlpha1 =
+        new("0.1.0-alpha.1");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -240,6 +242,25 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
             "pktch-w020-approved-review-set-1-0-0");
+    private static readonly ArtifactProvenance
+        ConsoleCliReachabilityProvenance =
+            new(
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:design:program-kit:console-generation-cli-reachability"),
+                        new SemanticVersion("0.1.0-alpha.1"),
+                        new Sha256Digest(
+                            "sha256:0a2479ab1c0d746418fea77b85fc09a694a39c7183d6ea10e53ada054e44157e")),
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:plan:program-kit:console-generation-cli-reachability"),
+                        new SemanticVersion("0.1.0-alpha.1"),
+                        new Sha256Digest(
+                            "sha256:90606b64907b16b677aba485b50bb21b5b0953b271b9bae6b7b5236048631289")),
+                ],
+                new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+                "pkcg-w010-approved-review-set-0-1-0-alpha-1");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -249,6 +270,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "f639632bc7f7770847521ffde74f71b1b787e1b357fdaaadc1e98c598ba27929",
             SchemaVersionV1,
             Provenance),
+        Create(
+            "dotnet-artifact-input-manifest",
+            "artifact-input-manifest-0.1.0-alpha.1.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/0.1.0-alpha.1/artifact-input-manifest.schema.json",
+            "db2fdb4bc96a2e4e9b625e6b232681ec1a7526f5ba46593ae3ce610e8a5b4534",
+            SchemaVersionAlpha1,
+            ConsoleCliReachabilityProvenance),
         Create(
             "dotnet-shell-lock",
             "dotnet-shell-lock.schema.json",

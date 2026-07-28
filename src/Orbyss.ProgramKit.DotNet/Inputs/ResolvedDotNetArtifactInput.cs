@@ -4,4 +4,5 @@ namespace Orbyss.ProgramKit.DotNet.Inputs;
 public sealed record ResolvedDotNetArtifactInput(
     ArtifactReference Revision,
     string RelativePath,
+    string FullPath,
     ReadOnlyMemory<byte> Content);

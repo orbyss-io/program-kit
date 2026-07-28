@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Definitions;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Locks;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Verification;
@@ -59,6 +60,13 @@ public sealed class SchemaModelConformanceTests
             "versioning/alpha-version-progression-0.1.0-alpha.1.schema.json",
             "$defs",
             "proposal"),
+        Root<DotNetArtifactInputManifestAlpha1>(
+            "dotnet/artifact-input-manifest-0.1.0-alpha.1.schema.json"),
+        Nested<DotNetConsoleGenerationInputBinding>(
+            "dotnet/artifact-input-manifest-0.1.0-alpha.1.schema.json",
+            "properties",
+            "consoleGenerations",
+            "items"),
         Root<ArchitectureDesignDocument>(
             "architecture/architecture-design.schema.json"),
         Root<ArchitectureDesignDocumentV2>(
@@ -234,11 +242,24 @@ public sealed class SchemaModelConformanceTests
             ?? throw new AssertFailedException($"{modelType.FullName} has no public constructor.");
         return constructor
             .GetParameters()
-            .Select(parameter => parameter.Name
-                ?? throw new AssertFailedException(
-                    $"{modelType.FullName} has an unnamed constructor parameter."))
-            .Select(ToCamelCase)
+            .Select(parameter => GetWireParameterName(modelType, parameter))
             .ToHashSet(StringComparer.Ordinal);
+    }
+
+    private static string GetWireParameterName(
+        Type modelType,
+        ParameterInfo parameter)
+    {
+        var parameterName = parameter.Name
+            ?? throw new AssertFailedException(
+                $"{modelType.FullName} has an unnamed constructor parameter.");
+        var property = modelType.GetProperty(
+            parameterName,
+            BindingFlags.Public |
+            BindingFlags.Instance |
+            BindingFlags.IgnoreCase);
+        return property?.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
+            ?? ToCamelCase(parameterName);
     }
 
     private static string ToCamelCase(string value) =>

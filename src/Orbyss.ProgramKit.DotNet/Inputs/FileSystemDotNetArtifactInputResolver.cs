@@ -72,6 +72,10 @@ public sealed class FileSystemDotNetArtifactInputResolver : IDotNetArtifactInput
                 "/inputs/revision/digest");
         }
 
-        return new ResolvedDotNetArtifactInput(revision, relativePath, bytes);
+        return new ResolvedDotNetArtifactInput(
+            revision,
+            relativePath,
+            candidate,
+            bytes);
     }
 }

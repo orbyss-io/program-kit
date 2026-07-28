@@ -31,7 +31,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(37, module.Resources);
+        Assert.HasCount(38, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -142,6 +142,8 @@ public sealed class DotNetSchemaModuleTests
                     : module;
             var schema = selectedModule.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
+                (document.Name != "dotnet-artifact-input-manifest" ||
+                 resource.SchemaReference.Version.Value == "1.0.0") &&
                 (document.Name != "dotnet-shell" ||
                  resource.SchemaReference.Version.Value == "11.0.0") &&
                 (document.Name != "dotnet-configuration-provider-catalog" ||
@@ -165,5 +167,82 @@ public sealed class DotNetSchemaModuleTests
                             " ",
                             diagnostic.Message))));
         }
+    }
+
+    [TestMethod]
+    public void AlphaArtifactManifestConformsWithExactConsoleInputs()
+    {
+        var documentRevision =
+            DotNetTestContractFactory.Ref("document", "open-console", '1');
+        var bindingRevision =
+            DotNetTestContractFactory.Ref("binding", "console", '2');
+        var consumerRevision =
+            DotNetTestContractFactory.Ref("assembly", "consumer", '3');
+        var manifest = new DotNetArtifactInputManifestAlpha1(
+            "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1",
+            new SemanticVersion("0.1.0-alpha.1"),
+            [
+                new DotNetArtifactInputEntry(
+                    documentRevision,
+                    "documents/open-console.json"),
+                new DotNetArtifactInputEntry(
+                    bindingRevision,
+                    "bindings/console.json"),
+                new DotNetArtifactInputEntry(
+                    consumerRevision,
+                    "assemblies/consumer.dll"),
+            ],
+            [
+                new DotNetHostDocumentInput(
+                    DotNetTestContractFactory.Id("host", "console"),
+                    documentRevision),
+            ],
+            [
+                new DotNetConsoleGenerationInputBinding(
+                    DotNetTestContractFactory.Id("host", "console"),
+                    bindingRevision,
+                    consumerRevision,
+                    [consumerRevision]),
+            ]);
+        ProgramKitJsonRegistryFactory registryFactory = new();
+        ProgramKitJsonBuilder builder = new(registryFactory);
+        DotNetJsonProfileRegistration registration = new();
+        registration.Register(builder);
+        ProgramKitJsonCanonicalizer canonicalizer = new();
+        ProgramKitJsonSerializer serializer = new(
+            builder.Freeze(),
+            canonicalizer);
+        var bytes = serializer.Write(
+            manifest,
+            DotNetJsonProfiles.ShellBootstrap.Reference,
+            DotNetJsonProfiles.ShellBootstrap.MaximumLimits);
+        DotNetSchemaModule module = new(
+            new OperationsSchemaModule(),
+            new SecretResolutionSchemaModule());
+        var schema = module.Resources.Single(resource =>
+            resource.SchemaReference.Identity.Name ==
+                "dotnet-artifact-input-manifest" &&
+            resource.SchemaReference.Version.Value == "0.1.0-alpha.1");
+        JsonSchemaWorkbenchValidator validator = new(
+            canonicalizer,
+            new ProgramKitSchemaModuleValidator());
+
+        var result = validator.Validate(
+            bytes.ToArray(),
+            module,
+            schema.SchemaReference,
+            DotNetJsonProfiles.ShellBootstrap.MaximumLimits);
+
+        Assert.IsTrue(
+            result.IsValid,
+            string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Select(static diagnostic =>
+                    string.Concat(
+                        diagnostic.Id,
+                        " ",
+                        diagnostic.Path,
+                        " ",
+                        diagnostic.Message))));
     }
 }

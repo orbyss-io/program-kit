@@ -8,6 +8,53 @@ namespace Orbyss.ProgramKit.UnitTests.DotNet.Inputs;
 [TestClass]
 public sealed class FileSystemDotNetArtifactInputResolverTests
 {
+    public TestContext TestContext { get; set; } = null!;
+
+    [TestMethod]
+    public async Task ExactInputReturnsItsVerifiedContainedPhysicalPath()
+    {
+        var root = Directory.CreateTempSubdirectory(
+            "program-kit-resolved-input-");
+        try
+        {
+            var bytes = "{}"u8.ToArray();
+            var path = Path.Combine(root.FullName, "input.json");
+            await File.WriteAllBytesAsync(
+                path,
+                bytes,
+                TestContext.CancellationToken);
+            var revision = new ArtifactReference(
+                DotNetTestContractFactory.Id("input", "verified"),
+                new SemanticVersion("1.0.0"),
+                new Sha256Digest(
+                    string.Concat(
+                        "sha256:",
+                        Convert.ToHexStringLower(
+                            System.Security.Cryptography.SHA256.HashData(
+                                bytes)))));
+            var manifest = new DotNetArtifactInputManifest(
+                "pkid:schema:program-kit:dotnet-artifact-input-manifest@1.0.0",
+                new SemanticVersion("1.0.0"),
+                [new DotNetArtifactInputEntry(revision, "input.json")],
+                []);
+            FileSystemDotNetArtifactInputResolver sut = new();
+
+            var result = await sut.ResolveAsync(
+                root.FullName,
+                manifest,
+                revision,
+                TestContext.CancellationToken);
+
+            Assert.AreEqual(Path.GetFullPath(path), result.FullPath);
+            Assert.AreEqual("input.json", result.RelativePath);
+            Assert.AreSequenceEqual(bytes, result.Content.ToArray());
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
     [TestMethod]
     public async Task TraversalFailsBeforeAnyRead()
     {

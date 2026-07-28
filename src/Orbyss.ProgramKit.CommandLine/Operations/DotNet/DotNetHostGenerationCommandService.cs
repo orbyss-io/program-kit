@@ -1,13 +1,19 @@
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.References;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
+using Orbyss.ProgramKit.CommandLine.Operations.Validation;
 using Orbyss.ProgramKit.DotNet.Composition;
+using Orbyss.ProgramKit.DotNet.Diagnostics;
 using Orbyss.ProgramKit.DotNet.Documentation;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.DotNet.Documentation.Worker;
 using Orbyss.ProgramKit.DotNet.Generation;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Compilation;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -22,6 +28,10 @@ namespace Orbyss.ProgramKit.CommandLine.Operations.DotNet;
 public sealed class DotNetHostGenerationCommandService :
     IDotNetHostGenerationCommandService
 {
+    private const string ConsoleManifestSchema =
+        "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1";
+    private static readonly SemanticVersion ConsoleManifestVersion =
+        new("0.1.0-alpha.1");
     private readonly ICommandFileSystem fileSystem;
     private readonly IProgramKitJsonSerializer serializer;
     private readonly IDotNetArtifactInputResolver inputResolver;
@@ -79,10 +89,31 @@ public sealed class DotNetHostGenerationCommandService :
         var manifestBytes = await fileSystem.ReadAllBytesAsync(
             manifestPath,
             cancellationToken).ConfigureAwait(false);
-        var manifest = serializer.Read<DotNetArtifactInputManifest>(
-            manifestBytes,
-            profile,
-            limits);
+        var manifestSchema = SchemaIdentityReader.Read(manifestBytes.Span);
+        DotNetArtifactInputManifest manifest;
+        ImmutableArray<DotNetConsoleGenerationInputBinding>
+            consoleGenerations;
+        if (string.Equals(
+                manifestSchema,
+                ConsoleManifestSchema,
+                StringComparison.Ordinal))
+        {
+            var alphaManifest =
+                serializer.Read<DotNetArtifactInputManifestAlpha1>(
+                    manifestBytes,
+                    profile,
+                    limits);
+            manifest = alphaManifest.ToArtifactInputManifest();
+            consoleGenerations = alphaManifest.ConsoleGenerations;
+        }
+        else
+        {
+            manifest = serializer.Read<DotNetArtifactInputManifest>(
+                manifestBytes,
+                profile,
+                limits);
+            consoleGenerations = default;
+        }
         var shellBytes = await fileSystem.ReadAllBytesAsync(
             request.ShellPath,
             cancellationToken).ConfigureAwait(false);
@@ -119,6 +150,16 @@ public sealed class DotNetHostGenerationCommandService :
         EnsureShellDigest(shellBytes.Span, shellRevision.Digest);
         var shellLock = lockBuilder.Build(shell, shellRevision);
         var hostLock = lockSelector.Resolve(shellLock, hostIdentity, host.Kind);
+        var consoleInput = await ResolveConsoleGenerationAsync(
+            readRoot,
+            manifest,
+            consoleGenerations,
+            host,
+            projectionRevision,
+            documentInput.OpenConsole,
+            profile,
+            limits,
+            cancellationToken).ConfigureAwait(false);
         var generationInput = new DotNetHostGenerationInput(
             shell,
             shellRevision,
@@ -129,7 +170,8 @@ public sealed class DotNetHostGenerationCommandService :
             documentInput.OpenWorker,
             host.Kind == DotNetHostKind.Console
                 ? projectionRevision
-                : null);
+                : null,
+            consoleInput);
         var service = SelectService(host.Kind);
         var outputRoot = Path.GetFullPath(request.OutputRoot);
         var anchorPath = GeneratedOutputPathPolicy.AnchorPath(outputRoot);
@@ -178,6 +220,146 @@ public sealed class DotNetHostGenerationCommandService :
             hostLock);
     }
 
+    private async ValueTask<DotNetConsoleGenerationInput?>
+        ResolveConsoleGenerationAsync(
+            string readRoot,
+            DotNetArtifactInputManifest manifest,
+            ImmutableArray<DotNetConsoleGenerationInputBinding>
+                consoleGenerations,
+            DotNetHostDefinition host,
+            ArtifactReference documentRevision,
+            OpenConsoleDocument? document,
+            JsonSerializationProfileRef profile,
+            JsonSerializationLimits limits,
+            CancellationToken cancellationToken)
+    {
+        if (host.Kind != DotNetHostKind.Console)
+        {
+            return null;
+        }
+
+        if (!string.Equals(
+                manifest.Schema,
+                ConsoleManifestSchema,
+                StringComparison.Ordinal) ||
+            manifest.Version != ConsoleManifestVersion)
+        {
+            throw InvalidConsoleInput(
+                "Console generation requires the exact alpha artifact-input manifest contract.");
+        }
+
+        var matches = consoleGenerations.IsDefault
+            ? []
+            : consoleGenerations
+                .Where(candidate =>
+                    candidate is not null &&
+                    candidate.HostIdentity == host.Identity)
+                .ToArray();
+        if (matches.Length != 1)
+        {
+            throw InvalidConsoleInput(
+                "The artifact manifest must bind the selected Console host to exactly one Console generation input.");
+        }
+
+        var selected = matches[0];
+        if (selected.BindingRevision is null ||
+            selected.ConsumerReferenceAssemblyRevision is null ||
+            selected.CompilationReferenceRevisions.IsDefaultOrEmpty)
+        {
+            throw InvalidConsoleInput(
+                "Console generation revisions must be initialized and non-empty.");
+        }
+
+        var referenceKeys = selected.CompilationReferenceRevisions
+            .Select(ExactReferenceKey)
+            .ToArray();
+        if (referenceKeys.Distinct(StringComparer.Ordinal).Count() !=
+                referenceKeys.Length ||
+            !referenceKeys.SequenceEqual(
+                referenceKeys.Order(StringComparer.Ordinal),
+                StringComparer.Ordinal))
+        {
+            throw InvalidConsoleInput(
+                "Console compilation reference revisions must be unique and ordinally ordered.");
+        }
+
+        var consumerKey = ExactReferenceKey(
+            selected.ConsumerReferenceAssemblyRevision);
+        if (referenceKeys.Count(key =>
+                string.Equals(
+                    key,
+                    consumerKey,
+                    StringComparison.Ordinal)) != 1)
+        {
+            throw InvalidConsoleInput(
+                "The exact consumer reference assembly must occur once in the Console compilation reference set.");
+        }
+
+        var bindingInput = await inputResolver.ResolveAsync(
+            readRoot,
+            manifest,
+            selected.BindingRevision,
+            cancellationToken).ConfigureAwait(false);
+        var binding = serializer.Read<DotNetConsoleBindingDocument>(
+            bindingInput.Content,
+            profile,
+            limits);
+        if (document is null ||
+            binding.OpenConsoleDocumentRevision != documentRevision)
+        {
+            throw InvalidConsoleInput(
+                "The Console binding must select the exact host document revision.");
+        }
+
+        var consumerInput = await inputResolver.ResolveAsync(
+            readRoot,
+            manifest,
+            selected.ConsumerReferenceAssemblyRevision,
+            cancellationToken).ConfigureAwait(false);
+        if (!string.Equals(
+                binding.ConsumerProject.RelativeReferenceAssemblyPath,
+                consumerInput.RelativePath,
+                StringComparison.Ordinal) ||
+            binding.ConsumerProject.ReferenceAssemblyDigest !=
+                consumerInput.Revision.Digest)
+        {
+            throw InvalidConsoleInput(
+                "The Console binding consumer path and digest must match the exact manifest input.");
+        }
+
+        var pathComparer = OperatingSystem.IsWindows()
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
+        HashSet<string> resolvedPaths = new(pathComparer);
+        var references =
+            ImmutableArray.CreateBuilder<DotNetConsoleCompilationReference>();
+        foreach (var revision in selected.CompilationReferenceRevisions)
+        {
+            var resolved = await inputResolver.ResolveAsync(
+                readRoot,
+                manifest,
+                revision,
+                cancellationToken).ConfigureAwait(false);
+            if (!resolvedPaths.Add(resolved.FullPath))
+            {
+                throw InvalidConsoleInput(
+                    "Console compilation reference paths must resolve uniquely.");
+            }
+
+            references.Add(
+                new DotNetConsoleCompilationReference(
+                    resolved.FullPath,
+                    resolved.Revision.Digest));
+        }
+
+        return new DotNetConsoleGenerationInput(
+            binding,
+            consumerInput.FullPath,
+            references
+                .OrderBy(static reference => reference.Path, StringComparer.Ordinal)
+                .ToImmutableArray());
+    }
+
     private async ValueTask VerifyInputAsync(
         string readRoot,
         DotNetArtifactInputManifest manifest,
@@ -190,6 +372,21 @@ public sealed class DotNetHostGenerationCommandService :
             revision,
             cancellationToken).ConfigureAwait(false);
     }
+
+    private static string ExactReferenceKey(ArtifactReference reference) =>
+        string.Concat(
+            reference.Identity.Value,
+            "@",
+            reference.Version.Value,
+            "#",
+            reference.Digest.Value);
+
+    private static InvalidDataException InvalidConsoleInput(string message) =>
+        new(
+            string.Concat(
+                DotNetDiagnosticIds.InvalidConsoleBinding,
+                " /consoleGenerations: ",
+                message));
 
     private IWorkbenchGenerationService<DotNetHostGenerationInput> SelectService(
         DotNetHostKind kind) =>

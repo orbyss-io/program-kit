@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/0.1.0-alpha.1/artifact-input-manifest.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-artifact-input-manifest",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit .NET Artifact Input Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "inputs",
+    "hostDocuments",
+    "consoleGenerations"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1"
+    },
+    "version": {
+      "const": "0.1.0-alpha.1"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["revision", "relativePath"],
+        "properties": {
+          "revision": {"$ref": "#/$defs/reference"},
+          "relativePath": {"$ref": "#/$defs/relativePath"}
+        }
+      }
+    },
+    "hostDocuments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hostIdentity", "documentRevision"],
+        "properties": {
+          "hostIdentity": {"type": "string", "minLength": 1},
+          "documentRevision": {"$ref": "#/$defs/reference"}
+        }
+      }
+    },
+    "consoleGenerations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hostIdentity",
+          "bindingRevision",
+          "consumerReferenceAssemblyRevision",
+          "compilationReferenceRevisions"
+        ],
+        "properties": {
+          "hostIdentity": {"type": "string", "minLength": 1},
+          "bindingRevision": {"$ref": "#/$defs/reference"},
+          "consumerReferenceAssemblyRevision": {"$ref": "#/$defs/reference"},
+          "compilationReferenceRevisions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"$ref": "#/$defs/reference"}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(/|$))(?!.*\\\\)[^/]+(?:/[^/]+)*$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "digest"],
+      "properties": {
+        "identity": {
+          "type": "string",
+          "pattern": "^pkid:[a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+$"
+        },
+        "version": {"type": "string"},
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}
