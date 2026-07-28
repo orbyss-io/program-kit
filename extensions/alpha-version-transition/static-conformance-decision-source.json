@@ -1,0 +1,20 @@
+{
+  "artifactId": "pkid:decision-source:program-kit:alpha-version-transition-static-conformance",
+  "artifactVersion": "0.1.0-alpha.1",
+  "designBasis": {
+    "identity": "pkid:design:program-kit:alpha-version-transition-static-basis",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:1463f30b57613853ce365265f762c804c91b5c6bbc34828e3ade69733fca3127"
+  },
+  "decision": {
+    "disposition": "reuse-existing",
+    "selectedGate": {
+      "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+      "version": "1.10.0",
+      "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+    },
+    "statement": "i approve all recommendations and fixes",
+    "conditions": []
+  },
+  "authorityBoundary": "The human statement selects the recommended existing private Program Kit C# gate and the recommended version-transition direction. It does not approve canonical design or implementation-plan bytes produced later, activate capabilities, publish packages, mutate a consumer, or authorize material deviation."
+}

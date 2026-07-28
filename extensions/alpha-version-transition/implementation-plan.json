@@ -1,0 +1,817 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+  },
+  "ownerId": "pkid:domain:program-kit:version-governance",
+  "state": "ready-for-human-decision",
+  "requirementIds": [
+    "PKAV-R001",
+    "PKAV-R002",
+    "PKAV-R003",
+    "PKAV-R004",
+    "PKAV-R005",
+    "PKAV-R006",
+    "PKAV-R007",
+    "PKAV-R008",
+    "PKAV-R009",
+    "PKAV-R010",
+    "PKAV-R011",
+    "PKAV-R012",
+    "PKAV-R013",
+    "PKAV-R014"
+  ],
+  "workUnits": [
+    {
+      "workUnitId": "PKAV-W010",
+      "requiredOutcome": "Establish the closed version-intent inventory plus replaceable alpha progression policy schema, model, validator, fixtures, and diagnostics without granting version-selection authority.",
+      "sequence": 10,
+      "parallelGroupId": null,
+      "dependsOn": [],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w010",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/versioning and exact schema registration",
+        "src/Orbyss.ProgramKit.Artifacts version-intent and progression contracts",
+        "src/Orbyss.ProgramKit.Workbench bounded validation operations",
+        "focused unit and conformance fixtures, tests, and versioning documentation"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:policy:program-kit:alpha-version-progression",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "First pre-stable policy revision; Release Kit may replace the selected policy through an explicit compatible strategy contract."
+        }
+      ],
+      "stopConditions": [
+        "Stop if intent must be inferred from a numeric shape, the inventory is open-ended or incomplete, or the validator chooses a version or release."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The closed inventory, alpha ordinal fixtures, duplicate/digest/skip failures, and no-authority behavior pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKAV-W020",
+      "requiredOutcome": "Materialize and register Architecture Design 0.1.0-alpha.2, Implementation Plan 0.1.0-alpha.3, and StaticConformanceDisposition 0.1.0-alpha.1 with exact legacy migrations and updated semantic validation.",
+      "sequence": 20,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKAV-W010"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w020",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/architecture and src/Orbyss.ProgramKit.Architecture schema modules, models, validators, and migrations",
+        "schemas/planning and src/Orbyss.ProgramKit.Planning schema modules, models, validators, admission, and migrations",
+        "Workbench schema selection and exact migration registration",
+        "design/planning/static fixtures, tests, renderers, and documentation"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:schema:program-kit:architecture-design",
+          "acceptedVersions": "0.1.0-alpha.2",
+          "expectedDisposition": "Replaces legacy 2.0.0 through an explicit deterministic migration; legacy bytes remain immutable."
+        },
+        {
+          "subjectId": "pkid:schema:program-kit:implementation-plan",
+          "acceptedVersions": "0.1.0-alpha.3",
+          "expectedDisposition": "Replaces legacy 3.0.0 and requires StaticConformanceDisposition 0.1.0-alpha.1."
+        },
+        {
+          "subjectId": "pkid:schema:program-kit:static-conformance-disposition",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "Replaces legacy 1.0.0 without changing the five explicit human decision states."
+        }
+      ],
+      "stopConditions": [
+        "Stop if legacy schemas are edited, migrations lose information, plan admission weakens the static-conformance preflight, or alpha schema identities do not resolve exactly."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Old and new schema validation, deterministic migrations, renderers, exact references, semantic validators, and admission fixtures pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKAV-W030",
+      "requiredOutcome": "Migrate the remainder of the complete active Program Kit-owned governed inventory to independent alpha ordinals and close every exact reference and dependency edge.",
+      "sequence": 30,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKAV-W020"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w030",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Only active owned-artifact paths and registries enumerated by the approved version-intent inventory",
+        "Exact migration definitions, compatibility records, schema modules, source models, fixtures, and focused tests",
+        "Canonical capability and policy revision metadata without activating capabilities",
+        "Version maps, selection documents, assessment fixtures, and versioning documentation"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:map:program-kit:active-owned-alpha-transition",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "Every exact active legacy revision has one reviewed alpha target or an explicit protected non-owned disposition."
+        }
+      ],
+      "stopConditions": [
+        "Stop on an unclassified active value, ambiguous revision ordinal, changed legacy byte, duplicate exact key, unresolved dependency, or a proposed renumber of external, evidence, receipt, or fixture values."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Inventory completeness, old-byte immutability, exact registrations, version-map closure, reverse migration closure, and protected-category fixtures pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKAV-W040",
+      "requiredOutcome": "Project the one explicit 0.1.0-alpha.2 product release across every first-party package, CLI surface, capability bundle content identity, current generated package reference, and exact local-package verification path.",
+      "sequence": 40,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKAV-W030"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w040",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Directory.Build.props and bounded central package-version validation",
+        "First-party project/package metadata, package locks, and exact package manifests",
+        "CLI and generation renderers containing current first-party release metadata",
+        "Capability-bundle manifest-format schema and bundle content metadata",
+        "Local package, generated-host, bundle, and version-drift conformance tests"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:release:program-kit:product",
+          "acceptedVersions": "0.1.0-alpha.2",
+          "expectedDisposition": "All first-party packaged deliverables and embedded current first-party references agree exactly; no publication is performed."
+        },
+        {
+          "subjectId": "pkid:schema:program-kit:capability-bundle-manifest",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "The new format separates manifest contract revision from the alpha.2 bundle content release."
+        }
+      ],
+      "stopConditions": [
+        "Stop if any first-party packaged component retains another version, a third-party version is rewritten, bundle content and format are conflated, generated references drift, or verification needs a package feed publication."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "All packages build locally at alpha.2, package archives and bundle bytes inspect exactly, representative generated hosts reference alpha.2, and the drift detector reports no active product-release mismatch."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKAV-W050",
+      "requiredOutcome": "Move canonical design capabilities to the alpha design-flow contracts, regenerate exact provider wrappers and bundle entries, and prove clean isolated initialization plus refresh without authoring-root activation or manual repair.",
+      "sequence": 50,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKAV-W040"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w050",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".agent-capabilities canonical design-software and design-csharp-build-gate definitions",
+        ".agent-capabilities thin Codex and Claude provider-adapter templates, index, supporting resources, and bundle manifest",
+        "bounded capability catalog, bundle, initialization, ownership-lock, refresh migration, and authoring-deny code",
+        "isolated capability fixtures, tests, and contributor-facing contract-version guidance"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:capability:program-kit:design-software",
+          "acceptedVersions": "0.1.0-alpha.2",
+          "expectedDisposition": "Procedure authority is preserved while exact design, plan, and disposition contract references move to alpha revisions."
+        },
+        {
+          "subjectId": "pkid:capability-bundle:program-kit:capabilities",
+          "acceptedVersions": "0.1.0-alpha.2",
+          "expectedDisposition": "Content release matches every packaged Program Kit component; existing exact owned installations migrate only through explicit initialization."
+        }
+      ],
+      "stopConditions": [
+        "Stop if capability authority changes, wrapper semantics are copied, the bundle is stale, refresh overwrites unowned or drifted files, manual fixes are required, or the Program Kit authoring workspace can activate source capabilities."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Catalog and bundle digests, thin-wrapper drift checks, absent/existing/current/drifted installation fixtures, ownership-lock migration, no-global-writes, and authoring-root denial pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKAV-W060",
+      "requiredOutcome": "Produce and validate a separate Architecture Design 0.1.0-alpha.2, Implementation Plan 0.1.0-alpha.3, and StaticConformanceDisposition 0.1.0-alpha.1 review set for the deferred Program Kit health concerns, then stop for exact human approval.",
+      "sequence": 60,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKAV-W050"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w060",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "One new bounded extensions review directory for installed-bundle refresh, .contributors setup, Console reachability, public analyzers, and JTest handoff planning",
+        "Read-only inspection of implemented transition source and existing approved designs",
+        "Canonical alpha design, plan, disposition, deterministic Markdown projections, validation report, and exact review manifest"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:review-set:program-kit:program-kit-health",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "Uses only the newly active alpha design-flow contracts and grants no implementation authority before exact approval."
+        }
+      ],
+      "stopConditions": [
+        "Stop if the follow-on review uses legacy design-flow contracts, omits any approved health concern, mutates JTest, implements behavior, or lacks exact human-decision boundaries."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The alpha review set validates, binds exact digests, covers every deferred concern, and is presented for a separate human approval without implementation."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKAV-W070",
+      "requiredOutcome": "Close the transition with exact inventory, migration, package, bundle, capability-isolation, test, diff, and follow-on review evidence while leaving publication and consumer migration unperformed.",
+      "sequence": 70,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKAV-W060"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkav-w070",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Version-transition conformance fixtures and expected bytes",
+        "Local package and generated-host inspection evidence",
+        "Capability bundle and isolated initialization evidence",
+        "Transition implementation closure evidence and bounded documentation corrections"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:evidence:program-kit:alpha-version-transition-closure",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "Binds the exact implemented transition, complete verification results, and explicitly deferred publication and consumer work."
+        }
+      ],
+      "stopConditions": [
+        "Stop on any failing gate or test, incomplete inventory or migration, changed protected history, version drift, stale digest, source capability activation, missing follow-on review, publication attempt, JTest mutation, or material design deviation."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Locked restore, private gate, full solution build and tests, migration and schema suites, package and generated-host inspection, bundle verification, isolated initialization, changed-file review, and closure evidence all pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "closure",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    }
+  ],
+  "parallelGroups": [],
+  "trace": [
+    {
+      "requirementId": "PKAV-R001",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W010",
+        "PKAV-W030",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Every active version-bearing repository value is inventoried and has exactly one reviewed version intent.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Every active version-bearing repository value is inventoried and has exactly one reviewed version intent."
+    },
+    {
+      "requirementId": "PKAV-R002",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W010",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "The replaceable alpha policy validates explicit 0.1.0-alpha.N progression without selecting release authority or enforcing stable SemVer significance.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The replaceable alpha policy validates explicit 0.1.0-alpha.N progression without selecting release authority or enforcing stable SemVer significance."
+    },
+    {
+      "requirementId": "PKAV-R003",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W010",
+        "PKAV-W020",
+        "PKAV-W030",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Identity plus version plus digest remains immutable and changed canonical bytes require the next alpha ordinal.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Identity plus version plus digest remains immutable and changed canonical bytes require the next alpha ordinal."
+    },
+    {
+      "requirementId": "PKAV-R004",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W020",
+        "PKAV-W030",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Every active Program Kit-owned governed identity has an exact legacy-to-alpha mapping, compatibility disposition, migration definition, and closed dependency assessment.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Every active Program Kit-owned governed identity has an exact legacy-to-alpha mapping, compatibility disposition, migration definition, and closed dependency assessment."
+    },
+    {
+      "requirementId": "PKAV-R005",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W020",
+        "PKAV-W050",
+        "PKAV-W060",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Architecture Design, Implementation Plan, and StaticConformanceDisposition move to alpha.2, alpha.3, and alpha.1 respectively before follow-on design.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Architecture Design, Implementation Plan, and StaticConformanceDisposition move to alpha.2, alpha.3, and alpha.1 respectively before follow-on design."
+    },
+    {
+      "requirementId": "PKAV-R006",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W040",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "All first-party NuGet packages, CLI release metadata, capability bundle content, and current generated first-party package references use exactly 0.1.0-alpha.2.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "All first-party NuGet packages, CLI release metadata, capability bundle content, and current generated first-party package references use exactly 0.1.0-alpha.2."
+    },
+    {
+      "requirementId": "PKAV-R007",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W040",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "The capability-bundle manifest format has an independent owned alpha contract revision and cannot be confused with bundle content release.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The capability-bundle manifest format has an independent owned alpha contract revision and cannot be confused with bundle content release."
+    },
+    {
+      "requirementId": "PKAV-R008",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W010",
+        "PKAV-W030",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "External selections, immutable historical evidence, receipts, and explicit fixtures remain unchanged and explicitly classified.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "External selections, immutable historical evidence, receipts, and explicit fixtures remain unchanged and explicitly classified."
+    },
+    {
+      "requirementId": "PKAV-R009",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W010",
+        "PKAV-W020",
+        "PKAV-W030",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Version maps, schema registries, semantic validators, migration assessment, and exact selectors accept and preserve prerelease SemVer identities.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Version maps, schema registries, semantic validators, migration assessment, and exact selectors accept and preserve prerelease SemVer identities."
+    },
+    {
+      "requirementId": "PKAV-R010",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W050",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Canonical capability procedures use the new alpha contracts, provider wrappers remain thin, and the regenerated bundle is byte-exact.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Canonical capability procedures use the new alpha contracts, provider wrappers remain thin, and the regenerated bundle is byte-exact."
+    },
+    {
+      "requirementId": "PKAV-R011",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W050",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Isolated capability initialization and refresh succeeds without manual fixes while Program Kit authoring-root activation remains rejected.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Isolated capability initialization and refresh succeeds without manual fixes while Program Kit authoring-root activation remains rejected."
+    },
+    {
+      "requirementId": "PKAV-R012",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W040",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Local package builds and representative generated hosts prove exact alpha.2 first-party reference agreement without publication.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Local package builds and representative generated hosts prove exact alpha.2 first-party reference agreement without publication."
+    },
+    {
+      "requirementId": "PKAV-R013",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W060",
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "A separate follow-on health design and plan are produced under the new alpha contracts and stop for exact human approval.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "A separate follow-on health design and plan are produced under the new alpha contracts and stop for exact human approval."
+    },
+    {
+      "requirementId": "PKAV-R014",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+      },
+      "workUnitIds": [
+        "PKAV-W070"
+      ],
+      "implementationOutcome": "Closure evidence proves inventory completeness, migration closure, historical immutability, package agreement, bundle integrity, capability isolation, and unchanged deferred scope.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Closure evidence proves inventory completeness, migration closure, historical immutability, package agreement, bundle integrity, capability isolation, and unchanged deferred scope."
+    }
+  ],
+  "unresolvedDecisions": [],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:alpha-version-transition",
+    "version": "1.0.0",
+    "digest": "sha256:62536fba1fd42a652ab042398849a72c8c3a88f80f5d83e6eaa023839a16061d"
+  },
+  "staticConformanceState": "reuse-existing",
+  "gateDesign": null,
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "selectionLock": {
+    "identity": "pkid:selection-lock:program-kit:alpha-version-transition-private-gate",
+    "version": "0.1.0-alpha.1",
+    "state": "materialized",
+    "integrityDigest": "sha256:8ecb82ed433a13052742cb44666ac616da5f2c27fd293e608be899014366788c"
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
+    "version": "1.0.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:7f4a6fbe84c42fc983880abb5e9c18b31eae6cbc6588171a76490f558c7d140b"
+  }
+}

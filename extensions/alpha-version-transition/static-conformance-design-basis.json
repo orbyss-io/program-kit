@@ -1,0 +1,38 @@
+{
+  "identity": "pkid:design:program-kit:alpha-version-transition-static-basis",
+  "version": "0.1.0-alpha.1",
+  "sourceCommit": "773d7cf3859fe98c2fd72139872312994effeb8d",
+  "intent": {
+    "identity": "pkid:intent:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+  },
+  "repositoryEvidence": [
+    {
+      "identity": "pkid:source:program-kit:central-package-version",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:e44cca464cdb20276381c1a0866b1e2270c7db58f79c59ca8ce2888fcb08c1c7"
+    },
+    {
+      "identity": "pkid:manifest:program-kit:capability-bundle",
+      "version": "3.0.0",
+      "digest": "sha256:fc140ee74a2c060909f17f0bfce6639882127e200cde3ac90eb86f3f96247199"
+    },
+    {
+      "identity": "pkid:source:program-kit:version-map-builder",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:5e0ad12088ab25bda4339662e9de72ec92bb52847dd5315ce9bf3ba050a2912f"
+    },
+    {
+      "identity": "pkid:source:program-kit:migration-assessment-engine",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:d2bd3cf938038f7d7c48976f72c8b39d0cf0ddb1f6241838b792ccbf543cb19e"
+    },
+    {
+      "identity": "pkid:capability:program-kit:design-software",
+      "version": "1.0.0",
+      "digest": "sha256:6233d792c1b5e671c1c464040c8e13869157006eb70ca01f31420cada2da1f69"
+    }
+  ],
+  "purpose": "Provide a non-circular, exact repository and human-intent basis for selecting static conformance before the canonical Architecture Design 2.0 artifact exists."
+}

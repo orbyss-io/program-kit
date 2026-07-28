@@ -1,0 +1,74 @@
+{
+  "softwareDesign": {
+    "identity": "pkid:design:program-kit:alpha-version-transition-static-basis",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:1463f30b57613853ce365265f762c804c91b5c6bbc34828e3ade69733fca3127"
+  },
+  "invariantAllocations": [
+    {
+      "identity": "pkid:invariant:program-kit:alpha-transition-repository-source",
+      "invariant": "Program Kit-owned C# changed by the transition satisfies the existing private repository source-quality policy.",
+      "layer": "roslyn-compiler",
+      "rationale": "The existing private PKCS analyzer and build spine already enforce Program Kit repository source structure and behavioral rules."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:alpha-transition-package-coordination",
+      "invariant": "Every first-party package, CLI, capability bundle content identity, and generated first-party package reference selects exactly 0.1.0-alpha.2.",
+      "layer": "executable-test",
+      "rationale": "Cross-file package and generated-output agreement requires an inventory-driven repository conformance check, package inspection, and isolated generation tests."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:alpha-transition-owned-revision",
+      "invariant": "Every active Program Kit-owned governed identity uses the approved alpha ordinal, preserves identity, advances on changed canonical bytes, and has explicit compatibility and migration disposition.",
+      "layer": "executable-test",
+      "rationale": "Identity history, digests, registry closure, migration graphs, and cross-schema references cannot be proven by source syntax analysis."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:alpha-transition-version-intent",
+      "invariant": "External selections, immutable historical evidence, and explicit fixtures are classified separately and are never renumbered as product or owned-contract releases.",
+      "layer": "architecture-test",
+      "rationale": "Repository-wide semantic classification and prohibited rewrite detection belong to architecture conformance over the exact inventory."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:alpha-transition-capability-isolation",
+      "invariant": "Updated canonical capability definitions remain inert and are never activated from the Program Kit authoring workspace.",
+      "layer": "executable-test",
+      "rationale": "Bundle bytes, provider-wrapper rendering, ownership locks, isolated initialization, and authoring-root denial require filesystem conformance tests."
+    }
+  ],
+  "disposition": "reuse-existing",
+  "gateSelections": [
+    {
+      "gate": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      }
+    }
+  ],
+  "linkedGateDesigns": [],
+  "rationale": "The existing private Program Kit C# gate is compatible with all Program Kit-owned implementation source in this transition. Version inventories, schema migration, package-byte coordination, bundle refresh, and capability isolation remain explicit executable and architecture conformance obligations; no new analyzer or gate extension is justified.",
+  "residualRisks": [
+    "The selected private gate is a repository-specific policy whose current version itself must be classified and migrated as an owned artifact during the transition.",
+    "Static analysis cannot prove repository-wide version intent, exact package contents, migration closure, deterministic replacement schemas, or isolated capability initialization."
+  ],
+  "nonStaticClaims": [
+    "Version inventory closure, alpha ordinal mapping, unchanged historical evidence, exact schema registration, migration assessment, package inspection, generated reference agreement, and bundle verification require deterministic executable tests.",
+    "Human review remains authoritative for version-intent classification, compatibility disposition, migration acceptance, first stable release policy, and any material scope change."
+  ],
+  "decisionSource": {
+    "source": {
+      "identity": "pkid:decision-source:program-kit:alpha-version-transition-static-conformance",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:3bcb0da9675b9c7c90f20cd368c228998951768fa88ac5e3d2b272136aa3256f"
+    },
+    "jsonPointer": "/decision"
+  },
+  "emptySelectionAcceptance": null,
+  "blockers": []
+}

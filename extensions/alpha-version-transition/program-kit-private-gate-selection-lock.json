@@ -1,0 +1,32 @@
+{
+  "identity": "pkid:selection-lock:program-kit:alpha-version-transition-private-gate",
+  "version": "0.1.0-alpha.1",
+  "disposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:alpha-version-transition",
+    "version": "1.0.0",
+    "digest": "sha256:62536fba1fd42a652ab042398849a72c8c3a88f80f5d83e6eaa023839a16061d"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "activationMatrix": {
+    "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+    "version": "1.0.0",
+    "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+  },
+  "verificationProfile": {
+    "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+    "version": "1.0.0",
+    "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
+    "version": "1.0.0",
+    "digest": "sha256:7f4a6fbe84c42fc983880abb5e9c18b31eae6cbc6588171a76490f558c7d140b"
+  },
+  "sourceCommit": "773d7cf3859fe98c2fd72139872312994effeb8d",
+  "scope": "Program Kit-owned implementation source only; never consumer-owned source.",
+  "state": "active"
+}

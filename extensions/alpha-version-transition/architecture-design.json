@@ -1,0 +1,628 @@
+{
+  "title": "Program Kit alpha version transition",
+  "intent": "Establish explicit version intents, replace pre-stable Program Kit-owned contract revisions with alpha ordinals, and coordinate every packaged first-party deliverable at 0.1.0-alpha.2 without rewriting external selections or immutable history.",
+  "scope": [
+    "A closed repository inventory that classifies product release versions, owned artifact revisions, external selections, historical evidence revisions, and fixture revisions.",
+    "A replaceable alpha progression policy that validates explicit human-selected next versions without choosing release authority.",
+    "Alpha replacement revisions and deterministic migrations for every active Program Kit-owned schema, contract, policy, capability, plan, design, and comparable governed identity.",
+    "Architecture Design 0.1.0-alpha.2, Implementation Plan 0.1.0-alpha.3, and StaticConformanceDisposition 0.1.0-alpha.1 as the first transitioned design-flow contracts.",
+    "One exact 0.1.0-alpha.2 product release identity across NuGet packages, CLI metadata, capability bundle content, and generated first-party package references.",
+    "An independent capability-bundle manifest-format revision, byte-exact bundle regeneration, thin provider-wrapper verification, and isolated initialization proof.",
+    "A second-stage review set under the transitioned contracts for refresh, contributor setup, Console reachability, public analyzers, and the eventual JTest migration prompt."
+  ],
+  "nonGoals": [
+    "Defining or enforcing stable patch, minor, or major compatibility progression before Release Kit is designed.",
+    "Publishing, promoting, deploying, or releasing 0.1.0-alpha.2 to a package feed.",
+    "Rewriting immutable historical approvals, closure evidence, receipts, third-party versions, SDK versions, target frameworks, or intentional fixtures.",
+    "Implementing capability refresh behavior, the .contributors maintainer setup, Console generation reachability, or public analyzer behavior in this transition.",
+    "Mutating JTest or any other consumer repository.",
+    "Activating Program Kit source capabilities in the Program Kit authoring workspace.",
+    "Creating hooks, watchers, autonomous agents, provider-global configuration, or runtime application architecture."
+  ],
+  "assumptions": [
+    "The existing exact version-map and migration-assessment mechanisms remain suitable foundations once version intent and alpha progression are explicit.",
+    "Legacy stable-looking contract revisions remain readable and immutable while active selectors move through registered migrations.",
+    "The current private Program Kit C# gate remains compatible with Program Kit-owned transition implementation.",
+    "Release Kit will own the later stable progression strategy and the explicit transition to 1.0.0.",
+    "The Program Kit repository can prove capability initialization in an isolated consumer workspace without activating those capabilities at its authoring root."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:alpha-version-transition-intent",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "source": {
+        "identity": "pkid:intent:program-kit:alpha-version-transition",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+      },
+      "sourcePath": "extensions/alpha-version-transition/design-intent.md",
+      "governs": "The human-selected product version, alpha ordinal policy, version-intent boundaries, two-stage transition, static-conformance selection, and deferred health scope."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:central-package-version",
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "source": {
+        "identity": "pkid:source:program-kit:central-package-version",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:e44cca464cdb20276381c1a0866b1e2270c7db58f79c59ca8ce2888fcb08c1c7"
+      },
+      "sourcePath": "Directory.Build.props",
+      "governs": "The current implemented central NuGet package version baseline before the coordinated alpha.2 change."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:capability-bundle-version-drift",
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "source": {
+        "identity": "pkid:manifest:program-kit:capability-bundle",
+        "version": "3.0.0",
+        "digest": "sha256:fc140ee74a2c060909f17f0bfce6639882127e200cde3ac90eb86f3f96247199"
+      },
+      "sourcePath": ".agent-capabilities/capability-bundle-manifest.json",
+      "governs": "The current bundleVersion and kitVersion split, exact capability bytes, provider adapters, and supporting resources that must migrate without activation."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:version-map-builder",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "source": {
+        "identity": "pkid:source:program-kit:version-map-builder",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:5e0ad12088ab25bda4339662e9de72ec92bb52847dd5315ce9bf3ba050a2912f"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.Workbench/Operations/Versioning/VersionMapBuilder.cs",
+      "governs": "The current exact-node and typed-dependency version-map behavior."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:migration-assessment-engine",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "source": {
+        "identity": "pkid:source:program-kit:migration-assessment-engine",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:d2bd3cf938038f7d7c48976f72c8b39d0cf0ddb1f6241838b792ccbf543cb19e"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.Workbench/Operations/Migrations/MigrationAssessmentEngine.cs",
+      "governs": "The current reverse dependency closure, exact selection, explicit decision, and fail-closed migration assessment behavior."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:design-capability-transition",
+      "ownerId": "pkid:domain:program-kit:capability-distribution",
+      "source": {
+        "identity": "pkid:capability:program-kit:design-software",
+        "version": "1.0.0",
+        "digest": "sha256:6233d792c1b5e671c1c464040c8e13869157006eb70ca01f31420cada2da1f69"
+      },
+      "sourcePath": ".agent-capabilities/capabilities/design-software/CAPABILITY.md",
+      "governs": "The current human authority boundary, current Architecture and Planning contract requirements, static-conformance procedure, and stop-before-implementation rule."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:version-governance",
+      "purpose": "Own version-intent classification, immutable identity revisions, alpha progression validation, compatibility recording, and migration closure.",
+      "vocabulary": [
+        {
+          "term": "Version intent",
+          "meaning": "The declared semantic role of a version value: product release, owned artifact revision, external selection, historical evidence revision, or fixture revision.",
+          "acceptedAliases": [
+            "version domain"
+          ]
+        },
+        {
+          "term": "Alpha ordinal",
+          "meaning": "The one-based revision counter in 0.1.0-alpha.N for one stable Program Kit-owned governed identity during the pre-stable policy.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Progression policy",
+          "meaning": "A replaceable contract that validates an explicit proposed next version against identity history and never supplies release authority.",
+          "acceptedAliases": [
+            "version progression strategy"
+          ]
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:distribution-version",
+      "purpose": "Own one coordinated product release identity across every packaged first-party Program Kit deliverable and embedded current first-party dependency selection.",
+      "vocabulary": [
+        {
+          "term": "Product release identity",
+          "meaning": "The exact coordinated Program Kit version shared by NuGet packages, CLI metadata, capability bundle content, and generated current first-party package references.",
+          "acceptedAliases": [
+            "Program Kit package version"
+          ]
+        },
+        {
+          "term": "Bundle manifest format",
+          "meaning": "The independently versioned owned contract that defines the capability-bundle manifest shape; it is not the bundle content release.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:capability-distribution",
+      "purpose": "Own inert canonical capability packaging, thin provider wrappers, exact bundle bytes, isolated initialization, and authoring-workspace denial.",
+      "vocabulary": [
+        {
+          "term": "Source capability",
+          "meaning": "A canonical provider-neutral capability definition authored in Program Kit and never activated from the Program Kit authoring root.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Initialized capability",
+          "meaning": "A consumer-workspace provider wrapper bound by an ownership lock to exact canonical capability bytes in an explicitly selected Program Kit root.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:version-intent-classification",
+      "ownerDomainId": "pkid:domain:program-kit:version-governance",
+      "meaning": "A closed classification of every active version-bearing repository value before any automated progression or rewrite.",
+      "termContractIds": [],
+      "invariants": "Every active value has exactly one intent; product and owned-artifact clocks are never conflated; external, evidence, and fixture values cannot become product or public-contract releases through defaulting."
+    },
+    {
+      "identity": "pkid:model:program-kit:alpha-owned-artifact-progression",
+      "ownerDomainId": "pkid:domain:program-kit:version-governance",
+      "meaning": "A stable governed identity with immutable revisions whose pre-stable versions progress as 0.1.0-alpha.N.",
+      "termContractIds": [],
+      "invariants": "New identities begin at alpha.1; changed canonical bytes advance exactly one ordinal; identity plus version plus digest is immutable; compatibility and migration disposition are explicit; no stable SemVer significance is inferred."
+    },
+    {
+      "identity": "pkid:model:program-kit:coordinated-product-release",
+      "ownerDomainId": "pkid:domain:program-kit:distribution-version",
+      "meaning": "One human-selected Program Kit release value projected into every first-party packaged surface.",
+      "termContractIds": [],
+      "invariants": "The central selected value is 0.1.0-alpha.2 for this transition; package artifacts and current generated references agree exactly; bundle format remains an independent owned contract; publication remains separately authorized."
+    },
+    {
+      "identity": "pkid:model:program-kit:legacy-to-alpha-migration",
+      "ownerDomainId": "pkid:domain:program-kit:version-governance",
+      "meaning": "An explicit mapping from each active stable-looking legacy revision to one immutable alpha replacement revision.",
+      "termContractIds": [],
+      "invariants": "Legacy bytes and evidence are not rewritten; replacement identities remain stable; selectors move only through registered migrations; reverse dependency closure and incompatible or undecided edges fail closed."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:version-intent-inventory",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "kind": "evaluated-artifact",
+      "purpose": "Enumerate every active version-bearing source with one exact intent, identity, current version, digest, owner, consumers, and transition disposition.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Inventory schema, closed intent vocabulary, exact source path and digest, active-versus-historical status, and completeness proof."
+    },
+    {
+      "identity": "pkid:component:program-kit:alpha-progression-validator",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "kind": "domain-core",
+      "purpose": "Validate an explicit proposed owned-artifact revision against immutable identity history and the selected alpha policy.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Policy identity, history input, canonical digest equality, next-ordinal result, diagnostics, and replacement-policy selection."
+    },
+    {
+      "identity": "pkid:component:program-kit:owned-artifact-migration-registry",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "kind": "evaluated-artifact",
+      "purpose": "Register exact legacy-to-alpha replacements, compatibility classifications, migration definitions, and selector closure.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Stable identities, exact source and target revisions, typed dependencies, compatibility decisions, migration order, and fail-closed unresolved edges."
+    },
+    {
+      "identity": "pkid:component:program-kit:product-release-coordinator",
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "kind": "focused-helper",
+      "purpose": "Project one explicit product release version into package metadata, bundle content metadata, generated current references, and verification expectations.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Explicit input version, finite projection targets, exact equality, deterministic diagnostics, and no publication or autonomous bump."
+    },
+    {
+      "identity": "pkid:component:program-kit:capability-contract-transition",
+      "ownerId": "pkid:domain:program-kit:capability-distribution",
+      "kind": "design-time-source",
+      "purpose": "Move design and gate-design procedures to the new alpha contracts, regenerate exact bundle bytes, and prove isolated provider-wrapper initialization.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Canonical capability identity and authority, exact contract references, thin wrappers, bundle manifest format, content release, ownership locks, refresh migration, and authoring-root denial."
+    }
+  ],
+  "projects": [],
+  "packages": [],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:owned-version-independent-of-product",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit-owned schema, contract, policy, capability, plan, design, disposition, and comparable governed artifact revisions",
+      "referencedScope": "The coordinated Program Kit product release value as an inferred owned-artifact revision",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+        },
+        "path": "design-intent.md#version-intents"
+      },
+      "rationale": "Product release and owned-artifact revision are independent clocks; a coincidental number never establishes compatibility."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:single-product-release",
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "disposition": "allowed",
+      "referencingScope": "First-party Program Kit package metadata, CLI release metadata, capability bundle content metadata, and generated current first-party package references",
+      "referencedScope": "One explicit central product release selection",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+        },
+        "path": "design-intent.md#human-outcome"
+      },
+      "rationale": "One finite source eliminates release drift and permits exact package and generated-output verification."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-history-or-external-renumber",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "disposition": "forbidden",
+      "referencingScope": "Alpha version transition rewrites and active-selector migration",
+      "referencedScope": "External selections, immutable historical approval or closure evidence, receipts, and explicit fixture identities as values to renumber",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+        },
+        "path": "design-intent.md#transition-and-migration"
+      },
+      "rationale": "Those values carry upstream, evidentiary, or synthetic meaning and are not current Program Kit product or owned-contract releases."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:alpha-version-transition",
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "requestedOutcome": "Represent the exact pre-stable version-intent, contract migration, coordinated package baseline, capability transition, and follow-on design boundary as one canonical reviewed design.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design records architecture and grants no implementation, package publication, capability activation, or consumer mutation authority."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "The design is schema-validated, compared with source truth, and digest-bound by a separate implementation plan and review manifest."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review artifacts are addressed through explicit repository paths."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "This artifact creates no capability, wrapper, hook, watcher, or autonomous procedure."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit architecture reviewer, future maintainers, and implementation contributors.",
+        "decisionAuthorityBoundary": "Only explicit human approval of the exact canonical design and implementation-plan digests authorizes implementation; release and publication remain separate decisions.",
+        "rationale": "The transition changes public contract selection, package identity, capability packaging, and future contributor expectations."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "The bounded review directory provides explicit navigation without a generated index."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:alpha-version-transition",
+        "ownerId": "pkid:domain:program-kit:version-governance",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "2.0.0",
+          "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+        },
+        "provenancePolicy": "The exact human intent and repository evidence are named; generated projections and future implementation observations do not retroactively become architecture authority.",
+        "digestPolicy": "The review manifest binds exact design and plan bytes; any change requires revalidation, new digests, and a new human decision.",
+        "consumerIds": [],
+        "compatibilityPolicy": "Changing version-intent categories, alpha ordinal progression, the coordinated product-release boundary, migration failure semantics, capability authority, or stable-policy ownership requires a new reviewed design revision.",
+        "migrationPolicy": "This transitional design remains on Architecture Design 2.0.0 only to establish the replacement alpha contract set; the follow-on health design must use Architecture Design 0.1.0-alpha.2."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "The design contains no secrets, credentials, tokens, consumer data, or machine-specific user paths.",
+        "externalizationPolicy": "Only committed review artifacts and exact digests may be shared.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Build outputs, temporary workspaces, package archives, runtime state, and local initialization roots remain outside the canonical design."
+      },
+      "rationale": "A canonical current-format design is required to cross the contract-version boundary without assuming authority from the not-yet-established alpha contracts."
+    }
+  ],
+  "representationRelationships": [],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "policy": "Version processing reads only explicit repository inputs and performs no feed, provider, secret, or network discovery.",
+      "guarantees": [
+        "Exact paths, versions, and digests are validated before migration or projection.",
+        "Generated and initialized outputs remain subject to path-containment and ownership checks."
+      ],
+      "exclusions": [
+        "Package-feed credentials, signing, promotion, deployment, and provider trust are outside this transition."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "policy": "Humans select product releases, approve exact designs and plans, decide compatibility, and authorize migration; tooling only validates and projects explicit selections.",
+      "guarantees": [
+        "No version is bumped, package published, capability activated, or consumer migrated autonomously.",
+        "The current review stops before implementation and the follow-on review stops again before its implementation."
+      ],
+      "exclusions": [
+        "Approval of recommendations is not treated as approval of later canonical design or plan bytes."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "policy": "No transition contract, migration, package build, bundle check, or isolated initialization needs a secret.",
+      "guarantees": [
+        "Verification is local and operates on repository or generated fixture bytes."
+      ],
+      "exclusions": [
+        "Feed authentication, signing keys, provider credentials, and consumer secrets are not read or recorded."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "policy": "Canonical revisions, migration definitions, registries, and review artifacts are immutable digest-bound repository files; projections are regenerated.",
+      "guarantees": [
+        "Legacy revisions and historical evidence remain byte-unchanged.",
+        "New alpha revisions use new exact paths or registrations and atomic generated-output publication where applicable."
+      ],
+      "exclusions": [
+        "No database, remote registry, package feed, user-global state, or consumer repository is an authority."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "policy": "Ambiguous intent, duplicate identity-version pairs, digest drift, skipped alpha ordinals, unresolved migrations, version disagreement, or unsafe output fails closed with deterministic diagnostics.",
+      "guarantees": [
+        "Validation reports every classified path and every incompatible or undecided dependency edge.",
+        "Partial package, schema, bundle, or capability transitions cannot be accepted as closure."
+      ],
+      "exclusions": [
+        "Tooling never guesses intent, compatibility, migration authority, or the stable version strategy."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "policy": "Inventory, generation, and validation may parallelize only over immutable inputs; final registry, package, and bundle promotion is serialized.",
+      "guarantees": [
+        "Concurrent validation cannot change selections or canonical bytes.",
+        "One final exact inventory and release selection governs closure."
+      ],
+      "exclusions": [
+        "No watcher or autonomous refresh loop is introduced."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:distribution-version",
+      "policy": "Cancellation stops before promotion or leaves the previous complete canonical or generated state intact.",
+      "guarantees": [
+        "Temporary outputs are outside authoritative roots until verification succeeds.",
+        "Cancellation never implies approval, rollback of committed history, or silent retry."
+      ],
+      "exclusions": [
+        "External package publication and consumer migration are not started."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "policy": "Deterministic reports expose classification, old and new exact revisions, digests, migration decisions, package agreement, bundle verification, initialization isolation, tests, and changed paths.",
+      "guarantees": [
+        "Review and closure evidence distinguishes implemented, scaffolded, deferred, historical, and external claims.",
+        "Every artifact in the review set is digest-bound."
+      ],
+      "exclusions": [
+        "Telemetry, remote evidence transport, and consumer data capture are not introduced."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:version-governance",
+      "policy": "Version intents evolve independently; active contract replacement requires explicit compatibility and migration disposition even though stable patch/minor/major enforcement is deferred.",
+      "guarantees": [
+        "Identity plus version plus digest denotes one immutable revision.",
+        "Legacy-to-alpha mappings are explicit and reverse dependency closure is assessed.",
+        "First-party packaged outputs agree exactly on 0.1.0-alpha.2."
+      ],
+      "exclusions": [
+        "Matching numbers do not imply compatibility and external selections are never renumbered."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:classify-version-inventory",
+      "actor": "Program Kit maintainer",
+      "intent": "Classify every active version-bearing repository source before changing any version.",
+      "preconditions": [
+        "The repository source and active artifact registries are available at one exact commit."
+      ],
+      "steps": [
+        "Enumerate finite version-bearing sources and their exact paths and digests.",
+        "Assign exactly one version intent, owner, active status, and transition disposition to each source.",
+        "Reject duplicates, missing classifications, and inferred category changes.",
+        "Review the complete inventory before any rewrite or selector migration."
+      ],
+      "outcomes": [
+        "Every active value is explicitly classified.",
+        "External selections, immutable history, and fixtures are protected from product or contract renumbering."
+      ],
+      "failureOutcomes": [
+        "An unclassified or ambiguously classified value blocks the transition."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:migrate-owned-contracts-to-alpha",
+      "actor": "Program Kit maintainer",
+      "intent": "Replace active stable-looking Program Kit-owned revisions with immutable alpha ordinal revisions.",
+      "preconditions": [
+        "The complete inventory and replaceable alpha progression policy conform.",
+        "The exact source and target identities, digests, compatibility decisions, and migration authority are explicit."
+      ],
+      "steps": [
+        "Materialize new alpha schema, contract, policy, capability, plan, design, and disposition revisions without changing legacy bytes.",
+        "Register exact old-to-new migration definitions and update internal exact references.",
+        "Run schema, semantic, version-map, migration-assessment, and historical-immutability conformance.",
+        "Move active selectors only after the dependency closure is fully decided."
+      ],
+      "outcomes": [
+        "Architecture Design selects 0.1.0-alpha.2, Implementation Plan selects 0.1.0-alpha.3, and StaticConformanceDisposition selects 0.1.0-alpha.1.",
+        "All other active owned identities use the correct independent alpha ordinal.",
+        "Legacy revisions remain available as immutable migration sources."
+      ],
+      "failureOutcomes": [
+        "Skipped ordinals, changed legacy bytes, duplicate exact keys, stale references, or unresolved migration edges prevent selector movement."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:coordinate-alpha-two-packages",
+      "actor": "Program Kit maintainer",
+      "intent": "Prepare every first-party packaged Program Kit deliverable at 0.1.0-alpha.2.",
+      "preconditions": [
+        "The human-selected product release is exactly 0.1.0-alpha.2.",
+        "The package projection target inventory is finite and reviewed."
+      ],
+      "steps": [
+        "Project the exact release into central package metadata, CLI metadata, bundle content metadata, and current generated first-party package references.",
+        "Assign the capability-bundle manifest format its independent alpha contract revision.",
+        "Build and inspect all packages and the exact capability bundle without publishing.",
+        "Generate representative hosts and verify that every current first-party package reference is 0.1.0-alpha.2."
+      ],
+      "outcomes": [
+        "No packaged first-party component has version drift.",
+        "Bundle content release and bundle manifest format are distinguishable.",
+        "Local package and generated-host conformance passes."
+      ],
+      "failureOutcomes": [
+        "Any missing target, conflicting literal, stale bundle digest, or package mismatch blocks closure."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:transition-design-capability",
+      "actor": "Program Kit maintainer",
+      "intent": "Move design procedures to alpha contracts without activating Program Kit source capabilities.",
+      "preconditions": [
+        "The new design, planning, and static-conformance contracts and migrations pass.",
+        "The existing human authority and stop boundaries remain unchanged."
+      ],
+      "steps": [
+        "Update canonical design and gate-design procedures to the exact alpha contract versions.",
+        "Keep provider adapters thin and regenerate the capability bundle with exact source and output digests.",
+        "Initialize an isolated consumer fixture from the explicit Program Kit root and verify ownership-lock refresh.",
+        "Reject initialization when the selected workspace is the Program Kit authoring root."
+      ],
+      "outcomes": [
+        "A future design session can produce Architecture Design alpha.2, Implementation Plan alpha.3, and StaticConformanceDisposition alpha.1 artifacts.",
+        "The source capabilities remain inert in the authoring workspace."
+      ],
+      "failureOutcomes": [
+        "Copied semantics in a wrapper, stale bundle bytes, unsafe overwrite, manual-fix dependency, or authoring-root activation blocks closure."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:produce-follow-on-health-review",
+      "actor": "Program Kit architecture contributor",
+      "intent": "Produce the remaining health design under the transitioned alpha contracts.",
+      "preconditions": [
+        "The transition implementation is complete and its exact alpha contracts are active.",
+        "The human has started the follow-on design work."
+      ],
+      "steps": [
+        "Design deterministic installed-bundle refresh and re-initialization.",
+        "Design the .contributors maintainer-workspace setup at the parent of the checkout.",
+        "Design Console CLI and refresh reachability with exact compilation inputs.",
+        "Design opt-in public analyzers without exposing private PKCS policy.",
+        "Produce and validate the separate alpha-contract review set and stop for exact human approval."
+      ],
+      "outcomes": [
+        "All deferred health concerns are represented by bounded dependency-ordered work units.",
+        "The eventual JTest migration prompt is derived only after Program Kit implementation and verification complete."
+      ],
+      "failureOutcomes": [
+        "The follow-on design cannot begin under legacy design-flow contracts or silently implement behavior."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:alpha-version-transition",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+        }
+      ],
+      "claim": "The current-format transitional design exists for validation and exact human review; it does not claim approval or implementation."
+    },
+    {
+      "subjectId": "pkid:component:program-kit:alpha-progression-validator",
+      "status": "aspirational",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+        }
+      ],
+      "claim": "The replaceable alpha progression validator is prospective and has not been implemented."
+    },
+    {
+      "subjectId": "pkid:component:program-kit:product-release-coordinator",
+      "status": "aspirational",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:alpha-version-transition",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:db5c996e19e57e5f08349deffabba5eeae2703ed889db8df030fb41d3820af54"
+        }
+      ],
+      "claim": "The coordinated 0.1.0-alpha.2 projection and verification are prospective; current package and bundle drift remains implemented source truth."
+    }
+  ],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:alpha-version-transition",
+    "version": "1.0.0",
+    "digest": "sha256:62536fba1fd42a652ab042398849a72c8c3a88f80f5d83e6eaa023839a16061d"
+  }
+}
