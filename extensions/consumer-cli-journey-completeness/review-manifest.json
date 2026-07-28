@@ -10,7 +10,9 @@
       "The CLI has no no-argument or --help contract and exposes required values one parser failure at a time.",
       "Provider refresh leaves earlier wrappers discoverable while the lock remembers only the last provider.",
       "A JTest gate-design agent had to inspect DLL strings and iteratively guess analyzer package identity, collection order, artifact null semantics, and UTF-8 BOM requirements.",
-      "The CLI already composes finite schema modules and backed gate operations, but exposes no exact schema/resource discovery or gate-definition materialization boundary."
+      "The CLI already composes finite schema modules, diagnostic catalogs, and backed gate operations, but exposes no exact knowledge-closure, readiness, schema/resource, diagnostic-remediation, artifact-interpretation, or gate-definition materialization boundary.",
+      "The repository catalog marks a consumer-facing local-publish capability available while excluding it from the five-definition consumer bundle; contributor-only and unavailable roles are not machine-readable.",
+      "A schema alone cannot supply capability procedure, trigger, authority, command, migration, package-selection, troubleshooting, or remediation knowledge."
     ]
   },
   "artifacts": [
@@ -19,19 +21,19 @@
       "identity": "pkid:design:program-kit:consumer-cli-journey-completeness",
       "version": "0.1.0-alpha.1",
       "path": "extensions/consumer-cli-journey-completeness/architecture-design.md",
-      "sha256": "1ee4e3b38aac65c50387610ad6106cde7c6890e29ad23f2a9ecfc475ad9c694d"
+      "sha256": "9d336e3015daa8a8ec771d8e8aacc29020175a10174df7964d23088656468648"
     },
     {
       "role": "implementation-plan",
       "identity": "pkid:plan:program-kit:consumer-cli-journey-completeness",
       "version": "0.1.0-alpha.1",
       "path": "extensions/consumer-cli-journey-completeness/implementation-plan.md",
-      "sha256": "d56888ed0a0e99d4920b9e5d9884952e74a7e93c20b9d268dcfd882cac49ff0f"
+      "sha256": "1e0d8b2090445e327459767a8360d11f48acf6b394516d87b4a5c2c586180246"
     },
     {
       "role": "navigation",
       "path": "extensions/consumer-cli-journey-completeness/README.md",
-      "sha256": "a6536ea88896de5da603d3f174193674e091fe63f2dbc4041b84f525f85a7290"
+      "sha256": "5ecb287cefa5efa97d86b489ef942c713592a86a96c0466f3caa0bc648288c48"
     }
   ],
   "staticConformanceDisposition": {
@@ -53,7 +55,7 @@
       "PKCJ-W010"
     ],
     "atomic": true,
-    "acceptedOutcome": "One package-only Program Kit CLI journey supplies exact capabilities, resources, schemas, help, provider initialization/refresh, canonical gate-definition materialization, and installed Console generation without source checkout or reverse engineering.",
+    "acceptedOutcome": "One package-only Program Kit CLI journey supplies a read-only, complete, readiness-verified knowledge closure for every consumer-role capability, exact troubleshooting and interpretation, correct supported-provider triggers, initialization/refresh, canonical gate materialization, and installed Console generation without source checkout or reverse engineering.",
     "overlapDisposition": {
       "pkavWorkUnit": "PKAV-W050",
       "consumedOutcome": "Consumer capability contract migration, thin wrapper regeneration, bundle digest refresh, and clean initialization/refresh proof are performed inside PKCJ-W010 and must not be repeated.",
@@ -70,6 +72,7 @@
       "GitHub Actions release-pipeline implementation",
       "remaining routing, contributor, approval, handback, or release-cycle health work",
       "version selection beyond the not-yet-delivered 0.1.0-alpha.2 candidate",
+      "a claim of protection against a malicious same-user executable edit without an external read-only installation boundary",
       "release, promotion, deployment, signing, hooks, watchers, MCP bindings, or autonomous work"
     ]
   },
@@ -78,7 +81,9 @@
     "artifactIdentityAndVersion": "passed",
     "designPlanBinding": "passed",
     "sourceInspection": "passed against current source basis",
-    "commandAndSchemaFeasibility": "passed against the current self-contained CLI, finite descriptor catalog, registered schema modules, capability bundle, gate contracts, validator, and pack metadata",
+    "commandAndSchemaFeasibility": "passed against the current self-contained CLI, finite descriptor catalog, registered schema modules, stable diagnostic catalogs, capability bundle, gate contracts, validator, and pack metadata",
+    "knowledgeClosureCompleteness": "designed as a mechanically verified transitive closure over all six consumer-role capabilities; consumer-repository facts, human decisions, external state, and malicious same-user executable modification remain explicit non-product trust boundaries",
+    "readOnlyKnowledgeBoundary": "canonical knowledge is embedded, has no mutation/export API, is never copied into the consumer workspace, and is verified before use; thin wrapper modification invalidates preflight/read",
     "staticConformanceDisposition": "reuse-existing at repository scope with exact current private gate and activation matrix",
     "artifactDigests": "passed by SHA-256 recalculation over exact UTF-8 LF bytes",
     "schemaInstantiation": "not applicable: this transitional amendment deliberately does not create another legacy high-major design or plan contract",
@@ -86,7 +91,7 @@
   },
   "approvalBoundary": {
     "requiredDecision": "explicit-human-approval-of-exact-design-and-plan-digests-and-PKCJ-W010",
-    "candidateDesignSha256": "1ee4e3b38aac65c50387610ad6106cde7c6890e29ad23f2a9ecfc475ad9c694d",
-    "candidatePlanSha256": "d56888ed0a0e99d4920b9e5d9884952e74a7e93c20b9d268dcfd882cac49ff0f"
+    "candidateDesignSha256": "9d336e3015daa8a8ec771d8e8aacc29020175a10174df7964d23088656468648",
+    "candidatePlanSha256": "1e0d8b2090445e327459767a8360d11f48acf6b394516d87b4a5c2c586180246"
   }
 }

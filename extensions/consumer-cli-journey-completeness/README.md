@@ -1,9 +1,10 @@
 # Consumer CLI journey completeness review set
 
-This bounded review set makes the installed `program-kit` .NET tool the complete,
-version-matched product entry point for a Program Kit consumer. It closes the
-capability, resource, schema, help, initialization, and C# gate-definition
-discoverability gaps observed in the clean JTest package-only journey.
+This bounded review set makes the installed `program-kit` .NET tool the
+read-only, complete, version-matched Program Kit knowledge entry point for a
+consumer. It closes the capability, dependency-closure, readiness, trigger,
+resource, schema, help, initialization, and C# gate-definition discoverability
+gaps observed in the clean JTest package-only journey.
 
 Canonical review artifacts:
 
