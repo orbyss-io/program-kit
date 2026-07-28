@@ -102,6 +102,12 @@ state before the first edit and before each materially dependent work unit. Do
 not rely on cached artifact digests, sibling repositories, or remembered
 implementation state.
 
+The inert shared completion profile set at
+`../../supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json`
+owns the reusable source-review, refresh, integrity, build/test, optional
+publication, evidence, diff-review, commit, and push procedures. Its exact
+bundle-bound resources grant no authority and are not independently invokable.
+
 ## Procedure
 
 1. Confirm the human implementation request, repository, branch, and work-unit
@@ -121,10 +127,11 @@ implementation state.
    When establishment is required, implement the approved consumer-owned
    analyzer, gate definition, selection, activation, bootstrap evidence, and
    compatible lock in dependency order before starting product work.
-7. Run focused verification while developing, then every required work-unit
-   gate. At preflight, each applicable gate-establishment/product unit,
-   generated output, and final closure, execute the finite applicable profiles.
-   On consumer-owned source, run exact public `PKCC...` analyzers for public
+7. Resolve and follow the exact inert shared completion profile set. Run
+   focused verification while developing, then every required work-unit gate.
+   At preflight, each applicable gate-establishment/product unit, generated
+   output, and final closure, execute the finite applicable profiles. On
+   consumer-owned source, run exact public `PKCC...` analyzers for public
    Program Kit contract semantics and exact consumer-owned analyzers for
    consumer-specific policy. Require per-analyzer participation and
    exception-use receipts. Correct failures without weakening policy.

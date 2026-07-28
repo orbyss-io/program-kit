@@ -27,6 +27,28 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         "claude",
         "codex",
     ];
+    private static readonly Dictionary<string, string> SupportingResourcePaths =
+        new(StringComparer.Ordinal)
+        {
+            ["software-change-completion-profile-set"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
+            ["software-change-completion-profile-set-schema"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.schema.json",
+            ["software-change-profile-commit-and-push-coherently"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/commit-and-push-coherently.md",
+            ["software-change-profile-publish-with-separate-authority"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/publish-with-separate-authority.md",
+            ["software-change-profile-record-evidence-and-review-diff"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/record-evidence-and-review-diff.md",
+            ["software-change-profile-refresh-affected-output"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/refresh-affected-output.md",
+            ["software-change-profile-review-source"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/review-source.md",
+            ["software-change-profile-select-build-and-test"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/select-build-and-test.md",
+            ["software-change-profile-verify-integrity"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/verify-integrity.md",
+        };
     private readonly ICapabilityBundleManifestReader manifestReader;
 
     /// <summary>Initializes the verifier with strict manifest parsing.</summary>
@@ -135,6 +157,16 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 cancellationToken).ConfigureAwait(false);
         }
 
+        foreach (var resource in manifest.SupportingResources)
+        {
+            declaredPaths.Add(resource.PackagePath);
+            await VerifyPayloadAsync(
+                entries,
+                resource.PackagePath,
+                resource.Sha256,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         var actualPayloadPaths = entries.Keys
             .Where(
                 path =>
@@ -143,6 +175,9 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                         StringComparison.Ordinal) ||
                     path.StartsWith(
                         "contentFiles/any/any/.agent-capabilities/provider-adapters/",
+                        StringComparison.Ordinal) ||
+                    path.StartsWith(
+                        "contentFiles/any/any/.agent-capabilities/supporting-resources/",
                         StringComparison.Ordinal))
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -191,7 +226,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     {
         if (!string.Equals(
                 manifest.BundleVersion,
-                "2.1.0",
+                "2.2.0",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
@@ -204,7 +239,8 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         }
 
         if (manifest.Capabilities is null ||
-            manifest.OptionalProviderAdapters is null)
+            manifest.OptionalProviderAdapters is null ||
+            manifest.SupportingResources is null)
         {
             throw InvalidBundle(
                 "The bundle manifest arrays must be initialized.",
@@ -213,6 +249,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
 
         ValidateCapabilities(manifest.Capabilities);
         ValidateAdapters(manifest.OptionalProviderAdapters);
+        ValidateSupportingResources(manifest.SupportingResources);
     }
 
     private static void ValidateCapabilities(
@@ -306,6 +343,36 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 expectedSource,
                 expectedPackage,
                 "/bundle/manifest/optionalProviderAdapters");
+        }
+    }
+
+    private static void ValidateSupportingResources(
+        IReadOnlyCollection<CapabilityBundleSupportingResource> resources)
+    {
+        var actualIds = resources
+            .Select(static entry => entry?.ResourceId)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var expectedIds = SupportingResourcePaths.Keys
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (!actualIds.SequenceEqual(expectedIds, StringComparer.Ordinal))
+        {
+            throw InvalidBundle(
+                "The supporting-resource section must contain the exact shared completion profile set.",
+                "/bundle/manifest/supportingResources");
+        }
+
+        foreach (var resource in resources)
+        {
+            var expectedSource = SupportingResourcePaths[resource.ResourceId];
+            ValidatePayloadEntry(
+                resource.SourcePath,
+                resource.PackagePath,
+                resource.Sha256,
+                expectedSource,
+                string.Concat("contentFiles/any/any/", expectedSource),
+                "/bundle/manifest/supportingResources");
         }
     }
 

@@ -17,3 +17,9 @@ grant authority, or start work. See
 [provider-adapters/README.md](provider-adapters/README.md) for the adapter
 contract and [capabilities/INDEX.md](capabilities/INDEX.md) for Program Kit's
 canonical availability catalog.
+
+Non-discoverable supporting resources live below `supporting-resources/`.
+They may hold exact shared procedure bytes referenced by canonical
+capabilities, but they are not capabilities, provider adapters, triggers, or
+authority grants. The initial resource is the
+[software-change completion profile set](supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json).

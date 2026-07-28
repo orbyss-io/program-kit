@@ -100,6 +100,23 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 "/manifest");
         }
 
+        foreach (var resource in manifest.SupportingResources)
+        {
+            var resourcePath = ResolveUnder(
+                kit,
+                resource.SourcePath,
+                "/supportingResources");
+            var resourceBytes = await ReadBoundedAsync(
+                resourcePath,
+                MaximumSourceBytes,
+                "/supportingResources",
+                cancellationToken).ConfigureAwait(false);
+            RequireDigest(
+                resourceBytes.Span,
+                resource.Sha256,
+                "/supportingResources");
+        }
+
         var previous = await ReadPreviousLockAsync(
             workspace,
             cancellationToken).ConfigureAwait(false);
@@ -263,7 +280,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 out var lockedSkillRoot) ||
             !string.Equals(
                 value.BundleVersion,
-                "2.1.0",
+                "2.2.0",
                 StringComparison.Ordinal) ||
             !IsDigest(value.ManifestSha256) ||
             !IsSafeStoredRelativePath(

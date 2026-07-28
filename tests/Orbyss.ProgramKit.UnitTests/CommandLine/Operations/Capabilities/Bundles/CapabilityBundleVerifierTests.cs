@@ -23,6 +23,28 @@ public sealed class CapabilityBundleVerifierTests
         "claude",
         "codex",
     ];
+    private static readonly Dictionary<string, string> SupportingResourcePaths =
+        new(StringComparer.Ordinal)
+        {
+            ["software-change-completion-profile-set"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
+            ["software-change-completion-profile-set-schema"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.schema.json",
+            ["software-change-profile-commit-and-push-coherently"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/commit-and-push-coherently.md",
+            ["software-change-profile-publish-with-separate-authority"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/publish-with-separate-authority.md",
+            ["software-change-profile-record-evidence-and-review-diff"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/record-evidence-and-review-diff.md",
+            ["software-change-profile-refresh-affected-output"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/refresh-affected-output.md",
+            ["software-change-profile-review-source"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/review-source.md",
+            ["software-change-profile-select-build-and-test"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/select-build-and-test.md",
+            ["software-change-profile-verify-integrity"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/verify-integrity.md",
+        };
 
     public TestContext TestContext { get; set; } = null!;
 
@@ -91,6 +113,33 @@ public sealed class CapabilityBundleVerifierTests
 
             Assert.AreEqual(CommandExitCode.ConformanceFailure, exception.ExitCode);
             Assert.AreEqual("PKCLI007", exception.DiagnosticId);
+            Assert.Contains("does not match", exception.Message);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task RejectsTamperedSharedCompletionProfileBytes()
+    {
+        var root = CreateRoot();
+        try
+        {
+            var bundle = CreateBundle(
+                root,
+                tamperedResourceId:
+                    "software-change-profile-review-source");
+            CapabilityBundleVerifier sut = new(
+                new CapabilityBundleManifestReader());
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.VerifyAsync(
+                        bundle,
+                        TestContext.CancellationToken).AsTask());
+
             Assert.Contains("does not match", exception.Message);
         }
         finally
@@ -255,6 +304,7 @@ public sealed class CapabilityBundleVerifierTests
     private static string CreateBundle(
         string root,
         string? tamperedCapabilityId = null,
+        string? tamperedResourceId = null,
         string? extraPath = null,
         string[]? adapterProviders = null)
     {
@@ -310,7 +360,26 @@ public sealed class CapabilityBundleVerifierTests
                             provider);
                     }))
             .ToArray();
-        var manifest = BuildManifest(capabilities, adapters);
+        var resources = SupportingResourcePaths
+            .Select(
+                pair =>
+                {
+                    var bytes = Encoding.UTF8.GetBytes(
+                        string.Concat("# ", pair.Key, "\n"));
+                    return new BundleTestEntry(
+                        pair.Key,
+                        pair.Value,
+                        string.Concat(
+                            "contentFiles/any/any/",
+                            pair.Value),
+                        bytes,
+                        Digest(bytes));
+                })
+            .ToArray();
+        var manifest = BuildManifest(
+            capabilities,
+            adapters,
+            resources);
 
         using var archive = ZipFile.Open(
             bundlePath,
@@ -335,6 +404,17 @@ public sealed class CapabilityBundleVerifierTests
             WriteEntry(archive, adapter.PackagePath, adapter.Content);
         }
 
+        foreach (var resource in resources)
+        {
+            var bytes = string.Equals(
+                    resource.CapabilityId,
+                    tamperedResourceId,
+                    StringComparison.Ordinal)
+                ? Encoding.UTF8.GetBytes("tampered")
+                : resource.Content;
+            WriteEntry(archive, resource.PackagePath, bytes);
+        }
+
         if (extraPath is not null)
         {
             WriteEntry(
@@ -348,9 +428,10 @@ public sealed class CapabilityBundleVerifierTests
 
     private static string BuildManifest(
         IReadOnlyList<BundleTestEntry> capabilities,
-        IReadOnlyList<BundleTestEntry> adapters) =>
+        IReadOnlyList<BundleTestEntry> adapters,
+        IReadOnlyList<BundleTestEntry> resources) =>
         string.Concat(
-            "{\"bundleVersion\":\"2.1.0\",\"capabilities\":[",
+            "{\"bundleVersion\":\"2.2.0\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(
@@ -376,6 +457,20 @@ public sealed class CapabilityBundleVerifierTests
                         entry.PackagePath,
                         "\",\"provider\":\"",
                         entry.Provider,
+                        "\",\"sha256\":\"",
+                        entry.Digest,
+                        "\",\"sourcePath\":\"",
+                        entry.SourcePath,
+                        "\"}"))),
+            "],\"supportingResources\":[",
+            string.Join(
+                ',',
+                resources.Select(
+                    entry => string.Concat(
+                        "{\"packagePath\":\"",
+                        entry.PackagePath,
+                        "\",\"resourceId\":\"",
+                        entry.CapabilityId,
                         "\",\"sha256\":\"",
                         entry.Digest,
                         "\",\"sourcePath\":\"",

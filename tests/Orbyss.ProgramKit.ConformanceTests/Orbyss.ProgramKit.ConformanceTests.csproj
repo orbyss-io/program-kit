@@ -151,6 +151,9 @@
     <None Include="..\..\.agent-capabilities\capability-bundle-manifest.json"
           Link="ConformanceInputs/Capabilities/capability-bundle-manifest.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\**\*"
+          Link="ConformanceInputs/Capabilities/SupportingResources/%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\TargetProfileProbe.csproj"
           Link="ConformanceInputs/TargetProfileProbe.csproj"
           CopyToOutputDirectory="PreserveNewest" />

@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Xml.Linq;
+using Json.Schema;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
@@ -32,6 +34,21 @@ public sealed class CapabilityDeliveryConformanceTests
     [
         "claude",
         "codex",
+    ];
+    private static readonly string[] ExpectedCompletionConsumers =
+    [
+        "implement-software-plan",
+        "maintain-software",
+    ];
+    private static readonly int[] ExpectedCompletionProfileOrder =
+    [
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
     ];
 
     [TestMethod]
@@ -266,6 +283,120 @@ public sealed class CapabilityDeliveryConformanceTests
                             adapter.CapabilityId,
                             "/SKILL.md"))));
         }
+
+        Assert.HasCount(9, manifest.SupportingResources);
+        foreach (var resource in manifest.SupportingResources)
+        {
+            const string sourcePrefix =
+                ".agent-capabilities/supporting-resources/";
+            Assert.StartsWith(sourcePrefix, resource.SourcePath);
+            Assert.AreEqual(
+                string.Concat(
+                    "contentFiles/any/any/",
+                    resource.SourcePath),
+                resource.PackagePath);
+            Assert.AreEqual(
+                resource.Sha256,
+                Digest(
+                    ConformanceInputs.ReadBytes(
+                        string.Concat(
+                            "Capabilities/SupportingResources/",
+                            resource.SourcePath[sourcePrefix.Length..]))));
+        }
+    }
+
+    [TestMethod]
+    public void SharedCompletionProfilesAreInertExactAndCommon()
+    {
+        const string root =
+            "Capabilities/SupportingResources/completion-profiles/software-change/";
+        var schema = JsonSchema.FromText(
+            ConformanceInputs.Read(
+                string.Concat(
+                    root,
+                    "completion-profile-set-1.0.0.schema.json")));
+        using var document = JsonDocument.Parse(
+            ConformanceInputs.ReadBytes(
+                string.Concat(
+                    root,
+                    "completion-profile-set-1.0.0.json")));
+        var evaluation = schema.Evaluate(
+            document.RootElement,
+            new EvaluationOptions
+            {
+                OutputFormat = OutputFormat.List,
+            });
+        Assert.IsTrue(evaluation.IsValid);
+
+        var manifest = document.RootElement;
+        Assert.AreEqual(
+            "none",
+            manifest.GetProperty("authority").GetString());
+        Assert.IsFalse(
+            manifest.GetProperty("independentlyInvokable").GetBoolean());
+        var consumers = manifest
+            .GetProperty("consumers")
+            .EnumerateArray()
+            .ToArray();
+        Assert.AreSequenceEqual(
+            ExpectedCompletionConsumers,
+            consumers
+                .Select(
+                    consumer =>
+                        consumer.GetProperty("capabilityId").GetString())
+                .ToArray());
+        var implementationProfiles = consumers[0]
+            .GetProperty("profileIds")
+            .EnumerateArray()
+            .Select(static item => item.GetString())
+            .ToArray();
+        var maintenanceProfiles = consumers[1]
+            .GetProperty("profileIds")
+            .EnumerateArray()
+            .Select(static item => item.GetString())
+            .ToArray();
+        Assert.AreSequenceEqual(
+            implementationProfiles,
+            maintenanceProfiles);
+
+        var profiles = manifest
+            .GetProperty("profiles")
+            .EnumerateArray()
+            .ToArray();
+        Assert.HasCount(7, profiles);
+        Assert.AreSequenceEqual(
+            ExpectedCompletionProfileOrder,
+            profiles
+                .Select(profile => profile.GetProperty("order").GetInt32())
+                .ToArray());
+        foreach (var profile in profiles)
+        {
+            var relativePath = profile.GetProperty("path").GetString() ??
+                throw new AssertFailedException("Missing profile path.");
+            var bytes = ConformanceInputs.ReadBytes(
+                string.Concat(root, relativePath));
+            Assert.AreEqual(
+                profile.GetProperty("sha256").GetString(),
+                Digest(bytes));
+            var text = Encoding.UTF8.GetString(bytes);
+            Assert.StartsWith("# ", text);
+            Assert.DoesNotStartWith("---", text);
+            Assert.Contains(
+                "not a capability,",
+                text,
+                relativePath);
+            Assert.Contains(
+                "not",
+                text,
+                relativePath);
+        }
+
+        var implementation = ConformanceInputs.Read(
+            "Capabilities/implement-software-plan/CAPABILITY.md");
+        Assert.Contains(
+            "../../supporting-resources/completion-profiles/software-change/" +
+            "completion-profile-set-1.0.0.json",
+            implementation);
     }
 
     [TestMethod]
@@ -289,7 +420,7 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            13,
+            22,
             project
                 .Descendants("None")
                 .Where(

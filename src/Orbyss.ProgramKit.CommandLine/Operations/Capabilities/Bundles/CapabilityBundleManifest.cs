@@ -5,4 +5,5 @@ public sealed record CapabilityBundleManifest(
     string BundleVersion,
     CapabilityBundlePayloadEntry[] Capabilities,
     string KitVersion,
-    CapabilityBundleProviderAdapter[] OptionalProviderAdapters);
+    CapabilityBundleProviderAdapter[] OptionalProviderAdapters,
+    CapabilityBundleSupportingResource[] SupportingResources);

@@ -169,6 +169,6 @@ The inert Codex adapter template at
 and Claude Code adapter template at
 `.agent-capabilities/provider-adapters/claude/design-csharp-build-gate/SKILL.md`
 each contain one canonical-path token and no procedure copy. Initialization
-must verify the CapabilityBundle `2.1.0` manifest, render only the selected
+must verify the CapabilityBundle `2.2.0` manifest, render only the selected
 provider wrapper, and bind exact canonical, template, output, and manifest
 digests in the workspace ownership lock.

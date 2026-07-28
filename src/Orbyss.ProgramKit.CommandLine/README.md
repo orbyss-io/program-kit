@@ -47,7 +47,10 @@ values, and includes the exact source SHA-256. Bundle verification requires the
 four distributable canonical definitions and their separately listed inert
 Codex and Claude Code adapter templates; it rejects the index, the authoring
 capability, the repository-only local-publish capability, unlisted bytes, and
-tampering.
+tampering. Bundle `2.2.0` also binds the non-discoverable software-change
+completion profile set shared by full implementation and incremental
+maintenance. These supporting bytes are not independently invokable and grant
+no authority.
 
 Capability initialization requires explicit provider, workspace-root, and
 Program-Kit-root arguments. It verifies the exact source manifest and bytes,

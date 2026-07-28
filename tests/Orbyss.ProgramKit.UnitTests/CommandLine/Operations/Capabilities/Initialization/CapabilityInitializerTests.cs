@@ -27,6 +27,28 @@ public sealed class CapabilityInitializerTests
         "claude",
         "codex",
     ];
+    private static readonly Dictionary<string, string> SupportingResourcePaths =
+        new(StringComparer.Ordinal)
+        {
+            ["software-change-completion-profile-set"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
+            ["software-change-completion-profile-set-schema"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.schema.json",
+            ["software-change-profile-commit-and-push-coherently"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/commit-and-push-coherently.md",
+            ["software-change-profile-publish-with-separate-authority"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/publish-with-separate-authority.md",
+            ["software-change-profile-record-evidence-and-review-diff"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/record-evidence-and-review-diff.md",
+            ["software-change-profile-refresh-affected-output"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/refresh-affected-output.md",
+            ["software-change-profile-review-source"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/review-source.md",
+            ["software-change-profile-select-build-and-test"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/select-build-and-test.md",
+            ["software-change-profile-verify-integrity"] =
+                ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/verify-integrity.md",
+        };
     private static readonly JsonSerializerOptions ManifestJsonOptions =
         new(JsonSerializerDefaults.Web);
 
@@ -54,6 +76,9 @@ public sealed class CapabilityInitializerTests
                 TestContext.CancellationToken);
 
             Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".agents")));
+            Assert.IsFalse(
+                Directory.Exists(
+                    Path.Combine(workspace, ".agent-capabilities")));
             foreach (var capabilityId in CapabilityIds)
             {
                 var wrapper = await File.ReadAllTextAsync(
@@ -297,6 +322,45 @@ public sealed class CapabilityInitializerTests
     }
 
     [TestMethod]
+    public async Task TamperedSupportingProfileIsASetupBlockerWithoutInitialization()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var kit = Path.Combine(workspace, "program-kit");
+            CreateKit(kit);
+            var resourcePath = Path.Combine(
+                kit,
+                SupportingResourcePaths[
+                    "software-change-profile-review-source"]
+                    .Replace('/', Path.DirectorySeparatorChar));
+            await File.AppendAllTextAsync(
+                resourcePath,
+                "tampered",
+                TestContext.CancellationToken);
+            CapabilityInitializer sut = CreateSubject();
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.InitializeAsync(
+                        "codex",
+                        workspace,
+                        kit,
+                        TestContext.CancellationToken).AsTask());
+
+            Assert.AreEqual("PKCLI008", exception.DiagnosticId);
+            Assert.Contains("/supportingResources", exception.Path);
+            Assert.IsFalse(
+                Directory.Exists(
+                    Path.Combine(workspace, ".codex", "skills")));
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task InitializingSecondProviderKeepsFirstWrappersAndRewritesLock()
     {
         var workspace = CreateWorkspace();
@@ -439,11 +503,28 @@ public sealed class CapabilityInitializerTests
             }
         }
 
+        var resources = SupportingResourcePaths
+            .Select(
+                pair =>
+                {
+                    var bytes = Encoding.UTF8.GetBytes(
+                        string.Concat("# ", pair.Key, "\n"));
+                    Write(kit, pair.Value, bytes);
+                    return new CapabilityBundleSupportingResource(
+                        string.Concat(
+                            "contentFiles/any/any/",
+                            pair.Value),
+                        pair.Key,
+                        Digest(bytes),
+                        pair.Value);
+                })
+            .ToArray();
         var manifest = new CapabilityBundleManifest(
-            "2.1.0",
+            "2.2.0",
             capabilities.ToArray(),
             "0.1.0-alpha.1",
-            adapters.ToArray());
+            adapters.ToArray(),
+            resources);
         Write(
             kit,
             ".agent-capabilities/capability-bundle-manifest.json",
