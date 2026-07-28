@@ -17,6 +17,10 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Build\Orbyss.ProgramKit.CSharpBuildGates.Build.csproj"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CSharpBuildGates.Contracts\Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Quality\Orbyss.ProgramKit.Quality.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Planning\Orbyss.ProgramKit.Planning.csproj" />

@@ -6,6 +6,7 @@ using Orbyss.ProgramKit.CommandLine.Operations.Local;
 using Orbyss.ProgramKit.CommandLine.Operations.Processes;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Contracts;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Publishing;
 
@@ -19,6 +20,7 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
     private readonly INuGetSourceConfigurationWriter sourceWriter;
     private readonly INuGetLockVerifier lockVerifier;
     private readonly IProgramKitJsonSerializer serializer;
+    private readonly IGeneratedOutputIntegrityVerifier integrityVerifier;
 
     /// <summary>Initializes every generation, restore, verification, and serialization collaborator.</summary>
     public LocalApplicationPublisher(
@@ -28,7 +30,8 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
         ILocalPackageRootVerifier packageRootVerifier,
         INuGetSourceConfigurationWriter sourceWriter,
         INuGetLockVerifier lockVerifier,
-        IProgramKitJsonSerializer serializer)
+        IProgramKitJsonSerializer serializer,
+        IGeneratedOutputIntegrityVerifier integrityVerifier)
     {
         this.fileSystem = fileSystem ??
             throw new ArgumentNullException(nameof(fileSystem));
@@ -44,6 +47,8 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
             throw new ArgumentNullException(nameof(lockVerifier));
         this.serializer = serializer ??
             throw new ArgumentNullException(nameof(serializer));
+        this.integrityVerifier = integrityVerifier ??
+            throw new ArgumentNullException(nameof(integrityVerifier));
     }
 
     /// <inheritdoc />
@@ -84,6 +89,9 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
                     generatedRoot,
                     null),
                 cancellationToken).ConfigureAwait(false);
+            await VerifyGeneratedOutputAsync(
+                generatedRoot,
+                cancellationToken).ConfigureAwait(false);
             var packageRoot = await packageRootVerifier.VerifyAsync(
                 request.PackageManifestPath,
                 generation.Shell.InputVersionMapRevision,
@@ -105,11 +113,12 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
                     RestoreArguments(
                         configurationPath,
                         lockCache,
+                        Path.Combine(workRoot, "packages.lock.json"),
                         lockedMode: false),
                     environment),
                 "NuGet lock materialization failed.",
                 cancellationToken).ConfigureAwait(false);
-            var lockPath = Path.Combine(generatedRoot, "packages.lock.json");
+            var lockPath = Path.Combine(workRoot, "packages.lock.json");
             var lockBytes = await fileSystem.ReadAllBytesAsync(
                 lockPath,
                 cancellationToken).ConfigureAwait(false);
@@ -139,9 +148,13 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
                     RestoreArguments(
                         configurationPath,
                         restoreCache,
+                        lockPath,
                         lockedMode: true),
                     environment),
                 "Locked isolated restore failed.",
+                cancellationToken).ConfigureAwait(false);
+            await VerifyGeneratedOutputAsync(
+                generatedRoot,
                 cancellationToken).ConfigureAwait(false);
 
             var applicationRoot = Path.Combine(workRoot, "application");
@@ -209,6 +222,7 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
     private static ImmutableArray<string> RestoreArguments(
         string configurationPath,
         string packagesPath,
+        string lockFilePath,
         bool lockedMode)
     {
         var arguments = ImmutableArray.CreateBuilder<string>();
@@ -224,6 +238,9 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
         arguments.Add("minimal");
         arguments.Add("-property:RestoreFallbackFolders=");
         arguments.Add("-property:RestoreIgnoreFailedSources=false");
+        arguments.Add(string.Concat(
+            "-property:NuGetLockFilePath=",
+            lockFilePath));
         if (lockedMode)
         {
             arguments.Add("--locked-mode");
@@ -235,6 +252,23 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
         }
 
         return arguments.ToImmutable();
+    }
+
+    private async ValueTask VerifyGeneratedOutputAsync(
+        string generatedRoot,
+        CancellationToken cancellationToken)
+    {
+        var integrity = await integrityVerifier.VerifyAsync(
+            generatedRoot,
+            cancellationToken).ConfigureAwait(false);
+        if (!integrity.IsValid)
+        {
+            var issue = integrity.Issues[0];
+            throw Failure(
+                LocalOperationDiagnosticIds.PublishProcessFailed,
+                issue.Message,
+                issue.Path);
+        }
     }
 
     private static ImmutableDictionary<string, string> CreateEnvironment(

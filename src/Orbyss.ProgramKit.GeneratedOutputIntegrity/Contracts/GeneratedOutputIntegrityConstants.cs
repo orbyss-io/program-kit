@@ -9,7 +9,7 @@ public static class GeneratedOutputIntegrityConstants
 
     /// <summary>Exact canonical manifest schema bytes.</summary>
     public const string ManifestSchemaSha256 =
-        "sha256:4b7a636fd8ca7176736172a831d75dddc18b7239185d97193b1c2ebb219f2faf";
+        "sha256:0515df3892b6dd0be444a58ffc25038c50ffc4a43633141410cb821201db0a3a";
 
     /// <summary>Canonical external-anchor schema identity.</summary>
     public const string AnchorSchema =
@@ -17,7 +17,7 @@ public static class GeneratedOutputIntegrityConstants
 
     /// <summary>Exact canonical external-anchor schema bytes.</summary>
     public const string AnchorSchemaSha256 =
-        "sha256:445ddd9e8b0fff492c3ade146d4d2ed9979e4d421f83429ee731fa73ce4406e1";
+        "sha256:ac13e7b5d3a146d3e32965d15ab3f282bad02d779a2fa88923a668e890116fb1";
 
     /// <summary>Frozen integrity format revision.</summary>
     public const string FormatVersion = "1.0.0";

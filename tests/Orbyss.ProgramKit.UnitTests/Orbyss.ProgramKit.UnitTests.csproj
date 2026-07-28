@@ -29,6 +29,8 @@
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DevContainers\Orbyss.ProgramKit.DevContainers.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj" />
+    <ProjectReference Include="..\..\src\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.csproj"
+                      ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.CommandLine\Orbyss.ProgramKit.CommandLine.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity\Orbyss.ProgramKit.Modularity.csproj" />
     <ProjectReference Include="..\..\src\Orbyss.ProgramKit.Modularity.InProcess\Orbyss.ProgramKit.Modularity.InProcess.csproj" />

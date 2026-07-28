@@ -16,6 +16,7 @@ using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet.Clients;
+using Orbyss.ProgramKit.CommandLine.Operations.DotNet.Refresh;
 using Orbyss.ProgramKit.CommandLine.Operations.Packages;
 using Orbyss.ProgramKit.CommandLine.Operations.Processes;
 using Orbyss.ProgramKit.CommandLine.Operations.Publishing;
@@ -176,6 +177,15 @@ public static class CommandLineComposition
         ICommandOperation generatedOutputVerification =
             new DotNetVerifyHostCommandOperation(
                 new GeneratedOutputIntegrityVerifier());
+        DotNetHostRefreshSerializer hostRefreshSerializer = new();
+        ICommandOperation hostRefresh =
+            new DotNetRefreshHostCommandOperation(
+                new DotNetHostRefreshService(
+                    hostGeneration,
+                    new GeneratedOutputIntegrityVerifier(),
+                    new PinnedDotNetCSharpGateCompilerHarness(),
+                    hostRefreshSerializer),
+                hostRefreshSerializer);
         IKiotaForeignClientGenerator kiotaGenerator =
             new KiotaForeignClientGenerator(
                 fileSystem,
@@ -201,7 +211,8 @@ public static class CommandLineComposition
             new LocalPackageRootVerifier(fileSystem, serializer),
             new NuGetSourceConfigurationWriter(),
             new NuGetLockVerifier(serializer),
-            serializer);
+            serializer,
+            new GeneratedOutputIntegrityVerifier());
         ICommandOperation localPublishOperation =
             new PublishLocalApplicationCommandOperation(localPublisher);
         ICommandOperation capabilityCatalogOperation =
@@ -248,6 +259,7 @@ public static class CommandLineComposition
                     canonicalizer),
                 "dotnet.generate-host" => dotNetGeneration,
                 "dotnet.verify-host" => generatedOutputVerification,
+                "dotnet.refresh-host" => hostRefresh,
                 "dotnet.generate-client" => kiotaGeneration,
                 "packages.prepare-local" => packagePreparationOperation,
                 "dotnet.publish-local" => localPublishOperation,

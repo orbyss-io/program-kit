@@ -17,6 +17,7 @@ program-kit versions assess --observed <selection> --target <selection> --output
 program-kit check <design|plan> | --manifest <workspace-manifest> [--profile <id>]
 program-kit dotnet generate-host <api|console|worker> --shell <file> --host <id> --artifact-manifest <file> --output <dir>
 program-kit dotnet verify-host --root <generated-tree>
+program-kit dotnet refresh-host --request <generation-request> [--preview] [--build-consumer] [--repair-generated-output]
 program-kit dotnet generate-client --openapi <file> --tool-manifest <file> --tool-package <nupkg> --namespace-name <namespace> --class-name <class> --output <dir>
 program-kit capabilities render-catalog <index> --output <file|->
 program-kit capabilities verify-bundle <bundle>
@@ -73,6 +74,22 @@ parameterless CShell feature. Spectre is the sole command parser. Handler
 integers become process exit codes unchanged; parse, validation, cancellation,
 and internal failures use the document-declared host roles. Help and static
 completion do not compose consumer services.
+
+`dotnet refresh-host` reads a committed, version-exact generation request. It
+creates an absent host, reports byte-identical output without touching it, and
+atomically replaces only a valid generated host. Drift fails closed. The
+explicit `--repair-generated-output` authority moves drift to a
+digest-addressed sibling quarantine before regeneration. `--preview` reports
+the deterministic disposition without changing the host.
+`--build-consumer` is the only refresh mode permitted to invoke the finite
+approved C# build profile, and refresh never upgrades Program Kit.
+
+Generated hosts reference the exact private
+`Orbyss.ProgramKit.GeneratedOutputIntegrity.Build` integration. It verifies the
+source tree before compilation and emits a required intermediate attestation;
+publication verifies source independently. There is no runtime source-tree
+verification and no generated pre-parser: pinned Spectre.Console.Cli remains
+the sole runtime parser and typed binder for generated .NET Console hosts.
 
 Foreign-client generation accepts one explicit local JSON OpenAPI document and
 one explicit `Microsoft.OpenApi.Kiota` package archive. The reviewed tool

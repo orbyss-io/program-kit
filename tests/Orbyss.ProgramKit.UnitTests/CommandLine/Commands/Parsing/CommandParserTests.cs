@@ -52,6 +52,33 @@ public sealed class CommandParserTests
     }
 
     [TestMethod]
+    public void ParsesFrozenRefreshHostAuthorityFlags()
+    {
+        CommandParser sut = new(CommandDescriptorCatalog.All);
+
+        var result = sut.Parse(
+        [
+            "dotnet",
+            "refresh-host",
+            "--request",
+            "program-kit.host-generation.json",
+            "--preview",
+            "--build-consumer",
+            "--repair-generated-output",
+        ]);
+
+        Assert.AreEqual("dotnet.refresh-host", result.Descriptor.Key);
+        Assert.AreEqual(
+            "program-kit.host-generation.json",
+            result.RequiredOption("request"));
+        Assert.AreEqual("true", result.RequiredOption("preview"));
+        Assert.AreEqual("true", result.RequiredOption("build-consumer"));
+        Assert.AreEqual(
+            "true",
+            result.RequiredOption("repair-generated-output"));
+    }
+
+    [TestMethod]
     public void RejectsDuplicateOptionBeforeExecution()
     {
         CommandParser sut = new(CommandDescriptorCatalog.All);

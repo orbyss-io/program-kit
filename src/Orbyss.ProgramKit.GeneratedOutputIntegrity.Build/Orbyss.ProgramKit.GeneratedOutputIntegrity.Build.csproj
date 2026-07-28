@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Orbyss.ProgramKit.GeneratedOutputIntegrity.Build</PackageId>
+    <RootNamespace>Orbyss.ProgramKit.GeneratedOutputIntegrity.Build</RootNamespace>
+    <Description>Private build-time verification and compile-time attestation for Program Kit generated hosts.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework"
+               HintPath="$(MSBuildToolsPath)\Microsoft.Build.Framework.dll"
+               Private="false" />
+    <Reference Include="Microsoft.Build.Utilities.Core"
+               HintPath="$(MSBuildToolsPath)\Microsoft.Build.Utilities.Core.dll"
+               Private="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(TargetPath)"
+          Pack="true"
+          PackagePath="tools/net10.0/"
+          Visible="false" />
+    <None Include="$(TargetDir)Orbyss.ProgramKit.GeneratedOutputIntegrity.dll"
+          Pack="true"
+          PackagePath="tools/net10.0/"
+          Visible="false" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="build\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.targets"
+          Pack="true"
+          PackagePath="build/" />
+  </ItemGroup>
+</Project>

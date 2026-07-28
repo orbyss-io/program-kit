@@ -113,6 +113,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.ConsoleCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.GeneratedOutputIntegrity", "src\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj", "{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.GeneratedOutputIntegrity.Build", "src\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.csproj", "{ADFE9B60-BC81-4180-86BE-484589727D55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -639,6 +641,18 @@ Global
 		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x64.Build.0 = Release|Any CPU
 		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x86.ActiveCfg = Release|Any CPU
 		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x86.Build.0 = Release|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Debug|x64.Build.0 = Debug|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Debug|x86.Build.0 = Debug|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Release|x64.ActiveCfg = Release|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Release|x64.Build.0 = Release|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Release|x86.ActiveCfg = Release|Any CPU
+		{ADFE9B60-BC81-4180-86BE-484589727D55}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -676,5 +690,6 @@ Global
 		{5645B176-A1CD-47DF-B98D-68B951458423} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{292B43BB-6CDD-48C6-B91D-9FBD034CA82A} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{ADFE9B60-BC81-4180-86BE-484589727D55} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

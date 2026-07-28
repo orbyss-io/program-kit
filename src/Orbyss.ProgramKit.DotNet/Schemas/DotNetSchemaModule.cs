@@ -411,6 +411,13 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             SchemaVersionV1,
             TypedConsoleProvenance),
         Create(
+            "dotnet-host-generation-request",
+            "dotnet-host-generation-request-1.0.0.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/host-generation-request/1.0.0/schema.json",
+            "5736c320bb96148aa6c6f770d4316232728fd87c69948713ab4c1420cd853a26",
+            SchemaVersionV1,
+            TypedConsoleProvenance),
+        Create(
             "open-worker",
             "open-worker.schema.json",
             "https://schemas.orbyss.io/program-kit/dotnet/1.0.0/open-worker.schema.json",

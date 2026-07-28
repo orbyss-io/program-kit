@@ -35,6 +35,20 @@ public sealed class DotNetConsoleCandidateCompiler :
             LanguageVersion.CSharp14,
             DocumentationMode.Diagnose,
             SourceCodeKind.Regular);
+        syntaxTrees.Add(
+            CSharpSyntaxTree.ParseText(
+                SourceText.From(
+                    """
+                    namespace GeneratedHost.Hosting;
+
+                    internal abstract class ProgramKitGeneratedIntegrityAttestation;
+                    """,
+                    new UTF8Encoding(
+                        encoderShouldEmitUTF8Identifier: false),
+                    SourceHashAlgorithm.Sha256),
+                parseOptions,
+                "ProgramKitGenerated/Hosting/ProgramKitGeneratedIntegrityAttestation.candidate.cs",
+                cancellationToken));
         foreach (var source in sources.OrderBy(
                      static item => item.RelativePath,
                      StringComparer.Ordinal))

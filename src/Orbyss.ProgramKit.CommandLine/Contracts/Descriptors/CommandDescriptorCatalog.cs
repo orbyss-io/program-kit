@@ -100,6 +100,17 @@ public static class CommandDescriptorCatalog
                 Diagnostics(),
             ]),
         Create(
+            "dotnet.refresh-host",
+            ["dotnet", "refresh-host"],
+            [],
+            [
+                new("request", true, true),
+                new("preview", false, false),
+                new("build-consumer", false, false),
+                new("repair-generated-output", false, false),
+                Diagnostics(),
+            ]),
+        Create(
             "dotnet.generate-client",
             ["dotnet", "generate-client"],
             [],
