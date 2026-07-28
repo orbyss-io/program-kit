@@ -641,6 +641,16 @@ Write-Utf8Lf `
 
 $validationReportPath = Join-Path $ExtensionRoot 'validation-report.md'
 if (Test-Path -LiteralPath $validationReportPath -PathType Leaf) {
+    $approvalAuthorityPath = Join-Path `
+        $ExtensionRoot `
+        'approval-authority-source.json'
+    $approvalRecordPath = Join-Path `
+        $ExtensionRoot `
+        'design-plan-approval.json'
+    $hasApproval = (
+        (Test-Path -LiteralPath $approvalAuthorityPath -PathType Leaf) -and
+        (Test-Path -LiteralPath $approvalRecordPath -PathType Leaf)
+    )
     $artifactDefinitions = @(
         [ordered]@{
             artifactId = 'pkid:intent:program-kit:alpha-version-transition'
@@ -739,6 +749,26 @@ if (Test-Path -LiteralPath $validationReportPath -PathType Leaf) {
             path = "$extensionRelativeRoot/README.md"
         }
     )
+    if ($hasApproval) {
+        $artifactDefinitions += @(
+            [ordered]@{
+                artifactId = 'pkid:approval:program-kit:alpha-version-transition-review-set'
+                artifactVersion = '0.1.0-alpha.1'
+                role = 'exact-human-approval-authority-source'
+                path = "$extensionRelativeRoot/approval-authority-source.json"
+            },
+            [ordered]@{
+                artifactId = 'pkid:approval-record:program-kit:alpha-version-transition'
+                artifactVersion = '0.1.0-alpha.1'
+                role = 'exact-design-plan-human-approval'
+                contract = 'pkid:schema:program-kit:design-plan-approval'
+                contractVersion = '1.0.0'
+                contractSha256 = Get-RepositoryDigest `
+                    'schemas/planning/design-plan-approval.schema.json'
+                path = "$extensionRelativeRoot/design-plan-approval.json"
+            }
+        )
+    }
     $manifestArtifacts = @(
         foreach ($definition in $artifactDefinitions) {
             $artifact = [ordered]@{}
@@ -755,9 +785,23 @@ if (Test-Path -LiteralPath $validationReportPath -PathType Leaf) {
         reviewSetId = 'pkid:review-set:program-kit:alpha-version-transition'
         reviewSetVersion = '0.1.0-alpha.1'
         owner = 'human-led-program-kit-alpha-version-transition'
-        reviewState = 'awaiting-human-approval'
+        reviewState = if ($hasApproval) {
+            'approved'
+        } else {
+            'awaiting-human-approval'
+        }
         implementationStatus = 'not-started'
-        approvalRecord = $null
+        approvalRecord = if ($hasApproval) {
+            [ordered]@{
+                identity = 'pkid:approval-record:program-kit:alpha-version-transition'
+                version = '0.1.0-alpha.1'
+                path = "$extensionRelativeRoot/design-plan-approval.json"
+                sha256 = Get-Digest $approvalRecordPath
+                authoritySourceSha256 = Get-Digest $approvalAuthorityPath
+            }
+        } else {
+            $null
+        }
         digestProfile = [ordered]@{
             algorithm = 'sha256'
             byteProfile = 'repository file bytes'
@@ -768,7 +812,11 @@ if (Test-Path -LiteralPath $validationReportPath -PathType Leaf) {
         }
         artifacts = $manifestArtifacts
         approvalBoundary = [ordered]@{
-            requiredDecision = 'explicit-human-approval-of-exact-canonical-digests'
+            requiredDecision = if ($hasApproval) {
+                'satisfied-by-exact-human-approval-record'
+            } else {
+                'explicit-human-approval-of-exact-canonical-digests'
+            }
             candidateDesignSha256 = $designDigest
             candidatePlanSha256 = $planDigest
             acceptedScope = 'PKAV-W010 through PKAV-W070 exactly as represented by the canonical Architecture Design 2.0 and Implementation Plan 3.0 transitional artifacts.'

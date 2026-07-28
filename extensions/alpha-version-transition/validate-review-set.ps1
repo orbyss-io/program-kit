@@ -12,6 +12,8 @@ $requiredFiles = @(
     'static-conformance-decision-source.json',
     'static-conformance-disposition.json',
     'program-kit-private-gate-selection-lock.json',
+    'approval-authority-source.json',
+    'design-plan-approval.json',
     'architecture-design.json',
     'architecture-design.md',
     'implementation-plan.json',
@@ -98,6 +100,8 @@ $jsonFiles = @(
     'static-conformance-decision-source.json',
     'static-conformance-disposition.json',
     'program-kit-private-gate-selection-lock.json',
+    'approval-authority-source.json',
+    'design-plan-approval.json',
     'architecture-design.json',
     'implementation-plan.json'
 )
@@ -148,9 +152,10 @@ using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Workbench.Operations.Schemas;
 
-if (args.Length != 3)
+if (args.Length != 4)
 {
-    Console.Error.WriteLine("Expected architecture, plan, and disposition paths.");
+    Console.Error.WriteLine(
+        "Expected architecture, plan, disposition, and approval paths.");
     return 2;
 }
 
@@ -180,6 +185,13 @@ failures += Validate(
         new ArtifactsSchemaModule(),
         new ArchitectureSchemaModule()),
     "pkid:schema:program-kit:static-conformance-disposition",
+    "1.0.0");
+failures += Validate(
+    args[3],
+    new CompositeSchemaModule(
+        new ArtifactsSchemaModule(),
+        new PlanningSchemaModule()),
+    "pkid:schema:program-kit:design-plan-approval",
     "1.0.0");
 return failures == 0 ? 0 : 1;
 
@@ -344,7 +356,8 @@ sealed class CompositeSchemaModule : IProgramKitSchemaModule
     $schemaOutput = & dotnet $outputAssembly `
         (Join-Path $ExtensionRoot 'architecture-design.json') `
         (Join-Path $ExtensionRoot 'implementation-plan.json') `
-        (Join-Path $ExtensionRoot 'static-conformance-disposition.json') 2>&1
+        (Join-Path $ExtensionRoot 'static-conformance-disposition.json') `
+        (Join-Path $ExtensionRoot 'design-plan-approval.json') 2>&1
     $schemaExitCode = $LASTEXITCODE
     $schemaOutput | ForEach-Object { Write-Output $_ }
     Assert-Condition ($schemaExitCode -eq 0) (
@@ -372,6 +385,12 @@ $dispositionPath = Join-Path `
 $selectionLockPath = Join-Path `
     $ExtensionRoot `
     'program-kit-private-gate-selection-lock.json'
+$approvalAuthorityPath = Join-Path `
+    $ExtensionRoot `
+    'approval-authority-source.json'
+$approvalRecordPath = Join-Path `
+    $ExtensionRoot `
+    'design-plan-approval.json'
 $designPath = Join-Path $ExtensionRoot 'architecture-design.json'
 $planPath = Join-Path $ExtensionRoot 'implementation-plan.json'
 $designMarkdownPath = Join-Path $ExtensionRoot 'architecture-design.md'
@@ -388,6 +407,14 @@ $selectionLock = Get-Content `
     -LiteralPath $selectionLockPath `
     -Raw |
     ConvertFrom-Json
+$approvalAuthority = Get-Content `
+    -LiteralPath $approvalAuthorityPath `
+    -Raw |
+    ConvertFrom-Json
+$approval = Get-Content `
+    -LiteralPath $approvalRecordPath `
+    -Raw |
+    ConvertFrom-Json
 $design = Get-Content -LiteralPath $designPath -Raw | ConvertFrom-Json
 $plan = Get-Content -LiteralPath $planPath -Raw | ConvertFrom-Json
 $designMarkdown = [IO.File]::ReadAllText($designMarkdownPath)
@@ -397,6 +424,8 @@ $basisDigest = Get-Digest $basisPath
 $decisionDigest = Get-Digest $decisionPath
 $dispositionDigest = Get-Digest $dispositionPath
 $selectionLockDigest = Get-Digest $selectionLockPath
+$approvalAuthorityDigest = Get-Digest $approvalAuthorityPath
+$approvalRecordDigest = Get-Digest $approvalRecordPath
 $designDigest = Get-Digest $designPath
 $planDigest = Get-Digest $planPath
 
@@ -459,6 +488,23 @@ Assert-Reference `
     '1.0.0' `
     $dispositionDigest `
     'Private-gate selection-lock disposition'
+Assert-Condition (
+    $approvalAuthority.design.digest -eq ('sha256:' + $designDigest) -and
+    $approvalAuthority.plan.digest -eq ('sha256:' + $planDigest) -and
+    $approvalAuthority.humanDecisionSource.statementSha256 -eq
+        'sha256:4eff5d78d4bffe653785d636babca69b75ec50153533a2bd9486decabcadc25b' -and
+    $approvalAuthority.humanDecisionSource.decision -eq 'approved' -and
+    @($approvalAuthority.humanDecisionSource.conditions).Count -eq 0
+) 'The approval authority does not bind the exact design, plan, statement, and unconditional decision.'
+Assert-Condition (
+    $approval.decision -eq 'approved' -and
+    @($approval.conditions).Count -eq 0 -and
+    $approval.supersession.state -eq 'active' -and
+    $approval.design.digest -eq ('sha256:' + $designDigest) -and
+    $approval.plan.digest -eq ('sha256:' + $planDigest) -and
+    $approval.authority.source.digest -eq
+        ('sha256:' + $approvalAuthorityDigest)
+) 'The approval record is not an active unconditional exact-byte approval.'
 
 $intentAuthorities = @(
     $design.sourceTruthAuthorities |
@@ -623,12 +669,14 @@ if (-not $SkipManifest) {
         -Raw |
         ConvertFrom-Json
     Assert-Condition (
-        $manifest.reviewState -eq 'awaiting-human-approval' -and
+        $manifest.reviewState -eq 'approved' -and
         $manifest.implementationStatus -eq 'not-started' -and
-        $null -eq $manifest.approvalRecord -and
+        $manifest.approvalRecord.sha256 -eq $approvalRecordDigest -and
+        $manifest.approvalRecord.authoritySourceSha256 -eq
+            $approvalAuthorityDigest -and
         $manifest.approvalBoundary.candidateDesignSha256 -eq $designDigest -and
         $manifest.approvalBoundary.candidatePlanSha256 -eq $planDigest
-    ) 'The review manifest overclaims approval, implementation, or stale candidate digests.'
+    ) 'The review manifest has stale approval, implementation, or candidate digest state.'
     foreach ($artifact in @($manifest.artifacts)) {
         $artifactPath = [IO.Path]::GetFullPath(
             (Join-Path $repositoryRoot $artifact.path))

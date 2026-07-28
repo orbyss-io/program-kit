@@ -1,0 +1,49 @@
+{
+  "artifactId": "pkid:approval:program-kit:alpha-version-transition-review-set",
+  "artifactVersion": "0.1.0-alpha.1",
+  "reviewManifestReadyDigest": "sha256:6edd53d342396666fd9844a8caf0e8d98b1f5d98e493153106909c89ae9e35d7",
+  "design": {
+    "identity": "pkid:design:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+  },
+  "plan": {
+    "identity": "pkid:plan:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:66e37776c11cda3ee17747b6dd3165286e4a2901e17dca41464a243f1f2e750f"
+  },
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:alpha-version-transition",
+    "version": "1.0.0",
+    "digest": "sha256:62536fba1fd42a652ab042398849a72c8c3a88f80f5d83e6eaa023839a16061d",
+    "candidateDisposition": "reuse-existing"
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-and-plan-digests",
+    "acceptedScope": "PKAV-W010 through PKAV-W070 exactly as represented by the canonical transition design and plan",
+    "requiresParentApproval": false,
+    "doesNotAuthorize": [
+      "implementation outside PKAV-W010 through PKAV-W070",
+      "material deviation from the exact approved design or plan",
+      "package publication, release qualification, promotion, signing, or deployment",
+      "JTest or other consumer repository mutation",
+      "implementation of the follow-on health review before its own exact approval",
+      "capability activation in the Program Kit authoring workspace",
+      "stable version-policy definition before Release Kit design",
+      "user-global provider writes, hooks, watchers, autonomous starts, or silent upgrades"
+    ]
+  },
+  "humanDecisionSource": {
+    "provider": "codex",
+    "threadId": "019fa8e9-145c-7f22-a9fa-ab1ab2aef397",
+    "turnId": "019fa933-7839-7e71-8101-90a925912d36",
+    "referenceId": "task:019fa8e9-145c-7f22-a9fa-ab1ab2aef397/turn:019fa933-7839-7e71-8101-90a925912d36",
+    "decisionTime": "2026-07-28T14:49:10.494Z",
+    "normalization": "UTF-8 without BOM, LF line endings, one terminal LF",
+    "statementSha256": "sha256:4eff5d78d4bffe653785d636babca69b75ec50153533a2bd9486decabcadc25b",
+    "statement": "I approve the exact design and plan digests and authorize PKAV-W010 through PKAVW070.",
+    "scopeNormalization": "PKAVW070 is treated as the unambiguous intended PKAV-W070; this interpretation was stated before implementation mutation.",
+    "decision": "approved",
+    "conditions": []
+  }
+}

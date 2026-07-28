@@ -1,0 +1,45 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba"
+  },
+  "plan": {
+    "identity": "pkid:plan:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:66e37776c11cda3ee17747b6dd3165286e4a2901e17dca41464a243f1f2e750f"
+  },
+  "acceptedScope": "PKAV-W010 through PKAV-W070 exactly as represented by the canonical transition design and plan",
+  "approvingPrincipal": {
+    "kind": "human-session-participant",
+    "provider": "codex",
+    "identifier": "019fa8e9-145c-7f22-a9fa-ab1ab2aef397",
+    "role": "human-requester"
+  },
+  "authority": {
+    "kind": "review-set-approval-boundary",
+    "source": {
+      "identity": "pkid:approval:program-kit:alpha-version-transition-review-set",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:7dd2ab2867cbc762f89a040b4ee4020fe085f9b7708d9cec7a62c883e00b4946"
+    },
+    "jsonPointer": "/approvalBoundary",
+    "ownerId": "pkid:domain:program-kit:version-governance"
+  },
+  "decisionEvidence": [
+    {
+      "kind": "human-session-statement",
+      "provider": "codex",
+      "referenceId": "task:019fa8e9-145c-7f22-a9fa-ab1ab2aef397/turn:019fa933-7839-7e71-8101-90a925912d36",
+      "digest": "sha256:4eff5d78d4bffe653785d636babca69b75ec50153533a2bd9486decabcadc25b"
+    }
+  ],
+  "correlationId": "codex:019fa8e9-145c-7f22-a9fa-ab1ab2aef397:019fa933-7839-7e71-8101-90a925912d36",
+  "decisionTime": "2026-07-28T14:49:10.494Z",
+  "decision": "approved",
+  "conditions": [],
+  "supersession": {
+    "state": "active",
+    "supersededBy": null
+  }
+}

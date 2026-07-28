@@ -4,9 +4,15 @@
   "reviewSetId": "pkid:review-set:program-kit:alpha-version-transition",
   "reviewSetVersion": "0.1.0-alpha.1",
   "owner": "human-led-program-kit-alpha-version-transition",
-  "reviewState": "awaiting-human-approval",
+  "reviewState": "approved",
   "implementationStatus": "not-started",
-  "approvalRecord": null,
+  "approvalRecord": {
+    "identity": "pkid:approval-record:program-kit:alpha-version-transition",
+    "version": "0.1.0-alpha.1",
+    "path": "extensions/alpha-version-transition/design-plan-approval.json",
+    "sha256": "041db5465840ff63f549af878e36eccf3f2b235eaebcd9d7ed06951f51f0b9c9",
+    "authoritySourceSha256": "7dd2ab2867cbc762f89a040b4ee4020fe085f9b7708d9cec7a62c883e00b4946"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -109,14 +115,14 @@
       "artifactVersion": "0.1.0-alpha.1",
       "role": "deterministic-review-materializer",
       "path": "extensions/alpha-version-transition/materialize-review-set.ps1",
-      "sha256": "e7ce12dfdeb5cd89f3520f2ea1b962b2b7c278f5e1255862fe2089ea01c5c7e4"
+      "sha256": "6e348b0b23eee8331a50b7615d96ad9c8f6f5d5c1ef8baced275f5a617589072"
     },
     {
       "artifactId": "pkid:tool:program-kit:alpha-version-transition-review-validator",
       "artifactVersion": "0.1.0-alpha.1",
       "role": "deterministic-review-validator",
       "path": "extensions/alpha-version-transition/validate-review-set.ps1",
-      "sha256": "7e0d19e4a30972cecb9ee662321658210d09b94c367e81710a43a8d6cb267af3"
+      "sha256": "9770e6eb8d5ad8db1ee353e380b3f51e5a69ba3b56e979ca0dd167b74ff396c8"
     },
     {
       "artifactId": "pkid:guide:program-kit:alpha-version-transition-review",
@@ -124,10 +130,27 @@
       "role": "review-navigation",
       "path": "extensions/alpha-version-transition/README.md",
       "sha256": "9aa7469cff053734c260a34fcbea92c66ed9828a3e3fdb4a1f663709b4e3a880"
+    },
+    {
+      "artifactId": "pkid:approval:program-kit:alpha-version-transition-review-set",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "exact-human-approval-authority-source",
+      "path": "extensions/alpha-version-transition/approval-authority-source.json",
+      "sha256": "7dd2ab2867cbc762f89a040b4ee4020fe085f9b7708d9cec7a62c883e00b4946"
+    },
+    {
+      "artifactId": "pkid:approval-record:program-kit:alpha-version-transition",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "exact-design-plan-human-approval",
+      "contract": "pkid:schema:program-kit:design-plan-approval",
+      "contractVersion": "1.0.0",
+      "contractSha256": "58adfa2eff4a8276c9ca1687db8fb44beb899819fa356468d37c05bd664f2014",
+      "path": "extensions/alpha-version-transition/design-plan-approval.json",
+      "sha256": "041db5465840ff63f549af878e36eccf3f2b235eaebcd9d7ed06951f51f0b9c9"
     }
   ],
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-exact-canonical-digests",
+    "requiredDecision": "satisfied-by-exact-human-approval-record",
     "candidateDesignSha256": "2b8027d505dfcef7f1b28bc3aecf3333b575e59928dabb7121d24f28be2811ba",
     "candidatePlanSha256": "66e37776c11cda3ee17747b6dd3165286e4a2901e17dca41464a243f1f2e750f",
     "acceptedScope": "PKAV-W010 through PKAV-W070 exactly as represented by the canonical Architecture Design 2.0 and Implementation Plan 3.0 transitional artifacts.",
