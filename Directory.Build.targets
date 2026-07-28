@@ -462,8 +462,39 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="RemoveProgramKitRuntimeRoslynPackageAnalyzers"
+          DependsOnTargets="ResolveProjectReferences"
+          BeforeTargets="ValidateProgramKitResolvedAnalyzerSet">
+    <PropertyGroup>
+      <_ProgramKitExpectedCodeAnalysisAnalyzerPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/microsoft.codeanalysis.analyzers/5.3.0/analyzers/dotnet/cs/Microsoft.CodeAnalysis.Analyzers.dll'))</_ProgramKitExpectedCodeAnalysisAnalyzerPath>
+      <_ProgramKitExpectedCSharpAnalysisAnalyzerPath>$([System.IO.Path]::GetFullPath('$(NuGetPackageRoot)/microsoft.codeanalysis.analyzers/5.3.0/analyzers/dotnet/cs/Microsoft.CodeAnalysis.CSharp.Analyzers.dll'))</_ProgramKitExpectedCSharpAnalysisAnalyzerPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProgramKitAllRuntimeRoslynPackageAnalyzer Remove="@(_ProgramKitAllRuntimeRoslynPackageAnalyzer)" />
+      <_ProgramKitRuntimeRoslynPackageAnalyzer Remove="@(_ProgramKitRuntimeRoslynPackageAnalyzer)" />
+      <_ProgramKitAllRuntimeRoslynPackageAnalyzer
+        Include="@(Analyzer)"
+        Condition="'%(Analyzer.Filename)%(Analyzer.Extension)' == 'Microsoft.CodeAnalysis.Analyzers.dll' or
+                   '%(Analyzer.Filename)%(Analyzer.Extension)' == 'Microsoft.CodeAnalysis.CSharp.Analyzers.dll'" />
+      <_ProgramKitRuntimeRoslynPackageAnalyzer
+        Include="@(_ProgramKitAllRuntimeRoslynPackageAnalyzer)"
+        Condition="('%(_ProgramKitAllRuntimeRoslynPackageAnalyzer.FullPath)' == '$(_ProgramKitExpectedCodeAnalysisAnalyzerPath)' or
+                    '%(_ProgramKitAllRuntimeRoslynPackageAnalyzer.FullPath)' == '$(_ProgramKitExpectedCSharpAnalysisAnalyzerPath)') and
+                   '%(_ProgramKitAllRuntimeRoslynPackageAnalyzer.NuGetPackageId)' == 'Microsoft.CodeAnalysis.Analyzers' and
+                   '%(_ProgramKitAllRuntimeRoslynPackageAnalyzer.NuGetPackageVersion)' == '5.3.0'" />
+    </ItemGroup>
+    <Error Condition="'@(_ProgramKitAllRuntimeRoslynPackageAnalyzer->Count())' != '@(_ProgramKitRuntimeRoslynPackageAnalyzer->Count())' or
+                      '@(_ProgramKitRuntimeRoslynPackageAnalyzer->Count())' == '1' or
+                      '@(_ProgramKitRuntimeRoslynPackageAnalyzer->Count())' &gt; '2'"
+           Code="PKCS179"
+           Text="Only the exact Microsoft.CodeAnalysis.Analyzers 5.3.0 analyzer pair contributed by the runtime Roslyn compiler may be removed; observed @(_ProgramKitAllRuntimeRoslynPackageAnalyzer->'%(FullPath)|%(NuGetPackageId)|%(NuGetPackageVersion)')." />
+    <ItemGroup>
+      <Analyzer Remove="@(_ProgramKitRuntimeRoslynPackageAnalyzer)" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="ValidateProgramKitResolvedAnalyzerSet"
-          DependsOnTargets="ResolveProjectReferences;RemoveProgramKitUnselectedHumanizerAnalyzer"
+          DependsOnTargets="ResolveProjectReferences;RemoveProgramKitUnselectedHumanizerAnalyzer;RemoveProgramKitRuntimeRoslynPackageAnalyzers"
           BeforeTargets="CoreCompile">
     <PropertyGroup>
       <_ProgramKitNetAnalyzerPath>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)/Sdks/Microsoft.NET.Sdk/analyzers/Microsoft.CodeAnalysis.NetAnalyzers.dll'))</_ProgramKitNetAnalyzerPath>

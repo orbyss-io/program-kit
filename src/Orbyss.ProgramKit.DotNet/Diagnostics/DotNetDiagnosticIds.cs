@@ -119,4 +119,10 @@ public static class DotNetDiagnosticIds
 
     /// <summary>A .NET Console binding is incomplete, ambiguous, or inconsistent.</summary>
     public const string InvalidConsoleBinding = "PKNET039";
+
+    /// <summary>Consumer reference metadata does not satisfy the exact binding.</summary>
+    public const string ConsoleMetadataMismatch = "PKNET040";
+
+    /// <summary>An isolated generated Console candidate does not compile.</summary>
+    public const string ConsoleCandidateCompilationFailed = "PKNET041";
 }

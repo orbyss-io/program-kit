@@ -158,6 +158,14 @@
         "resolved": "10.0.2",
         "contentHash": "LG9Yll3B5aNpxv0+D47g6LiOiKBIlodhcHdQwcYzo8VeexFLGqx5ymetmA2aBRyo9cCcWsQWrFsdbsr8LvmWDw=="
       },
+      "Microsoft.CodeAnalysis.Common": {
+        "type": "Transitive",
+        "resolved": "5.6.0",
+        "contentHash": "eWYNB5e92PSdkQ0xcmy2aLtrvBXNydnVi0Hj/VjaAely6XBqA3By+ClGAJaj4d16pzQmrXPLLK9RDVuS1Ec9xQ==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Analyzers": "5.3.0"
+        }
+      },
       "Microsoft.DiaSymReader": {
         "type": "Transitive",
         "resolved": "2.2.9",
@@ -411,6 +419,7 @@
       "orbyss.programkit.dotnet": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.CodeAnalysis.CSharp": "[5.6.0, 5.6.0]",
           "Orbyss.ProgramKit.Architecture": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.OpenConsole": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Operations": "[0.1.0-alpha.1, )",
@@ -700,6 +709,16 @@
         "requested": "[10.0.10, 10.0.10]",
         "resolved": "10.0.10",
         "contentHash": "Kks+OpQlP/eWQhnTjkiv0H9kc9Uqa7ieAzNV62yJpZ8Ips/WwpfpwrwZUKzV83CBJaBl5OI7J2XxVVTC8vah/Q=="
+      },
+      "Microsoft.CodeAnalysis.CSharp": {
+        "type": "CentralTransitive",
+        "requested": "[5.6.0, 5.6.0]",
+        "resolved": "5.6.0",
+        "contentHash": "r1DrKQ/L0xTw03wJrLr36AMQNslyaeEKBFyFmQcOKa8HX3YvmhY//JEUafb6IR/m0gmaUVCfBTWitKJRNb7YAA==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Analyzers": "5.3.0",
+          "Microsoft.CodeAnalysis.Common": "[5.6.0]"
+        }
       },
       "Microsoft.Extensions.Configuration.Json": {
         "type": "CentralTransitive",

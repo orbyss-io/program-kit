@@ -21,6 +21,14 @@
           "Json.More.Net": "3.0.1"
         }
       },
+      "Microsoft.CodeAnalysis.Common": {
+        "type": "Transitive",
+        "resolved": "5.6.0",
+        "contentHash": "eWYNB5e92PSdkQ0xcmy2aLtrvBXNydnVi0Hj/VjaAely6XBqA3By+ClGAJaj4d16pzQmrXPLLK9RDVuS1Ec9xQ==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Analyzers": "5.3.0"
+        }
+      },
       "orbyss.programkit.architecture": {
         "type": "Project",
         "dependencies": {
@@ -59,6 +67,7 @@
       "orbyss.programkit.dotnet": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.CodeAnalysis.CSharp": "[5.6.0, 5.6.0]",
           "Orbyss.ProgramKit.Architecture": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.OpenConsole": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Operations": "[0.1.0-alpha.1, )",
@@ -157,6 +166,16 @@
         "contentHash": "d780/OM10Vi3ZwXtWsdjSwg4T2Gv6PEs4QO1TOcfwYJsT3IpkV6u6RUJYDxNFifc4jsNeIk+0RgRh1X38R5ySA==",
         "dependencies": {
           "JsonPointer.Net": "7.0.1"
+        }
+      },
+      "Microsoft.CodeAnalysis.CSharp": {
+        "type": "CentralTransitive",
+        "requested": "[5.6.0, 5.6.0]",
+        "resolved": "5.6.0",
+        "contentHash": "r1DrKQ/L0xTw03wJrLr36AMQNslyaeEKBFyFmQcOKa8HX3YvmhY//JEUafb6IR/m0gmaUVCfBTWitKJRNb7YAA==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Analyzers": "5.3.0",
+          "Microsoft.CodeAnalysis.Common": "[5.6.0]"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
