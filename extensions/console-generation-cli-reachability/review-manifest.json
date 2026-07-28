@@ -1,0 +1,74 @@
+{
+  "identity": "pkid:review-set:program-kit:console-generation-cli-reachability",
+  "version": "0.1.0-alpha.1",
+  "state": "ready-for-human-decision",
+  "sourceBasis": {
+    "currentCommit": "797dc56d7ba7b3ee5e97b8218e51a3b25ec4b8d4",
+    "typedConsoleImplementationCommit": "773d7cf3859fe98c2fd72139872312994effeb8d",
+    "observation": "The typed Console library is implemented, but the composed command service leaves ConsoleGeneration null and the CLI/refresh journey has no manifest binding for the required exact inputs."
+  },
+  "artifacts": [
+    {
+      "role": "design",
+      "identity": "pkid:design:program-kit:console-generation-cli-reachability",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/console-generation-cli-reachability/architecture-design.md",
+      "sha256": "0a2479ab1c0d746418fea77b85fc09a694a39c7183d6ea10e53ada054e44157e"
+    },
+    {
+      "role": "implementation-plan",
+      "identity": "pkid:plan:program-kit:console-generation-cli-reachability",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/console-generation-cli-reachability/implementation-plan.md",
+      "sha256": "90606b64907b16b677aba485b50bb21b5b0953b271b9bae6b7b5236048631289"
+    },
+    {
+      "role": "navigation",
+      "path": "extensions/console-generation-cli-reachability/README.md",
+      "sha256": "6a5325ca71dd6d703391d9d3d6cf00d53e81e5d3710cc2ca0fa3175d00748975"
+    }
+  ],
+  "staticConformanceDisposition": {
+    "disposition": "reuse-existing",
+    "gate": {
+      "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+      "version": "1.10.0",
+      "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+    },
+    "activationMatrix": {
+      "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+      "version": "1.0.0",
+      "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+    }
+  },
+  "implementationBoundary": {
+    "workUnits": [
+      "PKCG-W010"
+    ],
+    "acceptedOutcome": "Manifest-bound exact Console inputs make the existing typed generator reachable through generate-host and refresh-host.",
+    "doesNotAuthorize": [
+      "material deviation from the exact design or plan",
+      "PKAV-W020 or later alpha-transition implementation",
+      "broader routing or capability-contract audit implementation",
+      "JTest or other consumer repository mutation",
+      "package or analyzer publication",
+      "local-application-publication topology redesign",
+      "release, promotion, deployment, signing, hooks, watchers, or autonomous work"
+    ]
+  },
+  "validation": {
+    "jsonSyntax": "passed",
+    "artifactIdentityAndVersion": "passed",
+    "designPlanBinding": "passed",
+    "sourceInspection": "passed against current source basis",
+    "staticConformanceDisposition": "reuse-existing with exact current private gate and activation matrix",
+    "artifactDigests": "passed by SHA-256 recalculation over exact UTF-8 LF bytes",
+    "schemaInstantiation": "not applicable: this transitional review set deliberately does not create another legacy high-major design or plan contract before PKAV-W020",
+    "runtimeImplementation": "not performed under design authority"
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-exact-design-and-plan-digests-and-PKCG-W010",
+    "candidateDesignSha256": "0a2479ab1c0d746418fea77b85fc09a694a39c7183d6ea10e53ada054e44157e",
+    "candidatePlanSha256": "90606b64907b16b677aba485b50bb21b5b0953b271b9bae6b7b5236048631289"
+  }
+}
