@@ -1,0 +1,92 @@
+{
+  "identity": "pkid:review-set:program-kit:consumer-cli-journey-completeness",
+  "version": "0.1.0-alpha.1",
+  "state": "ready-for-human-decision",
+  "sourceBasis": {
+    "currentCommit": "5273297c666f958840ad0279853fb305349f5571",
+    "consoleReachabilityCommit": "00ab82b33061495a90d2e8c2e6bfec669828e370",
+    "observations": [
+      "The package-only JTest consumer could initialize capabilities only by supplying source-root material and received no deterministic success output.",
+      "The CLI has no no-argument or --help contract and exposes required values one parser failure at a time.",
+      "Provider refresh leaves earlier wrappers discoverable while the lock remembers only the last provider.",
+      "A JTest gate-design agent had to inspect DLL strings and iteratively guess analyzer package identity, collection order, artifact null semantics, and UTF-8 BOM requirements.",
+      "The CLI already composes finite schema modules and backed gate operations, but exposes no exact schema/resource discovery or gate-definition materialization boundary."
+    ]
+  },
+  "artifacts": [
+    {
+      "role": "design",
+      "identity": "pkid:design:program-kit:consumer-cli-journey-completeness",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/consumer-cli-journey-completeness/architecture-design.md",
+      "sha256": "1ee4e3b38aac65c50387610ad6106cde7c6890e29ad23f2a9ecfc475ad9c694d"
+    },
+    {
+      "role": "implementation-plan",
+      "identity": "pkid:plan:program-kit:consumer-cli-journey-completeness",
+      "version": "0.1.0-alpha.1",
+      "path": "extensions/consumer-cli-journey-completeness/implementation-plan.md",
+      "sha256": "d56888ed0a0e99d4920b9e5d9884952e74a7e93c20b9d268dcfd882cac49ff0f"
+    },
+    {
+      "role": "navigation",
+      "path": "extensions/consumer-cli-journey-completeness/README.md",
+      "sha256": "a6536ea88896de5da603d3f174193674e091fe63f2dbc4041b84f525f85a7290"
+    }
+  ],
+  "staticConformanceDisposition": {
+    "disposition": "reuse-existing",
+    "scope": "The gate is bound once at Program Kit repository scope; this design only references that established binding because its C# edits are covered.",
+    "gate": {
+      "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+      "version": "1.10.0",
+      "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+    },
+    "activationMatrix": {
+      "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+      "version": "1.0.0",
+      "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+    }
+  },
+  "implementationBoundary": {
+    "workUnits": [
+      "PKCJ-W010"
+    ],
+    "atomic": true,
+    "acceptedOutcome": "One package-only Program Kit CLI journey supplies exact capabilities, resources, schemas, help, provider initialization/refresh, canonical gate-definition materialization, and installed Console generation without source checkout or reverse engineering.",
+    "overlapDisposition": {
+      "pkavWorkUnit": "PKAV-W050",
+      "consumedOutcome": "Consumer capability contract migration, thin wrapper regeneration, bundle digest refresh, and clean initialization/refresh proof are performed inside PKCJ-W010 and must not be repeated.",
+      "unaffectedPkavWorkUnits": [
+        "PKAV-W060",
+        "PKAV-W070"
+      ]
+    },
+    "doesNotAuthorize": [
+      "material deviation from the exact design or plan",
+      "a second partial implementation work unit",
+      "JTest or other consumer repository mutation",
+      "package-feed publication or GitHub Release creation",
+      "GitHub Actions release-pipeline implementation",
+      "remaining routing, contributor, approval, handback, or release-cycle health work",
+      "version selection beyond the not-yet-delivered 0.1.0-alpha.2 candidate",
+      "release, promotion, deployment, signing, hooks, watchers, MCP bindings, or autonomous work"
+    ]
+  },
+  "validation": {
+    "jsonSyntax": "passed",
+    "artifactIdentityAndVersion": "passed",
+    "designPlanBinding": "passed",
+    "sourceInspection": "passed against current source basis",
+    "commandAndSchemaFeasibility": "passed against the current self-contained CLI, finite descriptor catalog, registered schema modules, capability bundle, gate contracts, validator, and pack metadata",
+    "staticConformanceDisposition": "reuse-existing at repository scope with exact current private gate and activation matrix",
+    "artifactDigests": "passed by SHA-256 recalculation over exact UTF-8 LF bytes",
+    "schemaInstantiation": "not applicable: this transitional amendment deliberately does not create another legacy high-major design or plan contract",
+    "runtimeImplementation": "not performed under design authority"
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-exact-design-and-plan-digests-and-PKCJ-W010",
+    "candidateDesignSha256": "1ee4e3b38aac65c50387610ad6106cde7c6890e29ad23f2a9ecfc475ad9c694d",
+    "candidatePlanSha256": "d56888ed0a0e99d4920b9e5d9884952e74a7e93c20b9d268dcfd882cac49ff0f"
+  }
+}
