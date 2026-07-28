@@ -21,6 +21,7 @@ public static class DotNetConsoleGenerationComposition
                     new DotNetConsoleSettingsRenderer(),
                     new DotNetConsoleRequestFactoryRenderer(),
                     new DotNetConsoleCommandRenderer(),
+                    new DotNetConsoleServiceAuditRenderer(),
                     new DotNetConsoleTypeRegistrarRenderer(),
                     new DotNetConsoleProgramRenderer(),
                 ]),

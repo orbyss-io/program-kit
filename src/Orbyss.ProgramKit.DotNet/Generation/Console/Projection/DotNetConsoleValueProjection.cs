@@ -13,8 +13,12 @@ internal sealed record DotNetConsoleValueProjection(
     string AttributeTemplate,
     string Summary,
     int ArgumentPosition,
+    int MinimumOccurrences,
+    int MaximumOccurrences,
     bool Required,
     bool Repeated,
     bool Flag,
+    ImmutableArray<string> Conflicts,
+    ImmutableArray<string> Prerequisites,
     DotNetConsoleClrTypeDescriptor RequestType,
     DotNetConsoleDefaultDisposition DefaultDisposition);

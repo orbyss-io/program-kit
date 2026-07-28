@@ -37,7 +37,7 @@ internal sealed class DotNetConsoleTypeRegistrarRenderer :
                 global::System.Type service,
                 global::System.Type implementation)
             {
-                global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(
                     services,
                     service,
                     implementation);
@@ -72,7 +72,9 @@ internal sealed class DotNetConsoleTypeRegistrarRenderer :
                         ValidateOnBuild = true,
                         ValidateScopes = true,
                     });
-                return new ProgramKitTypeResolver(provider);
+                var scope = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.CreateScope(
+                    provider);
+                return new ProgramKitTypeResolver(provider, scope);
             }
         }
 
@@ -81,21 +83,28 @@ internal sealed class DotNetConsoleTypeRegistrarRenderer :
             global::System.IDisposable
         {
             private readonly global::System.IServiceProvider provider;
+            private readonly global::Microsoft.Extensions.DependencyInjection.IServiceScope scope;
 
             internal ProgramKitTypeResolver(
-                global::System.IServiceProvider provider)
+                global::System.IServiceProvider provider,
+                global::Microsoft.Extensions.DependencyInjection.IServiceScope scope)
             {
                 this.provider = provider ??
                     throw new global::System.ArgumentNullException(nameof(provider));
+                this.scope = scope ??
+                    throw new global::System.ArgumentNullException(nameof(scope));
             }
 
             public object? Resolve(global::System.Type? type)
             {
-                return type is null ? null : provider.GetService(type);
+                return type is null
+                    ? null
+                    : scope.ServiceProvider.GetService(type);
             }
 
             public void Dispose()
             {
+                scope.Dispose();
                 if (provider is global::System.IDisposable disposable)
                 {
                     disposable.Dispose();

@@ -55,17 +55,161 @@ internal sealed class DotNetConsoleSettingsRenderer :
             RenderValue(builder, value);
         }
 
+        RenderValidation(builder, command);
         DotNetConsoleRendering.Line(builder, 0, "}");
         return builder.ToString();
+    }
+
+    private static void RenderValidation(
+        StringBuilder builder,
+        DotNetConsoleCommandProjection command)
+    {
+        DotNetConsoleRendering.Line(
+            builder,
+            1,
+            "public override global::Spectre.Console.ValidationResult Validate()");
+        DotNetConsoleRendering.Line(builder, 1, "{");
+        DotNetConsoleRendering.Line(
+            builder,
+            2,
+            "var messages = new global::System.Collections.Generic.List<string>();");
+        foreach (var value in command.Values.OrderBy(
+                     static item => item.ConstructorPosition))
+        {
+            var count = value.Repeated
+                ? string.Concat(
+                    value.PropertyName,
+                    "?.Length ?? 0")
+                : string.Concat(
+                    value.PropertyName,
+                    "Specified ? 1 : 0");
+            DotNetConsoleRendering.Line(
+                builder,
+                2,
+                string.Concat("var count", value.ConstructorPosition, " = ", count, ";"));
+            DotNetConsoleRendering.Line(
+                builder,
+                2,
+                string.Concat(
+                    "if (count",
+                    value.ConstructorPosition,
+                    " < ",
+                    value.MinimumOccurrences,
+                    " || count",
+                    value.ConstructorPosition,
+                    " > ",
+                    value.MaximumOccurrences,
+                    ")"));
+            DotNetConsoleRendering.Line(builder, 2, "{");
+            DotNetConsoleRendering.Line(
+                builder,
+                3,
+                string.Concat(
+                    "messages.Add(",
+                    DotNetSourceText.CSharpLiteral(
+                        string.Concat(
+                            "Occurrence constraint failed: ",
+                            value.SourceName,
+                            ".")),
+                    ");"));
+            DotNetConsoleRendering.Line(builder, 2, "}");
+        }
+
+        var bySource = command.Values.ToDictionary(
+            static value => value.SourceName,
+            StringComparer.Ordinal);
+        foreach (var value in command.Values.OrderBy(
+                     static item => item.SourceName,
+                     StringComparer.Ordinal))
+        {
+            foreach (var conflict in value.Conflicts
+                         .Where(conflict =>
+                             string.CompareOrdinal(
+                                 value.SourceName,
+                                 conflict) < 0)
+                         .Order(StringComparer.Ordinal))
+            {
+                var other = bySource[conflict];
+                DotNetConsoleRendering.Line(
+                    builder,
+                    2,
+                    string.Concat(
+                        "if (",
+                        value.PropertyName,
+                        "Specified && ",
+                        other.PropertyName,
+                        "Specified)"));
+                DotNetConsoleRendering.Line(builder, 2, "{");
+                DotNetConsoleRendering.Line(
+                    builder,
+                    3,
+                    string.Concat(
+                        "messages.Add(",
+                        DotNetSourceText.CSharpLiteral(
+                            string.Concat(
+                                "Conflicting options: ",
+                                value.SourceName,
+                                " and ",
+                                conflict,
+                                ".")),
+                        ");"));
+                DotNetConsoleRendering.Line(builder, 2, "}");
+            }
+
+            foreach (var prerequisite in value.Prerequisites
+                         .Order(StringComparer.Ordinal))
+            {
+                var other = bySource[prerequisite];
+                DotNetConsoleRendering.Line(
+                    builder,
+                    2,
+                    string.Concat(
+                        "if (",
+                        value.PropertyName,
+                        "Specified && !",
+                        other.PropertyName,
+                        "Specified)"));
+                DotNetConsoleRendering.Line(builder, 2, "{");
+                DotNetConsoleRendering.Line(
+                    builder,
+                    3,
+                    string.Concat(
+                        "messages.Add(",
+                        DotNetSourceText.CSharpLiteral(
+                            string.Concat(
+                                "Option prerequisite missing: ",
+                                value.SourceName,
+                                " requires ",
+                                prerequisite,
+                                ".")),
+                        ");"));
+                DotNetConsoleRendering.Line(builder, 2, "}");
+            }
+        }
+
+        DotNetConsoleRendering.Line(
+            builder,
+            2,
+            "return messages.Count == 0");
+        DotNetConsoleRendering.Line(
+            builder,
+            3,
+            "? global::Spectre.Console.ValidationResult.Success()");
+        DotNetConsoleRendering.Line(
+            builder,
+            3,
+            ": global::Spectre.Console.ValidationResult.Error(");
+        DotNetConsoleRendering.Line(
+            builder,
+            4,
+            "string.Join(global::System.Environment.NewLine, messages));");
+        DotNetConsoleRendering.Line(builder, 1, "}");
     }
 
     private static void RenderValue(
         StringBuilder builder,
         DotNetConsoleValueProjection value)
     {
-        var backingField = string.Concat(
-            char.ToLowerInvariant(value.PropertyName[0]),
-            value.PropertyName[1..]);
         var attribute = value.SourceKind ==
             DotNetConsoleBindingSourceKind.Argument
             ? string.Concat(
@@ -79,11 +223,6 @@ internal sealed class DotNetConsoleSettingsRenderer :
                 "[global::Spectre.Console.Cli.CommandOption(",
                 DotNetSourceText.CSharpLiteral(value.AttributeTemplate),
                 ")]");
-        DotNetConsoleRendering.Line(
-            builder,
-            1,
-            string.Concat("private ", value.PropertyType, " ", backingField, ";"));
-        DotNetConsoleRendering.Line(builder, 0);
         DotNetConsoleRendering.Line(builder, 1, attribute);
         DotNetConsoleRendering.Line(
             builder,
@@ -95,24 +234,12 @@ internal sealed class DotNetConsoleSettingsRenderer :
         DotNetConsoleRendering.Line(
             builder,
             1,
-            string.Concat("public ", value.PropertyType, " ", value.PropertyName));
-        DotNetConsoleRendering.Line(builder, 1, "{");
-        DotNetConsoleRendering.Line(
-            builder,
-            2,
-            string.Concat("get => ", backingField, ";"));
-        DotNetConsoleRendering.Line(builder, 2, "set");
-        DotNetConsoleRendering.Line(builder, 2, "{");
-        DotNetConsoleRendering.Line(
-            builder,
-            3,
-            string.Concat(backingField, " = value;"));
-        DotNetConsoleRendering.Line(
-            builder,
-            3,
-            string.Concat(value.PropertyName, "Specified = true;"));
-        DotNetConsoleRendering.Line(builder, 2, "}");
-        DotNetConsoleRendering.Line(builder, 1, "}");
+            string.Concat(
+                "public ",
+                value.PropertyType,
+                " ",
+                value.PropertyName,
+                " { get; set; }"));
         DotNetConsoleRendering.Line(builder, 0);
         DotNetConsoleRendering.Line(
             builder,
@@ -120,7 +247,24 @@ internal sealed class DotNetConsoleSettingsRenderer :
             string.Concat(
                 "internal bool ",
                 value.PropertyName,
-                "Specified { get; private set; }"));
+                "Specified => ",
+                SpecifiedExpression(value),
+                ";"));
         DotNetConsoleRendering.Line(builder, 0);
+    }
+
+    private static string SpecifiedExpression(
+        DotNetConsoleValueProjection value)
+    {
+        if (value.Repeated)
+        {
+            return string.Concat(
+                value.PropertyName,
+                " is { Length: > 0 }");
+        }
+
+        return value.Flag
+            ? value.PropertyName
+            : string.Concat(value.PropertyName, " is not null");
     }
 }

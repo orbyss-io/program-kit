@@ -48,6 +48,10 @@ internal sealed class DotNetConsoleProgramRenderer :
         DotNetConsoleRendering.Line(
             builder,
             0,
+            "global::GeneratedHost.Hosting.ProgramKitServiceRegistrationAudit.Audit(services);");
+        DotNetConsoleRendering.Line(
+            builder,
+            0,
             "var registrar = new global::GeneratedHost.Hosting.ProgramKitTypeRegistrar(services);");
         DotNetConsoleRendering.Line(
             builder,
@@ -86,7 +90,39 @@ internal sealed class DotNetConsoleProgramRenderer :
         DotNetConsoleRendering.Line(
             builder,
             0,
-            "return await application.RunAsync(args, global::System.Threading.CancellationToken.None);");
+            "using var cancellation = new global::System.Threading.CancellationTokenSource();");
+        DotNetConsoleRendering.Line(
+            builder,
+            0,
+            "global::System.ConsoleCancelEventHandler cancel = (_, eventArgs) =>");
+        DotNetConsoleRendering.Line(builder, 0, "{");
+        DotNetConsoleRendering.Line(
+            builder,
+            1,
+            "eventArgs.Cancel = true;");
+        DotNetConsoleRendering.Line(
+            builder,
+            1,
+            "cancellation.Cancel();");
+        DotNetConsoleRendering.Line(builder, 0, "};");
+        DotNetConsoleRendering.Line(
+            builder,
+            0,
+            "global::System.Console.CancelKeyPress += cancel;");
+        DotNetConsoleRendering.Line(builder, 0, "try");
+        DotNetConsoleRendering.Line(builder, 0, "{");
+        DotNetConsoleRendering.Line(
+            builder,
+            1,
+            "return await application.RunAsync(args, cancellation.Token);");
+        DotNetConsoleRendering.Line(builder, 0, "}");
+        DotNetConsoleRendering.Line(builder, 0, "finally");
+        DotNetConsoleRendering.Line(builder, 0, "{");
+        DotNetConsoleRendering.Line(
+            builder,
+            1,
+            "global::System.Console.CancelKeyPress -= cancel;");
+        DotNetConsoleRendering.Line(builder, 0, "}");
         return builder.ToString();
     }
 

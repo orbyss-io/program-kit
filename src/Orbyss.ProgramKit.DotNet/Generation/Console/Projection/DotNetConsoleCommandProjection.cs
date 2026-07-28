@@ -13,4 +13,5 @@ internal sealed record DotNetConsoleCommandProjection(
     DotNetConsoleClrTypeDescriptor RequestType,
     DotNetConsoleClrTypeDescriptor HandlerType,
     DotNetConsoleClrTypeDescriptor? ValidatorType,
+    int InvalidInvocationExitCode,
     ImmutableArray<DotNetConsoleValueProjection> Values);

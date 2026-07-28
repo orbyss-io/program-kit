@@ -62,6 +62,8 @@ internal sealed class DotNetConsoleProjectionCompiler :
                     operation.RequestType,
                     operation.HandlerType,
                     operation.ValidatorType,
+                    command.ExitCodes.Single(static item =>
+                        item.Code == 2).Code,
                     values));
         }
 
@@ -133,6 +135,8 @@ internal sealed class DotNetConsoleProjectionCompiler :
                         argument.Name,
                         argument.Required ? ">" : "]"),
                     argument.Summary,
+                    [],
+                    [],
                     diagnostics);
                 continue;
             }
@@ -160,6 +164,8 @@ internal sealed class DotNetConsoleProjectionCompiler :
                 -1,
                 OptionTemplate(option),
                 option.Summary,
+                option.Conflicts,
+                option.Prerequisites,
                 diagnostics);
         }
 
@@ -176,6 +182,8 @@ internal sealed class DotNetConsoleProjectionCompiler :
         int argumentPosition,
         string attributeTemplate,
         string summary,
+        ImmutableArray<string> conflicts,
+        ImmutableArray<string> prerequisites,
         ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
     {
         if (!ElementTypes.TryGetValue(logicalType, out var elementType))
@@ -205,9 +213,13 @@ internal sealed class DotNetConsoleProjectionCompiler :
                 attributeTemplate,
                 summary,
                 argumentPosition,
+                occurrence.Minimum,
+                occurrence.Maximum,
                 required,
                 repeated,
                 flag,
+                conflicts,
+                prerequisites,
                 parameter.ClrType,
                 parameter.DefaultDisposition));
     }

@@ -126,12 +126,17 @@ internal static class DotNetConsoleBindingTestFactory
 
     internal static DotNetConsoleGenerationInput GenerationInput(
         OpenConsoleDocument openConsole,
-        ArtifactReference documentRevision)
+        ArtifactReference documentRevision,
+        System.Type? featureType = null)
     {
         var assemblyPath = typeof(MetadataFixtureRequest).Assembly.Location;
         var binding = MetadataBinding(openConsole, assemblyPath) with
         {
             OpenConsoleDocumentRevision = documentRevision,
+            FeatureType = Type(
+                (featureType ?? typeof(MetadataFixtureFeature)).FullName ??
+                throw new InvalidOperationException(
+                    "The fixture feature has no metadata name.")),
         };
         var trustedPlatformAssemblies = (
             AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ??

@@ -23,6 +23,9 @@ internal sealed class DotNetConsoleCommandRenderer :
     private static string Render(DotNetConsoleCommandProjection command)
     {
         var handlerType = DotNetConsoleRendering.Type(command.HandlerType);
+        var validatorType = command.ValidatorType is null
+            ? null
+            : DotNetConsoleRendering.Type(command.ValidatorType);
         StringBuilder builder = new();
         DotNetConsoleRendering.Line(
             builder,
@@ -53,6 +56,18 @@ internal sealed class DotNetConsoleCommandRenderer :
                 handlerType,
                 " handler;"));
         DotNetConsoleRendering.Line(builder, 0);
+        if (validatorType is not null)
+        {
+            DotNetConsoleRendering.Line(
+                builder,
+                1,
+                string.Concat(
+                    "private readonly ",
+                    validatorType,
+                    "? validator;"));
+            DotNetConsoleRendering.Line(builder, 0);
+        }
+
         DotNetConsoleRendering.Line(
             builder,
             1,
@@ -61,12 +76,26 @@ internal sealed class DotNetConsoleCommandRenderer :
                 command.CommandTypeName,
                 "(",
                 handlerType,
-                " handler)"));
+                " handler",
+                validatorType is null
+                    ? ")"
+                    : string.Concat(
+                        ", ",
+                        validatorType,
+                        "? validator = null)")));
         DotNetConsoleRendering.Line(builder, 1, "{");
         DotNetConsoleRendering.Line(
             builder,
             2,
             "this.handler = handler ?? throw new global::System.ArgumentNullException(nameof(handler));");
+        if (validatorType is not null)
+        {
+            DotNetConsoleRendering.Line(
+                builder,
+                2,
+                "this.validator = validator;");
+        }
+
         DotNetConsoleRendering.Line(builder, 1, "}");
         DotNetConsoleRendering.Line(builder, 0);
         DotNetConsoleRendering.Line(
@@ -90,6 +119,56 @@ internal sealed class DotNetConsoleCommandRenderer :
                 "var request = ",
                 command.RequestFactoryTypeName,
                 ".Create(settings);"));
+        if (validatorType is not null)
+        {
+            DotNetConsoleRendering.Line(
+                builder,
+                2,
+                "if (validator is not null)");
+            DotNetConsoleRendering.Line(builder, 2, "{");
+            DotNetConsoleRendering.Line(
+                builder,
+                3,
+                "var validation = await validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);");
+            DotNetConsoleRendering.Line(
+                builder,
+                3,
+                "if (!validation.IsValid)");
+            DotNetConsoleRendering.Line(builder, 3, "{");
+            DotNetConsoleRendering.Line(
+                builder,
+                4,
+                "if (validation.Messages is null || validation.Messages.Count == 0)");
+            DotNetConsoleRendering.Line(builder, 4, "{");
+            DotNetConsoleRendering.Line(
+                builder,
+                5,
+                "global::Spectre.Console.AnsiConsole.WriteLine(\"Consumer validation failed.\");");
+            DotNetConsoleRendering.Line(builder, 4, "}");
+            DotNetConsoleRendering.Line(builder, 4, "else");
+            DotNetConsoleRendering.Line(builder, 4, "{");
+            DotNetConsoleRendering.Line(
+                builder,
+                5,
+                "foreach (var message in validation.Messages)");
+            DotNetConsoleRendering.Line(builder, 5, "{");
+            DotNetConsoleRendering.Line(
+                builder,
+                6,
+                "global::Spectre.Console.AnsiConsole.WriteLine(message ?? string.Empty);");
+            DotNetConsoleRendering.Line(builder, 5, "}");
+            DotNetConsoleRendering.Line(builder, 4, "}");
+            DotNetConsoleRendering.Line(
+                builder,
+                4,
+                string.Concat(
+                    "return ",
+                    command.InvalidInvocationExitCode,
+                    ";"));
+            DotNetConsoleRendering.Line(builder, 3, "}");
+            DotNetConsoleRendering.Line(builder, 2, "}");
+        }
+
         DotNetConsoleRendering.Line(
             builder,
             2,
