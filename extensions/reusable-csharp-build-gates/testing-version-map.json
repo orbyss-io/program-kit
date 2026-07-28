@@ -4,7 +4,7 @@
       "revision": {
         "identity": "pkid:command-line:program-kit:csharp-build-gate-operations",
         "version": "1.0.0",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "kind": "command-line",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-operations",
@@ -19,8 +19,8 @@
     {
       "revision": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-operations",
@@ -35,8 +35,8 @@
     {
       "revision": {
         "identity": "pkid:package:program-kit:csharp-build-gates-testing",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-operations",
@@ -55,15 +55,15 @@
       "source": {
         "identity": "pkid:command-line:program-kit:csharp-build-gate-operations",
         "version": "1.0.0",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-testing",
       "kind": "composes",
-      "acceptedRange": "[0.1.0-alpha.1]",
+      "acceptedRange": "[0.1.0-alpha.2]",
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "exposure": "private",
       "compatibilityDimensions": [
@@ -82,8 +82,8 @@
       "id": "pkid:edge:program-kit:csharp-build-gates-testing-uses-evidence",
       "source": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-verification-evidence",
       "kind": "uses-contract",
@@ -111,16 +111,16 @@
       "id": "pkid:edge:program-kit:csharp-build-gates-testing-package-exposes-implementation",
       "source": {
         "identity": "pkid:package:program-kit:csharp-build-gates-testing",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-testing",
       "kind": "publicly-exposes",
-      "acceptedRange": "[0.1.0-alpha.1]",
+      "acceptedRange": "[0.1.0-alpha.2]",
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:60a1224a9c9d1c757dc1b4b3b388119a7a7c202a2a7695190a3b43b7a7adac0a"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
       },
       "exposure": "public",
       "compatibilityDimensions": [

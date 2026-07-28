@@ -39,9 +39,9 @@
       "observatoryscheduling.core": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.1, )",
-          "Orbyss.ProgramKit.Serialization.JSON": "[0.1.0-alpha.1, )",
-          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.2, )",
+          "Orbyss.ProgramKit.Serialization.JSON": "[0.1.0-alpha.2, )",
+          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.2, )"
         }
       },
       "observatoryscheduling.scheduling.api": {
@@ -56,9 +56,9 @@
         "dependencies": {
           "CShells.Abstractions": "[0.0.28, 0.0.28]",
           "ObservatoryScheduling.Core": "[0.1.0-fixture.1, )",
-          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.1, )",
-          "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.1, )",
-          "Orbyss.ProgramKit.Tasks.Schedules.Cronos": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.2, )",
+          "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.2, )",
+          "Orbyss.ProgramKit.Tasks.Schedules.Cronos": "[0.1.0-alpha.2, )"
         }
       },
       "observatoryscheduling.visibility.static": {
@@ -74,34 +74,34 @@
       "orbyss.programkit.modularity": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.modularity.inprocess": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.serialization.json": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.10, 10.0.10]",
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.10, 10.0.10]",
-          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.1, )",
-          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.2, )",
+          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks.core": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks.hosting": {
@@ -111,26 +111,26 @@
           "Microsoft.Extensions.Diagnostics.HealthChecks": "[10.0.10, 10.0.10]",
           "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": "[10.0.10, 10.0.10]",
           "Microsoft.Extensions.Hosting.Abstractions": "[10.0.10, 10.0.10]",
-          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks.inprocess": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Tasks": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks.schedules": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks.schedules.cronos": {
         "type": "Project",
         "dependencies": {
           "Cronos": "[0.13.0, 0.13.0]",
-          "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.2, )"
         }
       },
       "Cronos": {

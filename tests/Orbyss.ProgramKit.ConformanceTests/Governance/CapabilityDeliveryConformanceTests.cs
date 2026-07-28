@@ -301,10 +301,27 @@ public sealed class CapabilityDeliveryConformanceTests
     [TestMethod]
     public void BundleManifestAllowsExactlyFiveDefinitionsAndTheirAdapters()
     {
+        var schema = JsonSchema.FromText(
+            ConformanceInputs.Read(
+                "Schemas/capabilities/capability-bundle-manifest-0.1.0-alpha.1.schema.json"));
+        using var document = JsonDocument.Parse(
+            ConformanceInputs.ReadBytes(
+                "Capabilities/capability-bundle-manifest.json"));
+        var evaluation = schema.Evaluate(
+            document.RootElement,
+            new EvaluationOptions
+            {
+                OutputFormat = OutputFormat.List,
+            });
+        Assert.IsTrue(evaluation.IsValid);
+
         CapabilityBundleManifestReader reader = new();
         var manifest = reader.Read(
             ConformanceInputs.ReadBytes(
                 "Capabilities/capability-bundle-manifest.json"));
+        Assert.AreEqual("0.1.0-alpha.1", manifest.ManifestVersion);
+        Assert.AreEqual("0.1.0-alpha.2", manifest.BundleVersion);
+        Assert.AreEqual("0.1.0-alpha.2", manifest.KitVersion);
         var capabilityIds = manifest.Capabilities
             .Select(entry => entry.CapabilityId)
             .Order(StringComparer.Ordinal)

@@ -513,18 +513,18 @@ internal static class ObservatoryDotNetContractFactory
         packages.Add(Package("CShells.AspNetCore", "0.0.28"));
         packages.Add(Package(
             "Orbyss.ProgramKit.Modularity.InProcess",
-            "0.1.0-alpha.1"));
+            "0.1.0-alpha.2"));
         packages.Add(Package(
             "Orbyss.ProgramKit.Tasks.Hosting",
-            "0.1.0-alpha.1"));
+            "0.1.0-alpha.2"));
         packages.Add(Package(
             "Orbyss.ProgramKit.Tasks.InProcess",
-            "0.1.0-alpha.1"));
+            "0.1.0-alpha.2"));
         if (kind == DotNetHostKind.Worker)
         {
             packages.Add(Package(
                 "Orbyss.ProgramKit.Tasks.Schedules.Cronos",
-                "0.1.0-alpha.1"));
+                "0.1.0-alpha.2"));
         }
 
         return packages.ToImmutable();

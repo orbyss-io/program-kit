@@ -8,14 +8,14 @@
       "orbyss.programkit.planning": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )",
-          "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )",
+          "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.quality": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       }
     }

@@ -245,7 +245,7 @@
       "orbyss.programkit.secretresolution": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       },
       "Microsoft.Extensions.Configuration.Json": {

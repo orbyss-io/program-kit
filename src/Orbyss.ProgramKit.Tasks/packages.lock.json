@@ -14,13 +14,13 @@
       "orbyss.programkit.modularity": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       },
       "orbyss.programkit.tasks.core": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.1, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
         }
       }
     }

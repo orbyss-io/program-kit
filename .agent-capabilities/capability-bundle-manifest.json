@@ -1,5 +1,6 @@
 {
-  "bundleVersion": "3.0.0",
+  "manifestVersion": "0.1.0-alpha.1",
+  "bundleVersion": "0.1.0-alpha.2",
   "capabilities": [
     {
       "capabilityId": "develop-software",
@@ -32,7 +33,7 @@
       "sourcePath": ".agent-capabilities/capabilities/maintain-software/CAPABILITY.md"
     }
   ],
-  "kitVersion": "0.1.0-alpha.1",
+  "kitVersion": "0.1.0-alpha.2",
   "optionalProviderAdapters": [
     {
       "capabilityId": "develop-software",

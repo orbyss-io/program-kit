@@ -163,6 +163,12 @@
     <None Include="..\..\.agent-capabilities\authoring-workspace.json"
           Link="ConformanceInputs/Capabilities/authoring-workspace.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\fixtures\observatory-scheduling\workspace-package-manifest.json"
+          Link="ConformanceInputs/Observatory/workspace-package-manifest.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\fixtures\observatory-scheduling\shell.json"
+          Link="ConformanceInputs/Observatory/shell.json"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\supporting-resources\**\*"
           Link="ConformanceInputs/Capabilities/SupportingResources/%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />

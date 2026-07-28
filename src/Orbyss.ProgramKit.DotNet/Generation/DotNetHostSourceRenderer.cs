@@ -155,7 +155,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
                 .AppendLine("]\" />");
         }
 
-        builder.AppendLine("    <PackageReference Include=\"Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\" Version=\"[0.1.0-alpha.1]\" PrivateAssets=\"all\" />");
+        builder.AppendLine("    <PackageReference Include=\"Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\" Version=\"[0.1.0-alpha.2]\" PrivateAssets=\"all\" />");
         builder.AppendLine("  </ItemGroup>");
         builder.AppendLine("</Project>");
         return builder.ToString();

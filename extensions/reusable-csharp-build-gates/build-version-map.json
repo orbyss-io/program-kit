@@ -3,8 +3,8 @@
     {
       "revision": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:ad5089a1699067130cc7f41b94683d2ed819d8652749bfe2852cf974ed110099"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
@@ -19,8 +19,8 @@
     {
       "revision": {
         "identity": "pkid:package:program-kit:csharp-build-gates-build",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:ad5089a1699067130cc7f41b94683d2ed819d8652749bfe2852cf974ed110099"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
@@ -38,8 +38,8 @@
       "id": "pkid:edge:program-kit:csharp-build-gates-build-uses-selection-lock",
       "source": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:ad5089a1699067130cc7f41b94683d2ed819d8652749bfe2852cf974ed110099"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
       "kind": "uses-contract",
@@ -67,16 +67,16 @@
       "id": "pkid:edge:program-kit:csharp-build-gates-build-package-exposes-implementation",
       "source": {
         "identity": "pkid:package:program-kit:csharp-build-gates-build",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:ad5089a1699067130cc7f41b94683d2ed819d8652749bfe2852cf974ed110099"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-build",
       "kind": "publicly-exposes",
-      "acceptedRange": "[0.1.0-alpha.1]",
+      "acceptedRange": "[0.1.0-alpha.2]",
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
-        "version": "0.1.0-alpha.1",
-        "digest": "sha256:ad5089a1699067130cc7f41b94683d2ed819d8652749bfe2852cf974ed110099"
+        "version": "0.1.0-alpha.2",
+        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
       },
       "exposure": "public",
       "compatibilityDimensions": [

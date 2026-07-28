@@ -71,7 +71,7 @@ public sealed class CSharpBuildGateAuthoringTests
         }
 
         Assert.AreEqual(
-            "sha256:dcd2a177ed73e65717c3a9208af0c340d8849907d08b244da219466f8d1d7358",
+            "sha256:8bfba8e6e9c41cedf6b6f3109d37cf6655f3a818e536ce107a25bc66a8f89863",
             string.Concat(
                 "sha256:",
                 Convert.ToHexStringLower(hash.GetHashAndReset())));
@@ -324,7 +324,7 @@ public sealed class CSharpBuildGateAuthoringTests
                     "pkid:analyzer:program-kit:generated-source-contract",
                     "pkid:domain:program-kit:generated-source-contract",
                     "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
-                    "0.1.0-alpha.1",
+                    "0.1.0-alpha.2",
                     new string('a', 64),
                     "analyzers/dotnet/cs/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.dll",
                     new string('b', 64),

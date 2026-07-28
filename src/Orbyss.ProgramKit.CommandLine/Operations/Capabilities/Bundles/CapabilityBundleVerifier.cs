@@ -226,12 +226,22 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     internal static void ValidateManifest(CapabilityBundleManifest manifest)
     {
         if (!string.Equals(
+                manifest.ManifestVersion,
+                "0.1.0-alpha.1",
+                StringComparison.Ordinal))
+        {
+            throw InvalidBundle(
+                "The capability bundle manifest format is not supported.",
+                "/bundle/manifest/manifestVersion");
+        }
+
+        if (!string.Equals(
                 manifest.BundleVersion,
-                "3.0.0",
+                "0.1.0-alpha.2",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
-                "0.1.0-alpha.1",
+                "0.1.0-alpha.2",
                 StringComparison.Ordinal))
         {
             throw InvalidBundle(

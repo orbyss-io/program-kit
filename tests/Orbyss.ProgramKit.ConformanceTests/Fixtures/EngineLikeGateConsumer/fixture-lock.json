@@ -20,7 +20,7 @@
     },
     {
       "path": "Analyzer/gate/public-analyzer-selections.json",
-      "digest": "sha256:fb92870d4d502fb5d13520d8867594f4ce1993b1c234e80a17b7066beee2d25c"
+      "digest": "sha256:6fbc97099c730bc0fec5f722854b0f223e6e694384dd71751dfecaa792f27499"
     },
     {
       "path": "Analyzer/packages.lock.json",
@@ -44,7 +44,7 @@
     },
     {
       "path": "fixture-manifest.json",
-      "digest": "sha256:6caa69fb39e415124b3a18026a222adb00cc987b8b34e5bc2122c11047f4686b"
+      "digest": "sha256:c13f992155d91807f21ab551f1ee2f360ccb1a903283f107b8afd591bfa01c4e"
     }
   ],
   "packageVersionsFloating": false,

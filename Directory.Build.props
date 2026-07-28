@@ -18,8 +18,8 @@
     <ProgramKitTargetFramework>net10.0</ProgramKitTargetFramework>
     <ProgramKitLanguageVersion>14.0</ProgramKitLanguageVersion>
 
-    <Version>0.1.0-alpha.1</Version>
-    <PackageVersion>0.1.0-alpha.1</PackageVersion>
+    <Version>0.1.0-alpha.2</Version>
+    <PackageVersion>0.1.0-alpha.2</PackageVersion>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <FileVersion>0.1.0.0</FileVersion>
     <Authors>Orbyss</Authors>

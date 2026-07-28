@@ -13,7 +13,7 @@
   },
   "publicContractAnalyzer": {
     "identity": "pkid:analyzer:program-kit:generated-source-contract",
-    "version": "0.1.0-alpha.1",
+    "version": "0.1.0-alpha.2",
     "diagnosticId": "PKCC001"
   },
   "forbiddenComponents": [

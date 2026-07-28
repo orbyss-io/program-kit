@@ -222,7 +222,7 @@ public sealed class CapabilityInitializerTests
                 await File.ReadAllBytesAsync(
                     lockPath,
                     TestContext.CancellationToken));
-            Assert.AreEqual("3.0.0", upgraded.BundleVersion);
+            Assert.AreEqual("0.1.0-alpha.2", upgraded.BundleVersion);
             Assert.HasCount(5, upgraded.Capabilities);
         }
         finally
@@ -661,9 +661,10 @@ public sealed class CapabilityInitializerTests
                 })
             .ToArray();
         var manifest = new CapabilityBundleManifest(
-            "3.0.0",
-            capabilities.ToArray(),
             "0.1.0-alpha.1",
+            "0.1.0-alpha.2",
+            capabilities.ToArray(),
+            "0.1.0-alpha.2",
             adapters.ToArray(),
             resources);
         Write(

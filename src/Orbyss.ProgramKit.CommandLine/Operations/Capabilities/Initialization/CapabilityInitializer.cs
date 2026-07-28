@@ -595,7 +595,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 "develop-software",
                 "implement-software-plan",
             ],
-            "3.0.0" => DistributedCapabilityIds,
+            "3.0.0" or "0.1.0-alpha.2" => DistributedCapabilityIds,
             _ => [],
         };
         if (entries is null ||
@@ -640,7 +640,8 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
     }
 
     private static bool IsSupportedBundleVersion(string value) =>
-        value is "2.0.0" or "2.1.0" or "2.2.0" or "3.0.0";
+        value is "2.0.0" or "2.1.0" or "2.2.0" or "3.0.0" or
+            "0.1.0-alpha.2";
 
     private static bool IsSafeStoredRelativePath(
         string value,

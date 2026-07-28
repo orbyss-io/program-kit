@@ -1,10 +1,10 @@
 {
   "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "operationsVersion": "1.0.0",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:a0e22b8a1b98254362d036c188590be353d4bb39ff1de79fac74d93624619b6f",
+    "digest": "sha256:1bef0378e9421e5da3e0f6cd4e97a674467b2ea3c40f545d606a0346693b5dba",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/FiniteProcessResult.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/PinnedDotNetCSharpGateCompilerHarness.cs",

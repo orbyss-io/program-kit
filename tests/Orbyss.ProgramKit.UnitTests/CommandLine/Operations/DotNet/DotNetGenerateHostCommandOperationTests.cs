@@ -221,7 +221,7 @@ public sealed class DotNetGenerateHostCommandOperationTests
                 """
                 {
                   "schemaVersion": "1.0.0",
-                  "programKitVersion": "0.1.0-alpha.1",
+                  "programKitVersion": "0.1.0-alpha.2",
                   "kind": "console",
                   "shellPath": "shell.json",
                   "hostIdentity": "

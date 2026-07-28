@@ -113,19 +113,19 @@ internal static class ObservatoryMigrationFixture
             (
                 Revision: PackageRevision(
                     "Orbyss.ProgramKit.Tasks.Core",
-                    "0.1.0-alpha.1",
+                    "0.1.0-alpha.2",
                     "program-kit"),
                 Target: taskDefinition),
             (
                 Revision: PackageRevision(
                     "Orbyss.ProgramKit.DotNet",
-                    "0.1.0-alpha.1",
+                    "0.1.0-alpha.2",
                     "program-kit"),
                 Target: generatedHost),
             (
                 Revision: PackageRevision(
                     "Orbyss.ProgramKit.CommandLine",
-                    "0.1.0-alpha.1",
+                    "0.1.0-alpha.2",
                     "program-kit"),
                 Target: generatedHost),
             (

@@ -98,7 +98,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
-        AssertProperty(document, "Version", "0.1.0-alpha.1");
+        AssertProperty(document, "Version", "0.1.0-alpha.2");
         AssertProperty(document, "Deterministic", "true");
         AssertProperty(document, "TreatWarningsAsErrors", "true");
         AssertProperty(document, "CodeAnalysisTreatWarningsAsErrors", "true");
@@ -137,6 +137,68 @@ public sealed class BuildSpineConformanceTests
             "false",
             RequiredAttribute(gateReferences[0], "ReferenceOutputAssembly"));
         Assert.AreEqual("all", RequiredAttribute(gateReferences[0], "PrivateAssets"));
+    }
+
+    [TestMethod]
+    public void CoordinatedProductReleaseSelectsEveryFirstPartyPackageAtAlpha2()
+    {
+        using var manifestDocument = JsonDocument.Parse(
+            ConformanceInputs.Read(
+                "Observatory/workspace-package-manifest.json"));
+        var programKitPackages = manifestDocument.RootElement
+            .GetProperty("packages")
+            .EnumerateArray()
+            .Where(entry => entry.GetProperty("packageRole").GetString() == "program-kit")
+            .OrderBy(
+                entry => entry.GetProperty("packageId").GetString(),
+                StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.HasCount(ProductProjectNames.Length, programKitPackages);
+        Assert.AreSequenceEqual(
+            ProductProjectNames.Order(StringComparer.Ordinal).ToArray(),
+            programKitPackages
+                .Select(entry => entry.GetProperty("packageId").GetString())
+                .ToArray());
+        foreach (var package in programKitPackages)
+        {
+            var packageId = package.GetProperty("packageId").GetString();
+            var revision = package.GetProperty("packageRevision");
+            Assert.AreEqual(
+                "0.1.0-alpha.2",
+                revision.GetProperty("version").GetString());
+            Assert.AreEqual(
+                string.Concat(packageId, ".0.1.0-alpha.2.nupkg"),
+                package.GetProperty("packageOutputPath").GetString());
+            Assert.AreEqual(
+                "net10.0",
+                package.GetProperty("expectedTarget").GetString());
+        }
+
+        using var shellDocument = JsonDocument.Parse(
+            ConformanceInputs.Read("Observatory/shell.json"));
+        var revisionsByPackage = programKitPackages.ToDictionary(
+            entry => entry.GetProperty("packageId").GetString()!,
+            entry => entry.GetProperty("packageRevision"));
+        var selectedHostPackages = shellDocument.RootElement
+            .GetProperty("hosts")
+            .EnumerateArray()
+            .SelectMany(host => host.GetProperty("hostPackages").EnumerateArray())
+            .Where(package => package.GetProperty("packageId").GetString()!
+                .StartsWith("Orbyss.ProgramKit.", StringComparison.Ordinal))
+            .ToArray();
+        Assert.IsNotEmpty(selectedHostPackages);
+        foreach (var package in selectedHostPackages)
+        {
+            var packageId = package.GetProperty("packageId").GetString()!;
+            Assert.IsTrue(revisionsByPackage.TryGetValue(packageId, out var revision));
+            Assert.AreEqual(
+                revision.GetProperty("version").GetString(),
+                package.GetProperty("version").GetString());
+            Assert.AreEqual(
+                revision.GetProperty("digest").GetString(),
+                package.GetProperty("sha256").GetString());
+        }
     }
 
     [TestMethod]

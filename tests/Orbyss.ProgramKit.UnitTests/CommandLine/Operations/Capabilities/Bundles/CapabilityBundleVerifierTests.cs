@@ -68,6 +68,36 @@ public sealed class CapabilityBundleVerifierTests
     }
 
     [TestMethod]
+    public async Task RejectsUnsupportedManifestFormatIndependentlyOfBundleRelease()
+    {
+        var root = CreateRoot();
+        try
+        {
+            var bundle = CreateBundle(
+                root,
+                manifestVersion: "0.1.0-alpha.2");
+            CapabilityBundleVerifier sut = new(
+                new CapabilityBundleManifestReader());
+
+            var exception =
+                await Assert.ThrowsExactlyAsync<CapabilityOperationException>(
+                    () => sut.VerifyAsync(
+                        bundle,
+                        TestContext.CancellationToken).AsTask());
+
+            Assert.AreEqual("PKCLI007", exception.DiagnosticId);
+            Assert.Contains("manifest format", exception.Message);
+            Assert.AreEqual(
+                "/bundle/manifest/manifestVersion",
+                exception.Path);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task RejectsBundleMissingRegisteredProviderAdapters()
     {
         var root = CreateRoot();
@@ -307,7 +337,8 @@ public sealed class CapabilityBundleVerifierTests
         string? tamperedCapabilityId = null,
         string? tamperedResourceId = null,
         string? extraPath = null,
-        string[]? adapterProviders = null)
+        string[]? adapterProviders = null,
+        string manifestVersion = "0.1.0-alpha.1")
     {
         var bundlePath = Path.Combine(root, "capabilities.nupkg");
         var capabilities = CapabilityIds
@@ -380,7 +411,8 @@ public sealed class CapabilityBundleVerifierTests
         var manifest = BuildManifest(
             capabilities,
             adapters,
-            resources);
+            resources,
+            manifestVersion);
 
         using var archive = ZipFile.Open(
             bundlePath,
@@ -430,9 +462,13 @@ public sealed class CapabilityBundleVerifierTests
     private static string BuildManifest(
         IReadOnlyList<BundleTestEntry> capabilities,
         IReadOnlyList<BundleTestEntry> adapters,
-        IReadOnlyList<BundleTestEntry> resources) =>
+        IReadOnlyList<BundleTestEntry> resources,
+        string manifestVersion) =>
         string.Concat(
-            "{\"bundleVersion\":\"3.0.0\",\"capabilities\":[",
+            "{\"manifestVersion\":\"",
+            manifestVersion,
+            "\"," +
+            "\"bundleVersion\":\"0.1.0-alpha.2\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(
@@ -446,7 +482,7 @@ public sealed class CapabilityBundleVerifierTests
                         "\",\"sourcePath\":\"",
                         entry.SourcePath,
                         "\"}"))),
-            "],\"kitVersion\":\"0.1.0-alpha.1\"," +
+            "],\"kitVersion\":\"0.1.0-alpha.2\"," +
             "\"optionalProviderAdapters\":[",
             string.Join(
                 ',',
