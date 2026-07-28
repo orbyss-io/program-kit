@@ -4,6 +4,7 @@ using Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Contracts;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
 
@@ -18,6 +19,7 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
     private readonly IDotNetHostSourceRenderer sourceRenderer;
     private readonly IDotNetShellValidator shellValidator;
     private readonly IDotNetConsoleHostGenerator consoleHostGenerator;
+    private readonly IGeneratedOutputSealer outputSealer;
 
     /// <summary>Initializes the coordinator with injected validation and rendering behavior.</summary>
     public DotNetHostGenerationCoordinator(
@@ -26,7 +28,8 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         IDotNetHostSourceRenderer sourceRenderer,
         IDotNetDocumentWriter documentWriter,
         IDotNetIntegratorDocumentValidator documentValidator,
-        IDotNetConsoleHostGenerator consoleHostGenerator)
+        IDotNetConsoleHostGenerator consoleHostGenerator,
+        IGeneratedOutputSealer outputSealer)
     {
         this.shellValidator = shellValidator ??
             throw new ArgumentNullException(nameof(shellValidator));
@@ -40,6 +43,8 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             throw new ArgumentNullException(nameof(documentValidator));
         this.consoleHostGenerator = consoleHostGenerator ??
             throw new ArgumentNullException(nameof(consoleHostGenerator));
+        this.outputSealer = outputSealer ??
+            throw new ArgumentNullException(nameof(outputSealer));
     }
 
     /// <inheritdoc />
@@ -101,6 +106,15 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
             outputs.Add(new GeneratedOutput("docs/open-worker.json", documentWriter.Write(input.OpenWorker)));
         }
 
+        var seal = outputSealer.Seal(
+            outputs.Select(static output =>
+                new GeneratedOutputPayload(
+                    output.RelativePath,
+                    output.Content)));
+        outputs.Add(
+            new GeneratedOutput(
+                GeneratedOutputIntegrityConstants.ManifestRelativePath,
+                seal.ManifestBytes));
         return ValueTask.FromResult(
             outputs
                 .OrderBy(static output => output.RelativePath, StringComparer.Ordinal)

@@ -11,6 +11,7 @@
                       ExcludeAssets="all"
                       PrivateAssets="all" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Architecture\Orbyss.ProgramKit.Architecture.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.OpenConsole\Orbyss.ProgramKit.OpenConsole.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />

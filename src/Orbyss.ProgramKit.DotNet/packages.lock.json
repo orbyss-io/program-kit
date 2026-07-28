@@ -73,6 +73,9 @@
           "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.1, )"
         }
       },
+      "orbyss.programkit.generatedoutputintegrity": {
+        "type": "Project"
+      },
       "orbyss.programkit.modularity": {
         "type": "Project",
         "dependencies": {

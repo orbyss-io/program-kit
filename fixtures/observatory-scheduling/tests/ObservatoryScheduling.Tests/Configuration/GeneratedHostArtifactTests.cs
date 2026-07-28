@@ -6,6 +6,7 @@ using Orbyss.ProgramKit.DotNet.Generation.FastEndpoints;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Sealing;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
 using Orbyss.ProgramKit.OpenConsole.Contracts.Validation;
 using Orbyss.ProgramKit.SecretResolution.Contracts.Validation;
@@ -137,6 +138,7 @@ public sealed class GeneratedHostArtifactTests
             documentWriter,
             new DotNetIntegratorDocumentValidator(
                 new OpenConsoleDocumentValidator()),
-            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create());
+            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create(),
+            new GeneratedOutputSealer());
     }
 }

@@ -11,6 +11,7 @@ using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Contracts;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
@@ -29,6 +30,7 @@ public sealed class DotNetHostGenerationCommandService :
     private readonly IWorkbenchGenerationService<DotNetHostGenerationInput> apiGeneration;
     private readonly IWorkbenchGenerationService<DotNetHostGenerationInput> consoleGeneration;
     private readonly IWorkbenchGenerationService<DotNetHostGenerationInput> workerGeneration;
+    private readonly IGeneratedOutputSealer outputSealer;
 
     /// <summary>Initializes all parsing, resolution, locking, and generation behavior.</summary>
     public DotNetHostGenerationCommandService(
@@ -39,7 +41,8 @@ public sealed class DotNetHostGenerationCommandService :
         IDotNetHostLockSelector lockSelector,
         IWorkbenchGenerationService<DotNetHostGenerationInput> apiGeneration,
         IWorkbenchGenerationService<DotNetHostGenerationInput> consoleGeneration,
-        IWorkbenchGenerationService<DotNetHostGenerationInput> workerGeneration)
+        IWorkbenchGenerationService<DotNetHostGenerationInput> workerGeneration,
+        IGeneratedOutputSealer outputSealer)
     {
         this.fileSystem = fileSystem ??
             throw new ArgumentNullException(nameof(fileSystem));
@@ -57,6 +60,8 @@ public sealed class DotNetHostGenerationCommandService :
             throw new ArgumentNullException(nameof(consoleGeneration));
         this.workerGeneration = workerGeneration ??
             throw new ArgumentNullException(nameof(workerGeneration));
+        this.outputSealer = outputSealer ??
+            throw new ArgumentNullException(nameof(outputSealer));
     }
 
     /// <inheritdoc />
@@ -126,13 +131,22 @@ public sealed class DotNetHostGenerationCommandService :
                 ? projectionRevision
                 : null);
         var service = SelectService(host.Kind);
+        var outputRoot = Path.GetFullPath(request.OutputRoot);
+        var anchorPath = GeneratedOutputPathPolicy.AnchorPath(outputRoot);
+        if (fileSystem.FileExists(anchorPath) ||
+            fileSystem.DirectoryExists(anchorPath))
+        {
+            throw new InvalidDataException(
+                "The generated-output external anchor path already exists.");
+        }
+
         var result = await service.GenerateAsync(
             new GenerationRequest<DotNetHostGenerationInput>(
                 generationInput,
-                Path.GetFullPath(request.OutputRoot),
+                outputRoot,
                 GenerationCollisionPolicy.Fail,
                 GenerationLimits.Default),
-            cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
         if (!result.Validation.IsValid)
         {
             var diagnostic = result.Validation.Diagnostics[0];
@@ -145,6 +159,17 @@ public sealed class DotNetHostGenerationCommandService :
                     diagnostic.Path));
         }
 
+        var integrityManifestPath = GeneratedOutputPathPolicy.ResolveUnderRoot(
+            outputRoot,
+            GeneratedOutputIntegrityConstants.ManifestRelativePath,
+            allowManifest: true);
+        var integrityManifestBytes = await fileSystem.ReadAllBytesAsync(
+            integrityManifestPath,
+            cancellationToken).ConfigureAwait(false);
+        await fileSystem.WriteAllBytesAsync(
+            anchorPath,
+            outputSealer.CreateAnchorBytes(integrityManifestBytes),
+            cancellationToken).ConfigureAwait(false);
         return new DotNetHostGenerationCommandResult(
             shell,
             shellRevision,

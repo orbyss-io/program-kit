@@ -33,6 +33,25 @@ public sealed class CommandParserTests
     }
 
     [TestMethod]
+    public void ParsesFrozenOfflineVerifyHostCommand()
+    {
+        CommandParser sut = new(CommandDescriptorCatalog.All);
+
+        var result = sut.Parse(
+        [
+            "dotnet",
+            "verify-host",
+            "--root",
+            "Product.Cli.Host",
+        ]);
+
+        Assert.AreEqual("dotnet.verify-host", result.Descriptor.Key);
+        Assert.AreEqual(
+            "Product.Cli.Host",
+            result.RequiredOption("root"));
+    }
+
+    [TestMethod]
     public void RejectsDuplicateOptionBeforeExecution()
     {
         CommandParser sut = new(CommandDescriptorCatalog.All);

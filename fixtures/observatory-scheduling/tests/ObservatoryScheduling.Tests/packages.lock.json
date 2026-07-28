@@ -318,6 +318,7 @@
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp": "[5.6.0, 5.6.0]",
           "Orbyss.ProgramKit.Architecture": "[0.1.0-alpha.1, )",
+          "Orbyss.ProgramKit.GeneratedOutputIntegrity": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.OpenConsole": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Operations": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.1, )",
@@ -329,6 +330,9 @@
           "Orbyss.ProgramKit.Tasks.Schedules": "[0.1.0-alpha.1, )",
           "Orbyss.ProgramKit.Workbench": "[0.1.0-alpha.1, )"
         }
+      },
+      "orbyss.programkit.generatedoutputintegrity": {
+        "type": "Project"
       },
       "orbyss.programkit.modularity": {
         "type": "Project",

@@ -92,6 +92,14 @@ public static class CommandDescriptorCatalog
                 Diagnostics(),
             ]),
         Create(
+            "dotnet.verify-host",
+            ["dotnet", "verify-host"],
+            [],
+            [
+                new("root", true, true),
+                Diagnostics(),
+            ]),
+        Create(
             "dotnet.generate-client",
             ["dotnet", "generate-client"],
             [],

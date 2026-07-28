@@ -111,6 +111,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.OpenConso
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.ConsoleContractFixtures", "tests\Orbyss.ProgramKit.ConsoleContractFixtures\Orbyss.ProgramKit.ConsoleContractFixtures.csproj", "{292B43BB-6CDD-48C6-B91D-9FBD034CA82A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orbyss.ProgramKit.GeneratedOutputIntegrity", "src\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj", "{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -625,6 +627,18 @@ Global
 		{292B43BB-6CDD-48C6-B91D-9FBD034CA82A}.Release|x64.Build.0 = Release|Any CPU
 		{292B43BB-6CDD-48C6-B91D-9FBD034CA82A}.Release|x86.ActiveCfg = Release|Any CPU
 		{292B43BB-6CDD-48C6-B91D-9FBD034CA82A}.Release|x86.Build.0 = Release|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Debug|x64.Build.0 = Debug|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Debug|x86.Build.0 = Debug|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x64.Build.0 = Release|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -661,5 +675,6 @@ Global
 		{90A175D2-CBD1-4A30-8A97-B510B4AE4D90} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{5645B176-A1CD-47DF-B98D-68B951458423} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{292B43BB-6CDD-48C6-B91D-9FBD034CA82A} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{9D4E8A72-67B5-4C12-9E02-6D15D7B3F801} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

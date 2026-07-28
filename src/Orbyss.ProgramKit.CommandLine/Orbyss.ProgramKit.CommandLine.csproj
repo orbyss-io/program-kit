@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Orbyss.ProgramKit.Workbench\Orbyss.ProgramKit.Workbench.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.CSharpBuildGates.Testing\Orbyss.ProgramKit.CSharpBuildGates.Testing.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.DotNet\Orbyss.ProgramKit.DotNet.csproj" />
+    <ProjectReference Include="..\Orbyss.ProgramKit.GeneratedOutputIntegrity\Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.Operations\Orbyss.ProgramKit.Operations.csproj" />
     <ProjectReference Include="..\Orbyss.ProgramKit.SecretResolution\Orbyss.ProgramKit.SecretResolution.csproj" />
   </ItemGroup>

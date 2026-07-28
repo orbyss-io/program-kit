@@ -33,6 +33,8 @@ using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Schemas;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Verification;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Sealing;
 using Orbyss.ProgramKit.Planning.Schemas;
 using Orbyss.ProgramKit.Operations.Contracts.Schemas;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
@@ -143,7 +145,8 @@ public static class CommandLineComposition
                 new OpenApiDocumentWriter(canonicalizer),
                 serializer),
             new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()),
-            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create());
+            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create(),
+            new GeneratedOutputSealer());
         IWorkbenchOutputWorkspace outputWorkspace =
             new FileSystemWorkbenchOutputWorkspace();
         IWorkbenchGenerationService<DotNetHostGenerationInput> apiGeneration =
@@ -166,9 +169,13 @@ public static class CommandLineComposition
             hostLockSelector,
             apiGeneration,
             consoleGeneration,
-            workerGeneration);
+            workerGeneration,
+            new GeneratedOutputSealer());
         ICommandOperation dotNetGeneration =
             new DotNetGenerateHostCommandOperation(hostGeneration);
+        ICommandOperation generatedOutputVerification =
+            new DotNetVerifyHostCommandOperation(
+                new GeneratedOutputIntegrityVerifier());
         IKiotaForeignClientGenerator kiotaGenerator =
             new KiotaForeignClientGenerator(
                 fileSystem,
@@ -240,6 +247,7 @@ public static class CommandLineComposition
                     fileSystem,
                     canonicalizer),
                 "dotnet.generate-host" => dotNetGeneration,
+                "dotnet.verify-host" => generatedOutputVerification,
                 "dotnet.generate-client" => kiotaGeneration,
                 "packages.prepare-local" => packagePreparationOperation,
                 "dotnet.publish-local" => localPublishOperation,

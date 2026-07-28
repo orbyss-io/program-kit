@@ -5,6 +5,7 @@ using Orbyss.ProgramKit.CommandLine.Contracts;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Shells;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Verification;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
@@ -181,6 +182,10 @@ public sealed class DotNetGenerateHostCommandOperationTests
                 Path.Combine(
                     output,
                     expectedDocumentPath.Replace('/', Path.DirectorySeparatorChar))));
+            GeneratedOutputIntegrityVerifier verifier = new();
+            Assert.IsTrue((await verifier.VerifyAsync(
+                output,
+                TestContext.CancellationToken)).IsValid);
             Assert.IsEmpty(console.StandardError);
         }
         finally

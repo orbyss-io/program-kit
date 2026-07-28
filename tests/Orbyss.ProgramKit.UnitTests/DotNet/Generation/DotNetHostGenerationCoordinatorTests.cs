@@ -9,6 +9,7 @@ using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
 using Orbyss.ProgramKit.DotNet.Validation;
+using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Sealing;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
@@ -327,7 +328,8 @@ public sealed class DotNetHostGenerationCoordinatorTests
                 new Orbyss.ProgramKit.DotNet.Generation.FastEndpoints.DotNetFastEndpointsProjectionCompiler()),
             documentWriter,
             new DotNetIntegratorDocumentValidator(new OpenConsoleDocumentValidator()),
-            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create());
+            Orbyss.ProgramKit.DotNet.Generation.Console.Composition.DotNetConsoleGenerationComposition.Create(),
+            new GeneratedOutputSealer());
     }
 
     private static DotNetDocumentWriter CreateDocumentWriter()

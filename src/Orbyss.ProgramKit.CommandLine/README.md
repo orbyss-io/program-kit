@@ -16,6 +16,7 @@ program-kit versions map --manifest <component-manifest> --output <file|->
 program-kit versions assess --observed <selection> --target <selection> --output <file|->
 program-kit check <design|plan> | --manifest <workspace-manifest> [--profile <id>]
 program-kit dotnet generate-host <api|console|worker> --shell <file> --host <id> --artifact-manifest <file> --output <dir>
+program-kit dotnet verify-host --root <generated-tree>
 program-kit dotnet generate-client --openapi <file> --tool-manifest <file> --tool-package <nupkg> --namespace-name <namespace> --class-name <class> --output <dir>
 program-kit capabilities render-catalog <index> --output <file|->
 program-kit capabilities verify-bundle <bundle>
