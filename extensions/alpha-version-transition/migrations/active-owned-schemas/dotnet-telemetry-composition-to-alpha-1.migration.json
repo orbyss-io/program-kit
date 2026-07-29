@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-telemetry-composition",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:4a9cd5c51adf381a7c7489543f3bd30b4d2cd50bce6e0c7d76cd0637cd4da341"
+    "digest": "sha256:dccb4a3230d2037241a76f97257bd57c7ae3f0965c0b303e686560127fe3a019"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

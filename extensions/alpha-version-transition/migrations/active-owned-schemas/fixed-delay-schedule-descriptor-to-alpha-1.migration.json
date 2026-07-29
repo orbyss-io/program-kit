@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:fixed-delay-schedule-descriptor",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:a3a96a41c23f048678b02db13bb8b45b7937ff91b13f9509d0836c9498434b5e"
+    "digest": "sha256:168f59e8db12c8622eebcc73e3feae9110edb42cbc293ae6a539bd179132b0c0"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

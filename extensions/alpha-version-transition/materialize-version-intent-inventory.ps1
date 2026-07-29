@@ -151,7 +151,7 @@ $catalogs = @(
     @('pkid:catalog:program-kit:csharp-build-gate-schemas', 'src/Orbyss.ProgramKit.CSharpBuildGates.Contracts/Contracts/Schemas/CSharpBuildGateSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:dev-container-schemas', 'src/Orbyss.ProgramKit.DevContainers/Contracts/Schemas/DevContainerSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:development-schemas', 'src/Orbyss.ProgramKit.Development/Schemas/DevelopmentSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
-    @('pkid:catalog:program-kit:dotnet-schemas', 'src/Orbyss.ProgramKit.DotNet/Schemas/DotNetSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.16', 16),
+    @('pkid:catalog:program-kit:dotnet-schemas', 'src/Orbyss.ProgramKit.DotNet/Schemas/DotNetSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.17', 17),
     @('pkid:catalog:program-kit:open-console-schemas', 'src/Orbyss.ProgramKit.OpenConsole/Contracts/Schemas/OpenConsoleSchemaModule.cs', '/Version', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:operations-schemas', 'src/Orbyss.ProgramKit.Operations/Contracts/Schemas/OperationsSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:planning-schemas', 'src/Orbyss.ProgramKit.Planning/Schemas/PlanningSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.3', 3),
@@ -226,7 +226,14 @@ $inventory = [ordered]@{
             digest = $boundaryDigest
         })
 }
-$json = ($inventory | ConvertTo-Json -Depth 100) + "`n"
+$json = $inventory | ConvertTo-Json -Depth 100
+$json = $json.Replace(
+    "`r`n",
+    "`n",
+    [StringComparison]::Ordinal).Replace(
+        "`r",
+        "`n",
+        [StringComparison]::Ordinal) + "`n"
 [IO.File]::WriteAllText(
     $outputPath,
     $json,

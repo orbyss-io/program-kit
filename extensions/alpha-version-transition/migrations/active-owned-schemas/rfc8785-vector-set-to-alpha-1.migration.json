@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:rfc8785-vector-set",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:966af0b607fc70a0d09a2ff6bb46820b7584ad3c3fe53dece253f069a1cc44e6"
+    "digest": "sha256:a66ccc1f4a5cd18cc763fd42fcf501f0e25b396095a61f1850e49f5c899b0e1c"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

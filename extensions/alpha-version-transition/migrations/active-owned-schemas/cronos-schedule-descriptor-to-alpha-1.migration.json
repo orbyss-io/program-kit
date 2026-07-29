@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:cronos-schedule-descriptor",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:61475d724a90b217f3620e0413e142d1bf56e430a97e9ddb2998d9f5ce04df11"
+    "digest": "sha256:de71735a6a4e77bbf848ff0422a525b30cfea963f367b24e9adade1adb6a22bb"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

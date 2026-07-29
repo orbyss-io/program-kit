@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-keycloak-local-realm-import",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:99fdd3b3242fdf5e346fe7e2641434b6cd590d2f9316d68add1b58f2b4717783"
+    "digest": "sha256:6dda1cf628cf7c6ee16a3aec268542400abe25c0f88b5439f1f72b5f8b6e04dc"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

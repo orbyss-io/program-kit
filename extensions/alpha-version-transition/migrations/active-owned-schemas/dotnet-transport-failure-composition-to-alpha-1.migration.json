@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-transport-failure-composition",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:35646394b02a9f3d4c9e38b25b9796812021fe68b55533f6d181cc9a17998709"
+    "digest": "sha256:d0a45fafd0658008bafc1535b1af1d441a33cbe76e5028738e79502d2a11b792"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

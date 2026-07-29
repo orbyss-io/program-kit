@@ -20,7 +20,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:anchored-fixed-interval-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:92832cdfe87e61b650ba0374b6daa06a796718516707be2718980d7cfbdf2092"
+        "digest": "sha256:69ce0ded3416c72819fd186c32791ad29dd8331d81441d80a4bc49b0b3645eb8"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -52,7 +52,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:artifact-decision",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4a9625fee9d4d30dddc1b2f63a730fd3cbe297e03f23d357161a3ce65bf4a4ae"
+        "digest": "sha256:2122880d93a6d10905ecfc5bdc90b0783b3ed906658699a15a6c6b702a8e763d"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -84,7 +84,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:artifact-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0bee875886aff9289a935268cb8abe807ea0bcb8ad83ff0fd3136a43f78f549c"
+        "digest": "sha256:8e359a3436da57d0f5488d5f32cdc34915f546723a79b903b265ff4f3aeb625b"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -116,7 +116,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:artifact-envelope",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:abcc01a9ccb2e2464d3d40cdcc9b0bc1a94510c093f25d965866cc062ee48815"
+        "digest": "sha256:6dd10a2e64e382d81c4c4f9281ef715098fc297bb34ede4805d3dc0818abaf73"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -148,7 +148,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:capability-availability-snapshot",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4bfed206a934a461f4999cd852e3621b5bf5cd1f867fe6e9731805b6e36abbe5"
+        "digest": "sha256:782008db4bd721f67ac003bc2e8f5e354d2aaa78dafedaeaab9a03c0967b40dc"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -180,7 +180,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:cronos-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:61475d724a90b217f3620e0413e142d1bf56e430a97e9ddb2998d9f5ce04df11"
+        "digest": "sha256:de71735a6a4e77bbf848ff0422a525b30cfea963f367b24e9adade1adb6a22bb"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -212,7 +212,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:3888ca5bc470f44cf92cae741958993e829528f6fc9605012d8c35120a92ac91"
+        "digest": "sha256:35a3662d59b85621ea8d2ab0bba03b23de056001cb4ad9b4385996db76da1638"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -244,7 +244,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4f5b8c2734e24ae3e8659e4ee88f1c2663ae7d43015139f420636f58fec274ca"
+        "digest": "sha256:abf7014b586ce9d5d338aa60f9fc13c67dc78ebb2f2c625cbe5e2e5efc84c0b8"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -276,7 +276,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-participation-receipt",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b156dd3556daf921488944e8eb8a25aefcae07d450324a5874a50eb954a69433"
+        "digest": "sha256:eb3bb3616b06c023d5f1d8f722159c361d93a5d3ef70459a3d037562247d5605"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -308,7 +308,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:550323cedfa9524c3ad1f6e4046afaefe2fdbb3de724d4c895a5798613af74b5"
+        "digest": "sha256:c0d326108653b9e986df1a2b361611622d269df8072faf421eabec093e165cc5"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -340,7 +340,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-suppression-ledger",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4b664d8ece16d6d085e4ac7576aadb636837d17e389559289e21d6d281a2da62"
+        "digest": "sha256:15614752b658e43eeb98fbc9397f83bfc8d5b4110a8d65a3376322ffbf96a5f1"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -372,7 +372,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-verification-evidence",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:80d570f19fab9a4a795d9bcbaa80ca6b481af5c99d146ad10beffe2ab048f229"
+        "digest": "sha256:0109bbdac32a1465cc3d49d0660e6a3672c0510e6e6147836bb06e480f371723"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -404,7 +404,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:delay-once-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:bde359099de956096697f77707df2a8985a3a0bb7fe121dc149e54564830b794"
+        "digest": "sha256:bf948216c2e1a275cf0fb772fe6d2d8a993f570b72d1e87e1f3728a87d45915a"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -436,7 +436,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:design-plan-approval",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4b2f46bbe0f0f9e47629b0db0fad89c8448ca99d61eb1f438552de45296b9e55"
+        "digest": "sha256:5b4aa0f814b98d5d59b49780e53bf4011ab8647ba8d80a9efeaf10d3386ea4e9"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -468,7 +468,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:development-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:7d5eecafa74191c2b192e95cd61daf1813be707781eaa4d4505e2484b8a9dd8a"
+        "digest": "sha256:3fe7e609e2e351ac3e8a4df523eb50e6aff26e9df1b9708df343232003ecd1c6"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -500,7 +500,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:development-receipt",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:02b5239a0368b53e35e6af37831d965068e5dd97321689a83077d44083aba092"
+        "digest": "sha256:2614b4bf9bcdd5f9a9dbe4f9847882dbd0a5f8d55aacc4e8e2ee0a795c8bd306"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -532,7 +532,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:development-routing-result",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:535c7c011ef2879f460530f7a1452bd39dc6b8c1afc058fb29504b9eb8f196ea"
+        "digest": "sha256:254592957501f07d84c52744d432c67433d9f01951cc47424e2928afa173deee"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -564,7 +564,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-azure-key-vault-composition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b82fb232346f346385134c2a090da050b4aa1515492ca9990116a7d70b9d51d8"
+        "digest": "sha256:2652b0cc402b913f0e87fbc092b9cb9ffa27c35094fcce5ee3c2d8747332ac23"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -596,7 +596,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-configuration-provider-catalog",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:f135ff132307191e2e2c4001123d515d1a280076852920fd19321f47f037083c"
+        "digest": "sha256:2fc98ea645d8df338be6dc3c20858dba1f138b4d78090591cd44fc99c2f4abec"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -628,7 +628,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-console-binding",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:66cf793edb030b510e7cd4ea50285f027e27c9f72138e6d70b78e2111e25c0de"
+        "digest": "sha256:eea8fdc8e6e7b445fcda2ced92690a9e7b8313269bd424c39156e6a049477b6a"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -660,7 +660,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-host-generation-request",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:c02e37c7bc7420b60a2854d7eaa0e532919a8fa434572e77c54c713277fa1497"
+        "digest": "sha256:00a630150a4fd6dad5365f27918a8a37a1fe990045373795df0cf90f82b4fbeb"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -692,7 +692,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-keycloak-local-fixture-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:1ea26df9d20553cc432e1086a1776427caf8fde03db3e90c0a527ef7df548ead"
+        "digest": "sha256:4616a2b26ab2019d10aa0a792a4fbe90369889df84081744c1e428a9895ba4b8"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -724,7 +724,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-keycloak-local-realm-import",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:99fdd3b3242fdf5e346fe7e2641434b6cd590d2f9316d68add1b58f2b4717783"
+        "digest": "sha256:6dda1cf628cf7c6ee16a3aec268542400abe25c0f88b5439f1f72b5f8b6e04dc"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -756,7 +756,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-security-composition",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:d61566bdc11d84c52342bcc36b0e4c6ad6a72fcda39fbe758156fa0843af9620"
+        "digest": "sha256:4455f8746e7c94dfe6f36a15a64d9c87c5e64869885551df9f43fac3ffdf95d3"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -788,7 +788,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-shell",
         "version": "0.1.0-alpha.11",
-        "digest": "sha256:fdf8e602373dc14554cc1558ea6f989cb2d367b318b7bffe26385205c26bb7ac"
+        "digest": "sha256:6562126c6755c8a3691b046e8818d5784e8ee1b0e2bbb333085c76f43cbd5b00"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -820,7 +820,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-shell-lock",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:c8f09b6fc26a6d9e1b9ba0d5d63ffe27ba94b9132dec0bdbf76cacf2bfb3e273"
+        "digest": "sha256:40a486cb75fe0a88889490a189fbae9087b9b059a92e4d81cfcd4a51519bee92"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -852,7 +852,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-target-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:3c63b20e4b5f1ab4720acc6a477d79ece720eb28c16d89f1d3d5b7442532272a"
+        "digest": "sha256:8c121fe029858549a46b2a901926dfe08a311b35218bfbffaa4bb589e1c524ce"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -884,7 +884,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-telemetry-composition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4a9cd5c51adf381a7c7489543f3bd30b4d2cd50bce6e0c7d76cd0637cd4da341"
+        "digest": "sha256:dccb4a3230d2037241a76f97257bd57c7ae3f0965c0b303e686560127fe3a019"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -916,7 +916,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:dotnet-transport-failure-composition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:35646394b02a9f3d4c9e38b25b9796812021fe68b55533f6d181cc9a17998709"
+        "digest": "sha256:d0a45fafd0658008bafc1535b1af1d441a33cbe76e5028738e79502d2a11b792"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -948,7 +948,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:execution-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:ece8e89401129cc34dde45ec4c51ca72f4cb50a45b2e76cf14e2a3cc7fd97c99"
+        "digest": "sha256:e4c72b3c864dd0e991f620fa372a527041faefb7da88b9081f81f6e4f615b9bb"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -980,7 +980,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:fixed-delay-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:a3a96a41c23f048678b02db13bb8b45b7937ff91b13f9509d0836c9498434b5e"
+        "digest": "sha256:168f59e8db12c8622eebcc73e3feae9110edb42cbc293ae6a539bd179132b0c0"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1012,7 +1012,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:generated-output-anchor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:e921c761563c7ce21a0b594a8435d14dde3619db99b3a1f2a0324370e8b8e3c4"
+        "digest": "sha256:019b28633d837f801d20fff6a7901189c5b83b7444f0852bf609b691942ee6ad"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1044,7 +1044,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:generated-output-manifest",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4161ad0b4eb842a0ab133fa14c5eefcb6399a380ed3a5027667946a8eba6489f"
+        "digest": "sha256:67489deb7015bfb2726875afce54690f4803cbf9448ae1f13fffb75d92c06f23"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1076,7 +1076,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:independent-review",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:81c8da419abf15f84cf12d295cda7fda43431951bbfdbc0006754a265d6e73d2"
+        "digest": "sha256:26866c36a66de204ff6c1ee8cb46cd70497d47200a604055d4483ae61773a198"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1108,7 +1108,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:json-contribution-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b1aaf53d5f6ad86dbe2e609953540862f025c307ef8006d1cc493894d946ee7a"
+        "digest": "sha256:e03a81ff3e0d4cdc09e3b5463ac7e6eeb66233ccf4bbf3b48d878435d8d935b6"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1140,7 +1140,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:json-profile-selection",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b883d3729b564ca5320afffd8bf592927ccb26874ec74479d3f27a6421c86c56"
+        "digest": "sha256:beb49b6720ec1605e646e511c219571e16685c4ebe4754ef6e7d0021ea07c85b"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1172,7 +1172,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:json-profile-source",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:f2c3ad9cd6887706818622235a582a4a976be6522222cfd5ba50f837fa2312fc"
+        "digest": "sha256:7b783d5eff6145141f7a7f22a5adf81a7c37a3cec898a95d259d7d7c72599318"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1204,7 +1204,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:json-serialization-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:56f3adbab7bbd87d8f01c266210c96e45f7f9d0e6416e7112a58358cdf962db3"
+        "digest": "sha256:0901f9aacdad7f9b19fe46db70f8da76af3b1eb5ad398b8938037f9a8a586a16"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1236,7 +1236,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:migration-assessment",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:9b3807a843c76e8fcddbcb0fb9fafc8d7857e2a834f3efde3a16c8ec5ed12c58"
+        "digest": "sha256:726b058963331444a323bb307433966bb264ded7ab04a33c35572d8368adc569"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1268,7 +1268,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:migration-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:e226969749888efab2234552c36c8843b4c144fc29c4bbc38636b82acf4600a8"
+        "digest": "sha256:905bc215f9b9c764c150cd6ed4f7a3bd0f70c4600652ae0c1e59e9c7cf60f0c6"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1300,7 +1300,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:open-console",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:34f4a540156ecb1a90083670e8f52daa3d512fb412ea4a124a99a2f78b2488f9"
+        "digest": "sha256:394ad9136fec12ddcaabd31eb10e1297bcdb395ea761441830e50cae4c2ff1fe"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1332,7 +1332,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:open-worker",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:5b2e446d167488eed329f8e77d4c84ff299d1a7eb86cd2d5bf1aff077c9af70c"
+        "digest": "sha256:68b0c559430d09027a7bdfc999728838acbc42c78f6d571dd359e0aa1f13a616"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1364,7 +1364,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:operation-contract-catalog",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:044a2aba09b5be9d537421f751f98dc41939ee2f51e42e524142cd3b5aa74313"
+        "digest": "sha256:192932b6aa41c7c6bd2b0a91e1a8c520a54a7950e0727a5f8398870bca0426f6"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1396,7 +1396,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:operation-contract-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:aaa1a8ece9a767feb45613f424c1007ab7a05e34a278c7730b139664324e464b"
+        "digest": "sha256:55e9ff956640ec95b2e659f9c16e8a6989ac8e71cf23bb37a48db9f3dc777a0a"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1428,7 +1428,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:operation-invocation",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:46e76349363e208978d619540d064e97aefdedb0043c3d2b2f040b3bf2c43251"
+        "digest": "sha256:7698fe8639e15939847107829259f650ba8c54b83c30eeb3daee52aa33f2dc6e"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1460,7 +1460,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:operation-progress",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b8483b26ae38d1b87463420b8130247445dfb3d603b4eb01b4302b79d29a5ca0"
+        "digest": "sha256:5e00fc3a4179966410eb212dbebbd1456cfbf491925654d17fca95930b4a7f06"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1492,7 +1492,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:operation-result",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:5233a6e347a669be4f75f695d098b9d6375ed43ef41849bd6bb77b3b97b4c88b"
+        "digest": "sha256:e73f275017bbb7c0d339e8d661eb0f0ca801f988d83c3ea23ad73b97c27f8ff6"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1524,7 +1524,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:operations-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cbcae502173e29b0db802d38f5b2eec68c65915bda24230159a5daacb8fb8e1d"
+        "digest": "sha256:92e0ab44a796e2e733686f026ac1363c66ad01bcd6371a33938a507b37836c2c"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1556,7 +1556,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:planning-definitions",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:14f5daeb1a17ff783597c01d8542168eb7c1650c0c1a6968b704caab1d3d2822"
+        "digest": "sha256:b8ec79cce96a0acbabe149d338d8f1f6354e8f58a69ebeca35f1c798c1b0a454"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1588,7 +1588,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:public-generated-source-contract",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:8f09c0d5491527907d4d63a7c3bfa2076867c3ab1ac26cbf29b76ec865db6c45"
+        "digest": "sha256:026e79937e090122325ffe13f71aa986d0b494051d7d44ec10cc247735f1161c"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1620,7 +1620,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:quality-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:018074bf54bdcd02d11ced387548bec49698aa901715e9628d563695dd69ba1f"
+        "digest": "sha256:559b28a30103ba3668aa30810a61bf69a9cc67abb4c59b49d2d4e0097ef52244"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1652,7 +1652,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:rfc8785-vector-set",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:966af0b607fc70a0d09a2ff6bb46820b7584ad3c3fe53dece253f069a1cc44e6"
+        "digest": "sha256:a66ccc1f4a5cd18cc763fd42fcf501f0e25b396095a61f1850e49f5c899b0e1c"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1684,7 +1684,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:secret-change-signal",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:2be3fd72894a2f1392fea064102ed5d639fd4e76fc97b901000e29f30b3e23da"
+        "digest": "sha256:3b94946a3090fcac54a78bd585c25bf4a055439a855a5f59720ffe52d55a8654"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1716,7 +1716,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:secret-reaction-result",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:9f09ce26efd99ea08ceed52bb40aadd700061ed3374f1e4915e0c386e60aee57"
+        "digest": "sha256:36a1798ab068ed5840d7f6a7f3ac15ed46c0f05bb3d6dfde0f2347bc569024c5"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1748,7 +1748,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:secret-resolution-contract",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:633a78d7d9d32b9787eae8f2efbd4451787a6ff7be17be1bdaf6fa25bb5e4a31"
+        "digest": "sha256:fac58a23be142c101136660d9bbadd91e570a79e3e73889816a25418084ce619"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1780,7 +1780,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:serialization-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:09582e7d5c4425111203d528953bdf468142ee1691331dac5263594a37b14f97"
+        "digest": "sha256:4af94213986ba7412f5ac4da86010924da47dc0c0a7da6d32a5e9ba2fae28b29"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1812,7 +1812,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:structural-pattern-catalog",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4c62ae5cb47e4d1405cc22df4e542d7e535650bfc7972d49e71b9f2383ec6e0a"
+        "digest": "sha256:177f68e5526320e95b4c8abef7a1846aef82ae11775469586d42fb7657fe140a"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1844,7 +1844,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-activation-binding",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:2e94f362c9116193f5d94f2b9af661eadfac8a48e0fcc5de97faa8d58387aae3"
+        "digest": "sha256:09e47a75a80669585ccd1115b9706bdf6b0eb0472c2b20a00c00755eb8e24316"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1876,7 +1876,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-attempt",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:c75a4fdebd93c518c23fe4ec71898591bf43920d81bb2a80d8cc80ee9a55b8a4"
+        "digest": "sha256:637fe7c9b6c59b3fa435a3026a62e5a8416d92e95c9c6c1c31268c3a6f99e1dc"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1908,7 +1908,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:2c65bacef4de04b3577991dfd8c2a19ad628e5fd869643c079e6633f6c023c07"
+        "digest": "sha256:9c9411ea85ce64037f37c549227109ca938863dbba0b4517f436463a4ff22418"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1940,7 +1940,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:575ee49fc987d6d8cfb3eb197c2f35a0106b185d8fbc2f41394b7b6e5363138f"
+        "digest": "sha256:15e971d4e16556a6bc9c0a983d849007652d7ba188bc35df035c8161a3fe93d6"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -1972,7 +1972,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-instance",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:fd8cc67fc48152338db2861222a310cfd34f43ffa9364a5f19704612664e97ba"
+        "digest": "sha256:0eada160f3747c0b8dcd8c1b5fd59a7ae5deb52bbe8a01e4667095186a1fb3c7"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2004,7 +2004,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-occurrence",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:deb459911b4ab1636db29ccee2e226c81a15b709585ce7da52ee3fde7ef1157f"
+        "digest": "sha256:ea4f7d10fa24de1ee6d994105d1f9527d86a57635873cf8a20a0ec0b8f50e967"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2036,7 +2036,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-request",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0ede4f9b834f216a8d69cd9aeaa53b72641205f9ba0dadf5820189552ff2dcea"
+        "digest": "sha256:ce18e9473e9f4d912e3562b5a025c37feba6f5a4df4e754eac1fe383be3cce01"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2068,7 +2068,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:task-schedule-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:917121bf042c47c7d7b5159438f77d27758b8500b07a707233af7134fbc2db82"
+        "digest": "sha256:b2b04ab613a881207eaf45e51faead5ae24461e43bb7a37e544e632060c67542"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2100,7 +2100,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:test-evidence",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0d4a3c99e4a2dd714eaece659df56547c0c05aac5cb1a3113fdfadb24677372c"
+        "digest": "sha256:8f2e8a26236d6643ce8ccbc719128581a7f73aa9b3e5941e8723d5d322ad6f2f"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2132,7 +2132,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:test-specification",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0d20e1f5736612dbc53baa01e311e20f91688102de1d5d7ed1b3a9837080e65a"
+        "digest": "sha256:bb58c47be29cb2ee502d890b7dbea21d5ccd94bbc113d8ef6d58d74e8deb3b1d"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2164,7 +2164,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:transport-failure-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4fbbe8a50db3b7e8fc5b171e02f20cf0464dd62c761aa0481f4c729bc1a610da"
+        "digest": "sha256:a58a9b510a3bd9ae49167a4d80ebff22c876abf3859bc1641508846d0ee69851"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2196,7 +2196,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:version-map",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:faeada24f93031656107b24f32afe741c511a61af0a96a6a44ee68e9f5546d4e"
+        "digest": "sha256:d4038bf63561e01ba454c5a3ef4c9f3b99a072c68e08b5c622279da4fc5a7cdc"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2228,7 +2228,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:version-selection",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b84e1561b2409e441a3309681bcac9766efd15d86c7179d6d718d64e2cb4d6e6"
+        "digest": "sha256:dc472972820ccfc1d4be2db5716843243f59b8e7e9fc41dbd6a43f55233e7951"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2260,7 +2260,7 @@
       "revision": {
         "identity": "pkid:schema:program-kit:versioned-component-manifest",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:05ef6da2908f8980737c6c3f823191ad3c15ba03ea978f1c021075ee65d05285"
+        "digest": "sha256:5dcaed7b7241063638758600f382dc1572cb50cd7e951b9e643d50080930afde"
       },
       "kind": "schema",
       "ownerId": "pkid:domain:program-kit:version-governance",
@@ -2311,7 +2311,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:anchored-fixed-interval-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:92832cdfe87e61b650ba0374b6daa06a796718516707be2718980d7cfbdf2092"
+        "digest": "sha256:69ce0ded3416c72819fd186c32791ad29dd8331d81441d80a4bc49b0b3645eb8"
       },
       "targetIdentity": "pkid:schema:program-kit:anchored-fixed-interval-schedule-descriptor",
       "kind": "migrates",
@@ -2330,7 +2330,7 @@
         {
           "identity": "pkid:migration:program-kit:anchored-fixed-interval-schedule-descriptor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:ee0d678d5715b7e6c312ca254e278aea4a975daab3c4a8853b10c1cc00b4cc14"
+          "digest": "sha256:4386d9e6b937152723454643f981d40a83ef0663298239a9ecd2f5e4d4311970"
         }
       ]
     },
@@ -2339,7 +2339,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:artifact-decision",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4a9625fee9d4d30dddc1b2f63a730fd3cbe297e03f23d357161a3ce65bf4a4ae"
+        "digest": "sha256:2122880d93a6d10905ecfc5bdc90b0783b3ed906658699a15a6c6b702a8e763d"
       },
       "targetIdentity": "pkid:schema:program-kit:artifact-decision",
       "kind": "migrates",
@@ -2358,7 +2358,7 @@
         {
           "identity": "pkid:migration:program-kit:artifact-decision-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:914de5ca349d4c9c70f492f0b2355acd03980d47f5d95c348f3982d15578b856"
+          "digest": "sha256:576764c86b14350f4c3641d66bef49312ef38c16e09ba8952e228187cd977f86"
         }
       ]
     },
@@ -2367,7 +2367,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:artifact-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0bee875886aff9289a935268cb8abe807ea0bcb8ad83ff0fd3136a43f78f549c"
+        "digest": "sha256:8e359a3436da57d0f5488d5f32cdc34915f546723a79b903b265ff4f3aeb625b"
       },
       "targetIdentity": "pkid:schema:program-kit:artifact-definitions",
       "kind": "migrates",
@@ -2386,7 +2386,7 @@
         {
           "identity": "pkid:migration:program-kit:artifact-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:34488622317787cb3e845f5da0abcbc909459fc9b17235e9a74293cb2fc4276e"
+          "digest": "sha256:c6a3fafa3fcea489a46c9609593e1d5ac77fe5c64f0e711793a1dc3c06307f80"
         }
       ]
     },
@@ -2395,7 +2395,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:artifact-envelope",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:abcc01a9ccb2e2464d3d40cdcc9b0bc1a94510c093f25d965866cc062ee48815"
+        "digest": "sha256:6dd10a2e64e382d81c4c4f9281ef715098fc297bb34ede4805d3dc0818abaf73"
       },
       "targetIdentity": "pkid:schema:program-kit:artifact-envelope",
       "kind": "migrates",
@@ -2414,7 +2414,7 @@
         {
           "identity": "pkid:migration:program-kit:artifact-envelope-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:fa094887e421b868b029201a5628d184490b488a7ece2f5a056f102906faea6b"
+          "digest": "sha256:781a4564c31645e8b2164a7ebef8d330f8d4c316d75964b2818ff1aea45010e4"
         }
       ]
     },
@@ -2423,7 +2423,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:capability-availability-snapshot",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4bfed206a934a461f4999cd852e3621b5bf5cd1f867fe6e9731805b6e36abbe5"
+        "digest": "sha256:782008db4bd721f67ac003bc2e8f5e354d2aaa78dafedaeaab9a03c0967b40dc"
       },
       "targetIdentity": "pkid:schema:program-kit:capability-availability-snapshot",
       "kind": "migrates",
@@ -2442,7 +2442,7 @@
         {
           "identity": "pkid:migration:program-kit:capability-availability-snapshot-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:d7548ea0f4d2fa9343c9b58a1c0cf827d8f665f023470715a753731388ad2f4c"
+          "digest": "sha256:fb211ac4e8aed524d334c297c92417b9e5f278e4ad2a4fbd76f4e8f0bbc86fa3"
         }
       ]
     },
@@ -2451,7 +2451,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:cronos-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:61475d724a90b217f3620e0413e142d1bf56e430a97e9ddb2998d9f5ce04df11"
+        "digest": "sha256:de71735a6a4e77bbf848ff0422a525b30cfea963f367b24e9adade1adb6a22bb"
       },
       "targetIdentity": "pkid:schema:program-kit:cronos-schedule-descriptor",
       "kind": "migrates",
@@ -2470,7 +2470,7 @@
         {
           "identity": "pkid:migration:program-kit:cronos-schedule-descriptor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:f27572adf5ad5306a7af22bbc0069d3f5d7aade5d9125dbad1e136ab692da814"
+          "digest": "sha256:652ddd85cbd7e82d19a227e629d230647835827c8cf948bf2a61f60911177ffe"
         }
       ]
     },
@@ -2479,7 +2479,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:3888ca5bc470f44cf92cae741958993e829528f6fc9605012d8c35120a92ac91"
+        "digest": "sha256:35a3662d59b85621ea8d2ab0bba03b23de056001cb4ad9b4385996db76da1638"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-definition",
       "kind": "migrates",
@@ -2498,7 +2498,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-definition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:d58df617410c73c0a95a0c3e5e68f6f284873a3546299d428e9d70267dc81b42"
+          "digest": "sha256:0e9adfbabdbe3bdfcb0408aab76b5010e721c4267c65209fdc5b5656a2f3739f"
         }
       ]
     },
@@ -2507,7 +2507,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4f5b8c2734e24ae3e8659e4ee88f1c2663ae7d43015139f420636f58fec274ca"
+        "digest": "sha256:abf7014b586ce9d5d338aa60f9fc13c67dc78ebb2f2c625cbe5e2e5efc84c0b8"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-definitions",
       "kind": "migrates",
@@ -2526,7 +2526,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:e133dc46590e2940983dcbe2cf5fb9d961af88ccba1f8e34fca36503f93e6dc5"
+          "digest": "sha256:b018f92e0a53e1e1a79231a17891054fc3335176f2baeb142182161d920763d3"
         }
       ]
     },
@@ -2535,7 +2535,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-participation-receipt",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b156dd3556daf921488944e8eb8a25aefcae07d450324a5874a50eb954a69433"
+        "digest": "sha256:eb3bb3616b06c023d5f1d8f722159c361d93a5d3ef70459a3d037562247d5605"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-participation-receipt",
       "kind": "migrates",
@@ -2554,7 +2554,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-participation-receipt-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:022ee5b4497ce24cd922aa1c1e65bf34bedf2efbe2ca998539dd4bd3951acece"
+          "digest": "sha256:bbb2909467e0376660283fc23505c1e4f428e8a1beb2923c3088aca53ce1f5f1"
         }
       ]
     },
@@ -2563,7 +2563,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:550323cedfa9524c3ad1f6e4046afaefe2fdbb3de724d4c895a5798613af74b5"
+        "digest": "sha256:c0d326108653b9e986df1a2b361611622d269df8072faf421eabec093e165cc5"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
       "kind": "migrates",
@@ -2582,7 +2582,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-selection-lock-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b69693883b18922c151699dfcfd6cdcfcfb455cca90db1cd92f2c29ba6e5333b"
+          "digest": "sha256:8b3fc5dc595b4c56450b10876ab9020006093ed00c9b1e4fe4d5444acae3e0e6"
         }
       ]
     },
@@ -2591,7 +2591,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-suppression-ledger",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4b664d8ece16d6d085e4ac7576aadb636837d17e389559289e21d6d281a2da62"
+        "digest": "sha256:15614752b658e43eeb98fbc9397f83bfc8d5b4110a8d65a3376322ffbf96a5f1"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-suppression-ledger",
       "kind": "migrates",
@@ -2610,7 +2610,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-suppression-ledger-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:c2f1b3e5ec94bc8cc21b02bbd15d1b9583d94bdd0dcf8c065a851afd54b3de1b"
+          "digest": "sha256:f559b81d1ed530336f8c2f6a226a6507b17145c36e5025437b1a9cd09b2281b8"
         }
       ]
     },
@@ -2619,7 +2619,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:csharp-build-gate-verification-evidence",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:80d570f19fab9a4a795d9bcbaa80ca6b481af5c99d146ad10beffe2ab048f229"
+        "digest": "sha256:0109bbdac32a1465cc3d49d0660e6a3672c0510e6e6147836bb06e480f371723"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-verification-evidence",
       "kind": "migrates",
@@ -2638,7 +2638,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-verification-evidence-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:8392c73fdafed62e8cb46b62f2e21f5bf6f78dcd5a8fb616e56128f4471aadf8"
+          "digest": "sha256:4a414b828a1e32643c2de4a6252d44da507081b2f33872ca052795c68c000e97"
         }
       ]
     },
@@ -2647,7 +2647,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:delay-once-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:bde359099de956096697f77707df2a8985a3a0bb7fe121dc149e54564830b794"
+        "digest": "sha256:bf948216c2e1a275cf0fb772fe6d2d8a993f570b72d1e87e1f3728a87d45915a"
       },
       "targetIdentity": "pkid:schema:program-kit:delay-once-schedule-descriptor",
       "kind": "migrates",
@@ -2666,7 +2666,7 @@
         {
           "identity": "pkid:migration:program-kit:delay-once-schedule-descriptor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:e3d0cfae5509fe9be8373f18a2ad6cb355b79efc9e4666693009114ac6a5b6a4"
+          "digest": "sha256:4f10e7d4b5b1022272986a5a46f14e508e3a5f50d8c12af42bf122aeb6f8918c"
         }
       ]
     },
@@ -2675,7 +2675,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:design-plan-approval",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4b2f46bbe0f0f9e47629b0db0fad89c8448ca99d61eb1f438552de45296b9e55"
+        "digest": "sha256:5b4aa0f814b98d5d59b49780e53bf4011ab8647ba8d80a9efeaf10d3386ea4e9"
       },
       "targetIdentity": "pkid:schema:program-kit:design-plan-approval",
       "kind": "migrates",
@@ -2694,7 +2694,7 @@
         {
           "identity": "pkid:migration:program-kit:design-plan-approval-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:ca7580186e7cd081549f024956051b2a3467bcc0d87d1f6b82db7690a7ee6b25"
+          "digest": "sha256:d8d5d16ef0998ab644ba1c84b591e18b2163ef5bac23f5c5f9adfca0664cdb51"
         }
       ]
     },
@@ -2703,7 +2703,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:development-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:7d5eecafa74191c2b192e95cd61daf1813be707781eaa4d4505e2484b8a9dd8a"
+        "digest": "sha256:3fe7e609e2e351ac3e8a4df523eb50e6aff26e9df1b9708df343232003ecd1c6"
       },
       "targetIdentity": "pkid:schema:program-kit:development-definitions",
       "kind": "migrates",
@@ -2722,7 +2722,7 @@
         {
           "identity": "pkid:migration:program-kit:development-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:27930d7f7cf972d7e7abd6fb3c5364ae076d5eb9f819282599ea32aa7f34c05c"
+          "digest": "sha256:58218b53b2024747652921d6b852daa788c1672c414b2f48ad26ebb6c9e72ff1"
         }
       ]
     },
@@ -2731,7 +2731,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:development-receipt",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:02b5239a0368b53e35e6af37831d965068e5dd97321689a83077d44083aba092"
+        "digest": "sha256:2614b4bf9bcdd5f9a9dbe4f9847882dbd0a5f8d55aacc4e8e2ee0a795c8bd306"
       },
       "targetIdentity": "pkid:schema:program-kit:development-receipt",
       "kind": "migrates",
@@ -2750,7 +2750,7 @@
         {
           "identity": "pkid:migration:program-kit:development-receipt-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:59c6550d603d85314b2b70bb0cd9ff2ca3c1454de4c0859c1266886ab23f4410"
+          "digest": "sha256:7113a48fd99efe4b9f8a8e35df513911176c9c8eba66ec4d6f8b452178001ec1"
         }
       ]
     },
@@ -2759,7 +2759,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:development-routing-result",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:535c7c011ef2879f460530f7a1452bd39dc6b8c1afc058fb29504b9eb8f196ea"
+        "digest": "sha256:254592957501f07d84c52744d432c67433d9f01951cc47424e2928afa173deee"
       },
       "targetIdentity": "pkid:schema:program-kit:development-routing-result",
       "kind": "migrates",
@@ -2778,7 +2778,7 @@
         {
           "identity": "pkid:migration:program-kit:development-routing-result-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:bccb3a97ec1180ab0e981da91330dbcb75ebc9c253a9b21ccd00948f1ae89dca"
+          "digest": "sha256:ae2cc277642924efe15f9810a3ff159d30ce79646fc776c8301c73df4909cb55"
         }
       ]
     },
@@ -2787,7 +2787,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-azure-key-vault-composition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b82fb232346f346385134c2a090da050b4aa1515492ca9990116a7d70b9d51d8"
+        "digest": "sha256:2652b0cc402b913f0e87fbc092b9cb9ffa27c35094fcce5ee3c2d8747332ac23"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-azure-key-vault-composition",
       "kind": "migrates",
@@ -2806,7 +2806,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-azure-key-vault-composition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:028df42ae60a87848824e67dcfcf2f45f3b9f22cfd825942907f1b0748e618a8"
+          "digest": "sha256:d48c54d1e83dcb2ccbd94c83557985f52e045c57caafcf0fd33335f6f464d05f"
         }
       ]
     },
@@ -2815,7 +2815,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-configuration-provider-catalog",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:f135ff132307191e2e2c4001123d515d1a280076852920fd19321f47f037083c"
+        "digest": "sha256:2fc98ea645d8df338be6dc3c20858dba1f138b4d78090591cd44fc99c2f4abec"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-configuration-provider-catalog",
       "kind": "migrates",
@@ -2834,7 +2834,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-configuration-provider-catalog-to-alpha-2",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:bf065a0248bef29fd1422e0a7735f834376d3d521a86d986d03e04a3f55a3899"
+          "digest": "sha256:cb579d44b266a6f4002c323e2715419288f10c69ee6d4764b722569dcfbda24f"
         }
       ]
     },
@@ -2843,7 +2843,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-console-binding",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:66cf793edb030b510e7cd4ea50285f027e27c9f72138e6d70b78e2111e25c0de"
+        "digest": "sha256:eea8fdc8e6e7b445fcda2ced92690a9e7b8313269bd424c39156e6a049477b6a"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-console-binding",
       "kind": "migrates",
@@ -2862,7 +2862,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-console-binding-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:edfe5ff9a6ce81300729b0bc5e32fc72dd15afed88e622be2c781680ab45a004"
+          "digest": "sha256:15ab34fb60af68307167494feb8df2769eaa73c2c44fd2251a69cab5a7a19a4c"
         }
       ]
     },
@@ -2871,7 +2871,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-host-generation-request",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:c02e37c7bc7420b60a2854d7eaa0e532919a8fa434572e77c54c713277fa1497"
+        "digest": "sha256:00a630150a4fd6dad5365f27918a8a37a1fe990045373795df0cf90f82b4fbeb"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-host-generation-request",
       "kind": "migrates",
@@ -2890,7 +2890,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-host-generation-request-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:8843758149ab326514215aff5b602daa879dc00805c549efa9ef65c5542d8d0a"
+          "digest": "sha256:31c4342468031ed4df264c8d2d0c8d3e5c439572d69b53561183e4c20d785f43"
         }
       ]
     },
@@ -2899,7 +2899,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-keycloak-local-fixture-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:1ea26df9d20553cc432e1086a1776427caf8fde03db3e90c0a527ef7df548ead"
+        "digest": "sha256:4616a2b26ab2019d10aa0a792a4fbe90369889df84081744c1e428a9895ba4b8"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-keycloak-local-fixture-profile",
       "kind": "migrates",
@@ -2918,7 +2918,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-keycloak-local-fixture-profile-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:e353f3cd731001cbc76252ab9bbbf2e26d23b07ee29e595c1ff80396ca7c106d"
+          "digest": "sha256:8b68b009b62d7932ed17302785e5709de06f413b4336aed2b309fc263605d5ad"
         }
       ]
     },
@@ -2927,7 +2927,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-keycloak-local-realm-import",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:99fdd3b3242fdf5e346fe7e2641434b6cd590d2f9316d68add1b58f2b4717783"
+        "digest": "sha256:6dda1cf628cf7c6ee16a3aec268542400abe25c0f88b5439f1f72b5f8b6e04dc"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-keycloak-local-realm-import",
       "kind": "migrates",
@@ -2946,7 +2946,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-keycloak-local-realm-import-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:396e058e8cb6f366f3882c9ce12704788ec5939782f92afeefa5cc4899fca960"
+          "digest": "sha256:d5c0d075f4d8830b6d776f7b4f4e613da85a8234523a4305055f5ef940ba5f17"
         }
       ]
     },
@@ -2955,7 +2955,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-security-composition",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:d61566bdc11d84c52342bcc36b0e4c6ad6a72fcda39fbe758156fa0843af9620"
+        "digest": "sha256:4455f8746e7c94dfe6f36a15a64d9c87c5e64869885551df9f43fac3ffdf95d3"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-security-composition",
       "kind": "migrates",
@@ -2974,7 +2974,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-security-composition-to-alpha-3",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:d4ce283627e5c60bab8c2c0375ce0799d83119e4f03afaf891fd8fb0232ff77e"
+          "digest": "sha256:c1289584d372cd30132a802c429a33d5313ae063ac55577a622015cc43f59a4c"
         }
       ]
     },
@@ -2983,7 +2983,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-shell",
         "version": "0.1.0-alpha.11",
-        "digest": "sha256:fdf8e602373dc14554cc1558ea6f989cb2d367b318b7bffe26385205c26bb7ac"
+        "digest": "sha256:6562126c6755c8a3691b046e8818d5784e8ee1b0e2bbb333085c76f43cbd5b00"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-shell",
       "kind": "migrates",
@@ -3002,7 +3002,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-shell-to-alpha-11",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:6830fb42942b7849abe3d40c8f4043fdffc6ab5703df4c923426ebebbc57131e"
+          "digest": "sha256:be4fb73d6799504c7eb672dcf0b4d47eafd6e12a759f41253a022d4ba610cf57"
         }
       ]
     },
@@ -3011,7 +3011,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-shell-lock",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:c8f09b6fc26a6d9e1b9ba0d5d63ffe27ba94b9132dec0bdbf76cacf2bfb3e273"
+        "digest": "sha256:40a486cb75fe0a88889490a189fbae9087b9b059a92e4d81cfcd4a51519bee92"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-shell-lock",
       "kind": "migrates",
@@ -3030,7 +3030,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-shell-lock-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b9637fd67d4bdd2ee73b2f337a5a6164daf915805851cf5dd9c7db21a1194779"
+          "digest": "sha256:6d51bac0261d286e6dcc91777c7d7e9513818a0af9fab428cd8531f677c51a35"
         }
       ]
     },
@@ -3039,7 +3039,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-target-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:3c63b20e4b5f1ab4720acc6a477d79ece720eb28c16d89f1d3d5b7442532272a"
+        "digest": "sha256:8c121fe029858549a46b2a901926dfe08a311b35218bfbffaa4bb589e1c524ce"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-target-profile",
       "kind": "migrates",
@@ -3058,7 +3058,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-target-profile-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:0f5b1d7c6a172a81b7e48a92d2adf1ce427110ecb25cc658d452b0c9c8c8aa20"
+          "digest": "sha256:1e440d1af32b2906c5cc9b3c26c03fbb171b9b34da2eae4040da0f359659ff78"
         }
       ]
     },
@@ -3067,7 +3067,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-telemetry-composition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4a9cd5c51adf381a7c7489543f3bd30b4d2cd50bce6e0c7d76cd0637cd4da341"
+        "digest": "sha256:dccb4a3230d2037241a76f97257bd57c7ae3f0965c0b303e686560127fe3a019"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-telemetry-composition",
       "kind": "migrates",
@@ -3086,7 +3086,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-telemetry-composition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:fa7a7b77c4c028063ae35c1e253d45b19328dc8a048fab18298c18ddb37d3f80"
+          "digest": "sha256:83ae6a9142aa94fdd7d0448a9b6513919e750f14f037e1a4b62834f26fbfd3af"
         }
       ]
     },
@@ -3095,7 +3095,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:dotnet-transport-failure-composition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:35646394b02a9f3d4c9e38b25b9796812021fe68b55533f6d181cc9a17998709"
+        "digest": "sha256:d0a45fafd0658008bafc1535b1af1d441a33cbe76e5028738e79502d2a11b792"
       },
       "targetIdentity": "pkid:schema:program-kit:dotnet-transport-failure-composition",
       "kind": "migrates",
@@ -3114,7 +3114,7 @@
         {
           "identity": "pkid:migration:program-kit:dotnet-transport-failure-composition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:7b63f44f7759f3adaa999f480ad3fcf5f223b04007b9e877a719063ec2abd570"
+          "digest": "sha256:b3556a3ae6ba87c65eda4aa64364e32f9f887db5a23faf6e89c41e170bcdb59f"
         }
       ]
     },
@@ -3123,7 +3123,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:execution-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:ece8e89401129cc34dde45ec4c51ca72f4cb50a45b2e76cf14e2a3cc7fd97c99"
+        "digest": "sha256:e4c72b3c864dd0e991f620fa372a527041faefb7da88b9081f81f6e4f615b9bb"
       },
       "targetIdentity": "pkid:schema:program-kit:execution-profile",
       "kind": "migrates",
@@ -3142,7 +3142,7 @@
         {
           "identity": "pkid:migration:program-kit:execution-profile-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:4872f7ea78a64200ca720e50912a2b276f55021c4abd238f28235780ca20f9df"
+          "digest": "sha256:c4c91f6318f2180755d9bf5d8135d7d697255eeac9d7d6091707641f32e5d6c2"
         }
       ]
     },
@@ -3151,7 +3151,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:fixed-delay-schedule-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:a3a96a41c23f048678b02db13bb8b45b7937ff91b13f9509d0836c9498434b5e"
+        "digest": "sha256:168f59e8db12c8622eebcc73e3feae9110edb42cbc293ae6a539bd179132b0c0"
       },
       "targetIdentity": "pkid:schema:program-kit:fixed-delay-schedule-descriptor",
       "kind": "migrates",
@@ -3170,7 +3170,7 @@
         {
           "identity": "pkid:migration:program-kit:fixed-delay-schedule-descriptor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:4f89602fa0fcd3632f0a8aab4366aa466b2e86db222db37ca9f48598ed6e9584"
+          "digest": "sha256:006d5b9629eed285a3043577c2b28f34f4e15ac23dbe8ada78a625da58bf8ab7"
         }
       ]
     },
@@ -3179,7 +3179,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:generated-output-anchor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:e921c761563c7ce21a0b594a8435d14dde3619db99b3a1f2a0324370e8b8e3c4"
+        "digest": "sha256:019b28633d837f801d20fff6a7901189c5b83b7444f0852bf609b691942ee6ad"
       },
       "targetIdentity": "pkid:schema:program-kit:generated-output-anchor",
       "kind": "migrates",
@@ -3198,7 +3198,7 @@
         {
           "identity": "pkid:migration:program-kit:generated-output-anchor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:5595847c9cf72de482faa0a9c40b48a27537063987ff095224c834e2c32006dc"
+          "digest": "sha256:b6ddc7c605a742f3baa8ef527070696ad76fa7a57ab3a1f69c2cad62911f9017"
         }
       ]
     },
@@ -3207,7 +3207,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:generated-output-manifest",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4161ad0b4eb842a0ab133fa14c5eefcb6399a380ed3a5027667946a8eba6489f"
+        "digest": "sha256:67489deb7015bfb2726875afce54690f4803cbf9448ae1f13fffb75d92c06f23"
       },
       "targetIdentity": "pkid:schema:program-kit:generated-output-manifest",
       "kind": "migrates",
@@ -3226,7 +3226,7 @@
         {
           "identity": "pkid:migration:program-kit:generated-output-manifest-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:3e40674396bc1222790ce4ae86b67b04fa98b86b6f493d3ff96ce1b8ec384836"
+          "digest": "sha256:0860f9d09d3660f9a793fc2bb1dd24a79c42599af9d8450a92dc4203bb1d2f50"
         }
       ]
     },
@@ -3235,7 +3235,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:independent-review",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:81c8da419abf15f84cf12d295cda7fda43431951bbfdbc0006754a265d6e73d2"
+        "digest": "sha256:26866c36a66de204ff6c1ee8cb46cd70497d47200a604055d4483ae61773a198"
       },
       "targetIdentity": "pkid:schema:program-kit:independent-review",
       "kind": "migrates",
@@ -3254,7 +3254,7 @@
         {
           "identity": "pkid:migration:program-kit:independent-review-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:cffce1726b08d50fe121f270ff249949dd8d2b2792b051fc66921fe8269561cd"
+          "digest": "sha256:822d741ec798b8e49b95994e2d180c49060ae8046787328c4b57d6aa90664271"
         }
       ]
     },
@@ -3263,7 +3263,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:json-contribution-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b1aaf53d5f6ad86dbe2e609953540862f025c307ef8006d1cc493894d946ee7a"
+        "digest": "sha256:e03a81ff3e0d4cdc09e3b5463ac7e6eeb66233ccf4bbf3b48d878435d8d935b6"
       },
       "targetIdentity": "pkid:schema:program-kit:json-contribution-descriptor",
       "kind": "migrates",
@@ -3282,7 +3282,7 @@
         {
           "identity": "pkid:migration:program-kit:json-contribution-descriptor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:abb4677419c5b3bd3082e9b87c70fa61a009941139f5ec4742bf05a7137d659c"
+          "digest": "sha256:638855d1cc94fcc7bd7c5af8a3a409490a7e28571d697507356da341f0fa0d50"
         }
       ]
     },
@@ -3291,7 +3291,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:json-profile-selection",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b883d3729b564ca5320afffd8bf592927ccb26874ec74479d3f27a6421c86c56"
+        "digest": "sha256:beb49b6720ec1605e646e511c219571e16685c4ebe4754ef6e7d0021ea07c85b"
       },
       "targetIdentity": "pkid:schema:program-kit:json-profile-selection",
       "kind": "migrates",
@@ -3310,7 +3310,7 @@
         {
           "identity": "pkid:migration:program-kit:json-profile-selection-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:474c7147746a441f4b022aefa6d82dba94635a609f4d847221b704a7514c5772"
+          "digest": "sha256:c05d457398f82abe281f498f5d5b22a7f9a3be776362a6146cb3b4182008bc04"
         }
       ]
     },
@@ -3319,7 +3319,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:json-profile-source",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:f2c3ad9cd6887706818622235a582a4a976be6522222cfd5ba50f837fa2312fc"
+        "digest": "sha256:7b783d5eff6145141f7a7f22a5adf81a7c37a3cec898a95d259d7d7c72599318"
       },
       "targetIdentity": "pkid:schema:program-kit:json-profile-source",
       "kind": "migrates",
@@ -3338,7 +3338,7 @@
         {
           "identity": "pkid:migration:program-kit:json-profile-source-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b90589be6d95d9889baa71319a3769a051079b7e9da6f4d7c961f870eb52529b"
+          "digest": "sha256:89a78352bb46cdaf2e84ebf79686ddaedc32a4119f84d652643cb880bdb46e42"
         }
       ]
     },
@@ -3347,7 +3347,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:json-serialization-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:56f3adbab7bbd87d8f01c266210c96e45f7f9d0e6416e7112a58358cdf962db3"
+        "digest": "sha256:0901f9aacdad7f9b19fe46db70f8da76af3b1eb5ad398b8938037f9a8a586a16"
       },
       "targetIdentity": "pkid:schema:program-kit:json-serialization-profile",
       "kind": "migrates",
@@ -3366,7 +3366,7 @@
         {
           "identity": "pkid:migration:program-kit:json-serialization-profile-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b2947d337bdd2628774b77bd417589dfd8ba475fa324ad2daaba345e4757dfcd"
+          "digest": "sha256:2847b20e54fc454aa090b0411641e1947769c22976be9e4f128b50e597a03963"
         }
       ]
     },
@@ -3375,7 +3375,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:migration-assessment",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:9b3807a843c76e8fcddbcb0fb9fafc8d7857e2a834f3efde3a16c8ec5ed12c58"
+        "digest": "sha256:726b058963331444a323bb307433966bb264ded7ab04a33c35572d8368adc569"
       },
       "targetIdentity": "pkid:schema:program-kit:migration-assessment",
       "kind": "migrates",
@@ -3394,7 +3394,7 @@
         {
           "identity": "pkid:migration:program-kit:migration-assessment-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:8e7f1747689d9876654f4e93fdd2293cebf2d763bfc2e2b468836e5b83c132be"
+          "digest": "sha256:8116f7caa17cd6cd9b8520eacd72d29fc1c4047421360f6a0ff795982a152b4e"
         }
       ]
     },
@@ -3403,7 +3403,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:migration-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:e226969749888efab2234552c36c8843b4c144fc29c4bbc38636b82acf4600a8"
+        "digest": "sha256:905bc215f9b9c764c150cd6ed4f7a3bd0f70c4600652ae0c1e59e9c7cf60f0c6"
       },
       "targetIdentity": "pkid:schema:program-kit:migration-definition",
       "kind": "migrates",
@@ -3422,7 +3422,7 @@
         {
           "identity": "pkid:migration:program-kit:migration-definition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b168c962360d91c646192bef60fa4a86996fc128018283eb4a8c892aeb4e4e19"
+          "digest": "sha256:f11644d88a69c6a533f109d0b4523c09ef02f349cf9ae8faa3bcbf7c9e6aacee"
         }
       ]
     },
@@ -3431,7 +3431,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:open-console",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:34f4a540156ecb1a90083670e8f52daa3d512fb412ea4a124a99a2f78b2488f9"
+        "digest": "sha256:394ad9136fec12ddcaabd31eb10e1297bcdb395ea761441830e50cae4c2ff1fe"
       },
       "targetIdentity": "pkid:schema:program-kit:open-console",
       "kind": "migrates",
@@ -3450,7 +3450,7 @@
         {
           "identity": "pkid:migration:program-kit:open-console-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b57ee41170050afdbf0eda9c12358c18f7101928a322cafc722d9e0374b5603c"
+          "digest": "sha256:a1c52396c2b1071f06afe41431ed53bcd4ea8dc8f193e2edc2a752b85349f69b"
         }
       ]
     },
@@ -3459,7 +3459,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:open-worker",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:5b2e446d167488eed329f8e77d4c84ff299d1a7eb86cd2d5bf1aff077c9af70c"
+        "digest": "sha256:68b0c559430d09027a7bdfc999728838acbc42c78f6d571dd359e0aa1f13a616"
       },
       "targetIdentity": "pkid:schema:program-kit:open-worker",
       "kind": "migrates",
@@ -3478,7 +3478,7 @@
         {
           "identity": "pkid:migration:program-kit:open-worker-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:a5b9ce51b871d93f02d99169a4c4f323fa9c580f6bd464509b62e7f6f354fb86"
+          "digest": "sha256:76814b60b97179dcd893929d968fb8bd1bdc3280c3df2e6e8888bab3748e7ba6"
         }
       ]
     },
@@ -3487,7 +3487,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:operation-contract-catalog",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:044a2aba09b5be9d537421f751f98dc41939ee2f51e42e524142cd3b5aa74313"
+        "digest": "sha256:192932b6aa41c7c6bd2b0a91e1a8c520a54a7950e0727a5f8398870bca0426f6"
       },
       "targetIdentity": "pkid:schema:program-kit:operation-contract-catalog",
       "kind": "migrates",
@@ -3506,7 +3506,7 @@
         {
           "identity": "pkid:migration:program-kit:operation-contract-catalog-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:3eeb8f74a4d7c2d7df9a51cbae075a6b4b2f4c4713cc90b8ba3d803b9dc2407c"
+          "digest": "sha256:850194c2cc57eeae579c1809cf5c65c40a2ff354b838a05c4a6630f62956fc20"
         }
       ]
     },
@@ -3515,7 +3515,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:operation-contract-descriptor",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:aaa1a8ece9a767feb45613f424c1007ab7a05e34a278c7730b139664324e464b"
+        "digest": "sha256:55e9ff956640ec95b2e659f9c16e8a6989ac8e71cf23bb37a48db9f3dc777a0a"
       },
       "targetIdentity": "pkid:schema:program-kit:operation-contract-descriptor",
       "kind": "migrates",
@@ -3534,7 +3534,7 @@
         {
           "identity": "pkid:migration:program-kit:operation-contract-descriptor-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:bc60c7289ce6f88339498478cddb5da8333359382ca3f6399a66a468caef5d35"
+          "digest": "sha256:138f1f186c9f5add6908861274dad015b8560037c32dac11a4b6d0405622af59"
         }
       ]
     },
@@ -3543,7 +3543,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:operation-invocation",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:46e76349363e208978d619540d064e97aefdedb0043c3d2b2f040b3bf2c43251"
+        "digest": "sha256:7698fe8639e15939847107829259f650ba8c54b83c30eeb3daee52aa33f2dc6e"
       },
       "targetIdentity": "pkid:schema:program-kit:operation-invocation",
       "kind": "migrates",
@@ -3562,7 +3562,7 @@
         {
           "identity": "pkid:migration:program-kit:operation-invocation-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:a24c44a7a253812e665ee60e98ef0da286fa87b914b60e763f2e04d964b7c7a0"
+          "digest": "sha256:918ef574ef197917765a3db6c9272971d643b30f049cbecf98bcef8545986ea8"
         }
       ]
     },
@@ -3571,7 +3571,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:operation-progress",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b8483b26ae38d1b87463420b8130247445dfb3d603b4eb01b4302b79d29a5ca0"
+        "digest": "sha256:5e00fc3a4179966410eb212dbebbd1456cfbf491925654d17fca95930b4a7f06"
       },
       "targetIdentity": "pkid:schema:program-kit:operation-progress",
       "kind": "migrates",
@@ -3590,7 +3590,7 @@
         {
           "identity": "pkid:migration:program-kit:operation-progress-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:85b49024fb84f62f24072fc61edd050e42b25756dffe1b885d4da93a433fe132"
+          "digest": "sha256:c4b212187d0fe394dc1169c07a5a1adaf29aea58538d13be8768d86d17ff7b59"
         }
       ]
     },
@@ -3599,7 +3599,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:operation-result",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:5233a6e347a669be4f75f695d098b9d6375ed43ef41849bd6bb77b3b97b4c88b"
+        "digest": "sha256:e73f275017bbb7c0d339e8d661eb0f0ca801f988d83c3ea23ad73b97c27f8ff6"
       },
       "targetIdentity": "pkid:schema:program-kit:operation-result",
       "kind": "migrates",
@@ -3618,7 +3618,7 @@
         {
           "identity": "pkid:migration:program-kit:operation-result-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:100cfdfd08720c7113d9f29cb9b9c1c2cb7b7bf38e669ec00f80251a8bd20e73"
+          "digest": "sha256:1866015015642266276f0ea9bd8fa29d70fa40c3122cd8ed47663e48ff774783"
         }
       ]
     },
@@ -3627,7 +3627,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:operations-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:cbcae502173e29b0db802d38f5b2eec68c65915bda24230159a5daacb8fb8e1d"
+        "digest": "sha256:92e0ab44a796e2e733686f026ac1363c66ad01bcd6371a33938a507b37836c2c"
       },
       "targetIdentity": "pkid:schema:program-kit:operations-definitions",
       "kind": "migrates",
@@ -3646,7 +3646,7 @@
         {
           "identity": "pkid:migration:program-kit:operations-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:d0330b063f2fb934c99d46b8c588b37c99fca88e2d2016a1d8aa0a8d26e20fc2"
+          "digest": "sha256:20f263da7c48d5e04ee497a994b2878d1c9128e855f5be74c835dec1bad5b064"
         }
       ]
     },
@@ -3655,7 +3655,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:planning-definitions",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:14f5daeb1a17ff783597c01d8542168eb7c1650c0c1a6968b704caab1d3d2822"
+        "digest": "sha256:b8ec79cce96a0acbabe149d338d8f1f6354e8f58a69ebeca35f1c798c1b0a454"
       },
       "targetIdentity": "pkid:schema:program-kit:planning-definitions",
       "kind": "migrates",
@@ -3674,7 +3674,7 @@
         {
           "identity": "pkid:migration:program-kit:planning-definitions-to-alpha-3",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:76487178c1dc2b67cd3b901f724e0a6d44fbd667541d3e5293452d5d19198b72"
+          "digest": "sha256:4773444b6a7107463720e3b5093e1ea4cb9abb0070b00c1b7c9548f7fda84561"
         }
       ]
     },
@@ -3683,7 +3683,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:public-generated-source-contract",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:8f09c0d5491527907d4d63a7c3bfa2076867c3ab1ac26cbf29b76ec865db6c45"
+        "digest": "sha256:026e79937e090122325ffe13f71aa986d0b494051d7d44ec10cc247735f1161c"
       },
       "targetIdentity": "pkid:schema:program-kit:public-generated-source-contract",
       "kind": "migrates",
@@ -3702,7 +3702,7 @@
         {
           "identity": "pkid:migration:program-kit:public-generated-source-contract-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:ea0ac565370c6d66a04593b790dfe573b5b7c0e0469921d6e16fc0b6fb66f3b8"
+          "digest": "sha256:051bb2d1944204afc4da4ed5a1b70f0d968eb33906f4fb68d61988eb25780652"
         }
       ]
     },
@@ -3711,7 +3711,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:quality-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:018074bf54bdcd02d11ced387548bec49698aa901715e9628d563695dd69ba1f"
+        "digest": "sha256:559b28a30103ba3668aa30810a61bf69a9cc67abb4c59b49d2d4e0097ef52244"
       },
       "targetIdentity": "pkid:schema:program-kit:quality-definitions",
       "kind": "migrates",
@@ -3730,7 +3730,7 @@
         {
           "identity": "pkid:migration:program-kit:quality-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:14f4f0bd87d61cc056b50edf5c4dd761a5ac16690c7f9424f7180ac3874df447"
+          "digest": "sha256:ada76b35ba0adbfc27c8c91b222e102d8c93579c4da27a9d5c331f6c0a0a0021"
         }
       ]
     },
@@ -3739,7 +3739,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:rfc8785-vector-set",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:966af0b607fc70a0d09a2ff6bb46820b7584ad3c3fe53dece253f069a1cc44e6"
+        "digest": "sha256:a66ccc1f4a5cd18cc763fd42fcf501f0e25b396095a61f1850e49f5c899b0e1c"
       },
       "targetIdentity": "pkid:schema:program-kit:rfc8785-vector-set",
       "kind": "migrates",
@@ -3758,7 +3758,7 @@
         {
           "identity": "pkid:migration:program-kit:rfc8785-vector-set-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:440d654089ef6a0d3c20f08769dd53d6923e66ecc895b6fa98b8e89e71f0ec10"
+          "digest": "sha256:19958b497c2a988533c1f687cd9a4466abb5ed463a566c9a0a544f108201c57b"
         }
       ]
     },
@@ -3767,7 +3767,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:secret-change-signal",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:2be3fd72894a2f1392fea064102ed5d639fd4e76fc97b901000e29f30b3e23da"
+        "digest": "sha256:3b94946a3090fcac54a78bd585c25bf4a055439a855a5f59720ffe52d55a8654"
       },
       "targetIdentity": "pkid:schema:program-kit:secret-change-signal",
       "kind": "migrates",
@@ -3786,7 +3786,7 @@
         {
           "identity": "pkid:migration:program-kit:secret-change-signal-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:762e43155e801ed69e739aa453050536fcd77a409358a5504ed3338a5886815e"
+          "digest": "sha256:3a155c51476205277446df1af572cfc686e3f6250668f84023b8aabea3d76ee6"
         }
       ]
     },
@@ -3795,7 +3795,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:secret-reaction-result",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:9f09ce26efd99ea08ceed52bb40aadd700061ed3374f1e4915e0c386e60aee57"
+        "digest": "sha256:36a1798ab068ed5840d7f6a7f3ac15ed46c0f05bb3d6dfde0f2347bc569024c5"
       },
       "targetIdentity": "pkid:schema:program-kit:secret-reaction-result",
       "kind": "migrates",
@@ -3814,7 +3814,7 @@
         {
           "identity": "pkid:migration:program-kit:secret-reaction-result-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:ce4a5924ed0c4d8353b2801d0c96466dcb3c537c0305936204c448b5d8f56056"
+          "digest": "sha256:4739d34ef3eb135eef9b7fb86a00ba9da9e16f7abb727b4d6a7050f62826a945"
         }
       ]
     },
@@ -3823,7 +3823,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:secret-resolution-contract",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:633a78d7d9d32b9787eae8f2efbd4451787a6ff7be17be1bdaf6fa25bb5e4a31"
+        "digest": "sha256:fac58a23be142c101136660d9bbadd91e570a79e3e73889816a25418084ce619"
       },
       "targetIdentity": "pkid:schema:program-kit:secret-resolution-contract",
       "kind": "migrates",
@@ -3842,7 +3842,7 @@
         {
           "identity": "pkid:migration:program-kit:secret-resolution-contract-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:9230317ffea60fdd07986ef112160bb9a52017b1a05dca5318de2ede524124be"
+          "digest": "sha256:c29eefb8104c10be465b943274f3f60cf3f7741cf76170a6978856fccbe242a6"
         }
       ]
     },
@@ -3851,7 +3851,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:serialization-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:09582e7d5c4425111203d528953bdf468142ee1691331dac5263594a37b14f97"
+        "digest": "sha256:4af94213986ba7412f5ac4da86010924da47dc0c0a7da6d32a5e9ba2fae28b29"
       },
       "targetIdentity": "pkid:schema:program-kit:serialization-definitions",
       "kind": "migrates",
@@ -3870,7 +3870,7 @@
         {
           "identity": "pkid:migration:program-kit:serialization-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b1a6e469711d7d718dbc543f543bd7dc75ba39bd0dd0f59b48890026d8d2f1b8"
+          "digest": "sha256:ca4e64201e5327e48323c7626dfe67c690c646f543f4cc713d84a85108dce7fb"
         }
       ]
     },
@@ -3879,7 +3879,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:structural-pattern-catalog",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4c62ae5cb47e4d1405cc22df4e542d7e535650bfc7972d49e71b9f2383ec6e0a"
+        "digest": "sha256:177f68e5526320e95b4c8abef7a1846aef82ae11775469586d42fb7657fe140a"
       },
       "targetIdentity": "pkid:schema:program-kit:structural-pattern-catalog",
       "kind": "migrates",
@@ -3898,7 +3898,7 @@
         {
           "identity": "pkid:migration:program-kit:structural-pattern-catalog-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:4b4174f19916f39d7290c4bd31bb879de33cc1f8af5072a34a24e2dafa8606a6"
+          "digest": "sha256:7bdbf05d4dfcb25c01635dd696df15febe876ba48511fe86d3f000730ecf985f"
         }
       ]
     },
@@ -3907,7 +3907,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-activation-binding",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:2e94f362c9116193f5d94f2b9af661eadfac8a48e0fcc5de97faa8d58387aae3"
+        "digest": "sha256:09e47a75a80669585ccd1115b9706bdf6b0eb0472c2b20a00c00755eb8e24316"
       },
       "targetIdentity": "pkid:schema:program-kit:task-activation-binding",
       "kind": "migrates",
@@ -3926,7 +3926,7 @@
         {
           "identity": "pkid:migration:program-kit:task-activation-binding-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:5c6cdf551879f2a4f637b01d7bd94a7cffbd5fbe2168fef0c4a26816fed395d4"
+          "digest": "sha256:632793e21b92408c8aad87f2e909fc504330a2e60ddcbff2c36b3c6271c1761e"
         }
       ]
     },
@@ -3935,7 +3935,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-attempt",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:c75a4fdebd93c518c23fe4ec71898591bf43920d81bb2a80d8cc80ee9a55b8a4"
+        "digest": "sha256:637fe7c9b6c59b3fa435a3026a62e5a8416d92e95c9c6c1c31268c3a6f99e1dc"
       },
       "targetIdentity": "pkid:schema:program-kit:task-attempt",
       "kind": "migrates",
@@ -3954,7 +3954,7 @@
         {
           "identity": "pkid:migration:program-kit:task-attempt-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:6627f52099f77bab0acf8081d570561f3d9be6ab23937379b309b4bfd54bfd3e"
+          "digest": "sha256:80f5843afb3561598f991d48d6b9cd5b7bf2910c94d0e699a9073dd5aee0eeae"
         }
       ]
     },
@@ -3963,7 +3963,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:2c65bacef4de04b3577991dfd8c2a19ad628e5fd869643c079e6633f6c023c07"
+        "digest": "sha256:9c9411ea85ce64037f37c549227109ca938863dbba0b4517f436463a4ff22418"
       },
       "targetIdentity": "pkid:schema:program-kit:task-definition",
       "kind": "migrates",
@@ -3982,7 +3982,7 @@
         {
           "identity": "pkid:migration:program-kit:task-definition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:6b3ee8d6fdf142177d76dbc084ffd3c279123b23431a448786c70f9313ae941a"
+          "digest": "sha256:aaf6cb8273613500319426574018797365b5373d4fb27afe73d4146e58c0cd38"
         }
       ]
     },
@@ -3991,7 +3991,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-definitions",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:575ee49fc987d6d8cfb3eb197c2f35a0106b185d8fbc2f41394b7b6e5363138f"
+        "digest": "sha256:15e971d4e16556a6bc9c0a983d849007652d7ba188bc35df035c8161a3fe93d6"
       },
       "targetIdentity": "pkid:schema:program-kit:task-definitions",
       "kind": "migrates",
@@ -4010,7 +4010,7 @@
         {
           "identity": "pkid:migration:program-kit:task-definitions-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:9c86404ae5da88ebe92b7f5315026cd48cf16e2f6d071536bd36c4878b73f9a1"
+          "digest": "sha256:3cc170b2298d37e5b6ce6a76808dd5503eadeddec9f9f3acb8a204363a71a67a"
         }
       ]
     },
@@ -4019,7 +4019,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-instance",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:fd8cc67fc48152338db2861222a310cfd34f43ffa9364a5f19704612664e97ba"
+        "digest": "sha256:0eada160f3747c0b8dcd8c1b5fd59a7ae5deb52bbe8a01e4667095186a1fb3c7"
       },
       "targetIdentity": "pkid:schema:program-kit:task-instance",
       "kind": "migrates",
@@ -4038,7 +4038,7 @@
         {
           "identity": "pkid:migration:program-kit:task-instance-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:733ffaada3f931c0c83cf60372694d10aa1c82ad6df164c85814bc1a30976ae5"
+          "digest": "sha256:b3c379d577cde61b3c770839fc9f107a370236523cb14a5ecaa67d55364e61dd"
         }
       ]
     },
@@ -4047,7 +4047,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-occurrence",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:deb459911b4ab1636db29ccee2e226c81a15b709585ce7da52ee3fde7ef1157f"
+        "digest": "sha256:ea4f7d10fa24de1ee6d994105d1f9527d86a57635873cf8a20a0ec0b8f50e967"
       },
       "targetIdentity": "pkid:schema:program-kit:task-occurrence",
       "kind": "migrates",
@@ -4066,7 +4066,7 @@
         {
           "identity": "pkid:migration:program-kit:task-occurrence-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:71810c3e4ba5a42853c8ff57c08aeba1af87dc564bc9d21be3ba44efd015bf03"
+          "digest": "sha256:92ab5ff598ecc59bd3c58fab7a535fb3a0dd2e69cb6005bf6a42237d3e10742c"
         }
       ]
     },
@@ -4075,7 +4075,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-request",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0ede4f9b834f216a8d69cd9aeaa53b72641205f9ba0dadf5820189552ff2dcea"
+        "digest": "sha256:ce18e9473e9f4d912e3562b5a025c37feba6f5a4df4e754eac1fe383be3cce01"
       },
       "targetIdentity": "pkid:schema:program-kit:task-request",
       "kind": "migrates",
@@ -4094,7 +4094,7 @@
         {
           "identity": "pkid:migration:program-kit:task-request-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:48e37b6a8419d8fe4f452c1f1fe21c91d19232810f68f7d3961bf8e641b9ddc9"
+          "digest": "sha256:dd3bc5809e7b5117954625bd2ca555ae71f0aa2c30e340d338ed3948ec11ae63"
         }
       ]
     },
@@ -4103,7 +4103,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:task-schedule-definition",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:917121bf042c47c7d7b5159438f77d27758b8500b07a707233af7134fbc2db82"
+        "digest": "sha256:b2b04ab613a881207eaf45e51faead5ae24461e43bb7a37e544e632060c67542"
       },
       "targetIdentity": "pkid:schema:program-kit:task-schedule-definition",
       "kind": "migrates",
@@ -4122,7 +4122,7 @@
         {
           "identity": "pkid:migration:program-kit:task-schedule-definition-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:32435b2cc7935ede5bf848dd93ff6d7eba067ceb8b5566e174f43e686b1d2cb0"
+          "digest": "sha256:8f0d27b6f656c30dc93022ead05e62ab0ff34c864938a2908d1099d41dc1b748"
         }
       ]
     },
@@ -4131,7 +4131,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:test-evidence",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0d4a3c99e4a2dd714eaece659df56547c0c05aac5cb1a3113fdfadb24677372c"
+        "digest": "sha256:8f2e8a26236d6643ce8ccbc719128581a7f73aa9b3e5941e8723d5d322ad6f2f"
       },
       "targetIdentity": "pkid:schema:program-kit:test-evidence",
       "kind": "migrates",
@@ -4150,7 +4150,7 @@
         {
           "identity": "pkid:migration:program-kit:test-evidence-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:a56bd95f48f8de76befff34fdbf5a6f1e34f4cf438a878f82ea2b64081727e4b"
+          "digest": "sha256:ccc02c489576ee58ac6042ad8be3fab4d14b9770d796c4e4fb00b403893f8366"
         }
       ]
     },
@@ -4159,7 +4159,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:test-specification",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:0d20e1f5736612dbc53baa01e311e20f91688102de1d5d7ed1b3a9837080e65a"
+        "digest": "sha256:bb58c47be29cb2ee502d890b7dbea21d5ccd94bbc113d8ef6d58d74e8deb3b1d"
       },
       "targetIdentity": "pkid:schema:program-kit:test-specification",
       "kind": "migrates",
@@ -4178,7 +4178,7 @@
         {
           "identity": "pkid:migration:program-kit:test-specification-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:d1c6c5aaf4b13d81349b7bdbd89a9d36d381ccdce97b274f5cd058a0c270199c"
+          "digest": "sha256:295662bbec29ac5aeb8e5d2922965a20ce81f2c00df1c9686ce93a3f88974aac"
         }
       ]
     },
@@ -4187,7 +4187,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:transport-failure-profile",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:4fbbe8a50db3b7e8fc5b171e02f20cf0464dd62c761aa0481f4c729bc1a610da"
+        "digest": "sha256:a58a9b510a3bd9ae49167a4d80ebff22c876abf3859bc1641508846d0ee69851"
       },
       "targetIdentity": "pkid:schema:program-kit:transport-failure-profile",
       "kind": "migrates",
@@ -4206,7 +4206,7 @@
         {
           "identity": "pkid:migration:program-kit:transport-failure-profile-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:b2b884fd30e171b76099a39dd8cbba08f7a76e011d7986368f8add6bdf56ac28"
+          "digest": "sha256:021f346380e4212e18ac3fd12af3bc618eb4aa1cd4c644c2d7a1a394c63d759a"
         }
       ]
     },
@@ -4215,7 +4215,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:version-map",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:faeada24f93031656107b24f32afe741c511a61af0a96a6a44ee68e9f5546d4e"
+        "digest": "sha256:d4038bf63561e01ba454c5a3ef4c9f3b99a072c68e08b5c622279da4fc5a7cdc"
       },
       "targetIdentity": "pkid:schema:program-kit:version-map",
       "kind": "migrates",
@@ -4234,7 +4234,7 @@
         {
           "identity": "pkid:migration:program-kit:version-map-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:436afc6a2d0d31229d67b7bec5ab92cd8b5e0a14da5ffcc13c6c219ed58a2dfc"
+          "digest": "sha256:a9bbdd07531c03901e082eeb1080bba4f8e19e0b65744d30977397c76d89ec96"
         }
       ]
     },
@@ -4243,7 +4243,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:version-selection",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:b84e1561b2409e441a3309681bcac9766efd15d86c7179d6d718d64e2cb4d6e6"
+        "digest": "sha256:dc472972820ccfc1d4be2db5716843243f59b8e7e9fc41dbd6a43f55233e7951"
       },
       "targetIdentity": "pkid:schema:program-kit:version-selection",
       "kind": "migrates",
@@ -4262,7 +4262,7 @@
         {
           "identity": "pkid:migration:program-kit:version-selection-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:d8dda73f701d95ad9fa62ef44c969793f33bef4a3daabd2be4414e8ec1e37e40"
+          "digest": "sha256:bae78158f8a1c7759332f21916134ab99e9f9e835d1f5e98a7f1a3dddf3ea960"
         }
       ]
     },
@@ -4271,7 +4271,7 @@
       "source": {
         "identity": "pkid:schema:program-kit:versioned-component-manifest",
         "version": "0.1.0-alpha.1",
-        "digest": "sha256:05ef6da2908f8980737c6c3f823191ad3c15ba03ea978f1c021075ee65d05285"
+        "digest": "sha256:5dcaed7b7241063638758600f382dc1572cb50cd7e951b9e643d50080930afde"
       },
       "targetIdentity": "pkid:schema:program-kit:versioned-component-manifest",
       "kind": "migrates",
@@ -4290,7 +4290,7 @@
         {
           "identity": "pkid:migration:program-kit:versioned-component-manifest-to-alpha-1",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:2c45000c3ee642291cfd472167ebfb58e4140cb5c1316f7dd54905480eed851b"
+          "digest": "sha256:1e1a4e27b751249ce62b2e2e40fe2f8f3f2826d00f65301d64975792eeba7642"
         }
       ]
     },
@@ -4318,7 +4318,7 @@
         {
           "identity": "pkid:migration:program-kit:csharp-source-quality-gate-v1-10-to-alpha10",
           "version": "0.1.0-alpha.1",
-          "digest": "sha256:fa7061cd7163fe47faa14003d68e866741180a09e550f06a2d68892496374191"
+          "digest": "sha256:56b3a6d7abe5d29648e362ffb5f1c3b53e001c05706dbfe825a6d5338103829b"
         }
       ]
     }

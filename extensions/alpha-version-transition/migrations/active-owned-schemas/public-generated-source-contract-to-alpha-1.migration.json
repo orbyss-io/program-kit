@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:public-generated-source-contract",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:8f09c0d5491527907d4d63a7c3bfa2076867c3ab1ac26cbf29b76ec865db6c45"
+    "digest": "sha256:026e79937e090122325ffe13f71aa986d0b494051d7d44ec10cc247735f1161c"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

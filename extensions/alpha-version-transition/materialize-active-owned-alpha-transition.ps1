@@ -24,7 +24,14 @@ function Write-CanonicalJson([string]$path, [object]$value) {
         New-Item -ItemType Directory -Path $parent | Out-Null
     }
 
-    $text = ($value | ConvertTo-Json -Depth 100) + "`n"
+    $text = $value | ConvertTo-Json -Depth 100
+    $text = $text.Replace(
+        "`r`n",
+        "`n",
+        [StringComparison]::Ordinal).Replace(
+            "`r",
+            "`n",
+            [StringComparison]::Ordinal) + "`n"
     [IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))
 }
 

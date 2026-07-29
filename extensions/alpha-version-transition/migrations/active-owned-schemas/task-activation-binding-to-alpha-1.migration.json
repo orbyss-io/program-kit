@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:task-activation-binding",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:2e94f362c9116193f5d94f2b9af661eadfac8a48e0fcc5de97faa8d58387aae3"
+    "digest": "sha256:09e47a75a80669585ccd1115b9706bdf6b0eb0472c2b20a00c00755eb8e24316"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

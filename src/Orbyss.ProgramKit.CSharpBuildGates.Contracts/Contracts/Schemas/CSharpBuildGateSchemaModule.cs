@@ -68,13 +68,13 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
                 "csharp-build-gate-definitions",
                 "definitions-0.1.0-alpha.1.schema.json",
                 "https://schemas.orbyss.io/program-kit/csharp-build-gates/0.1.0-alpha.1/definitions.schema.json",
-                "4f5b8c2734e24ae3e8659e4ee88f1c2663ae7d43015139f420636f58fec274ca",
+                "abf7014b586ce9d5d338aa60f9fc13c67dc78ebb2f2c625cbe5e2e5efc84c0b8",
                 VersionAlphaOne),
             Create(
                 "csharp-build-gate-definition",
                 "csharp-build-gate-definition-0.1.0-alpha.1.schema.json",
                 "https://schemas.orbyss.io/program-kit/csharp-build-gates/definition/0.1.0-alpha.1/schema.json",
-                "3888ca5bc470f44cf92cae741958993e829528f6fc9605012d8c35120a92ac91",
+                "35a3662d59b85621ea8d2ab0bba03b23de056001cb4ad9b4385996db76da1638",
                 VersionAlphaOne),
             Create(
                 "csharp-build-gate-definitions",

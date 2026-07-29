@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:550323cedfa9524c3ad1f6e4046afaefe2fdbb3de724d4c895a5798613af74b5"
+    "digest": "sha256:c0d326108653b9e986df1a2b361611622d269df8072faf421eabec093e165cc5"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

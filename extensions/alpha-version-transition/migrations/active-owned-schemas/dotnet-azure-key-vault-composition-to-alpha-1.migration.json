@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-azure-key-vault-composition",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:b82fb232346f346385134c2a090da050b4aa1515492ca9990116a7d70b9d51d8"
+    "digest": "sha256:2652b0cc402b913f0e87fbc092b9cb9ffa27c35094fcce5ee3c2d8747332ac23"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:design-plan-approval",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:4b2f46bbe0f0f9e47629b0db0fad89c8448ca99d61eb1f438552de45296b9e55"
+    "digest": "sha256:5b4aa0f814b98d5d59b49780e53bf4011ab8647ba8d80a9efeaf10d3386ea4e9"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

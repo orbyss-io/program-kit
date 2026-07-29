@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:csharp-build-gate-definition",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:3888ca5bc470f44cf92cae741958993e829528f6fc9605012d8c35120a92ac91"
+    "digest": "sha256:35a3662d59b85621ea8d2ab0bba03b23de056001cb4ad9b4385996db76da1638"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

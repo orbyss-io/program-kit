@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:delay-once-schedule-descriptor",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:bde359099de956096697f77707df2a8985a3a0bb7fe121dc149e54564830b794"
+    "digest": "sha256:bf948216c2e1a275cf0fb772fe6d2d8a993f570b72d1e87e1f3728a87d45915a"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

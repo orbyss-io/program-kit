@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:development-routing-result",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:535c7c011ef2879f460530f7a1452bd39dc6b8c1afc058fb29504b9eb8f196ea"
+    "digest": "sha256:254592957501f07d84c52744d432c67433d9f01951cc47424e2928afa173deee"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

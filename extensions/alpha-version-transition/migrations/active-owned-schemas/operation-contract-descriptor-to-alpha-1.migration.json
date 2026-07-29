@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:operation-contract-descriptor",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:aaa1a8ece9a767feb45613f424c1007ab7a05e34a278c7730b139664324e464b"
+    "digest": "sha256:55e9ff956640ec95b2e659f9c16e8a6989ac8e71cf23bb37a48db9f3dc777a0a"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

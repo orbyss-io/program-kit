@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:csharp-build-gate-verification-evidence",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:80d570f19fab9a4a795d9bcbaa80ca6b481af5c99d146ad10beffe2ab048f229"
+    "digest": "sha256:0109bbdac32a1465cc3d49d0660e6a3672c0510e6e6147836bb06e480f371723"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

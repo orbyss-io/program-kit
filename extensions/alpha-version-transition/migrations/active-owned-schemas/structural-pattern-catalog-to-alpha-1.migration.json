@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:structural-pattern-catalog",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:4c62ae5cb47e4d1405cc22df4e542d7e535650bfc7972d49e71b9f2383ec6e0a"
+    "digest": "sha256:177f68e5526320e95b4c8abef7a1846aef82ae11775469586d42fb7657fe140a"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-target-profile",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:3c63b20e4b5f1ab4720acc6a477d79ece720eb28c16d89f1d3d5b7442532272a"
+    "digest": "sha256:8c121fe029858549a46b2a901926dfe08a311b35218bfbffaa4bb589e1c524ce"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

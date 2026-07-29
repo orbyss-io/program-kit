@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-keycloak-local-fixture-profile",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1ea26df9d20553cc432e1086a1776427caf8fde03db3e90c0a527ef7df548ead"
+    "digest": "sha256:4616a2b26ab2019d10aa0a792a4fbe90369889df84081744c1e428a9895ba4b8"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

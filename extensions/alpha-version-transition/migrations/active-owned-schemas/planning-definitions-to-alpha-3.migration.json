@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:planning-definitions",
     "version": "0.1.0-alpha.3",
-    "digest": "sha256:14f5daeb1a17ff783597c01d8542168eb7c1650c0c1a6968b704caab1d3d2822"
+    "digest": "sha256:b8ec79cce96a0acbabe149d338d8f1f6354e8f58a69ebeca35f1c798c1b0a454"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

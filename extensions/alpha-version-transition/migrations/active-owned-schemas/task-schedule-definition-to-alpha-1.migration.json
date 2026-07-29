@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:task-schedule-definition",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:917121bf042c47c7d7b5159438f77d27758b8500b07a707233af7134fbc2db82"
+    "digest": "sha256:b2b04ab613a881207eaf45e51faead5ae24461e43bb7a37e544e632060c67542"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

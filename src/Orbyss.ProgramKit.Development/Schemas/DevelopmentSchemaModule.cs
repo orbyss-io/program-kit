@@ -67,13 +67,13 @@ public sealed class DevelopmentSchemaModule : IProgramKitSchemaModule
             "development-definitions",
             "definitions-0.1.0-alpha.1.schema.json",
             "https://schemas.orbyss.io/program-kit/development/0.1.0-alpha.1/definitions.schema.json",
-            "7d5eecafa74191c2b192e95cd61daf1813be707781eaa4d4505e2484b8a9dd8a",
+            "3fe7e609e2e351ac3e8a4df523eb50e6aff26e9df1b9708df343232003ecd1c6",
             AlphaSchemaVersion),
         Create(
             "development-routing-result",
             "development-routing-result-0.1.0-alpha.1.schema.json",
             "https://schemas.orbyss.io/program-kit/development/routing-result/0.1.0-alpha.1/schema.json",
-            "535c7c011ef2879f460530f7a1452bd39dc6b8c1afc058fb29504b9eb8f196ea",
+            "254592957501f07d84c52744d432c67433d9f01951cc47424e2928afa173deee",
             AlphaSchemaVersion),
         Create(
             "capability-availability-snapshot",

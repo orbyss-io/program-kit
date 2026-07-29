@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-shell-lock",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:c8f09b6fc26a6d9e1b9ba0d5d63ffe27ba94b9132dec0bdbf76cacf2bfb3e273"
+    "digest": "sha256:40a486cb75fe0a88889490a189fbae9087b9b059a92e4d81cfcd4a51519bee92"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

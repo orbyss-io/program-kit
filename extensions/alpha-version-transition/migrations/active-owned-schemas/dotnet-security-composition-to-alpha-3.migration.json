@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:dotnet-security-composition",
     "version": "0.1.0-alpha.3",
-    "digest": "sha256:d61566bdc11d84c52342bcc36b0e4c6ad6a72fcda39fbe758156fa0843af9620"
+    "digest": "sha256:4455f8746e7c94dfe6f36a15a64d9c87c5e64869885551df9f43fac3ffdf95d3"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {

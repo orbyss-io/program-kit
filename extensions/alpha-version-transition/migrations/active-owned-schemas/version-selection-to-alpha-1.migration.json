@@ -4,7 +4,7 @@
   "target": {
     "identity": "pkid:schema:program-kit:version-selection",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:b84e1561b2409e441a3309681bcac9766efd15d86c7179d6d718d64e2cb4d6e6"
+    "digest": "sha256:dc472972820ccfc1d4be2db5716843243f59b8e7e9fc41dbd6a43f55233e7951"
   },
   "mode": "artifact-transform",
   "preconditions": [
@@ -27,7 +27,7 @@
   "implementationReference": {
     "identity": "pkid:tool:program-kit:active-owned-alpha-materializer",
     "version": "0.1.0-alpha.1",
-    "digest": "sha256:1a589656ee92625a77368c4a1d6914ba13cb46f319a04865fa22b594c33f7de5"
+    "digest": "sha256:a7627097b495a191cd42bf8d6519267f4ba19cac844e4f928f6746f0a3b99791"
   },
   "fixtureReferences": [
     {
