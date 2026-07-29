@@ -61,6 +61,28 @@ program-kit capabilities catalog --workspace-root . --format text
 Remove the bounded extracted feed after installation if it is no longer
 needed. Do not change permanent global NuGet configuration for Program Kit.
 
+### Fresh clone of a consumer repository
+
+A repository built with Program Kit ignores its machine-local workspace state
+(for example a repository-local feed under `.program-kit/`, provider wrappers,
+and materialized generation inputs). After a fresh clone, recreate that state
+before gate or host commands work:
+
+1. Provide the exact pinned Program Kit packages: install the tool as above,
+   or restore the repository-local feed the consumer's `NuGet.Config` maps
+   `Orbyss.ProgramKit.*` to.
+2. Run `dotnet tool restore` when the repository pins the CLI in a
+   `dotnet-tools.json` manifest.
+3. Run `program-kit capabilities initialize --provider <codex|claude>
+   --workspace-root .` to reinstall the thin wrappers and ownership lock.
+4. Re-run any materialization the repository records (for example
+   `program-kit dotnet materialize-console-inputs <request> --workspace-root .
+   --output <directory> --build-consumer`) before regenerating or verifying a
+   generated host.
+
+`program-kit capabilities preflight <capability> --workspace-root .` verifies
+the recreated state matches the exact recorded bytes.
+
 ## Why it exists
 
 Software generation is most useful when the same accepted input produces the
