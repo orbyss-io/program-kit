@@ -17,8 +17,17 @@ public interface ICommandFileSystem
     /// <summary>Moves one exact directory without overwrite semantics.</summary>
     void MoveDirectory(string sourcePath, string destinationPath);
 
+    /// <summary>Moves one exact file with explicit overwrite semantics.</summary>
+    void MoveFile(string sourcePath, string destinationPath, bool overwrite);
+
+    /// <summary>Deletes one exact operation-owned file when present.</summary>
+    void DeleteFile(string path);
+
     /// <summary>Deletes one exact operation-owned directory.</summary>
     void DeleteDirectory(string path);
+
+    /// <summary>Sets or clears the read-only attribute on one exact file.</summary>
+    void SetReadOnly(string path, bool isReadOnly);
 
     /// <summary>Enumerates exact files below one supplied directory.</summary>
     ImmutableArray<string> EnumerateFiles(string path);

@@ -1,5 +1,5 @@
-using Orbyss.ProgramKit.Artifacts.Schemas;
 using Orbyss.ProgramKit.Artifacts.References;
+using Orbyss.ProgramKit.Artifacts.Schemas;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Validation;
 
@@ -16,6 +16,8 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
     private readonly IProgramKitSchemaModule taskSchedules;
     private readonly IProgramKitSchemaModule openConsole;
     private readonly IProgramKitSchemaModule dotNet;
+    private readonly IProgramKitSchemaModule csharpBuildGates;
+    private readonly IProgramKitSchemaModule csharpBuildGateClosure;
 
     /// <summary>Initializes the selector from exact package-owned schema modules.</summary>
     public CommandSchemaSelector(
@@ -28,7 +30,9 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         IProgramKitSchemaModule tasksCore,
         IProgramKitSchemaModule taskSchedules,
         IProgramKitSchemaModule openConsole,
-        IProgramKitSchemaModule dotNet)
+        IProgramKitSchemaModule dotNet,
+        IProgramKitSchemaModule csharpBuildGates,
+        IProgramKitSchemaModule csharpBuildGateClosure)
     {
         this.artifacts = artifacts ?? throw new ArgumentNullException(nameof(artifacts));
         this.architecture = architecture ?? throw new ArgumentNullException(nameof(architecture));
@@ -42,6 +46,10 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         this.openConsole = openConsole ??
             throw new ArgumentNullException(nameof(openConsole));
         this.dotNet = dotNet ?? throw new ArgumentNullException(nameof(dotNet));
+        this.csharpBuildGates = csharpBuildGates ??
+            throw new ArgumentNullException(nameof(csharpBuildGates));
+        this.csharpBuildGateClosure = csharpBuildGateClosure ??
+            throw new ArgumentNullException(nameof(csharpBuildGateClosure));
     }
 
     /// <inheritdoc />
@@ -50,19 +58,28 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         out ArtifactReference revision)
     {
         var schemaIdentity = SchemaIdentityReader.Read(utf8Json.Span);
+        return Resolve(schemaIdentity, out revision);
+    }
+
+    /// <inheritdoc />
+    public IProgramKitSchemaModule Resolve(
+        string exactSchemaId,
+        out ArtifactReference revision)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(exactSchemaId);
         var matches = Modules()
             .SelectMany(module => module.Resources.Select(resource => (module, resource)))
             .Where(candidate =>
                 string.Equals(
                     candidate.resource.CanonicalUri.AbsoluteUri,
-                    schemaIdentity,
+                    exactSchemaId,
                     StringComparison.Ordinal) ||
                 string.Equals(
                     string.Concat(
                         candidate.resource.SchemaReference.Identity.Value,
                         "@",
                         candidate.resource.SchemaReference.Version.Value),
-                    schemaIdentity,
+                    exactSchemaId,
                     StringComparison.Ordinal))
             .ToArray();
         if (matches.Length != 1)
@@ -72,7 +89,9 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         }
 
         revision = matches[0].resource.SchemaReference;
-        return matches[0].module;
+        return ReferenceEquals(matches[0].module, csharpBuildGates)
+            ? csharpBuildGateClosure
+            : matches[0].module;
     }
 
     private IEnumerable<IProgramKitSchemaModule> Modules()
@@ -87,5 +106,6 @@ public sealed class CommandSchemaSelector : ICommandSchemaSelector
         yield return taskSchedules;
         yield return openConsole;
         yield return dotNet;
+        yield return csharpBuildGates;
     }
 }

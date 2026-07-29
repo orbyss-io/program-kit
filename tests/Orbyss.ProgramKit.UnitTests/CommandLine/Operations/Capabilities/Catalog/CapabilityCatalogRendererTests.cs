@@ -41,7 +41,7 @@ public sealed class CapabilityCatalogRendererTests
             Source path: `.agent-capabilities/capabilities/INDEX.md`
             Source digest: `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
 
-            | Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |
+            | Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |
             | --- | --- | --- | --- | --- | --- |
             | `design-software` | design | available | [CAPABILITY.md](design-software/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/design-software/SKILL.md) | Design flow. |
             | `release-software` | release | unavailable | Not created | Not registered | Reserved flow. |

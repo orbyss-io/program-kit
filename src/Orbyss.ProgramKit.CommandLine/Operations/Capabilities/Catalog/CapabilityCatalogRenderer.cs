@@ -79,7 +79,7 @@ public sealed class CapabilityCatalogRenderer : ICapabilityCatalogRenderer
         builder.AppendLine("`");
         builder.AppendLine();
         builder.AppendLine(
-            "| Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |");
+            "| Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |");
         builder.AppendLine("| --- | --- | --- | --- | --- | --- |");
         foreach (var entry in document.Entries)
         {
@@ -96,9 +96,9 @@ public sealed class CapabilityCatalogRenderer : ICapabilityCatalogRenderer
                     : $"[CAPABILITY.md]({entry.CanonicalDefinition})");
             builder.Append(" | ");
             builder.Append(
-                entry.ActiveProviderWrapper is null
+                entry.ProviderAdapterTemplate is null
                     ? "Not registered"
-                    : $"[Codex adapter template]({entry.ActiveProviderWrapper})");
+                    : $"[Codex adapter template]({entry.ProviderAdapterTemplate})");
             builder.Append(" | ");
             builder.Append(entry.Notes);
             builder.AppendLine(" |");

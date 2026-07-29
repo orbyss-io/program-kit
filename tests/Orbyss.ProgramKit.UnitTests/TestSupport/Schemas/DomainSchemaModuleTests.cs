@@ -22,11 +22,11 @@ public sealed class DomainSchemaModuleTests
             (
                 new CSharpBuildGateSchemaModule(),
                 "pkid:package:program-kit:csharp-build-gates-contracts",
-                6),
+                10),
             (
                 new DevelopmentSchemaModule(),
                 "pkid:package:program-kit:development",
-                4),
+                6),
         ];
         ProgramKitSchemaModuleValidator sut = new();
 

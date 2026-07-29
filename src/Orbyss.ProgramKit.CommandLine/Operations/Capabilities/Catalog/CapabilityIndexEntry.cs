@@ -6,5 +6,5 @@ public sealed record CapabilityIndexEntry(
     string FlowCategory,
     string Status,
     string? CanonicalDefinition,
-    string? ActiveProviderWrapper,
+    string? ProviderAdapterTemplate,
     string Notes);

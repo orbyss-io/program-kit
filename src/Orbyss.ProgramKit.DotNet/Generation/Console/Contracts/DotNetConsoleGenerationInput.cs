@@ -7,4 +7,5 @@ namespace Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
 public sealed record DotNetConsoleGenerationInput(
     DotNetConsoleBindingDocument Binding,
     string ConsumerReferenceAssemblyPath,
-    ImmutableArray<DotNetConsoleCompilationReference> CompilationReferences);
+    ImmutableArray<DotNetConsoleCompilationReference> CompilationReferences,
+    string? ConsumerProjectReferencePath = null);

@@ -1,0 +1,61 @@
+{
+  "catalogVersion": "0.1.0-alpha.1",
+  "gateDefinitionSchema": "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2",
+  "legacyGateDefinitionSchema": "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.1",
+  "migrationResource": "csharp-gate-alpha1-alpha2-migration",
+  "collectionOrderKeys": {
+    "activationRows": [
+      "operation",
+      "boundary",
+      "projectIdentity",
+      "targetFramework",
+      "configuration",
+      "platform"
+    ],
+    "analyzers": [
+      "componentIdentity"
+    ],
+    "compilerBaselines": [
+      "profileId"
+    ],
+    "coveredCompilationProfiles": [
+      "projectIdentity",
+      "targetFramework",
+      "configuration"
+    ],
+    "diagnosticPolicies": [
+      "diagnosticId"
+    ],
+    "temporaryExceptions": [
+      "exceptionId"
+    ]
+  },
+  "artifactSelectionRules": {
+    "analyzer-package": {
+      "isPackable": true,
+      "package": "required",
+      "repositoryRelativeProjectPath": "null"
+    },
+    "local-non-packable-project": {
+      "isPackable": false,
+      "package": "null",
+      "repositoryRelativeProjectPath": "required"
+    }
+  },
+  "publicAnalyzerSelections": [
+    {
+      "assemblyPath": "analyzers/dotnet/cs/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.dll",
+      "componentIdentity": "pkid:analyzer:program-kit:generated-source-contract",
+      "contractIdentity": "pkid:contract:program-kit:generated-source-convention",
+      "contractVersion": "1.0.0",
+      "diagnosticIds": [
+        "PKCC001"
+      ],
+      "nugetPackageId": "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
+      "packageIdentity": "pkid:package:program-kit:orbyss-programkit-generatedsourcecontract-analyzers",
+      "packageSha256Evidence": "exact package digest from the selected Program Kit release asset manifest",
+      "packageVersion": "0.1.0-alpha.2",
+      "semanticOwnerId": "pkid:domain:program-kit:generated-source-contract"
+    }
+  ]
+}

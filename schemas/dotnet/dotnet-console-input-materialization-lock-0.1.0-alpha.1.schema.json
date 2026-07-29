@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/console-input-materialization-lock/0.1.0-alpha.1/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-console-input-materialization-lock",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit .NET Console Input Materialization Lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "programKitVersion",
+    "requestDigest",
+    "workspaceRootRelativePath",
+    "consumerProjectPath",
+    "targetFramework",
+    "configuration",
+    "platform",
+    "buildArguments",
+    "consumerReference",
+    "compilationReferences",
+    "manifestDigest",
+    "outputs"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1"
+    },
+    "version": {
+      "const": "0.1.0-alpha.1"
+    },
+    "programKitVersion": {
+      "pattern": "^0\\.1\\.0-alpha\\.[1-9][0-9]*$"
+    },
+    "requestDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "workspaceRootRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "consumerProjectPath": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "targetFramework": {
+      "const": "net10.0"
+    },
+    "configuration": {
+      "enum": [
+        "Debug",
+        "Release"
+      ]
+    },
+    "platform": {
+      "const": "AnyCPU"
+    },
+    "buildArguments": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "consumerReference": {
+      "$ref": "#/$defs/referenceEvidence"
+    },
+    "compilationReferences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/referenceEvidence"
+      }
+    },
+    "manifestDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/output"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^pkid:[a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*\\\\)[^:]+$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "version",
+        "digest"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/identifier"
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "referenceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assemblyIdentity",
+        "revision",
+        "relativePath",
+        "consumer"
+      ],
+      "properties": {
+        "assemblyIdentity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "revision": {
+          "$ref": "#/$defs/reference"
+        },
+        "relativePath": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "consumer": {
+          "type": "boolean"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relativePath",
+        "digest"
+      ],
+      "properties": {
+        "relativePath": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    }
+  }
+}

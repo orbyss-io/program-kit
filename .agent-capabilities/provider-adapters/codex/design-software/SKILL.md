@@ -1,13 +1,19 @@
 ---
 name: design-software
-description: Design and plan repository software from current source truth, producing a review set and stopping for explicit human approval.
+description: Design, plan, revise, or converge repository software from current source truth, producing a review set and stopping for explicit human approval.
 ---
 
 # design-software
 
-Load and follow the complete canonical definition at
-`{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}` before acting.
+Verify setup and load the complete canonical Program Kit capability by invoking:
 
-This Codex skill is only a provider wrapper. Its front matter registers the
-trigger; the canonical provider-neutral capability owns the procedure and
-boundaries.
+`program-kit capabilities preflight design-software --workspace-root .`
+
+`program-kit capabilities read design-software --workspace-root .`
+
+Read and follow the complete returned definition before acting. If either
+command is unavailable or reports stale setup, stop and report a Program Kit
+setup blocker.
+
+This provider skill is only trigger/registration metadata. The installed
+Program Kit CLI owns delivery of the canonical provider-neutral capability.

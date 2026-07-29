@@ -26,4 +26,13 @@ public static class CommandDiagnosticIds
 
     /// <summary>Provider capability initialization is unsafe or inconsistent.</summary>
     public const string InvalidCapabilityInitialization = "PKCLI008";
+
+    /// <summary>Consumer capability setup is missing, stale, or tampered.</summary>
+    public const string CapabilitySetupRequired = "PKCLI009";
+
+    /// <summary>The named capability is unavailable for the consumer role.</summary>
+    public const string CapabilityUnavailable = "PKCLI010";
+
+    /// <summary>The embedded capability knowledge closure is incomplete.</summary>
+    public const string InvalidCapabilityKnowledge = "PKCLI011";
 }

@@ -1,6 +1,7 @@
 # Orbyss.ProgramKit.CapabilityBundle
 
-This content-only package carries exact copies of the five distributable
+This internal exact-byte verification package carries copies of the six
+consumer Program Kit development capabilities:
 Program Kit development capabilities:
 
 - `design-csharp-build-gate`
@@ -8,20 +9,20 @@ Program Kit development capabilities:
 - `design-software`
 - `implement-software-plan`
 - `maintain-software`
+- `publish-dotnet-application-locally`
 
 Their inert Codex and Claude Code wrapper templates are separately listed
-provider adapters. The repository-only `publish-dotnet-application-locally`
-capability, the capability index, generated catalog, authoring capability, and
-Release Cycle reservations are deliberately excluded.
+provider adapters. The capability index, generated catalog, contributor
+authoring capability, and Release Cycle reservations are deliberately
+excluded.
 
-Bundle revision `3.0.0` uses the unique `.agent-capabilities` source tree. Its
-canonical definitions stay in Program Kit. They are never copied into a
-human-led workspace. The bundle also carries the inert, exact-byte
-software-change completion profile set shared by full implementation and
-incremental maintenance. Supporting profiles are not provider-discoverable,
-independently invokable, or authoritative.
+Bundle version `0.1.0-alpha.2` uses the unique `.agent-capabilities` source
+tree. It also carries the exact consumer catalog, gate-authoring catalog and
+migration, troubleshooting guidance, and inert software-change completion
+profiles. Supporting resources are not provider-discoverable, independently
+invokable, or authoritative.
 
-Installing or copying this package does not register a capability, grant
-authority, or start work. The explicit `program-kit capabilities initialize`
-operation verifies these exact bytes and renders only the selected provider's
-thin wrappers plus an ownership lock.
+Consumers do not install this package. The `Orbyss.ProgramKit.CommandLine`
+tool embeds and verifies the same canonical closure. Installing or copying
+either package does not register a capability, grant authority, or start work;
+the explicit `program-kit capabilities initialize` operation is required.

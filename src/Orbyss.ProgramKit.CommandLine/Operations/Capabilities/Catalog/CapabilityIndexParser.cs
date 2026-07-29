@@ -9,7 +9,7 @@ namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 public sealed class CapabilityIndexParser : ICapabilityIndexParser
 {
     private const string Header =
-        "| Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |";
+        "| Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |";
     private const string Separator =
         "| --- | --- | --- | --- | --- | --- |";
     private static readonly UTF8Encoding StrictUtf8 = new(
@@ -107,12 +107,12 @@ public sealed class CapabilityIndexParser : ICapabilityIndexParser
                 cells[4],
                 "Not registered",
                 lineIndex,
-                "activeProviderWrapper");
+                "providerAdapterTemplate");
             if (status == "available" &&
                 (canonical is null || wrapper is null))
             {
                 throw InvalidIndex(
-                    "An available capability requires both a canonical definition and active-provider wrapper.",
+                    "An available capability requires both a canonical definition and provider adapter template.",
                     $"/index/lines/{lineIndex + 1}");
             }
 

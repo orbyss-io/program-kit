@@ -15,13 +15,14 @@
   },
   "operationSourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:b3c6e13cc8f705e26cd76d17cccb183a364bdc739c6321cceebd2f51e7141b68",
+    "digest": "sha256:9d09c1dd180fc92bf1849680c42e0ab3eaae22de98c296f370bbde6794bb7f91",
     "paths": [
       "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
       "src/Orbyss.ProgramKit.CommandLine/Contracts/Descriptors/CommandDescriptorCatalog.cs",
       "src/Orbyss.ProgramKit.CommandLine/Operations/CSharpBuildGates/CSharpGateCommandOperation.cs",
       "src/Orbyss.ProgramKit.CommandLine/Operations/CSharpBuildGates/CSharpGateCommandService.cs",
       "src/Orbyss.ProgramKit.CommandLine/Operations/CSharpBuildGates/ICSharpGateCommandService.cs",
+      "src/Orbyss.ProgramKit.CommandLine/Operations/Schemas/CompositeSchemaModule.cs",
       "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateJsonContext.cs",
       "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateJsonProfileMarker.cs",
       "src/Orbyss.ProgramKit.CommandLine/Operations/Serialization/CSharpGateJsonProfileRegistration.cs",
@@ -56,6 +57,8 @@
     "runtimes/"
   ],
   "operations": [
+    "describe-definition",
+    "materialize-definition",
     "validate-definition",
     "render-definition",
     "scaffold",

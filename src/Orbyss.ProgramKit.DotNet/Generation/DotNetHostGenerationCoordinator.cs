@@ -342,11 +342,10 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                 host,
                 input.OpenApi!),
             DotNetHostKind.Console =>
-                input.OpenConsole!.HostRevision.Identity == host.Identity &&
-                input.OpenConsole.HostRevision.Version == host.Version &&
-                HasExactConsoleProjection(
-                    host.OperationBindings,
-                    input.OpenConsole),
+                Console.DotNetConsoleProjectionValidator.IsExact(
+                    input.ShellRevision,
+                    host,
+                    input.OpenConsole!),
             DotNetHostKind.Worker =>
                 input.OpenWorker!.HostRevision.Identity == host.Identity &&
                 input.OpenWorker.HostRevision.Version == host.Version &&
@@ -528,53 +527,6 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
                expected.Count == operation.ProblemDetailsResponses.Length;
     }
 
-    private static bool HasExactConsoleProjection(
-        ImmutableArray<Operations.DotNetOperationBinding> bindings,
-        OpenConsoleDocument document)
-    {
-        if (bindings.Length != document.Commands.Length)
-        {
-            return false;
-        }
-
-        foreach (var command in document.Commands)
-        {
-            var matches = bindings.Where(binding =>
-                binding.OperationContract.OperationRevision == command.OperationRevision).ToArray();
-            var inputSchemas = command.Arguments
-                .Select(static argument => argument.ValueSchemaRevision)
-                .Concat(
-                    document.GlobalOptions
-                        .Concat(command.Options)
-                        .Where(static option => option.ValueSchemaRevision is not null)
-                        .Select(static option => option.ValueSchemaRevision!))
-                .Concat(command.StandardInput is null
-                    ? []
-                    : [command.StandardInput.SchemaRevision]);
-            var diagnosticSchemas = command.ExitCodes
-                .SelectMany(static exitCode =>
-                    exitCode.DiagnosticSchemaRevisions)
-                .Concat(command.StandardError is null
-                    ? []
-                    : [command.StandardError.SchemaRevision]);
-            if (matches.Length != 1 ||
-                !ExactDeclaredSet(
-                    matches[0].GetInputSchemaRevisions(),
-                    inputSchemas) ||
-                !ContainsOrAbsent(
-                    matches[0].GetResultSchemaRevisions(),
-                    command.StandardOutput) ||
-                !ExactDeclaredSet(
-                    matches[0].GetDiagnosticSchemaRevisions(),
-                    diagnosticSchemas))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private static bool HasExactWorkerProjection(
         ImmutableArray<Operations.DotNetOperationBinding> bindings,
         Documentation.Worker.OpenWorkerDocument document)
@@ -606,28 +558,12 @@ public sealed class DotNetHostGenerationCoordinator : IDotNetHostGenerationCoord
         return true;
     }
 
-    private static bool ContainsOrAbsent(
-        ImmutableArray<ArtifactReference> references,
-        OpenConsoleStreamContract? stream) =>
-        stream is null || references.Contains(stream.SchemaRevision);
-
     private static bool ExactSet(
         ImmutableArray<ArtifactReference> expected,
         ImmutableArray<ArtifactReference> actual) =>
         expected.Length == actual.Length &&
         expected.Select(Exact).ToHashSet(StringComparer.Ordinal)
             .SetEquals(actual.Select(Exact));
-
-    private static bool ExactDeclaredSet(
-        ImmutableArray<ArtifactReference> expected,
-        IEnumerable<ArtifactReference> declared)
-    {
-        var expectedKeys = expected
-            .Select(Exact)
-            .ToHashSet(StringComparer.Ordinal);
-        return expectedKeys.SetEquals(
-            declared.Select(Exact));
-    }
 
     private static string Exact(ArtifactReference reference) =>
         string.Concat(

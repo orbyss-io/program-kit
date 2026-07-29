@@ -54,6 +54,13 @@ public sealed class ArtifactsSchemaModule : IProgramKitSchemaModule
     [
         Create(
             "artifact-definitions",
+            "0.1.0-alpha.1",
+            "definitions-0.1.0-alpha.1.schema.json",
+            "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.1/definitions.schema.json",
+            "0bee875886aff9289a935268cb8abe807ea0bcb8ad83ff0fd3136a43f78f549c",
+            TransitionSchemaProvenance),
+        Create(
+            "artifact-definitions",
             "1.0.0",
             "definitions.schema.json",
             "https://schemas.orbyss.io/program-kit/artifacts/1.0.0/definitions.schema.json",

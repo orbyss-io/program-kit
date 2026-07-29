@@ -10,6 +10,57 @@ The project currently targets .NET 10 and is in alpha. It can be used on its
 own, as a Git submodule, through its .NET packages, or through its command-line
 tooling.
 
+## Install Program Kit CLI (consumer)
+
+Program Kit `0.1.0-alpha.2` is currently distributed as an exact downloadable
+local NuGet-feed ZIP. It requires the .NET 10 SDK selected by
+[`global.json`](global.json). A consumer does not need a Program Kit checkout,
+submodule, or separate CapabilityBundle installation.
+
+Download `orbyss-program-kit-nuget-0.1.0-alpha.2.zip` and its checksum, verify
+the ZIP, then extract it to a bounded temporary directory:
+
+```powershell
+$archive = Resolve-Path .\orbyss-program-kit-nuget-0.1.0-alpha.2.zip
+$expected = (Get-Content .\orbyss-program-kit-nuget-0.1.0-alpha.2.zip.sha256).Split(' ')[0]
+$actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+if ($actual -ne $expected) { throw "Program Kit archive checksum mismatch." }
+$feed = Join-Path $env:TEMP 'orbyss-program-kit-0.1.0-alpha.2'
+Expand-Archive -LiteralPath $archive -DestinationPath $feed
+dotnet tool install --global Orbyss.ProgramKit.CommandLine `
+  --version 0.1.0-alpha.2 `
+  --add-source $feed
+```
+
+From the human-led consumer workspace root, initialize the provider that is
+actually running the session:
+
+```powershell
+program-kit capabilities initialize --provider codex --workspace-root .
+# Claude Code instead:
+program-kit capabilities initialize --provider claude --workspace-root .
+```
+
+Tool installation alone does not initialize a provider, activate a capability,
+start work, or grant authority. Initialization installs only thin trigger
+wrappers and an exact ownership lock. The installed CLI retains the canonical
+read-only capability knowledge and verifies it before every read.
+
+Inspect an existing installation or replace it with the exact version—never an
+ambient `latest`:
+
+```powershell
+dotnet tool list --global
+dotnet tool update --global Orbyss.ProgramKit.CommandLine `
+  --version 0.1.0-alpha.2 `
+  --add-source $feed
+program-kit --help
+program-kit capabilities catalog --workspace-root . --format text
+```
+
+Remove the bounded extracted feed after installation if it is no longer
+needed. Do not change permanent global NuGet configuration for Program Kit.
+
 ## Why it exists
 
 Software generation is most useful when the same accepted input produces the
@@ -103,52 +154,81 @@ pull the submodule when reproducibility matters.
 
 ## Using the development capabilities
 
-Canonical, provider-neutral capability procedures live in
-[`.agent-capabilities/capabilities/`](.agent-capabilities/capabilities/), and
-their Program Kit availability is recorded by
-[`INDEX.md`](.agent-capabilities/capabilities/INDEX.md). Inert provider-adapter
-templates live under
-[`.agent-capabilities/provider-adapters/`](.agent-capabilities/provider-adapters/).
-Runtime packages never activate these files.
+The consumer CLI carries six available provider-neutral capabilities:
+`develop-software`, `design-software`, `design-csharp-build-gate`,
+`implement-software-plan`, `maintain-software`, and
+`publish-dotnet-application-locally`. Codex and Claude wrappers contain only
+trigger metadata plus exact `capabilities preflight` and `capabilities read`
+commands. Canonical procedures and supporting resources are not copied into
+the consumer workspace.
 
-Cloning the repository, initializing the submodule, copying a capability, or
-installing the capability bundle does **not** grant authority and does not start
-work. A human explicitly initializes one understood provider and explicitly
-requests the work.
-
-For Codex, initialize the three distributable development-capability wrappers
-from the human-led workspace root. No prior global tool installation is needed:
+Useful discovery commands are:
 
 ```powershell
-dotnet run `
-  --project .\tools\program-kit\src\Orbyss.ProgramKit.CommandLine `
-  -- `
-  capabilities initialize `
-  --provider codex `
-  --workspace-root . `
-  --program-kit-root .\tools\program-kit
+program-kit capabilities catalog --workspace-root . --format text
+program-kit capabilities preflight design-software --workspace-root .
+program-kit capabilities read design-software --workspace-root .
+program-kit capabilities read-resource software-change-troubleshooting --workspace-root .
+program-kit schemas list --format text
+program-kit commands describe dotnet.generate-host --format text
+program-kit commands describe dotnet.materialize-console-inputs --format text
+program-kit diagnostics explain PKCG005 --format text
+program-kit csharp-gate describe-definition --format text
 ```
 
-The Program Kit path can be `program-kit`, `tools/program-kit`, or another
-explicit directory beneath the workspace root. Initialization renders portable
-relative pointers into `.codex/skills/` and records exact ownership in
-`.program-kit/capabilities.lock.json`. It never creates `.agents` and never
-copies canonical capability semantics into the workspace.
+Reads fail closed on a missing/stale lock, wrong CLI version, incomplete
+knowledge closure, modified wrapper, unsupported provider, or Program Kit
+authoring marker. Re-run the explicit initializer to refresh owned wrappers;
+it preserves another reviewed provider and refuses human-modified or unowned
+files without partial writes.
 
-After installing the CLI as a .NET tool, the equivalent command begins with
-`program-kit capabilities initialize`. Re-run initialization after changing
-the pinned Program Kit location or capability-bundle revision; the ownership
-lock permits updates only while the existing wrapper bytes are still exactly
-the bytes Program Kit previously generated.
+### Package-only Console host journey
 
-Other providers remain unregistered until an exact adapter is reviewed. An AI
-tool may still read a canonical capability manually when a human explicitly
-directs it to the exact file. To add a reusable provider such as Claude Code,
-follow the complete adapter contract and checklist in
-[the provider-adapter guide](.agent-capabilities/provider-adapters/README.md).
-That guide defines the template token, manifest registration, finite CLI
-provider selection, collision behavior, tests, and documentation required; an
-output-folder convention alone is not an adapter.
+A Console consumer first retrieves the complete installed guide and its
+compiling examples. A schema alone describes document structure; it does not
+carry the project topology, handler/validator seam, ownership rules, authority,
+or ordered commands:
+
+```powershell
+program-kit capabilities read-resource dotnet-console-input-materialization-guide --workspace-root .
+program-kit capabilities read-resource dotnet-console-integration-project-example --workspace-root .
+program-kit capabilities read-resource dotnet-console-integration-source-example --workspace-root .
+program-kit schemas read pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1
+```
+
+The supported seam is one consumer-owned `net10.0` integration class library,
+separate from the generated host. It contains the public request types,
+`I<Command>Handler` interfaces, optional validator interfaces and validation
+result, public sealed implementations, one public sealed `IShellFeature`, and
+the exact unkeyed scoped registrations. A contracts-only/implementation split
+is not supported and must return to design.
+
+After restoring that exact project under the consumer repository's package
+policy, the installed CLI builds it without restore, evaluates its complete
+reference-assembly closure, validates the seam, and transactionally owns the
+materialized output:
+
+```powershell
+program-kit dotnet materialize-console-inputs console-input-request.json `
+  --workspace-root . `
+  --output .program-kit/console-inputs `
+  --build-consumer
+program-kit dotnet generate-host console `
+  --shell .program-kit/console-inputs/shell.json `
+  --host <EXACT_CONSOLE_HOST_ID> `
+  --artifact-manifest .program-kit/console-inputs/artifact-manifest.json `
+  --output generated/Example.Console
+program-kit dotnet verify-host --root generated/Example.Console
+```
+
+Agents may edit the consumer-owned integration source and semantic request
+under the active human authority. They must never edit Program Kit-owned
+materialized or generated bytes; change the source/request and rerun the
+backed operation instead.
+
+Program Kit itself uses repository-frozen contributor guidance, never
+CLI-returned consumer capabilities as authoring authority. Runtime packages
+never load capability prose or provider configuration.
 
 ## Explore the repository
 

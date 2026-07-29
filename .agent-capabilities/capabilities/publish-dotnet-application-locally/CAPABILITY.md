@@ -11,8 +11,8 @@ artifact manifest, prepared package-root manifest, and output root.
 
 Invoke the backed Program Kit `dotnet publish-local` operation with exact
 parameters, verify its output manifest, and report the local application path
-and evidence. This capability is repository-owned and is not part of the
-initial three-capability distribution bundle.
+and evidence. This capability is part of the exact consumer CLI capability
+payload.
 
 ## Non-goals
 
@@ -125,12 +125,22 @@ parameter W065 operation. Any parameter, collision, restore-source, output, or
 authority change requires explicit compatibility review. Rename, supersession,
 or retirement requires human authority plus index and wrapper migration.
 
+## Program Kit knowledge and failure resolution
+
+Run `program-kit commands describe dotnet.publish-local --format text` before
+invocation. For failures, retrieve `software-change-troubleshooting` and use
+`diagnostics explain` plus `artifacts inspect` for the explicit manifests. Do
+not replace the backed command with a guessed raw `dotnet publish` sequence.
+
+If a required typed Console artifact manifest or generated host is absent or
+stale, retrieve `dotnet-console-input-materialization-guide` and report the
+exact materialize/generate handoff. Do not broaden local-publication authority
+into consumer source authoring or silently edit Program Kit-owned inputs; route
+that work to the active approved implementation or bounded maintenance flow.
+
 ## Provider wrapper mapping and drift check
 
-The repository-only Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/publish-dotnet-application-locally/SKILL.md`
-and the repository-only Claude Code adapter template at
-`.agent-capabilities/provider-adapters/claude/publish-dotnet-application-locally/SKILL.md`
-may contain only registration metadata and one canonical-path token each.
-Verify that an initialized wrapper contains no copied operation mechanics or
-procedure and is bound by the workspace ownership lock.
+Codex and Claude wrappers contain only trigger metadata plus exact
+`capabilities preflight` and `capabilities read` invocations. The installed
+CLI verifies their recorded bytes before returning this definition. A changed,
+missing, unowned, stale, or version-mismatched wrapper is a setup blocker.

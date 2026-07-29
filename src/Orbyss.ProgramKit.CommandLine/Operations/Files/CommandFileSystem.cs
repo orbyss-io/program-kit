@@ -37,14 +37,57 @@ public sealed class CommandFileSystem : ICommandFileSystem
     }
 
     /// <inheritdoc />
+    public void MoveFile(
+        string sourcePath,
+        string destinationPath,
+        bool overwrite)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+        var destination = Path.GetFullPath(destinationPath);
+        var parent = Path.GetDirectoryName(destination) ??
+            throw new IOException("The explicit destination has no parent directory.");
+        Directory.CreateDirectory(parent);
+        File.Move(Path.GetFullPath(sourcePath), destination, overwrite);
+    }
+
+    /// <inheritdoc />
+    public void DeleteFile(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        File.Delete(Path.GetFullPath(path));
+    }
+
+    /// <inheritdoc />
     public void DeleteDirectory(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var fullPath = Path.GetFullPath(path);
         if (Directory.Exists(fullPath))
         {
+            foreach (var file in Directory.EnumerateFiles(
+                         fullPath,
+                         "*",
+                         SearchOption.AllDirectories))
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+            }
+
             Directory.Delete(fullPath, recursive: true);
         }
+    }
+
+    /// <inheritdoc />
+    public void SetReadOnly(string path, bool isReadOnly)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var fullPath = Path.GetFullPath(path);
+        var attributes = File.GetAttributes(fullPath);
+        File.SetAttributes(
+            fullPath,
+            isReadOnly
+                ? attributes | FileAttributes.ReadOnly
+                : attributes & ~FileAttributes.ReadOnly);
     }
 
     /// <inheritdoc />

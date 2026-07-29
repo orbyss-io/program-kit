@@ -469,6 +469,44 @@ public sealed class DotNetGenerateHostCommandOperationTests
         }
     }
 
+    [TestMethod]
+    public async Task ConsoleColdConsumerInputsCanBeMaterializedExplicitly()
+    {
+        var requested = Environment.GetEnvironmentVariable(
+            "PROGRAM_KIT_CONSOLE_COLD_FIXTURE_ROOT");
+        var root = requested ?? Path.Combine(
+            Path.GetTempPath(),
+            string.Concat(
+                "program-kit-console-cold-inputs-",
+                Guid.NewGuid().ToString("N")));
+        Assert.IsFalse(
+            Directory.Exists(root),
+            "The explicit Console fixture destination must not already exist.");
+        Directory.CreateDirectory(root);
+        try
+        {
+            var fixture = await CreateConsoleFixtureAsync(
+                root,
+                TestContext.CancellationToken);
+
+            Assert.IsTrue(File.Exists(fixture.ShellPath));
+            Assert.IsTrue(File.Exists(fixture.ManifestPath));
+            Assert.IsTrue(File.Exists(Path.Combine(root, "open-console.json")));
+            Assert.IsTrue(File.Exists(Path.Combine(root, "console-binding.json")));
+            Assert.IsNotEmpty(
+                Directory.EnumerateFiles(
+                    Path.Combine(root, "references"),
+                    "*.dll"));
+        }
+        finally
+        {
+            if (requested is null)
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
     private async Task AssertConsoleHostGenerationAsync(
         string expectedDocumentPath)
     {

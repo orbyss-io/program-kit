@@ -7,7 +7,7 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
     private static readonly SemanticVersion CatalogVersion =
-        new("0.1.0-alpha.16");
+        new("0.1.0-alpha.17");
     private static readonly SemanticVersion SchemaVersionAlpha1 =
         new("0.1.0-alpha.1");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
@@ -262,8 +262,41 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                 ],
                 new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
                 "pkcg-w010-approved-review-set-0-1-0-alpha-1");
+    private static readonly ArtifactProvenance
+        ConsoleInputMaterializationProvenance =
+            new(
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:design:program-kit:console-input-materialization-amendment"),
+                        new SemanticVersion("0.1.0-alpha.1"),
+                        new Sha256Digest(
+                            "sha256:9fb6d810dd89232135d048dd54ebfba8d67ac45a46704d7855ef466c0ebb787f")),
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:plan:program-kit:console-input-materialization-amendment"),
+                        new SemanticVersion("0.1.0-alpha.1"),
+                        new Sha256Digest(
+                            "sha256:7303ca2ba0c096d98e71b6cd3474ace8e350a0b9cff72d1d24e9993ebdc98621")),
+                ],
+                new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+                "pkcj-w010a-approved-review-set-0-1-0-alpha-1");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
+        Create(
+            "dotnet-console-input-materialization-request",
+            "dotnet-console-input-materialization-request-0.1.0-alpha.1.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-input-materialization-request/0.1.0-alpha.1/schema.json",
+            "880a401af4afbd5871e11fe2731b02731783ff9fd45c5ebfa9a291104c977150",
+            SchemaVersionAlpha1,
+            ConsoleInputMaterializationProvenance),
+        Create(
+            "dotnet-console-input-materialization-lock",
+            "dotnet-console-input-materialization-lock-0.1.0-alpha.1.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-input-materialization-lock/0.1.0-alpha.1/schema.json",
+            "fb84fbd537f5a0db39c298cf1f7fecf30cf99803d9c109eb36663cadfaa4eb8b",
+            SchemaVersionAlpha1,
+            ConsoleInputMaterializationProvenance),
         Create(
             "dotnet-artifact-input-manifest",
             "artifact-input-manifest.schema.json",

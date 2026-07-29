@@ -22,6 +22,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         "develop-software",
         "implement-software-plan",
         "maintain-software",
+        "publish-dotnet-application-locally",
     ];
     private static readonly string[] RegisteredProviders =
     [
@@ -31,6 +32,18 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     private static readonly Dictionary<string, string> SupportingResourcePaths =
         new(StringComparer.Ordinal)
         {
+            ["consumer-capability-catalog"] =
+                ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
+            ["csharp-gate-alpha1-alpha2-migration"] =
+                "schemas/csharp-build-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json",
+            ["csharp-gate-authoring-catalog"] =
+                ".agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json",
+            ["dotnet-console-input-materialization-guide"] =
+                ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-materialization-guide.md",
+            ["dotnet-console-integration-project-example"] =
+                ".agent-capabilities/supporting-resources/dotnet/Example.ConsoleIntegration.csproj",
+            ["dotnet-console-integration-source-example"] =
+                ".agent-capabilities/supporting-resources/dotnet/ConsoleIntegration.cs",
             ["software-change-completion-profile-set"] =
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
             ["software-change-completion-profile-set-schema"] =
@@ -49,6 +62,8 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/select-build-and-test.md",
             ["software-change-profile-verify-integrity"] =
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/verify-integrity.md",
+            ["software-change-troubleshooting"] =
+                ".agent-capabilities/supporting-resources/troubleshooting/software-change-troubleshooting.md",
         };
     private readonly ICapabilityBundleManifestReader manifestReader;
 
@@ -276,7 +291,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 StringComparer.Ordinal))
         {
             throw InvalidBundle(
-                "The canonical payload must contain exactly the five distributable development capabilities.",
+                "The canonical payload must contain exactly the six consumer capabilities.",
                 "/bundle/manifest/capabilities");
         }
 
@@ -370,19 +385,25 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
         if (!actualIds.SequenceEqual(expectedIds, StringComparer.Ordinal))
         {
             throw InvalidBundle(
-                "The supporting-resource section must contain the exact shared completion profile set.",
+                "The supporting-resource section must contain the exact consumer knowledge resources.",
                 "/bundle/manifest/supportingResources");
         }
 
         foreach (var resource in resources)
         {
             var expectedSource = SupportingResourcePaths[resource.ResourceId];
+            var expectedPackage = string.Equals(
+                    resource.ResourceId,
+                    "csharp-gate-alpha1-alpha2-migration",
+                    StringComparison.Ordinal)
+                ? "contentFiles/any/any/.agent-capabilities/supporting-resources/csharp-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json"
+                : string.Concat("contentFiles/any/any/", expectedSource);
             ValidatePayloadEntry(
                 resource.SourcePath,
                 resource.PackagePath,
                 resource.Sha256,
                 expectedSource,
-                string.Concat("contentFiles/any/any/", expectedSource),
+                expectedPackage,
                 "/bundle/manifest/supportingResources");
         }
     }

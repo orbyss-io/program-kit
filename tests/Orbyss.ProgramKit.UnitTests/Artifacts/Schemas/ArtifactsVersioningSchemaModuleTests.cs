@@ -18,10 +18,9 @@ public sealed class ArtifactsVersioningSchemaModuleTests
         ArtifactsSchemaModule module = new();
         ProgramKitSchemaModuleValidator validator = new();
         var resources = module.Resources
-            .Where(static resource =>
-                resource.ResourceName.Contains(
-                    "0.1.0-alpha.",
-                    StringComparison.Ordinal))
+            .Where(resource => VersioningResourceNames.Contains(
+                resource.ResourceName,
+                StringComparer.Ordinal))
             .ToArray();
 
         var result = validator.Validate(module);

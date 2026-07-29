@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/csharp-build-gates/0.1.0-alpha.2/definitions.schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:csharp-build-gate-definitions",
+  "x-program-kit-version": "0.1.0-alpha.2",
+  "$defs": {
+    "gateDefinition": {
+      "allOf": [
+        {
+          "$ref": "https://schemas.orbyss.io/program-kit/csharp-build-gates/0.1.0-alpha.1/definitions.schema.json#/$defs/gateDefinition"
+        },
+        {
+          "properties": {
+            "analyzerComponents": {
+              "items": {
+                "properties": {
+                  "artifact": {
+                    "oneOf": [
+                      {
+                        "properties": {
+                          "kind": {
+                            "const": "local-non-packable-project"
+                          },
+                          "repositoryRelativeProjectPath": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "package": {
+                            "type": "null"
+                          },
+                          "isPackable": {
+                            "const": false
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "repositoryRelativeProjectPath",
+                          "package",
+                          "isPackable"
+                        ]
+                      },
+                      {
+                        "properties": {
+                          "kind": {
+                            "const": "analyzer-package"
+                          },
+                          "repositoryRelativeProjectPath": {
+                            "type": "null"
+                          },
+                          "package": {
+                            "$ref": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.1/definitions.schema.json#/$defs/artifactReference"
+                          },
+                          "isPackable": {
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "repositoryRelativeProjectPath",
+                          "package",
+                          "isPackable"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "artifact"
+                ]
+              }
+            }
+          },
+          "required": [
+            "analyzerComponents"
+          ]
+        }
+      ]
+    }
+  }
+}

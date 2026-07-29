@@ -15,6 +15,8 @@ public sealed class CSharpGateCommandOperation : ICommandOperation
         "csharp-gate.scaffold",
         "csharp-gate.bind",
         "csharp-gate.verify",
+        "csharp-gate.describe-definition",
+        "csharp-gate.materialize-definition",
     ], StringComparer.Ordinal);
 
     private readonly ICSharpGateCommandService service;

@@ -1,7 +1,8 @@
 {
   "identity": "pkid:review-set:program-kit:consumer-cli-journey-completeness",
   "version": "0.1.0-alpha.1",
-  "state": "ready-for-human-decision",
+  "state": "approved",
+  "implementationStatus": "completed",
   "sourceBasis": {
     "currentCommit": "5273297c666f958840ad0279853fb305349f5571",
     "consoleReachabilityCommit": "00ab82b33061495a90d2e8c2e6bfec669828e370",
@@ -87,11 +88,16 @@
     "staticConformanceDisposition": "reuse-existing at repository scope with exact current private gate and activation matrix",
     "artifactDigests": "passed by SHA-256 recalculation over exact UTF-8 LF bytes",
     "schemaInstantiation": "not applicable: this transitional amendment deliberately does not create another legacy high-major design or plan contract",
-    "runtimeImplementation": "not performed under design authority"
+    "runtimeImplementation": "completed under the exact approved PKCJ-W010 plus PKCJ-W010A atomic boundary: Release build passed with zero warnings and errors; 597 unit tests passed; routine conformance passed 157 tests with one intentionally opt-in Keycloak fixture skipped; all 20 exhaustive gate vectors passed; the final extracted-ZIP cold proof installed the self-contained CLI from 29 coordinated 0.1.0-alpha.2 packages, initialized Codex and Claude, retrieved all six capabilities and sixteen supporting resources at exact bytes, materialized and built a 203-reference consumer Console closure twice idempotently, generated/verified/built the host, and rejected a tampered wrapper."
   },
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-exact-design-and-plan-digests-and-PKCJ-W010",
+    "requiredDecision": "satisfied-by-explicit-human-approval",
     "candidateDesignSha256": "9d336e3015daa8a8ec771d8e8aacc29020175a10174df7964d23088656468648",
-    "candidatePlanSha256": "1e0d8b2090445e327459767a8360d11f48acf6b394516d87b4a5c2c586180246"
+    "candidatePlanSha256": "1e0d8b2090445e327459767a8360d11f48acf6b394516d87b4a5c2c586180246",
+    "authorizedWorkUnits": [
+      "PKCJ-W010",
+      "PKCJ-W010A"
+    ],
+    "humanDecision": "The human approved the exact base and additive amendment design/plan digests and explicitly authorized PKCJ-W010 and PKCJ-W010A."
   }
 }

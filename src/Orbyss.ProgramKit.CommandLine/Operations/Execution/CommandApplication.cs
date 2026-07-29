@@ -4,6 +4,7 @@ using Orbyss.ProgramKit.CommandLine.Commands.Parsing;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
 using Orbyss.ProgramKit.CommandLine.Hosting.IO;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
+using Orbyss.ProgramKit.CommandLine.Operations.Help;
 using Orbyss.ProgramKit.Serialization.Json.Diagnostics;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Execution;
@@ -15,18 +16,21 @@ public sealed class CommandApplication : ICommandApplication
     private readonly ICommandOperationRegistry operations;
     private readonly ICommandConsole console;
     private readonly ICommandDiagnosticFormatter formatter;
+    private readonly ICommandHelpRenderer help;
 
     /// <summary>Initializes the application with all behavior supplied explicitly.</summary>
     public CommandApplication(
         ICommandParser parser,
         ICommandOperationRegistry operations,
         ICommandConsole console,
-        ICommandDiagnosticFormatter formatter)
+        ICommandDiagnosticFormatter formatter,
+        ICommandHelpRenderer help)
     {
         this.parser = parser ?? throw new ArgumentNullException(nameof(parser));
         this.operations = operations ?? throw new ArgumentNullException(nameof(operations));
         this.console = console ?? throw new ArgumentNullException(nameof(console));
         this.formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
+        this.help = help ?? throw new ArgumentNullException(nameof(help));
     }
 
     /// <inheritdoc />
@@ -37,6 +41,24 @@ public sealed class CommandApplication : ICommandApplication
         CommandInvocation? invocation = null;
         try
         {
+            if (tokens.Count == 0 ||
+                tokens.Count == 1 &&
+                string.Equals(tokens[0], "--help", StringComparison.Ordinal))
+            {
+                await console.WriteStandardOutputAsync(
+                    help.RenderTopLevel(tokens.Count == 0),
+                    cancellationToken).ConfigureAwait(false);
+                return CommandExitCode.Success;
+            }
+
+            if (string.Equals(tokens[^1], "--help", StringComparison.Ordinal))
+            {
+                await console.WriteStandardOutputAsync(
+                    help.RenderCommandPath(tokens.Take(tokens.Count - 1).ToArray()),
+                    cancellationToken).ConfigureAwait(false);
+                return CommandExitCode.Success;
+            }
+
             invocation = parser.Parse(tokens);
             var operation = operations.Resolve(invocation.Descriptor.Key);
             var result = await operation.ExecuteAsync(

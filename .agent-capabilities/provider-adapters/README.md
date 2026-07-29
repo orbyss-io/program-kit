@@ -6,8 +6,7 @@ provider. It owns only:
 
 - provider-required trigger and discovery metadata;
 - the provider's required output path beneath a human-led workspace root; and
-- one generated pointer to one canonical definition under the selected
-  Program Kit `.agent-capabilities/capabilities/` tree.
+- exact installed-CLI preflight and read commands for one capability ID.
 
 An adapter never copies canonical procedure, authority, safety, or verification
 rules. Installing an adapter does not grant authority or begin work.
@@ -20,12 +19,10 @@ testing adapter templates never renders a wrapper.
 ## Implemented provider: Codex
 
 Codex templates live under `provider-adapters/codex/<capability-id>/SKILL.md`.
-Each template contains the exact
-`{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}` token once. The Program Kit CLI
-replaces it with a forward-slash relative path computed from the generated
-workspace `.codex/skills/<capability-id>/SKILL.md` to the selected canonical
-definition. This keeps the adapter portable when Program Kit is located at
-`program-kit/`, `tools/program-kit/`, or another explicit workspace path.
+Each consumer template calls
+`program-kit capabilities preflight <capability-id> --workspace-root .` and
+`program-kit capabilities read <capability-id> --workspace-root .`. Canonical
+knowledge stays embedded in the exact installed CLI.
 
 ## Implemented provider: Claude Code
 
@@ -38,18 +35,18 @@ behavior of the Claude Code CLI and desktop application (2026 releases, which
 also accept the `/<skill-name>` invocation form).
 
 Claude templates live under
-`provider-adapters/claude/<capability-id>/SKILL.md`. Each template contains
-the exact `{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}` token once. The Program
-Kit CLI replaces it with a forward-slash relative path computed from the
-generated workspace `.claude/skills/<capability-id>/SKILL.md` to the selected
-canonical definition, exactly as for Codex.
+`provider-adapters/claude/<capability-id>/SKILL.md` and use the same exact
+installed-CLI preflight/read contract as Codex.
 
 The workspace ownership lock at `.program-kit/capabilities.lock.json` records
-one provider: the most recently initialized one. Initializing a second
-provider renders that provider's wrappers into its own discovery root and
-rewrites the lock; wrappers whose bytes are no longer recorded by the current
-lock are treated as human-owned and initialization refuses to overwrite them
-when they differ.
+every initialized reviewed provider plus exact CLI, payload, resource,
+template, and output digests. Initializing a second provider preserves the
+first provider's verified wrappers. Unowned or modified paths are refused
+without partial writes.
+
+The contributor-only `author-and-maintain-skills` wrappers are not consumer
+templates. They retain the repository-frozen canonical-path token and are
+excluded from the installed CLI payload.
 
 ## Adding another provider
 
@@ -58,10 +55,10 @@ and the provider's local discovery contract is known from authoritative,
 current documentation or direct provider behavior. A contributor must:
 
 1. document the provider identifier, supported version or revision, discovery
-   root, file naming rules, trigger metadata, and canonical-pointer semantics;
+   root, file naming rules, trigger metadata, and CLI-retrieval semantics;
 2. add inert templates below
    `.agent-capabilities/provider-adapters/<provider>/`;
-3. keep each template thin and use exactly one canonical-path token rather than
+3. keep each template thin and use exact preflight/read commands rather than
    copying capability rules;
 4. register the provider explicitly in the capability source manifest and CLI
    provider allow-list;
@@ -74,6 +71,5 @@ current documentation or direct provider behavior. A contributor must:
    change.
 
 Knowing only an output directory is insufficient. Until the provider's exact
-adapter format and discovery behavior are reviewed and tested, users may ask
-that provider to read a canonical capability directly, but Program Kit must not
-claim that provider is initialized or supported.
+adapter format and discovery behavior are reviewed and tested, Program Kit
+must not claim that provider is initialized or supported.

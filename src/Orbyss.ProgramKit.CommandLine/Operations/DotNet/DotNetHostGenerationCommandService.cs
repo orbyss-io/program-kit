@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.References;
+using Orbyss.ProgramKit.CommandLine.Contracts.Product;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
+using Orbyss.ProgramKit.CommandLine.Operations.Local;
 using Orbyss.ProgramKit.CommandLine.Operations.Validation;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Diagnostics;
@@ -14,6 +16,7 @@ using Orbyss.ProgramKit.DotNet.Generation;
 using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
 using Orbyss.ProgramKit.DotNet.Generation.Console.Compilation;
 using Orbyss.ProgramKit.DotNet.Generation.Console.Contracts;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Materialization;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Shells;
@@ -30,6 +33,10 @@ public sealed class DotNetHostGenerationCommandService :
 {
     private const string ConsoleManifestSchema =
         "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1";
+    private const string ConsoleMaterializationLockFile =
+        ".program-kit-console-inputs.lock.json";
+    private const string ConsoleMaterializationLockSchema =
+        "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1";
     private static readonly SemanticVersion ConsoleManifestVersion =
         new("0.1.0-alpha.1");
     private readonly ICommandFileSystem fileSystem;
@@ -150,8 +157,11 @@ public sealed class DotNetHostGenerationCommandService :
         EnsureShellDigest(shellBytes.Span, shellRevision.Digest);
         var shellLock = lockBuilder.Build(shell, shellRevision);
         var hostLock = lockSelector.Resolve(shellLock, hostIdentity, host.Kind);
+        var outputRoot = Path.GetFullPath(request.OutputRoot);
         var consoleInput = await ResolveConsoleGenerationAsync(
             readRoot,
+            outputRoot,
+            manifestBytes,
             manifest,
             consoleGenerations,
             host,
@@ -173,7 +183,6 @@ public sealed class DotNetHostGenerationCommandService :
                 : null,
             consoleInput);
         var service = SelectService(host.Kind);
-        var outputRoot = Path.GetFullPath(request.OutputRoot);
         var anchorPath = GeneratedOutputPathPolicy.AnchorPath(outputRoot);
         if (fileSystem.FileExists(anchorPath) ||
             fileSystem.DirectoryExists(anchorPath))
@@ -223,6 +232,8 @@ public sealed class DotNetHostGenerationCommandService :
     private async ValueTask<DotNetConsoleGenerationInput?>
         ResolveConsoleGenerationAsync(
             string readRoot,
+            string outputRoot,
+            ReadOnlyMemory<byte> manifestBytes,
             DotNetArtifactInputManifest manifest,
             ImmutableArray<DotNetConsoleGenerationInputBinding>
                 consoleGenerations,
@@ -352,13 +363,146 @@ public sealed class DotNetHostGenerationCommandService :
                     resolved.Revision.Digest));
         }
 
+        var projectReferencePath =
+            await ResolveMaterializedProjectReferenceAsync(
+                readRoot,
+                outputRoot,
+                manifestBytes,
+                binding,
+                cancellationToken).ConfigureAwait(false);
         return new DotNetConsoleGenerationInput(
             binding,
             consumerInput.FullPath,
             references
                 .OrderBy(static reference => reference.Path, StringComparer.Ordinal)
-                .ToImmutableArray());
+                .ToImmutableArray(),
+            projectReferencePath);
     }
+
+    private async ValueTask<string?> ResolveMaterializedProjectReferenceAsync(
+        string readRoot,
+        string outputRoot,
+        ReadOnlyMemory<byte> manifestBytes,
+        DotNetConsoleBindingDocument binding,
+        CancellationToken cancellationToken)
+    {
+        var lockPath = Path.Combine(
+            readRoot,
+            ConsoleMaterializationLockFile);
+        if (!fileSystem.FileExists(lockPath))
+        {
+            return null;
+        }
+
+        var lockBytes = await fileSystem.ReadAllBytesAsync(
+            lockPath,
+            cancellationToken).ConfigureAwait(false);
+        var materializationLock =
+            serializer.Read<DotNetConsoleInputMaterializationLock>(
+                lockBytes,
+                DotNetJsonProfiles.ShellBootstrap.Reference,
+                JsonSerializationLimits.Default);
+        var manifestDigest = Digest(manifestBytes.Span);
+        if (!string.Equals(
+                materializationLock.Schema,
+                ConsoleMaterializationLockSchema,
+                StringComparison.Ordinal) ||
+            materializationLock.Version != ConsoleManifestVersion ||
+            materializationLock.ProgramKitVersion.Value !=
+                ProgramKitProductInfo.Version ||
+            materializationLock.ManifestDigest != manifestDigest ||
+            materializationLock.ConsumerProjectPath !=
+                binding.ConsumerProject.RelativeProjectPath ||
+            materializationLock.ConsumerReference.Revision.Digest !=
+                binding.ConsumerProject.ReferenceAssemblyDigest ||
+            materializationLock.ConsumerReference.RelativePath !=
+                binding.ConsumerProject.RelativeReferenceAssemblyPath ||
+            !materializationLock.ConsumerReference.Consumer)
+        {
+            throw InvalidConsoleInput(
+                "The Console materialization lock is stale, incompatible, or inconsistent with the selected binding.");
+        }
+
+        var outputs = materializationLock.Outputs;
+        if (outputs.IsDefaultOrEmpty ||
+            outputs.Count(output =>
+                output.RelativePath == "artifact-manifest.json" &&
+                output.Digest == manifestDigest) != 1)
+        {
+            throw InvalidConsoleInput(
+                "The Console materialization lock does not bind the selected artifact manifest.");
+        }
+
+        var expectedPaths = outputs
+            .Select(static output => output.RelativePath)
+            .Append(ConsoleMaterializationLockFile)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var actualPaths = fileSystem.EnumerateFiles(readRoot)
+            .Select(path => LocalOperationPaths.RelativeTo(readRoot, path))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (!expectedPaths.SequenceEqual(
+                actualPaths,
+                StringComparer.Ordinal))
+        {
+            throw InvalidConsoleInput(
+                "The Console materialization directory contains missing or unexpected files.");
+        }
+
+        foreach (var output in outputs)
+        {
+            var bytes = await fileSystem.ReadAllBytesAsync(
+                LocalOperationPaths.ResolveBelow(
+                    readRoot,
+                    output.RelativePath,
+                    "A Console materialization output"),
+                cancellationToken).ConfigureAwait(false);
+            if (Digest(bytes.Span) != output.Digest)
+            {
+                throw InvalidConsoleInput(
+                    "A Console materialization output differs from its ownership lock.");
+            }
+        }
+
+        var relativeWorkspacePath =
+            materializationLock.WorkspaceRootRelativePath.Replace(
+                '/',
+                Path.DirectorySeparatorChar);
+        var workspaceRoot = Path.GetFullPath(
+            relativeWorkspacePath,
+            readRoot);
+        LocalOperationPaths.EnsureSafeRoot(workspaceRoot);
+        _ = LocalOperationPaths.RelativeTo(workspaceRoot, readRoot);
+        _ = LocalOperationPaths.RelativeTo(workspaceRoot, outputRoot);
+        var projectPath = LocalOperationPaths.ResolveBelow(
+            workspaceRoot,
+            materializationLock.ConsumerProjectPath,
+            "The materialized Console integration project");
+        if (!fileSystem.FileExists(projectPath))
+        {
+            throw InvalidConsoleInput(
+                "The materialized Console integration project no longer exists.");
+        }
+
+        var relativeProjectPath = Path.GetRelativePath(
+                outputRoot,
+                projectPath)
+            .Replace(Path.DirectorySeparatorChar, '/');
+        if (Path.IsPathRooted(relativeProjectPath))
+        {
+            throw InvalidConsoleInput(
+                "The generated Console host and integration project must share one consumer workspace root.");
+        }
+
+        return relativeProjectPath;
+    }
+
+    private static Sha256Digest Digest(ReadOnlySpan<byte> content) =>
+        new(
+            string.Concat(
+                "sha256:",
+                Convert.ToHexStringLower(SHA256.HashData(content))));
 
     private async ValueTask VerifyInputAsync(
         string readRoot,

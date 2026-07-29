@@ -1,14 +1,19 @@
 ---
 name: implement-software-plan
-description: Implement an exact human-approved repository software plan, verify each bounded work unit, and stop on material architectural deviation.
+description: Execute an exact human-approved repository software plan under its recorded approval. Use directly only when the exact approved artifacts and authorized work unit are supplied.
 ---
 
 # implement-software-plan
 
-Load and follow the complete canonical definition at
-`{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}` before
-acting.
+Verify setup and load the complete canonical Program Kit capability by invoking:
 
-This Codex skill is only a provider wrapper. Its front matter registers the
-trigger; the canonical provider-neutral capability owns the procedure and
-boundaries.
+`program-kit capabilities preflight implement-software-plan --workspace-root .`
+
+`program-kit capabilities read implement-software-plan --workspace-root .`
+
+Read and follow the complete returned definition before acting. If either
+command is unavailable or reports stale setup, stop and report a Program Kit
+setup blocker.
+
+This provider skill is only trigger/registration metadata. The installed
+Program Kit CLI owns delivery of the canonical provider-neutral capability.

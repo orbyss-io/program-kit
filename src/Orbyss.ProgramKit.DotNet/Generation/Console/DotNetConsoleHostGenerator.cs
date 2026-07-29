@@ -94,7 +94,19 @@ internal sealed class DotNetConsoleHostGenerator :
                 "/consoleGeneration");
         }
 
-        var outputs = renderer.Render(projection.Projection);
+        var selectedProjection = projection.Projection;
+        if (input.ConsumerProjectReferencePath is not null)
+        {
+            ValidateProjectReferencePath(
+                input.ConsumerProjectReferencePath);
+            selectedProjection = selectedProjection with
+            {
+                ConsumerProjectPath =
+                    input.ConsumerProjectReferencePath,
+            };
+        }
+
+        var outputs = renderer.Render(selectedProjection);
         var sources = outputs
             .Where(static output =>
                 output.RelativePath.EndsWith(
@@ -128,5 +140,24 @@ internal sealed class DotNetConsoleHostGenerator :
         }
 
         return outputs;
+    }
+
+    private static void ValidateProjectReferencePath(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath) ||
+            Path.IsPathRooted(relativePath) ||
+            relativePath.Contains('\\', StringComparison.Ordinal) ||
+            !relativePath.EndsWith(
+                ".csproj",
+                StringComparison.OrdinalIgnoreCase) ||
+            relativePath.Split('/').Any(static segment =>
+                segment.Length == 0 ||
+                string.Equals(segment, ".", StringComparison.Ordinal)))
+        {
+            throw DotNetKitException.Create(
+                DotNetDiagnosticIds.InvalidConsoleBinding,
+                "The generated Console ProjectReference path must be one normalized relative .csproj path.",
+                "/consoleGeneration/consumerProjectReferencePath");
+        }
     }
 }

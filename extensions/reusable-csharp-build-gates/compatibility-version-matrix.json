@@ -69,21 +69,21 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
       "version": "0.1.0-alpha.2",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
+      "sha256": "sha256:05bd18069759ff9bb55905b27ab7c1c142ea9ef97d68e6ab2ef10b12028aa86b"
     },
     {
       "clockId": "capabilities",
       "identity": "pkid:capability:program-kit:design-csharp-build-gate",
       "version": "1.0.0",
       "path": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:c498d0da7cdc9e0e6a3f320848980bb5a8f26f998da3f6dd8dfb1c382ddc4852"
+      "sha256": "sha256:4aa71f2ec28a937af8a1f2270b658338a83256b164a3acaf1fe10f6ff20fa617"
     },
     {
       "clockId": "capability-bundle",
       "identity": "pkid:bundle:program-kit:capabilities",
       "version": "0.1.0-alpha.2",
       "path": ".agent-capabilities/capability-bundle-manifest.json",
-      "sha256": "sha256:e90c0f11b21f0c2adc112675644e38ad9f09df022eee597d3f81561f33d0cfe1"
+      "sha256": "sha256:d7f3f88897160a317ff26de54e02996b31c3e4f07fce2d9a7dc98e0ed00b3da0"
     },
     {
       "clockId": "toolchain",
@@ -178,13 +178,13 @@
       "source": "capabilities",
       "target": "operations",
       "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:a08816b00197157a3a89cd1836db5bf010b7d192e8ca45cedbd5b764c21569e9"
+      "acceptedSha256": "sha256:05bd18069759ff9bb55905b27ab7c1c142ea9ef97d68e6ab2ef10b12028aa86b"
     },
     {
       "source": "capability-bundle",
       "target": "capabilities",
       "acceptedVersion": "[1.0.0]",
-      "acceptedSha256": "sha256:c498d0da7cdc9e0e6a3f320848980bb5a8f26f998da3f6dd8dfb1c382ddc4852"
+      "acceptedSha256": "sha256:4aa71f2ec28a937af8a1f2270b658338a83256b164a3acaf1fe10f6ff20fa617"
     },
     {
       "source": "selection-locks",

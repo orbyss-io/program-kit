@@ -1,35 +1,49 @@
 using Orbyss.ProgramKit.Artifacts.Primitives;
+using Orbyss.ProgramKit.Artifacts.Diagnostics;
 using Orbyss.ProgramKit.Artifacts.Schemas;
 using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.Artifacts.Versioning;
 using Orbyss.ProgramKit.Architecture.Schemas;
+using Orbyss.ProgramKit.Architecture.Diagnostics;
 using Orbyss.ProgramKit.CommandLine.Commands.Parsing;
 using Orbyss.ProgramKit.CommandLine.Contracts.Descriptors;
 using Orbyss.ProgramKit.CommandLine.Hosting.IO;
 using Orbyss.ProgramKit.CommandLine.Operations;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
+using Orbyss.ProgramKit.CommandLine.Operations.Artifacts;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Payload;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Readiness;
 using Orbyss.ProgramKit.CommandLine.Operations.CSharpBuildGates;
 using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
+using Orbyss.ProgramKit.CommandLine.Operations.Help;
 using Orbyss.ProgramKit.CommandLine.Operations.Json;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet.Clients;
+using Orbyss.ProgramKit.CommandLine.Operations.DotNet.Materialization;
 using Orbyss.ProgramKit.CommandLine.Operations.DotNet.Refresh;
+using Orbyss.ProgramKit.CommandLine.Operations.Diagnostics;
 using Orbyss.ProgramKit.CommandLine.Operations.Packages;
 using Orbyss.ProgramKit.CommandLine.Operations.Processes;
 using Orbyss.ProgramKit.CommandLine.Operations.Publishing;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
+using Orbyss.ProgramKit.CommandLine.Operations.Schemas;
 using Orbyss.ProgramKit.CommandLine.Operations.Validation;
 using Orbyss.ProgramKit.Development.Schemas;
+using Orbyss.ProgramKit.Development.Diagnostics;
 using Orbyss.ProgramKit.CSharpBuildGates.Authoring.Composition.Scaffolding;
 using Orbyss.ProgramKit.CSharpBuildGates.Authoring.Operations.Scaffolding;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Validation;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Diagnostics;
 using Orbyss.ProgramKit.CSharpBuildGates.Testing.Operations.Execution;
 using Orbyss.ProgramKit.DotNet.Composition;
 using Orbyss.ProgramKit.DotNet.Documentation.Api;
 using Orbyss.ProgramKit.DotNet.Generation;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Binding;
+using Orbyss.ProgramKit.DotNet.Generation.Console.Materialization;
 using Orbyss.ProgramKit.DotNet.Inputs;
 using Orbyss.ProgramKit.DotNet.Locks;
 using Orbyss.ProgramKit.DotNet.Schemas;
@@ -37,20 +51,28 @@ using Orbyss.ProgramKit.DotNet.Validation;
 using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Verification;
 using Orbyss.ProgramKit.GeneratedOutputIntegrity.Operations.Sealing;
 using Orbyss.ProgramKit.Planning.Schemas;
+using Orbyss.ProgramKit.Planning.Diagnostics;
 using Orbyss.ProgramKit.Operations.Contracts.Schemas;
 using Orbyss.ProgramKit.Operations.Contracts.Validation;
+using Orbyss.ProgramKit.Operations.Contracts.Diagnostics;
 using Orbyss.ProgramKit.OpenConsole.Contracts;
 using Orbyss.ProgramKit.OpenConsole.Contracts.Schemas;
 using Orbyss.ProgramKit.OpenConsole.Contracts.Validation;
 using Orbyss.ProgramKit.Quality.Schemas;
+using Orbyss.ProgramKit.Quality.Diagnostics;
 using Orbyss.ProgramKit.Serialization.Json.Canonicalization;
 using Orbyss.ProgramKit.Serialization.Json.Composition;
 using Orbyss.ProgramKit.Serialization.Json.Profiles;
 using Orbyss.ProgramKit.Serialization.Json.Schemas;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
+using Orbyss.ProgramKit.Serialization.Json.Diagnostics;
 using Orbyss.ProgramKit.Tasks.Core.Schemas;
+using Orbyss.ProgramKit.Tasks.Core.Diagnostics;
+using Orbyss.ProgramKit.Tasks.Diagnostics;
 using Orbyss.ProgramKit.Tasks.Schedules.Schemas;
+using Orbyss.ProgramKit.Modularity.Diagnostics;
 using Orbyss.ProgramKit.Workbench.Operations.Schemas;
+using Orbyss.ProgramKit.Workbench.Operations.Diagnostics;
 using Orbyss.ProgramKit.Workbench.Composition.Generation;
 using Orbyss.ProgramKit.Workbench.Operations.Generation;
 using Orbyss.ProgramKit.Workbench.Operations.CSharpBuildGates;
@@ -95,7 +117,14 @@ public static class CommandLineComposition
             new CommandOperationRegistry(operationChain);
         ICommandDiagnosticFormatter formatter =
             new CommandDiagnosticFormatter(serializer);
-        return new CommandApplication(parser, operations, console, formatter);
+        ICommandHelpRenderer help =
+            new CommandHelpRenderer(CommandDescriptorCatalog.All);
+        return new CommandApplication(
+            parser,
+            operations,
+            console,
+            formatter,
+            help);
     }
 
     private static ICommandOperationChain CreateBaselineOperations(
@@ -104,19 +133,67 @@ public static class CommandLineComposition
     {
         ICommandFileSystem fileSystem = new CommandFileSystem();
         CommandProcessRunner processRunner = new();
+        ArtifactsSchemaModule artifactsSchemas = new();
+        ArchitectureSchemaModule architectureSchemas = new();
+        QualitySchemaModule qualitySchemas = new();
+        PlanningSchemaModule planningSchemas = new();
+        DevelopmentSchemaModule developmentSchemas = new();
+        SerializationJsonSchemaModule serializationSchemas = new();
+        TasksCoreSchemaModule taskCoreSchemas = new();
+        TaskSchedulesSchemaModule taskScheduleSchemas = new();
+        OpenConsoleSchemaModule openConsoleSchemas = new();
+        DotNetSchemaModule dotNetSchemas = new(
+            new OperationsSchemaModule(),
+            new Orbyss.ProgramKit.SecretResolution.Contracts.Schemas.SecretResolutionSchemaModule());
+        CSharpBuildGateSchemaModule csharpBuildGateSchemas = new();
+        CompositeSchemaModule csharpBuildGateSchemaClosure = new(
+            artifactsSchemas,
+            csharpBuildGateSchemas);
+        IProgramKitSchemaModule[] schemaModules =
+        [
+            artifactsSchemas,
+            architectureSchemas,
+            qualitySchemas,
+            planningSchemas,
+            developmentSchemas,
+            serializationSchemas,
+            taskCoreSchemas,
+            taskScheduleSchemas,
+            openConsoleSchemas,
+            dotNetSchemas,
+            csharpBuildGateSchemas,
+        ];
         ICommandSchemaSelector schemaSelector = new CommandSchemaSelector(
-            new ArtifactsSchemaModule(),
-            new ArchitectureSchemaModule(),
-            new QualitySchemaModule(),
-            new PlanningSchemaModule(),
-            new DevelopmentSchemaModule(),
-            new SerializationJsonSchemaModule(),
-            new TasksCoreSchemaModule(),
-            new TaskSchedulesSchemaModule(),
-            new OpenConsoleSchemaModule(),
-            new DotNetSchemaModule(
-                new OperationsSchemaModule(),
-                new Orbyss.ProgramKit.SecretResolution.Contracts.Schemas.SecretResolutionSchemaModule()));
+            artifactsSchemas,
+            architectureSchemas,
+            qualitySchemas,
+            planningSchemas,
+            developmentSchemas,
+            serializationSchemas,
+            taskCoreSchemas,
+            taskScheduleSchemas,
+            openConsoleSchemas,
+            dotNetSchemas,
+            csharpBuildGateSchemas,
+            csharpBuildGateSchemaClosure);
+        ISchemaCatalog schemaCatalog = new SchemaCatalog(schemaModules);
+        ICommandHelpRenderer help =
+            new CommandHelpRenderer(CommandDescriptorCatalog.All);
+        IConsumerCapabilityPayload capabilityPayload =
+            new EmbeddedConsumerCapabilityPayload(
+                new CapabilityBundleManifestReader(),
+                CommandDescriptorCatalog.All,
+                schemaCatalog);
+        ICapabilityInitializationLockSerializer capabilityLockSerializer =
+            new CapabilityInitializationLockSerializer();
+        ICapabilityReadinessService capabilityReadiness =
+            new CapabilityReadinessService(
+                fileSystem,
+                capabilityPayload,
+                capabilityLockSerializer);
+        IDiagnosticExplanationCatalog diagnosticCatalog =
+            new DiagnosticExplanationCatalog(
+                DiagnosticDefinitions());
         var moduleValidator = new ProgramKitSchemaModuleValidator();
         IWorkbenchSchemaValidator schemaValidator =
             new JsonSchemaWorkbenchValidator(canonicalizer, moduleValidator);
@@ -174,6 +251,17 @@ public static class CommandLineComposition
             new GeneratedOutputSealer());
         ICommandOperation dotNetGeneration =
             new DotNetGenerateHostCommandOperation(hostGeneration);
+        ICommandOperation consoleInputMaterialization =
+            new MaterializeConsoleInputsCommandOperation(
+                new ConsoleInputMaterializer(
+                    fileSystem,
+                    processRunner,
+                    serializer,
+                    shellValidator,
+                    new OpenConsoleDocumentValidator(),
+                    new DotNetConsoleBindingValidator(),
+                    new DotNetConsoleMetadataInspector(),
+                    new DotNetConsoleIntegrationAssemblyInspector()));
         ICommandOperation generatedOutputVerification =
             new DotNetVerifyHostCommandOperation(
                 new GeneratedOutputIntegrityVerifier());
@@ -228,8 +316,8 @@ public static class CommandLineComposition
             new InitializeCapabilitiesCommandOperation(
                 new CapabilityInitializer(
                     fileSystem,
-                    new CapabilityBundleManifestReader(),
-                    new CapabilityInitializationLockSerializer()));
+                    capabilityPayload,
+                    capabilityLockSerializer));
         ICSharpBuildGateOperationService csharpGateOperations =
             new CSharpBuildGateOperationService(
                 new CSharpBuildGateDefinitionValidator(),
@@ -241,7 +329,10 @@ public static class CommandLineComposition
             new CSharpGateCommandService(
                 fileSystem,
                 serializer,
-                csharpGateOperations);
+                csharpGateOperations,
+                capabilityPayload,
+                schemaValidator,
+                csharpBuildGateSchemaClosure);
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {
@@ -257,6 +348,8 @@ public static class CommandLineComposition
                 "digest" => new DigestCommandOperation(
                     fileSystem,
                     canonicalizer),
+                "dotnet.materialize-console-inputs" =>
+                    consoleInputMaterialization,
                 "dotnet.generate-host" => dotNetGeneration,
                 "dotnet.verify-host" => generatedOutputVerification,
                 "dotnet.refresh-host" => hostRefresh,
@@ -266,11 +359,38 @@ public static class CommandLineComposition
                 "capabilities.render-catalog" => capabilityCatalogOperation,
                 "capabilities.verify-bundle" => capabilityBundleOperation,
                 "capabilities.initialize" => capabilityInitializationOperation,
+                "capabilities.catalog" or
+                "capabilities.preflight" or
+                "capabilities.read" or
+                "capabilities.read-resource" =>
+                    new CapabilityReadCommandOperation(
+                        descriptor.Key,
+                        capabilityReadiness),
+                "commands.describe" =>
+                    new DescribeCommandOperation(
+                        CommandDescriptorCatalog.All,
+                        help),
+                "schemas.list" or
+                "schemas.read" =>
+                    new SchemaCommandOperation(
+                        descriptor.Key,
+                        schemaCatalog),
+                "diagnostics.explain" =>
+                    new DiagnosticExplainCommandOperation(
+                        diagnosticCatalog),
+                "artifacts.inspect" =>
+                    new ArtifactInspectCommandOperation(
+                        fileSystem,
+                        schemaSelector,
+                        schemaValidator,
+                        capabilityPayload),
                 "csharp-gate.validate-definition" or
                 "csharp-gate.render-definition" or
                 "csharp-gate.scaffold" or
                 "csharp-gate.bind" or
-                "csharp-gate.verify" =>
+                "csharp-gate.verify" or
+                "csharp-gate.describe-definition" or
+                "csharp-gate.materialize-definition" =>
                     new CSharpGateCommandOperation(
                         descriptor.Key,
                         csharpGateCommands),
@@ -291,4 +411,20 @@ public static class CommandLineComposition
             : commandKey is "packages.prepare-local" or "dotnet.publish-local"
                 ? "PK-W065"
                 : "an explicit Workbench operation adapter";
+
+    private static IEnumerable<ProgramKitDiagnosticDefinition>
+        DiagnosticDefinitions() =>
+        ArtifactDiagnosticCatalog.Definitions
+            .Concat(ArchitectureDiagnosticCatalog.Definitions)
+            .Concat(CSharpBuildGateDiagnosticCatalog.Definitions)
+            .Concat(CommandDiagnosticDefinitionCatalog.Definitions)
+            .Concat(DevelopmentDiagnosticCatalog.Definitions)
+            .Concat(ModularityDiagnosticCatalog.Definitions)
+            .Concat(OperationsDiagnosticCatalog.Definitions)
+            .Concat(PlanningDiagnosticCatalog.Definitions)
+            .Concat(ProgramKitJsonDiagnosticCatalog.Definitions)
+            .Concat(QualityDiagnosticCatalog.Definitions)
+            .Concat(TaskDiagnosticCatalog.Definitions)
+            .Concat(TasksCoreDiagnosticCatalog.Definitions)
+            .Concat(WorkbenchDiagnosticCatalog.Definitions);
 }

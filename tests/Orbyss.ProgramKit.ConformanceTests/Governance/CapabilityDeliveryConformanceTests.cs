@@ -20,6 +20,7 @@ public sealed class CapabilityDeliveryConformanceTests
         "develop-software",
         "implement-software-plan",
         "maintain-software",
+        "publish-dotnet-application-locally",
     ];
 
     private static readonly string[] RegisteredCapabilityIds =
@@ -98,7 +99,7 @@ public sealed class CapabilityDeliveryConformanceTests
     {
         foreach (var provider in RegisteredProviders)
         {
-            foreach (var capabilityId in RegisteredCapabilityIds)
+            foreach (var capabilityId in DistributedCapabilityIds)
             {
                 var label = string.Concat(provider, "/", capabilityId);
                 var wrapper = ConformanceInputs.Read(
@@ -112,11 +113,27 @@ public sealed class CapabilityDeliveryConformanceTests
                     string.Concat("name: ", capabilityId),
                     wrapper,
                     label);
-                Assert.HasCount(
-                    1,
-                    wrapper.Split(
-                        "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}",
-                        StringSplitOptions.None).Skip(1),
+                Assert.Contains(
+                    string.Concat(
+                        "program-kit capabilities preflight ",
+                        capabilityId,
+                        " --workspace-root ."),
+                    wrapper,
+                    label);
+                Assert.Contains(
+                    string.Concat(
+                        "program-kit capabilities read ",
+                        capabilityId,
+                        " --workspace-root ."),
+                    wrapper,
+                    label);
+                Assert.DoesNotContain(
+                    "{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}",
+                    wrapper,
+                    label);
+                Assert.DoesNotContain(
+                    ".agent-capabilities/",
+                    wrapper,
                     label);
                 Assert.DoesNotContain("## Procedure", wrapper, label);
                 Assert.DoesNotContain("## Allowed actions", wrapper, label);
@@ -146,7 +163,7 @@ public sealed class CapabilityDeliveryConformanceTests
             "A yes is an explicit",
             design);
         Assert.Contains(
-            "missing wrapper is a setup blocker",
+            "A non-ready result is a setup blocker",
             design);
         Assert.Contains(
             "Use it only after a human explicitly starts",
@@ -190,8 +207,8 @@ public sealed class CapabilityDeliveryConformanceTests
             "materially changed architecture",
             routing);
         Assert.Contains(
-            "../../supporting-resources/completion-profiles/software-change/" +
-            "completion-profile-set-1.0.0.json",
+            "program-kit capabilities read-resource " +
+            "software-change-completion-profile-set --workspace-root .",
             maintenance);
         Assert.Contains(
             "exact human-approved Program Kit version",
@@ -299,7 +316,7 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
-    public void BundleManifestAllowsExactlyFiveDefinitionsAndTheirAdapters()
+    public void BundleManifestAllowsExactlySixDefinitionsAndTheirAdapters()
     {
         var schema = JsonSchema.FromText(
             ConformanceInputs.Read(
@@ -327,7 +344,7 @@ public sealed class CapabilityDeliveryConformanceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
         Assert.AreSequenceEqual(DistributedCapabilityIds, capabilityIds);
-        Assert.DoesNotContain(
+        Assert.Contains(
             "publish-dotnet-application-locally",
             capabilityIds);
         Assert.DoesNotContain(
@@ -377,24 +394,112 @@ public sealed class CapabilityDeliveryConformanceTests
                             "/SKILL.md"))));
         }
 
-        Assert.HasCount(9, manifest.SupportingResources);
+        Assert.HasCount(16, manifest.SupportingResources);
         foreach (var resource in manifest.SupportingResources)
         {
             const string sourcePrefix =
                 ".agent-capabilities/supporting-resources/";
-            Assert.StartsWith(sourcePrefix, resource.SourcePath);
-            Assert.AreEqual(
+            if (string.Equals(
+                    resource.ResourceId,
+                    "csharp-gate-alpha1-alpha2-migration",
+                    StringComparison.Ordinal))
+            {
+                Assert.AreEqual(
+                    "schemas/csharp-build-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json",
+                    resource.SourcePath);
+                Assert.AreEqual(
+                    resource.Sha256,
+                    Digest(
+                        ConformanceInputs.ReadBytes(
+                            "Schemas/csharp-build-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json")));
+            }
+            else
+            {
+                Assert.StartsWith(sourcePrefix, resource.SourcePath);
+                Assert.AreEqual(
+                    string.Concat(
+                        "contentFiles/any/any/",
+                        resource.SourcePath),
+                    resource.PackagePath);
+                Assert.AreEqual(
+                    resource.Sha256,
+                    Digest(
+                        ConformanceInputs.ReadBytes(
+                            string.Concat(
+                                "Capabilities/SupportingResources/",
+                                resource.SourcePath[sourcePrefix.Length..]))));
+            }
+        }
+    }
+
+    [TestMethod]
+    public void ConsoleMaterializationKnowledgeClosureIsCompleteAndExecutable()
+    {
+        const string resourceRoot =
+            "Capabilities/SupportingResources/dotnet/";
+        var guide = ConformanceInputs.Read(
+            string.Concat(
+                resourceRoot,
+                "dotnet-console-input-materialization-guide.md"));
+        var project = ConformanceInputs.ReadBytes(
+            string.Concat(
+                resourceRoot,
+                "Example.ConsoleIntegration.csproj"));
+        var source = ConformanceInputs.ReadBytes(
+            string.Concat(resourceRoot, "ConsoleIntegration.cs"));
+
+        Assert.Contains(
+            "program-kit dotnet materialize-console-inputs",
+            guide);
+        Assert.Contains(
+            "program-kit dotnet generate-host console",
+            guide);
+        Assert.Contains(
+            "program-kit dotnet verify-host",
+            guide);
+        Assert.Contains("I<Command>Handler", guide);
+        Assert.Contains("contracts-only", guide);
+        Assert.Contains("Never edit", guide);
+        Assert.AreSequenceEqual(
+            project,
+            File.ReadAllBytes(
+                Path.Combine(
+                    ConformanceInputs.RepositoryRoot,
+                    "tests",
+                    "Fixtures",
+                    "ConsumerCliConsole",
+                    "src",
+                    "JTest.Console.Integration",
+                    "JTest.Console.Integration.csproj")));
+        Assert.AreSequenceEqual(
+            source,
+            File.ReadAllBytes(
+                Path.Combine(
+                    ConformanceInputs.RepositoryRoot,
+                    "tests",
+                    "Fixtures",
+                    "ConsumerCliConsole",
+                    "src",
+                    "JTest.Console.Integration",
+                    "ConsoleIntegration.cs")));
+
+        foreach (var capabilityId in new[]
+                 {
+                     "design-software",
+                     "implement-software-plan",
+                     "maintain-software",
+                     "publish-dotnet-application-locally",
+                 })
+        {
+            var capability = ConformanceInputs.Read(
                 string.Concat(
-                    "contentFiles/any/any/",
-                    resource.SourcePath),
-                resource.PackagePath);
-            Assert.AreEqual(
-                resource.Sha256,
-                Digest(
-                    ConformanceInputs.ReadBytes(
-                        string.Concat(
-                            "Capabilities/SupportingResources/",
-                            resource.SourcePath[sourcePrefix.Length..]))));
+                    "Capabilities/",
+                    capabilityId,
+                    "/CAPABILITY.md"));
+            Assert.Contains(
+                "dotnet-console-input-materialization-guide",
+                capability,
+                capabilityId);
         }
     }
 
@@ -487,8 +592,8 @@ public sealed class CapabilityDeliveryConformanceTests
         var implementation = ConformanceInputs.Read(
             "Capabilities/implement-software-plan/CAPABILITY.md");
         Assert.Contains(
-            "../../supporting-resources/completion-profiles/software-change/" +
-            "completion-profile-set-1.0.0.json",
+            "program-kit capabilities read-resource " +
+            "software-change-completion-profile-set --workspace-root .",
             implementation);
     }
 
@@ -513,7 +618,7 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            25,
+            35,
             project
                 .Descendants("None")
                 .Where(

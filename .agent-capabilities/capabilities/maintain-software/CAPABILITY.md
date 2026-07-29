@@ -34,8 +34,8 @@ Inputs:
 - The human's explicit bounded change request.
 - Current repository guidance, authoritative consumer source, accepted
   architecture, contracts, and generated-output ownership state.
-- The exact inert software-change completion profile set at
-  `../../supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json`.
+- The exact inert software-change completion profile set retrieved with
+  `program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`.
 - An exact human-approved Program Kit version when the requested maintenance
   unit includes a Program Kit upgrade.
 - Separate network, secret, publication, destructive-action, or provider
@@ -177,14 +177,28 @@ policy require explicit compatibility review. Rename, split, supersession, or
 retirement requires human approval, index and bundle updates, wrapper
 migration, and removal of stale registration.
 
+## Program Kit knowledge and failure resolution
+
+Retrieve the completion profile set and every selected profile with
+`program-kit capabilities read-resource <resource-id> --workspace-root .`.
+Before an unfamiliar backed command, run `program-kit commands describe
+<command-key> --format text`. For failures, follow the
+`software-change-troubleshooting` resource and use `diagnostics explain`,
+`artifacts inspect`, and `schemas read`; do not reverse-engineer assemblies or
+guess required shapes, allowed values, package identities, or collection
+ordering.
+
+For any typed .NET Console integration or generation-input change, first
+retrieve and follow `dotnet-console-input-materialization-guide`,
+`dotnet-console-integration-project-example`, and
+`dotnet-console-integration-source-example`, then read the exact request
+schema. Edit only the consumer-owned project, request, or supplied source
+artifacts. Invoke the backed materializer and generator; never edit their
+owned output, reference closure, manifest, or lock.
+
 ## Provider wrapper mapping and drift check
 
-The inert Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/maintain-software/SKILL.md` and
-the inert Claude Code adapter template at
-`.agent-capabilities/provider-adapters/claude/maintain-software/SKILL.md`
-contain only provider registration metadata and one canonical-path token.
-Initialization renders them only in an explicitly selected non-authoring
-consumer workspace. Verify the exact canonical pointer, bundle and profile
-digests, absence of copied procedure text, ownership-lock entry, and absence of
-user-global or Program Kit authoring-workspace writes.
+Codex and Claude wrappers contain only trigger metadata plus exact
+`capabilities preflight` and `capabilities read` invocations. The installed
+CLI verifies their recorded bytes before returning this definition. A changed,
+missing, unowned, stale, or version-mismatched wrapper is a setup blocker.

@@ -18,6 +18,7 @@ public sealed class CapabilityBundleVerifierTests
         "design-software",
         "implement-software-plan",
         "maintain-software",
+        "publish-dotnet-application-locally",
     ];
     private static readonly string[] Providers =
     [
@@ -27,6 +28,18 @@ public sealed class CapabilityBundleVerifierTests
     private static readonly Dictionary<string, string> SupportingResourcePaths =
         new(StringComparer.Ordinal)
         {
+            ["consumer-capability-catalog"] =
+                ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
+            ["csharp-gate-alpha1-alpha2-migration"] =
+                "schemas/csharp-build-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json",
+            ["csharp-gate-authoring-catalog"] =
+                ".agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json",
+            ["dotnet-console-input-materialization-guide"] =
+                ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-materialization-guide.md",
+            ["dotnet-console-integration-project-example"] =
+                ".agent-capabilities/supporting-resources/dotnet/Example.ConsoleIntegration.csproj",
+            ["dotnet-console-integration-source-example"] =
+                ".agent-capabilities/supporting-resources/dotnet/ConsoleIntegration.cs",
             ["software-change-completion-profile-set"] =
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
             ["software-change-completion-profile-set-schema"] =
@@ -45,6 +58,8 @@ public sealed class CapabilityBundleVerifierTests
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/select-build-and-test.md",
             ["software-change-profile-verify-integrity"] =
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/verify-integrity.md",
+            ["software-change-troubleshooting"] =
+                ".agent-capabilities/supporting-resources/troubleshooting/software-change-troubleshooting.md",
         };
 
     public TestContext TestContext { get; set; } = null!;
@@ -207,7 +222,7 @@ public sealed class CapabilityBundleVerifierTests
     }
 
     [TestMethod]
-    public async Task RejectsRepositoryOnlyPublishCapabilityFromDistribution()
+    public async Task RejectsContributorOnlyAuthoringCapabilityFromDistribution()
     {
         var root = CreateRoot();
         try
@@ -215,7 +230,7 @@ public sealed class CapabilityBundleVerifierTests
             var bundle = CreateBundle(
                 root,
                 extraPath:
-                    "contentFiles/any/any/.agent-capabilities/capabilities/publish-dotnet-application-locally/CAPABILITY.md");
+                    "contentFiles/any/any/.agent-capabilities/capabilities/author-and-maintain-skills/CAPABILITY.md");
             CapabilityBundleVerifier sut = new(
                 new CapabilityBundleManifestReader());
 
@@ -401,9 +416,14 @@ public sealed class CapabilityBundleVerifierTests
                     return new BundleTestEntry(
                         pair.Key,
                         pair.Value,
-                        string.Concat(
-                            "contentFiles/any/any/",
-                            pair.Value),
+                        string.Equals(
+                                pair.Key,
+                                "csharp-gate-alpha1-alpha2-migration",
+                                StringComparison.Ordinal)
+                            ? "contentFiles/any/any/.agent-capabilities/supporting-resources/csharp-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json"
+                            : string.Concat(
+                                "contentFiles/any/any/",
+                                pair.Value),
                         bytes,
                         Digest(bytes));
                 })

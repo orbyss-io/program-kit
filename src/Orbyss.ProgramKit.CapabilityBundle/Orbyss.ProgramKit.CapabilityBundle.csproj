@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Orbyss.ProgramKit.CapabilityBundle</PackageId>
-    <Description>Exact-byte content bundle for the five distributable Orbyss Program Kit development capabilities.</Description>
+    <Description>Exact-byte verification bundle for the six Program Kit consumer capabilities and their read-only knowledge resources.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
@@ -17,6 +17,34 @@
           Link="Payload\.agent-capabilities\supporting-resources\completion-profiles\software-change\completion-profile-set-1.0.0.json"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/completion-profiles/software-change/" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\catalogs\consumer-capability-catalog-0.1.0-alpha.1.json"
+          Link="Payload\.agent-capabilities\supporting-resources\catalogs\consumer-capability-catalog-0.1.0-alpha.1.json"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/catalogs/" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\csharp-gates\csharp-gate-authoring-catalog-0.1.0-alpha.1.json"
+          Link="Payload\.agent-capabilities\supporting-resources\csharp-gates\csharp-gate-authoring-catalog-0.1.0-alpha.1.json"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/csharp-gates/" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\dotnet\dotnet-console-input-materialization-guide.md"
+          Link="Payload\.agent-capabilities\supporting-resources\dotnet\dotnet-console-input-materialization-guide.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\dotnet\Example.ConsoleIntegration.csproj"
+          Link="Payload\.agent-capabilities\supporting-resources\dotnet\Example.ConsoleIntegration.csproj"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\dotnet\ConsoleIntegration.cs"
+          Link="Payload\.agent-capabilities\supporting-resources\dotnet\ConsoleIntegration.cs"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/" />
+    <None Include="..\..\schemas\csharp-build-gates\csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json"
+          Link="Payload\.agent-capabilities\supporting-resources\csharp-gates\csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/csharp-gates/" />
+    <None Include="..\..\.agent-capabilities\supporting-resources\troubleshooting\software-change-troubleshooting.md"
+          Link="Payload\.agent-capabilities\supporting-resources\troubleshooting\software-change-troubleshooting.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/supporting-resources/troubleshooting/" />
     <None Include="..\..\.agent-capabilities\supporting-resources\completion-profiles\software-change\completion-profile-set-1.0.0.schema.json"
           Link="Payload\.agent-capabilities\supporting-resources\completion-profiles\software-change\completion-profile-set-1.0.0.schema.json"
           Pack="true"
@@ -69,6 +97,10 @@
           Link="Payload\.agent-capabilities\capabilities\maintain-software\CAPABILITY.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/capabilities/maintain-software/" />
+    <None Include="..\..\.agent-capabilities\capabilities\publish-dotnet-application-locally\CAPABILITY.md"
+          Link="Payload\.agent-capabilities\capabilities\publish-dotnet-application-locally\CAPABILITY.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/capabilities/publish-dotnet-application-locally/" />
     <None Include="..\..\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Link="Payload\.agent-capabilities\provider-adapters\codex\develop-software\SKILL.md"
           Pack="true"
@@ -89,6 +121,10 @@
           Link="Payload\.agent-capabilities\provider-adapters\codex\maintain-software\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/maintain-software/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\codex\publish-dotnet-application-locally\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\codex\publish-dotnet-application-locally\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/codex/publish-dotnet-application-locally/" />
     <None Include="..\..\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Link="Payload\.agent-capabilities\provider-adapters\claude\develop-software\SKILL.md"
           Pack="true"
@@ -109,5 +145,9 @@
           Link="Payload\.agent-capabilities\provider-adapters\claude\maintain-software\SKILL.md"
           Pack="true"
           PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/maintain-software/" />
+    <None Include="..\..\.agent-capabilities\provider-adapters\claude\publish-dotnet-application-locally\SKILL.md"
+          Link="Payload\.agent-capabilities\provider-adapters\claude\publish-dotnet-application-locally\SKILL.md"
+          Pack="true"
+          PackagePath="contentFiles/any/any/.agent-capabilities/provider-adapters/claude/publish-dotnet-application-locally/" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,11 @@
 namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
 
-/// <summary>Exact ownership evidence for one workspace provider initialization.</summary>
+/// <summary>Exact multi-provider ownership and payload evidence for one workspace.</summary>
 public sealed record CapabilityInitializationLock(
     string LockVersion,
+    string CliVersion,
     string BundleVersion,
-    string Provider,
-    string ProgramKitRoot,
+    string ManifestVersion,
     string ManifestSha256,
-    CapabilityInitializationLockEntry[] Capabilities);
+    CapabilityInitializationProviderLock[] Providers,
+    CapabilityInitializationResourceLock[] Resources);

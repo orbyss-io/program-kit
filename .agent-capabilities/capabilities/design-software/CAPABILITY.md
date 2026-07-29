@@ -112,13 +112,16 @@ designs.
 6. If no compatible layered build gate exists and the human has not accepted
    an empty selection, ask: “This design has no compatible layered build gate
    and no approved empty selection. Should we design one?” A yes is an explicit
-   human start of `design-csharp-build-gate@1.0.0`; load its active-provider
-   wrapper and canonical definition. A missing wrapper is a setup blocker. A
-   no is not empty acceptance and must leave an explicit human decision or a
-   blocker.
+   human start of `design-csharp-build-gate`; run
+   `program-kit capabilities preflight design-csharp-build-gate
+   --workspace-root .` and then
+   `program-kit capabilities read design-csharp-build-gate
+   --workspace-root .`. A non-ready result is a setup blocker. A no is not
+   empty acceptance and must leave an explicit human decision or a blocker.
 7. Resolve reversible details independently; present material alternatives and
    tradeoffs to the human.
-8. Produce a design artifact and a separate Implementation Plan `3.0.0`. Keep work
+8. Produce an Architecture Design `0.1.0-alpha.2` artifact and a separate
+   Implementation Plan `0.1.0-alpha.3`. Keep work
    units bounded, dependency-ordered, reviewable, and explicit about allowed
    edits, outputs, verification, and stop conditions. For `create-new` or
    `extend-existing`, place the exact approved gate-establishment fragment
@@ -159,14 +162,28 @@ behavior require an explicit compatibility review and new definition digest.
 Renames, splits, supersession, or retirement require human approval plus index
 and wrapper migration.
 
+## Program Kit knowledge and failure resolution
+
+Retrieve exact schemas with `program-kit schemas read
+pkid:schema:program-kit:architecture-design@0.1.0-alpha.2` and `program-kit
+schemas read pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3`. Use
+`commands describe` before unfamiliar backed operations. For Program Kit
+failures, follow the `software-change-troubleshooting` resource and use
+`diagnostics explain` and `artifacts inspect`; do not reverse-engineer
+assemblies or guess a contract.
+
+Before designing a typed .NET Console host or its consumer integration seam,
+retrieve and follow `dotnet-console-input-materialization-guide`,
+`dotnet-console-integration-project-example`, and
+`dotnet-console-integration-source-example`. Read the exact
+`dotnet-console-input-materialization-request@0.1.0-alpha.1` schema. The guide,
+not the schema alone, defines the single-project handler/implementation seam,
+ownership boundary, semantic-request mapping, and materialize-to-generate
+journey.
+
 ## Provider wrapper mapping and drift check
 
-The inert Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/design-software/SKILL.md` and the
-inert Claude Code adapter template at
-`.agent-capabilities/provider-adapters/claude/design-software/SKILL.md` each
-contain one canonical-path token. Initialization renders the selected
-workspace's `.codex/skills/design-software/SKILL.md` or
-`.claude/skills/design-software/SKILL.md`. Verify the rendered wrapper's exact
-pointer, confirm it contains no copied design rules, and bind its source and
-output digests in the workspace ownership lock.
+Codex and Claude wrappers contain only trigger metadata plus exact
+`capabilities preflight` and `capabilities read` invocations. The installed
+CLI verifies their recorded bytes before returning this definition. A changed,
+missing, unowned, stale, or version-mismatched wrapper is a setup blocker.

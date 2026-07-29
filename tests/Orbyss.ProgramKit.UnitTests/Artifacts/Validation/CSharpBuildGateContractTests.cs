@@ -452,7 +452,7 @@ public sealed class CSharpBuildGateContractTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid, Format(validation));
-        Assert.HasCount(6, module.Resources);
+        Assert.HasCount(10, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -480,7 +480,8 @@ public sealed class CSharpBuildGateContractTests
         ]);
         var schema = csharpModule.Resources.Single(static resource =>
             resource.SchemaReference.Identity.Value ==
-                "pkid:schema:program-kit:csharp-build-gate-definition");
+                "pkid:schema:program-kit:csharp-build-gate-definition" &&
+            resource.SchemaReference.Version.Value == "1.0.0");
         ProgramKitJsonCanonicalizer canonicalizer = new();
         JsonSchemaWorkbenchValidator validator = new(
             canonicalizer,

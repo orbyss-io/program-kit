@@ -7,9 +7,8 @@ public interface ICapabilityInitializer
     /// Verifies canonical source bytes and writes only provider-owned wrappers
     /// plus their ownership lock.
     /// </summary>
-    ValueTask InitializeAsync(
+    ValueTask<CapabilityInitializationResult> InitializeAsync(
         string provider,
         string workspaceRoot,
-        string programKitRoot,
         CancellationToken cancellationToken);
 }

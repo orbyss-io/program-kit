@@ -10,9 +10,9 @@ which backed development flow should handle the work.
 ## Purpose
 
 Classify the explicit request together with accepted repository artifacts and a
-fresh capability-availability snapshot. Produce exactly one routing outcome:
+fresh CLI capability-readiness snapshot. Produce exactly one routing outcome:
 `routed`, `human-decision-required`, or `flow-unavailable`. A routed outcome
-names at most one next capability and never grants authority.
+names exactly one next capability and never grants authority.
 
 ## Non-goals
 
@@ -30,7 +30,7 @@ Inputs:
 
 - The human's explicit request or intent.
 - The current repository-owned source truth and accepted artifact state.
-- The canonical `.agent-capabilities/capabilities/INDEX.md`.
+- `program-kit capabilities catalog --workspace-root . --format json`.
 - Any named design, plan, approval, or supersession evidence needed to classify
   the request.
 - Accepted architecture and current source truth needed to distinguish a
@@ -39,7 +39,7 @@ Inputs:
 Outputs:
 
 - One explicit routing outcome with a reason.
-- At most one next capability reference when the outcome is `routed`.
+- Exactly one next capability reference when the outcome is `routed`.
 - A digest-bound development receipt when the backing Program Kit operation is
   available and the human requests a durable receipt.
 - A concise refusal or decision request when routing cannot proceed safely.
@@ -48,13 +48,12 @@ Outputs:
 
 - A human has started or requested the work.
 - The repository and intended scope are explicit.
-- The capability index and relevant artifacts can be read from repository-owned
-  source truth.
-- Any named next capability is `available` in the canonical index.
+- The installed CLI reports the active wrapper and complete closure as ready.
+- Any named next capability passes its exact `capabilities preflight`.
 
 ## Allowed actions
 
-- Read repository guidance, the capability index, and explicitly relevant
+- Read repository guidance, the CLI capability catalog, and explicitly relevant
   design, plan, approval, and receipt artifacts.
 - Validate supplied artifacts with deterministic Program Kit operations.
 - Calculate exact file digests needed by a routing result or receipt.
@@ -84,15 +83,16 @@ changed, rejected, conditional, or superseded.
 
 The current human request wins over remembered context. Repository-owned
 artifacts are authoritative only at their exact current bytes. Capability
-availability comes only from
-`.agent-capabilities/capabilities/INDEX.md`; refresh its digest immediately
-before emitting a durable result. Provider adapters are registration
+availability, active-provider registration, and complete-closure freshness are
+separate facts and come only from `program-kit capabilities catalog
+--workspace-root . --format json`. Provider adapters are registration
 mechanics, not procedure or availability sources.
 
 ## Procedure
 
 1. Confirm the human-started request, repository, and requested outcome.
-2. Read applicable `AGENTS.md` guidance and the canonical capability index.
+2. Read applicable `AGENTS.md` guidance and run `program-kit capabilities
+   catalog --workspace-root . --format json`.
 3. Identify explicit accepted design, plan, and approval artifacts without
    searching unrelated history.
 4. Validate any artifact needed to distinguish a bounded compatible change,
@@ -106,8 +106,8 @@ mechanics, not procedure or availability sources.
    - unclear semantics, mapping, scope, or missing decision ->
      `human-decision-required`;
    - unavailable flow -> `flow-unavailable`.
-6. Confirm the selected capability is available and record at most one next
-   capability.
+6. Run `program-kit capabilities preflight <capability-id> --workspace-root .
+   --format json`; record exactly one next capability only when it is `ready`.
 7. If a durable result is requested, bind the request/artifact and index bytes,
    supplied principal/time/evidence, and selected outcome through the backed
    Program Kit receipt contracts.
@@ -140,13 +140,21 @@ require an explicit compatibility review and updated capability digest.
 Renames, splits, supersession, or retirement require human authority, an index
 update, wrapper migration, and no stale registration.
 
+## Program Kit knowledge and failure resolution
+
+Use `program-kit commands describe <command-key> --format text` before invoking
+an unfamiliar backed operation. For Program Kit failures, use `program-kit
+diagnostics explain <diagnostic-id> --format text`, `program-kit artifacts
+inspect <artifact> --format text`, and `program-kit schemas read
+<schema-id>@<version>`. Retrieve the shared
+`software-change-troubleshooting` resource through `program-kit capabilities
+read-resource software-change-troubleshooting --workspace-root .`. If the CLI
+cannot supply a declared closure item, stop with a setup blocker; never search
+assemblies or guess a contract.
+
 ## Provider wrapper mapping and drift check
 
-The inert Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/develop-software/SKILL.md` and
-the inert Claude Code adapter template at
-`.agent-capabilities/provider-adapters/claude/develop-software/SKILL.md` may
-contain only provider registration metadata and one canonical-path token.
-Verify that initialization renders a thin workspace wrapper pointing to this
-exact canonical file, copies no procedure, and binds source and output digests
-in the workspace ownership lock.
+Codex and Claude wrappers contain only trigger metadata plus exact
+`capabilities preflight` and `capabilities read` invocations. The installed
+CLI verifies their recorded bytes before returning this definition. A changed,
+missing, unowned, stale, or version-mismatched wrapper is a setup blocker.

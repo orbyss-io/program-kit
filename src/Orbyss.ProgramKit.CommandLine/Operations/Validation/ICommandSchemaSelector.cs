@@ -10,4 +10,9 @@ public interface ICommandSchemaSelector
     IProgramKitSchemaModule Resolve(
         ReadOnlyMemory<byte> utf8Json,
         out ArtifactReference revision);
+
+    /// <summary>Resolves one explicitly selected exact schema identity.</summary>
+    IProgramKitSchemaModule Resolve(
+        string exactSchemaId,
+        out ArtifactReference revision);
 }

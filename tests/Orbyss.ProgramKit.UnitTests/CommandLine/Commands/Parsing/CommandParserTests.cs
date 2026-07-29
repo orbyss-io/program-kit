@@ -211,8 +211,6 @@ public sealed class CommandParserTests
             "codex",
             "--workspace-root",
             "C:/work",
-            "--program-kit-root",
-            "C:/work/tools/program-kit",
         ]);
         var initializeClaude = sut.Parse(
         [
@@ -222,8 +220,6 @@ public sealed class CommandParserTests
             "claude",
             "--workspace-root",
             "C:/work",
-            "--program-kit-root",
-            "C:/work/tools/program-kit",
         ]);
 
         Assert.AreEqual(
@@ -247,7 +243,7 @@ public sealed class CommandParserTests
     }
 
     [TestMethod]
-    public void ParsesOnlyTheFiveFiniteCSharpGateCommands()
+    public void ParsesOnlyTheSevenFiniteCSharpGateCommands()
     {
         CommandParser sut = new(CommandDescriptorCatalog.All);
 
@@ -258,6 +254,7 @@ public sealed class CommandParserTests
             ("scaffold", "scaffold.json", true),
             ("bind", "binding.json", true),
             ("verify", "verification.json", true),
+            ("materialize-definition", "draft.json", true),
         };
         foreach (var command in commands)
         {
@@ -278,6 +275,17 @@ public sealed class CommandParserTests
                 string.Concat("csharp-gate.", command.Item1),
                 invocation.Descriptor.Key);
         }
+
+        var describe = sut.Parse(
+        [
+            "csharp-gate",
+            "describe-definition",
+            "--format",
+            "json",
+        ]);
+        Assert.AreEqual(
+            "csharp-gate.describe-definition",
+            describe.Descriptor.Key);
 
         Assert.ThrowsExactly<CommandInvocationException>(
             () => sut.Parse(

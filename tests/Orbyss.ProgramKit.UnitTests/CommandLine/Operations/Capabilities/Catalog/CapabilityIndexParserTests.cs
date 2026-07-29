@@ -18,7 +18,7 @@ public sealed class CapabilityIndexParserTests
                 """
                 # Capability index
 
-                | Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |
+                | Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |
                 | --- | --- | --- | --- | --- | --- |
                 | `design-software` | design | available | [CAPABILITY.md](design-software/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/design-software/SKILL.md) | Design flow. |
                 | `release-software` | release | unavailable | Not created | Not registered | Reserved flow. |
@@ -31,11 +31,11 @@ public sealed class CapabilityIndexParserTests
             result.Entries[0].CanonicalDefinition);
         Assert.AreEqual("unavailable", result.Entries[1].Status);
         Assert.IsNull(result.Entries[1].CanonicalDefinition);
-        Assert.IsNull(result.Entries[1].ActiveProviderWrapper);
+        Assert.IsNull(result.Entries[1].ProviderAdapterTemplate);
     }
 
     [TestMethod]
-    public void RejectsAnAvailableRowWithoutAnActiveWrapper()
+    public void RejectsAnAvailableRowWithoutAProviderAdapterTemplate()
     {
         CapabilityIndexParser sut = new();
 
@@ -43,7 +43,7 @@ public sealed class CapabilityIndexParserTests
             () => sut.Parse(
                 Encoding.UTF8.GetBytes(
                     """
-                    | Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |
+                    | Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |
                     | --- | --- | --- | --- | --- | --- |
                     | `design-software` | design | available | [CAPABILITY.md](design-software/CAPABILITY.md) | Not registered | Invalid. |
                     """)));
@@ -58,7 +58,7 @@ public sealed class CapabilityIndexParserTests
         CapabilityIndexParser sut = new();
         var content = Encoding.UTF8.GetBytes(
             """
-            | Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |
+            | Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |
             | --- | --- | --- | --- | --- | --- |
             | `design-software` | design | unavailable | Not created | Not registered | First. |
             | `design-software` | design | unavailable | Not created | Not registered | Duplicate. |

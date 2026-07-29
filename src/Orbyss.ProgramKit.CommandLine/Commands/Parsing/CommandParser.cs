@@ -149,7 +149,12 @@ public sealed class CommandParser : ICommandParser
         if (supplied.Count < required || supplied.Count > maximum)
         {
             throw new CommandInvocationException(
-                "The positional argument count does not match the command descriptor.",
+                string.Concat(
+                    "Expected ",
+                    Synopsis(descriptor),
+                    "; received ",
+                    supplied.Count,
+                    " positional argument(s)."),
                 "/arguments");
         }
 
@@ -172,9 +177,34 @@ public sealed class CommandParser : ICommandParser
         if (allowedValues is not null && !allowedValues.Contains(value))
         {
             throw new CommandInvocationException(
-                $"Value '{value}' is not allowed for '{name}'.",
+                string.Concat(
+                    "Value '",
+                    value,
+                    "' is not allowed for '",
+                    name,
+                    "'. Allowed values: ",
+                    string.Join(
+                        ", ",
+                        allowedValues.Order(StringComparer.Ordinal)),
+                    "."),
                 string.Concat("/", name));
         }
+    }
+
+    private static string Synopsis(CommandDescriptor descriptor)
+    {
+        var arguments = descriptor.Arguments.Select(
+            static argument =>
+                argument.Multiple
+                    ? string.Concat("<", argument.Name, ">...")
+                    : argument.Required
+                        ? string.Concat("<", argument.Name, ">")
+                        : string.Concat("[", argument.Name, "]"));
+        return string.Join(
+            " ",
+            descriptor.Path
+                .Prepend("program-kit")
+                .Concat(arguments));
     }
 
     private static void ValidateDescriptors(

@@ -30,7 +30,7 @@ material architectural deviation.
 Inputs:
 
 - The exact versioned design and implementation plan.
-- For Implementation Plan `3.0.0`, the exact static-conformance disposition,
+- For Implementation Plan `0.1.0-alpha.3`, the exact static-conformance disposition,
   gate design/definition/selection lock, activation matrix/profile references,
   and current compatible activation evidence.
 - A valid, non-superseded human approval binding both exact digests.
@@ -88,7 +88,7 @@ Stop before mutation when approval is absent, mismatched, rejected, conditional,
 or superseded. Stop when current source truth makes a plan step unsafe or
 materially different, a required file lies outside the approved work unit, a
 gate can pass only by weakening policy, or new human authority is required.
-For Implementation Plan `3.0.0`, also stop when the disposition or its exact
+For Implementation Plan `0.1.0-alpha.3`, also stop when the disposition or its exact
 artifacts are missing, accepted-empty lacks its human decision, blocked is
 selected, reuse lacks a compatible active lock, or product/closure work is
 requested before create/extend activation evidence. Report the exact deviation
@@ -102,9 +102,9 @@ state before the first edit and before each materially dependent work unit. Do
 not rely on cached artifact digests, sibling repositories, or remembered
 implementation state.
 
-The inert shared completion profile set at
-`../../supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json`
-owns the reusable source-review, refresh, integrity, build/test, optional
+The shared `software-change-completion-profile-set` resource, retrieved through
+`program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`, owns the reusable
+source-review, refresh, integrity, build/test, optional
 publication, evidence, diff-review, commit, and push procedures. Its exact
 bundle-bound resources grant no authority and are not independently invokable.
 
@@ -114,7 +114,7 @@ bundle-bound resources grant no authority and are not independently invokable.
    boundary.
 2. Load applicable guidance and validate the exact design, plan, and approval
    relationship.
-3. Validate the Implementation Plan `3.0.0` static-conformance disposition and
+3. Validate the Implementation Plan `0.1.0-alpha.3` static-conformance disposition and
    gate admission state. `reuse-existing` requires a compatible active
    selection lock at preflight. `create-new` and `extend-existing` admit only
    dependency-ready `gate-establishment` units until exact activation evidence
@@ -174,12 +174,27 @@ evidence semantics require explicit compatibility review and an updated digest.
 Renames, splits, supersession, or retirement require human approval, index and
 wrapper migration, and removal of stale registration.
 
+## Program Kit knowledge and failure resolution
+
+Retrieve completion profiles through `capabilities read-resource`. Use
+`commands describe` before unfamiliar backed operations. For Program Kit
+failures, follow the `software-change-troubleshooting` resource and use
+`diagnostics explain`, `artifacts inspect`, and `schemas read`. Do not infer a
+shape from sequential validator failures or inspect assemblies for hidden
+values.
+
+Before implementing an approved typed .NET Console integration or generation
+unit, retrieve and follow `dotnet-console-input-materialization-guide`,
+`dotnet-console-integration-project-example`, and
+`dotnet-console-integration-source-example`, then read the exact request
+schema. The consumer-owned project and semantic request are authoritative
+inputs. Program Kit-owned materialized and generated files are refreshed only
+through the backed CLI commands and are never edited or adopted as source.
+
 ## Provider wrapper mapping and drift check
 
-The inert Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/implement-software-plan/SKILL.md`
-and the inert Claude Code adapter template at
-`.agent-capabilities/provider-adapters/claude/implement-software-plan/SKILL.md`
-contain only registration metadata and one canonical-path token each.
-Initialization renders the selected workspace wrapper. Verify its exact
-pointer, absence of copied procedure text, and workspace ownership binding.
+Codex and Claude wrappers contain only trigger metadata plus exact
+`capabilities preflight` and `capabilities read` invocations. The installed
+CLI verifies their recorded bytes before returning this definition. A changed,
+missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
+Wrapper registration does not prove approval.

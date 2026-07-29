@@ -47,7 +47,7 @@ Outputs:
   reviewed parameters.
 - Exact diagnostic, suppression, exception, receipt, bootstrap, update,
   rollback, package-closure, and evidence rules.
-- An Implementation Plan `3.0.0` fragment whose dependency-ready
+- An Implementation Plan `0.1.0-alpha.3` fragment whose dependency-ready
   `gate-establishment` work units precede every product or closure unit.
 - Explicit unresolved decisions and a human approval request; no approval.
 
@@ -127,7 +127,7 @@ are projections and never replace their canonical sources.
    whether it should be designed. If yes, specify exact scaffold inputs and a
    bounded work unit; if no, record an accepted empty selection or blocker
    only through the human-owned disposition decision.
-8. Produce an Implementation Plan `3.0.0` fragment. Put bounded
+8. Produce an Implementation Plan `0.1.0-alpha.3` fragment. Put bounded
    `gate-establishment` units first, including analyzer authoring when needed,
    gate definition, selection, activation, bootstrap verification, and lock
    evidence. Make all product and closure units depend on compatible
@@ -162,13 +162,20 @@ for compatible clarifications. Changes to trigger authority, empty-selection
 authority, analyzer ownership, activation, exception, or plan-fragment
 semantics require compatibility review and an updated definition digest.
 
+## Program Kit knowledge and failure resolution
+
+Begin with `program-kit csharp-gate describe-definition --format text`. Retrieve
+the exact gate schema through `program-kit schemas read
+pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2`. Create a
+complete draft, then use `csharp-gate materialize-definition`; it accepts one
+UTF-8 BOM, diagnoses all known shape/semantic problems together, stable-sorts
+collections, and emits BOM-free bytes. Use `commands describe`, `diagnostics
+explain`, and `artifacts inspect` for failures. Never inspect DLL strings or
+guess analyzer identities, null rules, or ordering.
+
 ## Provider wrapper mapping and drift check
 
-The inert Codex adapter template at
-`.agent-capabilities/provider-adapters/codex/design-csharp-build-gate/SKILL.md`
-and Claude Code adapter template at
-`.agent-capabilities/provider-adapters/claude/design-csharp-build-gate/SKILL.md`
-each contain one canonical-path token and no procedure copy. Initialization
-must verify the CapabilityBundle `3.0.0` manifest, render only the selected
-provider wrapper, and bind exact canonical, template, output, and manifest
-digests in the workspace ownership lock.
+Codex and Claude wrappers contain only trigger metadata plus exact
+`capabilities preflight` and `capabilities read` invocations. The installed
+CLI verifies their recorded bytes before returning this definition. A changed,
+missing, unowned, stale, or version-mismatched wrapper is a setup blocker.

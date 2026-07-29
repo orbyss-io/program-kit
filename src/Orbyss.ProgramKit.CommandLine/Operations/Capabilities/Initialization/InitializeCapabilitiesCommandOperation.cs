@@ -1,5 +1,6 @@
 using Orbyss.ProgramKit.CommandLine.Commands.Parsing;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
+using System.Text;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
 
@@ -27,12 +28,25 @@ public sealed class InitializeCapabilitiesCommandOperation : ICommandOperation
         ArgumentNullException.ThrowIfNull(invocation);
         try
         {
-            await initializer.InitializeAsync(
+            var result = await initializer.InitializeAsync(
                 invocation.RequiredOption("provider"),
                 invocation.RequiredOption("workspace-root"),
-                invocation.RequiredOption("program-kit-root"),
                 cancellationToken).ConfigureAwait(false);
-            return CommandOperationResult.Success();
+            return CommandOperationResult.Success(
+                Encoding.UTF8.GetBytes(
+                    string.Concat(
+                        "Program Kit ",
+                        result.Provider,
+                        " wrappers: created=",
+                        result.Created,
+                        ", updated=",
+                        result.Updated,
+                        ", unchanged=",
+                        result.Unchanged,
+                        "; lock=",
+                        result.LockPath,
+                        ". Next: program-kit capabilities catalog --workspace-root . --format text",
+                        Environment.NewLine)));
         }
         catch (CapabilityOperationException exception)
         {

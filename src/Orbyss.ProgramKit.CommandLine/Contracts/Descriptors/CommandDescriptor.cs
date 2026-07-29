@@ -7,4 +7,7 @@ public sealed record CommandDescriptor(
     string Key,
     ImmutableArray<string> Path,
     ImmutableArray<CommandArgumentDefinition> Arguments,
-    ImmutableArray<CommandOptionDefinition> Options);
+    ImmutableArray<CommandOptionDefinition> Options,
+    string Description,
+    string Authority,
+    string Example);
