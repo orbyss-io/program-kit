@@ -78,8 +78,15 @@ its disposition needs a human decision.
 ```powershell
 dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode
 dotnet build ProgramKit.sln -c Release --no-restore
-dotnet test ProgramKit.sln -c Release --no-build --no-restore
+dotnet test --solution ProgramKit.sln -c Release --no-build --no-restore --minimum-expected-tests 1
 ```
+
+`global.json` selects Microsoft Testing Platform. Use its explicit
+`--solution`, `--project`, or `--test-modules` selector rather than a positional
+path. Do not pass the legacy `--maxcpucount` switch to `dotnet test`: under MTP
+it can build successfully and then discover zero tests. When a serialized
+build is needed, run `dotnet build --maxcpucount:1` first and then run
+`dotnet test --no-build`.
 
 ## 3. Capabilities in a contributor workspace
 
