@@ -5,37 +5,37 @@
     {
       "capabilityId": "design-csharp-build-gate",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:28eed933381be10c9d15e21dd6862e05f21974aaa1fe67f4bcc3ae8b6ca10fc7",
+      "sha256": "sha256:b4eb7c2a188a7fb7fd946a9f1cbe4347904e51d9b9b76345e51d669c31d0092c",
       "sourcePath": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md"
     },
     {
       "capabilityId": "design-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-software/CAPABILITY.md",
-      "sha256": "sha256:3db9b631390850265d72575a071582cd38e33f7e977386ae3df43c43c9f41990",
+      "sha256": "sha256:c8dfba3e7e2fc4afe01a5a87f9ccdfc0c01be3cb89b500c42c281480244b9cc3",
       "sourcePath": ".agent-capabilities/capabilities/design-software/CAPABILITY.md"
     },
     {
       "capabilityId": "develop-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/develop-software/CAPABILITY.md",
-      "sha256": "sha256:4fa061b11208f7800e8fbf9a8a378c1930357b370a78a3bd7e03d0c038b15d7c",
+      "sha256": "sha256:b7b53970176c9d0ea7bfae4e15887fc1ddceb9b0310cce2208d4a096c0bdbd15",
       "sourcePath": ".agent-capabilities/capabilities/develop-software/CAPABILITY.md"
     },
     {
       "capabilityId": "implement-software-plan",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md",
-      "sha256": "sha256:add0c94d3399a8c46adcd06989b87dcc2dd1b13e69f82483e2bde5ef3d6f9f1b",
+      "sha256": "sha256:d431502b12ffeb07cfcf87ba43e550956538a94a09343fa9eadb7d632549799f",
       "sourcePath": ".agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md"
     },
     {
       "capabilityId": "maintain-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/maintain-software/CAPABILITY.md",
-      "sha256": "sha256:f26f5cbe2e6f1e90e8aba6cc4ff074e4091bc7883f9b9c55ef957ef0580b98ee",
+      "sha256": "sha256:f1006070c6173e3de52c14e7694fb304d02656c4e3f6bcebed502f2963b7b0b5",
       "sourcePath": ".agent-capabilities/capabilities/maintain-software/CAPABILITY.md"
     },
     {
       "capabilityId": "publish-dotnet-application-locally",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/publish-dotnet-application-locally/CAPABILITY.md",
-      "sha256": "sha256:cd6b1d94c5fc118899cfae42fdd1294c9fcf1a0ba053219aa4d34cc145682fb3",
+      "sha256": "sha256:c293a37cc51b8cedf724456a8d23eefc16ccc9bd56ae15c537b50573e945341f",
       "sourcePath": ".agent-capabilities/capabilities/publish-dotnet-application-locally/CAPABILITY.md"
     }
   ],

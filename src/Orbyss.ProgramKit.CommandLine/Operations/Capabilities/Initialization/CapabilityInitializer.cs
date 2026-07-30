@@ -1,12 +1,12 @@
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using Orbyss.ProgramKit.CommandLine.Contracts;
+using Orbyss.ProgramKit.CommandLine.Contracts.Capabilities;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
+using Orbyss.ProgramKit.CommandLine.Contracts.Product;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Payload;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
-using Orbyss.ProgramKit.CommandLine.Contracts.Product;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
 
@@ -19,26 +19,19 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
     private const string AuthoringWorkspaceMarkerPath =
         ".agent-capabilities/authoring-workspace.json";
     private const string LockPath = ".program-kit/capabilities.lock.json";
-    private const string TransactionPath =
-        ".program-kit/capabilities.transaction.json";
     private const int MaximumWrapperBytes = 512 * 1024;
     private const int MaximumLockBytes = 256 * 1024;
-    private static readonly Dictionary<string, string> ProviderSkillRoots =
-        new(StringComparer.Ordinal)
-        {
-            ["claude"] = ".claude/skills/",
-            ["codex"] = ".codex/skills/",
-        };
-    private static readonly UTF8Encoding Utf8 = new(false);
     private readonly ICommandFileSystem fileSystem;
     private readonly IConsumerCapabilityPayload payload;
     private readonly ICapabilityInitializationLockSerializer lockSerializer;
+    private readonly ICapabilityWorkspaceTransaction workspaceTransaction;
 
     /// <summary>Initializes the operation with explicit product boundaries.</summary>
     public CapabilityInitializer(
         ICommandFileSystem fileSystem,
         IConsumerCapabilityPayload payload,
-        ICapabilityInitializationLockSerializer lockSerializer)
+        ICapabilityInitializationLockSerializer lockSerializer,
+        ICapabilityWorkspaceTransaction workspaceTransaction)
     {
         this.fileSystem = fileSystem ??
             throw new ArgumentNullException(nameof(fileSystem));
@@ -46,6 +39,8 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             throw new ArgumentNullException(nameof(payload));
         this.lockSerializer = lockSerializer ??
             throw new ArgumentNullException(nameof(lockSerializer));
+        this.workspaceTransaction = workspaceTransaction ??
+            throw new ArgumentNullException(nameof(workspaceTransaction));
     }
 
     /// <inheritdoc />
@@ -54,7 +49,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         string workspaceRoot,
         CancellationToken cancellationToken)
     {
-        if (provider is null || !ProviderSkillRoots.ContainsKey(provider))
+        if (!CapabilityProviderContractCatalog.TryGet(provider, out _))
         {
             throw InvalidInitialization(
                 "Unsupported provider. Allowed values: claude, codex.",
@@ -74,16 +69,9 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 "/workspaceRoot");
         }
 
-        var transactionPath = ResolveUnder(
+        await workspaceTransaction.RecoverAsync(
             workspace,
-            TransactionPath,
-            "/transaction");
-        if (fileSystem.FileExists(transactionPath))
-        {
-            throw InvalidInitialization(
-                "A prior capability transaction did not close. No lock may be trusted until the explicit workspace transaction is recovered.",
-                "/transaction");
-        }
+            cancellationToken).ConfigureAwait(false);
 
         var previous = await ReadPreviousStateAsync(
             workspace,
@@ -108,14 +96,34 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
 
         var outputLock = CreateLock(providers, candidates);
         var lockBytes = lockSerializer.Write(outputLock);
-        var lockFullPath = ResolveUnder(workspace, LockPath, "/lock");
-        await CommitTransactionAsync(
+        var legacyRemovals = await VerifyLegacyRemovalsAsync(
             workspace,
-            transactionPath,
-            lockFullPath,
-            lockBytes,
-            candidates,
-            statuses,
+            previous,
+            cancellationToken).ConfigureAwait(false);
+        var mutations = candidates
+            .Where(
+                candidate =>
+                    statuses[candidate.OutputRelativePath] !=
+                    CandidateStatus.Unchanged)
+            .Select(
+                static candidate =>
+                    new CapabilityWorkspaceMutation(
+                        candidate.OutputRelativePath,
+                        candidate.OutputBytes))
+            .Concat(
+                legacyRemovals.Select(
+                    static relativePath =>
+                        new CapabilityWorkspaceMutation(
+                            relativePath,
+                            null)))
+            .Append(
+                new CapabilityWorkspaceMutation(
+                    LockPath,
+                    lockBytes))
+            .ToArray();
+        await workspaceTransaction.ApplyAsync(
+            workspace,
+            mutations,
             cancellationToken).ConfigureAwait(false);
         return new CapabilityInitializationResult(
             provider,
@@ -132,7 +140,16 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         List<WrapperCandidate> candidates = [];
         foreach (var provider in providers.Order(StringComparer.Ordinal))
         {
-            var providerRoot = ProviderSkillRoots[provider];
+            if (!CapabilityProviderContractCatalog.TryGet(
+                    provider,
+                    out var contract))
+            {
+                throw InvalidInitialization(
+                    "The provider set contains an unsupported provider.",
+                    "/provider");
+            }
+
+            var providerRoot = contract.ProjectSkillRoot;
             foreach (var capability in payload.Manifest.Capabilities
                          .OrderBy(
                              static item => item.CapabilityId,
@@ -253,139 +270,34 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         return CandidateStatus.Updated;
     }
 
-    private async ValueTask CommitTransactionAsync(
+    private async ValueTask<string[]> VerifyLegacyRemovalsAsync(
         string workspace,
-        string transactionPath,
-        string lockPath,
-        byte[] lockBytes,
-        IReadOnlyList<WrapperCandidate> candidates,
-        Dictionary<string, CandidateStatus> statuses,
+        PreviousState previous,
         CancellationToken cancellationToken)
     {
-        var stageRelative = string.Concat(
-            ".program-kit/.capabilities-staging-",
-            Guid.NewGuid().ToString("N"));
-        var stage = ResolveUnder(workspace, stageRelative, "/transaction");
-        var staged = new Dictionary<string, string>(StringComparer.Ordinal);
-        var backups = new Dictionary<string, byte[]?>(StringComparer.Ordinal);
-        byte[]? previousLock = null;
-        fileSystem.CreateDirectory(stage);
-        try
+        foreach (var relativePath in previous.LegacyOutputPaths)
         {
-            foreach (var candidate in candidates)
-            {
-                if (statuses[candidate.OutputRelativePath] ==
-                    CandidateStatus.Unchanged)
-                {
-                    continue;
-                }
-
-                var stagedPath = ResolveUnder(
-                    stage,
-                    string.Concat(
-                        "wrappers/",
-                        candidate.Provider,
-                        "/",
-                        candidate.CapabilityId,
-                        ".md"),
-                    "/transaction");
-                await fileSystem.WriteAllBytesAsync(
-                    stagedPath,
-                    candidate.OutputBytes,
-                    cancellationToken).ConfigureAwait(false);
-                staged.Add(candidate.OutputRelativePath, stagedPath);
-                backups.Add(
-                    candidate.OutputRelativePath,
-                    fileSystem.FileExists(candidate.OutputFullPath)
-                        ? (await ReadBoundedAsync(
-                            candidate.OutputFullPath,
-                            MaximumWrapperBytes,
-                            "/output",
-                            cancellationToken).ConfigureAwait(false)).ToArray()
-                        : null);
-            }
-
-            var stagedLock = ResolveUnder(stage, "capabilities.lock.json", "/lock");
-            await fileSystem.WriteAllBytesAsync(
-                stagedLock,
-                lockBytes,
+            var path = ResolveUnder(workspace, relativePath, "/output");
+            var content = await ReadBoundedAsync(
+                path,
+                MaximumWrapperBytes,
+                "/output",
                 cancellationToken).ConfigureAwait(false);
-            if (fileSystem.FileExists(lockPath))
+            if (!string.Equals(
+                    Digest(content.Span),
+                    previous.OutputDigests[relativePath],
+                    StringComparison.Ordinal))
             {
-                previousLock = (await ReadBoundedAsync(
-                    lockPath,
-                    MaximumLockBytes,
-                    "/lock",
-                    cancellationToken).ConfigureAwait(false)).ToArray();
-            }
-
-            await fileSystem.WriteAllBytesAsync(
-                transactionPath,
-                Utf8.GetBytes(
+                throw InvalidInitialization(
                     string.Concat(
-                        "{\"lockVersion\":\"",
-                        ProgramKitProductInfo.CapabilityLockVersion,
-                        "\",\"state\":\"in-progress\"}")),
-                cancellationToken).ConfigureAwait(false);
-            foreach (var candidate in candidates)
-            {
-                if (!staged.TryGetValue(
-                        candidate.OutputRelativePath,
-                        out var stagedPath))
-                {
-                    continue;
-                }
-
-                fileSystem.MoveFile(
-                    stagedPath,
-                    candidate.OutputFullPath,
-                    overwrite: true);
+                        "Legacy wrapper '",
+                        relativePath,
+                        "' no longer matches exact Program Kit ownership evidence."),
+                    "/output");
             }
-
-            fileSystem.MoveFile(stagedLock, lockPath, overwrite: true);
-            fileSystem.DeleteFile(transactionPath);
-            fileSystem.DeleteDirectory(stage);
         }
-        catch
-        {
-            foreach (var candidate in candidates)
-            {
-                if (!backups.TryGetValue(
-                        candidate.OutputRelativePath,
-                        out var backup))
-                {
-                    continue;
-                }
 
-                if (backup is null)
-                {
-                    fileSystem.DeleteFile(candidate.OutputFullPath);
-                }
-                else
-                {
-                    await fileSystem.WriteAllBytesAsync(
-                        candidate.OutputFullPath,
-                        backup,
-                        CancellationToken.None).ConfigureAwait(false);
-                }
-            }
-
-            if (previousLock is null)
-            {
-                fileSystem.DeleteFile(lockPath);
-            }
-            else
-            {
-                await fileSystem.WriteAllBytesAsync(
-                    lockPath,
-                    previousLock,
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-
-            fileSystem.DeleteFile(transactionPath);
-            fileSystem.DeleteDirectory(stage);
-            throw;
-        }
+        return previous.LegacyOutputPaths;
     }
 
     private async ValueTask<PreviousState> ReadPreviousStateAsync(
@@ -455,12 +367,13 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         }
 
         Dictionary<string, string> outputs = new(StringComparer.Ordinal);
+        List<string> legacyOutputs = [];
         foreach (var provider in value.Providers)
         {
             if (provider is null ||
-                !ProviderSkillRoots.TryGetValue(
+                !CapabilityProviderContractCatalog.TryGet(
                     provider.Provider,
-                    out var root) ||
+                    out var contract) ||
                 provider.Capabilities is null)
             {
                 throw InvalidInitialization(
@@ -468,6 +381,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                     "/lock/providers");
             }
 
+            var root = SelectStoredRoot(provider.Capabilities, contract);
             foreach (var entry in provider.Capabilities)
             {
                 ValidateEntry(entry, root);
@@ -477,19 +391,31 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                         "The existing lock contains duplicate output ownership.",
                         "/lock/providers");
                 }
+
+                if (contract.LegacyProjectSkillRoot is not null &&
+                    string.Equals(
+                        root,
+                        contract.LegacyProjectSkillRoot,
+                        StringComparison.Ordinal))
+                {
+                    legacyOutputs.Add(entry.OutputPath);
+                }
             }
         }
 
         return new PreviousState(
             value.Providers.Select(static item => item.Provider).ToArray(),
-            outputs);
+            outputs,
+            legacyOutputs.Order(StringComparer.Ordinal).ToArray());
     }
 
     private static PreviousState ValidateLegacy(
         LegacyCapabilityInitializationLock value)
     {
         if (!string.Equals(value.LockVersion, "1.0.0", StringComparison.Ordinal) ||
-            !ProviderSkillRoots.TryGetValue(value.Provider, out var root) ||
+            !CapabilityProviderContractCatalog.TryGet(
+                value.Provider,
+                out var contract) ||
             value.Capabilities is null)
         {
             throw InvalidInitialization(
@@ -497,6 +423,17 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 "/lock");
         }
 
+        var root = SelectStoredRoot(
+            value.Capabilities.Select(
+                    static entry =>
+                        new CapabilityInitializationLockEntry(
+                            entry.CapabilityId,
+                            entry.CanonicalSha256,
+                            entry.AdapterTemplateSha256,
+                            entry.OutputPath,
+                            entry.OutputSha256))
+                .ToArray(),
+            contract);
         Dictionary<string, string> outputs = new(StringComparer.Ordinal);
         foreach (var entry in value.Capabilities)
         {
@@ -515,7 +452,49 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             }
         }
 
-        return new PreviousState([value.Provider], outputs);
+        var legacyOutputs = contract.LegacyProjectSkillRoot is not null &&
+            string.Equals(
+                root,
+                contract.LegacyProjectSkillRoot,
+                StringComparison.Ordinal)
+                ? outputs.Keys.Order(StringComparer.Ordinal).ToArray()
+                : [];
+        return new PreviousState(
+            [value.Provider],
+            outputs,
+            legacyOutputs);
+    }
+
+    private static string SelectStoredRoot(
+        CapabilityInitializationLockEntry[] entries,
+        CapabilityProviderContract contract)
+    {
+        if (entries.Length != 0 &&
+            entries.All(
+                entry =>
+                    entry is not null &&
+                    entry.OutputPath.StartsWith(
+                        contract.ProjectSkillRoot,
+                        StringComparison.Ordinal)))
+        {
+            return contract.ProjectSkillRoot;
+        }
+
+        if (contract.LegacyProjectSkillRoot is not null &&
+            entries.Length != 0 &&
+            entries.All(
+                entry =>
+                    entry is not null &&
+                    entry.OutputPath.StartsWith(
+                        contract.LegacyProjectSkillRoot,
+                        StringComparison.Ordinal)))
+        {
+            return contract.LegacyProjectSkillRoot;
+        }
+
+        throw InvalidInitialization(
+            "A provider binding mixes current, legacy, or unsupported output roots.",
+            "/lock/providers");
     }
 
     private static void ValidateEntry(
