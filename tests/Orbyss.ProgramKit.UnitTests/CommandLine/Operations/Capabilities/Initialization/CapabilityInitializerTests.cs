@@ -76,7 +76,7 @@ public sealed class CapabilityInitializerTests
                 kit,
                 TestContext.CancellationToken);
 
-            Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".agents")));
+            Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".codex")));
             Assert.IsFalse(
                 Directory.Exists(
                     Path.Combine(workspace, ".agent-capabilities")));
@@ -85,7 +85,7 @@ public sealed class CapabilityInitializerTests
                 var wrapper = await File.ReadAllTextAsync(
                     Path.Combine(
                         workspace,
-                        ".codex",
+                        ".agents",
                         "skills",
                         capabilityId,
                         "SKILL.md"),
@@ -142,7 +142,7 @@ public sealed class CapabilityInitializerTests
             var wrapper = await File.ReadAllTextAsync(
                 Path.Combine(
                     workspace,
-                    ".codex",
+                    ".agents",
                     "skills",
                     "design-software",
                     "SKILL.md"),
@@ -158,7 +158,7 @@ public sealed class CapabilityInitializerTests
     }
 
     [TestMethod]
-    public async Task UpgradesExactLegacyOwnershipLockAfterHumanSelectedNewKit()
+    public async Task MigratesExactLegacyLockAndCodexRootAfterHumanSelectedKit()
     {
         var workspace = CreateWorkspace();
         try
@@ -180,21 +180,40 @@ public sealed class CapabilityInitializerTests
                 await File.ReadAllBytesAsync(
                     lockPath,
                     TestContext.CancellationToken));
-            var legacy = current with
+            var currentProvider = current.Providers.Single();
+            var legacy = new
             {
+                LockVersion = "1.0.0",
                 BundleVersion = "2.2.0",
-                Capabilities = current.Capabilities
+                currentProvider.Provider,
+                currentProvider.ProgramKitRoot,
+                currentProvider.ManifestSha256,
+                Capabilities = currentProvider.Capabilities
                     .Where(
                         entry =>
                             !string.Equals(
                                 entry.CapabilityId,
                                 "maintain-software",
                                 StringComparison.Ordinal))
+                    .Select(
+                        entry =>
+                            entry with
+                            {
+                                OutputPath = entry.OutputPath.Replace(
+                                    ".agents/skills/",
+                                    ".codex/skills/",
+                                    StringComparison.Ordinal),
+                            })
                     .ToArray(),
             };
+            Directory.Move(
+                Path.Combine(workspace, ".agents"),
+                Path.Combine(workspace, ".codex"));
             await File.WriteAllBytesAsync(
                 lockPath,
-                serializer.Write(legacy),
+                JsonSerializer.SerializeToUtf8Bytes(
+                    legacy,
+                    ManifestJsonOptions),
                 TestContext.CancellationToken);
             File.Delete(
                 Path.Combine(
@@ -214,7 +233,7 @@ public sealed class CapabilityInitializerTests
                 File.Exists(
                     Path.Combine(
                         workspace,
-                        ".codex",
+                        ".agents",
                         "skills",
                         "maintain-software",
                         "SKILL.md")));
@@ -222,8 +241,21 @@ public sealed class CapabilityInitializerTests
                 await File.ReadAllBytesAsync(
                     lockPath,
                     TestContext.CancellationToken));
-            Assert.AreEqual("3.0.0", upgraded.BundleVersion);
-            Assert.HasCount(5, upgraded.Capabilities);
+            Assert.AreEqual("2.0.0", upgraded.LockVersion);
+            Assert.AreEqual(
+                "4.0.0",
+                upgraded.Providers.Single().BundleVersion);
+            Assert.HasCount(
+                5,
+                upgraded.Providers.Single().Capabilities);
+            Assert.IsFalse(
+                File.Exists(
+                    Path.Combine(
+                        workspace,
+                        ".codex",
+                        "skills",
+                        "design-software",
+                        "SKILL.md")));
         }
         finally
         {
@@ -241,7 +273,7 @@ public sealed class CapabilityInitializerTests
             CreateKit(kit);
             var output = Path.Combine(
                 workspace,
-                ".codex",
+                ".agents",
                 "skills",
                 "design-software",
                 "SKILL.md");
@@ -382,7 +414,7 @@ public sealed class CapabilityInitializerTests
             Assert.Contains("/adapter", exception.Path);
             Assert.IsFalse(
                 Directory.Exists(
-                    Path.Combine(workspace, ".codex", "skills")));
+                    Path.Combine(workspace, ".agents", "skills")));
             Assert.IsFalse(
                 File.Exists(
                     Path.Combine(
@@ -427,7 +459,7 @@ public sealed class CapabilityInitializerTests
             Assert.Contains("/supportingResources", exception.Path);
             Assert.IsFalse(
                 Directory.Exists(
-                    Path.Combine(workspace, ".codex", "skills")));
+                    Path.Combine(workspace, ".agents", "skills")));
         }
         finally
         {
@@ -451,7 +483,7 @@ public sealed class CapabilityInitializerTests
                 TestContext.CancellationToken);
             var codexWrapperPath = Path.Combine(
                 workspace,
-                ".codex",
+                ".agents",
                 "skills",
                 "design-software",
                 "SKILL.md");
@@ -485,7 +517,21 @@ public sealed class CapabilityInitializerTests
                     "capabilities.lock.json"),
                 TestContext.CancellationToken);
             Assert.Contains("\"provider\":\"claude\"", lockText);
-            Assert.DoesNotContain(".codex/skills/", lockText);
+            Assert.Contains("\"provider\":\"codex\"", lockText);
+            Assert.Contains(".claude/skills/", lockText);
+            Assert.Contains(".agents/skills/", lockText);
+            CapabilityInitializationLockSerializer serializer = new();
+            var ownership = serializer.Read(
+                await File.ReadAllBytesAsync(
+                    Path.Combine(
+                        workspace,
+                        ".program-kit",
+                        "capabilities.lock.json"),
+                    TestContext.CancellationToken));
+            Assert.AreSequenceEqual(
+                ["claude", "codex"],
+                ownership.Providers.Select(
+                    static binding => binding.Provider));
         }
         finally
         {
@@ -538,7 +584,7 @@ public sealed class CapabilityInitializerTests
             Assert.Contains("source authoring workspace", exception.Message);
             Assert.IsFalse(
                 Directory.Exists(
-                    Path.Combine(workspace, ".codex")));
+                    Path.Combine(workspace, ".agents")));
         }
         finally
         {
@@ -576,13 +622,18 @@ public sealed class CapabilityInitializerTests
         }
     }
 
-    private static CapabilityInitializer CreateSubject() =>
-        new(
-            new CommandFileSystem(),
-            new CapabilityBundleManifestReader(),
-            new CapabilityInitializationLockSerializer());
+    internal static CapabilityInitializer CreateSubject() =>
+        CreateSubject(new CommandFileSystem());
 
-    private static string CreateWorkspace()
+    internal static CapabilityInitializer CreateSubject(
+        ICommandFileSystem fileSystem) =>
+        new(
+            fileSystem,
+            new CapabilityBundleManifestReader(),
+            new CapabilityInitializationLockSerializer(),
+            new CapabilityWorkspaceTransaction(fileSystem));
+
+    internal static string CreateWorkspace()
     {
         var path = Path.Combine(
             Path.GetTempPath(),
@@ -593,7 +644,7 @@ public sealed class CapabilityInitializerTests
         return path;
     }
 
-    private static void CreateKit(string kit)
+    internal static void CreateKit(string kit)
     {
         var capabilities = new List<CapabilityBundlePayloadEntry>();
         var adapters = new List<CapabilityBundleProviderAdapter>();
@@ -661,7 +712,7 @@ public sealed class CapabilityInitializerTests
                 })
             .ToArray();
         var manifest = new CapabilityBundleManifest(
-            "3.0.0",
+            "4.0.0",
             capabilities.ToArray(),
             "0.1.0-alpha.1",
             adapters.ToArray(),

@@ -1,0 +1,43 @@
+{
+  "title": "Capability consumer integration posture static-conformance basis",
+  "identity": "pkid:design:program-kit:capability-consumer-integration-postures-static-basis",
+  "version": "1.0.0",
+  "invariants": [
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-program-kit-source-conformance",
+      "invariant": "Program Kit-owned C# implementation satisfies the current private repository source-quality policy.",
+      "candidateLayer": "roslyn-compiler",
+      "rationale": "The existing private Program Kit source gate already applies to the CLI, serializers, filesystem mechanics, and tests changed by this design."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-provider-root-contract",
+      "invariant": "Each supported provider adapter renders only to its exact reviewed project-scoped discovery root.",
+      "candidateLayer": "executable-test",
+      "rationale": "Provider discovery roots, filesystem containment, and external provider behavior require byte-level fixtures and clean-session evidence."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-multi-provider-ownership",
+      "invariant": "Every Program Kit-owned provider wrapper remains represented by exact ownership evidence until explicit exact-byte removal.",
+      "candidateLayer": "executable-test",
+      "rationale": "Lock serialization, migration, collision handling, transactions, and filesystem bytes cannot be proven by a source analyzer."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-human-posture-authority",
+      "invariant": "Program Kit never selects a consumer integration posture, changes ignore rules, stages files, commits files, grants provider authority, or starts work.",
+      "candidateLayer": "architecture-test",
+      "rationale": "Source dependency checks, command fixtures, documentation conformance, and human review prove the absence of forbidden integration behavior."
+    }
+  ],
+  "candidateDisposition": "reuse-existing",
+  "candidateGate": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "candidateActivationMatrix": {
+    "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+    "version": "1.0.0",
+    "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+  },
+  "purpose": "Non-circular exact design basis for the human-selected static-conformance disposition. It creates no new analyzer, gate extension, or consumer attachment."
+}

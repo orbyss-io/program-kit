@@ -1,0 +1,506 @@
+{
+  "title": "Program Kit capability consumer integration postures",
+  "intent": "Let each consumer product explicitly choose no provider integration, contributor-local optional integration, or repository-managed integration while Program Kit supplies only reviewed adapters, deterministic project-scoped mechanics, exact multi-provider ownership, safe migration and removal, and clear documentation.",
+  "scope": [
+    "Three documented consumer-owned integration postures: none, local-optional, and repository-managed.",
+    "Reviewed Codex and Claude Code project-skill discovery roots and thin adapter output.",
+    "A versioned multi-provider capability ownership lock with exact legacy migration.",
+    "Explicit exact-byte provider removal and transactional project-contained mutation.",
+    "Capability bundle, canonical capability, provider-adapter, CLI, test, and consumer-onboarding updates.",
+    "Migration of the Domain Semantic Engine consumer to the current Codex repository-skill location while preserving its repository-managed Codex posture."
+  ],
+  "nonGoals": [
+    "Selecting or enforcing a consumer posture from Program Kit.",
+    "Changing consumer .gitignore files, staging or committing consumer files, installing a provider globally, granting provider trust or permissions, or starting development work.",
+    "Adding an unreviewed provider, guessing an adapter from a folder convention, or turning provider adapters into canonical capability sources.",
+    "Loading capability prose or provider configuration from runtime libraries or generated applications.",
+    "Creating hooks, watchers, startup tasks, MCP bindings, tool bindings, autonomous loops, release behavior, deployment behavior, or package-feed publication.",
+    "Modifying or adopting the unrelated web-publication-static-react worktree."
+  ],
+  "assumptions": [
+    "Official Codex repository-skill discovery remains .agents/skills through implementation; material provider-contract drift stops the affected work unit.",
+    "Official Claude Code project-skill discovery remains .claude/skills through implementation; material provider-contract drift stops the affected work unit.",
+    "The current pending Domain Semantic Engine CapabilityBundle 3.0.0 consumer initialization is preserved as human work and superseded coherently only after the new bundle is verified.",
+    "The existing private Program Kit C# gate remains compatible with Program Kit-owned implementation."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:capability-consumer-human-intent",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "source": {
+        "identity": "pkid:intent:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:3653116ef4b16594cbedd1f01893c4f62a679a8e4387bee15c2e411aa15534bc"
+      },
+      "sourcePath": "extensions/capability-consumer-integration-postures/design-intent.md",
+      "governs": "The approved posture choices, Program Kit and consumer ownership boundary, provider-adapter authority, Git boundary, coexistence behavior, migration, and acceptance shape."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:capability-consumer-provider-contracts",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "source": {
+        "identity": "pkid:evidence:program-kit:capability-consumer-provider-contracts",
+        "version": "1.0.0",
+        "digest": "sha256:49417e246aad9d54ce3c543fd79be857d6e6bd6186ee00359028fc91dea01b3f"
+      },
+      "sourcePath": "extensions/capability-consumer-integration-postures/provider-contract-evidence.json",
+      "governs": "The selected current project-skill roots and implementation-time provider-contract freshness stop."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:capability-consumer-source-baseline",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "source": {
+        "identity": "pkid:evidence:program-kit:capability-consumer-integration-source-baseline",
+        "version": "1.0.0",
+        "digest": "sha256:2487c2f242199996536deca8e02904b3dd8d10b4cd082338f6fd6883eb0859f9"
+      },
+      "sourcePath": "extensions/capability-consumer-integration-postures/source-baseline.json",
+      "governs": "The implemented single-provider lock behavior, current provider paths, current tests, pending consumer initialization, and excluded concurrent work."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:capability-integration",
+      "purpose": "Own deterministic consumer-workspace projection of reviewed Program Kit capability adapters without owning consumer repository policy, provider authority, or runtime behavior.",
+      "vocabulary": [
+        {
+          "term": "Integration posture",
+          "meaning": "A consumer-owned documented choice among none, local-optional, and repository-managed capability-provider integration.",
+          "acceptedAliases": [
+            "capability posture"
+          ]
+        },
+        {
+          "term": "Provider binding",
+          "meaning": "The exact set of thin Program Kit-owned wrappers rendered for one reviewed provider beneath one consumer workspace.",
+          "acceptedAliases": [
+            "provider initialization"
+          ]
+        },
+        {
+          "term": "Multi-provider ownership lock",
+          "meaning": "One versioned project-contained record that binds every Program Kit-owned provider wrapper to exact canonical, template, output, bundle, and manifest bytes.",
+          "acceptedAliases": [
+            "capability ownership lock"
+          ]
+        },
+        {
+          "term": "Known adapter",
+          "meaning": "A provider adapter whose complete discovery contract, template, output root, compatibility boundary, tests, documentation, and CLI registration have been explicitly reviewed.",
+          "acceptedAliases": [
+            "supported adapter"
+          ]
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:capability-consumer-integration-posture",
+      "ownerDomainId": "pkid:domain:program-kit:capability-integration",
+      "meaning": "The consumer README declaration that distinguishes intentional absence, contributor-local optional setup, and committed repository-managed provider discovery.",
+      "termContractIds": [],
+      "invariants": "Program Kit documents the finite options but never selects, persists, enforces, or infers the posture."
+    },
+    {
+      "identity": "pkid:model:program-kit:capability-provider-ownership-set",
+      "ownerDomainId": "pkid:domain:program-kit:capability-integration",
+      "meaning": "The exact finite set of reviewed provider bindings currently owned by Program Kit in one consumer workspace.",
+      "termContractIds": [],
+      "invariants": "Every owned output appears exactly once, all provider identifiers and paths are reviewed and normalized, and no exact binding disappears except through explicit exact-byte removal."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:capability-provider-contract-registry",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "kind": "design-time-source",
+      "purpose": "Own the finite provider allow-list, exact project-skill roots, thin templates, and provider-contract documentation.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Provider identifier, project-skill root, template format, supported provider revision, and canonical pointer semantics."
+    },
+    {
+      "identity": "pkid:component:program-kit:capability-workspace-initializer",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "kind": "focused-helper",
+      "purpose": "Verify one exact capability bundle and transactionally add or update one reviewed project-scoped provider binding while preserving all other exact owned bindings.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Explicit CLI grammar, lock contract, bundle revision, provider registry, path containment, collision rules, transaction semantics, and stable diagnostics."
+    },
+    {
+      "identity": "pkid:component:program-kit:capability-workspace-remover",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "kind": "focused-helper",
+      "purpose": "Explicitly remove only one provider binding whose wrapper bytes still match exact Program Kit ownership evidence.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Explicit CLI grammar, exact ownership verification, transaction semantics, empty-lock disposition, and stable diagnostics."
+    },
+    {
+      "identity": "pkid:component:program-kit:capability-consumer-guidance",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "kind": "read-projection",
+      "purpose": "Explain the three postures, selective Git tracking, exact setup and removal commands, provider support, and consumer README responsibility.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Capability-bundle revision, CLI grammar, provider roots, posture meanings, and non-authority language."
+    }
+  ],
+  "projects": [],
+  "packages": [],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:capability-consumer-runtime-isolation",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "disposition": "forbidden",
+      "referencingScope": "Runtime libraries, generated applications, runtime package closure, startup behavior, and application operations",
+      "referencedScope": "Capability definitions, provider adapters, ownership locks, consumer posture, AI provider configuration, and initialization operations",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:3653116ef4b16594cbedd1f01893c4f62a679a8e4387bee15c2e411aa15534bc"
+        },
+        "path": "design-intent.md#authority-and-activation"
+      },
+      "rationale": "Development-session capabilities remain inert and human-started and must never become runtime behavior."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:capability-consumer-posture-authority",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit initializer, remover, package, bundle, provider registry, and documentation generator",
+      "referencedScope": "Automatic consumer posture selection, .gitignore mutation, Git staging or commit, provider-global installation, trust, permission, or work initiation",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:3653116ef4b16594cbedd1f01893c4f62a679a8e4387bee15c2e411aa15534bc"
+        },
+        "path": "design-intent.md#git-and-onboarding-boundary"
+      },
+      "rationale": "The consumer product owns repository policy and the human owns provider and development authority."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:capability-consumer-known-adapter",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "disposition": "allowed",
+      "referencingScope": "Explicit project-scoped capability initialization and exact removal",
+      "referencedScope": "One provider adapter registered at exact reviewed manifest, CLI, template, documentation, path, and test bytes",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:3653116ef4b16594cbedd1f01893c4f62a679a8e4387bee15c2e411aa15534bc"
+        },
+        "path": "design-intent.md#provider-adapter-boundary"
+      },
+      "rationale": "Finite reviewed provider support permits deterministic safe projection without speculative integration."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "requestedOutcome": "Represent the approved posture options, reviewed-provider boundary, multi-provider ownership, migration, exact removal, compatibility, and verification obligations as one canonical review design.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design grants no initialization, removal, provider, Git, runtime, package, or implementation authority."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "Canonical bytes are schema-validated, semantically checked, digest-bound by Planning 3.0 and the review manifest, and rechecked before implementation."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review set is explicit repository input; it does not create or register a provider capability."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "Prospective initializer and remover mechanics are product work units, not active agent procedures."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit reviewer, consumer product owners, contributors, and the bounded implementer.",
+        "decisionAuthorityBoundary": "Only explicit human approval of this review-set version and exact canonical design and plan SHA-256 values authorizes implementation.",
+        "rationale": "Canonical JSON, reviewer projections, provider evidence, source baseline, static disposition, implementation plan, and validation report expose the complete decision."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "No generated navigation is required."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "ownerId": "pkid:domain:program-kit:capability-integration",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "2.0.0",
+          "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+        },
+        "provenancePolicy": "Exact human intent, provider-contract evidence, current Program Kit source bytes, pending consumer initialization, and excluded concurrent work are named.",
+        "digestPolicy": "The review manifest and Planning 3.0 plan bind exact canonical bytes; any material change requires revalidation, new digests, and renewed human approval.",
+        "consumerIds": [
+          "pkid:component:program-kit:capability-provider-contract-registry",
+          "pkid:component:program-kit:capability-workspace-initializer",
+          "pkid:component:program-kit:capability-workspace-remover",
+          "pkid:component:program-kit:capability-consumer-guidance"
+        ],
+        "compatibilityPolicy": "Provider identifiers and discovery roots, lock versions, capability-bundle revisions, canonical capability bytes, adapter templates, CLI grammar, diagnostics, migrations, and consumer documentation version explicitly.",
+        "migrationPolicy": "Legacy single-provider locks and legacy Codex paths migrate only from exact owned bytes during explicit initialization or removal; incompatible or ambiguous state stops without partial mutation."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "Artifacts contain repository-relative paths, identities, versions, digests, provider identifiers, and public documentation URLs only; credentials, prompts, transcripts, environment values, and secret values are excluded.",
+        "externalizationPolicy": "Canonical capability semantics remain Program Kit-owned; thin wrappers and ownership evidence may be committed only by explicit consumer policy.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Provider sessions, trust prompts, local ignore configuration, Git index state, and runtime state are observations outside the durable design."
+      },
+      "rationale": "One canonical design keeps Program Kit mechanics, consumer repository policy, provider discovery, human authority, migration, and runtime isolation distinct."
+    }
+  ],
+  "representationRelationships": [],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Verify exact bundle, canonical, template, lock, and existing output bytes before project-contained mutation.",
+      "guarantees": [
+        "Unsupported providers, path escape, user-global roots, collision, tamper, incomplete bundles, and invalid locks fail closed.",
+        "Wrappers remain thin and contain one portable canonical pointer."
+      ],
+      "exclusions": [
+        "No credential, provider trust, permission, secret, user-global configuration, or arbitrary script installation."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "The consumer owns posture and Git policy; a human explicitly starts each initialization, removal, and development request.",
+      "guarantees": [
+        "Program Kit exposes finite mechanics and documentation without selecting a posture.",
+        "Initialization and committed wrappers grant no development authority."
+      ],
+      "exclusions": [
+        "No silent initialization, provider selection, work initiation, staging, commit, trust, permission, or global installation."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Capability integration stores no secret values or provider credentials.",
+      "guarantees": [
+        "Locks and diagnostics contain only normalized paths, provider IDs, versions, and digests."
+      ],
+      "exclusions": [
+        "No secret discovery, persistence, redaction inference, transcript capture, or environment capture."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Persist only exact provider wrapper bytes and one project-contained ownership lock selected by explicit human operations.",
+      "guarantees": [
+        "Every owned provider remains represented until exact explicit removal.",
+        "Transactions preserve unrelated provider files and recover or fail without ambiguous partial ownership."
+      ],
+      "exclusions": [
+        "No .gitignore, Git index, Git commit, provider-global root, runtime package, or application-state mutation."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Fail closed before externally visible partial mutation when source, ownership, provider, path, compatibility, or recovery state is invalid.",
+      "guarantees": [
+        "Stable diagnostics distinguish unsupported provider, invalid source, collision, tamper, migration refusal, and transaction recovery.",
+        "Human-owned or modified files remain unchanged."
+      ],
+      "exclusions": [
+        "No guessed ownership, silent overwrite, silent removal, fallback provider path, or inferred success."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "One workspace capability transaction owns the lock mutation boundary at a time.",
+      "guarantees": [
+        "Concurrent or abandoned transaction state is detected before mutation."
+      ],
+      "exclusions": [
+        "No last-writer-wins lock replacement, unbounded retry, or concurrent provider mutation."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Cancellation is honored before commit; after commit begins, recovery evidence determines the exact final state.",
+      "guarantees": [
+        "Cancellation never leaves owned wrappers without corresponding ownership evidence."
+      ],
+      "exclusions": [
+        "No claim that arbitrary filesystem failures are reversible without a valid transaction record."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Expose deterministic success or stable diagnostics and exact ownership-lock bytes without recording prompts or provider sessions.",
+      "guarantees": [
+        "Tests can observe provider set, output paths, migrations, removals, bundle binding, and unrelated-byte preservation."
+      ],
+      "exclusions": [
+        "No prompt, reasoning trace, credential, transcript, environment, or provider-session recording."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "policy": "Version lock shape, bundle revision, provider roots, CLI grammar, diagnostics, and canonical capability mappings explicitly.",
+      "guarantees": [
+        "Legacy version 1 locks remain readable only for exact explicit migration.",
+        "The Codex .codex/skills to .agents/skills move is ownership-verified and non-destructive.",
+        "Material provider-contract drift stops implementation."
+      ],
+      "exclusions": [
+        "No floating provider contract, silent bundle upgrade, ambiguous legacy acceptance, or indefinite dual-path claim."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:capability-consumer-choose-posture",
+      "actor": "Consumer product owner",
+      "intent": "Choose and clearly communicate how Program Kit AI development capabilities are exposed.",
+      "preconditions": [
+        "The product uses Program Kit or chooses whether to expose its development capabilities."
+      ],
+      "steps": [
+        "Choose none, local-optional, or repository-managed.",
+        "State the choice in the consumer README.",
+        "Link to the exact pinned Program Kit capability setup documentation.",
+        "For repository-managed, explicitly initialize and review each selected provider binding before committing it."
+      ],
+      "outcomes": [
+        "A contributor can distinguish intentional absence from incomplete setup.",
+        "Program Kit has not selected policy or modified Git state."
+      ],
+      "failureOutcomes": [
+        "A bare Program Kit link without a consumer-specific posture statement is incomplete onboarding.",
+        "An unsupported provider or unreviewed adapter remains unavailable."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:capability-consumer-add-provider",
+      "actor": "Human contributor or product owner",
+      "intent": "Initialize one reviewed provider without losing ownership of existing providers.",
+      "preconditions": [
+        "The workspace and exact capability-bundle root are explicit.",
+        "Existing lock and wrapper bytes are valid or absent."
+      ],
+      "steps": [
+        "Select one reviewed provider explicitly.",
+        "Verify source, existing ownership, collisions, containment, and transaction state.",
+        "Render thin wrappers to the provider's current project root.",
+        "Commit wrapper and multi-provider lock bytes as one transaction."
+      ],
+      "outcomes": [
+        "The selected provider is added or updated idempotently.",
+        "Other exact owned provider bindings remain represented and unchanged unless exact migration is required."
+      ],
+      "failureOutcomes": [
+        "Tamper, collision, unsupported provider, provider-contract drift, path escape, invalid source, or ambiguous recovery stops without unowned mutation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:capability-consumer-remove-provider",
+      "actor": "Human contributor or product owner",
+      "intent": "Explicitly remove one Program Kit-owned provider binding.",
+      "preconditions": [
+        "The selected provider exists in a valid ownership lock.",
+        "Every selected wrapper still matches the exact lock-owned digest."
+      ],
+      "steps": [
+        "Select one provider explicitly.",
+        "Verify every owned output and transaction boundary.",
+        "Delete only exact owned wrapper files.",
+        "Update the provider set or remove the lock when the set becomes empty."
+      ],
+      "outcomes": [
+        "No unrelated provider or human-owned file changes.",
+        "The workspace may intentionally return to the none posture."
+      ],
+      "failureOutcomes": [
+        "Modified, missing, unowned, or ambiguous output stops removal without partial mutation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:capability-consumer-migrate-legacy-codex",
+      "actor": "Human Codex consumer",
+      "intent": "Move an exact legacy Codex binding to the current repository-skill location.",
+      "preconditions": [
+        "A valid version 1 single-provider lock owns exact .codex/skills wrapper bytes."
+      ],
+      "steps": [
+        "Run explicit Codex initialization against the selected exact bundle.",
+        "Verify all legacy source and output bytes.",
+        "Render current wrappers below .agents/skills.",
+        "Remove only exact legacy owned wrapper files and write the version 2 multi-provider lock transactionally."
+      ],
+      "outcomes": [
+        "Codex discovery follows the current reviewed repository contract.",
+        "No human-modified legacy file is overwritten or removed."
+      ],
+      "failureOutcomes": [
+        "Invalid lock, changed legacy wrapper, target collision, or provider-contract drift stops migration."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:capability-consumer-integration-postures",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:3653116ef4b16594cbedd1f01893c4f62a679a8e4387bee15c2e411aa15534bc"
+        },
+        {
+          "identity": "pkid:evidence:program-kit:capability-consumer-provider-contracts",
+          "version": "1.0.0",
+          "digest": "sha256:49417e246aad9d54ce3c543fd79be857d6e6bd6186ee00359028fc91dea01b3f"
+        },
+        {
+          "identity": "pkid:evidence:program-kit:capability-consumer-integration-source-baseline",
+          "version": "1.0.0",
+          "digest": "sha256:2487c2f242199996536deca8e02904b3dd8d10b4cd082338f6fd6883eb0859f9"
+        }
+      ],
+      "claim": "A candidate review design exists from explicit human intent, current provider evidence, and current Program Kit source truth; no initializer, remover, adapter, lock, bundle, consumer migration, provider action, or runtime behavior is implemented by this artifact."
+    }
+  ],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:capability-consumer-integration-postures",
+    "version": "1.0.0",
+    "digest": "sha256:aa422e16ebbfc5fb038a29adbfd5d9072122292543f82b07ca9e8c87cbb340af"
+  }
+}

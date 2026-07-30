@@ -227,7 +227,7 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     {
         if (!string.Equals(
                 manifest.BundleVersion,
-                "3.0.0",
+                "4.0.0",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,

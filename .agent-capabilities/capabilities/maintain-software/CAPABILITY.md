@@ -185,6 +185,8 @@ the inert Claude Code adapter template at
 `.agent-capabilities/provider-adapters/claude/maintain-software/SKILL.md`
 contain only provider registration metadata and one canonical-path token.
 Initialization renders them only in an explicitly selected non-authoring
-consumer workspace. Verify the exact canonical pointer, bundle and profile
-digests, absence of copied procedure text, ownership-lock entry, and absence of
+consumer workspace beneath `.agents/skills/` for Codex or `.claude/skills/`
+for Claude Code. Verify the exact canonical pointer, bundle and profile
+digests, absence of copied procedure text, complete multi-provider
+ownership-lock entry, preservation of other providers, and absence of
 user-global or Program Kit authoring-workspace writes.

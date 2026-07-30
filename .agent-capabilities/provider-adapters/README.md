@@ -23,9 +23,13 @@ Codex templates live under `provider-adapters/codex/<capability-id>/SKILL.md`.
 Each template contains the exact
 `{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}` token once. The Program Kit CLI
 replaces it with a forward-slash relative path computed from the generated
-workspace `.codex/skills/<capability-id>/SKILL.md` to the selected canonical
+workspace `.agents/skills/<capability-id>/SKILL.md` to the selected canonical
 definition. This keeps the adapter portable when Program Kit is located at
 `program-kit/`, `tools/program-kit/`, or another explicit workspace path.
+
+The legacy `.codex/skills/` root is not a current adapter contract. Program Kit
+recognizes it only as exact ownership-verified migration input during an
+explicit human-started capability operation.
 
 ## Implemented provider: Claude Code
 
@@ -44,12 +48,24 @@ Kit CLI replaces it with a forward-slash relative path computed from the
 generated workspace `.claude/skills/<capability-id>/SKILL.md` to the selected
 canonical definition, exactly as for Codex.
 
-The workspace ownership lock at `.program-kit/capabilities.lock.json` records
-one provider: the most recently initialized one. Initializing a second
-provider renders that provider's wrappers into its own discovery root and
-rewrites the lock; wrappers whose bytes are no longer recorded by the current
-lock are treated as human-owned and initialization refuses to overwrite them
-when they differ.
+The versioned workspace ownership lock at
+`.program-kit/capabilities.lock.json` records the complete exact set of
+Program Kit-owned provider bindings. Initializing one provider adds or updates
+that binding without losing another provider. Exact removal is explicit:
+`capabilities uninitialize --provider <claude|codex> --workspace-root <dir>`
+removes only a selected provider whose wrapper bytes still match the lock.
+Modified, missing, colliding, unowned, or ambiguous state fails closed.
+
+Initialization and removal use a journaled transaction. The ownership lock is
+the final mutation, and an interrupted operation either completes at the exact
+desired bytes on recovery or restores the exact prior bytes.
+
+Consumer products, not Program Kit, select `none`, `local-optional`, or
+`repository-managed` integration. See
+[consumer integration postures](../consumer-integration.md) for exact pinned
+setup and removal commands and selective Git guidance. Program Kit never edits
+`.gitignore`, stages or commits files, installs a provider globally, grants
+trust or permissions, or starts development work.
 
 ## Adding another provider
 

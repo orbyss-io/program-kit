@@ -4,11 +4,11 @@ This file is a generated, non-authoritative projection of [`INDEX.md`](INDEX.md)
 Capability availability is owned only by the canonical index.
 
 Source path: `.agent-capabilities/capabilities/INDEX.md`
-Source digest: `sha256:db594c14ab7eecafa3002bb960bb0dc6606e8aa141cb2914f4ba4ab3babc9464`
+Source digest: `sha256:4ccb4c6e9c3014116ab4080ff312d412074d3d74302920022ebb6ad3cb8a7179`
 
 | Capability ID | Flow category | Status | Canonical definition | Active-provider wrapper | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `author-and-maintain-skills` | development tooling | available | [CAPABILITY.md](author-and-maintain-skills/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/author-and-maintain-skills/SKILL.md) | Program Kit repository capability enforcing the distributable, authoring-inert product-capability standard; not in the distributable bundle. A Claude Code adapter template is registered at `../provider-adapters/claude/author-and-maintain-skills/SKILL.md`. |
+| `author-and-maintain-skills` | development tooling | available | [CAPABILITY.md](author-and-maintain-skills/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/author-and-maintain-skills/SKILL.md) | Program Kit repository capability enforcing finite project-scoped provider contracts and the distributable, authoring-inert product-capability standard; not in the distributable bundle. A Claude Code adapter template is registered at `../provider-adapters/claude/author-and-maintain-skills/SKILL.md`. |
 | `develop-software` | development | available | [CAPABILITY.md](develop-software/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/develop-software/SKILL.md) | Routes a human-started request to one backed development flow without granting authority. A Claude Code adapter template is registered at `../provider-adapters/claude/develop-software/SKILL.md`. |
 | `design-csharp-build-gate` | gate design | available | [CAPABILITY.md](design-csharp-build-gate/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/design-csharp-build-gate/SKILL.md) | Human-started design of one consumer-controlled C# build gate and its exact establishment-first plan fragment. A Claude Code adapter template is registered at `../provider-adapters/claude/design-csharp-build-gate/SKILL.md`. |
 | `design-software` | design | available | [CAPABILITY.md](design-software/CAPABILITY.md) | [Codex adapter template](../provider-adapters/codex/design-software/SKILL.md) | Produces a versioned design and implementation plan, then stops for human approval. A Claude Code adapter template is registered at `../provider-adapters/claude/design-software/SKILL.md`. |

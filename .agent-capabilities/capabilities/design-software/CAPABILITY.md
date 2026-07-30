@@ -166,7 +166,8 @@ The inert Codex adapter template at
 inert Claude Code adapter template at
 `.agent-capabilities/provider-adapters/claude/design-software/SKILL.md` each
 contain one canonical-path token. Initialization renders the selected
-workspace's `.codex/skills/design-software/SKILL.md` or
+workspace's `.agents/skills/design-software/SKILL.md` or
 `.claude/skills/design-software/SKILL.md`. Verify the rendered wrapper's exact
-pointer, confirm it contains no copied design rules, and bind its source and
-output digests in the workspace ownership lock.
+pointer, confirm it contains no copied design rules, bind its source and output
+digests in the complete multi-provider ownership lock, and preserve every
+other exact provider binding.

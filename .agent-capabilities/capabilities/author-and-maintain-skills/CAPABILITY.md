@@ -106,8 +106,10 @@ same reviewed change:
   pass;
 - exact canonical, adapter, and supporting-resource bytes in the content-only
   capability bundle manifest and package;
-- explicit consumer-workspace initialization, ownership-lock, collision, and
-  drift verification;
+- a finite reviewed provider contract that binds each provider identifier to
+  its project-scoped discovery root and adapter format;
+- explicit consumer-workspace initialization, complete multi-provider
+  ownership-lock, collision, drift, migration, and exact removal verification;
 - a source-authoring marker that makes initialization from the Program Kit
   authoring tree fail closed;
 - rejection of filesystem roots, user-home global provider roots, and writes
@@ -127,6 +129,10 @@ to execute the resulting workflow. Secrets, network access, provider-global
 writes, destructive actions, release state, and publication remain separately
 controlled. Filesystem writes stay within the selected repository, and product
 initialization is tested only in isolated consumer workspaces.
+
+Provider registration remains project-scoped and inert. Capability authoring
+does not create hooks, MCP bindings, tool bindings, trust grants, permission
+grants, global installation, runtime dependencies, or autonomous behavior.
 
 ## Source of truth and freshness
 
@@ -171,10 +177,18 @@ one canonical definition. The adapter may contain provider-required metadata
 and concise loading instructions, but must not copy canonical purpose,
 procedure, boundaries, or verification rules.
 
+The reviewed project roots are `.agents/skills/` for Codex and
+`.claude/skills/` for Claude Code. `.codex/skills/` is legacy Codex migration
+input only and is not a current adapter contract. A new provider root or
+format requires an explicit reviewed provider contract; folder recognition
+alone is insufficient.
+
 For every wrapper update:
 
 - Verify the initialized wrapper path links to the exact canonical definition
   selected by the Program Kit initialization lock.
+- Confirm the ownership lock preserves every other exact provider binding and
+  records the current provider root.
 - Compare the wrapper body with the canonical definition for copied substantial instruction text.
 - Confirm the wrapper still contains only provider-specific registration and loading details.
 - Confirm the index row points to both the canonical definition and the wrapper.

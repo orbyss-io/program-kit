@@ -1,0 +1,43 @@
+{
+  "artifactId": "pkid:evidence:program-kit:capability-consumer-provider-contracts",
+  "artifactVersion": "1.0.0",
+  "observedOn": "2026-07-30",
+  "sources": [
+    {
+      "provider": "codex",
+      "authority": "OpenAI Codex documentation",
+      "url": "https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills",
+      "observations": [
+        "Repository-scoped Codex skills are discovered below .agents/skills from the working directory through the repository root.",
+        "Repository-scoped skills are intended to be checked in for a team.",
+        "User-scoped skills remain separate below the user home."
+      ]
+    },
+    {
+      "provider": "claude",
+      "authority": "Anthropic Claude Code documentation",
+      "url": "https://code.claude.com/docs/en/claude-directory",
+      "observations": [
+        "Project-scoped Claude Code skills are discovered below .claude/skills.",
+        "Project skills are intended to be committed and shared with the team.",
+        "settings.local.json and user-home application state remain personal."
+      ]
+    }
+  ],
+  "selectedContracts": [
+    {
+      "provider": "codex",
+      "projectSkillRoot": ".agents/skills",
+      "legacyProjectSkillRoot": ".codex/skills",
+      "migration": "exact-owned-explicit-only"
+    },
+    {
+      "provider": "claude",
+      "projectSkillRoot": ".claude/skills",
+      "legacyProjectSkillRoot": null,
+      "migration": "not-required"
+    }
+  ],
+  "authorityBoundary": "This evidence establishes discovery and sharing locations only. It grants no provider trust, permission, installation, registration, execution, or repository-policy authority.",
+  "freshnessPolicy": "Every provider-contract implementation unit rechecks the authoritative documentation. Material drift stops implementation and returns the design for human review."
+}

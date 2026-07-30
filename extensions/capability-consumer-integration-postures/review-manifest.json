@@ -1,0 +1,178 @@
+{
+  "manifestKind": "program-kit-design-review",
+  "manifestVersion": "1.0.0",
+  "reviewSetId": "pkid:approval:program-kit:capability-consumer-integration-postures-review-set",
+  "reviewSetVersion": "1.0.0",
+  "owner": "human-led-program-kit-capability-integration",
+  "reviewState": "approved",
+  "implementationStatus": "in-progress",
+  "approvalRecord": {
+    "path": "extensions/capability-consumer-integration-postures/design-plan-approval.json",
+    "sha256": "1847e3a2f4084ac4bbf62aaa92b281c852728b6063bda20d4003009ec1069ed2"
+  },
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf",
+    "attributes": "/.gitattributes"
+  },
+  "artifacts": [
+    {
+      "artifactId": "pkid:intent:program-kit:capability-consumer-integration-postures",
+      "artifactVersion": "1.0.0",
+      "role": "human-intent-record",
+      "path": "extensions/capability-consumer-integration-postures/design-intent.md",
+      "sha256": "3653116ef4b16594cbedd1f01893c4f62a679a8e4387bee15c2e411aa15534bc"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:capability-consumer-provider-contracts",
+      "artifactVersion": "1.0.0",
+      "role": "official-provider-contract-evidence",
+      "path": "extensions/capability-consumer-integration-postures/provider-contract-evidence.json",
+      "sha256": "49417e246aad9d54ce3c543fd79be857d6e6bd6186ee00359028fc91dea01b3f"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:capability-consumer-integration-source-baseline",
+      "artifactVersion": "1.0.0",
+      "role": "exact-source-baseline-and-concurrent-work-boundary",
+      "path": "extensions/capability-consumer-integration-postures/source-baseline.json",
+      "sha256": "2487c2f242199996536deca8e02904b3dd8d10b4cd082338f6fd6883eb0859f9"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:capability-consumer-integration-postures-static-basis",
+      "artifactVersion": "1.0.0",
+      "role": "non-circular-static-conformance-design-basis",
+      "path": "extensions/capability-consumer-integration-postures/static-conformance-design-basis.json",
+      "sha256": "23cd93b7f4aafb70a34f02540dde6a1897ec11655b52fa5ca21926458ea593e1"
+    },
+    {
+      "artifactId": "pkid:decision-source:program-kit:capability-consumer-integration-postures-static-conformance",
+      "artifactVersion": "1.0.0",
+      "role": "human-static-conformance-decision-source",
+      "path": "extensions/capability-consumer-integration-postures/static-conformance-decision-source.json",
+      "sha256": "a7e6027500ef4a8fa923d1b78631313e9215c5f9823ce44184af0d985e7e3575"
+    },
+    {
+      "artifactId": "pkid:static-conformance-disposition:program-kit:capability-consumer-integration-postures",
+      "artifactVersion": "1.0.0",
+      "role": "static-conformance-disposition",
+      "contract": "pkid:schema:program-kit:static-conformance-disposition",
+      "contractVersion": "1.0.0",
+      "contractSha256": "834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd",
+      "path": "extensions/capability-consumer-integration-postures/static-conformance-disposition.json",
+      "sha256": "aa422e16ebbfc5fb038a29adbfd5d9072122292543f82b07ca9e8c87cbb340af"
+    },
+    {
+      "artifactId": "pkid:selection-lock:program-kit:capability-consumer-integration-postures-private-gate",
+      "artifactVersion": "1.0.0",
+      "role": "materialized-private-gate-selection-lock",
+      "path": "extensions/capability-consumer-integration-postures/program-kit-private-gate-selection-lock.json",
+      "sha256": "1cfb2a26ecf273cacae5062f04c4f42e95eb88e08323998a99a8d6aa6ad4291a"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:capability-consumer-integration-postures",
+      "artifactVersion": "1.0.0",
+      "role": "canonical-design",
+      "contract": "pkid:schema:program-kit:architecture-design",
+      "contractVersion": "2.0.0",
+      "contractSha256": "2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198",
+      "path": "extensions/capability-consumer-integration-postures/architecture-design.json",
+      "sha256": "666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:capability-consumer-integration-postures-design-markdown",
+      "artifactVersion": "1.0.0",
+      "role": "human-readable-design-projection",
+      "canonicalDesignId": "pkid:design:program-kit:capability-consumer-integration-postures",
+      "canonicalDesignVersion": "1.0.0",
+      "canonicalDesignSha256": "666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0",
+      "path": "extensions/capability-consumer-integration-postures/architecture-design.md",
+      "sha256": "6d34842d511632487d4c5e8c807786b42c16d15b8e358b7d80493d9115014b60"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:capability-consumer-integration-postures",
+      "artifactVersion": "1.0.0",
+      "role": "canonical-implementation-plan",
+      "contract": "pkid:schema:program-kit:implementation-plan",
+      "contractVersion": "3.0.0",
+      "contractSha256": "0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6",
+      "designId": "pkid:design:program-kit:capability-consumer-integration-postures",
+      "designVersion": "1.0.0",
+      "designSha256": "666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0",
+      "path": "extensions/capability-consumer-integration-postures/implementation-plan.json",
+      "sha256": "2d9bbfe4d45289322fad65c7971dce2618be43197f31ca3b64cf5831d334106e"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:capability-consumer-integration-postures-plan-markdown",
+      "artifactVersion": "1.0.0",
+      "role": "human-readable-plan-projection",
+      "canonicalPlanId": "pkid:plan:program-kit:capability-consumer-integration-postures",
+      "canonicalPlanVersion": "1.0.0",
+      "canonicalPlanSha256": "2d9bbfe4d45289322fad65c7971dce2618be43197f31ca3b64cf5831d334106e",
+      "path": "extensions/capability-consumer-integration-postures/implementation-plan.md",
+      "sha256": "3b628633150b70a9dc7971ae2fa5776c3079bf1ce646e1b04d17667afd10881b"
+    },
+    {
+      "artifactId": "pkid:approval:program-kit:capability-consumer-integration-postures-review-set",
+      "artifactVersion": "1.0.0",
+      "role": "exact-human-design-and-plan-approval",
+      "path": "extensions/capability-consumer-integration-postures/design-plan-approval.json",
+      "sha256": "1847e3a2f4084ac4bbf62aaa92b281c852728b6063bda20d4003009ec1069ed2"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:capability-consumer-integration-postures-validation",
+      "artifactVersion": "1.0.0",
+      "role": "design-validation-report",
+      "path": "extensions/capability-consumer-integration-postures/validation-report.md",
+      "sha256": "7f63de6adfcb942e259a81e0377ec4b8ad3e9e0b3a6fe78a5412eec9fc43edd1"
+    },
+    {
+      "artifactId": "pkid:guide:program-kit:capability-consumer-integration-postures-review",
+      "artifactVersion": "1.0.0",
+      "role": "review-navigation",
+      "path": "extensions/capability-consumer-integration-postures/README.md",
+      "sha256": "fa1b8dfd310fce231adcd726f7db3fcf65e8804da0ae409e9c3600b13239f115"
+    }
+  ],
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-and-plan-digests",
+    "candidateDesignSha256": "666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0",
+    "candidatePlanSha256": "2d9bbfe4d45289322fad65c7971dce2618be43197f31ca3b64cf5831d334106e",
+    "acceptedScope": "PKCI-W010 through PKCI-W070 exactly as represented by the canonical Architecture Design 2.0.0 and Planning 3.0.0 artifacts.",
+    "requiresParentApproval": false,
+    "doesNotAuthorize": [
+      "implementation before explicit approval of both exact candidate digests",
+      "material deviation from the approved design or plan",
+      "automatic selection or persistence of a consumer integration posture",
+      ".gitignore mutation, Git staging or commit, provider-global installation, provider trust or permission, credentials, user-home configuration, or work initiation",
+      "unreviewed providers, guessed adapters, hooks, watchers, MCP bindings, tool bindings, autonomous loops, or runtime capability loading",
+      "modification or adoption of unrelated web-publication, package-lock, parent consumer, or other concurrent human work outside the exact approved units",
+      "package publication, release, deployment, production data, infrastructure, secrets, operational history, or external repository changes",
+      "a claim of provider discovery, clean-session behavior, migration, removal, or runtime isolation before exact implementation evidence passes"
+    ]
+  },
+  "validation": {
+    "jsonSyntax": "passed for every review JSON artifact",
+    "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against Architecture Design 2.0.0",
+    "architectureSemanticValidation": "passed through ArchitectureDesignV2Validator over ArchitectureDesignValidator and ArtifactDecisionValidator",
+    "canonicalPlanSchema": "passed through JsonSchemaWorkbenchValidator against Planning 3.0.0",
+    "planSemanticValidation": "passed through ImplementationPlanDocumentV3Validator over ImplementationPlanDocumentValidator",
+    "staticConformanceDispositionSchema": "passed through JsonSchemaWorkbenchValidator against StaticConformanceDisposition 1.0.0",
+    "designPlanBinding": "passed: every plan design reference equals the exact canonical design SHA-256",
+    "requirementTrace": "passed: PKCI-R001 through PKCI-R012 each have one exact stable-order trace across serial PKCI-W010 through PKCI-W070",
+    "gateBinding": "passed: reuse-existing binds the exact materialized private gate, activation matrix, exhaustive profile, selection lock, and existing activation evidence",
+    "projectionBinding": "passed: reviewer Markdown names the exact canonical design and plan digests",
+    "focusedCompiledValidation": "passed: one exact review-only validator test compiled under the mandatory private gate and passed; its harness was removed",
+    "runtimeImplementationOrExecution": "not performed under design authority",
+    "providerAcceptance": "prospective implementation outcome",
+    "scopeReview": "passed for the new review-set directory; unrelated Program Kit and parent worktree changes were preserved and excluded"
+  },
+  "provenance": {
+    "programKitStartingCommit": "00ab82b33061495a90d2e8c2e6bfec669828e370",
+    "consumerStartingCommit": "e3eb7f0b68a300a4df5995fa9598b7940e69c7ab",
+    "source": "human-started capability consumer integration discussion and explicit design-flow/static-conformance decisions",
+    "details": "Bounded to current repository source truth and official provider discovery evidence. The exact design and plan are approved for PKCI-W010 through PKCI-W070. No registration, permission, release, provider invocation, autonomous authority, or material deviation is authorized."
+  }
+}

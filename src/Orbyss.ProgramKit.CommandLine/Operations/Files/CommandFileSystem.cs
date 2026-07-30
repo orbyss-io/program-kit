@@ -94,4 +94,15 @@ public sealed class CommandFileSystem : ICommandFileSystem
             content.ToArray(),
             cancellationToken).ConfigureAwait(false);
     }
+
+    /// <inheritdoc />
+    public void DeleteFile(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var fullPath = Path.GetFullPath(path);
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+    }
 }

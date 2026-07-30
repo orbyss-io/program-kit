@@ -10,6 +10,7 @@ using Orbyss.ProgramKit.CommandLine.Operations;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Removal;
 using Orbyss.ProgramKit.CommandLine.Operations.CSharpBuildGates;
 using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
@@ -224,12 +225,21 @@ public static class CommandLineComposition
             new VerifyCapabilityBundleCommandOperation(
                 new CapabilityBundleVerifier(
                     new CapabilityBundleManifestReader()));
+        CapabilityInitializationLockSerializer capabilityLockSerializer = new();
+        CapabilityWorkspaceTransaction capabilityTransaction = new(fileSystem);
         ICommandOperation capabilityInitializationOperation =
             new InitializeCapabilitiesCommandOperation(
                 new CapabilityInitializer(
                     fileSystem,
                     new CapabilityBundleManifestReader(),
-                    new CapabilityInitializationLockSerializer()));
+                    capabilityLockSerializer,
+                    capabilityTransaction));
+        ICommandOperation capabilityUninitializationOperation =
+            new UninitializeCapabilitiesCommandOperation(
+                new CapabilityUninitializer(
+                    fileSystem,
+                    capabilityLockSerializer,
+                    capabilityTransaction));
         ICSharpBuildGateOperationService csharpGateOperations =
             new CSharpBuildGateOperationService(
                 new CSharpBuildGateDefinitionValidator(),
@@ -266,6 +276,8 @@ public static class CommandLineComposition
                 "capabilities.render-catalog" => capabilityCatalogOperation,
                 "capabilities.verify-bundle" => capabilityBundleOperation,
                 "capabilities.initialize" => capabilityInitializationOperation,
+                "capabilities.uninitialize" =>
+                    capabilityUninitializationOperation,
                 "csharp-gate.validate-definition" or
                 "csharp-gate.render-definition" or
                 "csharp-gate.scaffold" or

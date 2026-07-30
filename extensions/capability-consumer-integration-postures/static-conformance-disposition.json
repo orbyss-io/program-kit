@@ -1,0 +1,70 @@
+{
+  "softwareDesign": {
+    "identity": "pkid:design:program-kit:capability-consumer-integration-postures-static-basis",
+    "version": "1.0.0",
+    "digest": "sha256:23cd93b7f4aafb70a34f02540dde6a1897ec11655b52fa5ca21926458ea593e1"
+  },
+  "invariantAllocations": [
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-program-kit-source-conformance",
+      "invariant": "Program Kit-owned C# implementation satisfies the current private repository source-quality policy.",
+      "layer": "roslyn-compiler",
+      "rationale": "The existing private Program Kit source gate already applies to the CLI, serializers, filesystem mechanics, and tests changed by this design."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-provider-root-contract",
+      "invariant": "Each supported provider adapter renders only to its exact reviewed project-scoped discovery root.",
+      "layer": "executable-test",
+      "rationale": "Provider discovery roots, filesystem containment, and external provider behavior require byte-level fixtures and clean-session evidence."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-multi-provider-ownership",
+      "invariant": "Every Program Kit-owned provider wrapper remains represented by exact ownership evidence until explicit exact-byte removal.",
+      "layer": "executable-test",
+      "rationale": "Lock serialization, migration, collision handling, transactions, and filesystem bytes cannot be proven by a source analyzer."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:capability-consumer-human-posture-authority",
+      "invariant": "Program Kit never selects a consumer integration posture, changes ignore rules, stages files, commits files, grants provider authority, or starts work.",
+      "layer": "architecture-test",
+      "rationale": "Source dependency checks, command fixtures, documentation conformance, and human review prove the absence of forbidden integration behavior."
+    }
+  ],
+  "disposition": "reuse-existing",
+  "gateSelections": [
+    {
+      "gate": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      }
+    }
+  ],
+  "linkedGateDesigns": [],
+  "rationale": "The existing private Program Kit C# gate is compatible with Program Kit-owned implementation. Provider discovery, multi-provider ownership, migration, removal, Git posture, documentation, and clean-session behavior remain exact executable and human-review obligations. No new analyzer, gate extension, or consumer attachment is justified.",
+  "residualRisks": [
+    "The private Program Kit gate remains a repository-specific MSBuild trust boundary.",
+    "Static analysis cannot prove provider discovery, filesystem transactions, exact Git posture, user-global absence, clean-session loading, or external provider behavior.",
+    "Official provider discovery contracts can change after design approval and therefore require implementation-time freshness checks."
+  ],
+  "nonStaticClaims": [
+    "Exact bundle verification, provider allow-listing, lock migration, collision handling, transactional update, exact removal, cancellation, clean-clone behavior, and unrelated-byte preservation require dedicated executable tests.",
+    "Consumer README clarity, selective Git tracking, and genuine provider discovery remain documentation and human-review obligations.",
+    "No runtime package or generated application loads capability prose or provider configuration."
+  ],
+  "decisionSource": {
+    "source": {
+      "identity": "pkid:decision-source:program-kit:capability-consumer-integration-postures-static-conformance",
+      "version": "1.0.0",
+      "digest": "sha256:a7e6027500ef4a8fa923d1b78631313e9215c5f9823ce44184af0d985e7e3575"
+    },
+    "jsonPointer": "/decision"
+  },
+  "emptySelectionAcceptance": null,
+  "blockers": []
+}

@@ -13,5 +13,6 @@ namespace Orbyss.ProgramKit.CommandLine.Operations.Serialization;
     RespectRequiredConstructorParameters = true,
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow)]
 [JsonSerializable(typeof(CapabilityInitializationLock))]
+[JsonSerializable(typeof(LegacyCapabilityInitializationLock))]
 internal sealed partial class CapabilityInitializationJsonContext :
     JsonSerializerContext;

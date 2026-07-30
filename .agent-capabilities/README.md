@@ -15,8 +15,10 @@ A human explicitly initializes an understood provider adapter into a chosen
 human-led workspace root. Initialization does not copy canonical definitions,
 grant authority, or start work. See
 [provider-adapters/README.md](provider-adapters/README.md) for the adapter
-contract and [capabilities/INDEX.md](capabilities/INDEX.md) for Program Kit's
-canonical availability catalog.
+contract, [consumer-integration.md](consumer-integration.md) for the three
+consumer-owned onboarding postures, and
+[capabilities/INDEX.md](capabilities/INDEX.md) for Program Kit's canonical
+availability catalog.
 
 The source tree carries `authoring-workspace.json`; explicit initialization
 fails closed while that marker is present. Consumer initialization uses the

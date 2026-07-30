@@ -1,0 +1,711 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+    "version": "1.0.0",
+    "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+  },
+  "ownerId": "pkid:domain:program-kit:capability-integration",
+  "state": "ready-for-human-decision",
+  "requirementIds": [
+    "PKCI-R001",
+    "PKCI-R002",
+    "PKCI-R003",
+    "PKCI-R004",
+    "PKCI-R005",
+    "PKCI-R006",
+    "PKCI-R007",
+    "PKCI-R008",
+    "PKCI-R009",
+    "PKCI-R010",
+    "PKCI-R011",
+    "PKCI-R012"
+  ],
+  "workUnits": [
+    {
+      "workUnitId": "PKCI-W010",
+      "requiredOutcome": "Establish the finite reviewed provider-contract registry and current project-skill roots, with Codex at .agents/skills and Claude Code at .claude/skills, while retaining legacy Codex path knowledge only as migration input.",
+      "sequence": 10,
+      "parallelGroupId": null,
+      "dependsOn": [],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w010",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".agent-capabilities/provider-adapters; src/Orbyss.ProgramKit.CommandLine capability provider descriptors; exact provider-contract fixtures, tests, and documentation."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if current official Codex or Claude Code project-skill discovery materially differs from provider-contract-evidence.json, or if support would require a provider-global write, trust grant, permission grant, hook, MCP binding, runtime activation, or speculative adapter."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
+            "--no-restore",
+            "--filter",
+            "Capability",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The finite provider registry accepts only reviewed Codex and Claude Code identifiers and renders their exact current project-skill roots without provider-global or runtime output."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKCI-W020",
+      "requiredOutcome": "Introduce a deterministic versioned capability ownership lock that records the complete set of exact Program Kit-owned provider bindings and strictly reads the legacy single-provider lock only for migration.",
+      "sequence": 20,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKCI-W010"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w020",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "src/Orbyss.ProgramKit.CommandLine capability ownership models and serialization; exact v1/v2 lock fixtures, migration fixtures, tests, and documentation."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the new lock cannot preserve every exact provider binding, if migration requires guessing missing ownership, or if serialization cannot be canonical, stable-order, path-contained, and fail-closed on duplicate or unknown state."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
+            "--no-restore",
+            "--filter",
+            "CapabilityInitializationLock",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The complete provider set round-trips deterministically, stable ordering is byte-identical, exact legacy state migrates, and ambiguous, duplicate, unknown, or path-escaping state is rejected."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKCI-W030",
+      "requiredOutcome": "Make capability initialization transactionally add or update one reviewed provider while preserving all other exact owned providers, and safely migrate exact legacy locks and Codex wrappers without partial mutation.",
+      "sequence": 30,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKCI-W020"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w030",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "src/Orbyss.ProgramKit.CommandLine capability initialization and filesystem transaction code; focused initialization, coexistence, migration, tamper, collision, cancellation, and recovery tests."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop on modified or unowned legacy bytes, a destination collision, incomplete ownership evidence, path escape, unsupported provider, incomplete bundle, or any design that can expose a new wrapper set without its matching lock."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
+            "--no-restore",
+            "--filter",
+            "CapabilityInitializer",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Fresh, coexistence, idempotence, exact migration, tamper, collision, path-containment, cancellation, and transaction-recovery fixtures pass with unrelated bytes preserved."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKCI-W040",
+      "requiredOutcome": "Add an explicit capabilities uninitialize command that transactionally removes only one selected provider's exact lock-owned wrapper bytes, preserves all other providers, and removes the lock when the ownership set becomes empty.",
+      "sequence": 40,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKCI-W030"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w040",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "src/Orbyss.ProgramKit.CommandLine command catalog, request parsing, capability removal, filesystem transaction code, help text, focused tests, and documentation."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if removal would delete modified, unowned, unrelated, provider-global, or non-contained bytes, if it would infer a consumer posture, or if cancellation can leave wrappers and lock inconsistent."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
+            "--no-restore",
+            "--filter",
+            "Capability",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Exact single-provider and coexistence removal pass; tamper and unknown-provider removal fail closed; final-provider removal cleans only the exact owned wrappers and empty lock."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKCI-W050",
+      "requiredOutcome": "Update the canonical capability guidance through the repository-owned capability-maintenance flow, publish a new exact capability-bundle revision with reviewed adapters, and align delivery conformance with the new provider and ownership contracts.",
+      "sequence": 50,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKCI-W040"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w050",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".agent-capabilities canonical capability definitions, provider adapters, bundle manifests, package inputs, capability delivery conformance, exact bundle documentation, and repository-owned provider wrappers generated by author-and-maintain-skills."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if an active-provider wrapper is missing, if canonical guidance would be edited through an improvised route, if wrappers would copy canonical procedures, or if the bundle cannot bind every canonical and adapter byte exactly."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--no-restore",
+            "--filter",
+            "CapabilityDeliveryConformanceTests",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The new bundle, canonical capabilities, reviewed adapter templates, package contents, and provider matrix are exact, deterministic, thin, and fail closed on drift."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKCI-W060",
+      "requiredOutcome": "Document the three consumer-owned postures and selective Git choices, provide exact pinned onboarding and removal examples, and migrate the Domain Semantic Engine's existing repository-managed Codex integration to the verified new bundle and .agents path without changing its posture.",
+      "sequence": 60,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKCI-W050"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w060",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Program Kit capability onboarding and CLI documentation; parent consumer README; parent .agents/skills; parent .program-kit/capability-bundle and capabilities.lock.json; exact replacement of legacy parent .codex capability wrappers; focused documentation and consumer initialization tests. Preserve all unrelated parent and Program Kit worktree bytes."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the consumer posture is unclear, if Program Kit would edit .gitignore or Git state, if the exact pending consumer capability work cannot be preserved and superseded coherently, if migration encounters modified or unowned wrapper bytes, or if unrelated web-publication or consumer work would be changed."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
+            "--no-restore",
+            "--filter",
+            "Capability",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Documentation distinguishes all three postures and non-authority boundaries; an isolated consumer and the Domain Semantic Engine migration produce exact current Codex discovery and ownership bytes without Git, global, runtime, or unrelated mutation."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKCI-W070",
+      "requiredOutcome": "Close the design with mandatory private-gate build evidence, unit and conformance suites, exact bundle packing and initialization/removal fixtures, clean-checkout repository-managed discovery, runtime dependency isolation, documentation review, and proof that unrelated dirty work remains unchanged.",
+      "sequence": 70,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKCI-W060"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+          "version": "1.0.0",
+          "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkci-w070",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Exact capability consumer integration implementation, tests, documentation, review-set closure evidence, and required solution or package lock updates attributable to PKCI-W010 through PKCI-W060; no unrelated feature or worktree adoption."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop on any mandatory gate, build, test, conformance, bundle, clean-checkout, migration, removal, runtime-isolation, documentation, digest, or unrelated-byte-preservation failure, or on any material deviation from the approved design."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The mandatory private gate and complete Program Kit test suite pass with zero failures; exact provider, bundle, ownership, migration, removal, runtime-isolation, documentation, and unrelated-byte-preservation evidence is complete."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "closure",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    }
+  ],
+  "parallelGroups": [],
+  "trace": [
+    {
+      "requirementId": "PKCI-R001",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W060",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Every consumer explicitly owns and documents one supported integration posture without Program Kit inferring it.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The three postures are distinct, and absence of provider integration is understandable rather than ambiguous."
+    },
+    {
+      "requirementId": "PKCI-R002",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W060",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Consumer onboarding pairs a consumer-specific posture statement with exact pinned Program Kit setup and removal documentation.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "A fresh contributor can tell immediately whether setup is absent, optional, or repository-managed and can find the exact supported commands."
+    },
+    {
+      "requirementId": "PKCI-R003",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W010",
+        "PKCI-W050",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Only finite reviewed providers with exact contracts, templates, manifests, documentation, and tests can initialize.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Unknown providers and guessed folder conventions fail closed."
+    },
+    {
+      "requirementId": "PKCI-R004",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W010",
+        "PKCI-W030",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Codex uses .agents/skills and Claude Code uses .claude/skills as their exact current project-scoped discovery roots.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Fresh initialization writes thin wrappers only beneath the selected provider's reviewed project root."
+    },
+    {
+      "requirementId": "PKCI-R005",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W020",
+        "PKCI-W030",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "One deterministic lock preserves the complete exact set of Program Kit-owned provider bindings.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Initializing or updating one provider does not lose ownership of another provider."
+    },
+    {
+      "requirementId": "PKCI-R006",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W020",
+        "PKCI-W030",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Exact legacy single-provider locks and exact Program Kit-owned legacy Codex wrappers migrate without guessing or partial mutation.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Owned legacy Codex state moves to .agents, while modified, incomplete, conflicting, or unowned state remains untouched and reports a stable failure."
+    },
+    {
+      "requirementId": "PKCI-R007",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W040",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Explicit uninitialization removes only one provider's exact owned bytes and preserves the remaining provider set.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "A product can move to local absence or none without Program Kit deleting modified, unowned, or unrelated files."
+    },
+    {
+      "requirementId": "PKCI-R008",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W030",
+        "PKCI-W040",
+        "PKCI-W060",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Initialization and removal stay project-contained and do not mutate .gitignore, Git state, global provider state, trust, permissions, runtime behavior, or human work authority.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Workspace diffs contain only the exact explicitly requested project-scoped capability files."
+    },
+    {
+      "requirementId": "PKCI-R009",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W020",
+        "PKCI-W030",
+        "PKCI-W040",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Canonical serialization, containment, collision, tamper, cancellation, and transaction rules preserve exact ownership or fail without partial mutation.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Repeated successful operations are byte-identical, and every rejected or interrupted operation preserves the pre-operation state."
+    },
+    {
+      "requirementId": "PKCI-R010",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W050",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "A new bundle revision binds every canonical capability and reviewed provider adapter byte, with thin wrappers and exact conformance coverage.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Bundle packing and verification fail on any canonical definition, adapter, manifest, or package drift."
+    },
+    {
+      "requirementId": "PKCI-R011",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W060",
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "The Domain Semantic Engine retains its repository-managed Codex choice while its pending capability initialization is coherently migrated to the verified new bundle and current discovery path.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "A fresh Domain Semantic Engine clone contains the exact committed Codex wrappers and lock needed for discovery, with no unrelated consumer work altered."
+    },
+    {
+      "requirementId": "PKCI-R012",
+      "ownerId": "pkid:domain:program-kit:capability-integration",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+        "version": "1.0.0",
+        "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+      },
+      "workUnitIds": [
+        "PKCI-W070"
+      ],
+      "implementationOutcome": "Closure proves the mandatory Program Kit gate, full tests, bundle integrity, clean-checkout discovery, runtime isolation, documentation clarity, and unrelated-work preservation.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The feature is complete only when every product unit is transitively closed and all exact acceptance evidence passes."
+    }
+  ],
+  "unresolvedDecisions": [],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:capability-consumer-integration-postures",
+    "version": "1.0.0",
+    "digest": "sha256:aa422e16ebbfc5fb038a29adbfd5d9072122292543f82b07ca9e8c87cbb340af"
+  },
+  "staticConformanceState": "reuse-existing",
+  "gateDesign": {
+    "identity": "pkid:design:program-kit:reusable-csharp-build-gates",
+    "version": "1.0.0",
+    "digest": "sha256:be89504de69b0aaf7adc520a0aa76528e519fc57f56e72b7d4a6c595419929da"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "selectionLock": {
+    "identity": "pkid:selection-lock:program-kit:capability-consumer-integration-postures-private-gate",
+    "version": "1.0.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:1cfb2a26ecf273cacae5062f04c4f42e95eb88e08323998a99a8d6aa6ad4291a"
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
+    "version": "1.0.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:c4b247449959317dd95eca5aab4baf61d709ff27155e84cae0a9d111f0e4b09b"
+  }
+}

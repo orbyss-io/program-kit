@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Orbyss.ProgramKit.CommandLine.Contracts.Capabilities;
 
 namespace Orbyss.ProgramKit.CommandLine.Contracts.Descriptors;
 
@@ -16,9 +17,6 @@ public static class CommandDescriptorCatalog
 
     private static readonly IReadOnlySet<string> DiagnosticFormats =
         new HashSet<string>(["text", "json"], StringComparer.Ordinal);
-
-    private static readonly IReadOnlySet<string> CapabilityProviders =
-        new HashSet<string>(["claude", "codex"], StringComparer.Ordinal);
 
     /// <summary>Gets every W050 command descriptor in exact ordinal order.</summary>
     public static ImmutableArray<CommandDescriptor> All { get; } =
@@ -159,9 +157,26 @@ public static class CommandDescriptorCatalog
             ["capabilities", "initialize"],
             [],
             [
-                new("provider", true, true, CapabilityProviders),
+                new(
+                    "provider",
+                    true,
+                    true,
+                    CapabilityProviderContractCatalog.ProviderIds),
                 new("workspace-root", true, true),
                 new("program-kit-root", true, true),
+                Diagnostics(),
+            ]),
+        Create(
+            "capabilities.uninitialize",
+            ["capabilities", "uninitialize"],
+            [],
+            [
+                new(
+                    "provider",
+                    true,
+                    true,
+                    CapabilityProviderContractCatalog.ProviderIds),
+                new("workspace-root", true, true),
                 Diagnostics(),
             ]),
         Create(

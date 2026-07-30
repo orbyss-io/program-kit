@@ -1,0 +1,29 @@
+{
+  "artifactId": "pkid:approval:program-kit:capability-consumer-integration-postures-review-set",
+  "artifactVersion": "1.0.0",
+  "decision": "approved",
+  "humanStatement": "I approve implementation",
+  "approvedDesign": {
+    "identity": "pkid:design:program-kit:capability-consumer-integration-postures",
+    "version": "1.0.0",
+    "digest": "sha256:666cf457a32702cd8ecf29fbdf412a99bd7187e953c5e1696d82bd4d6fa9d1b0"
+  },
+  "approvedPlan": {
+    "identity": "pkid:plan:program-kit:capability-consumer-integration-postures",
+    "version": "1.0.0",
+    "digest": "sha256:2d9bbfe4d45289322fad65c7971dce2618be43197f31ca3b64cf5831d334106e"
+  },
+  "authorizedWorkUnits": [
+    "PKCI-W010",
+    "PKCI-W020",
+    "PKCI-W030",
+    "PKCI-W040",
+    "PKCI-W050",
+    "PKCI-W060",
+    "PKCI-W070"
+  ],
+  "conditions": [],
+  "supersedes": null,
+  "authorityBoundary": "Authorizes implementation of the exact approved design and plan in the active repository task. It does not authorize material deviation, provider-global or Git-policy mutation, publication, release, deployment, additional providers, hooks, MCP bindings, runtime capability loading, autonomous work, or unrelated repository changes.",
+  "source": "Direct human response in the active Codex task immediately following presentation of the exact canonical design and plan digests."
+}

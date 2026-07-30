@@ -1,0 +1,19 @@
+{
+  "artifactId": "pkid:decision-source:program-kit:capability-consumer-integration-postures-static-conformance",
+  "artifactVersion": "1.0.0",
+  "designBasis": {
+    "identity": "pkid:design:program-kit:capability-consumer-integration-postures-static-basis",
+    "version": "1.0.0",
+    "digest": "sha256:23cd93b7f4aafb70a34f02540dde6a1897ec11655b52fa5ca21926458ea593e1"
+  },
+  "decision": {
+    "disposition": "reuse-existing",
+    "statement": "I approve",
+    "conditions": [
+      "The existing private Program Kit C# source gate applies only to Program Kit-owned implementation source.",
+      "Provider discovery, ownership-lock behavior, Git posture, migration, removal, and clean-session behavior remain executable-test and human-review obligations.",
+      "No new or extended gate and no consumer attachment is authorized."
+    ]
+  },
+  "authorityBoundary": "The human decision selects the exact existing private Program Kit C# gate for this Program Kit implementation. It grants no implementation, provider registration, repository posture, ignore-rule mutation, runtime activation, package publication, analyzer extension, or consumer-gate authority."
+}

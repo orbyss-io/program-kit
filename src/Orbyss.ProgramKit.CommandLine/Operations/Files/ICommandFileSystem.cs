@@ -36,4 +36,7 @@ public interface ICommandFileSystem
         string path,
         ReadOnlyMemory<byte> content,
         CancellationToken cancellationToken);
+
+    /// <summary>Deletes one exact operation-owned file when it exists.</summary>
+    void DeleteFile(string path);
 }

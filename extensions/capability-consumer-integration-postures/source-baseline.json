@@ -1,0 +1,47 @@
+{
+  "artifactId": "pkid:evidence:program-kit:capability-consumer-integration-source-baseline",
+  "artifactVersion": "1.0.0",
+  "programKitCommit": "00ab82b33061495a90d2e8c2e6bfec669828e370",
+  "consumerCommit": "e3eb7f0b68a300a4df5995fa9598b7940e69c7ab",
+  "files": [
+    {
+      "path": ".agent-capabilities/provider-adapters/README.md",
+      "sha256": "sha256:5685164b753e38035fc619b88076b876c071a1b2f00a5940f46a91473f773469"
+    },
+    {
+      "path": ".agent-capabilities/capability-bundle-manifest.json",
+      "sha256": "sha256:fc140ee74a2c060909f17f0bfce6639882127e200cde3ac90eb86f3f96247199"
+    },
+    {
+      "path": "src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Initialization/CapabilityInitializer.cs",
+      "sha256": "sha256:9734e069fa3fc747ad5f93459ab08e56eab990470c95c02b4f859f06908e0ef1"
+    },
+    {
+      "path": "src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Initialization/CapabilityInitializationLock.cs",
+      "sha256": "sha256:04ba9f30c7b7cb8155c466ad588914c43a2e5aec9859514423bc9fa650a54873"
+    },
+    {
+      "path": "src/Orbyss.ProgramKit.CommandLine/Contracts/Descriptors/CommandDescriptorCatalog.cs",
+      "sha256": "sha256:b9d4b58fb036e41bd9bcf6d2853127976b1ed91973504ca1c74ed80ebae7c8b1"
+    },
+    {
+      "path": "tests/Orbyss.ProgramKit.UnitTests/CommandLine/Operations/Capabilities/Initialization/CapabilityInitializerTests.cs",
+      "sha256": "sha256:1863c32c152269f20ab90db091cf990f326764ef888e929e531c20e267de379b"
+    },
+    {
+      "path": "tests/Orbyss.ProgramKit.ConformanceTests/Governance/CapabilityDeliveryConformanceTests.cs",
+      "sha256": "sha256:d1bb3f13401c00c25d11db1740ecc22853c56aebda88a0fd885d36efc5eb5e2f"
+    }
+  ],
+  "currentBehavior": [
+    "The initializer supports exactly claude and codex.",
+    "Codex output is currently hard-coded to .codex/skills and Claude output to .claude/skills.",
+    "Lock version 1.0.0 owns one provider and initializing a second provider preserves the first provider bytes but removes their ownership evidence from the lock.",
+    "The current initializer has no exact provider-removal operation.",
+    "The Domain Semantic Engine working tree contains a pending consumer migration to CapabilityBundle 3.0.0 that must be preserved and superseded coherently rather than discarded."
+  ],
+  "excludedConcurrentWork": [
+    "The uncommitted web-publication-static-react implementation and package-lock changes in the Program Kit worktree are unrelated and must remain untouched.",
+    "No sibling repository or unrelated history is design authority."
+  ]
+}

@@ -111,44 +111,22 @@ templates live under
 [`.agent-capabilities/provider-adapters/`](.agent-capabilities/provider-adapters/).
 Runtime packages never activate these files.
 
-Cloning the repository, initializing the submodule, copying a capability, or
-installing the capability bundle does **not** grant authority and does not start
-work. A human explicitly initializes one understood provider and explicitly
-requests the work.
+Cloning a repository, initializing a submodule, copying a capability, or
+installing the capability bundle does **not** grant authority or start work.
+A human explicitly requests each capability-backed task.
 
-For Codex, initialize the three distributable development-capability wrappers
-from the human-led workspace root. No prior global tool installation is needed:
+Consumer products choose and document one integration posture: `none`,
+`local-optional`, or `repository-managed`. Program Kit does not infer that
+choice, modify `.gitignore`, stage or commit files, install an AI provider
+globally, or grant trust or permissions. See
+[consumer integration postures](.agent-capabilities/consumer-integration.md)
+for the exact CapabilityBundle `4.0.0` setup and removal commands, reviewed
+Codex and Claude Code project roots, multi-provider ownership behavior, and
+selective Git guidance.
 
-```powershell
-dotnet run `
-  --project .\tools\program-kit\src\Orbyss.ProgramKit.CommandLine `
-  -- `
-  capabilities initialize `
-  --provider codex `
-  --workspace-root . `
-  --program-kit-root .\tools\program-kit
-```
-
-The Program Kit path can be `program-kit`, `tools/program-kit`, or another
-explicit directory beneath the workspace root. Initialization renders portable
-relative pointers into `.codex/skills/` and records exact ownership in
-`.program-kit/capabilities.lock.json`. It never creates `.agents` and never
-copies canonical capability semantics into the workspace.
-
-After installing the CLI as a .NET tool, the equivalent command begins with
-`program-kit capabilities initialize`. Re-run initialization after changing
-the pinned Program Kit location or capability-bundle revision; the ownership
-lock permits updates only while the existing wrapper bytes are still exactly
-the bytes Program Kit previously generated.
-
-Other providers remain unregistered until an exact adapter is reviewed. An AI
-tool may still read a canonical capability manually when a human explicitly
-directs it to the exact file. To add a reusable provider such as Claude Code,
-follow the complete adapter contract and checklist in
+The complete provider contract and extension checklist remain in
 [the provider-adapter guide](.agent-capabilities/provider-adapters/README.md).
-That guide defines the template token, manifest registration, finite CLI
-provider selection, collision behavior, tests, and documentation required; an
-output-folder convention alone is not an adapter.
+An output-folder convention alone is not an adapter.
 
 ## Explore the repository
 

@@ -147,6 +147,8 @@ The inert Codex adapter template at
 the inert Claude Code adapter template at
 `.agent-capabilities/provider-adapters/claude/develop-software/SKILL.md` may
 contain only provider registration metadata and one canonical-path token.
-Verify that initialization renders a thin workspace wrapper pointing to this
-exact canonical file, copies no procedure, and binds source and output digests
-in the workspace ownership lock.
+Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
+`.claude/skills/`. Verify that the thin workspace wrapper points to this exact
+canonical file, copies no procedure, binds source and output digests in the
+complete multi-provider ownership lock, and preserves every other exact
+provider binding.

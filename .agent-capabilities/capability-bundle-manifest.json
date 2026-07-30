@@ -1,34 +1,34 @@
 {
-  "bundleVersion": "3.0.0",
+  "bundleVersion": "4.0.0",
   "capabilities": [
     {
       "capabilityId": "develop-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/develop-software/CAPABILITY.md",
-      "sha256": "sha256:d45f4db86f68064f53744548ed3134a84d751e6623ff825d9ce3fd7cf5d0bb69",
+      "sha256": "sha256:e1997faefa6f1c6a9b19a0dfb2bb913b586b9fee17d15db20b1fc62599b138dd",
       "sourcePath": ".agent-capabilities/capabilities/develop-software/CAPABILITY.md"
     },
     {
       "capabilityId": "design-csharp-build-gate",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:c498d0da7cdc9e0e6a3f320848980bb5a8f26f998da3f6dd8dfb1c382ddc4852",
+      "sha256": "sha256:f2af6fb31b4a5ad48d37fd22798fc982865ed40863288685819f5f1793d8a47b",
       "sourcePath": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md"
     },
     {
       "capabilityId": "design-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-software/CAPABILITY.md",
-      "sha256": "sha256:6233d792c1b5e671c1c464040c8e13869157006eb70ca01f31420cada2da1f69",
+      "sha256": "sha256:481a3deff358a1cde64163655158ad2ccef5efa5331c585bb335f2afe8a3d026",
       "sourcePath": ".agent-capabilities/capabilities/design-software/CAPABILITY.md"
     },
     {
       "capabilityId": "implement-software-plan",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md",
-      "sha256": "sha256:a42d76fdf4659b790404fa462ec832bb732a845836c53ce33485d307f0416161",
+      "sha256": "sha256:7d473dc37868ecd45bbccc9f4cac1e6a387a343380be5a9abe381eb9998dfa88",
       "sourcePath": ".agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md"
     },
     {
       "capabilityId": "maintain-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/maintain-software/CAPABILITY.md",
-      "sha256": "sha256:26f3f21036ba46d879c020fed233e5034276fe1d90f9d4baafbf40f74be8405d",
+      "sha256": "sha256:362daab3a0680b54d463c424b4aea47dd3a1bce56021e8454c3bccee2cfc0721",
       "sourcePath": ".agent-capabilities/capabilities/maintain-software/CAPABILITY.md"
     }
   ],

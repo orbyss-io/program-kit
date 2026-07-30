@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Orbyss.ProgramKit.CommandLine.Contracts;
+using Orbyss.ProgramKit.CommandLine.Contracts.Capabilities;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Bundles;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
@@ -23,35 +24,23 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         ".agent-capabilities/authoring-workspace.json";
     private const string LockPath =
         ".program-kit/capabilities.lock.json";
-    private const string LockVersion = "1.0.0";
+    private const string LockVersion = "2.0.0";
     private const int MaximumSourceBytes = 512 * 1024;
     private const int MaximumLockBytes = 128 * 1024;
-    private static readonly string[] DistributedCapabilityIds =
-    [
-        "design-csharp-build-gate",
-        "design-software",
-        "develop-software",
-        "implement-software-plan",
-        "maintain-software",
-    ];
-    private static readonly Dictionary<string, string> ProviderSkillRoots =
-        new(StringComparer.Ordinal)
-        {
-            ["claude"] = ".claude/skills/",
-            ["codex"] = ".codex/skills/",
-        };
     private static readonly UTF8Encoding StrictUtf8 = new(
         encoderShouldEmitUTF8Identifier: false,
         throwOnInvalidBytes: true);
     private readonly ICommandFileSystem fileSystem;
     private readonly ICapabilityBundleManifestReader manifestReader;
     private readonly ICapabilityInitializationLockSerializer lockSerializer;
+    private readonly ICapabilityWorkspaceTransaction workspaceTransaction;
 
     /// <summary>Initializes the operation with explicit filesystem boundaries.</summary>
     public CapabilityInitializer(
         ICommandFileSystem fileSystem,
         ICapabilityBundleManifestReader manifestReader,
-        ICapabilityInitializationLockSerializer lockSerializer)
+        ICapabilityInitializationLockSerializer lockSerializer,
+        ICapabilityWorkspaceTransaction workspaceTransaction)
     {
         this.fileSystem = fileSystem ??
             throw new ArgumentNullException(nameof(fileSystem));
@@ -59,6 +48,8 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             throw new ArgumentNullException(nameof(manifestReader));
         this.lockSerializer = lockSerializer ??
             throw new ArgumentNullException(nameof(lockSerializer));
+        this.workspaceTransaction = workspaceTransaction ??
+            throw new ArgumentNullException(nameof(workspaceTransaction));
     }
 
     /// <inheritdoc />
@@ -68,17 +59,22 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         string programKitRoot,
         CancellationToken cancellationToken)
     {
-        if (provider is null ||
-            !ProviderSkillRoots.TryGetValue(provider, out var providerSkillRoot))
+        if (!CapabilityProviderContractCatalog.TryGet(
+                provider,
+                out var providerContract))
         {
             throw InvalidInitialization(
                 "Only the exact reviewed 'claude' and 'codex' provider adapters are supported.",
                 "/provider");
         }
 
+        var providerSkillRoot = providerContract.ProjectSkillRoot;
         var workspace = FullDirectory(workspaceRoot, "/workspaceRoot");
         var kit = FullDirectory(programKitRoot, "/programKitRoot");
         EnsureNotUserGlobalWorkspace(workspace);
+        await workspaceTransaction.RecoverAsync(
+            workspace,
+            cancellationToken).ConfigureAwait(false);
         var authoringMarkerPath = ResolveUnder(
             kit,
             AuthoringWorkspaceMarkerPath,
@@ -225,20 +221,16 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 cancellationToken).ConfigureAwait(false);
         }
 
-        foreach (var candidate in candidates)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            await fileSystem.WriteAllBytesAsync(
-                candidate.OutputFullPath,
-                candidate.OutputBytes,
-                cancellationToken).ConfigureAwait(false);
-        }
+        var legacyRemovals = await FindExactLegacyRemovalsAsync(
+            workspace,
+            providerContract,
+            previous,
+            cancellationToken).ConfigureAwait(false);
 
         var programKitRelativePath = PortableRelativePath(workspace, kit);
-        var outputLock = new CapabilityInitializationLock(
-            LockVersion,
-            manifest.BundleVersion,
+        var outputProvider = new CapabilityProviderInitializationLock(
             provider,
+            manifest.BundleVersion,
             programKitRelativePath,
             Digest(manifestBytes.Span),
             candidates.Select(
@@ -251,11 +243,111 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                             candidate.OutputRelativePath,
                             candidate.OutputSha256))
                 .ToArray());
+        var providers = (previous?.Providers ??
+                Array.Empty<CapabilityProviderInitializationLock>())
+            .Where(
+                binding =>
+                    !string.Equals(
+                        binding.Provider,
+                        provider,
+                        StringComparison.Ordinal))
+            .Append(outputProvider)
+            .OrderBy(
+                static binding => binding.Provider,
+                StringComparer.Ordinal)
+            .ToArray();
+        var outputLock = new CapabilityInitializationLock(
+            LockVersion,
+            providers);
         var lockBytes = lockSerializer.Write(outputLock);
-        await fileSystem.WriteAllBytesAsync(
-            ResolveUnder(workspace, LockPath, "/lock"),
-            lockBytes,
+        var mutations = candidates
+            .Select(
+                static candidate =>
+                    new CapabilityWorkspaceMutation(
+                        candidate.OutputRelativePath,
+                        candidate.OutputBytes))
+            .Concat(
+                legacyRemovals.Select(
+                    static relativePath =>
+                        new CapabilityWorkspaceMutation(
+                            relativePath,
+                            null)))
+            .Append(
+                new CapabilityWorkspaceMutation(
+                    LockPath,
+                    lockBytes))
+            .ToArray();
+        await workspaceTransaction.ApplyAsync(
+            workspace,
+            mutations,
             cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask<string[]> FindExactLegacyRemovalsAsync(
+        string workspace,
+        CapabilityProviderContract providerContract,
+        CapabilityInitializationLock? previous,
+        CancellationToken cancellationToken)
+    {
+        if (providerContract.LegacyProjectSkillRoot is null ||
+            previous is null)
+        {
+            return [];
+        }
+
+        var binding = previous.Providers.SingleOrDefault(
+            candidate =>
+                string.Equals(
+                    candidate.Provider,
+                    providerContract.ProviderId,
+                    StringComparison.Ordinal));
+        if (binding is null ||
+            binding.Capabilities.All(
+                entry =>
+                    entry.OutputPath.StartsWith(
+                        providerContract.ProjectSkillRoot,
+                        StringComparison.Ordinal)))
+        {
+            return [];
+        }
+
+        if (binding.Capabilities.Any(
+                entry =>
+                    !entry.OutputPath.StartsWith(
+                        providerContract.LegacyProjectSkillRoot,
+                        StringComparison.Ordinal)))
+        {
+            throw InvalidInitialization(
+                "The legacy provider binding mixes current and legacy output roots.",
+                "/lock");
+        }
+
+        foreach (var entry in binding.Capabilities)
+        {
+            var path = ResolveUnder(
+                workspace,
+                entry.OutputPath,
+                "/lock");
+            var content = await ReadBoundedAsync(
+                path,
+                MaximumSourceBytes,
+                "/output",
+                cancellationToken).ConfigureAwait(false);
+            if (!string.Equals(
+                    Digest(content.Span),
+                    entry.OutputSha256,
+                    StringComparison.Ordinal))
+            {
+                throw InvalidInitialization(
+                    "A legacy provider wrapper no longer matches its exact ownership evidence.",
+                    "/output");
+            }
+        }
+
+        return binding.Capabilities
+            .Select(static entry => entry.OutputPath)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     private async ValueTask<CapabilityInitializationLock?> ReadPreviousLockAsync(
@@ -285,28 +377,7 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
                 "/lock");
         }
 
-        if (!string.Equals(
-                value.LockVersion,
-                LockVersion,
-                StringComparison.Ordinal) ||
-            value.Provider is null ||
-            !ProviderSkillRoots.TryGetValue(
-                value.Provider,
-                out var lockedSkillRoot) ||
-            !IsSupportedBundleVersion(value.BundleVersion) ||
-            !IsDigest(value.ManifestSha256) ||
-            !IsSafeStoredRelativePath(
-                value.ProgramKitRoot,
-                allowCurrentDirectory: true) ||
-            !HasExactValidLockEntries(
-                value.Capabilities,
-                lockedSkillRoot,
-                value.BundleVersion))
-        {
-            throw InvalidInitialization(
-                "The existing Program Kit capability ownership lock is unsupported.",
-                "/lock");
-        }
+        CapabilityInitializationLockVerifier.Verify(value);
 
         return value;
     }
@@ -335,12 +406,14 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
             return;
         }
 
-        var owned = previous?.Capabilities.SingleOrDefault(
-            entry =>
-                string.Equals(
-                    entry.OutputPath,
-                    candidate.OutputRelativePath,
-                    StringComparison.Ordinal));
+        var owned = previous?.Providers
+            .SelectMany(static binding => binding.Capabilities)
+            .SingleOrDefault(
+                entry =>
+                    string.Equals(
+                        entry.OutputPath,
+                        candidate.OutputRelativePath,
+                        StringComparison.Ordinal));
         if (owned is null ||
             !string.Equals(
                 owned.OutputSha256,
@@ -553,114 +626,6 @@ public sealed class CapabilityInitializer : ICapabilityInitializer
         string.Concat(
             "sha256:",
             Convert.ToHexString(SHA256.HashData(content)).ToLowerInvariant());
-
-    private static bool IsDigest(string value)
-    {
-        if (value is null ||
-            value.Length != 71 ||
-            !value.StartsWith("sha256:", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        foreach (var character in value.AsSpan(7))
-        {
-            if (character is not (>= '0' and <= '9') and
-                not (>= 'a' and <= 'f'))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool HasExactValidLockEntries(
-        CapabilityInitializationLockEntry[]? entries,
-        string providerSkillRoot,
-        string bundleVersion)
-    {
-        string[] expectedCapabilityIds = bundleVersion switch
-        {
-            "2.0.0" =>
-            [
-                "design-software",
-                "develop-software",
-                "implement-software-plan",
-            ],
-            "2.1.0" or "2.2.0" =>
-            [
-                "design-csharp-build-gate",
-                "design-software",
-                "develop-software",
-                "implement-software-plan",
-            ],
-            "3.0.0" => DistributedCapabilityIds,
-            _ => [],
-        };
-        if (entries is null ||
-            entries.Length != expectedCapabilityIds.Length)
-        {
-            return false;
-        }
-
-        var actualIds = entries
-            .Select(static entry => entry?.CapabilityId)
-            .Order(StringComparer.Ordinal)
-            .ToArray();
-        if (!actualIds.SequenceEqual(
-                expectedCapabilityIds,
-                StringComparer.Ordinal))
-        {
-            return false;
-        }
-
-        foreach (var entry in entries)
-        {
-            if (entry is null ||
-                !string.Equals(
-                    entry.OutputPath,
-                    string.Concat(
-                        providerSkillRoot,
-                        entry.CapabilityId,
-                        "/SKILL.md"),
-                    StringComparison.Ordinal) ||
-                !IsSafeStoredRelativePath(
-                    entry.CanonicalPath,
-                    allowCurrentDirectory: false) ||
-                !IsDigest(entry.CanonicalSha256) ||
-                !IsDigest(entry.AdapterTemplateSha256) ||
-                !IsDigest(entry.OutputSha256))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool IsSupportedBundleVersion(string value) =>
-        value is "2.0.0" or "2.1.0" or "2.2.0" or "3.0.0";
-
-    private static bool IsSafeStoredRelativePath(
-        string value,
-        bool allowCurrentDirectory)
-    {
-        if (allowCurrentDirectory &&
-            string.Equals(value, ".", StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        return !string.IsNullOrWhiteSpace(value) &&
-            !Path.IsPathRooted(value) &&
-            !value.Contains('\\') &&
-            !value.Any(char.IsControl) &&
-            value.Split('/').All(
-                static segment =>
-                    !string.IsNullOrWhiteSpace(segment) &&
-                    segment is not "." and not "..");
-    }
 
     private static StringComparison PathComparison() =>
         OperatingSystem.IsWindows()

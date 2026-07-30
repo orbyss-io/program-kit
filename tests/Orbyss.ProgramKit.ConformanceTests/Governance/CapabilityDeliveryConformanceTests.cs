@@ -227,6 +227,15 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.Contains(
             "authoring, build, pack, and fixture verification remain inert",
             authoring);
+        Assert.Contains(
+            "complete multi-provider",
+            authoring);
+        Assert.Contains(
+            "`.agents/skills/` for Codex",
+            authoring);
+        Assert.Contains(
+            "does not create hooks, MCP bindings, tool bindings",
+            authoring);
 
         using var marker = JsonDocument.Parse(
             ConformanceInputs.ReadBytes(
@@ -246,6 +255,48 @@ public sealed class CapabilityDeliveryConformanceTests
                 Path.Combine(
                     ConformanceInputs.ProgramKitRoot,
                     ".claude")));
+    }
+
+    [TestMethod]
+    public void ConsumerGuidanceOwnsPostureAndPinsCurrentLifecycleCommands()
+    {
+        var guidance = File.ReadAllText(
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                ".agent-capabilities",
+                "consumer-integration.md"));
+
+        foreach (var posture in new[]
+                 {
+                     "`none`",
+                     "`local-optional`",
+                     "`repository-managed`",
+                 })
+        {
+            Assert.Contains(posture, guidance);
+        }
+
+        Assert.Contains(
+            "Bundle `4.0.0`",
+            guidance);
+        Assert.Contains(
+            ".agents/skills/<capability-id>/SKILL.md",
+            guidance);
+        Assert.Contains(
+            ".claude/skills/<capability-id>/SKILL.md",
+            guidance);
+        Assert.Contains(
+            "capabilities initialize",
+            guidance);
+        Assert.Contains(
+            "capabilities uninitialize",
+            guidance);
+        Assert.Contains(
+            "Program Kit never edits `.gitignore`",
+            guidance);
+        Assert.Contains(
+            "does not install Codex, Claude Code",
+            guidance);
     }
 
     [TestMethod]
@@ -309,6 +360,7 @@ public sealed class CapabilityDeliveryConformanceTests
             .Select(entry => entry.CapabilityId)
             .Order(StringComparer.Ordinal)
             .ToArray();
+        Assert.AreEqual("4.0.0", manifest.BundleVersion);
         Assert.AreSequenceEqual(DistributedCapabilityIds, capabilityIds);
         Assert.DoesNotContain(
             "publish-dotnet-application-locally",

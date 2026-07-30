@@ -22,6 +22,7 @@ program-kit dotnet generate-client --openapi <file> --tool-manifest <file> --too
 program-kit capabilities render-catalog <index> --output <file|->
 program-kit capabilities verify-bundle <bundle>
 program-kit capabilities initialize --provider <claude|codex> --workspace-root <dir> --program-kit-root <dir>
+program-kit capabilities uninitialize --provider <claude|codex> --workspace-root <dir>
 program-kit csharp-gate validate-definition <definition>
 program-kit csharp-gate render-definition <definition> --output <file>
 program-kit csharp-gate scaffold <request> --output <dir>
@@ -47,23 +48,37 @@ values, and includes the exact source SHA-256. Bundle verification requires the
 five distributable canonical definitions and their separately listed inert
 Codex and Claude Code adapter templates; it rejects the index, the authoring
 capability, the repository-only local-publish capability, unlisted bytes, and
-tampering. Bundle `3.0.0` also binds the non-discoverable software-change
+tampering. Bundle `4.0.0` also binds the non-discoverable software-change
 completion profile set shared by full implementation and incremental
 maintenance. These supporting bytes are not independently invokable and grant
 no authority.
 
 Capability initialization requires explicit provider, workspace-root, and
 Program-Kit-root arguments. It verifies the exact source manifest and bytes,
-renders only `.codex/skills/<capability>/SKILL.md` (provider `codex`) or
+renders only `.agents/skills/<capability>/SKILL.md` (provider `codex`) or
 `.claude/skills/<capability>/SKILL.md` (provider `claude`) wrappers with a
 portable relative pointer to the canonical definition, and records exact
-ownership in `.program-kit/capabilities.lock.json`. The lock records the most
-recently initialized provider. It never copies canonical capability semantics
-into the human-led workspace, never writes `.agents`, never scans for
-providers, rejects the Program Kit source authoring marker and user-home global
-root, and refuses to overwrite an unowned or modified wrapper. Exact legacy
-ownership locks migrate only during an explicit initialization against the
-human-selected Program Kit root.
+ownership in lock version `2.0.0` at
+`.program-kit/capabilities.lock.json`. The lock preserves the complete exact
+set of initialized provider bindings. It never copies canonical capability
+semantics into the human-led workspace, scans for providers, or writes outside
+the selected workspace; it rejects the Program Kit source authoring marker and
+user-home global root and refuses to overwrite an unowned or modified wrapper.
+Exact legacy single-provider ownership and Codex `.codex/skills/` bytes migrate
+only during an explicit operation.
+
+Capability uninitialization requires an explicit provider and workspace root.
+It verifies every selected wrapper against the ownership lock, removes only
+that provider's exact bytes, preserves all other provider bindings, and removes
+the lock when the owned set becomes empty. Initialization and removal are
+journaled transactions with exact next-operation recovery.
+
+Consumer posture and Git tracking remain outside the CLI. Program Kit never
+edits `.gitignore`, stages or commits files, installs a provider globally,
+grants trust or permissions, or starts work. The three supported onboarding
+postures and exact pinned examples are documented in
+[`consumer-integration.md`](../../.agent-capabilities/consumer-integration.md).
+
 Host generation requires `hostDocuments[]` in the artifact manifest, binding
 each selected host identity to one exact integrator-document revision. This
 keeps shell and document digests independently verifiable and avoids inferred
