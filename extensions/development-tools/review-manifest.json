@@ -4,9 +4,19 @@
   "reviewSetId": "pkid:review-set:program-kit:development-tools",
   "reviewSetVersion": "3.0.0",
   "owner": "human-led-program-kit-development-tools",
-  "reviewState": "awaiting-human-approval",
+  "reviewState": "approved",
   "implementationStatus": "not-started",
-  "approvalRecord": null,
+  "approvalRecord": {
+    "recordId": "pkid:approval-record:program-kit:development-tools-review-set-3-0-0",
+    "recordVersion": "3.0.0",
+    "contract": "pkid:schema:program-kit:design-plan-approval",
+    "contractVersion": "1.0.0",
+    "path": "extensions/development-tools/design-plan-approval.json",
+    "sha256": "8b8eec00e88e94a0fb544973ff7b7f1d95a9eff6aacd462b45e28e73d6111ceb",
+    "authoritySourcePath": "extensions/development-tools/approval-authority-source.json",
+    "authoritySourceSha256": "ab6184250b0bf362b626eed7d8c5747ee57edd19b231ed6f9b4d613aa947b026",
+    "decisionEvidenceReference": "task:019fb200-01c8-7242-80fe-e567bf2fb13c/turn:019fb3f1-ff88-7823-a5e6-bd189f37872d/item:item-138"
+  },
   "digestProfile": {
     "algorithm": "sha256",
     "byteProfile": "repository file bytes",
@@ -137,21 +147,37 @@
       "artifactVersion": "3.0.0",
       "role": "deterministic-review-validator",
       "path": "extensions/development-tools/validate-review-set.ps1",
-      "sha256": "68adf3c513cc108530fd492b071c1fe616d68c43626aa4f5f6ca3a0366259ced"
+      "sha256": "f9a78c5c8c7341d214b78415e80a65e74e0e6d16cfa6e5771459b84caf8b0a26"
     },
     {
       "artifactId": "pkid:evidence:program-kit:development-tools-validation",
       "artifactVersion": "3.0.0",
       "role": "design-validation-report",
       "path": "extensions/development-tools/validation-report.md",
-      "sha256": "69b5e308f086dd2cdbd4c797642117565d9e96e372df52d2f83c7216ccc77597"
+      "sha256": "7f8723591fd680abb9224eb262548d178d7d1d7d35cd0e512e9f49dbbcb8e6c2"
     },
     {
       "artifactId": "pkid:guide:program-kit:development-tools-review",
       "artifactVersion": "3.0.0",
       "role": "review-navigation",
       "path": "extensions/development-tools/README.md",
-      "sha256": "f78362faf26a1dd749e33cba0294bf5f4f1f67f0cea82fecd1993e7f2ffb8120"
+      "sha256": "b4d9e634dd95705769a1be83499e853b6aeae39196e5c15a942d7aacf0358f9c"
+    },
+    {
+      "artifactId": "pkid:approval:program-kit:development-tools-review-set",
+      "artifactVersion": "3.0.0",
+      "role": "approval-authority-source",
+      "path": "extensions/development-tools/approval-authority-source.json",
+      "sha256": "ab6184250b0bf362b626eed7d8c5747ee57edd19b231ed6f9b4d613aa947b026"
+    },
+    {
+      "artifactId": "pkid:approval-record:program-kit:development-tools-review-set-3-0-0",
+      "artifactVersion": "3.0.0",
+      "role": "human-design-plan-approval",
+      "contract": "pkid:schema:program-kit:design-plan-approval",
+      "contractVersion": "1.0.0",
+      "path": "extensions/development-tools/design-plan-approval.json",
+      "sha256": "8b8eec00e88e94a0fb544973ff7b7f1d95a9eff6aacd462b45e28e73d6111ceb"
     }
   ],
   "approvalBoundary": {
@@ -178,14 +204,17 @@
     "canonicalArchitectureSchema": "passed against Architecture Design 0.1.0-alpha.2",
     "canonicalPlanSchema": "passed against Implementation Plan 0.1.0-alpha.3",
     "staticConformanceDispositionSchema": "passed against StaticConformanceDisposition 0.1.0-alpha.1",
+    "designPlanApprovalSchema": "passed against DesignPlanApproval 1.0.0",
     "targetedSemantics": "passed for exact source, decision, gate, plan, trace, fixture-profile, refresh/update, approval-state, and manifest bindings",
     "materializerDeterminism": "passed: two consecutive runs produced byte-identical canonical JSON and adjacent non-authoritative human-readable plan bytes",
-    "runtimeImplementationOrAcceptance": "not performed under design authority"
+    "approvalValidation": "passed for the exact human statement, exact authority source, exact canonical design and plan digests, unconditional approved decision, and active supersession state",
+    "runtimeImplementationOrAcceptance": "not started"
   },
   "provenance": {
     "startingCommit": "f555745e77ebce234f7e54665869a32cc555ba45",
+    "approvedDate": "2026-07-30",
     "sourceState": "detached source was fast-forwarded and reconciled to canonical Program Kit main before final candidate digests",
     "source": "human-started Program Kit Development Tools and application-capability design convergence",
-    "details": "Bounded to Program Kit repository source truth. Current completed health-patching commits were reconciled without edit or scope expansion. No runtime implementation, capability/provider activation, registration, permission, publication, external repository mutation, or application semantic approval occurred."
+    "details": "Bounded to Program Kit repository source truth. Current completed health-patching commits were reconciled without edit or scope expansion. Human approval in Codex task 019fb200-01c8-7242-80fe-e567bf2fb13c, turn 019fb3f1-ff88-7823-a5e6-bd189f37872d, item item-138 binds the exact canonical design and plan. No runtime implementation, capability/provider activation, registration, permission, publication, external repository mutation, or application semantic approval has yet occurred."
   }
 }

@@ -1,7 +1,7 @@
 # Development Tools review validation
 
-Status: passed for the candidate design review set. Implementation and runtime
-acceptance were not performed.
+Status: passed for the approved design review set. Implementation and runtime
+acceptance have not yet begun.
 
 ## Source basis
 
@@ -30,9 +30,11 @@ The repository's own `program-kit artifacts inspect` operation validated:
 - `static-conformance-disposition.json` against
   `pkid:schema:program-kit:static-conformance-disposition@0.1.0-alpha.1`,
   schema digest
-  `9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811`.
+  `9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811`;
+- `design-plan-approval.json` against
+  `pkid:schema:program-kit:design-plan-approval@1.0.0`.
 
-All three returned `Valid: yes`. The Program Kit CLI and its current dependency
+All four returned `Valid: yes`. The Program Kit CLI and its current dependency
 graph compiled successfully as part of the first inspection. Locked restore
 succeeded after using the user's readable NuGet configuration.
 
@@ -51,7 +53,8 @@ succeeded after using the user's readable NuGet configuration.
 - an adjacent human-readable implementation-plan projection that is explicitly
   non-authoritative and binds the exact current canonical plan digest;
 - exactly 42 unique acceptance fixtures, each assigned to one evidence profile;
-- `awaiting-human-approval`, `not-started`, and no inferred approval record;
+- `approved`, `not-started`, an active unconditional approval, and exact
+  authority-source, human-statement, design, and plan bindings;
 - exact review-manifest file digests; and
 - two consecutive byte-identical materializations of both
   `implementation-plan.json` and `implementation-plan.md`.
@@ -127,5 +130,5 @@ startup protocol flag, and preserves provider-owned trust and permissions.
 - No package was published, promoted, released, or deployed.
 - No external or sibling repository was inspected or changed.
 
-Those checks belong to the dependency-ordered implementation work units after a
-separate exact human approval of the canonical design and plan digests.
+Those checks belong to the now-authorized, dependency-ordered implementation
+work units. The approval does not widen their exact scopes or exclusions.

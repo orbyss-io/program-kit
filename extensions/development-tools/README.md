@@ -30,8 +30,11 @@ Review in this order:
 12. `validate-review-set.ps1` — deterministic digest, trace, fixture, approval,
     and materializer checks.
 13. `validation-report.md` — exact validation, unavailable checks, and digests.
-14. `review-manifest.json` — the exact approval candidate and authority
-    boundary.
+14. `approval-authority-source.json` — the exact human decision evidence and
+    approved review boundary.
+15. `design-plan-approval.json` — the active approval record binding the exact
+    canonical design and plan.
+16. `review-manifest.json` — the approved review set and authority boundary.
 
 `materialize-implementation-plan.ps1` deterministically rebuilds the canonical
 plan and adjacent non-authoritative `implementation-plan.md` from the exact
@@ -39,13 +42,14 @@ design and supporting evidence. The Markdown binds the canonical digest and is
 the primary human review surface. The materializer performs no runtime,
 provider, registration, capability, permission, or external-system mutation.
 
-No runtime, CLI command, schema, package, generated host, bridge, registration,
-provider adapter, capability bundle, catalog, lock, or acceptance journey is
-implemented by this review set.
+The review set itself implements no runtime, CLI command, schema, package,
+generated host, bridge, registration, provider adapter, capability bundle,
+catalog, lock, or acceptance journey.
 
 The completed `[HEALTH-PATCHING] Program Kit` commits were reconciled from
 committed main and are not modified or widened here.
 
-Implementation may begin only after separate human approval of the exact
-canonical design and plan digests, through `implement-software-plan`. Any
-material architecture deviation stops for renewed design review.
+The human approved the exact canonical design and plan through the recorded
+Codex decision evidence. Implementation proceeds only through
+`implement-software-plan`; any material architecture deviation stops for
+renewed design review.

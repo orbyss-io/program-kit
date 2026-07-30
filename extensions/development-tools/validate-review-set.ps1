@@ -52,6 +52,8 @@ $architecture = Read-Json 'architecture-design.json'
 $plan = Read-Json 'implementation-plan.json'
 $fixtures = Read-Json 'acceptance-fixtures.json'
 $providerEvidence = Read-Json 'provider-contract-evidence.json'
+$approvalAuthority = Read-Json 'approval-authority-source.json'
+$approval = Read-Json 'design-plan-approval.json'
 $manifest = Read-Json 'review-manifest.json'
 
 Assert-DigestReference `
@@ -233,14 +235,42 @@ Assert-True `
     'Provider evidence is not the converged 3.0.0 review candidate.'
 
 Assert-True `
-    ($manifest.reviewState -eq 'awaiting-human-approval') `
-    'The review manifest must remain awaiting-human-approval.'
+    ($manifest.reviewState -eq 'approved') `
+    'The review manifest is not approved.'
 Assert-True `
     ($manifest.implementationStatus -eq 'not-started') `
     'The review manifest must keep implementation not-started.'
 Assert-True `
-    ($null -eq $manifest.approvalRecord) `
-    'The review manifest cannot contain an inferred approval record.'
+    ($null -ne $manifest.approvalRecord) `
+    'The review manifest does not reference the supplied approval record.'
+Assert-True `
+    ($approval.decision -eq 'approved' -and
+        $approval.conditions.Count -eq 0 -and
+        $approval.supersession.state -eq 'active' -and
+        $null -eq $approval.supersession.supersededBy) `
+    'The approval record is not an active, unconditional approval.'
+Assert-True `
+    ($approval.design.digest -eq
+        'sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592' -and
+        $approval.plan.digest -eq
+        'sha256:0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3') `
+    'The approval record does not bind the exact reviewed design and plan.'
+Assert-True `
+    ($approvalAuthority.humanDecisionSource.statement -eq
+        'I approve implementation' -and
+        $approvalAuthority.humanDecisionSource.statementSha256 -eq
+        'sha256:48e5abeea77f2cb8f2078bd433b051ee1069f56699d5962a3c44f05fca827322') `
+    'The approval authority source does not bind the exact human statement.'
+Assert-DigestReference `
+    $approval.authority.source `
+    'extensions/development-tools/approval-authority-source.json' `
+    'The approval record does not bind the current authority-source bytes.'
+Assert-True `
+    ($manifest.approvalRecord.sha256 -eq
+        (Get-RepositoryDigest 'extensions/development-tools/design-plan-approval.json') -and
+        $manifest.approvalRecord.authoritySourceSha256 -eq
+        (Get-RepositoryDigest 'extensions/development-tools/approval-authority-source.json')) `
+    'The review manifest does not bind the exact approval artifacts.'
 
 $manifestPaths = @($manifest.artifacts | ForEach-Object { $_.path })
 Assert-True `

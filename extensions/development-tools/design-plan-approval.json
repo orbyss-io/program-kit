@@ -1,0 +1,45 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:development-tools",
+    "version": "3.0.0",
+    "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
+  },
+  "plan": {
+    "identity": "pkid:plan:program-kit:development-tools",
+    "version": "3.0.0",
+    "digest": "sha256:0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3"
+  },
+  "acceptedScope": "PKDT-W010 through PKDT-W110 exactly as represented by the canonical Development Tools Architecture Design and Implementation Plan",
+  "approvingPrincipal": {
+    "kind": "human-session-participant",
+    "provider": "codex",
+    "identifier": "019fb200-01c8-7242-80fe-e567bf2fb13c",
+    "role": "human-requester"
+  },
+  "authority": {
+    "kind": "review-set-approval-boundary",
+    "source": {
+      "identity": "pkid:approval:program-kit:development-tools-review-set",
+      "version": "3.0.0",
+      "digest": "sha256:ab6184250b0bf362b626eed7d8c5747ee57edd19b231ed6f9b4d613aa947b026"
+    },
+    "jsonPointer": "/approvalBoundary",
+    "ownerId": "pkid:domain:program-kit:operation-exposure"
+  },
+  "decisionEvidence": [
+    {
+      "kind": "human-session-statement",
+      "provider": "codex",
+      "referenceId": "task:019fb200-01c8-7242-80fe-e567bf2fb13c/turn:019fb3f1-ff88-7823-a5e6-bd189f37872d/item:item-138",
+      "digest": "sha256:48e5abeea77f2cb8f2078bd433b051ee1069f56699d5962a3c44f05fca827322"
+    }
+  ],
+  "correlationId": "codex:019fb200-01c8-7242-80fe-e567bf2fb13c:019fb3f1-ff88-7823-a5e6-bd189f37872d",
+  "decisionTime": "2026-07-30T16:53:29.000Z",
+  "decision": "approved",
+  "conditions": [],
+  "supersession": {
+    "state": "active",
+    "supersededBy": null
+  }
+}

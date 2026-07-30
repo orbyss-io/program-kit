@@ -1,0 +1,51 @@
+{
+  "artifactId": "pkid:approval:program-kit:development-tools-review-set",
+  "artifactVersion": "3.0.0",
+  "reviewManifestReadyDigest": "sha256:c3d6f57c51acb500c31fd6e7348f3f2a1d2e7c4c01221ffec3ae79f817696960",
+  "design": {
+    "identity": "pkid:design:program-kit:development-tools",
+    "version": "3.0.0",
+    "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
+  },
+  "plan": {
+    "identity": "pkid:plan:program-kit:development-tools",
+    "version": "3.0.0",
+    "digest": "sha256:0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3"
+  },
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
+    "version": "2.0.0",
+    "digest": "sha256:e956991542cd36a5869f6e214fb8168250d3739383f33b1c80b103fe00062e81",
+    "candidateDisposition": "reuse-existing"
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit human approval of the exact canonical design and implementation-plan digests after reviewing this candidate set",
+    "acceptedScope": "PKDT-W010 through PKDT-W110 exactly as represented by the canonical Development Tools Architecture Design and Implementation Plan",
+    "requiresParentApproval": false,
+    "doesNotAuthorize": [
+      "implementation outside PKDT-W010 through PKDT-W110",
+      "material deviation from the exact approved design or plan",
+      "altering or widening the completed Program Kit health-patching task",
+      "application semantic approval by Program Kit",
+      "automatic tool registration or capability initialization",
+      "provider trust, permission, invocation, or user-global mutation",
+      "private or authenticated acquisition",
+      "package-feed publication, release, promotion, deployment, or signing",
+      "external or sibling repository mutation",
+      "hooks, watchers, retries, nested indexes, or autonomous model/tool loops"
+    ]
+  },
+  "humanDecisionSource": {
+    "provider": "codex",
+    "threadId": "019fb200-01c8-7242-80fe-e567bf2fb13c",
+    "turnId": "019fb3f1-ff88-7823-a5e6-bd189f37872d",
+    "referenceId": "task:019fb200-01c8-7242-80fe-e567bf2fb13c/turn:019fb3f1-ff88-7823-a5e6-bd189f37872d/item:item-138",
+    "decisionTime": "2026-07-30T16:53:29.000Z",
+    "normalization": "UTF-8 without BOM, LF line endings, one terminal LF",
+    "statementSha256": "sha256:48e5abeea77f2cb8f2078bd433b051ee1069f56699d5962a3c44f05fca827322",
+    "statement": "I approve implementation",
+    "scopeNormalization": "The statement immediately followed the human-readable report of design sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592 and plan sha256:0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3; before mutation, Codex restated that exact binding and the human did not narrow or condition it.",
+    "decision": "approved",
+    "conditions": []
+  }
+}
