@@ -62,14 +62,14 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-build",
       "version": "0.1.0-alpha.2",
       "path": "extensions/reusable-csharp-build-gates/build-package-manifest.json",
-      "sha256": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+      "sha256": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
     },
     {
       "clockId": "operations",
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
       "version": "0.1.0-alpha.2",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:00efcd057b0f9cbc0360f7a73e97ffebbb2e9d035fa4574eebd3c8e94f72cc12"
+      "sha256": "sha256:6745445276d35065ec8439335082a07a9f8c0eb582a9c144124bb744e4754c2c"
     },
     {
       "clockId": "capabilities",
@@ -172,13 +172,13 @@
       "source": "operations",
       "target": "build-mechanics",
       "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+      "acceptedSha256": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
     },
     {
       "source": "capabilities",
       "target": "operations",
       "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:00efcd057b0f9cbc0360f7a73e97ffebbb2e9d035fa4574eebd3c8e94f72cc12"
+      "acceptedSha256": "sha256:6745445276d35065ec8439335082a07a9f8c0eb582a9c144124bb744e4754c2c"
     },
     {
       "source": "capability-bundle",

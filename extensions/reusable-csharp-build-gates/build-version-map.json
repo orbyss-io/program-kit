@@ -4,7 +4,7 @@
       "revision": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+        "digest": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
@@ -20,7 +20,7 @@
       "revision": {
         "identity": "pkid:package:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+        "digest": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
@@ -39,7 +39,7 @@
       "source": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+        "digest": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
       "kind": "uses-contract",
@@ -68,7 +68,7 @@
       "source": {
         "identity": "pkid:package:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+        "digest": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-build",
       "kind": "publicly-exposes",
@@ -76,7 +76,7 @@
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.2",
-        "digest": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
+        "digest": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
       },
       "exposure": "public",
       "compatibilityDimensions": [
