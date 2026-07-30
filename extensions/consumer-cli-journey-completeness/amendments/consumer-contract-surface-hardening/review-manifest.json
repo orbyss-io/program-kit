@@ -142,6 +142,18 @@
         "rebaseVerification": "rebased over 43bc085; locked restore, zero-warning Release build, all 643 unit tests, and the 4 directly affected generated-target, package-manifest, and version-inventory conformance tests passed; unchanged-source package inventory digests were mechanically restored to the recomputed bytes",
         "formatVerification": "passed",
         "schemaAndManifestDigestPins": "passed for the C# gate catalog alpha.2, selection-lock alpha.1, lock-intent alpha.1, capability payload, operation source inventory, testing package manifest, version map, and compatibility matrix"
+      },
+      "PKCJ-W060": {
+        "status": "verified",
+        "releaseBuild": "passed with zero warnings and zero errors after one manifest-bound restore and build",
+        "unitTests": "643 passed",
+        "routineConformanceTests": "167 passed; 1 explicitly opt-in Linux fixture skipped",
+        "privateCSharpGateProfile": "20 exhaustive tests passed",
+        "focusedAcceptance": "the canonical 29-package manifest, one-restore/one-build/one-aggregate-pack plan, no-build receipt binding, exact package inspection, transaction cleanup, and cold-proof manifest consumption checks passed",
+        "localFeedProof": "the aggregate pack produced exactly 29 alpha.3 packages plus the public package manifest and SHA-256 projection, with no transaction receipts or generated selection bytes",
+        "isolatedConsumerProof": "a tool-path install from only the flat feed initialized Codex and Claude, retrieved all 6 capabilities and 19 resources, materialized and built a generated Console host, and refused a modified wrapper",
+        "formatVerification": "passed",
+        "publication": "none; output remained in a bounded local temporary directory"
       }
     }
   },

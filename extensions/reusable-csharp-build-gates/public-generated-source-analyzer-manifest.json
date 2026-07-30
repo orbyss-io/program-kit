@@ -1,6 +1,6 @@
 {
   "identity": "pkid:manifest:program-kit:generated-source-contract-analyzer",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "packageId": "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
   "semanticOwnerId": "pkid:domain:program-kit:generated-source-contract",
   "contract": {

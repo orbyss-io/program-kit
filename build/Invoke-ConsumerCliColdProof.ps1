@@ -14,7 +14,21 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$version = '0.1.0-alpha.2'
+$releaseManifestPath = Join-Path `
+    $PSScriptRoot `
+    'program-kit-release-packages.json'
+if (-not (Test-Path -LiteralPath $releaseManifestPath -PathType Leaf)) {
+    throw "The canonical release-package manifest is absent: $releaseManifestPath"
+}
+
+$releaseManifest = [IO.File]::ReadAllText(
+    $releaseManifestPath) | ConvertFrom-Json
+$version = [string] $releaseManifest.productVersion
+$expectedPackages = @($releaseManifest.packages)
+if ($expectedPackages.Count -eq 0) {
+    throw 'The canonical release-package manifest selects no packages.'
+}
+
 $packagePath = [IO.Path]::GetFullPath($PackageRoot)
 $consoleFixturePath = [IO.Path]::GetFullPath($ConsoleConsumerFixtureRoot)
 $gateDraftPath = [IO.Path]::GetFullPath($GateDefinitionDraft)
@@ -217,22 +231,20 @@ function Assert-ContainsText {
 $packages = @(
     Get-ChildItem -LiteralPath $packagePath -Filter '*.nupkg' -File |
         Sort-Object Name)
-if ($packages.Count -ne 29) {
-    throw "The coordinated flat feed must contain exactly 29 packages; found $($packages.Count)."
+$expectedFilenames = @(
+    $expectedPackages |
+        ForEach-Object {
+            "$($_.packageId).$version.nupkg"
+        } |
+        Sort-Object)
+$actualFilenames = @($packages.Name | Sort-Object)
+if (($expectedFilenames -join "`n") -cne
+    ($actualFilenames -join "`n")) {
+    throw 'The coordinated flat feed does not match the canonical release-package manifest.'
 }
 
 $packageEvidence = @()
 foreach ($package in $packages) {
-    $suffix = ".$version.nupkg"
-    if (-not $package.Name.StartsWith(
-            'Orbyss.ProgramKit.',
-            [StringComparison]::Ordinal) -or
-        -not $package.Name.EndsWith(
-            $suffix,
-            [StringComparison]::Ordinal)) {
-        throw "An unexpected package filename is present: $($package.Name)"
-    }
-
     $packageEvidence += [ordered]@{
         filename = $package.Name
         sha256 = Get-Sha256 -Path $package.FullName
@@ -311,7 +323,9 @@ $lockBytes = [IO.File]::ReadAllBytes($lockPath)
 $lock = [Text.Encoding]::UTF8.GetString($lockBytes) | ConvertFrom-Json
 if ($lock.cliVersion -ne $version -or
     @($lock.providers).Count -ne 2 -or
-    @($lock.resources).Count -ne 16) {
+    @($lock.resources).Count -eq 0 -or
+    @($lock.resources.resourceId | Sort-Object -Unique).Count -ne
+        @($lock.resources).Count) {
     throw 'The initialized workspace lock has incomplete version/provider/resource evidence.'
 }
 

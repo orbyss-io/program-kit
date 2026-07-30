@@ -337,8 +337,8 @@ public sealed class CapabilityDeliveryConformanceTests
             ConformanceInputs.ReadBytes(
                 "Capabilities/capability-bundle-manifest.json"));
         Assert.AreEqual("0.1.0-alpha.1", manifest.ManifestVersion);
-        Assert.AreEqual("0.1.0-alpha.2", manifest.BundleVersion);
-        Assert.AreEqual("0.1.0-alpha.2", manifest.KitVersion);
+        Assert.AreEqual("0.1.0-alpha.3", manifest.BundleVersion);
+        Assert.AreEqual("0.1.0-alpha.3", manifest.KitVersion);
         var capabilityIds = manifest.Capabilities
             .Select(entry => entry.CapabilityId)
             .Order(StringComparer.Ordinal)

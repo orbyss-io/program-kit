@@ -258,11 +258,11 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
 
         if (!string.Equals(
                 manifest.BundleVersion,
-                "0.1.0-alpha.2",
+                "0.1.0-alpha.3",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
-                "0.1.0-alpha.2",
+                "0.1.0-alpha.3",
                 StringComparison.Ordinal))
         {
             throw InvalidBundle(

@@ -494,7 +494,7 @@ public sealed class CapabilityBundleVerifierTests
             "{\"manifestVersion\":\"",
             manifestVersion,
             "\"," +
-            "\"bundleVersion\":\"0.1.0-alpha.2\",\"capabilities\":[",
+            "\"bundleVersion\":\"0.1.0-alpha.3\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(
@@ -508,7 +508,7 @@ public sealed class CapabilityBundleVerifierTests
                         "\",\"sourcePath\":\"",
                         entry.SourcePath,
                         "\"}"))),
-            "],\"kitVersion\":\"0.1.0-alpha.2\"," +
+            "],\"kitVersion\":\"0.1.0-alpha.3\"," +
             "\"optionalProviderAdapters\":[",
             string.Join(
                 ',',

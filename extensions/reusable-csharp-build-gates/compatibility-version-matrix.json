@@ -39,9 +39,9 @@
     {
       "clockId": "public-analyzers",
       "identity": "pkid:analyzer:program-kit:generated-source-contract",
-      "version": "0.1.0-alpha.2",
+      "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/public-generated-source-analyzer-manifest.json",
-      "sha256": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+      "sha256": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
     },
     {
       "clockId": "consumer-owned-analyzers",
@@ -60,16 +60,16 @@
     {
       "clockId": "build-mechanics",
       "identity": "pkid:package:program-kit:csharp-build-gates-build",
-      "version": "0.1.0-alpha.2",
+      "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/build-package-manifest.json",
-      "sha256": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
+      "sha256": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
     },
     {
       "clockId": "operations",
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
-      "version": "0.1.0-alpha.2",
+      "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:6745445276d35065ec8439335082a07a9f8c0eb582a9c144124bb744e4754c2c"
+      "sha256": "sha256:2b19eee1146dbf8847206aaf5e56abf0585cecfb8af232229b0db7d497e3a136"
     },
     {
       "clockId": "capabilities",
@@ -81,9 +81,9 @@
     {
       "clockId": "capability-bundle",
       "identity": "pkid:bundle:program-kit:capabilities",
-      "version": "0.1.0-alpha.2",
+      "version": "0.1.0-alpha.3",
       "path": ".agent-capabilities/capability-bundle-manifest.json",
-      "sha256": "sha256:5111abc98d0a2fa23b612a680b369f583283ba04c5bb08de53a4614860de0eb0"
+      "sha256": "sha256:8c9b86b6f1c28de8dd18b70b47e0bd6b5e69111edded15762beef7a8b37a0b33"
     },
     {
       "clockId": "toolchain",
@@ -141,8 +141,8 @@
     {
       "source": "consumer-owned-analyzers",
       "target": "public-analyzers",
-      "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+      "acceptedVersion": "[0.1.0-alpha.3]",
+      "acceptedSha256": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
     },
     {
       "source": "build-mechanics",
@@ -171,14 +171,14 @@
     {
       "source": "operations",
       "target": "build-mechanics",
-      "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
+      "acceptedVersion": "[0.1.0-alpha.3]",
+      "acceptedSha256": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
     },
     {
       "source": "capabilities",
       "target": "operations",
-      "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:6745445276d35065ec8439335082a07a9f8c0eb582a9c144124bb744e4754c2c"
+      "acceptedVersion": "[0.1.0-alpha.3]",
+      "acceptedSha256": "sha256:2b19eee1146dbf8847206aaf5e56abf0585cecfb8af232229b0db7d497e3a136"
     },
     {
       "source": "capability-bundle",

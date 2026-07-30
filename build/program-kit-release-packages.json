@@ -1,0 +1,287 @@
+{
+  "manifestVersion": "0.1.0-alpha.1",
+  "productVersion": "0.1.0-alpha.3",
+  "packages": [
+    {
+      "packageId": "Orbyss.ProgramKit.Architecture",
+      "projectPath": "src/Orbyss.ProgramKit.Architecture/Orbyss.ProgramKit.Architecture.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Artifacts",
+      "projectPath": "src/Orbyss.ProgramKit.Artifacts/Orbyss.ProgramKit.Artifacts.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": []
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.CapabilityBundle",
+      "projectPath": "src/Orbyss.ProgramKit.CapabilityBundle/Orbyss.ProgramKit.CapabilityBundle.csproj",
+      "role": "capability-bundle",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": []
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.CommandLine",
+      "projectPath": "src/Orbyss.ProgramKit.CommandLine/Orbyss.ProgramKit.CommandLine.csproj",
+      "role": "tool",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.CSharpBuildGates.Testing",
+        "Orbyss.ProgramKit.DotNet",
+        "Orbyss.ProgramKit.GeneratedOutputIntegrity",
+        "Orbyss.ProgramKit.OpenConsole",
+        "Orbyss.ProgramKit.Operations",
+        "Orbyss.ProgramKit.SecretResolution",
+        "Orbyss.ProgramKit.Workbench"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
+      "projectPath": "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Orbyss.ProgramKit.CSharpBuildGates.Authoring.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.CSharpBuildGates.Build",
+      "projectPath": "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Orbyss.ProgramKit.CSharpBuildGates.Build.csproj",
+      "role": "build-integration",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+      "projectPath": "src/Orbyss.ProgramKit.CSharpBuildGates.Contracts/Orbyss.ProgramKit.CSharpBuildGates.Contracts.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.CSharpBuildGates.Testing",
+      "projectPath": "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Orbyss.ProgramKit.CSharpBuildGates.Testing.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+        "Orbyss.ProgramKit.Workbench"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.DevContainers",
+      "projectPath": "src/Orbyss.ProgramKit.DevContainers/Orbyss.ProgramKit.DevContainers.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Development",
+      "projectPath": "src/Orbyss.ProgramKit.Development/Orbyss.ProgramKit.Development.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts",
+        "Orbyss.ProgramKit.Planning"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.DotNet",
+      "projectPath": "src/Orbyss.ProgramKit.DotNet/Orbyss.ProgramKit.DotNet.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Architecture",
+        "Orbyss.ProgramKit.GeneratedOutputIntegrity",
+        "Orbyss.ProgramKit.OpenConsole",
+        "Orbyss.ProgramKit.Operations",
+        "Orbyss.ProgramKit.Planning",
+        "Orbyss.ProgramKit.Quality",
+        "Orbyss.ProgramKit.SecretResolution",
+        "Orbyss.ProgramKit.Serialization.JSON",
+        "Orbyss.ProgramKit.Tasks",
+        "Orbyss.ProgramKit.Tasks.Core",
+        "Orbyss.ProgramKit.Tasks.Schedules",
+        "Orbyss.ProgramKit.Workbench"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.GeneratedOutputIntegrity.Build",
+      "projectPath": "src/Orbyss.ProgramKit.GeneratedOutputIntegrity.Build/Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.csproj",
+      "role": "build-integration",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.GeneratedOutputIntegrity"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.GeneratedOutputIntegrity",
+      "projectPath": "src/Orbyss.ProgramKit.GeneratedOutputIntegrity/Orbyss.ProgramKit.GeneratedOutputIntegrity.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": []
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
+      "projectPath": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.csproj",
+      "role": "analyzer",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": []
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Modularity.InProcess",
+      "projectPath": "src/Orbyss.ProgramKit.Modularity.InProcess/Orbyss.ProgramKit.Modularity.InProcess.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Modularity"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Modularity",
+      "projectPath": "src/Orbyss.ProgramKit.Modularity/Orbyss.ProgramKit.Modularity.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.OpenConsole",
+      "projectPath": "src/Orbyss.ProgramKit.OpenConsole/Orbyss.ProgramKit.OpenConsole.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Operations",
+      "projectPath": "src/Orbyss.ProgramKit.Operations/Orbyss.ProgramKit.Operations.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Planning",
+      "projectPath": "src/Orbyss.ProgramKit.Planning/Orbyss.ProgramKit.Planning.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts",
+        "Orbyss.ProgramKit.Quality"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Quality",
+      "projectPath": "src/Orbyss.ProgramKit.Quality/Orbyss.ProgramKit.Quality.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.SecretResolution",
+      "projectPath": "src/Orbyss.ProgramKit.SecretResolution/Orbyss.ProgramKit.SecretResolution.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Serialization.JSON",
+      "projectPath": "src/Orbyss.ProgramKit.Serialization.JSON/Orbyss.ProgramKit.Serialization.JSON.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Tasks.Core",
+      "projectPath": "src/Orbyss.ProgramKit.Tasks.Core/Orbyss.ProgramKit.Tasks.Core.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Artifacts"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Tasks.Hosting",
+      "projectPath": "src/Orbyss.ProgramKit.Tasks.Hosting/Orbyss.ProgramKit.Tasks.Hosting.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Tasks"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Tasks.InProcess",
+      "projectPath": "src/Orbyss.ProgramKit.Tasks.InProcess/Orbyss.ProgramKit.Tasks.InProcess.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Tasks"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Tasks.Schedules.Cronos",
+      "projectPath": "src/Orbyss.ProgramKit.Tasks.Schedules.Cronos/Orbyss.ProgramKit.Tasks.Schedules.Cronos.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Tasks.Schedules"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Tasks.Schedules",
+      "projectPath": "src/Orbyss.ProgramKit.Tasks.Schedules/Orbyss.ProgramKit.Tasks.Schedules.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Tasks.Core"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Tasks",
+      "projectPath": "src/Orbyss.ProgramKit.Tasks/Orbyss.ProgramKit.Tasks.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Modularity",
+        "Orbyss.ProgramKit.Tasks.Core"
+      ]
+    },
+    {
+      "packageId": "Orbyss.ProgramKit.Workbench",
+      "projectPath": "src/Orbyss.ProgramKit.Workbench/Orbyss.ProgramKit.Workbench.csproj",
+      "role": "library",
+      "coordinatedVersionRequired": true,
+      "firstPartyDependencies": [
+        "Orbyss.ProgramKit.Architecture",
+        "Orbyss.ProgramKit.Artifacts",
+        "Orbyss.ProgramKit.CSharpBuildGates.Authoring",
+        "Orbyss.ProgramKit.CSharpBuildGates.Contracts",
+        "Orbyss.ProgramKit.Development",
+        "Orbyss.ProgramKit.Planning",
+        "Orbyss.ProgramKit.Quality",
+        "Orbyss.ProgramKit.Serialization.JSON"
+      ]
+    }
+  ]
+}

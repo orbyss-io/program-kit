@@ -4,7 +4,7 @@ namespace Orbyss.ProgramKit.CommandLine.Contracts.Product;
 public static class ProgramKitProductInfo
 {
     /// <summary>Gets the exact coordinated Program Kit package version.</summary>
-    public const string Version = "0.1.0-alpha.2";
+    public const string Version = "0.1.0-alpha.3";
 
     /// <summary>Gets the exact capability ownership lock format.</summary>
     public const string CapabilityLockVersion = "0.1.0-alpha.1";

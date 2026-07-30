@@ -105,7 +105,7 @@ internal sealed class DotNetConsoleProjectRenderer :
         DotNetConsoleRendering.Line(
             builder,
             2,
-            "<PackageReference Include=\"Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\" Version=\"[0.1.0-alpha.2]\" PrivateAssets=\"all\" />");
+            "<PackageReference Include=\"Orbyss.ProgramKit.GeneratedOutputIntegrity.Build\" Version=\"[0.1.0-alpha.3]\" PrivateAssets=\"all\" />");
         DotNetConsoleRendering.Line(builder, 1, "</ItemGroup>");
         DotNetConsoleRendering.Line(builder, 1, "<ItemGroup>");
         DotNetConsoleRendering.Line(

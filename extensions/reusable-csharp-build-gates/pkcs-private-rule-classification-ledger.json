@@ -107,7 +107,10 @@
         "PKCS176",
         "PKCS177",
         "PKCS178",
-        "PKCS179"
+        "PKCS179",
+        "PKCS180",
+        "PKCS181",
+        "PKCS182"
       ],
       "ownerId": "pkid:domain:program-kit:repository-governance",
       "classification": "program-kit-private",

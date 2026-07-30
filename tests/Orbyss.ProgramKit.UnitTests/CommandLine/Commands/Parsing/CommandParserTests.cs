@@ -201,7 +201,7 @@ public sealed class CommandParserTests
         [
             "capabilities",
             "verify-bundle",
-            "Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.2.nupkg",
+            "Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.3.nupkg",
         ]);
         var initialize = sut.Parse(
         [

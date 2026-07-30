@@ -14,7 +14,7 @@ namespace Orbyss.ProgramKit.CommandLine.Operations.DotNet.Refresh;
 /// <summary>Fail-closed deterministic create, compare, replace, and repair orchestration.</summary>
 public sealed class DotNetHostRefreshService : IDotNetHostRefreshService
 {
-    private const string CurrentProgramKitVersion = "0.1.0-alpha.2";
+    private const string CurrentProgramKitVersion = "0.1.0-alpha.3";
     private const string RequestSchemaVersion = "1.0.0";
     private const string CandidateSuffix = ".program-kit-refresh-candidate";
     private const string TransactionSuffix = ".program-kit-refresh-transaction";

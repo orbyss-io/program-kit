@@ -8,21 +8,21 @@
       "orbyss.programkit.modularity": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.tasks": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.10, 10.0.10]",
-          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.2, )",
-          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Modularity": "[0.1.0-alpha.3, )",
+          "Orbyss.ProgramKit.Tasks.Core": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.tasks.core": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {

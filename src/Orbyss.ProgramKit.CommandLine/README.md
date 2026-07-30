@@ -4,12 +4,12 @@
 Kit operations. It never scans the current directory, a solution, assemblies,
 or package feeds.
 
-Install the exact `0.1.0-alpha.2` tool from the extracted Program Kit local
+Install the exact `0.1.0-alpha.3` tool from the extracted Program Kit local
 feed, then initialize the provider used by the current consumer session:
 
 ```powershell
 dotnet tool install --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.2 `
+  --version 0.1.0-alpha.3 `
   --add-source <EXTRACTED_PROGRAM_KIT_FEED>
 program-kit capabilities initialize --provider codex --workspace-root .
 # or: program-kit capabilities initialize --provider claude --workspace-root .

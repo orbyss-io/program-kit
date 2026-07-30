@@ -33,7 +33,7 @@
       "orbyss.programkit.architecture": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.artifacts": {
@@ -42,40 +42,40 @@
       "orbyss.programkit.csharpbuildgates.authoring": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.CSharpBuildGates.Contracts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.CSharpBuildGates.Contracts": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.csharpbuildgates.contracts": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.development": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )",
-          "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )",
+          "Orbyss.ProgramKit.Planning": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.planning": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )",
-          "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )",
+          "Orbyss.ProgramKit.Quality": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.quality": {
         "type": "Project",
         "dependencies": {
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )"
         }
       },
       "orbyss.programkit.serialization.json": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.10, 10.0.10]",
-          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.2, )"
+          "Orbyss.ProgramKit.Artifacts": "[0.1.0-alpha.3, )"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {

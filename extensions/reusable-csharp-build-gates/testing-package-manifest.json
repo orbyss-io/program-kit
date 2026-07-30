@@ -1,10 +1,10 @@
 {
   "identity": "pkid:implementation:program-kit:csharp-build-gates-testing",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "operationsVersion": "1.0.0",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:8daa9152cf52fb38092a735ef88c297abadf7de4a8a41d926dbbc6039ae11e5a",
+    "digest": "sha256:f0c0f47b0a0c0f6f66fd604c938870e2db23f09631f578e062fc7d8c1c41cd0f",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/FiniteProcessResult.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/PinnedDotNetCSharpGateCompilerHarness.cs",
@@ -15,7 +15,7 @@
   },
   "operationSourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:d93aac99369c6aa1a9835acb62187a57f997ae48ec41e9da3256f27a25efdc48",
+    "digest": "sha256:69ebc13966a61c767e04be6b8ada2f32341dfb273149838c5ee421e61eeed396",
     "paths": [
       "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
       "src/Orbyss.ProgramKit.CommandLine/Composition/SchemaDependencyClosureModuleFactory.cs",

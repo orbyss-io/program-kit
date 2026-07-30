@@ -98,7 +98,7 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "ProgramKitSdkVersion", "10.0.302");
         AssertProperty(document, "ProgramKitSdkRollForward", "disable");
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
-        AssertProperty(document, "Version", "0.1.0-alpha.2");
+        AssertProperty(document, "Version", "0.1.0-alpha.3");
         AssertProperty(document, "Deterministic", "true");
         AssertProperty(document, "TreatWarningsAsErrors", "true");
         AssertProperty(document, "CodeAnalysisTreatWarningsAsErrors", "true");
@@ -140,7 +140,7 @@ public sealed class BuildSpineConformanceTests
     }
 
     [TestMethod]
-    public void CoordinatedProductReleaseSelectsEveryFirstPartyPackageAtAlpha2()
+    public void ObservatoryFixturePreservesItsReviewedAlpha2PackageSelection()
     {
         using var manifestDocument = JsonDocument.Parse(
             ConformanceInputs.Read(

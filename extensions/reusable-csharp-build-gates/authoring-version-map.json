@@ -19,8 +19,8 @@
     {
       "revision": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:67c665491004bfedb8d9bf8b4abd570c57b6de173c72e0a9d9d36d183aed6cae"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f20a2b57867ec08bca02a850faeed6bdf98cc5430cd570545ebf434043d79ddf"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
@@ -35,8 +35,8 @@
     {
       "revision": {
         "identity": "pkid:package:program-kit:csharp-build-gates-authoring",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:67c665491004bfedb8d9bf8b4abd570c57b6de173c72e0a9d9d36d183aed6cae"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f20a2b57867ec08bca02a850faeed6bdf98cc5430cd570545ebf434043d79ddf"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-authoring",
@@ -54,8 +54,8 @@
       "id": "pkid:edge:program-kit:csharp-build-gates-authoring-uses-recipe",
       "source": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:67c665491004bfedb8d9bf8b4abd570c57b6de173c72e0a9d9d36d183aed6cae"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f20a2b57867ec08bca02a850faeed6bdf98cc5430cd570545ebf434043d79ddf"
       },
       "targetIdentity": "pkid:recipe:program-kit:csharp-forbid-type-name-suffix",
       "kind": "uses-contract",
@@ -82,16 +82,16 @@
       "id": "pkid:edge:program-kit:csharp-build-gates-authoring-package-exposes-implementation",
       "source": {
         "identity": "pkid:package:program-kit:csharp-build-gates-authoring",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:67c665491004bfedb8d9bf8b4abd570c57b6de173c72e0a9d9d36d183aed6cae"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f20a2b57867ec08bca02a850faeed6bdf98cc5430cd570545ebf434043d79ddf"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
       "kind": "publicly-exposes",
-      "acceptedRange": "[0.1.0-alpha.2]",
+      "acceptedRange": "[0.1.0-alpha.3]",
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:67c665491004bfedb8d9bf8b4abd570c57b6de173c72e0a9d9d36d183aed6cae"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f20a2b57867ec08bca02a850faeed6bdf98cc5430cd570545ebf434043d79ddf"
       },
       "exposure": "public",
       "compatibilityDimensions": [

@@ -260,7 +260,7 @@ public sealed class DotNetHostRefreshServiceTests
             """
             {
               "schemaVersion": "1.0.0",
-              "programKitVersion": "0.1.0-alpha.2",
+              "programKitVersion": "0.1.0-alpha.3",
               "kind": "console",
               "shellPath": "shell.json",
               "hostIdentity": "pkid:host:test:cli",

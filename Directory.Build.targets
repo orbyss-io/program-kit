@@ -1719,6 +1719,45 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="WriteProgramKitAggregatePackBuildReceipt"
+          AfterTargets="Build"
+          Condition="'$(ProgramKitAggregatePackReceiptRoot)' != '' and
+                     '$(_ProgramKitRequireCompilerExecutionReceipt)' == 'true'">
+    <PropertyGroup>
+      <_ProgramKitAggregatePackReceiptRoot>$([System.IO.Path]::GetFullPath('$(ProgramKitAggregatePackReceiptRoot)'))</_ProgramKitAggregatePackReceiptRoot>
+      <_ProgramKitAggregatePackReceiptPath>$(_ProgramKitAggregatePackReceiptRoot)\$(MSBuildProjectName).receipt</_ProgramKitAggregatePackReceiptPath>
+    </PropertyGroup>
+    <Error Condition="!$([System.IO.Path]::IsPathRooted('$(_ProgramKitAggregatePackReceiptRoot)'))"
+           Code="PKCS179"
+           Text="The aggregate-pack receipt root must be an absolute path." />
+    <Error Condition="'@(_ProgramKitCurrentBuildAcceptance->Count())' != '1'"
+           Code="PKCS180"
+           Text="An aggregate-pack receipt can be written only after one exact current compiler acceptance." />
+    <GetFileHash Files="$(TargetPath)"
+                 Algorithm="SHA256">
+      <Output TaskParameter="Items"
+              ItemName="_ProgramKitAggregatePackBuiltTargetHash" />
+    </GetFileHash>
+    <ItemGroup>
+      <_ProgramKitAggregatePackBuildReceiptLine
+        Include="format=0.1.0-alpha.1" />
+      <_ProgramKitAggregatePackBuildReceiptLine
+        Include="project=$(MSBuildProjectFullPath)" />
+      <_ProgramKitAggregatePackBuildReceiptLine
+        Include="package-version=$(PackageVersion)" />
+      <_ProgramKitAggregatePackBuildReceiptLine
+        Include="target=$(TargetPath)" />
+      <_ProgramKitAggregatePackBuildReceiptLine
+        Include="target-sha256=%(_ProgramKitAggregatePackBuiltTargetHash.FileHash)" />
+    </ItemGroup>
+    <MakeDir Directories="$(_ProgramKitAggregatePackReceiptRoot)" />
+    <WriteLinesToFile
+      File="$(_ProgramKitAggregatePackReceiptPath)"
+      Lines="@(_ProgramKitAggregatePackBuildReceiptLine)"
+      Overwrite="true"
+      Encoding="UTF-8" />
+  </Target>
+
   <Target Name="ValidateProgramKitCSharpGateBootstrapConfiguration"
           BeforeTargets="ResolveProjectReferences;CoreCompile"
           Condition="'$(MSBuildProjectName)' == 'Orbyss.ProgramKit.CSharpGate'">
@@ -2015,17 +2054,18 @@
   <Target Name="ValidateProgramKitPackageVersion"
           BeforeTargets="_IntermediatePack;GenerateNuspec"
           Condition="'$(IsPackable)' == 'true'">
-    <Error Condition="'$(NoBuild)' == 'true'"
+    <Error Condition="'$(NoBuild)' == 'true' and
+                      '$(ProgramKitAggregatePackReceiptRoot)' == ''"
            Code="PKCS152"
-           Text="Pack cannot use NoBuild because package acceptance requires a current C# gate build." />
+           Text="Pack can use NoBuild only with exact transaction-local receipts from the immediately preceding aggregate C# gate build." />
     <Error Condition="'$(DesignTimeBuild)' == 'true' or
                       '$(SkipCompilerExecution)' == 'true'"
            Code="PKCS172"
            Text="Pack requires a producing compiler invocation; design-time and compiler-skipping modes are forbidden." />
     <Error Condition="'$(ProgramKitPackageRole)' == 'program-kit' and
-                      '$(PackageVersion)' != '0.1.0-alpha.2'"
+                      '$(PackageVersion)' != '0.1.0-alpha.3'"
            Code="PKPUB001"
-           Text="Program Kit packages must use exact version 0.1.0-alpha.2." />
+           Text="Program Kit packages must use exact version 0.1.0-alpha.3." />
     <Error Condition="'$(ProgramKitPackageRole)' == 'fixture' and
                       '$(PackageVersion)' != '0.1.0-fixture.1'"
            Code="PKPUB002"
@@ -2036,8 +2076,68 @@
            Text="ProgramKitPackageRole must be exactly program-kit or fixture." />
   </Target>
 
-  <Target Name="RequireProgramKitCurrentBuildForPackage"
+  <Target Name="ValidateProgramKitAggregatePackReceipt"
           DependsOnTargets="ValidateProgramKitPackageVersion"
+          BeforeTargets="PrepareForPublish;GenerateNuspec"
+          Condition="'$(IsPackable)' == 'true' and
+                     '$(_IsPacking)' == 'true' and
+                     '$(NoBuild)' == 'true'">
+    <PropertyGroup>
+      <_ProgramKitAggregatePackReceiptRoot>$([System.IO.Path]::GetFullPath('$(ProgramKitAggregatePackReceiptRoot)'))</_ProgramKitAggregatePackReceiptRoot>
+      <_ProgramKitAggregatePackReceiptPath>$(_ProgramKitAggregatePackReceiptRoot)\$(MSBuildProjectName).receipt</_ProgramKitAggregatePackReceiptPath>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_ProgramKitAggregatePackReceiptPath)')"
+           Code="PKCS181"
+           Text="The exact aggregate-pack build receipt is absent for $(MSBuildProjectFullPath)." />
+    <GetFileHash Files="$(TargetPath)"
+                 Algorithm="SHA256"
+                 Condition="Exists('$(_ProgramKitAggregatePackReceiptPath)')">
+      <Output TaskParameter="Items"
+              ItemName="_ProgramKitAggregatePackCurrentTargetHash" />
+    </GetFileHash>
+    <ReadLinesFromFile
+      File="$(_ProgramKitAggregatePackReceiptPath)"
+      Condition="Exists('$(_ProgramKitAggregatePackReceiptPath)')">
+      <Output TaskParameter="Lines"
+              ItemName="_ProgramKitAggregatePackActualReceiptLine" />
+    </ReadLinesFromFile>
+    <ItemGroup>
+      <_ProgramKitAggregatePackExpectedReceiptLine
+        Include="format=0.1.0-alpha.1" />
+      <_ProgramKitAggregatePackExpectedReceiptLine
+        Include="project=$(MSBuildProjectFullPath)" />
+      <_ProgramKitAggregatePackExpectedReceiptLine
+        Include="package-version=$(PackageVersion)" />
+      <_ProgramKitAggregatePackExpectedReceiptLine
+        Include="target=$(TargetPath)" />
+      <_ProgramKitAggregatePackExpectedReceiptLine
+        Include="target-sha256=%(_ProgramKitAggregatePackCurrentTargetHash.FileHash)" />
+      <_ProgramKitAggregatePackMissingReceiptLine
+        Include="@(_ProgramKitAggregatePackExpectedReceiptLine)" />
+      <_ProgramKitAggregatePackMissingReceiptLine
+        Remove="@(_ProgramKitAggregatePackActualReceiptLine)" />
+      <_ProgramKitAggregatePackUnexpectedReceiptLine
+        Include="@(_ProgramKitAggregatePackActualReceiptLine)" />
+      <_ProgramKitAggregatePackUnexpectedReceiptLine
+        Remove="@(_ProgramKitAggregatePackExpectedReceiptLine)" />
+    </ItemGroup>
+    <Error Condition="'@(_ProgramKitAggregatePackMissingReceiptLine)' != '' or
+                       '@(_ProgramKitAggregatePackUnexpectedReceiptLine)' != '' or
+                       '@(_ProgramKitAggregatePackActualReceiptLine->Count())' != '5'"
+           Code="PKCS182"
+           Text="The aggregate-pack build receipt does not exactly match this project's current built target, package version, and path. Missing @(_ProgramKitAggregatePackMissingReceiptLine); unexpected @(_ProgramKitAggregatePackUnexpectedReceiptLine); actual @(_ProgramKitAggregatePackActualReceiptLine); expected @(_ProgramKitAggregatePackExpectedReceiptLine)." />
+    <ItemGroup>
+      <_ProgramKitValidatedAggregatePackReceipt
+        Include="$(MSBuildProjectFullPath)"
+        Condition="'@(_ProgramKitAggregatePackMissingReceiptLine)' == '' and
+                   '@(_ProgramKitAggregatePackUnexpectedReceiptLine)' == '' and
+                   '@(_ProgramKitAggregatePackActualReceiptLine->Count())' == '5'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RequireProgramKitCurrentBuildForPackage"
+          DependsOnTargets="ValidateProgramKitPackageVersion;
+                            ValidateProgramKitAggregatePackReceipt"
           BeforeTargets="GenerateNuspec"
           Condition="'$(IsPackable)' == 'true'">
     <ItemGroup>
@@ -2048,24 +2148,35 @@
         Condition="'%(Identity)' == '$(ProgramKitCompilerInvocationNonce)' and
                    '%(ProjectFullPath)' == '$(MSBuildProjectFullPath)'" />
     </ItemGroup>
-    <Error Condition="'@(_ProgramKitMatchingPackageBuildAcceptance->Count())' != '1'"
+    <Error Condition="'$(NoBuild)' != 'true' and
+                      '@(_ProgramKitMatchingPackageBuildAcceptance->Count())' != '1'"
            Code="PKCS177"
            Text="Package generation requires the private acceptance receipt from this project instance's current verified compiler invocation." />
+    <Error Condition="'$(NoBuild)' == 'true' and
+                      '@(_ProgramKitValidatedAggregatePackReceipt->Count())' != '1'"
+           Code="PKCS182"
+           Text="Package generation with NoBuild requires one exact validated aggregate-pack receipt." />
   </Target>
 
   <Target Name="ValidateProgramKitPublishBuildOptions"
           BeforeTargets="BuildOnlySettings;Publish"
           Condition="'$(_IsPublishing)' == 'true'">
-    <Error Condition="'$(NoBuild)' == 'true'"
+    <Error Condition="'$(NoBuild)' == 'true' and
+                      ('$(_IsPacking)' != 'true' or
+                       '$(ProgramKitAggregatePackReceiptRoot)' == '')"
            Code="PKCS153"
            Text="Publish cannot use NoBuild because publication requires a current C# gate build." />
     <Error Condition="'$(DesignTimeBuild)' == 'true' or
-                      '$(SkipCompilerExecution)' == 'true'"
+                      ('$(SkipCompilerExecution)' == 'true' and
+                       ('$(_IsPacking)' != 'true' or
+                        '$(NoBuild)' != 'true' or
+                        '$(ProgramKitAggregatePackReceiptRoot)' == ''))"
            Code="PKCS172"
            Text="Publish requires a producing compiler invocation; design-time and compiler-skipping modes are forbidden." />
   </Target>
 
   <Target Name="RequireProgramKitCurrentBuildForPublish"
+          DependsOnTargets="ValidateProgramKitAggregatePackReceipt"
           BeforeTargets="PrepareForPublish;ComputeAndCopyFilesToPublishDirectory">
     <ItemGroup>
       <_ProgramKitMatchingPublishBuildAcceptance
@@ -2075,7 +2186,8 @@
         Condition="'%(Identity)' == '$(ProgramKitCompilerInvocationNonce)' and
                    '%(ProjectFullPath)' == '$(MSBuildProjectFullPath)'" />
     </ItemGroup>
-    <Error Condition="'@(_ProgramKitMatchingPublishBuildAcceptance->Count())' != '1'"
+    <Error Condition="'@(_ProgramKitMatchingPublishBuildAcceptance->Count())' != '1' and
+                      '@(_ProgramKitValidatedAggregatePackReceipt->Count())' != '1'"
            Code="PKCS178"
            Text="Publish preparation and copying require the private acceptance receipt from this project instance's current verified compiler invocation." />
   </Target>

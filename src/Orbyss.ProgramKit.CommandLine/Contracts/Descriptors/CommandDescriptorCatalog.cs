@@ -245,7 +245,7 @@ public static class CommandDescriptorCatalog
             [Diagnostics()],
             "Verify one content-only CapabilityBundle package.",
             "Read-only package verification.",
-            "program-kit capabilities verify-bundle Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.2.nupkg"),
+            "program-kit capabilities verify-bundle Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.3.nupkg"),
         Create(
             "capabilities.initialize",
             ["capabilities", "initialize"],

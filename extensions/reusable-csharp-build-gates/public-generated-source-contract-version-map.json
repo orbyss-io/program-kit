@@ -35,8 +35,8 @@
     {
       "revision": {
         "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:generated-source-contract",
@@ -51,8 +51,8 @@
     {
       "revision": {
         "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:generated-source-contract",
@@ -98,8 +98,8 @@
       "id": "pkid:edge:program-kit:generated-source-analyzer-implements-contract",
       "source": {
         "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
       },
       "targetIdentity": "pkid:contract:program-kit:generated-source-convention",
       "kind": "implements",
@@ -126,16 +126,16 @@
       "id": "pkid:edge:program-kit:generated-source-analyzer-package-exposes-implementation",
       "source": {
         "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
       },
       "targetIdentity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
       "kind": "publicly-exposes",
-      "acceptedRange": "[0.1.0-alpha.2]",
+      "acceptedRange": "[0.1.0-alpha.3]",
       "resolution": {
         "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
-        "version": "0.1.0-alpha.2",
-        "digest": "sha256:887a0db442ef95365ae8789496f95e1f6ae096f72cd968669c7c1161f0fec04a"
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
       },
       "exposure": "public",
       "compatibilityDimensions": [

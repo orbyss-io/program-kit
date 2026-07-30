@@ -37,23 +37,23 @@ consumer initialization. If it is absent, this is a consumer workspace.
 
 ## Install Program Kit CLI (consumer)
 
-Program Kit `0.1.0-alpha.2` is currently distributed as an exact downloadable
+Program Kit `0.1.0-alpha.3` is currently distributed as an exact downloadable
 local NuGet-feed ZIP. It requires the .NET 10 SDK selected by
 [`global.json`](global.json). A consumer does not need a Program Kit checkout,
 submodule, or separate CapabilityBundle installation.
 
-Download `orbyss-program-kit-nuget-0.1.0-alpha.2.zip` and its checksum, verify
+Download `orbyss-program-kit-nuget-0.1.0-alpha.3.zip` and its checksum, verify
 the ZIP, then extract it to a bounded temporary directory:
 
 ```powershell
-$archive = Resolve-Path .\orbyss-program-kit-nuget-0.1.0-alpha.2.zip
-$expected = (Get-Content .\orbyss-program-kit-nuget-0.1.0-alpha.2.zip.sha256).Split(' ')[0]
+$archive = Resolve-Path .\orbyss-program-kit-nuget-0.1.0-alpha.3.zip
+$expected = (Get-Content .\orbyss-program-kit-nuget-0.1.0-alpha.3.zip.sha256).Split(' ')[0]
 $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw "Program Kit archive checksum mismatch." }
-$feed = Join-Path $env:TEMP 'orbyss-program-kit-0.1.0-alpha.2'
+$feed = Join-Path $env:TEMP 'orbyss-program-kit-0.1.0-alpha.3'
 Expand-Archive -LiteralPath $archive -DestinationPath $feed
 dotnet tool install --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.2 `
+  --version 0.1.0-alpha.3 `
   --add-source $feed
 ```
 
@@ -77,7 +77,7 @@ ambient `latest`:
 ```powershell
 dotnet tool list --global
 dotnet tool update --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.2 `
+  --version 0.1.0-alpha.3 `
   --add-source $feed
 program-kit --help
 program-kit capabilities catalog --workspace-root . --format text
@@ -85,6 +85,34 @@ program-kit capabilities catalog --workspace-root . --format text
 
 Remove the bounded extracted feed after installation if it is no longer
 needed. Do not change permanent global NuGet configuration for Program Kit.
+
+### Build an isolated local feed from source
+
+This is a contributor/test journey, not the ordinary consumer installation
+path above. From a Program Kit source checkout, create a new output directory
+containing the exact coordinated package closure with:
+
+```powershell
+.\build\Invoke-PackConsumerFeed.ps1 `
+  -OutputRoot C:\tmp\orbyss-program-kit-0.1.0-alpha.3
+```
+
+The script reads [`build/program-kit-release-packages.json`](build/program-kit-release-packages.json),
+performs one locked restore and one Release build, then performs one bounded
+parallel aggregate pack with restore and build disabled. It fails closed on
+package-selection, identity, version, dependency, or content drift and
+publishes nothing. On success, use the `feed` child directory as the local
+NuGet source; `package-manifest.json` and `SHA256SUMS` bind the exact output.
+`OutputRoot` must not already exist, so a failed or repeated invocation cannot
+silently replace prior package evidence.
+
+The manifest records each project's direct first-party source references.
+Ordinary library packages project those references as exact first-party nuspec
+dependencies. The self-contained .NET tool and build-integration packages
+carry their required implementation closure and must expose no first-party
+nuspec dependencies; analyzer and capability-bundle packages have no source
+dependency closure. The feed still carries all release-selected public Program
+Kit packages as one coordinated set.
 
 ### Fresh clone of a consumer repository
 

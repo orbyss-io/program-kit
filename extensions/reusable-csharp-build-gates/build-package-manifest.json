@@ -1,10 +1,10 @@
 {
   "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "mechanicsVersion": "1.0.0",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:35b3e8ae37fb281f52409bcc14a163ebf411b2b38e9d737b2dd0acd06d86c747",
+    "digest": "sha256:dfee4f716e89a931ab8aaf2076083695e9d72b64615b0c68cf37b95ed8a24d00",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/CSharpBuildGateActivationResult.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/CSharpBuildGateTaskSupport.cs",

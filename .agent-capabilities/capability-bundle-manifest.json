@@ -1,6 +1,6 @@
 {
   "manifestVersion": "0.1.0-alpha.1",
-  "bundleVersion": "0.1.0-alpha.2",
+  "bundleVersion": "0.1.0-alpha.3",
   "capabilities": [
     {
       "capabilityId": "design-csharp-build-gate",
@@ -39,7 +39,7 @@
       "sourcePath": ".agent-capabilities/capabilities/publish-dotnet-application-locally/CAPABILITY.md"
     }
   ],
-  "kitVersion": "0.1.0-alpha.2",
+  "kitVersion": "0.1.0-alpha.3",
   "optionalProviderAdapters": [
     {
       "capabilityId": "design-csharp-build-gate",
@@ -130,7 +130,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
       "resourceId": "consumer-capability-catalog",
-      "sha256": "sha256:c151401d639a0076e7811bf682c38f1b514e111a5c30639a272e273ac2a664cc",
+      "sha256": "sha256:8a0ee1681d66e8b5503dd1bc5bb1c96d70e32b9cd6c6f19e59df09f31ceccbc6",
       "sourcePath": ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json"
     },
     {

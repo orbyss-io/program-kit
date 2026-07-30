@@ -1,9 +1,9 @@
 {
   "identity": "pkid:implementation:program-kit:csharp-build-gates-authoring",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:a23bef3e25b1b5a74a6a069883dcf4a7824289b3f44bbf95257a75a8bacd44ec",
+    "digest": "sha256:0911a5d2566e7cf258894e393b6a333f6935fa9191a9e6f28eb849e468218383",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Composition/Scaffolding/FileSystemConsumerAnalyzerScaffoldTransaction.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Composition/Scaffolding/FileSystemConsumerAnalyzerScaffoldWorkspace.cs",

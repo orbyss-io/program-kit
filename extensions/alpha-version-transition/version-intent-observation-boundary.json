@@ -8,7 +8,10 @@
       "paths": [
         "Directory.Build.props",
         "Directory.Build.targets",
+        "build/program-kit-release-packages.json",
         ".agent-capabilities/capability-bundle-manifest.json",
+        ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
+        "src/Orbyss.ProgramKit.CommandLine/Contracts/Product/ProgramKitProductInfo.cs",
         "src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs",
         "src/Orbyss.ProgramKit.CommandLine/Operations/DotNet/DotNetHostGenerationCommandService.cs",
         "src/Orbyss.ProgramKit.CommandLine/Operations/DotNet/Refresh/DotNetHostRefreshService.cs",

@@ -16,7 +16,7 @@ provider adapters. The capability index, generated catalog, contributor
 authoring capability, and Release Cycle reservations are deliberately
 excluded.
 
-Bundle version `0.1.0-alpha.2` uses the unique `.agent-capabilities` source
+Bundle version `0.1.0-alpha.3` uses the unique `.agent-capabilities` source
 tree. It also carries the exact consumer catalog, gate-authoring catalog and
 migration, troubleshooting guidance, and inert software-change completion
 profiles. Supporting resources are not provider-discoverable, independently

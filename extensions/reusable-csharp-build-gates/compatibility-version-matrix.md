@@ -4,7 +4,7 @@ This exact matrix binds the independent clocks for Architecture v2, Planning
 v3, the static-conformance disposition, gate contracts, public Program Kit
 contract analyzers, consumer-owned analyzers, authoring recipes, build
 mechanics, deterministic operations, capabilities, CapabilityBundle
-0.1.0-alpha.2, the
+0.1.0-alpha.3, the
 pinned toolchain, selection locks, and evidence.
 
 `compatibility-version-matrix.json` is the machine-readable source. Every

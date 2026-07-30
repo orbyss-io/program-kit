@@ -151,7 +151,7 @@ $catalogs = @(
     @('pkid:catalog:program-kit:csharp-build-gate-schemas', 'src/Orbyss.ProgramKit.CSharpBuildGates.Contracts/Contracts/Schemas/CSharpBuildGateSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:dev-container-schemas', 'src/Orbyss.ProgramKit.DevContainers/Contracts/Schemas/DevContainerSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:development-schemas', 'src/Orbyss.ProgramKit.Development/Schemas/DevelopmentSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
-    @('pkid:catalog:program-kit:dotnet-schemas', 'src/Orbyss.ProgramKit.DotNet/Schemas/DotNetSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.17', 17),
+    @('pkid:catalog:program-kit:dotnet-schemas', 'src/Orbyss.ProgramKit.DotNet/Schemas/DotNetSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.18', 18),
     @('pkid:catalog:program-kit:open-console-schemas', 'src/Orbyss.ProgramKit.OpenConsole/Contracts/Schemas/OpenConsoleSchemaModule.cs', '/Version', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:operations-schemas', 'src/Orbyss.ProgramKit.Operations/Contracts/Schemas/OperationsSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.1', 1),
     @('pkid:catalog:program-kit:planning-schemas', 'src/Orbyss.ProgramKit.Planning/Schemas/PlanningSchemaModule.cs', '/CatalogVersion', '0.1.0-alpha.3', 3),
@@ -190,15 +190,18 @@ for ($index = 0; $index -lt $completion.profiles.Count; $index++) {
         'migrate-owned-revision'
 }
 
-Add-Product $entries 'pkid:release:program-kit:product' 'Directory.Build.props' '/Project/PropertyGroup/Version' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:release:program-kit:product' 'Directory.Build.props' '/Project/PropertyGroup/PackageVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:capability-bundle:program-kit:capabilities' '.agent-capabilities/capability-bundle-manifest.json' '/bundleVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:release:program-kit:product' '.agent-capabilities/capability-bundle-manifest.json' '/kitVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:capability-bundle:program-kit:capabilities' 'src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs' '/ExpectedBundleVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs' '/ExpectedKitVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.CommandLine/Operations/DotNet/Refresh/DotNetHostRefreshService.cs' '/CurrentProgramKitVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.DotNet/Generation/Console/Rendering/DotNetConsoleProjectRenderer.cs' '/GeneratedOutputIntegrityBuildPackageVersion' '0.1.0-alpha.2'
-Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.DotNet/Generation/DotNetHostSourceRenderer.cs' '/GeneratedOutputIntegrityBuildPackageVersion' '0.1.0-alpha.2'
+Add-Product $entries 'pkid:release:program-kit:product' 'Directory.Build.props' '/Project/PropertyGroup/Version' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'Directory.Build.props' '/Project/PropertyGroup/PackageVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'build/program-kit-release-packages.json' '/productVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:capability-bundle:program-kit:capabilities' '.agent-capabilities/capability-bundle-manifest.json' '/bundleVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' '.agent-capabilities/capability-bundle-manifest.json' '/kitVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' '.agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json' '/productVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.CommandLine/Contracts/Product/ProgramKitProductInfo.cs' '/Version' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:capability-bundle:program-kit:capabilities' 'src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs' '/ExpectedBundleVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs' '/ExpectedKitVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.CommandLine/Operations/DotNet/Refresh/DotNetHostRefreshService.cs' '/CurrentProgramKitVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.DotNet/Generation/Console/Rendering/DotNetConsoleProjectRenderer.cs' '/GeneratedOutputIntegrityBuildPackageVersion' '0.1.0-alpha.3'
+Add-Product $entries 'pkid:release:program-kit:product' 'src/Orbyss.ProgramKit.DotNet/Generation/DotNetHostSourceRenderer.cs' '/GeneratedOutputIntegrityBuildPackageVersion' '0.1.0-alpha.3'
 
 Add-External $entries 'pkid:selection:external:central-packages' 'Directory.Packages.props' '/Project/ItemGroup/PackageVersion' 'exact-central-package-selections'
 Add-External $entries 'pkid:selection:external:dotnet-sdk' 'global.json' '/sdk/version' '10.0.302'
@@ -211,6 +214,7 @@ $inventory = [ordered]@{
     repositoryRoot = '.'
     sourceRoots = @(
         '.agent-capabilities',
+        'build',
         'Directory.Build.props',
         'Directory.Build.targets',
         'Directory.Packages.props',

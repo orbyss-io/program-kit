@@ -266,7 +266,7 @@ public sealed class LayeredGateConsumerConformanceTests
                     "pkid:analyzer:program-kit:generated-source-contract",
                     "pkid:domain:program-kit:generated-source-contract",
                     "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
-                    "0.1.0-alpha.2",
+                    "0.1.0-alpha.3",
                     new string('a', 64),
                     "analyzers/dotnet/cs/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.dll",
                     new string('b', 64),
