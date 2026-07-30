@@ -10,8 +10,11 @@ name: publish-nuget
 # refuses to run for a version without a prerelease suffix (e.g. -alpha.2), so
 # nothing can accidentally appear as a stable release.
 #
-# Requires the repository secret NUGET_API_KEY (a nuget.org API key scoped to
-# push Orbyss.ProgramKit.*).
+# Authentication uses nuget.org Trusted Publishing: the job exchanges its
+# GitHub OIDC token for a one-hour single-use API key right before pushing.
+# This requires a nuget.org Trusted Publishing policy for this repository and
+# this workflow file name, plus the repository secret NUGET_USER holding the
+# nuget.org profile name the policy belongs to. No long-lived API key exists.
 
 on:
   workflow_dispatch:
@@ -20,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -86,11 +90,19 @@ jobs:
           name: nuget-packages-${{ steps.version.outputs.version }}
           path: artifacts/packages/*.nupkg
 
+      # Requested last on purpose: the temporary key lives one hour, so it
+      # must not spend the build/test time expiring.
+      - name: NuGet login (OIDC exchange for a temporary API key)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to nuget.org
         shell: pwsh
         run: |
           dotnet nuget push "artifacts/packages/*.nupkg" `
             --source https://api.nuget.org/v3/index.json `
-            --api-key "${{ secrets.NUGET_API_KEY }}" `
+            --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" `
             --skip-duplicate
           if ($LASTEXITCODE -ne 0) { throw 'Pushing packages failed.' }
