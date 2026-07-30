@@ -23,13 +23,32 @@ public sealed class SerializationJsonRuntimeBoundaryTests
     }
 
     [TestMethod]
-    [DataRow("""{"identity":"invalid","version":"1.0.0","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}""")]
-    [DataRow("""{"identity":"pkid:profile:tests:valid","version":"1","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}""")]
-    [DataRow("""{"identity":"pkid:profile:tests:valid","version":"1.0.0","digest":"invalid"}""")]
-    public void MalformedPrimitiveTextNeverEscapesPrimitiveExceptions(string json)
+    [DataRow(
+        """{"identity":"invalid","version":"1.0.0","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}""",
+        "/identity",
+        "identity",
+        "Orbyss.ProgramKit.Artifacts.Primitives.ProgramKitIdentifier")]
+    [DataRow(
+        """{"identity":"pkid:profile:tests:valid","version":"1","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}""",
+        "/version",
+        "version",
+        "Orbyss.ProgramKit.Artifacts.Primitives.SemanticVersion")]
+    [DataRow(
+        """{"identity":"pkid:profile:tests:valid","version":"1.0.0","digest":"invalid"}""",
+        "/digest",
+        "digest",
+        "Orbyss.ProgramKit.Artifacts.Primitives.Sha256Digest")]
+    public void MalformedPrimitiveTextNeverEscapesPrimitiveExceptions(
+        string json,
+        string expectedPath,
+        string expectedMember,
+        string expectedType)
     {
         var exception = Assert.ThrowsExactly<ProgramKitJsonException>(() => CreateMetaSerializer().Read<JsonSerializationProfileRef>(Encoding.UTF8.GetBytes(json), ProgramKitJsonProfiles.JsonMeta.Reference, JsonSerializationLimits.Default));
         Assert.AreEqual(ProgramKitJsonDiagnosticIds.InvalidJson, exception.Diagnostic.Id);
+        Assert.AreEqual(expectedPath, exception.Diagnostic.Path);
+        Assert.Contains($"Member '{expectedMember}'", exception.Message);
+        Assert.Contains($"expected CLR type '{expectedType}'", exception.Message);
         Assert.IsInstanceOfType<JsonException>(exception.InnerException);
         Assert.IsNotInstanceOfType<ArgumentException>(exception);
         Assert.IsNotInstanceOfType<NullReferenceException>(exception);
@@ -50,6 +69,15 @@ public sealed class SerializationJsonRuntimeBoundaryTests
     {
         var exception = Assert.ThrowsExactly<ProgramKitJsonException>(() => CreateMetaSerializer().Read<JsonSerializationProfileRef>(Encoding.UTF8.GetBytes(json), ProgramKitJsonProfiles.JsonMeta.Reference, JsonSerializationLimits.Default));
         Assert.AreEqual(ProgramKitJsonDiagnosticIds.InvalidJson, exception.Diagnostic.Id);
+        var expectedPath = json.Contains(
+            "\"digest\"",
+            StringComparison.Ordinal)
+            ? "/identity"
+            : "/digest";
+        Assert.AreEqual(expectedPath, exception.Diagnostic.Path);
+        Assert.Contains(
+            $"Member '{expectedPath[1..]}'",
+            exception.Message);
     }
 
     [TestMethod]
@@ -57,7 +85,43 @@ public sealed class SerializationJsonRuntimeBoundaryTests
     {
         var exception = Assert.ThrowsExactly<ProgramKitJsonException>(() => CreateNullableReadSerializer().Read<NonNullableReadModel>("""{"Value":null}"""u8.ToArray(), ProgramKitJsonProfiles.JsonContracts.Reference, JsonSerializationLimits.Default));
         Assert.AreEqual(ProgramKitJsonDiagnosticIds.InvalidJson, exception.Diagnostic.Id);
+        Assert.AreEqual("/Value", exception.Diagnostic.Path);
+        Assert.Contains("Member 'Value'", exception.Message);
+        Assert.Contains(
+            "expected CLR type 'System.String'",
+            exception.Message);
         Assert.IsInstanceOfType<JsonException>(exception.InnerException);
+    }
+
+    [TestMethod]
+    [DataRow(
+        """{"profile":{"identity":"pkid:profile:program-kit:json-meta","version":"1.0.0","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"contributions":{}}""",
+        "/contributions",
+        "contributions",
+        "System.Collections.Immutable.ImmutableArray")]
+    [DataRow(
+        """{"profile":{"identity":"pkid:profile:program-kit:json-meta","version":"1.0.0","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"contributions":[],"unknown":true}""",
+        "/unknown",
+        "unknown",
+        "Orbyss.ProgramKit.Serialization.Json.Profiles.JsonSerializationProfileSelection")]
+    public void WrongContainerAndUnknownMemberFailuresAreLocated(
+        string json,
+        string expectedPath,
+        string expectedMember,
+        string expectedTypeFragment)
+    {
+        var exception = Assert.ThrowsExactly<ProgramKitJsonException>(() =>
+            CreateMetaSerializer().Read<JsonSerializationProfileSelection>(
+                Encoding.UTF8.GetBytes(json),
+                ProgramKitJsonProfiles.JsonMeta.Reference,
+                JsonSerializationLimits.Default));
+
+        Assert.AreEqual(
+            ProgramKitJsonDiagnosticIds.InvalidJson,
+            exception.Diagnostic.Id);
+        Assert.AreEqual(expectedPath, exception.Diagnostic.Path);
+        Assert.Contains($"Member '{expectedMember}'", exception.Message);
+        Assert.Contains(expectedTypeFragment, exception.Message);
     }
 
     [TestMethod]
@@ -88,6 +152,11 @@ public sealed class SerializationJsonRuntimeBoundaryTests
         Assert.AreEqual(
             ProgramKitJsonDiagnosticIds.InvalidJson,
             readException.Diagnostic.Id);
+        Assert.AreEqual(string.Empty, readException.Diagnostic.Path);
+        Assert.Contains("Member '<root>'", readException.Message);
+        Assert.Contains(
+            $"expected CLR type '{typeof(BoundaryToken).FullName}'",
+            readException.Message);
         Assert.IsInstanceOfType<FormatException>(readException.InnerException);
         Assert.AreEqual(
             ProgramKitJsonDiagnosticIds.InvalidJson,

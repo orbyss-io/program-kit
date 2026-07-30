@@ -234,8 +234,14 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
                 DotNetJsonProfiles.ShellBootstrap.Reference,
                 JsonSerializationLimits.Default);
         }
-        catch (Exception exception) when (
-            exception is ProgramKitJsonException or ArgumentException)
+        catch (ProgramKitJsonException exception)
+        {
+            throw new ConsoleInputMaterializationException(
+                ConsoleInputMaterializationDiagnosticIds.InvalidRequest,
+                exception.Message,
+                PrefixPath("/request", exception.Diagnostic.Path));
+        }
+        catch (ArgumentException exception)
         {
             throw new ConsoleInputMaterializationException(
                 ConsoleInputMaterializationDiagnosticIds.InvalidRequest,
@@ -243,6 +249,11 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
                 "/request");
         }
     }
+
+    private static string PrefixPath(string prefix, string path) =>
+        string.IsNullOrEmpty(path)
+            ? prefix
+            : string.Concat(prefix, path);
 
     private void ValidateRequest(
         DotNetConsoleInputMaterializationRequest request,

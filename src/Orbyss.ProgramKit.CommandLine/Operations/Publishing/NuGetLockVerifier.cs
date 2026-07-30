@@ -36,8 +36,11 @@ public sealed class NuGetLockVerifier : INuGetLockVerifier
         }
         catch (ProgramKitJsonException exception)
         {
-            throw new InvalidDataException(
-                "The NuGet lock does not match the supported strict typed shape.",
+            throw new NuGetLockReadException(
+                string.Concat(
+                    "The NuGet lock does not match the supported strict typed shape. ",
+                    exception.Message),
+                exception.Diagnostic.Path,
                 exception);
         }
 

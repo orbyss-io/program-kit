@@ -264,6 +264,63 @@ public sealed class ConsoleInputMaterializerTests
     }
 
     [TestMethod]
+    public async Task StrictReadFailureReportsDeepRequestMemberAndType()
+    {
+        var root = CreateRoot();
+        CommandFileSystem fileSystem = new();
+        try
+        {
+            var serializer = CreateSerializer();
+            var requestPath = await WriteRequestAsync(root, serializer);
+            var request = await File.ReadAllTextAsync(
+                requestPath,
+                TestContext.CancellationToken);
+            await File.WriteAllTextAsync(
+                requestPath,
+                request.Replace(
+                    "\"generatedSymbol\":\"Run\"",
+                    "\"generatedSymbol\":false",
+                    StringComparison.Ordinal),
+                TestContext.CancellationToken);
+            var runner = new RecordingConsoleMaterializationRunner(
+                typeof(JTestRunRequest).Assembly.Location);
+            var output = Path.Combine(
+                root,
+                ".program-kit",
+                "console-inputs");
+            var materializer = CreateMaterializer(
+                fileSystem,
+                runner,
+                serializer);
+
+            var exception =
+                await Assert.ThrowsAsync<ConsoleInputMaterializationException>(
+                    async () => await materializer.MaterializeAsync(
+                        requestPath,
+                        root,
+                        output,
+                        TestContext.CancellationToken));
+
+            Assert.AreEqual("PKCIM001", exception.DiagnosticId);
+            Assert.AreEqual(
+                "/request/binding/operations/0/generatedSymbol",
+                exception.Path);
+            Assert.Contains(
+                "Member 'generatedSymbol'",
+                exception.Message);
+            Assert.Contains(
+                "expected CLR type 'System.String'",
+                exception.Message);
+            Assert.IsEmpty(runner.Requests);
+            Assert.IsFalse(Directory.Exists(output));
+        }
+        finally
+        {
+            fileSystem.DeleteDirectory(root);
+        }
+    }
+
+    [TestMethod]
     public async Task StaleSuppliedArtifactPromotesNoOutput()
     {
         var root = CreateRoot();

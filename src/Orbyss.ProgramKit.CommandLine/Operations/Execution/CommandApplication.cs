@@ -99,9 +99,19 @@ public sealed class CommandApplication : ICommandApplication
                 "/input",
                 cancellationToken).ConfigureAwait(false);
         }
+        catch (ProgramKitJsonException exception)
+        {
+            return await WriteFailureAsync(
+                invocation,
+                CommandExitCode.UsageOrInputFailure,
+                CommandDiagnosticIds.InvalidInput,
+                exception.Message,
+                PrefixPath("/input", exception.Diagnostic.Path),
+                cancellationToken).ConfigureAwait(false);
+        }
         catch (Exception exception)
-            when (exception is ProgramKitJsonException or JsonException or
-                InvalidDataException or ArgumentException)
+            when (exception is JsonException or InvalidDataException or
+                ArgumentException)
         {
             return await WriteFailureAsync(
                 invocation,
@@ -132,6 +142,11 @@ public sealed class CommandApplication : ICommandApplication
                 CancellationToken.None).ConfigureAwait(false);
         }
     }
+
+    private static string PrefixPath(string prefix, string path) =>
+        string.IsNullOrEmpty(path)
+            ? prefix
+            : string.Concat(prefix, path);
 
     private async ValueTask<CommandExitCode> WriteFailureAsync(
         CommandInvocation? invocation,

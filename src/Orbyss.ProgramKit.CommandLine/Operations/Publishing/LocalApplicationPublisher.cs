@@ -129,6 +129,13 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
                     packageRoot.Manifest,
                     generation.HostLock);
             }
+            catch (NuGetLockReadException exception)
+            {
+                throw Failure(
+                    LocalOperationDiagnosticIds.RestoreClosureMismatch,
+                    ContainedExceptionMessage(exception),
+                    PrefixPath("/restore", exception.Path));
+            }
             catch (InvalidDataException exception)
             {
                 throw Failure(
@@ -380,6 +387,11 @@ public sealed class LocalApplicationPublisher : ILocalApplicationPublisher
         string message,
         string path) =>
         new(id, CommandExitCode.ConformanceFailure, message, path);
+
+    private static string PrefixPath(string prefix, string path) =>
+        string.IsNullOrEmpty(path)
+            ? prefix
+            : string.Concat(prefix, path);
 
     private static string ContainedProcessMessage(
         string message,

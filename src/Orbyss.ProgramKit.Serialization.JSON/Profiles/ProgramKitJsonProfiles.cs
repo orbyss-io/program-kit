@@ -35,7 +35,7 @@ public static class ProgramKitJsonProfiles
                 new ProgramKitIdentifier("pkid:profile:program-kit:json-meta"),
                 new SemanticVersion("1.0.0"),
                 new Sha256Digest(
-                    "sha256:16612d5e3719b01a0b2f88f9cab7b430f2f049afea78494b592b71ebb2efcdf9")),
+                    "sha256:3292bc03c1b710d830cdfe98a63e99c2b47c045535f8dae1a9d022ef1500d032")),
             CanonicalJsonRfc8785,
             JsonProfileExtensibility.None,
             StrictRules,
@@ -48,7 +48,7 @@ public static class ProgramKitJsonProfiles
                 new ProgramKitIdentifier("pkid:profile:program-kit:json-contracts"),
                 new SemanticVersion("1.0.0"),
                 new Sha256Digest(
-                    "sha256:11794e1c109d9989e3fa6fe7788eb608adbc14e8544641480431581319135457")),
+                    "sha256:8e7336033d986dc469865917002ebff3a64109d2719d8d7ebc3bcf2a8d3c54de")),
             CanonicalJsonRfc8785,
             JsonProfileExtensibility.ExplicitContributions,
             StrictRules,

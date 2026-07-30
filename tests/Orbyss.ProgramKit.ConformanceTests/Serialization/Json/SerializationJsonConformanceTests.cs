@@ -98,6 +98,10 @@ public sealed class SerializationJsonConformanceTests
         "Orbyss.ProgramKit.Serialization.JSON/Serialization/BoundedJsonBufferWriter.cs",
         "Orbyss.ProgramKit.Serialization.JSON/Serialization/JsonByteLimitExceededException.cs",
         "Orbyss.ProgramKit.Serialization.JSON/Serialization/ProgramKitJsonSerializer.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonReadFailure.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonReadFailureLocator.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonReadPathSegment.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonResolvedFailure.cs",
     ];
     private static readonly string[] ExpectedJsonMetaMechanicsSources =
     [
@@ -137,6 +141,10 @@ public sealed class SerializationJsonConformanceTests
         "Orbyss.ProgramKit.Serialization.JSON/Serialization/BoundedJsonBufferWriter.cs",
         "Orbyss.ProgramKit.Serialization.JSON/Serialization/JsonByteLimitExceededException.cs",
         "Orbyss.ProgramKit.Serialization.JSON/Serialization/ProgramKitJsonSerializer.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonReadFailure.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonReadFailureLocator.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonReadPathSegment.cs",
+        "Orbyss.ProgramKit.Serialization.JSON/Serialization/StrictJsonResolvedFailure.cs",
     ];
     private static readonly string[] ExpectedCanonicalMechanicsSources =
     [

@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.References;
@@ -33,6 +34,66 @@ public sealed class NuGetLockVerifierTests
         sut.Verify(accepted, manifest, hostLock);
         Assert.ThrowsExactly<InvalidDataException>(
             () => sut.Verify(tampered, manifest, hostLock));
+    }
+
+    [TestMethod]
+    public void StrictTypedFailurePreservesTheExactNuGetLockPath()
+    {
+        var hostLock = HostLock();
+        var contentHash = Convert.ToBase64String(new byte[64]);
+        var manifest = Manifest(hostLock, contentHash);
+        NuGetLockVerifier sut = new(CreateSerializer());
+        var invalid = JsonSerializer.SerializeToUtf8Bytes(
+            new
+            {
+                version = false,
+                dependencies = new Dictionary<string, object?>(),
+            });
+
+        var exception = Assert.ThrowsExactly<NuGetLockReadException>(
+            () => sut.Verify(invalid, manifest, hostLock));
+
+        Assert.AreEqual("/version", exception.Path);
+        Assert.Contains("Member 'version'", exception.Message);
+        Assert.Contains(
+            "expected CLR type 'System.Int32'",
+            exception.Message);
+    }
+
+    [TestMethod]
+    public void StrictTypedFailureTraversesDottedDictionaryKeys()
+    {
+        var hostLock = HostLock();
+        var contentHash = Convert.ToBase64String(new byte[64]);
+        var manifest = Manifest(hostLock, contentHash);
+        NuGetLockVerifier sut = new(CreateSerializer());
+        var package = hostLock.Packages[0];
+        var valid = Encoding.UTF8.GetString(
+            LockBytes(hostLock, contentHash));
+        var invalid = Encoding.UTF8.GetBytes(
+            valid.Replace(
+                string.Concat(
+                    "\"resolved\":\"",
+                    package.Version.Value,
+                    "\""),
+                "\"resolved\":false",
+                StringComparison.Ordinal));
+
+        var exception = Assert.ThrowsExactly<NuGetLockReadException>(
+            () => sut.Verify(invalid, manifest, hostLock));
+
+        Assert.AreEqual(
+            string.Concat(
+                "/dependencies/",
+                hostLock.Target.TargetFramework,
+                "/",
+                package.PackageId,
+                "/resolved"),
+            exception.Path);
+        Assert.Contains("Member 'resolved'", exception.Message);
+        Assert.Contains(
+            "expected CLR type 'System.String'",
+            exception.Message);
     }
 
     private static DotNetHostLock HostLock()

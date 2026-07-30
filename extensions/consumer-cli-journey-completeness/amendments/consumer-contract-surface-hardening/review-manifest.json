@@ -1,8 +1,8 @@
 {
   "identity": "pkid:review-set-amendment:program-kit:consumer-contract-surface-hardening",
   "version": "0.1.0-alpha.1",
-  "state": "ready-for-human-decision",
-  "implementationStatus": "not-started",
+  "state": "approved",
+  "implementationStatus": "in-progress",
   "baseReviewSet": {
     "identity": "pkid:review-set:program-kit:consumer-cli-journey-completeness",
     "version": "0.1.0-alpha.1",
@@ -76,7 +76,7 @@
       "PKCJ-W060",
       "PKCJ-W070"
     ],
-    "status": "not-authorized",
+    "status": "authorized",
     "acceptedOutcome": "The package-only CLI exposes and materializes the strict JSON, PKID, Console, C# gate, generated-project, schema-closure, and local-feed contracts needed by a clean consumer without source inspection or relaxed verification.",
     "doesNotAuthorize": [
       "implementation before exact digest approval",
@@ -96,13 +96,31 @@
     "sourceInspection": "completed against commit e206f8c",
     "compatibilityAssessment": "completed in architecture amendment",
     "staticConformanceDisposition": "reuse-existing at Program Kit repository scope",
-    "artifactDigests": "passed by SHA-256 recalculation over exact candidate bytes"
+    "artifactDigests": "passed by SHA-256 recalculation over exact candidate bytes",
+    "workUnits": {
+      "PKCJ-W020": {
+        "status": "verified",
+        "releaseBuild": "passed with zero warnings and zero errors",
+        "unitTests": "602 passed",
+        "routineConformanceTests": "178 passed; 1 explicitly opt-in Linux fixture skipped",
+        "observatoryFixtureTests": "15 passed",
+        "privateCSharpGateProfile": "158 passed; 1 explicitly opt-in Linux fixture skipped",
+        "focusedAcceptance": "34 strict diagnostic and adapter tests passed, including the 57 KB nested Console request and dotted dictionary keys"
+      }
+    }
   },
   "approvalBoundary": {
-    "requiredDecision": "exact-human-approval",
+    "requiredDecision": "satisfied-by-exact-human-approval",
     "candidateDesignSha256": "dc29a4be4fba94801041fc57fb95c4e21780c4db3fcb5376b31b34041ac81f37",
     "candidatePlanSha256": "c8b6a2ce5740532204b90202180ebbaa4050b1541da5cbd2401e1f1b89a9c499",
-    "authorizedWorkUnits": [],
-    "humanDecision": null
+    "authorizedWorkUnits": [
+      "PKCJ-W020",
+      "PKCJ-W030",
+      "PKCJ-W040",
+      "PKCJ-W050",
+      "PKCJ-W060",
+      "PKCJ-W070"
+    ],
+    "humanDecision": "The human explicitly approved the exact candidate design and plan SHA-256 digests and authorized PKCJ-W020 through PKCJ-W070."
   }
 }

@@ -32,18 +32,32 @@ public sealed class ProgramKitJsonSerializer : IProgramKitJsonSerializer
     {
         var profile = registry.GetProfile(profileReference);
         var selectedLimits = SelectLimits(profile, limits);
-        var canonical = canonicalizer.Canonicalize(
-            utf8Json.Span,
-            selectedLimits);
         var typeInfo = GetTypeInfo<T>(profileReference);
+        CanonicalJsonValue canonical;
+        try
+        {
+            canonical = canonicalizer.Canonicalize(
+                utf8Json.Span,
+                selectedLimits);
+        }
+        catch (ProgramKitJsonException exception)
+        {
+            var failure = StrictJsonReadFailureLocator.Locate(
+                typeInfo,
+                exception.Diagnostic.Path);
+            throw ProgramKitJsonException.Create(
+                exception.Diagnostic.Id,
+                failure.Message(exception.Diagnostic.Message),
+                failure.Path,
+                exception);
+        }
+
         try
         {
             var value = JsonSerializer.Deserialize(canonical.ToArray(), typeInfo);
             return value is not null
                 ? value
-                : throw ProgramKitJsonException.Create(
-                    ProgramKitJsonDiagnosticIds.NullModel,
-                    $"Profile '{profileReference.Identity.Value}' produced no '{typeof(T).FullName}' model.");
+                : throw NullModel<T>(typeInfo);
         }
         catch (ProgramKitJsonException)
         {
@@ -52,9 +66,15 @@ public sealed class ProgramKitJsonSerializer : IProgramKitJsonSerializer
         catch (Exception exception)
             when (exception is JsonException or ArgumentException)
         {
+            var failure = StrictJsonReadFailureLocator.Locate(
+                canonical.ToArray(),
+                typeInfo,
+                exception as JsonException);
             throw ProgramKitJsonException.Create(
                 ProgramKitJsonDiagnosticIds.InvalidJson,
-                $"Strict typed JSON could not be read as '{typeof(T).FullName}'.",
+                failure.Message(
+                    "The JSON value does not satisfy the selected strict source-generated contract."),
+                failure.Path,
                 innerException: exception);
         }
         catch (NotSupportedException exception)
@@ -64,9 +84,15 @@ public sealed class ProgramKitJsonSerializer : IProgramKitJsonSerializer
         catch (Exception exception)
             when (JsonExceptionBoundary.IsNonFatal(exception))
         {
+            var failure = StrictJsonReadFailureLocator.Locate(
+                canonical.ToArray(),
+                typeInfo,
+                exception as JsonException);
             throw ProgramKitJsonException.Create(
                 ProgramKitJsonDiagnosticIds.InvalidJson,
-                $"The converter selected for '{typeof(T).FullName}' failed while reading strict JSON.",
+                failure.Message(
+                    "The selected converter rejected the JSON value."),
+                failure.Path,
                 innerException: exception);
         }
     }
@@ -194,4 +220,17 @@ public sealed class ProgramKitJsonSerializer : IProgramKitJsonSerializer
                 ? "."
                 : $" for profile '{profileReference.Identity.Value}'."),
             innerException: innerException);
+
+    private static ProgramKitJsonException NullModel<T>(
+        JsonTypeInfo<T> typeInfo)
+    {
+        var failure = StrictJsonReadFailureLocator.Locate(
+            typeInfo,
+            diagnosticPath: null);
+        return ProgramKitJsonException.Create(
+            ProgramKitJsonDiagnosticIds.NullModel,
+            failure.Message(
+                "Strict typed deserialization produced no model."),
+            failure.Path);
+    }
 }
