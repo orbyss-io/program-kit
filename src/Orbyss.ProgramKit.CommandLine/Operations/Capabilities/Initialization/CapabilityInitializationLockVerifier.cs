@@ -161,12 +161,13 @@ public static class CapabilityInitializationLockVerifier
                 "develop-software",
                 "implement-software-plan",
             ],
-            "3.0.0" or "4.0.0" => DistributedCapabilityIds,
+            "3.0.0" or "0.1.0-alpha.1" => DistributedCapabilityIds,
             _ => [],
         };
 
     private static bool IsSupportedBundleVersion(string value) =>
-        value is "2.0.0" or "2.1.0" or "2.2.0" or "3.0.0" or "4.0.0";
+        value is "2.0.0" or "2.1.0" or "2.2.0" or "3.0.0" or
+            "0.1.0-alpha.1";
 
     private static bool IsDigest(string value)
     {

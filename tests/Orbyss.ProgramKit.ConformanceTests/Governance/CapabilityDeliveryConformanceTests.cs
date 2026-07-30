@@ -277,7 +277,7 @@ public sealed class CapabilityDeliveryConformanceTests
         }
 
         Assert.Contains(
-            "Bundle `4.0.0`",
+            "Bundle `0.1.0-alpha.1`",
             guidance);
         Assert.Contains(
             ".agents/skills/<capability-id>/SKILL.md",
@@ -360,7 +360,8 @@ public sealed class CapabilityDeliveryConformanceTests
             .Select(entry => entry.CapabilityId)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        Assert.AreEqual("4.0.0", manifest.BundleVersion);
+        Assert.AreEqual("0.1.0-alpha.1", manifest.BundleVersion);
+        Assert.AreEqual(manifest.KitVersion, manifest.BundleVersion);
         Assert.AreSequenceEqual(DistributedCapabilityIds, capabilityIds);
         Assert.DoesNotContain(
             "publish-dotnet-application-locally",

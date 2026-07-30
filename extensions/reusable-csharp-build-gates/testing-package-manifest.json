@@ -15,7 +15,7 @@
   },
   "operationSourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:3e533cf0873a9ed79271000a61babdba152c26dc67c47894133966b96b953d68",
+    "digest": "sha256:49eb91ad0b3295e24ba3631612338e833a5cb2f4a4168f00161776e1427bfcf5",
     "paths": [
       "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
       "src/Orbyss.ProgramKit.CommandLine/Contracts/Descriptors/CommandDescriptorCatalog.cs",

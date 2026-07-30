@@ -120,7 +120,7 @@ Consumer products choose and document one integration posture: `none`,
 choice, modify `.gitignore`, stage or commit files, install an AI provider
 globally, or grant trust or permissions. See
 [consumer integration postures](.agent-capabilities/consumer-integration.md)
-for the exact CapabilityBundle `4.0.0` setup and removal commands, reviewed
+for the exact CapabilityBundle `0.1.0-alpha.1` setup and removal commands, reviewed
 Codex and Claude Code project roots, multi-provider ownership behavior, and
 selective Git guidance.
 

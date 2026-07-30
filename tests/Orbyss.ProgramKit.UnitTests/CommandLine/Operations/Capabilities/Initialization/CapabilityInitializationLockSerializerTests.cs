@@ -77,7 +77,7 @@ public sealed class CapabilityInitializationLockSerializerTests
         string outputPath) =>
         new(
             provider,
-            "4.0.0",
+            "0.1.0-alpha.1",
             "program-kit",
             Digest,
             [

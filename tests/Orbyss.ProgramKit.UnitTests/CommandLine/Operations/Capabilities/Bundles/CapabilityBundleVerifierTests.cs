@@ -432,7 +432,7 @@ public sealed class CapabilityBundleVerifierTests
         IReadOnlyList<BundleTestEntry> adapters,
         IReadOnlyList<BundleTestEntry> resources) =>
         string.Concat(
-            "{\"bundleVersion\":\"4.0.0\",\"capabilities\":[",
+            "{\"bundleVersion\":\"0.1.0-alpha.1\",\"capabilities\":[",
             string.Join(
                 ',',
                 capabilities.Select(

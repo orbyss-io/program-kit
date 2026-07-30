@@ -14,7 +14,8 @@ provider adapters. The repository-only `publish-dotnet-application-locally`
 capability, the capability index, generated catalog, authoring capability, and
 Release Cycle reservations are deliberately excluded.
 
-Bundle revision `4.0.0` uses the unique `.agent-capabilities` source tree. Its
+Bundle release `0.1.0-alpha.1` matches the package version and uses the unique
+`.agent-capabilities` source tree. Its
 canonical definitions stay in Program Kit. They are never copied into a
 human-led workspace. The bundle also carries the inert, exact-byte
 software-change completion profile set shared by full implementation and

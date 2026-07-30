@@ -24,7 +24,7 @@ setup.
 
 ## Reviewed providers
 
-Bundle `4.0.0` supports only these reviewed project-scoped adapters:
+Bundle `0.1.0-alpha.1` supports only these reviewed project-scoped adapters:
 
 | Provider ID | Current project discovery root |
 | --- | --- |
@@ -45,8 +45,8 @@ provider discovers them and a human requests work.
 The commands below assume the consumer pins:
 
 - the Program Kit source checkout at `.\program-kit`; and
-- the verified extracted CapabilityBundle `4.0.0` payload at
-  `.\.program-kit\capability-bundle\4.0.0\contentFiles\any\any`.
+- the verified extracted CapabilityBundle `0.1.0-alpha.1` payload at
+  `.\.program-kit\capability-bundle\0.1.0-alpha.1\contentFiles\any\any`.
 
 Initialize Codex from the consumer root:
 
@@ -57,7 +57,7 @@ dotnet run `
   capabilities initialize `
   --provider codex `
   --workspace-root . `
-  --program-kit-root .\.program-kit\capability-bundle\4.0.0\contentFiles\any\any
+  --program-kit-root .\.program-kit\capability-bundle\0.1.0-alpha.1\contentFiles\any\any
 ```
 
 Initialize Claude Code by changing only the provider:
@@ -69,7 +69,7 @@ dotnet run `
   capabilities initialize `
   --provider claude `
   --workspace-root . `
-  --program-kit-root .\.program-kit\capability-bundle\4.0.0\contentFiles\any\any
+  --program-kit-root .\.program-kit\capability-bundle\0.1.0-alpha.1\contentFiles\any\any
 ```
 
 Initialization verifies the exact bundle, adds or updates only the selected

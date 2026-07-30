@@ -227,15 +227,15 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
     {
         if (!string.Equals(
                 manifest.BundleVersion,
-                "4.0.0",
+                "0.1.0-alpha.1",
                 StringComparison.Ordinal) ||
             !string.Equals(
                 manifest.KitVersion,
-                "0.1.0-alpha.1",
+                manifest.BundleVersion,
                 StringComparison.Ordinal))
         {
             throw InvalidBundle(
-                "The bundle and Program Kit versions must match this verifier.",
+                "The capability bundle version must match the Program Kit package version.",
                 "/bundle/manifest/version");
         }
 

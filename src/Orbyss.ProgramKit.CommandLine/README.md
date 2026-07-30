@@ -48,7 +48,7 @@ values, and includes the exact source SHA-256. Bundle verification requires the
 five distributable canonical definitions and their separately listed inert
 Codex and Claude Code adapter templates; it rejects the index, the authoring
 capability, the repository-only local-publish capability, unlisted bytes, and
-tampering. Bundle `4.0.0` also binds the non-discoverable software-change
+tampering. Bundle `0.1.0-alpha.1` also binds the non-discoverable software-change
 completion profile set shared by full implementation and incremental
 maintenance. These supporting bytes are not independently invokable and grant
 no authority.

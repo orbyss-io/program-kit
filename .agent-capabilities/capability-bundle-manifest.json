@@ -1,5 +1,5 @@
 {
-  "bundleVersion": "4.0.0",
+  "bundleVersion": "0.1.0-alpha.1",
   "capabilities": [
     {
       "capabilityId": "develop-software",
@@ -10,7 +10,7 @@
     {
       "capabilityId": "design-csharp-build-gate",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:f2af6fb31b4a5ad48d37fd22798fc982865ed40863288685819f5f1793d8a47b",
+      "sha256": "sha256:c513178ecc7a2adf3df68ce09d5eba02b426a0514563ea671d0b84cc37eb5f9f",
       "sourcePath": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md"
     },
     {

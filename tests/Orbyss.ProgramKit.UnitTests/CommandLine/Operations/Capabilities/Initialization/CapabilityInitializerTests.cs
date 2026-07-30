@@ -243,7 +243,7 @@ public sealed class CapabilityInitializerTests
                     TestContext.CancellationToken));
             Assert.AreEqual("2.0.0", upgraded.LockVersion);
             Assert.AreEqual(
-                "4.0.0",
+                "0.1.0-alpha.1",
                 upgraded.Providers.Single().BundleVersion);
             Assert.HasCount(
                 5,
@@ -712,7 +712,7 @@ public sealed class CapabilityInitializerTests
                 })
             .ToArray();
         var manifest = new CapabilityBundleManifest(
-            "4.0.0",
+            "0.1.0-alpha.1",
             capabilities.ToArray(),
             "0.1.0-alpha.1",
             adapters.ToArray(),
