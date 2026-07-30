@@ -545,7 +545,7 @@ public sealed class CSharpGateSelectionLockProjector
                 "receipt",
                 @namespace.Scope,
                 string.Join(
-                    ".",
+                    "-",
                     @namespace.Name,
                     project.Name,
                     analyzer.Name,

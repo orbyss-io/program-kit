@@ -10,7 +10,7 @@ feed, then initialize the provider used by the current consumer session:
 ```powershell
 dotnet tool install --global Orbyss.ProgramKit.CommandLine `
   --version 0.1.0-alpha.3 `
-  --add-source <EXTRACTED_PROGRAM_KIT_FEED>
+  --add-source <EXTRACTED_PROGRAM_KIT_HANDOFF>\feed
 program-kit capabilities initialize --provider codex --workspace-root .
 # or: program-kit capabilities initialize --provider claude --workspace-root .
 ```

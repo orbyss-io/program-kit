@@ -10,6 +10,9 @@ param(
     [string] $GateDefinitionDraft,
 
     [Parameter(Mandatory = $true)]
+    [string] $DesignFlowFixtureRoot,
+
+    [Parameter(Mandatory = $true)]
     [string] $OutputRoot
 )
 
@@ -32,6 +35,7 @@ if ($expectedPackages.Count -eq 0) {
 $packagePath = [IO.Path]::GetFullPath($PackageRoot)
 $consoleFixturePath = [IO.Path]::GetFullPath($ConsoleConsumerFixtureRoot)
 $gateDraftPath = [IO.Path]::GetFullPath($GateDefinitionDraft)
+$designFlowFixturePath = [IO.Path]::GetFullPath($DesignFlowFixtureRoot)
 $outputPath = [IO.Path]::GetFullPath($OutputRoot)
 if (-not (Test-Path -LiteralPath $packagePath -PathType Container)) {
     throw "The flat package root does not exist: $packagePath"
@@ -42,7 +46,7 @@ if (-not (Test-Path -LiteralPath $consoleFixturePath -PathType Container)) {
 }
 
 foreach ($requiredFixturePath in @(
-        'console-input-request.json',
+        'console-command-sketch.json',
         'inputs/version-map.json',
         'inputs/version-selection.json')) {
     if (-not (Test-Path -LiteralPath (
@@ -53,6 +57,20 @@ foreach ($requiredFixturePath in @(
 
 if (-not (Test-Path -LiteralPath $gateDraftPath -PathType Leaf)) {
     throw "The gate-definition draft does not exist: $gateDraftPath"
+}
+
+if (-not (Test-Path -LiteralPath $designFlowFixturePath -PathType Container)) {
+    throw "The design-flow fixture root does not exist: $designFlowFixturePath"
+}
+
+foreach ($requiredDesignFlowPath in @(
+        'architecture-design.json',
+        'static-conformance-disposition.json',
+        'implementation-plan.json')) {
+    if (-not (Test-Path -LiteralPath (
+            Join-Path $designFlowFixturePath $requiredDesignFlowPath) -PathType Leaf)) {
+        throw "The design-flow fixture is incomplete: $requiredDesignFlowPath"
+    }
 }
 
 if (Test-Path -LiteralPath $outputPath) {
@@ -228,6 +246,64 @@ function Assert-ContainsText {
     }
 }
 
+function Write-Utf8Json {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)] $Value,
+        [switch] $Compress
+    )
+
+    $json = if ($Compress) {
+        $Value | ConvertTo-Json -Depth 100 -Compress
+    }
+    else {
+        $Value | ConvertTo-Json -Depth 100
+    }
+    [IO.File]::WriteAllText(
+        $Path,
+        "$json`n",
+        [Text.UTF8Encoding]::new($false))
+}
+
+function Assert-FailedWithoutOutput {
+    param(
+        [Parameter(Mandatory = $true)] $Result,
+        [Parameter(Mandatory = $true)][string] $OutputPath,
+        [Parameter(Mandatory = $true)][string] $ExpectedDiagnostic
+    )
+
+    if ($Result.ExitCode -eq 0) {
+        throw "The negative proof unexpectedly succeeded: $ExpectedDiagnostic"
+    }
+
+    $combinedBytes = [byte[]] (
+        @($Result.StandardOutput) + @($Result.StandardError))
+    $combined = [Text.Encoding]::UTF8.GetString($combinedBytes)
+    if (-not $combined.Contains(
+            $ExpectedDiagnostic,
+            [StringComparison]::Ordinal)) {
+        throw "The negative proof omitted $ExpectedDiagnostic."
+    }
+
+    if (Test-Path -LiteralPath $OutputPath) {
+        throw "A failed operation promoted output: $OutputPath"
+    }
+}
+
+function Assert-ResultContainsText {
+    param(
+        [Parameter(Mandatory = $true)] $Result,
+        [Parameter(Mandatory = $true)][string] $Expected
+    )
+
+    $combinedBytes = [byte[]] (
+        @($Result.StandardOutput) + @($Result.StandardError))
+    $combined = [Text.Encoding]::UTF8.GetString($combinedBytes)
+    if (-not $combined.Contains($Expected, [StringComparison]::Ordinal)) {
+        throw "Expected process output text was absent: $Expected"
+    }
+}
+
 $packages = @(
     Get-ChildItem -LiteralPath $packagePath -Filter '*.nupkg' -File |
         Sort-Object Name)
@@ -249,6 +325,46 @@ foreach ($package in $packages) {
         filename = $package.Name
         sha256 = Get-Sha256 -Path $package.FullName
         size = $package.Length
+    }
+}
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$requiredPackageEntries = [ordered]@{
+    'Orbyss.ProgramKit.CommandLine' = @(
+        'tools/net10.0/any/DotnetToolSettings.xml',
+        'tools/net10.0/any/Orbyss.ProgramKit.CommandLine.dll',
+        'tools/net10.0/any/Orbyss.ProgramKit.Architecture.dll',
+        'tools/net10.0/any/Orbyss.ProgramKit.DotNet.dll',
+        'tools/net10.0/any/Orbyss.ProgramKit.Planning.dll')
+    'Orbyss.ProgramKit.CSharpBuildGates.Build' = @(
+        'build/Orbyss.ProgramKit.CSharpBuildGates.Build.props',
+        'build/Orbyss.ProgramKit.CSharpBuildGates.Build.targets',
+        'tools/net10.0/Orbyss.ProgramKit.CSharpBuildGates.Build.dll')
+    'Orbyss.ProgramKit.GeneratedOutputIntegrity.Build' = @(
+        'build/Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.targets',
+        'tools/net10.0/Orbyss.ProgramKit.GeneratedOutputIntegrity.Build.dll')
+}
+$packageEntryEvidence = @()
+foreach ($packageId in $requiredPackageEntries.Keys) {
+    $archivePath = Join-Path $packagePath "$packageId.$version.nupkg"
+    $archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
+    try {
+        $entries = @(
+            $archive.Entries |
+                ForEach-Object { $_.FullName.Replace('\', '/') })
+        foreach ($requiredEntry in $requiredPackageEntries[$packageId]) {
+            if ($entries -cnotcontains $requiredEntry) {
+                throw "Package $packageId omitted required entry $requiredEntry."
+            }
+        }
+
+        $packageEntryEvidence += [ordered]@{
+            packageId = $packageId
+            requiredEntries = @($requiredPackageEntries[$packageId])
+        }
+    }
+    finally {
+        $archive.Dispose()
     }
 }
 
@@ -402,10 +518,36 @@ $schemaList = Invoke-ProcessBytes $tool $consumerRoot @(
     'schemas', 'list', '--format', 'json')
 Assert-ContainsText $schemaList.StandardOutput `
     '"canonicalUri":"https://schemas.orbyss.io/program-kit/csharp-build-gates/definition/0.1.0-alpha.2/schema.json"'
+$schemaCatalog = [Text.Encoding]::UTF8.GetString(
+    $schemaList.StandardOutput) | ConvertFrom-Json
 $schemaRead = Invoke-ProcessBytes $tool $consumerRoot @(
     'schemas', 'read',
     'pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2')
 Assert-ContainsText $schemaRead.StandardOutput '"$schema"'
+$gateSchemaCatalogEntry = @(
+    $schemaCatalog.schemas |
+        Where-Object {
+            $_.id -ceq 'pkid:schema:program-kit:csharp-build-gate-definition' -and
+            $_.version -ceq '0.1.0-alpha.2'
+        })
+if ($gateSchemaCatalogEntry.Count -ne 1 -or
+    (Get-BytesSha256 $schemaRead.StandardOutput) -cne
+        $gateSchemaCatalogEntry[0].sha256) {
+    throw 'Schema retrieval bytes do not match the registered schema catalog digest.'
+}
+
+$tamperedSchemaBytes = [byte[]]::new($schemaRead.StandardOutput.Length)
+[Array]::Copy(
+    $schemaRead.StandardOutput,
+    $tamperedSchemaBytes,
+    $schemaRead.StandardOutput.Length)
+$tamperedSchemaBytes[$tamperedSchemaBytes.Length - 2] =
+    $tamperedSchemaBytes[$tamperedSchemaBytes.Length - 2] -bxor 1
+if ((Get-BytesSha256 $tamperedSchemaBytes) -ceq
+    $gateSchemaCatalogEntry[0].sha256) {
+    throw 'A modified schema unexpectedly matched its registered digest.'
+}
+
 $diagnostic = Invoke-ProcessBytes $tool $consumerRoot @(
     'diagnostics', 'explain', 'PKCG005', '--format', 'json')
 Assert-ContainsText $diagnostic.StandardOutput `
@@ -415,10 +557,113 @@ $externalDiagnostic = Invoke-ProcessBytes $tool $consumerRoot @(
 Assert-ContainsText $externalDiagnostic.StandardOutput `
     '"classification":"unregistered-external"'
 
-$gateInput = Join-Path $consumerRoot 'gate-draft.json'
-Copy-Item -LiteralPath $gateDraftPath -Destination $gateInput
-$gateOne = Join-Path $consumerRoot 'gate-one.json'
-$gateTwo = Join-Path $consumerRoot 'gate-two.json'
+$identifierDiagnostic = Invoke-ProcessBytes $tool $consumerRoot @(
+    'diagnostics', 'explain', 'PKART001', '--format', 'text')
+Assert-ContainsText $identifierDiagnostic.StandardOutput `
+    'pkid:approval-record:jtest:jtest-2.0'
+
+$consoleDescription = Invoke-ProcessBytes $tool $consumerRoot @(
+    'dotnet', 'describe-console-contract', '--format', 'text')
+Assert-ContainsText $consoleDescription.StandardOutput `
+    'System.Collections.Immutable.ImmutableArray`1'
+$gateDescription = Invoke-ProcessBytes $tool $consumerRoot @(
+    'csharp-gate', 'describe-definition', '--format', 'text')
+Assert-ContainsText $gateDescription.StandardOutput `
+    'ProgramKitVerifyGeneratedProject'
+Assert-ContainsText $gateDescription.StandardOutput `
+    'cli-tests|... sorts before cli|...'
+
+$designFlowRoot = Join-Path $consumerRoot 'design-flow'
+New-Item -ItemType Directory -Path $designFlowRoot | Out-Null
+$architectureDocument = [IO.File]::ReadAllText(
+    (Join-Path $designFlowFixturePath 'architecture-design.json')) |
+        ConvertFrom-Json
+$architectureDocument | Add-Member `
+    -NotePropertyName '$schema' `
+    -NotePropertyValue `
+        'https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.3/architecture-design.schema.json' `
+    -Force
+$architectureDocument.domains[0].identity =
+    'pkid:domain:program-kit:version.governance'
+$dispositionDocument = [IO.File]::ReadAllText(
+    (Join-Path $designFlowFixturePath 'static-conformance-disposition.json')) |
+        ConvertFrom-Json
+$dispositionDocument | Add-Member `
+    -NotePropertyName '$schema' `
+    -NotePropertyValue `
+        'https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.2/static-conformance-disposition.schema.json' `
+    -Force
+$dispositionDocument.invariantAllocations[0].identity =
+    'pkid:invariant:program-kit:alpha.transition-repository-source'
+$planDocument = [IO.File]::ReadAllText(
+    (Join-Path $designFlowFixturePath 'implementation-plan.json')) |
+        ConvertFrom-Json
+$planDocument | Add-Member `
+    -NotePropertyName '$schema' `
+    -NotePropertyValue `
+        'https://schemas.orbyss.io/program-kit/planning/implementation-plan/0.1.0-alpha.4/schema.json' `
+    -Force
+$planDocument.ownerId = 'pkid:approval-record:jtest:jtest-2.0'
+$designFlowDocuments = @(
+    [ordered]@{
+        Name = 'architecture-design.json'
+        Value = $architectureDocument
+    },
+    [ordered]@{
+        Name = 'static-conformance-disposition.json'
+        Value = $dispositionDocument
+    },
+    [ordered]@{
+        Name = 'implementation-plan.json'
+        Value = $planDocument
+    })
+$designFlowEvidence = @()
+foreach ($document in $designFlowDocuments) {
+    $path = Join-Path $designFlowRoot $document.Name
+    Write-Utf8Json -Path $path -Value $document.Value
+    Invoke-ProcessBytes $tool $consumerRoot @(
+        'validate', $path) | Out-Null
+    $inspection = Invoke-ProcessBytes $tool $consumerRoot @(
+        'artifacts', 'inspect', $path, '--format', 'json')
+    Assert-ContainsText $inspection.StandardOutput '"valid":true'
+    $designFlowEvidence += [ordered]@{
+        filename = $document.Name
+        sha256 = Get-Sha256 $path
+    }
+    Remove-Item -LiteralPath $path -Force
+}
+Remove-Item -LiteralPath $designFlowRoot -Force
+
+$gateRoot = Join-Path $consumerRoot 'gate'
+New-Item -ItemType Directory -Path (
+    (Join-Path $gateRoot 'src/Consumer')),
+    (Join-Path $gateRoot 'analyzers/Consumer.Analyzers'),
+    (Join-Path $gateRoot 'artifacts') | Out-Null
+[IO.File]::WriteAllText(
+    (Join-Path $gateRoot 'src/Consumer/Consumer.csproj'),
+    '<Project />',
+    [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText(
+    (Join-Path $gateRoot 'src/Consumer/Service.cs'),
+    'namespace Consumer;',
+    [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText(
+    (Join-Path $gateRoot 'analyzers/Consumer.Analyzers/Consumer.Analyzers.csproj'),
+    '<Project />',
+    [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText(
+    (Join-Path $gateRoot 'artifacts/Consumer.Analyzers.dll'),
+    'analyzer',
+    [Text.UTF8Encoding]::new($false))
+$gateDraft = [IO.File]::ReadAllText($gateDraftPath) | ConvertFrom-Json
+$gateDraft.analyzerComponents[0].artifact.assemblyDigest =
+    Get-Sha256 (Join-Path $gateRoot 'artifacts/Consumer.Analyzers.dll')
+$gateDraft.profiles.inputs[0].inventory[0].digest =
+    Get-Sha256 (Join-Path $gateRoot 'src/Consumer/Service.cs')
+$gateInput = Join-Path $gateRoot 'gate-draft.json'
+Write-Utf8Json -Path $gateInput -Value $gateDraft
+$gateOne = Join-Path $gateRoot 'gate-one.json'
+$gateTwo = Join-Path $gateRoot 'gate-two.json'
 Invoke-ProcessBytes $tool $consumerRoot @(
     'csharp-gate', 'materialize-definition',
     $gateInput,
@@ -443,7 +688,85 @@ $inspect = Invoke-ProcessBytes $tool $consumerRoot @(
     '--format', 'json')
 Assert-ContainsText $inspect.StandardOutput '"valid":true'
 
+$lockIntentPath = Join-Path $gateRoot 'lock-intent.json'
+$lockIntent = [ordered]@{
+    '$schema' =
+        'pkid:schema:program-kit:csharp-gate-lock-intent@0.1.0-alpha.1'
+    version = '0.1.0-alpha.1'
+    lockIdentity = 'pkid:selection-lock:consumer:software'
+    disposition = $gateDraft.disposition
+    recipes = @()
+    operationRevisions = @(
+        [ordered]@{
+            identity = 'pkid:operation:program-kit:csharp-gate-verify'
+            version = '0.1.0-alpha.1'
+            digest = "sha256:$('e' * 64)"
+        })
+    sdkVersion = '10.0.302'
+    compilerRoslynVersion = '5.0.0'
+    languageVersion = '14.0.0'
+    targetFramework = 'net10.0'
+    receiptIdentityNamespace = 'pkid:receipt:consumer:gate'
+    localAssets = @(
+        [ordered]@{
+            kind = 'reference'
+            repositoryRelativePath =
+                'artifacts/Consumer.Analyzers.dll'
+        })
+}
+Write-Utf8Json -Path $lockIntentPath -Value $lockIntent
+$bindRequestPath = Join-Path $gateRoot 'gate-bind-request.json'
+$selectionLockPath = Join-Path $gateRoot 'selection-lock.json'
+Invoke-ProcessBytes $tool $consumerRoot @(
+    'csharp-gate', 'scaffold-lock',
+    $gateOne,
+    $lockIntentPath,
+    '--repository-root', $gateRoot,
+    '--output', $bindRequestPath) | Out-Null
+Invoke-ProcessBytes $tool $consumerRoot @(
+    'csharp-gate', 'bind',
+    $bindRequestPath,
+    '--output', $selectionLockPath) | Out-Null
+$selectionInspection = Invoke-ProcessBytes $tool $consumerRoot @(
+    'artifacts', 'inspect',
+    $selectionLockPath,
+    '--schema',
+    'pkid:schema:program-kit:csharp-build-gate-selection-lock@0.1.0-alpha.1',
+    '--format', 'json')
+Assert-ContainsText $selectionInspection.StandardOutput '"valid":true'
+
+$tamperedBindRequestPath = Join-Path $gateRoot 'gate-bind-request-tampered.json'
+$tamperedBindRequest = [IO.File]::ReadAllText(
+    $bindRequestPath) | ConvertFrom-Json
+$originalInputDigest = [string] $tamperedBindRequest.candidateLock.inputDigest
+$replacementNibble = if ($originalInputDigest[7] -ceq '0') { '1' } else { '0' }
+$tamperedBindRequest.candidateLock.inputDigest =
+    $originalInputDigest.Substring(0, 7) +
+    $replacementNibble +
+    $originalInputDigest.Substring(8)
+Write-Utf8Json `
+    -Path $tamperedBindRequestPath `
+    -Value $tamperedBindRequest `
+    -Compress
+$tamperedSelectionLockPath = Join-Path $gateRoot 'tampered-selection-lock.json'
+$tamperedBind = Invoke-ProcessBytes `
+    -Executable $tool `
+    -WorkingDirectory $consumerRoot `
+    -Arguments @(
+        'csharp-gate', 'bind',
+        $tamperedBindRequestPath,
+        '--output', $tamperedSelectionLockPath) `
+    -AllowedExitCodes @(1, 2)
+Assert-FailedWithoutOutput `
+    -Result $tamperedBind `
+    -OutputPath $tamperedSelectionLockPath `
+    -ExpectedDiagnostic 'PKCG'
+
 $consoleInputRequest = Join-Path $consumerRoot 'console-input-request.json'
+$secondConsoleInputRequest = Join-Path `
+    $consumerRoot `
+    'console-input-request-repeat.json'
+$consoleSketchPath = Join-Path $consumerRoot 'console-command-sketch.json'
 $consumerInputRoot = Join-Path $consumerRoot 'inputs'
 $consumerProjectRoot = Join-Path `
     $consumerRoot `
@@ -451,8 +774,8 @@ $consumerProjectRoot = Join-Path `
 New-Item -ItemType Directory -Path $consumerInputRoot,$consumerProjectRoot |
     Out-Null
 Copy-Item `
-    -LiteralPath (Join-Path $consoleFixturePath 'console-input-request.json') `
-    -Destination $consoleInputRequest
+    -LiteralPath (Join-Path $consoleFixturePath 'console-command-sketch.json') `
+    -Destination $consoleSketchPath
 Copy-Item `
     -LiteralPath (Join-Path $consoleFixturePath 'inputs/version-map.json') `
     -Destination (Join-Path $consumerInputRoot 'version-map.json')
@@ -474,17 +797,101 @@ $retrievedSource = Invoke-ProcessBytes $tool $consumerRoot @(
     (Join-Path $consumerProjectRoot 'ConsoleIntegration.cs'),
     $retrievedSource.StandardOutput)
 
+$consumerProject = Join-Path `
+    $consumerProjectRoot `
+    'JTest.Console.Integration.csproj'
+Invoke-ProcessBytes $tool $consumerRoot @(
+    'dotnet', 'scaffold-console-request',
+    $consoleSketchPath,
+    '--workspace-root', $consumerRoot,
+    '--consumer-project',
+    'src/JTest.Console.Integration/JTest.Console.Integration.csproj',
+    '--output', $consoleInputRequest) | Out-Null
+Invoke-ProcessBytes $tool $consumerRoot @(
+    'dotnet', 'scaffold-console-request',
+    $consoleSketchPath,
+    '--workspace-root', $consumerRoot,
+    '--consumer-project',
+    'src/JTest.Console.Integration/JTest.Console.Integration.csproj',
+    '--output', $secondConsoleInputRequest) | Out-Null
+if ((Get-Sha256 $consoleInputRequest) -cne
+    (Get-Sha256 $secondConsoleInputRequest)) {
+    throw 'Console request scaffolding is not byte-deterministic.'
+}
+
 $requestInspection = Invoke-ProcessBytes $tool $consumerRoot @(
     'artifacts', 'inspect',
     $consoleInputRequest,
     '--schema',
-    'pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1',
+    'pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2',
     '--format', 'json')
 Assert-ContainsText $requestInspection.StandardOutput '"valid":true'
 
-$consumerProject = Join-Path `
-    $consumerProjectRoot `
-    'JTest.Console.Integration.csproj'
+$requestExample = Invoke-ProcessBytes $tool $consumerRoot @(
+    'capabilities', 'read-resource',
+    'dotnet-console-input-request-example',
+    '--workspace-root', $consumerRoot)
+$requestExamplePath = Join-Path $consumerRoot 'console-input-request-example.json'
+[IO.File]::WriteAllBytes(
+    $requestExamplePath,
+    $requestExample.StandardOutput)
+$requestExampleInspection = Invoke-ProcessBytes $tool $consumerRoot @(
+    'artifacts', 'inspect',
+    $requestExamplePath,
+    '--schema',
+    'pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2',
+    '--format', 'json')
+Assert-ContainsText $requestExampleInspection.StandardOutput '"valid":true'
+
+$tamperedRequestPath = Join-Path $consumerRoot 'console-input-request-tampered.json'
+$tamperedRequestText = [IO.File]::ReadAllText(
+    $consoleInputRequest).Replace(
+        '"generatedSymbol":"Run"',
+        '"generatedSymbol":false',
+        [StringComparison]::Ordinal)
+if ($tamperedRequestText -ceq [IO.File]::ReadAllText($consoleInputRequest)) {
+    throw 'The strict-reader negative could not locate generatedSymbol.'
+}
+
+[IO.File]::WriteAllText(
+    $tamperedRequestPath,
+    $tamperedRequestText,
+    [Text.UTF8Encoding]::new($false))
+$tamperedExampleInspection = Invoke-ProcessBytes `
+    -Executable $tool `
+    -WorkingDirectory $consumerRoot `
+    -Arguments @(
+        'artifacts', 'inspect',
+        $tamperedRequestPath,
+        '--schema',
+        'pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2',
+        '--format', 'json') `
+    -AllowedExitCodes @(0)
+Assert-ContainsText $tamperedExampleInspection.StandardOutput '"valid":false'
+$tamperedMaterializationRoot = Join-Path `
+    $consumerRoot `
+    '.program-kit/console-inputs-tampered'
+$tamperedMaterialization = Invoke-ProcessBytes `
+    -Executable $tool `
+    -WorkingDirectory $consumerRoot `
+    -Arguments @(
+        'dotnet', 'materialize-console-inputs',
+        $tamperedRequestPath,
+        '--workspace-root', $consumerRoot,
+        '--output', $tamperedMaterializationRoot,
+        '--build-consumer') `
+    -AllowedExitCodes @(1, 2)
+Assert-FailedWithoutOutput `
+    -Result $tamperedMaterialization `
+    -OutputPath $tamperedMaterializationRoot `
+    -ExpectedDiagnostic 'PKCIM001'
+Assert-ResultContainsText $tamperedMaterialization `
+    '/request/binding/operations/0/generatedSymbol'
+Assert-ResultContainsText $tamperedMaterialization `
+    "Member 'generatedSymbol'"
+Assert-ResultContainsText $tamperedMaterialization `
+    "expected CLR type 'System.String'"
+
 Invoke-ProcessBytes 'dotnet' $consumerRoot @(
     'restore',
     $consumerProject,
@@ -584,6 +991,40 @@ Invoke-ProcessBytes 'dotnet' $consumerRoot @(
     'Release',
     '--verbosity',
     'minimal') | Out-Null
+Invoke-ProcessBytes 'dotnet' $consumerRoot @(
+    'msbuild',
+    $generatedProjectPath,
+    '/t:ProgramKitVerifyGeneratedProject',
+    '/restore:false',
+    '/property:Configuration=Release',
+    '/verbosity:minimal') | Out-Null
+
+$generatedTargetsPath = Join-Path $generated 'Directory.Build.targets'
+$generatedTargetsBytes = [IO.File]::ReadAllBytes($generatedTargetsPath)
+[IO.File]::AppendAllText(
+    $generatedTargetsPath,
+    "`n<!-- consumer tamper -->",
+    [Text.UTF8Encoding]::new($false))
+$tamperedGeneratedTarget = Invoke-ProcessBytes `
+    -Executable 'dotnet' `
+    -WorkingDirectory $consumerRoot `
+    -Arguments @(
+        'msbuild',
+        $generatedProjectPath,
+        '/t:ProgramKitVerifyGeneratedProject',
+        '/restore:false',
+        '/property:Configuration=Release',
+        '/verbosity:minimal') `
+    -AllowedExitCodes @(1)
+Assert-ResultContainsText $tamperedGeneratedTarget 'PKINT100'
+[IO.File]::WriteAllBytes($generatedTargetsPath, $generatedTargetsBytes)
+Invoke-ProcessBytes 'dotnet' $consumerRoot @(
+    'msbuild',
+    $generatedProjectPath,
+    '/t:ProgramKitVerifyGeneratedProject',
+    '/restore:false',
+    '/property:Configuration=Release',
+    '/verbosity:minimal') | Out-Null
 
 $consoleMaterializationLock = Join-Path `
     $consoleRoot `
@@ -598,6 +1039,7 @@ if (@($consoleMaterializationLockDocument.compilationReferences).Count -lt 2 -or
 
 $tamperedRelative = $lock.providers[0].capabilities[0].outputPath
 $tamperedPath = Join-Path $consumerRoot $tamperedRelative
+$tamperedOriginalBytes = [IO.File]::ReadAllBytes($tamperedPath)
 [IO.File]::AppendAllText(
     $tamperedPath,
     "`nconsumer-tamper",
@@ -620,25 +1062,97 @@ $tamperedRead = Invoke-ProcessBytes `
         $lock.providers[0].capabilities[0].capabilityId,
         '--workspace-root', $consumerRoot) `
     -AllowedExitCodes @(1)
+[IO.File]::WriteAllBytes($tamperedPath, $tamperedOriginalBytes)
+$readyAfterRefresh = Invoke-ProcessBytes $tool $consumerRoot @(
+    'capabilities', 'preflight',
+    $lock.providers[0].capabilities[0].capabilityId,
+    '--workspace-root', $consumerRoot,
+    '--format', 'json')
+Assert-ContainsText $readyAfterRefresh.StandardOutput '"state":"ready"'
+
+$repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$forbiddenText = @(
+    $repositoryRoot,
+    $repositoryRoot.Replace('\', '/'),
+    $consoleFixturePath,
+    $consoleFixturePath.Replace('\', '/'),
+    $gateDraftPath,
+    $gateDraftPath.Replace('\', '/'),
+    $designFlowFixturePath,
+    $designFlowFixturePath.Replace('\', '/'),
+    'JTest.HostInputs',
+    '.agent-capabilities/capabilities/')
+$textExtensions = @(
+    '.config',
+    '.cs',
+    '.csproj',
+    '.json',
+    '.lock',
+    '.md',
+    '.props',
+    '.targets',
+    '.txt',
+    '.xml')
+foreach ($file in Get-ChildItem -LiteralPath $consumerRoot -Recurse -File) {
+    if ($textExtensions -cnotcontains $file.Extension) {
+        continue
+    }
+
+    $text = [IO.File]::ReadAllText($file.FullName)
+    foreach ($forbidden in $forbiddenText) {
+        if ($text.Contains($forbidden, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "The isolated consumer leaked forbidden source/test/helper text '$forbidden' in $($file.FullName)."
+        }
+    }
+
+    if ($file.Extension -ceq '.csproj') {
+        [xml] $project = $text
+        foreach ($reference in @(
+                $project.Project.ItemGroup.ProjectReference)) {
+            if ($null -ne $reference -and
+                ([string] $reference.Include).Contains(
+                    'Orbyss.ProgramKit.',
+                    [StringComparison]::OrdinalIgnoreCase)) {
+                throw "The isolated consumer contains a Program Kit project reference: $($file.FullName)"
+            }
+        }
+    }
+}
 
 $proof = [ordered]@{
     formatVersion = '0.1.0-alpha.1'
     productVersion = $version
     packageCount = $packages.Count
     packages = $packageEvidence
+    inspectedPackageEntries = $packageEntryEvidence
     capabilityCount = $capabilityEvidence.Count
     capabilities = $capabilityEvidence
     resourceCount = $resourceEvidence.Count
     resources = $resourceEvidence
     lockSha256 = Get-BytesSha256 $lockBytes
     gateDefinitionSha256 = Get-Sha256 $gateOne
+    gateBindRequestSha256 = Get-Sha256 $bindRequestPath
+    gateSelectionLockSha256 = Get-Sha256 $selectionLockPath
+    designFlowDocuments = $designFlowEvidence
+    schemaCatalogSha256 = Get-BytesSha256 $schemaList.StandardOutput
+    gateDefinitionSchemaSha256 =
+        $gateSchemaCatalogEntry[0].sha256
+    consoleRequestSource = 'scaffolded-from-command-sketch'
+    consoleSketchSha256 = Get-Sha256 $consoleSketchPath
+    consoleRequestSha256 = Get-Sha256 $consoleInputRequest
+    consoleRequestExampleSha256 = Get-Sha256 $requestExamplePath
     consoleMaterializationLockSha256 =
         Get-Sha256 $consoleMaterializationLock
     consoleReferenceCount =
         @($consoleMaterializationLockDocument.compilationReferences).Count
     consoleOutputAnchorSha256 = Get-Sha256 $generatedAnchor
+    generatedProjectTargetsSha256 = Get-Sha256 $generatedTargetsPath
     providers = @($lock.providers.provider | Sort-Object)
+    strictReaderTamperExitCode = $tamperedMaterialization.ExitCode
+    gateBindTamperExitCode = $tamperedBind.ExitCode
+    generatedTargetTamperExitCode = $tamperedGeneratedTarget.ExitCode
     tamperedWrapperReadExitCode = $tamperedRead.ExitCode
+    sourceAndHelperLeakage = 'absent'
 }
 $proofPath = Join-Path $outputPath 'consumer-cli-cold-proof.json'
 [IO.File]::WriteAllText(

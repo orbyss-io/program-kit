@@ -142,7 +142,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json",
       "resourceId": "csharp-gate-authoring-catalog",
-      "sha256": "sha256:1ff21bda9c358e4dccd571bd6e0fb7e9d89b12dbd703999addabbf0cd4a60064",
+      "sha256": "sha256:bc5fc9580462c996ef15148057a929952d8915e3c4aefd9986086ddb7b3a7e58",
       "sourcePath": ".agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json"
     },
     {

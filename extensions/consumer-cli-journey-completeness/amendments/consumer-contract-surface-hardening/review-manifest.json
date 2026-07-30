@@ -2,7 +2,7 @@
   "identity": "pkid:review-set-amendment:program-kit:consumer-contract-surface-hardening",
   "version": "0.1.0-alpha.1",
   "state": "approved",
-  "implementationStatus": "in-progress",
+  "implementationStatus": "completed",
   "baseReviewSet": {
     "identity": "pkid:review-set:program-kit:consumer-cli-journey-completeness",
     "version": "0.1.0-alpha.1",
@@ -154,6 +154,57 @@
         "isolatedConsumerProof": "a tool-path install from only the flat feed initialized Codex and Claude, retrieved all 6 capabilities and 19 resources, materialized and built a generated Console host, and refused a modified wrapper",
         "formatVerification": "passed",
         "publication": "none; output remained in a bounded local temporary directory"
+      },
+      "PKCJ-W070": {
+        "status": "verified",
+        "releaseBuild": "passed with zero warnings and zero errors after locked restore",
+        "unitTests": "643 passed",
+        "routineConformanceTests": "173 passed; 1 explicitly opt-in Linux fixture skipped after rebasing onto current main",
+        "observatoryFixtureTests": "15 passed",
+        "privateCSharpGateProfile": "169 non-exhaustive tests passed; 20 exhaustive tests passed; 1 explicitly opt-in Linux fixture skipped before the additive main reconciliation",
+        "formatVerification": "passed",
+        "packageProof": {
+          "productVersion": "0.1.0-alpha.3",
+          "packageCount": 29,
+          "packageManifestSha256": "sha256:8d9ad92444ffdaf06e3961188b2d1d2e88334b24706a098e78b37fc8277a32f5",
+          "checksumsSha256": "sha256:d992e9784af82da885f4b806c0ae156f02fc0bed7543c9d6fa7c57bfb542c99a"
+        },
+        "isolatedConsumerProof": {
+          "sha256": "sha256:e0f044f9c0f0047d48e195f1c628c1d94337ac7c5e0246a9a4f30c678ca6d715",
+          "providers": [
+            "claude",
+            "codex"
+          ],
+          "capabilityCount": 6,
+          "supportingResourceCount": 19,
+          "consoleRequestSource": "scaffolded-from-command-sketch",
+          "consoleReferenceCount": 203,
+          "workspaceLockSha256": "sha256:0acdbd41e27e060a29266ff8d3d853fa86bc4634db96c35802c8289604c1f908",
+          "gateSelectionLockSha256": "sha256:fc52220b852001a9867ed0e6c0be13492039f52612be809671edb05f813bf49b",
+          "consoleMaterializationLockSha256": "sha256:a7f5dd04ea41b0e87c6cd6d26c02cfce02ba31ad09d57577f189bdf2755ebc58",
+          "generatedProjectTargetsSha256": "sha256:3faab5193738562c6fa76e9780c626970cbe79b0b56f30e3dc0dbd29539458d7",
+          "sourceProjectFixtureAndHelperLeakage": "absent"
+        },
+        "negativeProof": {
+          "strictReaderTamperExitCode": 1,
+          "gateBindTamperExitCode": 2,
+          "generatedTargetTamperExitCode": 1,
+          "modifiedWrapperReadExitCode": 1,
+          "modifiedPackageExitCode": 1,
+          "modifiedPackageOutputCreated": false
+        },
+        "handoff": {
+          "archive": "orbyss-program-kit-nuget-0.1.0-alpha.3.zip",
+          "archiveSha256": "sha256:f6bbae77285ed4404c9dc4e9c88fee12e083abba0b5a04c82a9562e24bfc3fb7",
+          "archiveSize": 11128311,
+          "entryCount": 32,
+          "packageCount": 29,
+          "promptSha256": "sha256:ade169a47937dc0a87de830d2d23acc6b870c1877ae7f972b27deca7a2c767e7",
+          "repeatBuildSha256": "sha256:f6bbae77285ed4404c9dc4e9c88fee12e083abba0b5a04c82a9562e24bfc3fb7"
+        },
+        "mainReconciliation": "rebased onto 928c529; the repository-owned Git-normalized digest synchronizer passed all four inventories, the 20 directly affected tests passed, and the complete routine conformance profile passed before the final repack",
+        "approvedArtifactDigests": "design dc29a4be4fba94801041fc57fb95c4e21780c4db3fcb5376b31b34041ac81f37 and plan c8b6a2ce5740532204b90202180ebbaa4050b1541da5cbd2401e1f1b89a9c499 remained byte-identical",
+        "publication": "none; GitHub Release and NuGet publication were deliberately not invoked by this work unit"
       }
     }
   },

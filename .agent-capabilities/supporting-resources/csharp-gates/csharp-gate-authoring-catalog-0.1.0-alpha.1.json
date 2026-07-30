@@ -26,7 +26,7 @@
   },
   "expectedReceiptDerivation": {
     "cardinality": "one distinct receipt for every activation projectProfileId, selected analyzerComponentId, and verificationProfile tuple",
-    "identity": "receiptIdentityNamespace.name.projectProfileId.name.analyzerComponentId.name.verificationProfile under the supplied receipt namespace scope",
+    "identity": "receiptIdentityNamespace name joined with projectProfileId name, analyzerComponentId name, and verificationProfile by hyphens under the supplied receipt namespace scope",
     "ordering": "the expectedReceipts composite key above"
   },
   "generatedProjectVerification": {
@@ -61,7 +61,7 @@
       "nugetPackageId": "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
       "packageIdentity": "pkid:package:program-kit:orbyss-programkit-generatedsourcecontract-analyzers",
       "packageSha256Evidence": "exact package digest from the selected Program Kit release asset manifest",
-      "packageVersion": "0.1.0-alpha.2",
+      "packageVersion": "0.1.0-alpha.3",
       "semanticOwnerId": "pkid:domain:program-kit:generated-source-contract"
     }
   ]

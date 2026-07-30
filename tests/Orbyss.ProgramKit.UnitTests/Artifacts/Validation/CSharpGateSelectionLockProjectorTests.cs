@@ -63,7 +63,7 @@ public sealed class CSharpGateSelectionLockProjectorTests
         Assert.HasCount(5, first.LocalAssets);
         Assert.HasCount(1, first.CandidateLock.ExpectedReceipts);
         Assert.AreEqual(
-            "pkid:receipt:consumer:gate.project.boundary.work-unit",
+            "pkid:receipt:consumer:gate-project-boundary-work-unit",
             first.CandidateLock.ExpectedReceipts[0].ReceiptIdentity.Value);
     }
 
@@ -254,6 +254,27 @@ public sealed class CSharpGateSelectionLockProjectorTests
             string.Concat(bindRequestPath, ".program-kit-stage")));
         Assert.IsFalse(File.Exists(
             string.Concat(selectionLockPath, ".program-kit-stage")));
+
+        TestCommandConsole inspectConsole = new();
+        application = CommandLineComposition.CreateDefault(inspectConsole);
+        var inspectExit = await application.RunAsync(
+        [
+            "artifacts",
+            "inspect",
+            selectionLockPath,
+            "--schema",
+            "pkid:schema:program-kit:csharp-build-gate-selection-lock@0.1.0-alpha.1",
+            "--format",
+            "json",
+        ],
+        TestContext.CancellationToken);
+        Assert.AreEqual(
+            CommandExitCode.Success,
+            inspectExit,
+            Encoding.UTF8.GetString(inspectConsole.StandardError));
+        Assert.Contains(
+            "\"valid\":true",
+            Encoding.UTF8.GetString(inspectConsole.StandardOutput));
     }
 
     private static CSharpBuildGateDefinitionDocument PrepareDefinition(

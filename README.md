@@ -54,7 +54,7 @@ $feed = Join-Path $env:TEMP 'orbyss-program-kit-0.1.0-alpha.3'
 Expand-Archive -LiteralPath $archive -DestinationPath $feed
 dotnet tool install --global Orbyss.ProgramKit.CommandLine `
   --version 0.1.0-alpha.3 `
-  --add-source $feed
+  --add-source (Join-Path $feed 'feed')
 ```
 
 From the human-led consumer workspace root, initialize the provider that is
@@ -78,7 +78,7 @@ ambient `latest`:
 dotnet tool list --global
 dotnet tool update --global Orbyss.ProgramKit.CommandLine `
   --version 0.1.0-alpha.3 `
-  --add-source $feed
+  --add-source (Join-Path $feed 'feed')
 program-kit --help
 program-kit capabilities catalog --workspace-root . --format text
 ```
@@ -105,6 +105,21 @@ publishes nothing. On success, use the `feed` child directory as the local
 NuGet source; `package-manifest.json` and `SHA256SUMS` bind the exact output.
 `OutputRoot` must not already exist, so a failed or repeated invocation cannot
 silently replace prior package evidence.
+
+After the package-installed cold proof passes, create the deterministic
+downloadable ZIP, outer checksum, manifest, and JTest prompt from that exact
+feed:
+
+```powershell
+.\build\New-ConsumerFeedHandoff.ps1 `
+  -ConsumerFeedRoot C:\tmp\orbyss-program-kit-0.1.0-alpha.3 `
+  -OutputRoot C:\tmp\orbyss-program-kit-0.1.0-alpha.3-handoff
+```
+
+The archive retains `feed/` as its documented local NuGet source and includes
+the package manifest, internal checksums, and prompt. The handoff script
+rechecks every package byte and fails without output on any mismatch; it does
+not publish or modify a release.
 
 The manifest records each project's direct first-party source references.
 Ordinary library packages project those references as exact first-party nuspec

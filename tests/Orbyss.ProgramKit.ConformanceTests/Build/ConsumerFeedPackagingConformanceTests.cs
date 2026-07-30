@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 using Orbyss.ProgramKit.ConformanceTests.Infrastructure;
@@ -15,6 +18,8 @@ public sealed class ConsumerFeedPackagingConformanceTests
         "build",
         "aggregate-pack",
     ];
+    private static readonly JsonSerializerOptions IndentedJson =
+        new() { WriteIndented = true };
 
     [TestMethod]
     public void CanonicalManifestSelectsEveryFirstPartyProjectExactlyOnce()
@@ -245,6 +250,17 @@ public sealed class ConsumerFeedPackagingConformanceTests
         Assert.DoesNotContain("$packages.Count -ne 29", script);
         Assert.DoesNotContain("@($lock.resources).Count -ne", script);
         Assert.DoesNotContain("$version = '0.1.0-alpha.", script);
+        Assert.Contains("console-command-sketch.json", script);
+        Assert.DoesNotContain(
+            "Join-Path $consoleFixturePath 'console-input-request.json'",
+            script);
+        Assert.Contains("'dotnet', 'scaffold-console-request'", script);
+        Assert.Contains("'csharp-gate', 'scaffold-lock'", script);
+        Assert.Contains("'csharp-gate', 'bind'", script);
+        Assert.Contains("ProgramKitVerifyGeneratedProject", script);
+        Assert.Contains("'validate', $path", script);
+        Assert.Contains("'artifacts', 'inspect', $path", script);
+        Assert.Contains("sourceAndHelperLeakage = 'absent'", script);
     }
 
     [TestMethod]
@@ -266,4 +282,185 @@ public sealed class ConsumerFeedPackagingConformanceTests
             "The public consumer-feed output contains unlisted transaction bytes.",
             script);
     }
+
+    [TestMethod]
+    public void HandoffArchiveIsDeterministicAndKeepsTheFlatFeedAuditable()
+    {
+        string root = CreateTemporaryRoot("program-kit-handoff-test-");
+        try
+        {
+            string feed = WriteFeedFixture(root);
+            string first = Path.Combine(root, "first");
+            string second = Path.Combine(root, "second");
+
+            RunHandoff(feed, first);
+            RunHandoff(feed, second);
+
+            string firstArchive = Directory
+                .EnumerateFiles(first, "*.zip")
+                .Single();
+            string secondArchive = Directory
+                .EnumerateFiles(second, "*.zip")
+                .Single();
+            Assert.AreEqual(FileDigest(firstArchive), FileDigest(secondArchive));
+            using ZipArchive archive = ZipFile.OpenRead(firstArchive);
+            string[] entries = archive.Entries
+                .Select(entry => entry.FullName)
+                .ToArray();
+            Assert.AreSequenceEqual(
+                entries.Order(StringComparer.Ordinal),
+                entries);
+            Assert.Contains(
+                "feed/Orbyss.ProgramKit.CommandLine.0.1.0-alpha.3.nupkg",
+                entries);
+            Assert.Contains("package-manifest.json", entries);
+            Assert.Contains("SHA256SUMS", entries);
+            Assert.Contains("JTEST-PROMPT.md", entries);
+            Assert.Contains(
+                "0.1.0-alpha.3",
+                File.ReadAllText(Path.Combine(first, "JTEST-PROMPT.md")));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void HandoffRefusesModifiedPackageBytesWithoutPromotingOutput()
+    {
+        string root = CreateTemporaryRoot("program-kit-handoff-tamper-");
+        try
+        {
+            string feed = WriteFeedFixture(root);
+            File.AppendAllText(
+                Path.Combine(
+                    feed,
+                    "feed",
+                    "Orbyss.ProgramKit.CommandLine.0.1.0-alpha.3.nupkg"),
+                "tamper",
+                Encoding.UTF8);
+            string output = Path.Combine(root, "output");
+
+            var result = RunHandoff(
+                feed,
+                output,
+                expectedSuccess: false);
+
+            Assert.AreNotEqual(0, result.ExitCode);
+            Assert.Contains(
+                "Package evidence does not match",
+                result.Stderr);
+            Assert.IsFalse(Directory.Exists(output));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private static string WriteFeedFixture(string root)
+    {
+        string feedRoot = Path.Combine(root, "feed-root");
+        string packageRoot = Path.Combine(feedRoot, "feed");
+        Directory.CreateDirectory(packageRoot);
+        string filename =
+            "Orbyss.ProgramKit.CommandLine.0.1.0-alpha.3.nupkg";
+        string packagePath = Path.Combine(packageRoot, filename);
+        File.WriteAllText(packagePath, "package", Encoding.UTF8);
+        string packageDigest = FileDigest(packagePath);
+        var manifest = new
+        {
+            manifestVersion = "0.1.0-alpha.1",
+            productVersion = "0.1.0-alpha.3",
+            sourcePackageManifestSha256 = string.Concat(
+                "sha256:",
+                new string('a', 64)),
+            packages = new[]
+            {
+                new
+                {
+                    packageId = "Orbyss.ProgramKit.CommandLine",
+                    version = "0.1.0-alpha.3",
+                    filename,
+                    sha256 = string.Concat("sha256:", packageDigest),
+                    size = new FileInfo(packagePath).Length,
+                    role = "tool",
+                    firstPartyDependencies = Array.Empty<object>(),
+                },
+            },
+        };
+        string manifestPath = Path.Combine(
+            feedRoot,
+            "package-manifest.json");
+        File.WriteAllText(
+            manifestPath,
+            string.Concat(
+                JsonSerializer.Serialize(
+                    manifest,
+                    IndentedJson),
+                "\n"),
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        string[] checksumRows =
+        [
+            string.Concat(packageDigest, "  feed/", filename),
+            string.Concat(
+                FileDigest(manifestPath),
+                "  package-manifest.json"),
+        ];
+        File.WriteAllText(
+            Path.Combine(feedRoot, "SHA256SUMS"),
+            string.Concat(
+                string.Join("\n", checksumRows.Order(StringComparer.Ordinal)),
+                "\n"),
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        return feedRoot;
+    }
+
+    private static (int ExitCode, string Stdout, string Stderr) RunHandoff(
+        string feed,
+        string output,
+        bool expectedSuccess = true)
+    {
+        string root = ConformanceInputs.RepositoryRoot;
+        ProcessStartInfo start = new("pwsh")
+        {
+            WorkingDirectory = root,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        start.ArgumentList.Add("-NoProfile");
+        start.ArgumentList.Add("-File");
+        start.ArgumentList.Add(Path.Combine(
+            root,
+            "build",
+            "New-ConsumerFeedHandoff.ps1"));
+        start.ArgumentList.Add("-ConsumerFeedRoot");
+        start.ArgumentList.Add(feed);
+        start.ArgumentList.Add("-OutputRoot");
+        start.ArgumentList.Add(output);
+        using Process process = Process.Start(start)!;
+        string stdout = process.StandardOutput.ReadToEnd();
+        string stderr = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        if (expectedSuccess)
+        {
+            Assert.AreEqual(0, process.ExitCode, stderr);
+        }
+
+        return (process.ExitCode, stdout, stderr);
+    }
+
+    private static string CreateTemporaryRoot(string prefix)
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            string.Concat(prefix, Guid.NewGuid().ToString("N")));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static string FileDigest(string path) =>
+        Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }
