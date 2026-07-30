@@ -90,93 +90,81 @@ build is needed, run `dotnet build --maxcpucount:1` first and then run
 
 ## 3. Capabilities in a contributor workspace
 
-There is **no CLI installation or `capabilities initialize` step for
-contributors.** The installed consumer CLI deliberately excludes contributor
-capabilities and refuses to run against this authoring workspace.
+There is **no CLI installation, `capabilities initialize`, or capability
+reactivation step for contributors.** The installed consumer CLI deliberately
+refuses to run capability delivery operations against this authoring
+workspace.
 
-The only capability meant to be active here is the contributor-only
-`author-and-maintain-skills`. Its canonical, provider-neutral definition lives
-at:
+Source-contributor skills are ignored provider-local state. The authoring
+marker registers each supported contributor-adapter ID, repository-local skill
+root, adapter root, and capability filename independently of the consumer CLI
+provider allow-list. Each provider-ready skill contains that adapter's front
+matter followed by the complete canonical definition; capability loading
+never depends on a runtime file-path reference or an installed Program Kit
+CLI. The available source-contributor flows are:
 
-```
-.agent-capabilities/capabilities/author-and-maintain-skills/CAPABILITY.md
-```
+- `author-and-maintain-skills`;
+- `develop-software`;
+- `design-software`;
+- `design-csharp-build-gate`;
+- `implement-software-plan`; and
+- `maintain-software`.
 
-That file is the source of truth. The provider adapters under
-`.agent-capabilities/provider-adapters/<provider>/…` are thin registration
-wrappers that only point back to it. Because there is no CLI to render them in
-this workspace, you wire the wrapper into your agent by hand, per provider, as
-described next.
-
-## 4. Wire the contributor capability into your agent (per provider)
-
-Rendering means: copy the repo-frozen adapter template into your provider's
-skill discovery root and replace the `{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}`
-token with the repository-relative canonical path. Render **only** the provider
-your agent actually uses. The rendered file is local workspace state (see
-[`.gitignore`](.gitignore)); it is not committed.
-
-### Claude Code
-
-Claude Code discovers project-scoped skills at
-`.claude/skills/<name>/SKILL.md` beneath the workspace root.
+At the beginning of a fresh task, before loading one of these capabilities,
+run:
 
 ```powershell
-$cap = 'author-and-maintain-skills'
-$canonical = ".agent-capabilities/capabilities/$cap/CAPABILITY.md"
-$src = ".agent-capabilities/provider-adapters/claude/$cap/SKILL.md"
-$dst = ".claude/skills/$cap/SKILL.md"
-New-Item -ItemType Directory -Force (Split-Path $dst) | Out-Null
-$body = (Get-Content -Raw $src).Replace('{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}', $canonical)
-[System.IO.File]::WriteAllText((Resolve-Path -LiteralPath (Split-Path $dst)).Path + "\SKILL.md", $body, (New-Object System.Text.UTF8Encoding $false))
+pwsh -NoProfile `
+  -File build/Sync-SourceContributorCapabilities.ps1 `
+  -Provider <active-provider-id> `
+  -RefreshIfStale
 ```
 
-### Codex
+That deterministic operation refreshes only missing or stale local copies. Do
+not run it after a capability has been loaded for the active task. Run it again
+only in a new task or when the human explicitly asks to try the newly authored
+definition. This keeps an in-progress capability edit from changing the rules
+under which it is being performed.
 
-Codex discovers project-scoped skills at `.codex/skills/<name>/SKILL.md`.
+The local copies are provider registration, not consumer installation output
+or alternate rule sources. They remain ignored and never enter a commit,
+package, or consumer ownership lock. Provider discovery still grants no
+authority: a human must start every task.
 
-```powershell
-$cap = 'author-and-maintain-skills'
-$canonical = ".agent-capabilities/capabilities/$cap/CAPABILITY.md"
-$src = ".agent-capabilities/provider-adapters/codex/$cap/SKILL.md"
-$dst = ".codex/skills/$cap/SKILL.md"
-New-Item -ItemType Directory -Force (Split-Path $dst) | Out-Null
-$body = (Get-Content -Raw $src).Replace('{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}', $canonical)
-[System.IO.File]::WriteAllText((Resolve-Path -LiteralPath (Split-Path $dst)).Path + "\SKILL.md", $body, (New-Object System.Text.UTF8Encoding $false))
-```
+`publish-dotnet-application-locally` remains a consumer CLI operation and is
+not registered for Program Kit source contributors.
 
-POSIX shell equivalent (either provider — set `provider`):
+## 4. Verify contributor registration
 
-```bash
-provider=claude   # or: codex
-cap=author-and-maintain-skills
-canonical=".agent-capabilities/capabilities/$cap/CAPABILITY.md"
-mkdir -p ".$provider/skills/$cap"
-sed "s|{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}|$canonical|g" \
-  ".agent-capabilities/provider-adapters/$provider/$cap/SKILL.md" \
-  > ".$provider/skills/$cap/SKILL.md"
-```
+- `.agent-capabilities/authoring-workspace.json` records
+  `sourceContributorRegistration: provider-local` and
+  `sourceContributorRefresh: fresh-session-or-human-request`.
+- The selected contributor-adapter ID resolves to exactly one registered local
+  root, adapter root, capability filename, and existing adapter template.
+- Every local capability file contains the exact complete canonical definition
+  after provider front matter.
+- The local skills contain no path-only loader in place of the canonical body
+  and do not require consumer capability delivery.
+- Consumer capability operations continue to reject this authoring workspace.
 
-## 5. Verify the wiring
+Repository conformance tests verify the finite refresh contract, canonical and
+adapter inputs, ignored local root, and continued consumer-initialization
+denial. The refresh command owns exact local body comparison.
 
-- The rendered file exists at `.<provider>/skills/author-and-maintain-skills/SKILL.md`.
-- Its body no longer contains the literal `{{PROGRAM_KIT_CANONICAL_CAPABILITY_PATH}}`
-  token; it names the on-disk canonical path instead.
-- Its YAML front matter (`name`, `description`) is unchanged from the template.
-- In Claude Code, `/author-and-maintain-skills` resolves; the skill loads and
-  follows the canonical `CAPABILITY.md`.
-
-## 6. What not to do in a contributor workspace
+## 5. What not to do in a contributor workspace
 
 - Do not run `program-kit capabilities initialize` / `read` / `catalog` here —
   they fail closed against the authoring marker on purpose.
 - Do not remove or edit `.agent-capabilities/authoring-workspace.json` to make
   consumer commands run.
-- Do not treat a rendered `.claude` / `.codex` skill as the source of the rules.
-  The rules live only in the canonical `CAPABILITY.md`; the wrapper just
-  registers and loads it.
-- Do not hand-edit rendered wrappers; re-render them from the adapter template
-  instead.
+- Do not treat a provider-local skill as the source of the rules. The rules
+  live only in the canonical `CAPABILITY.md`; the local file is a disposable,
+  deterministic provider projection.
+- Do not refresh a loaded capability during an active task unless the human
+  explicitly requests that experiment.
+- Do not commit source-contributor projections, replace them with consumer CLI
+  wrappers, invent an unregistered provider contract, or add generated
+  consumer ownership state to this repository.
 
 ## Day-to-day authoring
 

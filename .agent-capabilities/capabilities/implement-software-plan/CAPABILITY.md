@@ -102,11 +102,14 @@ state before the first edit and before each materially dependent work unit. Do
 not rely on cached artifact digests, sibling repositories, or remembered
 implementation state.
 
-The shared `software-change-completion-profile-set` resource, retrieved through
-`program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`, owns the reusable
-source-review, refresh, integrity, build/test, optional
-publication, evidence, diff-review, commit, and push procedures. Its exact
-bundle-bound resources grant no authority and are not independently invokable.
+The shared `software-change-completion-profile-set` resource owns the reusable
+source-review, refresh, integrity, build/test, optional publication, evidence,
+diff-review, commit, and push procedures. In a consumer workspace, retrieve it
+through `program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`.
+In the Program Kit source
+authoring workspace, read the exact same-tree resource and its digest-bound
+profiles directly; do not invoke consumer capability delivery. These resources
+grant no authority and are not independently invokable.
 
 ## Procedure
 
@@ -193,12 +196,13 @@ wrapper migration, and removal of stale registration.
 
 ## Program Kit knowledge and failure resolution
 
-Retrieve completion profiles through `capabilities read-resource`. Use
-`commands describe` before unfamiliar backed operations. For Program Kit
-failures, follow the `software-change-troubleshooting` resource and use
-`diagnostics explain`, `artifacts inspect`, and `schemas read`. Do not infer a
-shape from sequential validator failures or inspect assemblies for hidden
-values.
+In a consumer workspace, retrieve completion profiles through `capabilities
+read-resource` and use CLI descriptions, diagnostics, artifact inspection, and
+schema retrieval for backed operations. In the Program Kit source authoring
+workspace, read the exact same-tree resources and schemas and use
+repository-backed source operations or tests; do not require an installed
+`program-kit` executable. Do not infer a shape from sequential validator
+failures or inspect assemblies for hidden values.
 
 Before implementing an approved typed .NET Console integration or generation
 unit, retrieve and follow `dotnet-console-input-materialization-guide`,
@@ -210,10 +214,15 @@ through the backed CLI commands and are never edited or adopted as source.
 
 ## Provider wrapper mapping and drift check
 
-Codex and Claude wrappers contain only trigger metadata plus exact
+Registered consumer provider wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
-CLI verifies their recorded bytes before returning this definition. A changed,
-missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
-Wrapper registration does not prove approval.
-Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
-`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
+CLI verifies their recorded bytes before returning this definition and renders
+each provider into its exact registered root. Legacy roots are migration input
+only when the provider contract says so.
+
+The Program Kit source authoring workspace instead refreshes an ignored,
+provider-local projection beneath the active provider's registered root only at
+a fresh task boundary or on explicit human request. It contains this complete
+canonical definition rather than a path reference or consumer CLI invocation.
+A changed, missing, stale, partial, or non-exact projection at load time is a
+setup blocker. Wrapper registration does not prove approval.

@@ -112,12 +112,17 @@ designs.
 6. If no compatible layered build gate exists and the human has not accepted
    an empty selection, ask: “This design has no compatible layered build gate
    and no approved empty selection. Should we design one?” A yes is an explicit
-   human start of `design-csharp-build-gate`; run
+   human start of `design-csharp-build-gate`. In a consumer workspace, run
    `program-kit capabilities preflight design-csharp-build-gate
-   --workspace-root .` and then
-   `program-kit capabilities read design-csharp-build-gate
-   --workspace-root .`. A non-ready result is a setup blocker. A no is not
-   empty acceptance and must leave an explicit human decision or a blocker.
+   --workspace-root .` and then `program-kit capabilities read
+   design-csharp-build-gate --workspace-root .`. A non-ready result is a setup
+   blocker. In the Program Kit source authoring workspace, load the complete
+   provider-local `design-csharp-build-gate` projection from the active
+   provider's registered root; do not invoke consumer capability delivery or
+   chase a canonical path at runtime. A missing or drifted source projection is
+   a setup blocker.
+   A no is not empty acceptance and must leave an explicit human decision or a
+   blocker.
 7. Resolve reversible details independently; present material alternatives and
    tradeoffs to the human.
 8. Produce an Architecture Design `0.1.0-alpha.2` artifact and a separate
@@ -179,13 +184,15 @@ and wrapper migration.
 
 ## Program Kit knowledge and failure resolution
 
-Retrieve exact schemas with `program-kit schemas read
+In a consumer workspace, retrieve exact schemas with `program-kit schemas read
 pkid:schema:program-kit:architecture-design@0.1.0-alpha.2` and `program-kit
 schemas read pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3`. Use
-`commands describe` before unfamiliar backed operations. For Program Kit
-failures, follow the `software-change-troubleshooting` resource and use
-`diagnostics explain` and `artifacts inspect`; do not reverse-engineer
-assemblies or guess a contract.
+`commands describe` before unfamiliar backed operations. In the Program Kit
+source authoring workspace, read those exact schema versions from `schemas/`
+and use repository-backed source operations or tests; do not require an
+installed `program-kit` executable. For failures, follow the same-tree
+`software-change-troubleshooting` resource and backed diagnostics when
+available; do not reverse-engineer assemblies or guess a contract.
 
 Before designing a typed .NET Console host or its consumer integration seam,
 retrieve and follow `dotnet-console-input-materialization-guide`,
@@ -198,9 +205,15 @@ journey.
 
 ## Provider wrapper mapping and drift check
 
-Codex and Claude wrappers contain only trigger metadata plus exact
+Registered consumer provider wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
-CLI verifies their recorded bytes before returning this definition. A changed,
-missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
-Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
-`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
+CLI verifies their recorded bytes before returning this definition and renders
+each provider into its exact registered root. Legacy roots are migration input
+only when the provider contract says so.
+
+The Program Kit source authoring workspace instead refreshes an ignored,
+provider-local projection beneath the active provider's registered root only at
+a fresh task boundary or on explicit human request. It contains this complete
+canonical definition rather than a path reference or consumer CLI invocation.
+A changed, missing, stale, partial, or non-exact projection at load time is a
+setup blocker.
