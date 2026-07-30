@@ -33,6 +33,9 @@ Inputs:
 - For Implementation Plan `0.1.0-alpha.3`, the exact static-conformance disposition,
   gate design/definition/selection lock, activation matrix/profile references,
   and current compatible activation evidence.
+- For Implementation Plan `0.1.0-alpha.5`, every explicit artifact binding and
+  an exact execution receipt for each execution-resolved binding used by the
+  active work unit.
 - A valid, non-superseded human approval binding both exact digests.
 - Current repository-owned source truth and applicable `AGENTS.md` guidance.
 - Explicit secrets, network, provider, or destructive-action authority if a
@@ -93,6 +96,13 @@ artifacts are missing, accepted-empty lacks its human decision, blocked is
 selected, reuse lacks a compatible active lock, or product/closure work is
 requested before create/extend activation evidence. Report the exact deviation
 and smallest safe decision needed.
+For Implementation Plan `0.1.0-alpha.5`, additionally stop when a binding mode
+is absent or malformed, an approval-fixed selection differs by identity,
+version, or digest, an execution-resolved selection differs by identity or
+falls outside its approved version range, the exact compatibility-policy
+evidence differs, or the exact selected artifact receipt is absent. Compatible
+execution resolution cannot change scope, authority, outcomes, allowed edits,
+stop conditions, package selection, or compatibility policy.
 
 ## Source of truth and freshness
 
@@ -117,12 +127,20 @@ grant no authority and are not independently invokable.
    boundary.
 2. Load applicable guidance and validate the exact design, plan, and approval
    relationship.
-3. Validate the Implementation Plan `0.1.0-alpha.3` static-conformance disposition and
-   gate admission state. `reuse-existing` requires a compatible active
+3. Validate the selected Implementation Plan revision, static-conformance
+   disposition, and gate admission state. `reuse-existing` requires a
+   compatible active
    selection lock at preflight. `create-new` and `extend-existing` admit only
    dependency-ready `gate-establishment` units until exact activation evidence
    exists. Human-accepted `not-justified` admits only the exact approved empty
    plan. `blocked-unavailable` admits no work.
+   For alpha.5, resolve each active work-unit binding before execution.
+   Approval-fixed bindings require the exact approved artifact.
+   Execution-resolved bindings require the approved identity, an exact selected
+   version within the approved range, the exact selected digest, and exact
+   compatibility-policy evidence. Record the deterministic receipt as execution
+   evidence; never rewrite the approved plan or treat compatible bytes as new
+   human-approved product semantics.
 4. Inspect working-tree and recent commit state; preserve unrelated human work.
 5. Restate the current work unit's allowed edits, outputs, verification, and
    stop conditions.
@@ -203,6 +221,12 @@ workspace, read the exact same-tree resources and schemas and use
 repository-backed source operations or tests; do not require an installed
 `program-kit` executable. Do not infer a shape from sequential validator
 failures or inspect assemblies for hidden values.
+
+For an alpha.5 plan, retrieve
+`pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5` and preserve the
+approved binding object in every execution receipt. Schema validity alone does
+not prove compatibility: the selected artifact and exact compatibility-policy
+evidence must pass the repository-backed Planning resolver.
 
 Before implementing an approved typed .NET Console integration or generation
 unit, retrieve and follow `dotnet-console-input-materialization-guide`,

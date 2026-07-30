@@ -11,7 +11,7 @@
     {
       "capabilityId": "design-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-software/CAPABILITY.md",
-      "sha256": "sha256:63450b8989836b87721609381ba7601b10a5373de146ed3f2b14e06bfe39ac02",
+      "sha256": "sha256:1b8577bf224d1662c392ac9652ff6f79f63d4962e4754d28391e7b165de9289e",
       "sourcePath": ".agent-capabilities/capabilities/design-software/CAPABILITY.md"
     },
     {
@@ -23,7 +23,7 @@
     {
       "capabilityId": "implement-software-plan",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md",
-      "sha256": "sha256:8d585e778347ff5384e26b701ca7812144ddd9ea2b118a722b54b113e820a78a",
+      "sha256": "sha256:52415c5b99fc677ef1732ea39ac884955a113cc99f87cfe314839efc8e89149f",
       "sourcePath": ".agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md"
     },
     {
@@ -130,7 +130,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
       "resourceId": "consumer-capability-catalog",
-      "sha256": "sha256:8a0ee1681d66e8b5503dd1bc5bb1c96d70e32b9cd6c6f19e59df09f31ceccbc6",
+      "sha256": "sha256:d2ff291fb2b6e4ea76e503f7b5b7e772118ddbc38fa58f75c4c1f924a3e35a7d",
       "sourcePath": ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json"
     },
     {
