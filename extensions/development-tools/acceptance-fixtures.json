@@ -1,226 +1,271 @@
 {
   "artifactId": "pkid:fixture-catalog:program-kit:development-tools-acceptance",
-  "artifactVersion": "2.0.0",
+  "artifactVersion": "3.0.0",
   "state": "prospective",
-  "proofIdentity": {
-    "packageId": "Orbyss.ProgramKit.Acceptance.DevelopmentTools.ConsoleProof",
-    "packageVersion": "0.1.0-alpha.1",
-    "executable": "program-kit-development-tools-console-proof",
-    "operationId": "pkid:operation:program-kit:development-tools-console-proof-challenge",
-    "operationRevision": "1.0.0",
-    "mcpToolName": "program-kit_console-proof_challenge",
-    "codexRegistrationId": "program_kit_console_proof",
-    "claudeCodeRegistrationId": "program_kit_console_proof",
-    "installationBoundary": "Test-only isolated acceptance workspace; never advertised as a ProgramKit product capability."
-  },
-  "canonicalChallenge": {
-    "inputDocument": {
-      "challenge": "program-kit-cold-session-v1"
-    },
-    "resultDocument": {
-      "challengeSha256": "7afd1340f790d85a2cb969fc0485c1ed92e63ad450cbcce51ea106643b8e1a06",
-      "contractIdentity": "pkid:contract:program-kit:development-tool@1.0.0",
-      "operationIdentity": "pkid:operation:program-kit:development-tools-console-proof-challenge@1.0.0"
-    },
-    "canonicalization": "ProgramKit canonical JSON profile; evidence records input/result digests rather than raw invocation values."
+  "semanticProof": {
+    "applicationId": "jtest",
+    "operationRevision": "pkid:operation:jtest:create-test-plan@1.0.0",
+    "capabilityRevision": "pkid:capability:jtest:create-test-plan@1.0.0",
+    "purpose": "Prove direct operation use and independent outcome-guidance use without inherited Console, HTTP, or MCP syntax.",
+    "authorityBoundary": "JTest owns the operation and capability semantics. Program Kit validates projection, binding, closure, and evidence only."
   },
   "fixtures": [
     {
       "fixtureId": "PKDT-F001",
-      "layer": "provider-neutral",
-      "case": "complete-open-console-map",
-      "expected": "Every operation appears once with exact revision and selected, explicitly-excluded, or blocked status; aliases do not duplicate identities."
+      "layer": "operation-contracts",
+      "case": "host-neutral-identity",
+      "expected": "Console and OpenAPI exposure bindings reference the same exact application-owned operation and contract revisions without requiring equal syntax."
     },
     {
       "fixtureId": "PKDT-F002",
-      "layer": "provider-neutral",
-      "case": "default-all-and-exact-exclusion",
-      "expected": "All current operations select by default; only an explicit exact-revision exclusion removes one; stale/name/alias/position exclusions reject."
+      "layer": "operation-contracts",
+      "case": "semantic-equivalence-required",
+      "expected": "Two host bindings cannot share one operation identity merely because they call one handler; absent application-owner equivalence blocks."
     },
     {
       "fixtureId": "PKDT-F003",
-      "layer": "provider-neutral",
-      "case": "new-operation-before-update",
-      "expected": "A changed Open Console digest and newly selected operation produce a visible update diff and cannot alter an existing registration."
+      "layer": "operation-contracts",
+      "case": "complete-catalog-projection",
+      "expected": "Every selected operation appears exactly once with exact schemas, diagnostics, authority, effects, timeout, cancellation, concurrency, idempotency, compatibility, and migration facts when present."
     },
     {
       "fixtureId": "PKDT-F004",
-      "layer": "provider-neutral",
-      "case": "structured-projection-and-canonical-result",
-      "expected": "Argument/option shapes derive exactly, one canonical token/stdin mapping invokes the fixture, and the result equals the canonical challenge result."
+      "layer": "operation-contracts",
+      "case": "no-invented-domain-meaning",
+      "expected": "Missing application facts remain absent or blocking; Program Kit does not infer summaries, effects, workflow meaning, results, or remediation."
     },
     {
       "fixtureId": "PKDT-F005",
-      "layer": "provider-neutral",
-      "case": "unprojectable-operation",
-      "expected": "Ambiguous, interactive, unbounded, non-JSON, or schema-drifting selected operation remains visible and blocked until corrected or exactly excluded."
+      "layer": "console-introspection",
+      "case": "full-introspection",
+      "expected": "The reserved full option returns one BOM-free JSON document plus newline containing the complete operation array and deduplicated transitive schema closure."
     },
     {
       "fixtureId": "PKDT-F006",
-      "layer": "provider-neutral",
-      "case": "missing-side-effect-classification",
-      "expected": "A selected operation without none/read-only/additive/mutating/destructive remains blocked and cannot enter a manifest."
+      "layer": "console-introspection",
+      "case": "selected-introspection",
+      "expected": "The selected option accepts one exact operation revision and returns the same shape restricted to that operation."
     },
     {
       "fixtureId": "PKDT-F007",
-      "layer": "provider-neutral",
-      "case": "denied-resource-defaults",
-      "expected": "Undeclared filesystem, network, or secret access rejects before consumer execution and exposes no values."
+      "layer": "console-introspection",
+      "case": "reserved-collision-and-grammar",
+      "expected": "An application command or alias cannot claim the reserved option; mixed, duplicated, spaced, unknown, or extra arguments fail before application dispatch."
     },
     {
       "fixtureId": "PKDT-F008",
-      "layer": "provider-neutral",
-      "case": "declared-resource-boundary",
-      "expected": "Only exact declared roots/destinations/provider-owned secret references are admitted; traversal, undeclared endpoint, or secret value persistence rejects."
+      "layer": "console-introspection",
+      "case": "no-application-composition",
+      "expected": "Introspection composes no application services, performs no reflection/configuration/network access, and exposes no secrets."
     },
     {
       "fixtureId": "PKDT-F009",
-      "layer": "provider-neutral",
-      "case": "timeout-and-cancellation",
-      "expected": "The lower applicable timeout terminates bounded work; supported cancellation propagates; unsupported cancellation and completion races classify exactly; no rollback is claimed."
+      "layer": "mcp-projection",
+      "case": "modern-discovery",
+      "expected": "MCP 2026-07-28 server/discover and per-request metadata negotiate successfully; tools/list is deterministic and tools/call returns the exact application result."
     },
     {
       "fixtureId": "PKDT-F010",
-      "layer": "provider-neutral",
-      "case": "concurrency-one",
-      "expected": "One active fixture call is admitted and a concurrent excess call is refused without starting a second consumer."
+      "layer": "mcp-projection",
+      "case": "legacy-initialize",
+      "expected": "MCP 2025-11-25 initialize, tools/list, and tools/call succeed over the same bridge and portable object-root schema profile."
     },
     {
       "fixtureId": "PKDT-F011",
-      "layer": "provider-neutral",
-      "case": "no-retry-or-inferred-idempotency",
-      "expected": "Failure is returned once, no automatic retry occurs, and an idempotent mutating declaration without caller key/replay scope rejects."
+      "layer": "mcp-projection",
+      "case": "no-startup-protocol-flag",
+      "expected": "Protocol era is selected on the wire; a startup --protocol option is rejected as unsupported."
     },
     {
       "fixtureId": "PKDT-F012",
-      "layer": "provider-neutral",
-      "case": "exact-byte-verification",
-      "expected": "Missing/tampered package, executable, declaration, schema, Open Console, manifest, bridge, or lock bytes block discovery and invocation."
+      "layer": "mcp-projection",
+      "case": "tool-name-algorithm",
+      "expected": "Scope/name normalization, 128-character truncation/hash behavior, operation metadata, and duplicate refusal are deterministic."
     },
     {
       "fixtureId": "PKDT-F013",
-      "layer": "provider-neutral",
-      "case": "mcp-stdio",
-      "expected": "MCP 2025-11-25 initialize, tools/list, and tools/call succeed with protocol-only stdout, diagnostic-only stderr, exact schemas, and structured result."
+      "layer": "mcp-projection",
+      "case": "one-active-binding",
+      "expected": "One exact operation resolves to one selected invocation adapter in a registration; Console/API ambiguity blocks until the human selects."
     },
     {
       "fixtureId": "PKDT-F014",
-      "layer": "provider-neutral",
-      "case": "fresh-consumer-process",
-      "expected": "Each permitted call starts and ends one fresh consumer process; no process is shared, retained, nested, or surviving."
+      "layer": "mcp-projection",
+      "case": "direct-operation-without-capability",
+      "expected": "A fresh provider session can discover and invoke the exact JTest operation through MCP without an initialized JTest capability."
     },
     {
       "fixtureId": "PKDT-F015",
-      "layer": "package-only",
-      "case": "local-prepared-package-success",
-      "expected": "An empty consumer workspace restores/builds/runs solely from exact local nupkgs through controlled NuGet source mapping and regenerates byte-identically."
+      "layer": "mcp-projection",
+      "case": "application-results-and-failures",
+      "expected": "Success and application diagnostics remain application-owned; protocol, execution, conformance, and application failures remain distinct; no Program Kit result envelope or retry appears."
     },
     {
       "fixtureId": "PKDT-F016",
-      "layer": "package-only",
-      "case": "forbidden-consumer-coupling",
-      "expected": "ProgramKit project reference, source/file include, hint path, build-output reference, uncontrolled first-party source, or changed nupkg digest fails conformance."
+      "layer": "mcp-projection",
+      "case": "bounded-execution",
+      "expected": "Exact bytes, schema, timeout, cancellation, concurrency, idempotency, resource policy, fresh process, stderr/stdout, and no-autonomy conformance pass."
     },
     {
       "fixtureId": "PKDT-F017",
-      "layer": "provider-configuration",
-      "case": "codex-proposal-register",
-      "expected": "Exact .codex/config.toml owned entry and lock are proposed deterministically, mutation requires its digest, unrelated TOML is preserved, and no process starts."
+      "layer": "registration",
+      "case": "deterministic-tool-proposal",
+      "expected": "Codex and Claude Code project-entry proposals are deterministic and no provider bytes change without the exact accepted proposal digest."
     },
     {
       "fixtureId": "PKDT-F018",
-      "layer": "provider-configuration",
-      "case": "claude-code-proposal-register",
-      "expected": "Exact .mcp.json owned entry and lock are proposed deterministically, mutation requires its digest, unrelated JSON is preserved, and no settings/trust/permission/process changes occur."
+      "layer": "registration",
+      "case": "registration-authority-separation",
+      "expected": "Registration starts no provider, bridge, consumer, or tool and grants no trust or permission."
     },
     {
       "fixtureId": "PKDT-F019",
-      "layer": "provider-configuration",
-      "case": "collision-refusal",
-      "expected": "Existing registration/server/tool identity or unowned provider entry collision rejects without mutation or ownership adoption."
+      "layer": "registration",
+      "case": "collision-and-ownership-refusal",
+      "expected": "Unowned, changed, missing, reserved, or colliding provider/server/tool state rejects without adoption or partial mutation."
     },
     {
       "fixtureId": "PKDT-F020",
-      "layer": "provider-configuration",
-      "case": "status-drift",
-      "expected": "Status is read-only and classifies exact, missing, drifted, colliding, and provider-approval-unknown without claiming inaccessible trust or permission."
+      "layer": "registration",
+      "case": "tool-status-update-remove",
+      "expected": "Status is read-only; changed operation/tool bytes require explicit update; remove touches only the exact owned entry and lock."
     },
     {
       "fixtureId": "PKDT-F021",
-      "layer": "provider-configuration",
-      "case": "explicit-update",
-      "expected": "A deterministic proposal reports every added/removed/changed operation and byte; stale digest, incompatible package, or changed ownership blocks atomic update."
+      "layer": "capability-bundles",
+      "case": "explicit-source-kinds",
+      "expected": "Exact local, NuGet, HTTPS, and GitHub-release acquisitions normalize into identical content identity when logical bundle bytes are identical."
     },
     {
       "fixtureId": "PKDT-F022",
-      "layer": "provider-configuration",
-      "case": "explicit-removal",
-      "expected": "Only the exactly owned provider entry and lock are removed; changed/missing ownership blocks; unrelated bytes remain identical."
+      "layer": "capability-bundles",
+      "case": "source-grammar-refusal",
+      "expected": "Latest, ranges, ambiguous assets, missing expected HTTPS digest, query-string secrets, authenticated/private source assumptions, and implicit format detection reject."
     },
     {
       "fixtureId": "PKDT-F023",
-      "layer": "codex-genuine",
-      "case": "sessions-a-b-c",
-      "expected": "A constructs/packages/registers and ends; cold B discovers and invokes solely through persisted registration from semantic intent; after exact removal cold C cannot discover."
+      "layer": "capability-bundles",
+      "case": "content-addressed-offline-use",
+      "expected": "After acquisition, verify, initialize, status, preflight, and reads use only stored exact bytes and never re-resolve the original source."
     },
     {
       "fixtureId": "PKDT-F024",
-      "layer": "codex-genuine",
-      "case": "permission-denial-and-negatives",
-      "expected": "Prompt/denial is observed and the complete applicable negative matrix fails without permission grant, fallback shell instruction, or autonomous recovery."
+      "layer": "capability-bundles",
+      "case": "publisher-versus-conformance",
+      "expected": "Evidence separately records publisher-official content and Program Kit integrity/compatibility/completeness without semantic endorsement."
     },
     {
       "fixtureId": "PKDT-F025",
-      "layer": "claude-code-genuine-external",
-      "case": "sessions-a-b-c",
-      "expected": "Human-run external A constructs/registers and ends; cold B discovers and invokes from semantic intent after human trust/server approval; after exact removal cold C cannot discover."
+      "layer": "capability-structure",
+      "case": "exact-operation-binding",
+      "expected": "A capability local binding resolves to exact operation, request, result, and diagnostic revisions while containing no Console path, HTTP route, or MCP tool name."
     },
     {
       "fixtureId": "PKDT-F026",
-      "layer": "claude-code-genuine-external",
-      "case": "permission-denial-and-negatives",
-      "expected": "Claude provider permission denial and the complete applicable negative matrix are genuine, provider-labelled, digest-bound, and contain no permission/settings mutation."
+      "layer": "capability-structure",
+      "case": "outcome-not-command-cardinality",
+      "expected": "Multi-operation and meaningful one-operation capabilities conform; unreferenced operations are reported but do not force one capability per operation."
     },
     {
       "fixtureId": "PKDT-F027",
-      "layer": "cross-provider",
-      "case": "shared-neutral-digests",
-      "expected": "Both providers bind the same ProgramKit commit, consumer package/executable, Open Console, declaration, manifest, schemas, operations, bridge, challenge, and canonical-result digests."
+      "layer": "capability-structure",
+      "case": "knowledge-closure-complete",
+      "expected": "All operation descriptions, transitive schemas, examples/templates, diagnostics/remediation, interpretations, packages, migrations, and required materializers are installed and digest-valid."
     },
     {
       "fixtureId": "PKDT-F028",
-      "layer": "cross-provider",
-      "case": "provider-labelled-observations",
-      "expected": "Provider version, configuration, trust, approval, permission, discovery, and provider-native evidence remain distinct and validated."
+      "layer": "capability-structure",
+      "case": "knowledge-closure-negative-matrix",
+      "expected": "Removing or changing each required closure class independently blocks agent-guided preflight before execution with the missing exact identity."
     },
     {
       "fixtureId": "PKDT-F029",
-      "layer": "cross-provider",
-      "case": "honest-equivalence-boundary",
-      "expected": "Only deterministic contract/result identity is claimed; no prompt, reasoning, model, provider, or general behavioral equivalence is asserted."
+      "layer": "capability-structure",
+      "case": "no-source-recovery",
+      "expected": "Incomplete closure cannot be repaired through source checkout, source grep, assembly inspection, undeclared fixtures, remembered knowledge, or network retrieval."
     },
     {
       "fixtureId": "PKDT-F030",
-      "layer": "governance",
-      "case": "non-autonomy-and-documentation-ownership",
-      "expected": "No self-registration, self-permission, provider/capability call, automatic provider start, nested loop, external-repository edit, or website technical authority exists."
+      "layer": "capability-structure",
+      "case": "handoff-boundary",
+      "expected": "Resolved handoffs are acyclic; required dependencies block when missing; optional handoffs do not; no handoff invokes or transfers authority automatically."
     },
     {
       "fixtureId": "PKDT-F031",
-      "layer": "governance",
-      "case": "provider-contract-drift",
-      "expected": "Material Codex, Claude Code, or MCP official-contract drift blocks the affected work unit or update and requires reviewed design change."
+      "layer": "capability-lifecycle",
+      "case": "initialize-proposal",
+      "expected": "One exact bundle/provider proposal resolves required tool bindings and renders wrappers; mutation requires its own accepted digest independent of tool registration."
     },
     {
       "fixtureId": "PKDT-F032",
+      "layer": "capability-lifecycle",
+      "case": "flat-catalog-determinism",
+      "expected": "Accepted per-bundle/provider locks project one byte-identical flat workspace catalog grouped by publisher and application with no nested index or score."
+    },
+    {
+      "fixtureId": "PKDT-F033",
+      "layer": "capability-lifecycle",
+      "case": "catalog-manual-edit",
+      "expected": "Manual catalog or provider-wrapper edit is detectable drift and blocks reads; an accepted refresh reconstructs canonical derived bytes from the same verified bundle."
+    },
+    {
+      "fixtureId": "PKDT-F034",
+      "layer": "capability-lifecycle",
+      "case": "refresh-update-separation",
+      "expected": "Same-bundle projection changes require refresh; changed bundle version/digest requires update; refresh never blesses new authoritative bytes."
+    },
+    {
+      "fixtureId": "PKDT-F035",
+      "layer": "capability-lifecycle",
+      "case": "tampered-lock-refusal",
+      "expected": "A tampered ownership lock cannot be used as refresh source and requires explicit verified ownership recovery."
+    },
+    {
+      "fixtureId": "PKDT-F036",
+      "layer": "capability-lifecycle",
+      "case": "discover-capabilities",
+      "expected": "The Program Kit meta capability reads only the flat catalog and explains available outcomes, direct operations, and setup blockers without routing scores or automatic activation."
+    },
+    {
+      "fixtureId": "PKDT-F037",
+      "layer": "genuine-provider",
+      "case": "cold-jtest-agent-guided",
+      "expected": "A source-free cold semantic JTest request selects the official outcome capability, requests missing human decisions, resolves exact registered operation bindings, and reports the application-defined outcome or blocker without inherited syntax."
+    },
+    {
+      "fixtureId": "PKDT-F038",
+      "layer": "genuine-provider",
+      "case": "provider-selection-and-permission",
+      "expected": "Codex and Claude Code use their native capability/tool selection and permission mechanisms; observations remain provider-labelled and no Program Kit confidence router or permission grant appears."
+    },
+    {
+      "fixtureId": "PKDT-F039",
+      "layer": "program-kit-dogfood",
+      "case": "package-only-consumer-outcome",
+      "expected": "A clean workspace uses Program Kit's package-owned consumer payload to discover, preflight, and complete a representative supported outcome without Program Kit source or internal knowledge."
+    },
+    {
+      "fixtureId": "PKDT-F040",
+      "layer": "program-kit-dogfood",
+      "case": "consumer-operation-parity",
+      "expected": "Every supported Program Kit consumer operation is directly discoverable and schema-backed; every genuine multi-operation consumer outcome has complete guidance without imposing one capability per command."
+    },
+    {
+      "fixtureId": "PKDT-F041",
       "layer": "governance",
-      "case": "console-baseline-drift",
-      "expected": "Every affected work unit rechecks accepted/current Console source truth and stops rather than coupling Development Tools to obsolete dispatcher or unimplemented host assumptions."
+      "case": "no-autonomy",
+      "expected": "No self-registration, self-initialization, self-permission, automatic provider start, automatic handoff, retry loop, nested tool loop, or application-runtime workspace mutation exists."
+    },
+    {
+      "fixtureId": "PKDT-F042",
+      "layer": "governance",
+      "case": "provider-and-source-drift",
+      "expected": "Material MCP, Codex, Claude Code, Open Console, OpenAPI, operation, or capability contract drift blocks the affected work unit or transition for review."
     }
   ],
   "evidenceProfiles": [
     {
-      "identity": "pkid:evidence-profile:program-kit:development-tools-provider-neutral",
+      "identity": "pkid:evidence-profile:program-kit:operation-and-console",
       "requiredFixtureIds": [
         "PKDT-F001",
         "PKDT-F002",
@@ -229,7 +274,12 @@
         "PKDT-F005",
         "PKDT-F006",
         "PKDT-F007",
-        "PKDT-F008",
+        "PKDT-F008"
+      ]
+    },
+    {
+      "identity": "pkid:evidence-profile:program-kit:mcp-and-registration",
+      "requiredFixtureIds": [
         "PKDT-F009",
         "PKDT-F010",
         "PKDT-F011",
@@ -237,45 +287,55 @@
         "PKDT-F013",
         "PKDT-F014",
         "PKDT-F015",
-        "PKDT-F016"
-      ]
-    },
-    {
-      "identity": "pkid:evidence-profile:program-kit:development-tools-provider-configurations",
-      "requiredFixtureIds": [
+        "PKDT-F016",
         "PKDT-F017",
         "PKDT-F018",
         "PKDT-F019",
-        "PKDT-F020",
+        "PKDT-F020"
+      ]
+    },
+    {
+      "identity": "pkid:evidence-profile:program-kit:capability-bundles-and-structure",
+      "requiredFixtureIds": [
         "PKDT-F021",
-        "PKDT-F022"
-      ]
-    },
-    {
-      "identity": "pkid:evidence-profile:program-kit:development-tools-codex",
-      "requiredFixtureIds": [
+        "PKDT-F022",
         "PKDT-F023",
-        "PKDT-F024"
-      ]
-    },
-    {
-      "identity": "pkid:evidence-profile:program-kit:development-tools-claude-code",
-      "requiredFixtureIds": [
+        "PKDT-F024",
         "PKDT-F025",
-        "PKDT-F026"
-      ]
-    },
-    {
-      "identity": "pkid:evidence-profile:program-kit:development-tools-closure",
-      "requiredFixtureIds": [
+        "PKDT-F026",
         "PKDT-F027",
         "PKDT-F028",
         "PKDT-F029",
-        "PKDT-F030",
+        "PKDT-F030"
+      ]
+    },
+    {
+      "identity": "pkid:evidence-profile:program-kit:capability-lifecycle",
+      "requiredFixtureIds": [
         "PKDT-F031",
-        "PKDT-F032"
+        "PKDT-F032",
+        "PKDT-F033",
+        "PKDT-F034",
+        "PKDT-F035",
+        "PKDT-F036"
+      ]
+    },
+    {
+      "identity": "pkid:evidence-profile:program-kit:genuine-providers-and-dogfood",
+      "requiredFixtureIds": [
+        "PKDT-F037",
+        "PKDT-F038",
+        "PKDT-F039",
+        "PKDT-F040"
+      ]
+    },
+    {
+      "identity": "pkid:evidence-profile:program-kit:governance-closure",
+      "requiredFixtureIds": [
+        "PKDT-F041",
+        "PKDT-F042"
       ]
     }
   ],
-  "closurePolicy": "Every fixture is required. Provider-neutral/configuration fixtures may be automated locally; genuine Codex and genuine external Claude Code evidence cannot be fabricated or replaced by fixtures. Overall acceptance stays open until all exact evidence validates."
+  "closurePolicy": "Every fixture is required. Deterministic fixtures cannot replace genuine provider evidence. Provider-neutral equality does not assert prompt, model, reasoning, or general behavioral equivalence."
 }

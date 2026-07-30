@@ -1,139 +1,124 @@
-# ProgramKit Development Tools — Implementation Plan 3.0 review
+# Program Kit operation exposure and application capabilities — implementation plan
 
-Canonical source:
-`pkid:plan:program-kit:development-tools@2.0.0`
+Status: candidate review projection. The canonical source is
+`implementation-plan.json`; implementation remains `not-started`.
 
-Canonical SHA-256:
-`051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56`
-
-Bound design SHA-256:
-`918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb`
-
-This Markdown is a reviewer projection. The canonical JSON governs.
-
-The work units are deliberately serial. Each unit rechecks current source truth
-and the official contracts it affects. A material design deviation stops for
-human review.
+The plan contains eleven bounded work units. It deliberately separates the
+operation/MCP/registration path from the capability-bundle path and joins them
+only at the explicit workspace lifecycle.
 
 ## Dependency order
 
 ```text
-PKDT-W010 contracts/schemas/version topology/static gate
-  -> PKDT-W020 Open Console mapping/policy/test fixture
-  -> PKDT-W030 neutral MCP bridge
-  -> PKDT-W040 registration ownership/lifecycle
-  -> PKDT-W050 Codex writer and genuine cold proof
-  -> PKDT-W060 Claude writer and external proof kit
-  -> PKDT-W070 genuine Claude evidence and closure
+PKDT-W010 Operation catalog and exposure bindings
+  ├─ PKDT-W020 Generated Console/API projection and introspection
+  │    └─ PKDT-W030 Dual-era neutral MCP bridge
+  │          └─ PKDT-W040 Explicit tool-registration lifecycle
+  └─ PKDT-W050 Application outcome-capability contracts
+       └─ PKDT-W060 Acquisition, verification, and immutable store
+
+PKDT-W040 + PKDT-W060
+  └─ PKDT-W070 Capability lifecycle, locks, provider projections, flat catalog
+       └─ PKDT-W080 Program Kit package-only dogfood
+            └─ PKDT-W090 Deterministic and package-only acceptance
+                 ├─ PKDT-W100 Genuine Codex acceptance
+                 └──────────────┐
+PKDT-W090 ───────────────────────┴─ PKDT-W110 Claude/cross-provider closure
 ```
 
 ## Work units
 
-### `PKDT-W010` — contracts, schemas, versions, and gate binding
+### PKDT-W010 — operation contracts
 
-Extend `Orbyss.ProgramKit.Development` with the five exact 1.0.0 identities,
-canonical models/validation, compatibility rules, and component/version
-topology. Bind the already accepted private ProgramKit gate without changing
-or extending it.
+Generalize the implemented operation contracts into one host-neutral
+`OperationContractCatalog` with explicit exposure bindings. Preserve operation
+identity/revision across Console and OpenAPI hosts and bind all implementation
+to the exact current `reuse-existing` Program Kit gate. Do not edit or reinterpret
+the completed health-patching extension.
 
-Allowed edits are the new Development Tools schemas, the existing Development
-package, bounded version/component maps, schema registration, focused fixtures,
-tests, docs, solution, and locks.
+### PKDT-W020 — generated hosts and introspection
 
-Stop on material accepted/current Console incompatibility, consumer semantics
-in ProgramKit, unrepresentable version topology, or any need for a new/extended
-gate.
+Project generated Console and API hosts mechanically. Add the reserved,
+non-executing structured Console introspection document for the complete catalog
+or one exact operation and refuse every reserved-token collision.
 
-### `PKDT-W020` — mapping, policy, and proof fixture
+### PKDT-W030 — MCP bridge
 
-Implement complete Open Console mapping, default-all selection, exact-revision
-exclusion, blocked reporting, structured projection, fail-closed policy, and
-the minimal challenge fixture from exact locally prepared packages.
+Implement one provider-neutral stdio bridge for current modern and legacy MCP
+discovery plus exact `tools/list` and `tools/call`. Prove direct operation use
+without a capability and preserve application-owned result/failure semantics.
 
-Stop on silent omission/weakening, inferred access or side effects,
-non-canonical results, inability to report blocked selection, or ProgramKit
-project/source/build-output coupling.
+### PKDT-W040 — tool registration
 
-### `PKDT-W030` — provider-neutral MCP bridge
+Implement deterministic project-scoped proposal, exact human acceptance,
+provider ownership locks, status, update, and removal. Keep registration,
+provider trust/permission, and invocation separate. Never start a provider,
+server, or application.
 
-Create `Orbyss.ProgramKit.DevelopmentTools.Mcp` and
-`program-kit-development-tools-mcp`. Prove MCP `2025-11-25` initialize/list/call,
-structured results, exact-byte validation, clean stdout/stderr, fresh consumer
-processes, timeout, cancellation races, concurrency, idempotency, and failure.
+### PKDT-W050 — application capability contracts
 
-Stop on MCP drift, provider-specific runtime code, unbounded resources,
-automatic retry, shared consumer state, provider calls, capability calls, or
-nested loops.
+Define the optional deterministic descriptor, procedure, exact operation/schema
+bindings, finite knowledge closure, readiness, explicit handoff, publisher
+attestation, and authoring safeguard. Reject prose-only or mechanically
+one-per-command bundles.
 
-### `PKDT-W040` — explicit registration lifecycle
+### PKDT-W060 — acquisition and storage
 
-Add deterministic proposal, exact digest acceptance, per-provider ownership
-locks, atomic mutation, read-only status, explicit update diff, exact removal,
-collision/path safety, and crash recovery to `program-kit`.
+Generalize the existing bundle engine for explicit public local directory, zip,
+NuGet, HTTPS, and GitHub-release source kinds. Normalize every carrier into one
+verified immutable content-addressed representation. Private/authenticated
+acquisition remains deferred.
 
-Stop if mutation precedes exact acceptance, ownership is ambiguous, unrelated
-provider bytes can change, status mutates, writes are partial/uncontained, or a
-registration command starts any process/provider/tool.
+### PKDT-W070 — explicit capability lifecycle
 
-### `PKDT-W050` — Codex writer and genuine cold proof
+Implement deterministic initialize proposal and acceptance, per-bundle/provider
+locks, refresh, update, status, removal, preflight, reads, pruning, provider
+projections, and one atomic flat workspace catalog.
 
-Implement the exact owned `.codex/config.toml` entry and fixtures. Run genuine
-isolated Codex sessions A/B/C, including semantic-only discovery/invocation,
-permission denial, tamper/collision/update/remove cases, process isolation, and
-session-C non-discovery.
+Refresh repairs derived bytes from unchanged trusted inputs. Update alone can
+accept a changed authoritative bundle. A changed lock is never adopted.
 
-Stop on material Codex contract drift, inherited path/command knowledge,
-unisolated sessions, global/trust/permission mutation, surviving processes, or
-non-genuine/incomplete evidence.
+### PKDT-W080 — Program Kit dogfood
 
-### `PKDT-W060` — Claude Code writer and external acceptance kit
+Package Program Kit consumer capabilities through the same generic application
+bundle, verifier, locks, provider projections, catalog, lifecycle, and
+cold-session rules. Prove package-only outcome parity without source knowledge.
 
-Implement exact `.mcp.json` project-entry behavior and local lifecycle fixtures.
-Prove it never writes `.claude/settings.json`, trust, server approval, or allow
-permissions. Produce a deterministic evidence kit for the human to run on the
-other machine from the exact same commit and neutral artifacts.
+### PKDT-W090 — deterministic acceptance
 
-Stop on material Claude Code contract drift, permission/trust mutation, global
-writes, hidden machine assumptions, non-deterministic kit bytes, or evidence
-that cannot be validated without Claude installed locally.
+Run the reviewed 42-fixture matrix: host parity, introspection, modern/legacy
+MCP, direct MCP without a capability, explicit registration and initialization,
+closure refusal, multi-source acquisition, catalog drift/refresh/update,
+JTest-shaped outcome guidance, Program Kit dogfood, and no-autonomy negatives.
 
-### `PKDT-W070` — genuine Claude evidence and closure
+### PKDT-W100 — genuine Codex acceptance
 
-Validate the returned genuine Claude A/B/C evidence, close all 32 acceptance
-fixtures, run full repository/package/static conformance, and finish canonical
-package/CLI/schema documentation and implementation evidence.
+Use exact reviewed packages in isolated fresh Codex sessions to prove native
+tool/capability selection, direct operation use, guided outcome use, project
+trust/approval boundaries, changed-byte refusal/update, refresh repair, exact
+removal, and later non-discovery.
 
-Stop and leave cross-provider acceptance open if the returned evidence is
-missing, changed, fabricated, non-cold, secret-bearing, from different bytes,
-or incomplete. Do not claim model/provider/general behavioral equivalence.
+### PKDT-W110 — Claude and closure
 
-## Requirements
+Validate genuine returned Claude Code evidence against exact reviewed bytes,
+then close the cross-provider, package-only, static-gate, authority, no-autonomy,
+publisher/conformance, documentation, and changed-file-scope evidence.
 
-| ID | Observable outcome |
-| --- | --- |
-| `PKDT-R001` | Exact contract, schema, package, executable, and MCP identities are versioned and digest-bound. |
-| `PKDT-R002` | Every Open Console operation is selected, exactly excluded, or selected-but-blocked; none is silently omitted. |
-| `PKDT-R003` | Structured projection invokes one fresh consumer process and validates one canonical JSON result. |
-| `PKDT-R004` | Side effects, resources, timeout, cancellation, concurrency, retry, and idempotency are fail-closed. |
-| `PKDT-R005` | The consumer uses only exact locally prepared packages and controlled NuGet mapping. |
-| `PKDT-R006` | Both providers use the same exact neutral MCP bridge. |
-| `PKDT-R007` | Proposal/register/status/update/remove preserve exact ownership and human authority. |
-| `PKDT-R008` | Codex owns only one reviewed project MCP entry. |
-| `PKDT-R009` | Claude Code owns only one reviewed project MCP entry and no settings/trust/permission state. |
-| `PKDT-R010` | Missing, tampered, incompatible, colliding, changed, or unowned bytes fail closed. |
-| `PKDT-R011` | Both providers prove isolated A/B/C cold-session behavior. |
-| `PKDT-R012` | The complete negative matrix has deterministic or genuine provider evidence. |
-| `PKDT-R013` | Shared neutral digests match; provider observations remain labelled; closure waits for genuine Claude evidence. |
-| `PKDT-R014` | No autonomous behavior exists and canonical documentation remains in ProgramKit. |
-| `PKDT-R015` | Every change requires explicit reviewed update or migration/removal and fresh registration. |
-| `PKDT-R016` | ProgramKit C# reuses the exact private gate and affected units recheck current Console source truth. |
+## Verification and stops
 
-## Approval boundary
+Every unit runs the current Program Kit private gate and full solution tests in
+addition to focused tests. Provider-facing units must recheck the exact current
+official provider contracts before implementation. Any material protocol,
+authority, package-boundary, semantic-ownership, health-task, or static-gate
+deviation stops the implementing flow for new human design approval.
 
-Approval of this plan would authorize only `PKDT-W010` through `PKDT-W070`
-against the exact canonical design and plan digests. Implementation remains
-work-unit bounded and must stop on material architecture change.
+Closure remains open if genuine Claude Code evidence is unavailable or does not
+match the exact reviewed package, lock, and capability bytes.
 
-It would not authorize Corrective Reconstruction, provider/global permission
-changes, autonomous behavior, external repository edits, package publication,
-release, deployment, or any deferred transport/provider.
+## Authority boundary
+
+Approval of this plan would authorize only the exact bounded implementation
+represented by canonical design and plan digests. It would not authorize
+provider trust/permission, user-global writes, application semantic approval,
+private feed/authentication work, publication, release, deployment, external
+repository mutation, or any autonomous behavior.

@@ -1,441 +1,254 @@
-# ProgramKit Development Tools convergence notes
-
-## Status and human rulings
-
-These notes record decisions made after the validated `1.0.0` review set was
-published. They do not amend the canonical design or authorize implementation.
-
-- Development Tools is the sole active design concern.
-- Corrective Reconstruction is held on the backlog until it has a concrete
-  goal, first consumer, triggering scenario, and observable success condition.
-- The replacement Development Tools review set must cover both Codex and Claude
-  Code from the outset.
-- ProgramKit will implement the provider-neutral setup and both provider
-  integrations in this repository after exact human approval. Claude Code
-  runtime acceptance may be executed by the human on another machine and
-  returned as external evidence.
-- Convergence will proceed section by section. The old canonical design and
-  plan digests are baseline evidence, not current approval candidates.
-
-## Product shape under convergence
-
-The research supports three separately owned pieces:
-
-1. A versioned, provider-neutral Development Tool executable contract owned by
-   ProgramKit.
-2. One provider-neutral MCP stdio bridge that exposes that contract without
-   owning provider registration, trust, or permissions.
-3. Thin provider registration integrations that translate the same reviewed
-   registration into Codex project configuration or Claude Code project MCP
-   configuration.
-
-This avoids implementing a different tool protocol for every AI provider.
-Provider-specific code owns only discovery/configuration, collision checks,
-human trust boundaries, status, update, removal, and provider evidence.
-
-No executable, bridge, registration integration, provider binding, capability,
-permission, or runtime behavior exists yet.
-
-## Claude Code authoritative findings
-
-Research was limited to Anthropic's official Claude Code documentation and the
-stable MCP specification:
-
-- Claude Code supports local MCP servers over stdio and manages them explicitly
-  with `claude mcp add`, `list`, `get`, and `remove`:
-  <https://code.claude.com/docs/en/mcp>.
-- Project-scoped servers live in `.mcp.json`. They are shareable but remain
-  pending until the human trusts the workspace and approves the server. A
-  cloned repository cannot approve itself:
-  <https://code.claude.com/docs/en/mcp>.
-- Claude Code MCP permissions use `mcp__<server>__<tool>` rules with `deny`,
-  `ask`, and `allow`; restrictive policy takes precedence:
-  <https://code.claude.com/docs/en/permissions>.
-- Claude settings expose project-server enable/disable controls, but the
-  registration integration must not grant trust or enable every project
-  server:
-  <https://code.claude.com/docs/en/settings>.
-- Claude plugins can bundle MCP servers that start when the plugin is enabled.
-  That lifecycle conflicts with the current explicit-registration and
-  no-automatic-start boundary, so plugin transport is not the proposed first
-  integration:
-  <https://code.claude.com/docs/en/plugins-reference>.
-- Stable MCP defines tool discovery/call and stdio transport independently of
-  either provider:
-  <https://modelcontextprotocol.io/specification/2025-11-25/server/tools> and
-  <https://modelcontextprotocol.io/specification/2025-11-25/basic/transports>.
-
-## Proposed Claude boundary for review
-
-The current recommendation is project-scoped `.mcp.json`, because it is
-reviewable, portable, provider-supported, and visible to a genuinely cold
-Claude Code session. Registration would write only an owned server entry
-pointing at exact locally materialized package/contract/bridge bytes. It would
-not approve the server, alter Claude permission policy, start Claude Code, or
-invoke a tool.
-
-The human would explicitly trust and approve the project server in Claude Code.
-Mutating Development Tool calls would remain subject to Claude's provider
-permission flow. Update and removal would verify recorded ownership and exact
-bytes before changing the owned entry.
-
-The external acceptance record must include the Claude Code version, clean
-machine/session preconditions, registration receipt, project trust/server
-approval, cold-session discovery and semantic invocation, tool-call result,
-and negative cases for collision, tampering, incompatible package versions,
-permission denial, update, and removal.
-
-## Converged section 1: product outcome and proof boundary
-
-The human accepted this section during convergence.
-
-The product is generic infrastructure through which a ProgramKit-built
-application can expose its own consumer-owned development operations to an AI
-session. ProgramKit owns the exact executable/tool contract, projection,
-registration mechanics, provider bridge, validation, and evidence. It does not
-invent or own the application's operation semantics.
-
-The first acceptance proof uses a deliberately minimal, test-only generated
-Console application. Its operation accepts a challenge value and returns a
-deterministic structured response binding the challenge digest and exact tool
-contract identity. The fixture exists only to prove construction, packaging,
-registration, cold-session discovery, structured invocation, result validation,
-and removal. It is not a ProgramKit product capability and is not installed or
-advertised outside the bounded acceptance workspace.
-
-An earlier proposal for a product-like `verify-artifact` proof operation was
-rejected as unnecessary semantics. Discovery alone is insufficient evidence,
-so the minimal fixture remains necessary to prove an actual invocation through
-the exact registered bytes.
-
-Converged outcome:
-
-> A fresh Codex or Claude Code session can discover and invoke a
-> consumer-owned operation from an explicitly registered ProgramKit-built
-> Console application without inherited executable paths or command syntax. A
-> minimal test-only Console fixture proves that path; ProgramKit does not
-> prescribe application operation semantics.
-
-## Converged section 2: Open Console mapping and selection
-
-The human accepted the source-of-truth and policy recommendations with one
-correction: selection defaults to all current Open Console operations, and the
-application owner explicitly unselects only the operations that must not be
-Development Tools.
-
-ProgramKit maps and reports every operation from the exact bound Open Console
-document. It derives operation revision, command path, aliases, description,
-arguments, options, referenced schemas, standard-input/output/error contracts,
-exit-code meanings, examples, and authority reference from that document.
-Aliases remain alternate Console syntax and do not become duplicate Development
-Tool identities.
-
-The selection contract has these invariants:
-
-- `defaultSelection` is `all`.
-- Exclusions bind exact operation revisions, never display names, aliases, or
-  positions.
-- The mapping report lists every operation and classifies it as selected,
-  explicitly excluded, or blocked from projection with an exact diagnostic.
-- An operation that cannot satisfy the Development Tool contract is never
-  silently omitted or weakened. Construction fails until the owner corrects
-  the operation or explicitly excludes its exact revision.
-- Selection does not register a provider tool, approve a server, grant a
-  permission, or invoke an operation.
-- The selected set and exact Open Console document digest are frozen into the
-  generated Development Tool manifest and registration lock.
-- A later Open Console revision may default-select a newly added operation when
-  constructing a new manifest, but it cannot silently alter an existing Codex
-  or Claude Code registration. The changed document/manifest digest requires an
-  explicit human-started update that reports the added, removed, and changed
-  operations before provider configuration changes.
-
-Open Console remains the source of truth for operation semantics. The separate
-Development Tool declaration owns only the AI execution and access policy that
-Open Console does not currently express. Exact policy fields and their safe
-defaults remain the next convergence decision.
-
-## Converged section 3: structured invocation and fail-closed policy
-
-The human accepted this section without changes.
-
-ProgramKit mechanically derives one structured AI input schema for each
-selected operation from the exact Open Console command:
-
-- canonical positional-argument and option names become properties;
-- requiredness, scalar/array shape, value type, occurrence, default, and
-  dependency/conflict rules come from the existing argument and option
-  descriptors;
-- flags become booleans;
-- aliases remain Console-only alternate syntax and never become additional AI
-  properties;
-- the bridge maps a validated structured call to one canonical token array and
-  any explicitly declared standard input for the generated Console executable;
-- the operation is projectable only when its successful standard output is one
-  canonical JSON document bound to an exact schema.
-
-The generated schema is a digest-bound projection, not a separately authored
-input contract. Open Console remains authoritative, and projection drift is a
-construction failure.
-
-The provider-neutral safe defaults are:
-
-- filesystem access denied;
-- network access denied;
-- secret access denied;
-- maximum concurrency one;
-- no automatic retry;
-- no idempotency claim or replay;
-- a positive bounded timeout owned by the Development Tool contract version;
-- cancellation is advertised only when the application explicitly declares
-  support;
-- non-JSON, unbounded, interactive, or schema-ambiguous operations are blocked
-  from projection until corrected or explicitly excluded.
-
-Access beyond a denied default requires an exact positive declaration. Secret
-declarations may identify provider-owned secret references but never contain
-secret values. Registration and evidence contain no input, output, environment,
-credential, or secret values.
-
-Side effects cannot be inferred honestly from the current Open Console
-document. Every selected operation therefore requires one explicit
-classification from the closed set `none`, `read-only`, `additive`, `mutating`,
-or `destructive`. A missing classification keeps the operation selected in the
-mapping report but marks it blocked; it cannot enter a generated manifest or
-provider registration. The owner must classify or explicitly exclude it.
-
-Provider selection, provider registration, provider permission, and actual
-invocation remain separate human-authority transitions. The policy is not a
-permission grant, and derived MCP annotations are informational projections
-only.
-
-## Converged section 4: package and executable identity
-
-The human accepted this section without changes.
-
-The provider-neutral contracts, models, schemas, validation, canonical
-serialization, compatibility rules, and evidence extend the existing
-`Orbyss.ProgramKit.Development` package. A redundant core Development Tool
-package is not introduced.
-
-One new package owns the provider-neutral MCP stdio bridge:
-
-- package: `Orbyss.ProgramKit.DevelopmentTools.Mcp`;
-- executable: `program-kit-development-tools-mcp`.
-
-The bridge is the only Development Tool MCP runtime. Codex and Claude Code
-register and execute the same exact package and executable bytes. There is no
-Codex-specific or Claude-specific runtime adapter package or executable.
-
-Provider configuration writers and the explicit lifecycle are operations of
-the existing `program-kit` CLI:
-
-- `program-kit development-tools register --provider <provider>`;
-- `program-kit development-tools status --provider <provider>`;
-- `program-kit development-tools update --provider <provider>`;
-- `program-kit development-tools remove --provider <provider>`.
-
-Those writers own only translation between one exact provider-neutral
-registration and each provider's reviewed project configuration contract. They
-do not contain tool semantics or implement MCP.
-
-The exact provider-neutral identities are:
-
-- `pkid:contract:program-kit:development-tool@1.0.0`;
-- `pkid:schema:program-kit:development-tool-declaration@1.0.0`;
-- `pkid:schema:program-kit:development-tool-manifest@1.0.0`;
-- `pkid:schema:program-kit:development-tool-mapping-report@1.0.0`;
-- `pkid:schema:program-kit:development-tool-registration-lock@1.0.0`.
-
-Each consumer retains its own exact application package and executable
-identity. The generated Development Tool manifest binds those consumer bytes;
-ProgramKit does not rename or repackage the application as a provider adapter.
-The generated Console proof package and executable remain test-only acceptance
-artifacts and are not a user-facing ProgramKit capability.
-
-## Converged section 5: explicit provider registration lifecycle
-
-The human accepted this section without changes.
-
-ProgramKit first produces a deterministic registration proposal. The proposal
-binds the exact provider, project root, registration and server identities,
-selected operation set, provider configuration change, consumer package and
-executable bytes, Development Tool manifest, neutral MCP package and executable
-bytes, current owned state, and resulting proposal digest. Provider mutation
-requires a human-started command accepting that exact proposal digest.
-
-The provider writers have these exact boundaries:
-
-- Codex writes only the owned project entry in `.codex/config.toml`.
-- Claude Code writes only the owned project entry in `.mcp.json`.
-- Claude Code registration never writes `.claude/settings.json`, approves the
-  project server, grants tool permission, or asserts workspace trust.
-- Neither writer changes user/global provider configuration or unrelated
-  project configuration.
-
-Ownership is recorded separately per provider and registration:
-
-```text
-.program-kit/development-tools/registrations/
-  codex/<registration-id>.lock.json
-  claude-code/<registration-id>.lock.json
-```
-
-The lock binds the exact registration proposal, owned configuration entry,
-manifest, packages, executables, schemas, selected operations, and provider
-contract evidence. It records no claimed provider trust or permission.
-
-Authority and process transitions are separate:
-
-1. registration verifies exact bytes and writes configuration/ownership
-   atomically, but starts no process;
-2. the human starts Codex or Claude Code in the registered project;
-3. the provider may start the neutral MCP bridge for discovery under its own
-   reviewed project/trust contract;
-4. the bridge verifies all locked bytes before advertising any operation;
-5. the provider applies its own permission flow to an actual tool call; and
-6. only then does the bridge start one fresh consumer Console process for that
-   invocation.
-
-The bridge never calls an AI provider, starts another model/tool loop, retries
-automatically, or keeps a consumer process alive for later calls.
-
-`status` is read-only and reports exact, missing, drifted, colliding, or
-provider-approval-unknown state without claiming inaccessible provider trust.
-`update` requires a new deterministic proposal and explicit digest acceptance;
-it reports every added, removed, and changed operation before mutation.
-`remove` verifies the lock and current owned entry, removes only that exact
-entry and lock, and preserves all unrelated bytes.
-
-Missing or changed package, executable, adapter, schema, manifest, lock, or
-owned configuration bytes; incompatible versions; registration/server/tool
-name collisions; an uncontained project path; or provider-contract drift fails
-without partial mutation or process start.
-
-## Mandatory static-conformance disposition
-
-The active design capability now requires one explicit
-`StaticConformanceDisposition@1.0.0`. Current source truth provides a compatible
-selection: `reuse-existing` with the repository-private
-`pkid:policy:program-kit:csharp-source-quality-gate`, which already governs
-ProgramKit-owned C# through the repository build spine. This would not attach
-the private ProgramKit analyzer to generated consumer applications.
-
-The human explicitly approved this `reuse-existing` disposition during
-convergence. The final disposition artifact must bind the exact compatible
-current gate and activation-matrix versions/digests to the replacement
-canonical design. No new gate, gate extension, gate-establishment work unit,
-consumer attachment, or implementation authority is created by this decision.
-
-## Converged section 6: cold-session and cross-provider acceptance
-
-The human accepted this section without changes.
-
-Acceptance has four layers:
-
-1. Provider-neutral conformance constructs the test-only generated Console
-   fixture exclusively from exact prepared packages and proves deterministic
-   Open Console mapping, manifest construction, MCP initialize/discovery/call,
-   byte verification, timeout, cancellation, concurrency, exclusions, and
-   blocked side-effect policy without an AI provider.
-2. Provider configuration fixtures prove exact Codex `.codex/config.toml` and
-   Claude Code `.mcp.json` proposal, registration, collision refusal, unrelated
-   configuration preservation, update, tamper detection, and removal.
-3. A genuine Codex cold-session proof runs on the implementation machine.
-4. A genuine Claude Code cold-session proof runs on the human's other machine
-   using the exact same reviewed ProgramKit commit and neutral artifacts. The
-   returned evidence is validated in ProgramKit before cross-provider
-   acceptance closes.
-
-Each provider proof uses three isolated sessions:
-
-- Session A prepares exact local packages, constructs the fixture and neutral
-  bridge, reviews and applies the exact registration proposal, records the
-  registration evidence, and then ends completely with no surviving bridge,
-  consumer, or provider process.
-- Session B starts with no inherited conversation, executable path, command
-  syntax, process, environment hint, or manual shell instruction. The human
-  supplies only a semantic challenge. The provider discovers the tool solely
-  from persisted project registration, applies its own trust/permission flow,
-  invokes the exact operation, and records the canonical result.
-- Session C starts after explicit exact removal and cannot discover the removed
-  tool.
-
-Codex and Claude Code evidence must bind the same ProgramKit commit, consumer
-package/executable, Open Console document, declaration, manifest, selected
-operations, schemas, neutral MCP package/executable, fixture input, canonical
-result, and registration-proposal digests. Provider version, project
-configuration bytes, trust/permission observations, and provider-native
-evidence may differ and remain provider-labelled.
-
-The deterministic fixture result must be identical after canonicalization.
-There is no claim that prompts, provider behavior, model reasoning, or general
-application behavior are equivalent across providers.
-
-The implementation may be authored and statically/fixture-tested entirely in
-this repository. Overall cross-provider acceptance remains open until the human
-returns genuine Claude Code evidence and ProgramKit validates it. ProgramKit
-does not fabricate, pre-author, or infer that external evidence.
-
-Negative evidence covers missing or tampered bytes, incompatible packages or
-contracts, provider/server/tool collisions, denied provider permission,
-excluded and policy-blocked operations, new operations before explicit update,
-filesystem/network/secret denial, timeout, cancellation, concurrency,
-idempotency/retry prohibition, update, removal/non-discovery, package-only
-consumer construction, surviving prior-session processes, and every prohibited
-self-registration, permission, provider-call, capability-call, or autonomous
-loop behavior.
-
-## Converged section 7: compatibility, documentation, and plan shape
-
-The human accepted this section without changes.
-
-ProgramKit packages use the repository package version `0.1.0-alpha.1`.
-Development Tool contracts and schemas begin at `1.0.0`. The neutral bridge is
-pinned to stable MCP revision `2025-11-25`. Manifests, version maps,
-compatibility matrices, registration proposals, and locks bind exact semantic
-versions and SHA-256 digests; floating package, executable, schema, provider
-configuration, and protocol selections are forbidden.
-
-Every change, including a compatible one, requires an explicit reviewed update
-proposal. An incompatible contract/schema/provider change requires a reviewed
-migration or exact removal followed by fresh registration. Implementation and
-updates re-check authoritative Codex, Claude Code, and MCP sources; material
-provider-contract drift stops rather than being inferred through.
-
-Canonical technical documentation remains with
-`Orbyss.ProgramKit.Development`,
-`Orbyss.ProgramKit.DevelopmentTools.Mcp`, the `program-kit` CLI, and
-ProgramKit-owned schemas/evidence. A website may project reviewed documentation
-but cannot become technical authority.
-
-V1 deliberately defers remote MCP, provider-native bindings, Claude plugins,
-instructional skills as transport, providers beyond Codex and Claude Code,
-package-feed publication, deployment, release automation, production data,
-infrastructure, secret values, and every autonomous registration, invocation,
-provider call, capability call, or model/tool loop.
-
-The accepted dependency order for the replacement implementation plan is:
-
-1. contracts, schemas, version topology, and exact `reuse-existing` static-gate
-   binding;
-2. Open Console mapping, policy, and test-only generated fixture;
-3. provider-neutral MCP bridge and direct conformance;
-4. registration proposal, ownership lock, lifecycle, and collision handling;
-5. Codex configuration writer and cold-session proof;
-6. Claude Code configuration writer and locally executable fixtures; and
-7. external Claude Code evidence validation, cross-provider closure, and
-   canonical documentation.
-
-Implementation can construct and verify the Claude Code writer in this
-repository. Only final cross-provider closure waits for genuine evidence from
-the human's other machine.
+# Program Kit operation exposure and application capabilities convergence
+
+## Status
+
+The human completed section-by-section convergence and explicitly approved all
+recommendations, including the exact `reuse-existing` static-conformance
+disposition. This record is design input, not approval of the canonical design
+or implementation plan produced from it.
+
+The review remained inside the Program Kit repository. The active
+`[HEALTH-PATCHING] Program Kit` task was not read from uncommitted bytes,
+altered, or widened. Convergence used committed main through
+`13ed51549b50ab08590054695db7ace5731d8e3d`. Before materialization, committed
+main first advanced to `928c529b07a5a33d941a2ab5e8bf3384caa40cf6`,
+strengthening Git-normalized C# gate manifest-digest verification. During final
+validation it advanced again to
+`f555745e77ebce234f7e54665869a32cc555ba45`, adding the completed alpha-3
+package-only consumer proof/handoff and merged-branch cleanup policy. Those
+commits were reconciled. The cold consumer proof is preserved as the existing
+package-only foundation that the application-capability dogfood must
+generalize; the branch policy affects repository workflow only. Neither commit
+alters the converged product design or widens the completed health task.
+
+## Preserved foundations
+
+- Exact project-scoped registration remains explicit and digest-accepted.
+- One provider-neutral MCP stdio bridge remains shared by Codex and Claude
+  Code.
+- Provider trust, permission, and invocation remain separate.
+- Package-only consumers cannot use Program Kit project/source/build coupling.
+- Exact byte verification, collision refusal, explicit update/removal,
+  provider-labelled genuine evidence, and no-autonomy remain.
+- Skills remain rejected as executable transport.
+- Existing embedded Program Kit capability delivery, closure verification,
+  locks, provider wrappers, and cold-session checks are generalized rather than
+  discarded.
+- The private Program Kit source gate remains the selected static gate.
+
+## Compatible amendments
+
+- Open Console becomes the Console exposure contract rather than the root
+  operation-semantics catalog.
+- Console and OpenAPI exposures bind one host-neutral operation catalog.
+- The MCP bridge supports modern `2026-07-28` and legacy `2025-11-25` through
+  wire negotiation.
+- Generated Console hosts gain one reserved structured introspection surface.
+- Registration uses exact operation identities and one selected invocation
+  binding per operation.
+- Current embedded capability mechanics become one generic engine for embedded
+  and external bundles.
+
+## Materially new design
+
+- Optional publisher-authored outcome capability bundles.
+- Exact operation bindings independent of Console, HTTP, and MCP syntax.
+- Finite consumer knowledge closure with transitive schemas, examples,
+  diagnostics, migrations, interpretation, and materializers.
+- Separate acquisition and workspace/provider lifecycle CLI planes.
+- Content-addressed bundle storage and separately locked derived workspace
+  projections.
+- One flat workspace capability catalog and an on-demand
+  `discover-capabilities` meta capability.
+- Human-started application-capability authoring/scaffolding safeguards.
+- Independent `tool-ready` and `agent-guided` readiness claims.
+- Program Kit package-only dogfood as the reference application payload.
+- Explicit separation between publisher-official content and Program Kit
+  conformance.
+
+## Section 1 — Product and ownership
+
+The human aligned with these decisions:
+
+1. `OperationContractCatalog` is the host-neutral semantic source.
+2. Open Console owns Console syntax; OpenAPI owns HTTP syntax.
+3. A shared operation identity requires application-owner semantic equivalence,
+   not merely a shared handler.
+4. Outcome capability bundles are optional and inert.
+5. Application ownership is semantic; Program Kit ownership is conformance.
+6. Capabilities represent outcomes, not commands. One-operation capabilities
+   remain valid when they add intake, interpretation, remediation, or safety.
+7. Guidance activation grants no execution authority.
+8. Canonical procedures are provider-neutral; provider wrappers are thin
+   deterministic projections.
+9. No universal workflow/result/next-action envelope is introduced.
+10. Capability handoffs are exact, acyclic, and separately preflighted.
+11. Provider-native selection is reused without a Program Kit scoring system.
+12. One on-demand `discover-capabilities` capability reads one flat catalog.
+13. Source kind, carrier, bundle kind, logical identity, and content identity
+    remain distinct.
+14. Acquisition is separate from verification and initialization; later reads
+    never re-resolve the source.
+15. Embedded Program Kit and external application bundles share one engine.
+
+## Section 2 — Generated Console introspection
+
+The human aligned with:
+
+- `--program-kit-introspect` for the full catalog;
+- `--program-kit-introspect=<exact-operation-revision>` for one operation;
+- no short alias and no ordinary application command reservation;
+- exact argument shapes and precedence above completion/help/application
+  dispatch;
+- one versioned JSON shape with transitive schema closure;
+- generated bytes embedded in the host;
+- no application service composition, secrets, reflection, network, or
+  configuration reads; and
+- MCP `tools/list` as primary registered-agent discovery, with Console
+  introspection providing direct/offline parity.
+
+No API introspection endpoint was inferred.
+
+## Section 3 — MCP projection
+
+The human aligned with:
+
+- modern MCP `2026-07-28` plus legacy `2025-11-25`;
+- `server/discover`/per-request metadata for modern and `initialize` for legacy;
+- no startup `--protocol` argument;
+- core stdio tools only for the first implementation;
+- a Console-process adapter first and an explicit future HTTP adapter boundary;
+- one active binding per operation per registration;
+- `<scope>__<name>` tool names with the agreed 128-character hash truncation;
+- portable object-root inputs and results for dual-era support;
+- exact application results without a Program Kit application-result envelope;
+- no retry, inferred idempotency, or conflation of protocol and execution
+  failures;
+- bounded application-owned server instructions plus Program Kit authority
+  suffix;
+- separate provider permission; and
+- working `tool-ready` and `agent-guided` labels.
+
+## Section 4 — CLI acquisition and lifecycle
+
+The human aligned with two CLI planes.
+
+`capability-bundles` owns explicit `local`, `nuget`, `https`, and
+`github-release` acquisition, verification, inspection, and pruning.
+
+`capabilities` owns initialize, refresh, update, status, remove, preflight,
+read, and resource retrieval.
+
+Additional rulings:
+
+- sources are exact and V1 is public/anonymous;
+- acquired bytes enter a content-addressed workspace store;
+- verification reports integrity, compatibility, completeness, and publisher
+  authority without semantic endorsement;
+- every mutation previews and requires the exact accepted proposal digest;
+- embedded Program Kit capabilities retain a no-bundle-reference shorthand;
+- one command mutates one exact bundle/provider and may select exact capability
+  subsets;
+- required tool bindings resolve during lifecycle proposals;
+- missing bindings produce setup-required; ambiguity blocks;
+- tool registration and capability locks remain separate;
+- removal does not prune source bytes;
+- refresh reconstructs derived bytes from the same bundle, while update accepts
+  new authoritative bundle bytes; and
+- a tampered ownership lock cannot be adopted through refresh.
+
+## Section 5 — Capability structure and closure
+
+The human aligned with:
+
+- one machine descriptor plus one canonical deterministic procedure;
+- stable local operation-binding names resolving to exact operation and schema
+  revisions;
+- no Console path, API route, or MCP tool name embedded in the capability;
+- deterministic procedure sections for identity, trigger, outcome, non-goals,
+  inputs, authority, procedure, interpretation, human decisions, stop
+  conditions, completion, diagnostics, and migration;
+- a typed finite digest-bound knowledge graph;
+- shared resources without byte duplication;
+- missing closure refusal before guided execution;
+- required dependencies versus optional handoffs;
+- no authority transfer or automatic target invocation on handoff;
+- a human-started product capability-design safeguard;
+- tool-only as a valid explicit product outcome;
+- scaffolding and coverage without inferred domain semantics;
+- one flat derived workspace catalog;
+- provider-native selection, no nested indexes or confidence router;
+- `discover-capabilities` for on-demand catalog explanation;
+- Program Kit built-ins as the reference external-style payload; and
+- contributor-only capabilities remaining source-attached.
+
+The human additionally confirmed the catalog integrity model:
+
+- publisher operation/capability catalogs are immutable digest-bound inputs;
+- Program Kit derives the workspace catalog only from accepted locks;
+- derived catalog/provider bytes are atomically replaced;
+- manual edits are drift and unusable;
+- accepted refresh repairs projections from unchanged verified source;
+- accepted update is required for changed authoritative bundle bytes; and
+- filesystem ownership cannot prevent all manual writes, so digest verification
+  and fail-closed reads are the authority.
+
+## Section 6 — Acceptance and static conformance
+
+The human aligned with:
+
+1. Five evidence layers: provider-neutral, package-only, provider
+   configuration, genuine provider sessions, and closure/governance.
+2. Host-neutral identity proof across Console, API, and MCP.
+3. Independent direct-tool and agent-guided proof.
+4. Genuine cold JTest semantic intent with no inherited syntax or source.
+5. Independent negative removal/tamper cases for every closure class.
+6. Separate registration, capability initialization, permission, and invocation
+   transitions.
+7. Correct refresh versus update classification for changed bytes.
+8. Release-blocking Program Kit package-only dogfood.
+9. Separate publisher-official and Program Kit-conformant claims.
+10. Exact `reuse-existing` static-conformance disposition.
+
+The reused gate is:
+
+- `pkid:policy:program-kit:csharp-source-quality-gate@1.10.0`;
+- activation matrix
+  `pkid:activation-matrix:program-kit:private-csharp-gate-build-spine@1.0.0`;
+- Program Kit-owned source scope only.
+
+No new analyzer, gate extension, consumer attachment, or gate-establishment
+work is authorized. Protocol, package-only, provider, lifecycle, and
+cold-session claims remain executable evidence.
+
+## Current official-provider reconciliation
+
+The materialization check used current official sources:
+
+- Codex supports trusted project `.codex/config.toml` and exact stdio MCP
+  command/args, allow lists, timeouts, and separate approval modes.
+- Codex defines a skill as a reusable workflow and supports explicit or implicit
+  skill activation.
+- Claude Code uses project `.mcp.json`; a cloned repository cannot approve its
+  own server.
+- Claude Code uses `.claude/skills/<name>/SKILL.md`; description text drives
+  model selection, while full content loads when invoked.
+- Claude Code tool search defers MCP tool definitions and uses server
+  instructions for category-level discovery.
+- MCP `2026-07-28` is stateless and uses `server/discover` plus per-request
+  protocol metadata; its stdio compatibility rules preserve fallback to legacy
+  initialized servers.
+- MCP `2025-11-25` remains the legacy initialized contract.
+
+These findings support companion guidance plus executable MCP. They do not
+justify skills as transport, Program Kit ranking, or provider permission
+mutation.
 
 ## Convergence result
 
-Sections 1 through 7 and the mandatory `reuse-existing`
-`StaticConformanceDisposition@1.0.0` are aligned. The next step is to reconcile
-the latest Console-generation source truth, issue replacement canonical design
-and Implementation Plan `3.0.0` artifacts, validate/render/digest the exact
-review set, and stop for explicit human approval. No implementation authority
-exists before that approval.
+All material architecture and static-conformance decisions are explicit.
+Formal Architecture Design and Implementation Plan artifacts may now be
+materialized and presented for a separate exact-digest human approval.
+
+Convergence approval is not design/plan approval and grants no implementation,
+registration, provider, permission, package publication, or runtime authority.

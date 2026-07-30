@@ -1,83 +1,100 @@
 {
   "artifactId": "pkid:matrix:program-kit:development-tools-compatibility",
-  "artifactVersion": "1.0.0",
-  "packageVersionPolicy": "ProgramKit packages use the exact repository version 0.1.0-alpha.1. Floating ranges and build-output identities are forbidden.",
+  "artifactVersion": "2.0.0",
+  "packageVersionPolicy": "Implementation uses the exact then-current Program Kit package version and exact package digests. Floating ranges, latest selectors, and build-output identities are forbidden.",
   "rows": [
     {
-      "identity": "pkid:contract:program-kit:development-tool",
-      "version": "1.0.0",
-      "owner": "Orbyss.ProgramKit.Development",
-      "compatibilityBoundary": "operation identity, projection, policy, manifest, invocation, result, failure, and evidence semantics",
-      "changeRule": "compatible additions still require explicit reviewed update; incompatible change requires migration or remove and fresh registration"
+      "identity": "pkid:contract:program-kit:operation-contract-catalog",
+      "version": "candidate-1",
+      "owner": "Program Kit operation contracts",
+      "compatibilityBoundary": "operation identity/revision, application contracts, authority/effect facts, compatibility and migration",
+      "changeRule": "changed catalog bytes require re-projection; incompatible operation change uses a new operation revision"
     },
     {
-      "identity": "pkid:schema:program-kit:development-tool-declaration",
-      "version": "1.0.0",
-      "owner": "Orbyss.ProgramKit.Development",
-      "compatibilityBoundary": "selection, exclusions, access policy, side effects, timeout, cancellation, concurrency, and idempotency",
-      "changeRule": "exact schema and instance digests are registration inputs"
+      "identity": "pkid:contract:program-kit:operation-exposure-binding",
+      "version": "candidate-1",
+      "owner": "Program Kit generated host contracts",
+      "compatibilityBoundary": "exact binding of Console or OpenAPI syntax to an operation revision",
+      "changeRule": "syntax changes do not change semantic identity unless the application owner changes the operation revision"
     },
     {
-      "identity": "pkid:schema:program-kit:development-tool-manifest",
-      "version": "1.0.0",
-      "owner": "Orbyss.ProgramKit.Development",
-      "compatibilityBoundary": "consumer/package/executable/Open Console/schema/operation/bridge bindings",
-      "changeRule": "any changed bytes require a new proposal; incompatible change requires migration"
+      "identity": "pkid:schema:program-kit:generated-console-introspection",
+      "version": "candidate-1",
+      "owner": "Program Kit generated Console",
+      "compatibilityBoundary": "full/selected operation projection and transitive schema closure",
+      "changeRule": "compatible additions require regenerated host bytes; incompatible shape requires a reviewed migration"
     },
     {
-      "identity": "pkid:schema:program-kit:development-tool-mapping-report",
-      "version": "1.0.0",
-      "owner": "Orbyss.ProgramKit.Development",
-      "compatibilityBoundary": "complete selected, excluded, and blocked operation reporting with diagnostics",
-      "changeRule": "no silent omission or downgrade"
+      "identity": "pkid:contract:program-kit:development-tool-registration",
+      "version": "candidate-1",
+      "owner": "Program Kit Development Tools",
+      "compatibilityBoundary": "normalized operation projection, selected invocation adapter, MCP tool mapping, registration proposal and lock",
+      "changeRule": "changed operation, tool, bridge, provider, or lock bytes require an explicit registration update"
     },
     {
-      "identity": "pkid:schema:program-kit:development-tool-registration-lock",
-      "version": "1.0.0",
-      "owner": "Orbyss.ProgramKit.Development",
-      "compatibilityBoundary": "provider ownership, proposal, configuration, package, executable, schema, operation, and evidence digests",
-      "changeRule": "changed or incompatible ownership state fails closed"
+      "identity": "pkid:contract:program-kit:application-capability-bundle",
+      "version": "candidate-1",
+      "owner": "Program Kit capability conformance",
+      "compatibilityBoundary": "bundle descriptor, capability catalog, procedure, operation bindings, knowledge closure, provider adapters, compatibility and migrations",
+      "changeRule": "changed authoritative bundle version or digest requires explicit capability update"
     },
     {
-      "identity": "Orbyss.ProgramKit.Development",
-      "version": "0.1.0-alpha.1",
-      "owner": "ProgramKit Development",
-      "compatibilityBoundary": "provider-neutral contracts, serializers, validators, compatibility, and evidence",
-      "changeRule": "exact locally prepared nupkg digest is required"
+      "identity": "pkid:contract:program-kit:workspace-capability-catalog",
+      "version": "candidate-1",
+      "owner": "Program Kit capability lifecycle",
+      "compatibilityBoundary": "one deterministic flat catalog derived from accepted per-bundle/provider locks",
+      "changeRule": "same-bundle projection drift is repaired by explicit refresh; changed authoritative bundle bytes are never accepted by refresh"
+    },
+    {
+      "identity": "pkid:bundle-kind:program-kit:consumer-outcome-capabilities",
+      "version": "candidate-1",
+      "owner": "Application publisher plus Program Kit conformance",
+      "compatibilityBoundary": "publisher-official outcome semantics remain distinct from Program Kit integrity and completeness checks",
+      "changeRule": "publisher changes version and content identity; Program Kit never infers domain-semantic compatibility"
     },
     {
       "identity": "Orbyss.ProgramKit.DevelopmentTools.Mcp",
-      "version": "0.1.0-alpha.1",
-      "owner": "ProgramKit Development Tools",
-      "compatibilityBoundary": "MCP 2025-11-25 stdio projection and consumer process mediation",
-      "changeRule": "exact locally prepared nupkg and executable digests are required"
+      "version": "implementation-selected-exact",
+      "owner": "Program Kit Development Tools",
+      "compatibilityBoundary": "dual-era stdio bridge and exact invocation adapter behavior",
+      "changeRule": "exact nupkg and executable digests are registration inputs"
+    },
+    {
+      "identity": "MCP",
+      "version": "2026-07-28",
+      "owner": "Model Context Protocol",
+      "compatibilityBoundary": "server/discover, per-request metadata, tools/list, tools/call, schemas/results, and stateless stdio behavior",
+      "changeRule": "selected modern revision; material drift stops implementation or update"
     },
     {
       "identity": "MCP",
       "version": "2025-11-25",
       "owner": "Model Context Protocol",
-      "compatibilityBoundary": "initialize, tools/list, tools/call, structured result, stdio framing, and cancellation",
-      "changeRule": "revision is pinned; material source drift blocks implementation or update"
+      "compatibilityBoundary": "legacy initialize, tools/list, tools/call, object-root schemas/results, and stdio behavior",
+      "changeRule": "supported legacy era; removal requires separate compatibility review"
     },
     {
-      "identity": "codex-project-mcp-registration",
-      "version": "provider-current-at-registration",
+      "identity": "codex-project-operation-and-capability-projection",
+      "version": "provider-current-at-transition",
       "owner": "Codex provider integration",
-      "compatibilityBoundary": ".codex/config.toml owned mcp_servers entry",
-      "changeRule": "provider version and authoritative-source observation are evidence; material contract drift blocks"
+      "compatibilityBoundary": "owned .codex/config.toml MCP entry and owned project skill projections",
+      "changeRule": "provider contract is rechecked at proposal time; material drift blocks"
     },
     {
-      "identity": "claude-code-project-mcp-registration",
-      "version": "provider-current-at-registration",
+      "identity": "claude-code-project-operation-and-capability-projection",
+      "version": "provider-current-at-transition",
       "owner": "Claude Code provider integration",
-      "compatibilityBoundary": ".mcp.json owned mcpServers entry plus separately observed human trust, server approval, and permissions",
-      "changeRule": "provider version and authoritative-source observation are evidence; material contract drift blocks"
+      "compatibilityBoundary": "owned .mcp.json entry, owned project skills, and separate observed trust/approval/permission",
+      "changeRule": "provider contract is rechecked at proposal time; material drift blocks"
     }
   ],
   "migrationPolicy": [
-    "Every changed registration input produces a deterministic diff and requires explicit proposal-digest acceptance.",
-    "Compatible additions never silently enter an existing provider registration.",
-    "An incompatible contract, schema, protocol, package, bridge, or provider configuration change requires a reviewed migration or exact removal followed by fresh registration.",
-    "No automatic upgrade, feed publication, provider mutation, or source/build coupling is permitted."
+    "Tool registration and capability initialization have separate locks, proposals, and update transitions.",
+    "Compatible operation additions never silently enter an existing registration.",
+    "Compatible capability additions never silently enter an initialized workspace projection.",
+    "Refresh may regenerate catalog and provider adapters only from the same verified bundle and valid lock.",
+    "Update accepts a new exact bundle identity/digest after an explicit proposal.",
+    "An incompatible contract, schema, protocol, package, provider, operation, or capability change requires a reviewed migration or exact removal and fresh initialization.",
+    "No automatic source resolution, upgrade, permission mutation, provider start, or invocation is permitted."
   ]
 }

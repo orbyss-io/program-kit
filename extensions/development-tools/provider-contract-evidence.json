@@ -1,88 +1,115 @@
 {
   "artifactId": "pkid:evidence:program-kit:development-tools-provider-contract",
-  "artifactVersion": "2.0.0",
-  "researchedAt": "2026-07-28",
-  "protocol": {
-    "identity": "MCP",
-    "revision": "2025-11-25",
+  "artifactVersion": "3.0.0",
+  "researchedAt": "2026-07-30",
+  "mcp": {
+    "modernRevision": "2026-07-28",
+    "legacyRevision": "2025-11-25",
     "transport": "stdio",
     "sources": [
       {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/discover",
+        "governs": [
+          "server/discover",
+          "supported protocol versions",
+          "per-request protocol, client identity, and capability metadata",
+          "server capabilities, identity, instructions, caching, and stdio legacy fallback"
+        ]
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+        "governs": [
+          "tools/list and tools/call",
+          "deterministic tool ordering",
+          "tool-name length and character recommendations",
+          "JSON Schema 2020-12 inputs and outputs",
+          "arbitrary JSON structuredContent",
+          "application errors versus protocol errors",
+          "human-in-the-loop recommendation"
+        ]
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+        "governs": [
+          "stdio message framing",
+          "protocol-only standard output",
+          "diagnostic standard error",
+          "modern and legacy stdio compatibility"
+        ]
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle",
+        "governs": [
+          "legacy initialize negotiation",
+          "legacy client and server capabilities",
+          "legacy shutdown behavior"
+        ]
+      },
+      {
         "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
         "governs": [
-          "initialize before tool use",
-          "tools/list discovery",
-          "tools/call invocation",
-          "inputSchema",
-          "optional outputSchema and structuredContent",
-          "tool errors versus protocol errors"
-        ]
-      },
-      {
-        "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
-        "governs": [
-          "newline-delimited JSON-RPC on standard input and output",
-          "no non-protocol standard output",
-          "diagnostic standard error",
-          "client-owned server process lifecycle"
-        ]
-      },
-      {
-        "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/cancellation",
-        "governs": [
-          "cancellation notification mapping",
-          "race handling",
-          "no cancellation rollback assumption"
+          "legacy tools/list and tools/call",
+          "legacy object-root input schema",
+          "legacy object structuredContent"
         ]
       }
     ],
-    "selectedContract": "One neutral local MCP stdio bridge advertises only byte-verified selected operations, validates structured calls/results, and starts one fresh consumer process per permitted call.",
-    "implementationRecheck": "required; material drift blocks the affected work unit"
+    "selectedContract": "One local stdio bridge supports modern 2026-07-28 and legacy 2025-11-25 through wire negotiation. It implements core tools only, projects exact operation contracts, and invokes one selected application adapter without provider-specific runtime code.",
+    "modernBoundary": "Modern arbitrary JSON result support and optional MCP extensions are deferred until a separately reviewed modern-only profile. The initial dual-era profile uses object-root inputs and results.",
+    "implementationRecheck": "Required at every MCP-affecting work unit and update; material drift stops the work unit."
   },
   "codex": {
     "providerId": "codex",
     "sources": [
       {
-        "url": "https://learn.chatgpt.com/docs/extend/mcp",
+        "url": "https://learn.chatgpt.com/docs/config-file/config-reference#configtoml",
         "governs": [
-          "local stdio MCP support",
-          "project-scoped registration",
-          "server configuration keys"
+          "trusted project .codex/config.toml loading",
+          "mcp_servers.<id>.command and args",
+          "enabled and required",
+          "enabled_tools and disabled_tools",
+          "server and per-tool approval modes",
+          "startup and tool timeouts",
+          "skills.config enablement"
         ]
       },
       {
-        "url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+        "url": "https://learn.chatgpt.com/docs/glossary",
         "governs": [
-          ".codex/config.toml",
-          "mcp_servers.<name>",
-          "command and args",
-          "required",
-          "enabled_tools",
-          "default_tools_approval_mode",
-          "startup_timeout_sec and tool_timeout_sec"
+          "skill as a reusable workflow",
+          "explicit or implicit skill activation",
+          "MCP tool as executable action"
         ]
       }
     ],
-    "ownedConfiguration": {
+    "ownedToolConfiguration": {
       "path": ".codex/config.toml",
       "entry": "mcp_servers.<registration-id>",
       "requiredValues": [
-        "exact bridge command",
-        "exact arguments",
+        "exact bridge command and arguments",
+        "enabled = true",
         "required = true",
         "exact enabled_tools",
-        "default_tools_approval_mode = \"prompt\"",
-        "bounded startup_timeout_sec",
-        "bounded tool_timeout_sec"
+        "prompt-or-stricter approval mode",
+        "bounded startup and tool timeouts"
       ]
     },
-    "prohibitedWrites": [
-      "user or global Codex configuration",
-      "workspace trust",
-      "automatic tool approval",
-      "unrelated project configuration"
+    "ownedCapabilityProjection": {
+      "path": ".codex/skills/<rendered-capability-id>/SKILL.md",
+      "contract": "Thin Program Kit-rendered wrapper over the canonical provider-neutral procedure and installed closure. Exact path grammar and supported metadata are rechecked during implementation."
+    },
+    "humanProviderActions": [
+      "trust the exact project before project .codex configuration loads",
+      "decide applicable tool approvals and permissions"
     ],
-    "coldSessionObservation": "A new Codex session discovers the server and operations from persisted trusted-project configuration without inherited path or command knowledge."
+    "prohibitedWrites": [
+      "user/global Codex configuration",
+      "project trust",
+      "automatic tool approval",
+      "unrelated .codex content",
+      "capability bytes without accepted capability proposal"
+    ],
+    "selectionBoundary": "Codex-native skill matching selects guidance. Program Kit provides exact descriptions and a flat catalog but no confidence router."
   },
   "claudeCode": {
     "providerId": "claude-code",
@@ -90,79 +117,98 @@
       {
         "url": "https://code.claude.com/docs/en/mcp",
         "governs": [
-          "local stdio MCP servers",
-          "project-scoped .mcp.json",
-          "mcpServers command, args, and env",
-          "human server approval",
-          "claude mcp list/get/remove observation commands"
+          "local stdio servers",
+          "project .mcp.json",
+          "human workspace trust and project server approval",
+          "server status and collision behavior",
+          "provider-native MCP tool search",
+          "server instructions for category-level tool discovery"
         ]
       },
       {
         "url": "https://code.claude.com/docs/en/permissions",
         "governs": [
-          "mcp__<server>__<tool> permission rule names",
-          "deny, ask, and allow evaluation",
-          "provider-owned permission decisions"
+          "provider-owned MCP permission rules",
+          "deny and ask boundaries"
         ]
       },
       {
         "url": "https://code.claude.com/docs/en/settings",
         "governs": [
-          "project MCP enable and disable settings",
-          "settings precedence"
+          "settings precedence",
+          "project server enablement and rejection state"
+        ]
+      },
+      {
+        "url": "https://code.claude.com/docs/en/skills",
+        "governs": [
+          "project .claude/skills/<name>/SKILL.md",
+          "description-driven model selection",
+          "full procedure loading on invocation",
+          "supporting files",
+          "live change detection"
         ]
       }
     ],
-    "ownedConfiguration": {
+    "ownedToolConfiguration": {
       "path": ".mcp.json",
       "entry": "mcpServers.<registration-id>",
       "requiredValues": [
-        "exact bridge command",
-        "exact arguments"
+        "exact stdio bridge command and arguments"
       ]
     },
+    "ownedCapabilityProjection": {
+      "path": ".claude/skills/<rendered-capability-id>/SKILL.md",
+      "contract": "Thin Program Kit-rendered wrapper with application-owned trigger text and exact installed closure references."
+    },
     "humanProviderActions": [
-      "trust the exact project",
+      "trust the exact workspace",
       "approve the exact project MCP server",
-      "decide each applicable tool permission"
+      "decide each applicable MCP tool permission"
     ],
     "prohibitedWrites": [
-      ".claude/settings.json",
-      "user or global Claude configuration",
+      ".claude/settings.json trust or permission state",
+      "user/global Claude configuration",
       "workspace trust",
       "server approval",
       "allow permission rules",
-      "unrelated project configuration"
+      "unrelated .claude content",
+      "capability bytes without accepted capability proposal"
     ],
-    "coldSessionObservation": "A new Claude Code session discovers the server and operations from persisted project registration after the human-owned trust and server-approval steps, without inherited path or command knowledge."
+    "selectionBoundary": "Claude-native skill matching selects guidance and native tool search discovers MCP tools. Program Kit provides exact descriptions, server instructions, and one flat catalog without replacing either mechanism."
   },
-  "transportComparison": [
+  "transportAndGuidanceDecisions": [
     {
-      "transport": "direct executable",
+      "surface": "direct application executable",
       "decision": "required-baseline",
-      "reason": "Provides provider-neutral contract and process conformance but no persisted AI-provider discovery."
+      "reason": "Provides direct CLI behavior and structured introspection without provider registration."
     },
     {
-      "transport": "MCP stdio",
-      "decision": "selected",
-      "reason": "One stable provider-neutral tool protocol is supported by both reviewed providers and preserves client-owned process lifecycle."
+      "surface": "MCP stdio",
+      "decision": "selected-executable-transport",
+      "reason": "Both reviewed providers support local stdio and MCP keeps execution separate from guidance."
     },
     {
-      "transport": "provider-native binding",
+      "surface": "provider-native skill or capability",
+      "decision": "selected-companion-guidance",
+      "reason": "Provider descriptions can reliably activate application-authored outcome procedures while execution still occurs through exact registered MCP operations."
+    },
+    {
+      "surface": "skill as executable transport",
+      "decision": "rejected",
+      "reason": "A procedure does not provide executable identity, schemas, byte integrity, registration, permission, or transport."
+    },
+    {
+      "surface": "MCP server instructions",
+      "decision": "bounded-cross-tool-guidance",
+      "reason": "Instructions may describe the tool category and cross-tool rules but do not own outcome procedures."
+    },
+    {
+      "surface": "provider-native HTTP or plugin transport",
       "decision": "deferred",
-      "reason": "No equally authoritative common executable discovery contract was found and provider duplication is unnecessary."
-    },
-    {
-      "transport": "instructional skill",
-      "decision": "rejected-as-transport",
-      "reason": "Instructions cannot supply executable identity, persisted discovery, byte integrity, permissions, or cold-session proof."
-    },
-    {
-      "transport": "Claude plugin",
-      "decision": "deferred",
-      "reason": "Plugin enablement can start bundled MCP servers and conflicts with the explicit project-registration boundary selected for v1."
+      "reason": "The first implementation needs one common local transport and explicit registration authority."
     }
   ],
-  "authorityBoundary": "This evidence defines reviewed provider configuration assumptions. It does not register a server, trust a workspace, approve a provider, grant a permission, start a process, or authorize implementation.",
-  "freshnessPolicy": "Recheck every authoritative source at the start of provider-affecting work and explicit update. Any material contract drift is a stop condition requiring design review."
+  "authorityBoundary": "This evidence records reviewed current provider and protocol contracts. It registers nothing, initializes no capability, trusts no workspace, grants no permission, starts no process, and authorizes no implementation.",
+  "freshnessPolicy": "Recheck every authoritative source at the start of the affected work unit and every explicit update. Material contract drift requires reviewed design change."
 }

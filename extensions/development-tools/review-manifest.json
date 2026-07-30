@@ -1,8 +1,8 @@
 {
   "manifestKind": "program-kit-design-review",
-  "manifestVersion": "1.0.0",
-  "reviewSetId": "pkid:approval:program-kit:development-tools-review-set",
-  "reviewSetVersion": "2.0.0",
+  "manifestVersion": "3.0.0",
+  "reviewSetId": "pkid:review-set:program-kit:development-tools",
+  "reviewSetVersion": "3.0.0",
   "owner": "human-led-program-kit-development-tools",
   "reviewState": "awaiting-human-approval",
   "implementationStatus": "not-started",
@@ -18,184 +18,174 @@
   "artifacts": [
     {
       "artifactId": "pkid:intent:program-kit:development-tools",
-      "artifactVersion": "2.0.0",
+      "artifactVersion": "3.0.0",
       "role": "human-intent-record",
       "path": "extensions/development-tools/design-intent.md",
-      "sha256": "35cf45c4821ffd2a9b8ccd684cf5108eb29167b3c643d65d91648c51abd12280"
+      "sha256": "bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
     },
     {
       "artifactId": "pkid:decision-log:program-kit:development-tools-convergence",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "2.0.0",
       "role": "section-by-section-human-convergence-record",
       "path": "extensions/development-tools/convergence-notes.md",
-      "sha256": "f1a9d15d2c7cab51e0f242c532dab5b2160c1f7eea51acffd0500eb910351bff"
+      "sha256": "8d6718031878c5a008d264a016a36773f27f374a13432a6131e6b115243c68c9"
     },
     {
       "artifactId": "pkid:design:program-kit:development-tools-static-basis",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "2.0.0",
       "role": "non-circular-static-conformance-design-basis",
       "path": "extensions/development-tools/static-conformance-design-basis.json",
-      "sha256": "509530b736991ef06141f76c71e1a345b3a9087d12a68a32f6e53dd0ad0d5f09"
+      "sha256": "f0b79f8c1f3fe4908da4c00b8b3d1732ab6c7cd85fa78a02fa86340d88bb98a0"
     },
     {
       "artifactId": "pkid:decision-source:program-kit:development-tools-static-conformance",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "2.0.0",
       "role": "human-static-conformance-decision-source",
       "path": "extensions/development-tools/static-conformance-decision-source.json",
-      "sha256": "e65c604f7f9c5aee09d1840b5d9f8562bbb14358d08bb7e1d97dd4657d002fd5"
+      "sha256": "3141126d860b1acac2f6f86c46b41dd32f81cd89a0fe8d69cfc40e4d5442f998"
     },
     {
       "artifactId": "pkid:static-conformance-disposition:program-kit:development-tools",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "2.0.0",
       "role": "static-conformance-disposition",
       "contract": "pkid:schema:program-kit:static-conformance-disposition",
-      "contractVersion": "1.0.0",
-      "contractSha256": "834902de4706a7c6859390bd7ee5e4fd6a3e7e455486348c02a1cb84604d15bd",
+      "contractVersion": "0.1.0-alpha.1",
+      "contractSha256": "9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811",
       "path": "extensions/development-tools/static-conformance-disposition.json",
-      "sha256": "6092894ece0f6691dcd59a27ca24eb6365bac2c01739a54bfb45856a86960697"
+      "sha256": "c4db1b5a72285101ded7e2f692eac0aed08f83997ab065bc9d7b04260fbb277b"
     },
     {
       "artifactId": "pkid:selection-lock:program-kit:development-tools-private-gate",
-      "artifactVersion": "1.0.0",
+      "artifactVersion": "2.0.0",
       "role": "materialized-private-gate-selection-lock",
       "path": "extensions/development-tools/program-kit-private-gate-selection-lock.json",
-      "sha256": "66a62b56eea04e09fc905f6074cc991b88096648415ffa670c7a8641bd1edde4"
+      "sha256": "ce63a6dfb96e07d9fdb58b8d4a8512daa3063ec73beeb5f9362a469f450f2a37"
     },
     {
       "artifactId": "pkid:evidence:program-kit:development-tools-provider-contract",
-      "artifactVersion": "2.0.0",
-      "role": "official-provider-and-protocol-contract-evidence",
+      "artifactVersion": "3.0.0",
+      "role": "current-official-provider-contract-evidence",
       "path": "extensions/development-tools/provider-contract-evidence.json",
-      "sha256": "c9044e62f3079c3e87e4affc5ff2e63c170cd97bf1eb89eb105ad932c4cc9130"
+      "sha256": "195b54d8f623dfafb6d27c59f6e1c5943eb6dc9707aab68e5cc4f7022d697c0f"
     },
     {
       "artifactId": "pkid:matrix:program-kit:development-tools-compatibility",
-      "artifactVersion": "1.0.0",
-      "role": "exact-version-compatibility-and-migration-matrix",
+      "artifactVersion": "2.0.0",
+      "role": "compatibility-and-version-matrix",
       "path": "extensions/development-tools/compatibility-version-matrix.json",
-      "sha256": "10975980347a97a482266f5edba5161f1254361e0272b1b5ae421c551b07e4e2"
-    },
-    {
-      "artifactId": "pkid:design:program-kit:development-tools",
-      "artifactVersion": "2.0.0",
-      "role": "canonical-design",
-      "contract": "pkid:schema:program-kit:architecture-design",
-      "contractVersion": "2.0.0",
-      "contractSha256": "2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198",
-      "path": "extensions/development-tools/architecture-design.json",
-      "sha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb"
-    },
-    {
-      "artifactId": "pkid:ai-artifact:program-kit:development-tools-design-markdown",
-      "artifactVersion": "2.0.0",
-      "role": "human-readable-design-projection",
-      "canonicalDesignId": "pkid:design:program-kit:development-tools",
-      "canonicalDesignVersion": "2.0.0",
-      "canonicalDesignSha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb",
-      "path": "extensions/development-tools/architecture-design.md",
-      "sha256": "be3bd4dd74e4d5a147889de61a87c8cb91b0abef1b9b00e5e783374453d2d75a"
+      "sha256": "c5019e0823443bb5892dc4447fb489f3b200eb884a7cbf646d16c153c1835f06"
     },
     {
       "artifactId": "pkid:fixture-catalog:program-kit:development-tools-acceptance",
-      "artifactVersion": "2.0.0",
-      "role": "prospective-deterministic-and-genuine-provider-acceptance-fixtures",
+      "artifactVersion": "3.0.0",
+      "role": "prospective-acceptance-fixture-catalog",
       "path": "extensions/development-tools/acceptance-fixtures.json",
-      "sha256": "c30eae168b826977c6cb18c3d57aebf16c357dcc25ec62504a8d06abe65e4388"
+      "sha256": "572431c224e1c756d97e4ce2bf83e422f2eefcb81dc088cb9ce9fb1488b17c8e"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:development-tools",
+      "artifactVersion": "3.0.0",
+      "role": "canonical-architecture-design",
+      "contract": "pkid:schema:program-kit:architecture-design",
+      "contractVersion": "0.1.0-alpha.2",
+      "contractSha256": "e94b5e1dab8292066669ccee5069f27a6e220962906051931fc1f1607fe2dbf7",
+      "path": "extensions/development-tools/architecture-design.json",
+      "sha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:development-tools-design-markdown",
+      "artifactVersion": "3.0.0",
+      "role": "human-readable-design-projection",
+      "canonicalDesignId": "pkid:design:program-kit:development-tools",
+      "canonicalDesignVersion": "3.0.0",
+      "canonicalDesignSha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b",
+      "path": "extensions/development-tools/architecture-design.md",
+      "sha256": "666f1d69ce7d9702b3af9ccd237f9e62f4fa73974a0fa3f203967892c6dc1f76"
     },
     {
       "artifactId": "pkid:plan:program-kit:development-tools",
-      "artifactVersion": "2.0.0",
+      "artifactVersion": "3.0.0",
       "role": "canonical-implementation-plan",
       "contract": "pkid:schema:program-kit:implementation-plan",
-      "contractVersion": "3.0.0",
-      "contractSha256": "0f3b8f524b29ec7b5871ce411f06852e1b06326a5e1da616184627df0b5ea1b6",
+      "contractVersion": "0.1.0-alpha.3",
+      "contractSha256": "774c6b945ac2b63c2e4beca0afab9c282669274f0c7d4eb4b9e936ba38460c7c",
       "designId": "pkid:design:program-kit:development-tools",
-      "designVersion": "2.0.0",
-      "designSha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb",
+      "designVersion": "3.0.0",
+      "designSha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b",
       "path": "extensions/development-tools/implementation-plan.json",
-      "sha256": "051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56"
+      "sha256": "98c3356511307944504f66bf90467d573e09569ca8577a33b87d527c1094934f"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:development-tools-plan-markdown",
-      "artifactVersion": "2.0.0",
+      "artifactVersion": "3.0.0",
       "role": "human-readable-plan-projection",
       "canonicalPlanId": "pkid:plan:program-kit:development-tools",
-      "canonicalPlanVersion": "2.0.0",
-      "canonicalPlanSha256": "051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56",
+      "canonicalPlanVersion": "3.0.0",
+      "canonicalPlanSha256": "98c3356511307944504f66bf90467d573e09569ca8577a33b87d527c1094934f",
       "path": "extensions/development-tools/implementation-plan.md",
-      "sha256": "9ead5f48a5e7a68805ce7b9dc73ab499f46a46c6009097e4f5217f4a5fb6b760"
+      "sha256": "f4e884f0cd8a41261dd01536e6bc01727d7e78581e6fb5a9efa13cc1f2efe9a7"
     },
     {
       "artifactId": "pkid:tool:program-kit:development-tools-plan-materializer",
-      "artifactVersion": "1.0.0",
-      "role": "deterministic-plan-materializer",
+      "artifactVersion": "3.0.0",
+      "role": "deterministic-implementation-plan-materializer",
       "path": "extensions/development-tools/materialize-implementation-plan.ps1",
-      "sha256": "52a587f9b18b2c8f18f6256ff1030cfb3e40790f0466e977a272d1623f2d2bf9"
+      "sha256": "25f0adde1f5c41e8ef213a7db573eeeb373988515d8c8f5de37d1e3c02968a4f"
+    },
+    {
+      "artifactId": "pkid:tool:program-kit:development-tools-review-validator",
+      "artifactVersion": "3.0.0",
+      "role": "deterministic-review-validator",
+      "path": "extensions/development-tools/validate-review-set.ps1",
+      "sha256": "94940e57f83ba6b3b57e3c564f8b55ace7022415dd06fb71dcfad5e141f1b1b2"
     },
     {
       "artifactId": "pkid:evidence:program-kit:development-tools-validation",
-      "artifactVersion": "2.0.0",
+      "artifactVersion": "3.0.0",
       "role": "design-validation-report",
       "path": "extensions/development-tools/validation-report.md",
-      "sha256": "2d4345f5523c27573a0f016f22e2c8314fa60b7d910af48cb974c28cb163d9df"
+      "sha256": "82a64aacccf903fd723b7e7c82b1b29a4d3ccbe6bede4bd353af8b2ab0d18067"
     },
     {
       "artifactId": "pkid:guide:program-kit:development-tools-review",
-      "artifactVersion": "2.0.0",
+      "artifactVersion": "3.0.0",
       "role": "review-navigation",
       "path": "extensions/development-tools/README.md",
-      "sha256": "1e247c2a5a4394227f3b1a564e497a2b3767d4305320e86ac1729d64c90afc8f"
+      "sha256": "8f71a68c5183e8132bf88870e8944097d2444faa420ace833048109481318894"
     }
   ],
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-and-plan-digests",
-    "candidateDesignSha256": "918db6923687e0098d2b5c59936714c4f804235dfa18299bd6d6830535c7d5cb",
-    "candidatePlanSha256": "051f5ad4ce778b404707e9b9c94445c36677ffa235320c8aa3665b9445b53e56",
-    "acceptedScope": "PKDT-W010 through PKDT-W070 exactly as represented by the canonical Architecture Design 2.0.0 and Planning 3.0.0 artifacts.",
-    "requiresParentApproval": false,
-    "independentFrom": [
-      "pkid:approval:program-kit:corrective-reconstruction-review-set@1.0.0",
-      "pkid:approval:program-kit:typed-console-host-generation-review-set@1.0.0"
-    ],
+    "requiredDecision": "explicit human approval of the exact canonical design and implementation-plan digests after reviewing this candidate set",
+    "candidateDesignSha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b",
+    "candidatePlanSha256": "98c3356511307944504f66bf90467d573e09569ca8577a33b87d527c1094934f",
+    "candidateStaticConformanceDisposition": "reuse-existing",
+    "candidateWorkUnits": "PKDT-W010 through PKDT-W110 exactly as represented by the canonical Architecture Design and Implementation Plan artifacts.",
     "doesNotAuthorize": [
-      "implementation before explicit approval of both exact candidate digests",
+      "implementation before exact design-and-plan approval",
       "material deviation from the approved design or plan",
-      "Corrective Reconstruction or any cross-review integration",
-      "self-registration, self-permission, automatic provider start, AI/provider invocation, development-capability invocation, automatic retry, nested tool calls, or autonomous behavior",
-      "provider/global trust, approval, permission, settings, or unrelated project configuration mutation",
-      "remote MCP, provider-native transport, plugins, skills as transport, additional providers, or undocumented provider APIs",
-      "ProgramKit project references, source/file includes, assembly hint paths, build-output coupling, or uncontrolled first-party package sources in consumers",
-      "package-feed publication, release, deployment, production data, infrastructure, secrets, operational history, website authority, or external repository changes",
-      "a claim of cross-model, prompt, reasoning, provider, or general behavioral equivalence",
-      "overall cross-provider acceptance before genuine returned Claude Code evidence validates"
+      "altering or widening the completed Program Kit health-patching task",
+      "application semantic approval by Program Kit",
+      "automatic tool registration or capability initialization",
+      "provider trust, permission, invocation, or user-global mutation",
+      "private or authenticated acquisition",
+      "package-feed publication, release, promotion, deployment, or signing",
+      "external or sibling repository mutation",
+      "hooks, watchers, retries, nested indexes, or autonomous model/tool loops"
     ]
   },
   "validation": {
     "jsonSyntax": "passed for every review JSON artifact",
-    "canonicalArchitectureSchema": "passed through JsonSchemaWorkbenchValidator against Architecture Design 2.0.0",
-    "architectureSemanticValidation": "passed through ArchitectureDesignV2Validator over ArchitectureDesignValidator and ArtifactDecisionValidator",
-    "canonicalPlanSchema": "passed through JsonSchemaWorkbenchValidator against Planning 3.0.0",
-    "planSemanticValidation": "passed through ImplementationPlanDocumentV3Validator over ImplementationPlanDocumentValidator",
-    "staticConformanceDispositionSchema": "passed through JsonSchemaWorkbenchValidator against StaticConformanceDisposition 1.0.0",
-    "designPlanBinding": "passed: every plan design reference equals the exact canonical design SHA-256",
-    "requirementTrace": "passed: PKDT-R001 through PKDT-R016 each have one exact trace entry across serial PKDT-W010 through PKDT-W070",
-    "fixtureCatalog": "passed: PKDT-F001 through PKDT-F032 are unique and partition exactly once across five evidence profiles; runtime outcomes remain prospective",
+    "canonicalArchitectureSchema": "passed against Architecture Design 0.1.0-alpha.2",
+    "canonicalPlanSchema": "passed against Implementation Plan 0.1.0-alpha.3",
+    "staticConformanceDispositionSchema": "passed against StaticConformanceDisposition 0.1.0-alpha.1",
+    "targetedSemantics": "passed for exact source, decision, gate, plan, trace, fixture-profile, refresh/update, approval-state, and manifest bindings",
     "materializerDeterminism": "passed: two consecutive runs produced byte-identical canonical plan bytes",
-    "projectionBinding": "passed: reviewer Markdown names the exact canonical design and plan digests",
-    "focusedBuilds": "passed: Architecture and Planning projects built with mandatory private C# gate, zero warnings and zero errors",
-    "standaloneCheckAndRender": "unavailable: returned PKCLI004 because standalone Workbench check/render adapters are not registered",
-    "lockedRestore": "unavailable: sandbox could not read user-level NuGet configuration; unsandboxed authenticated/unspecified-feed access was not authorized",
-    "fullUnitBuildAndTests": "not established: --no-restore found existing assemblies but ran zero tests and returned exit 5; not cited as a pass or product failure",
-    "runtimeImplementationOrExecution": "not performed under design authority",
-    "genuineProviderAcceptance": "prospective; Codex belongs to PKDT-W050 and returned Claude Code evidence to PKDT-W070",
-    "scopeReview": "passed for Development Tools paths; concurrent typed Console and web-publication work preserved and excluded"
+    "runtimeImplementationOrAcceptance": "not performed under design authority"
   },
   "provenance": {
-    "startingCommit": "ce97d8601523b9112207a6a05fd9fb6bb7c56f83",
-    "branch": "main",
-    "sourceHostId": "slingshot:env_e_6a2540f8230883239e211be5649f94f4",
-    "sourceThreadId": "019fa450-92ad-71f2-9050-f1f36d346160",
-    "source": "human-started ProgramKit Development Tools design and seven-section convergence",
-    "details": "Bounded to ProgramKit repository source truth. No parent Domain Semantic Engine path or program-kit-website path was edited. No approval, implementation, registration, permission, release, provider, or autonomous authority is created by this candidate."
+    "startingCommit": "f555745e77ebce234f7e54665869a32cc555ba45",
+    "sourceState": "detached source was fast-forwarded and reconciled to canonical Program Kit main before final candidate digests",
+    "source": "human-started Program Kit Development Tools and application-capability design convergence",
+    "details": "Bounded to Program Kit repository source truth. Current completed health-patching commits were reconciled without edit or scope expansion. No runtime implementation, capability/provider activation, registration, permission, publication, external repository mutation, or application semantic approval occurred."
   }
 }

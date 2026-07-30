@@ -1,16 +1,16 @@
 {
   "identity": "pkid:design:program-kit:development-tools-static-basis",
-  "version": "1.0.0",
-  "sourceCommit": "ce97d8601523b9112207a6a05fd9fb6bb7c56f83",
+  "version": "2.0.0",
+  "sourceCommit": "f555745e77ebce234f7e54665869a32cc555ba45",
   "intent": {
     "identity": "pkid:intent:program-kit:development-tools",
-    "version": "2.0.0",
-    "digest": "sha256:35cf45c4821ffd2a9b8ccd684cf5108eb29167b3c643d65d91648c51abd12280"
+    "version": "3.0.0",
+    "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
   },
   "convergence": {
     "identity": "pkid:decision-log:program-kit:development-tools-convergence",
-    "version": "1.0.0",
-    "digest": "sha256:f1a9d15d2c7cab51e0f242c532dab5b2160c1f7eea51acffd0500eb910351bff"
+    "version": "2.0.0",
+    "digest": "sha256:8d6718031878c5a008d264a016a36773f27f374a13432a6131e6b115243c68c9"
   },
-  "purpose": "Non-circular exact design basis for the human-selected static-conformance disposition carried by the replacement Architecture Design 2.0 review candidate."
+  "purpose": "Non-circular current committed design basis for the human-selected reuse-existing static-conformance disposition carried by the operation exposure and application capabilities review candidate."
 }

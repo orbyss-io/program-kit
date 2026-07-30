@@ -1,20 +1,21 @@
 {
   "artifactId": "pkid:decision-source:program-kit:development-tools-static-conformance",
-  "artifactVersion": "1.0.0",
+  "artifactVersion": "2.0.0",
   "designBasis": {
     "identity": "pkid:design:program-kit:development-tools-static-basis",
-    "version": "1.0.0",
-    "digest": "sha256:509530b736991ef06141f76c71e1a345b3a9087d12a68a32f6e53dd0ad0d5f09"
+    "version": "2.0.0",
+    "digest": "sha256:f0b79f8c1f3fe4908da4c00b8b3d1732ab6c7cd85fa78a02fa86340d88bb98a0"
   },
   "decision": {
     "disposition": "reuse-existing",
     "provider": "codex",
-    "taskId": "019fa450-92ad-71f2-9050-f1f36d346160",
-    "statement": "I approve.",
+    "sourceThreadId": "019faabe-2e44-75b0-8db9-7139b5cebdc6",
+    "statement": "I approve all of your recommendations, including reuse-existing.",
     "conditions": [
-      "The private ProgramKit C# source gate applies only to ProgramKit-owned implementation source.",
-      "No new or extended gate and no consumer attachment is authorized."
+      "The private Program Kit C# source gate applies only to Program Kit-owned implementation source.",
+      "No new analyzer, gate extension, generated-source attachment, or consumer application attachment is authorized.",
+      "Protocol, provider, package-only, byte, lifecycle, capability, and cold-session claims remain executable conformance obligations."
     ]
   },
-  "authorityBoundary": "The human decision selects the exact existing private ProgramKit C# gate for repository implementation. It grants no new analyzer, suppression, activation, consumer, implementation, package-publication, provider, or registration authority."
+  "authorityBoundary": "This human decision selects the exact existing private Program Kit C# gate for the formal design. It grants no implementation, analyzer, suppression, registration, capability initialization, provider, permission, publication, or invocation authority."
 }

@@ -1,47 +1,49 @@
-# ProgramKit Development Tools review set
+# Program Kit operation exposure and application capabilities review set
 
-This is the replacement human-led review set for provider-neutral Development
-Tools usable by fresh Codex and Claude Code sessions.
+This review set consolidates Development Tools, generated Console
+introspection, host-neutral operation contracts, MCP projection and explicit
+registration, optional application-owned outcome capabilities, provider
+guidance, knowledge closure, and Program Kit package-only dogfood.
 
 Review in this order:
 
-1. `design-intent.md` — plain-language outcome, ownership, provider, safety,
-   package-only, acceptance, and exclusion boundaries.
-2. `convergence-notes.md` — the seven section-by-section human alignments and
-   accepted static-conformance selection.
-3. `architecture-design.json` — canonical Architecture Design `2.0.0`.
-4. `architecture-design.md` — reviewer projection of the canonical design.
+1. `design-intent.md` — human outcome, ownership, technical shape, lifecycle,
+   authority, and exclusions.
+2. `convergence-notes.md` — the completed section-by-section human alignment
+   and exact static-conformance ruling.
+3. `provider-contract-evidence.json` — current official MCP, Codex, and Claude
+   Code contract findings.
+4. `compatibility-version-matrix.json` — identity, version, update, refresh, and
+   migration boundaries.
 5. `static-conformance-disposition.json` — exact human-selected
    `reuse-existing` disposition.
 6. `program-kit-private-gate-selection-lock.json` — exact private gate,
-   activation, profile, evidence, scope, and source binding.
-7. `provider-contract-evidence.json` — current official MCP, Codex, and Claude
-   Code discovery/configuration/permission source findings.
-8. `compatibility-version-matrix.json` — exact package, contract, schema,
-   protocol, provider, update, and migration policy.
-9. `acceptance-fixtures.json` — 32 prospective deterministic and genuine
-   provider acceptance obligations.
-10. `implementation-plan.json` — canonical Planning `3.0.0` plan with seven
-    dependency-ordered work units.
-11. `implementation-plan.md` — reviewer projection of the canonical plan.
-12. `validation-report.md` — exact checks, unavailable operations, and
-    canonical digests.
-13. `review-manifest.json` — exact approval candidate and authority boundary.
+   activation, profile, evidence, and Program Kit-only scope.
+7. `architecture-design.json` — canonical Architecture Design
+   `0.1.0-alpha.2` schema instance.
+8. `architecture-design.md` — human-readable projection.
+9. `acceptance-fixtures.json` — prospective deterministic, package-only, and
+   genuine provider evidence.
+10. `implementation-plan.json` — canonical Implementation Plan
+    `0.1.0-alpha.3` schema instance.
+11. `implementation-plan.md` — human-readable plan projection.
+12. `validate-review-set.ps1` — deterministic digest, trace, fixture, approval,
+    and materializer checks.
+13. `validation-report.md` — exact validation, unavailable checks, and digests.
+14. `review-manifest.json` — the exact approval candidate and authority
+    boundary.
 
 `materialize-implementation-plan.ps1` deterministically rebuilds the canonical
-plan from the current exact canonical design, provider evidence, disposition,
-selection lock, and existing private-gate artifacts. It makes no runtime,
-provider, configuration, or external-system changes.
+plan from the exact design and supporting evidence. It performs no runtime,
+provider, registration, capability, permission, or external-system mutation.
 
-No Development Tool contract, schema, MCP bridge, provider writer,
-registration, permission, runtime operation, capability, or autonomous
-behavior has been implemented by this review set.
+No runtime, CLI command, schema, package, generated host, bridge, registration,
+provider adapter, capability bundle, catalog, lock, or acceptance journey is
+implemented by this review set.
 
-Corrective Reconstruction remains on the backlog and is not part of this
-approval candidate. The separate typed Console work is an independently
-approved effort; Development Tools is host-profile-neutral and rechecks its
-settled/current source truth at implementation preflight.
+The completed `[HEALTH-PATCHING] Program Kit` commits were reconciled from
+committed main and are not modified or widened here.
 
-After validation and exact-digest approval, implementation may proceed only
-through `implement-software-plan`, one bounded work unit at a time. A material
-architecture change stops for renewed human review.
+Implementation may begin only after separate human approval of the exact
+canonical design and plan digests, through `implement-software-plan`. Any
+material architecture deviation stops for renewed design review.

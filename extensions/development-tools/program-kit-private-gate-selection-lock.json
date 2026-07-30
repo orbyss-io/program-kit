@@ -1,20 +1,20 @@
 {
   "identity": "pkid:selection-lock:program-kit:development-tools-private-gate",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "disposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
-    "version": "1.0.0",
-    "digest": "sha256:6092894ece0f6691dcd59a27ca24eb6365bac2c01739a54bfb45856a86960697"
+    "version": "2.0.0",
+    "digest": "sha256:c4db1b5a72285101ded7e2f692eac0aed08f83997ab065bc9d7b04260fbb277b"
   },
   "gateDefinition": {
     "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
     "version": "1.10.0",
     "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
   },
-  "activationMatrix": {
+      "activationMatrix": {
     "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
     "version": "1.0.0",
-    "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+    "digest": "sha256:9603f5e67d256b381df4e69dce99fd9aafeaded20c947cfe699adb9dec7ecd8b"
   },
   "verificationProfile": {
     "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
@@ -24,9 +24,9 @@
   "activationEvidence": {
     "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
     "version": "1.0.0",
-    "digest": "sha256:c4b247449959317dd95eca5aab4baf61d709ff27155e84cae0a9d111f0e4b09b"
+    "digest": "sha256:7f4a6fbe84c42fc983880abb5e9c18b31eae6cbc6588171a76490f558c7d140b"
   },
-  "sourceCommit": "ce97d8601523b9112207a6a05fd9fb6bb7c56f83",
-  "scope": "ProgramKit-owned Development Tools implementation source only; never consumer-owned application or generated source.",
+  "sourceCommit": "f555745e77ebce234f7e54665869a32cc555ba45",
+  "scope": "Program Kit-owned implementation source only; never application-owned source, generated host source, or consumer capability content.",
   "state": "active"
 }

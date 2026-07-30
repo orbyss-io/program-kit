@@ -1,33 +1,51 @@
 {
   "softwareDesign": {
     "identity": "pkid:design:program-kit:development-tools-static-basis",
-    "version": "1.0.0",
-    "digest": "sha256:509530b736991ef06141f76c71e1a345b3a9087d12a68a32f6e53dd0ad0d5f09"
+    "version": "2.0.0",
+    "digest": "sha256:f0b79f8c1f3fe4908da4c00b8b3d1732ab6c7cd85fa78a02fa86340d88bb98a0"
   },
   "invariantAllocations": [
     {
       "identity": "pkid:invariant:program-kit:development-tools-repository-source-conformance",
-      "invariant": "ProgramKit-owned Development Tools C# satisfies the current private repository source-quality policy.",
+      "invariant": "Program Kit-owned implementation C# satisfies the current private repository source-quality policy.",
       "layer": "roslyn-compiler",
-      "rationale": "The existing private PKCS analyzer and build spine already enforce ProgramKit repository source structure and behavioral rules."
+      "rationale": "The existing private PKCS analyzer and build spine already enforce Program Kit repository source structure and behavioral rules."
     },
     {
       "identity": "pkid:invariant:program-kit:development-tools-project-package-direction",
-      "invariant": "New ProgramKit projects preserve approved reference direction and exact package topology.",
+      "invariant": "Operation, host projection, bridge, capability, CLI, and provider projects preserve approved reference direction and package topology.",
       "layer": "project-package",
       "rationale": "The existing build spine, explicit solution graph, locked restore, and architecture conformance tests own static dependency enforcement."
     },
     {
-      "identity": "pkid:invariant:program-kit:development-tools-package-only-consumer",
-      "invariant": "Consumer applications and proof fixtures consume ProgramKit only from exact locally prepared packages and controlled NuGet source mapping.",
-      "layer": "executable-test",
-      "rationale": "Consumer workspace topology, package provenance, source mapping, and absence of project/source/build coupling require isolated filesystem and build conformance."
+      "identity": "pkid:invariant:program-kit:development-tools-runtime-capability-isolation",
+      "invariant": "Runtime packages do not embed or reference agent-session capability content except through exact inert distribution manifests.",
+      "layer": "project-package",
+      "rationale": "Project/package reference conformance and package-layout tests can prove the static isolation boundary; provider activation cannot."
     },
     {
-      "identity": "pkid:invariant:program-kit:development-tools-runtime-and-provider-integrity",
-      "invariant": "Manifests, executables, provider configuration, ownership locks, MCP behavior, permissions, lifecycle, and cold-session evidence conform to their exact contracts.",
+      "identity": "pkid:invariant:program-kit:development-tools-package-only-consumer",
+      "invariant": "Application and Program Kit consumer proofs use exact packages and installed closure without repository/source/build-output coupling.",
       "layer": "executable-test",
-      "rationale": "Byte integrity, process behavior, provider discovery, permission observation, and cross-session isolation cannot be proven by a C# analyzer."
+      "rationale": "Package provenance, source mapping, generated hosts, bundle materialization, and absence of source knowledge require isolated filesystem and process conformance."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-operation-projection-integrity",
+      "invariant": "Operation catalogs, exposure bindings, Console introspection, MCP tools, schemas, results, and failures preserve exact identity and contract semantics.",
+      "layer": "executable-test",
+      "rationale": "Cross-artifact bytes, protocol behavior, generated-host execution, and application outputs cannot be proven by a C# analyzer."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-capability-integrity",
+      "invariant": "Bundles, operation bindings, knowledge closure, content-addressed storage, provider adapters, ownership locks, flat catalogs, refresh, update, and cold-session guidance conform to exact contracts.",
+      "layer": "executable-test",
+      "rationale": "Byte graphs, provider discovery, application-authored semantics, and cross-session behavior require schema, integration, and genuine provider evidence."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-authority-separation",
+      "invariant": "Tool registration, capability initialization, provider trust/permission, and invocation remain separate and no autonomous loop exists.",
+      "layer": "executable-test",
+      "rationale": "Configuration mutation, process start, provider prompts, and absence of automatic behavior are observable process properties rather than compiler properties."
     }
   ],
   "disposition": "reuse-existing",
@@ -41,25 +59,27 @@
       "activationMatrix": {
         "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
         "version": "1.0.0",
-        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+        "digest": "sha256:9603f5e67d256b381df4e69dce99fd9aafeaded20c947cfe699adb9dec7ecd8b"
       }
     }
   ],
   "linkedGateDesigns": [],
-  "rationale": "The existing private ProgramKit C# gate is compatible with the ProgramKit-owned implementation. Package-only consumer and runtime/provider behavior remain explicit executable conformance obligations. No new analyzer, gate extension, or consumer attachment is justified.",
+  "rationale": "The existing private Program Kit C# gate remains exactly compatible with Program Kit-owned implementation. Current committed main additionally verifies reusable gate package manifests against Git-normalized index bytes. No new analyzer, gate extension, generated-source attachment, or consumer attachment is justified; protocol, package-only, capability, provider, and cold-session behavior remain executable proof.",
   "residualRisks": [
-    "The private ProgramKit gate remains a repository-specific monolith with an MSBuild trust boundary.",
-    "Static analysis cannot prove package-only construction, exact bytes, process isolation, provider trust or permissions, cold-session discovery, or genuine external Claude Code evidence."
+    "The private Program Kit gate remains a repository-specific source-policy monolith with an MSBuild trust boundary.",
+    "Static analysis cannot prove package-only construction, exact runtime bytes, protocol negotiation, provider trust or permissions, capability triggering, knowledge closure use, cold-session isolation, or genuine external provider evidence.",
+    "Application semantic correctness remains publisher-owned and outside Program Kit static proof."
   ],
   "nonStaticClaims": [
-    "Schema projection, canonical serialization, MCP initialization/list/call, byte verification, timeout, cancellation, concurrency, idempotency, provider configuration, collision, update, removal, and package-only behavior require dedicated executable tests.",
-    "Genuine Codex and Claude Code cold-session evidence and human review remain authoritative for provider discovery, trust, permission, and non-autonomous behavior."
+    "Schema projection, generated Console introspection, OpenAPI binding, MCP modern/legacy negotiation, tools/list/call, canonical results, timeout, cancellation, concurrency, registration, capability lifecycle, catalog regeneration, and removal require dedicated executable tests.",
+    "Genuine Codex and Claude Code cold-session evidence and human review remain authoritative for provider-native capability/tool selection, trust, permission, and non-autonomous behavior.",
+    "Publisher attestation, not Program Kit conformance, remains authoritative for application workflow semantics."
   ],
   "decisionSource": {
     "source": {
       "identity": "pkid:decision-source:program-kit:development-tools-static-conformance",
-      "version": "1.0.0",
-      "digest": "sha256:e65c604f7f9c5aee09d1840b5d9f8562bbb14358d08bb7e1d97dd4657d002fd5"
+      "version": "2.0.0",
+      "digest": "sha256:3141126d860b1acac2f6f86c46b41dd32f81cd89a0fe8d69cfc40e4d5442f998"
     },
     "jsonPointer": "/decision"
   },
