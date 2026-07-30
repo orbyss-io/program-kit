@@ -296,6 +296,36 @@ public sealed class CommandApplicationTests
     }
 
     [TestMethod]
+    public async Task GateDescriptionPublishesExactLockAndTargetRules()
+    {
+        TestCommandConsole console = new();
+        var application = CommandLineComposition.CreateDefault(console);
+
+        var exit = await application.RunAsync(
+        [
+            "csharp-gate",
+            "describe-definition",
+            "--format",
+            "json",
+        ],
+        TestContext.CancellationToken);
+
+        Assert.AreEqual(
+            CommandExitCode.Success,
+            exit,
+            Encoding.UTF8.GetString(console.StandardError));
+        var output = Encoding.UTF8.GetString(console.StandardOutput);
+        Assert.Contains(
+            "projectProfileId|sourceProfileId|command|boundary|verificationProfile|comma-joined-analyzerComponentIds",
+            output);
+        Assert.Contains("cli-tests|... sorts before cli|...", output);
+        Assert.Contains("\"inputDigest\"", output);
+        Assert.Contains("\"outputDigest\"", output);
+        Assert.Contains("ProgramKitVerifyGeneratedProject", output);
+        Assert.Contains("csharp-gate scaffold-lock", output);
+    }
+
+    [TestMethod]
     public async Task ArtifactInspectionUsesAnExplicitRegisteredSchemaWithoutMutation()
     {
         var artifact = Path.Combine(

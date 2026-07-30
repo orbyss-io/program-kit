@@ -50,6 +50,36 @@ public sealed class CSharpBuildGateBuildIntegrationTests
     }
 
     [TestMethod]
+    public void GeneratedProjectEntryPointConfiguresAndExecutesGateActivation()
+    {
+        using TemporaryTestDirectory temporary =
+            new("program-kit-generated-project-entry-");
+        var project = WriteFixture(
+            temporary.FullName,
+            "generated-project-verify",
+            "valid",
+            useGeneratedProjectEntryPoint: true);
+
+        var result = Run(
+            temporary.FullName,
+            "msbuild",
+            project,
+            "/t:ProgramKitVerifyGeneratedProject",
+            "/restore:false");
+
+        Assert.AreEqual(0, result.ExitCode, result.Output);
+        var preCompilerLock = Directory
+            .EnumerateFiles(
+                Path.Combine(temporary.FullName, "obj"),
+                "pre-compiler-inputs.lock",
+                SearchOption.AllDirectories)
+            .Single();
+        Assert.Contains(
+            "command|generated-project-verify",
+            File.ReadAllText(preCompilerLock));
+    }
+
+    [TestMethod]
     [DataRow("disabled", "PKCG100")]
     [DataRow("substituted", "PKCG100")]
     [DataRow("duplicate-analyzer", "PKCG100")]
@@ -219,7 +249,8 @@ public sealed class CSharpBuildGateBuildIntegrationTests
     private static string WriteFixture(
         string root,
         string command,
-        string scenario)
+        string scenario,
+        bool useGeneratedProjectEntryPoint = false)
     {
         var projectPath = Path.Combine(root, "Consumer.proj");
         var taskAssembly = TaskAssemblyPath();
@@ -233,7 +264,21 @@ public sealed class CSharpBuildGateBuildIntegrationTests
         var isPacking = command == "pack" ? "true" : "false";
         var isPublishing = command == "publish" ? "true" : "false";
         var generatedBinding = command == "generated-project-verify"
+            && !useGeneratedProjectEntryPoint
             ? "1.0.0"
+            : string.Empty;
+        var generatedProjectTargets = useGeneratedProjectEntryPoint
+            ? """
+              <Target Name="Build"
+                      DependsOnTargets="CoreCompile" />
+              <Target Name="ProgramKitConfigureGeneratedProjectVerification">
+                <PropertyGroup>
+                  <ProgramKitCSharpGateGeneratedProjectBinding>1.0.0</ProgramKitCSharpGateGeneratedProjectBinding>
+                </PropertyGroup>
+              </Target>
+              <Target Name="ProgramKitVerifyGeneratedProject"
+                      DependsOnTargets="ProgramKitConfigureGeneratedProjectVerification;Build" />
+              """
             : string.Empty;
         var runAnalyzers = scenario == "disabled" ? "false" : "true";
         var assemblyDigest = scenario == "substituted"
@@ -317,6 +362,7 @@ public sealed class CSharpBuildGateBuildIntegrationTests
                 {{writeReceipt}}
               </Target>
               <Import Project="{{Xml(BuildTargetsPath())}}" />
+              {{generatedProjectTargets}}
             </Project>
             """;
         File.WriteAllText(projectPath, project, Encoding.UTF8);

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Orbyss.ProgramKit.Artifacts.Diagnostics;
+using Orbyss.ProgramKit.Artifacts.Primitives;
 using Orbyss.ProgramKit.Artifacts.References;
 using Orbyss.ProgramKit.Artifacts.Validation;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Definitions;
@@ -29,17 +30,15 @@ public static class CSharpBuildGateDefinitionLockValidation
         var expected = definition.ActivationMatrix.Activations
             .SelectMany(activation =>
                 activation.AnalyzerComponentIds.Select(component =>
-                    string.Join(
-                        "|",
-                        activation.ProjectProfileId.Value,
-                        component.Value,
+                    ReceiptScopeKey(
+                        activation.ProjectProfileId,
+                        component,
                         activation.VerificationProfile)))
             .ToHashSet(StringComparer.Ordinal);
         var observed = selectionLock.ExpectedReceipts
-            .Select(static receipt => string.Join(
-                "|",
-                receipt.ProjectProfileId.Value,
-                receipt.AnalyzerComponentId.Value,
+            .Select(static receipt => ReceiptScopeKey(
+                receipt.ProjectProfileId,
+                receipt.AnalyzerComponentId,
                 receipt.VerificationProfile))
             .ToArray();
         diagnostics.Require(
@@ -52,4 +51,14 @@ public static class CSharpBuildGateDefinitionLockValidation
             ? ProgramKitValidationResult.Valid
             : ProgramKitValidationResult.From(diagnostics);
     }
+
+    private static string ReceiptScopeKey(
+        ProgramKitIdentifier projectProfileId,
+        ProgramKitIdentifier analyzerComponentId,
+        CSharpGateVerificationProfileKind verificationProfile) =>
+        string.Join(
+            "|",
+            projectProfileId.Value,
+            analyzerComponentId.Value,
+            CSharpBuildGateOrdering.Kebab(verificationProfile));
 }

@@ -22,6 +22,7 @@ public sealed class CSharpBuildGateOperationService :
         lockValidator;
     private readonly IConsumerAnalyzerScaffoldingService scaffolding;
     private readonly ICSharpGateCompilerHarness compilerHarness;
+    private readonly CSharpGateSelectionLockProjector lockProjector;
 
     /// <summary>Initializes the operation service from exact owned behaviors.</summary>
     public CSharpBuildGateOperationService(
@@ -30,7 +31,8 @@ public sealed class CSharpBuildGateOperationService :
         IProgramKitSemanticValidator<CSharpBuildGateSelectionLockDocument>
             lockValidator,
         IConsumerAnalyzerScaffoldingService scaffolding,
-        ICSharpGateCompilerHarness compilerHarness)
+        ICSharpGateCompilerHarness compilerHarness,
+        CSharpGateSelectionLockProjector lockProjector)
     {
         this.definitionValidator = definitionValidator ??
             throw new ArgumentNullException(nameof(definitionValidator));
@@ -40,6 +42,8 @@ public sealed class CSharpBuildGateOperationService :
             throw new ArgumentNullException(nameof(scaffolding));
         this.compilerHarness = compilerHarness ??
             throw new ArgumentNullException(nameof(compilerHarness));
+        this.lockProjector = lockProjector ??
+            throw new ArgumentNullException(nameof(lockProjector));
     }
 
     /// <inheritdoc />
@@ -130,6 +134,18 @@ public sealed class CSharpBuildGateOperationService :
         scaffolding.ScaffoldAsync(request, outputRoot, cancellationToken);
 
     /// <inheritdoc />
+    public CSharpGateBindRequestAlpha1 ScaffoldLock(
+        CSharpBuildGateDefinitionDocument definition,
+        string definitionRepositoryRelativePath,
+        CSharpGateLockIntent intent,
+        string repositoryRoot) =>
+        lockProjector.Scaffold(
+            definition,
+            definitionRepositoryRelativePath,
+            intent,
+            repositoryRoot);
+
+    /// <inheritdoc />
     public CSharpBuildGateSelectionLockDocument Bind(CSharpGateBindRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -177,6 +193,11 @@ public sealed class CSharpBuildGateOperationService :
 
         return request.CandidateLock;
     }
+
+    /// <inheritdoc />
+    public CSharpBuildGateSelectionLockDocumentAlpha1 Bind(
+        CSharpGateBindRequestAlpha1 request) =>
+        lockProjector.Bind(request);
 
     /// <inheritdoc />
     public ValueTask<CSharpGateCompilerHarnessResult> VerifyAsync(

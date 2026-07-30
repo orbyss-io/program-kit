@@ -120,9 +120,7 @@ public sealed class DotNetHostSourceRenderer : IDotNetHostSourceRenderer
         """;
 
     private static string RenderBuildTargets() =>
-        """
-        <Project />
-        """;
+        DotNetGeneratedProjectBuildTargets.Content;
 
     private static string RenderPackagePolicy() =>
         """

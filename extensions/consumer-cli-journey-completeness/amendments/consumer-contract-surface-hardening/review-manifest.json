@@ -129,6 +129,19 @@
         "isolatedConsumerProof": "a small command sketch scaffolded identical request bytes twice, materialized Console inputs, generated a Console host, and verified the sealed host without hand-authored mirrored contract data",
         "formatVerification": "passed",
         "schemaAndManifestDigestPins": "passed for the Open Console alpha.2, Console request alpha.2, command-sketch alpha.1, capability payload, and testing package manifests"
+      },
+      "PKCJ-W050": {
+        "status": "verified",
+        "releaseBuild": "passed with zero warnings and zero errors after locked restore",
+        "unitTests": "643 passed",
+        "routineConformanceTests": "181 passed; 1 explicitly opt-in Linux fixture skipped",
+        "observatoryFixtureTests": "15 passed",
+        "privateCSharpGateProfile": "161 non-exhaustive tests passed; 20 exhaustive tests passed; 1 explicitly opt-in Linux fixture skipped",
+        "focusedAcceptance": "50 C# lock scaffold, exact ordering, CLI bind, generated target, and sealed-output integrity tests passed",
+        "isolatedGateProof": "the CLI scaffolded and bound an exact alpha.1 selection lock from named contained assets, and ProgramKitVerifyGeneratedProject executed both generated-output integrity and optional C# gate activation without ambient discovery",
+        "rebaseVerification": "rebased over 43bc085; locked restore, zero-warning Release build, all 643 unit tests, and the 4 directly affected generated-target, package-manifest, and version-inventory conformance tests passed; unchanged-source package inventory digests were mechanically restored to the recomputed bytes",
+        "formatVerification": "passed",
+        "schemaAndManifestDigestPins": "passed for the C# gate catalog alpha.2, selection-lock alpha.1, lock-intent alpha.1, capability payload, operation source inventory, testing package manifest, version map, and compatibility matrix"
       }
     }
   },

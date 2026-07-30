@@ -426,7 +426,7 @@ public sealed class CSharpBuildGateDefinitionValidator :
 
         CSharpBuildGateValidation.ValidateStableUnique(
             value.ActivationMatrix.Activations,
-            ActivationKey,
+            CSharpBuildGateOrdering.ActivationKey,
             "$.activationMatrix.activations",
             diagnostics);
         var projects = value.Profiles.Projects
@@ -685,19 +685,6 @@ public sealed class CSharpBuildGateDefinitionValidator :
             "$.assurance.performance",
             "Performance assurance requires positive ordered time and allocation budgets.");
     }
-
-    private static string ActivationKey(CSharpGateActivation activation) =>
-        string.Join(
-            "|",
-            activation.ProjectProfileId.Value,
-            activation.SourceProfileId.Value,
-            activation.Command,
-            activation.Boundary,
-            activation.VerificationProfile,
-            string.Join(
-                ",",
-                activation.AnalyzerComponentIds.Select(
-                    static identity => identity.Value)));
 
     private static bool IsConsumerPrefix(string value) =>
         !string.IsNullOrWhiteSpace(value) &&

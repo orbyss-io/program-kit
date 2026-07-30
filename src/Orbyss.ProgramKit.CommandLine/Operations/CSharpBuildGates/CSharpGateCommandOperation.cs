@@ -13,6 +13,7 @@ public sealed class CSharpGateCommandOperation : ICommandOperation
         "csharp-gate.validate-definition",
         "csharp-gate.render-definition",
         "csharp-gate.scaffold",
+        "csharp-gate.scaffold-lock",
         "csharp-gate.bind",
         "csharp-gate.verify",
         "csharp-gate.describe-definition",

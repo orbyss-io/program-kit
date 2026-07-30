@@ -84,6 +84,13 @@ public sealed class DotNetHostGenerationCoordinatorTests
         Assert.Contains(
             "<ProjectReference Include=\"src/Sample.Console.Contracts/Sample.Console.Contracts.csproj\" />",
             project);
+        var buildTargets = Text(outputs, "Directory.Build.targets");
+        Assert.Contains(
+            "ProgramKitVerifyGeneratedProject",
+            buildTargets);
+        Assert.Contains(
+            "ProgramKitCSharpGateGeneratedProjectBinding>1.0.0",
+            buildTargets);
         var settings = Text(
             outputs,
             "ProgramKitGenerated/Commands/ObserveRun/ObserveRunSettings.cs");

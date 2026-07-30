@@ -5,7 +5,7 @@
     {
       "capabilityId": "design-csharp-build-gate",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:4aa71f2ec28a937af8a1f2270b658338a83256b164a3acaf1fe10f6ff20fa617",
+      "sha256": "sha256:28eed933381be10c9d15e21dd6862e05f21974aaa1fe67f4bcc3ae8b6ca10fc7",
       "sourcePath": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md"
     },
     {
@@ -130,7 +130,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
       "resourceId": "consumer-capability-catalog",
-      "sha256": "sha256:f365166c0abcfb34a56bc071b5ffc2bc0cb940f9d56a590dcf78468ce35bf2da",
+      "sha256": "sha256:c151401d639a0076e7811bf682c38f1b514e111a5c30639a272e273ac2a664cc",
       "sourcePath": ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json"
     },
     {
@@ -142,7 +142,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json",
       "resourceId": "csharp-gate-authoring-catalog",
-      "sha256": "sha256:82c8eff19be4af8b4ff3e59efd2ba7c9ad45dd9287484e2b49dc9e21ba94d5f5",
+      "sha256": "sha256:1ff21bda9c358e4dccd571bd6e0fb7e9d89b12dbd703999addabbf0cd4a60064",
       "sourcePath": ".agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json"
     },
     {

@@ -69,16 +69,38 @@ internal static class CSharpBuildGateValidation
         }
 
         var keys = values.Select(key).ToArray();
-        diagnostics.Require(
-            keys.Distinct(StringComparer.Ordinal).Count() == keys.Length,
-            CSharpBuildGateDiagnosticIds.Pkcg002,
-            path,
-            "The finite collection contains duplicate identities.");
-        diagnostics.Require(
-            keys.SequenceEqual(keys.Order(StringComparer.Ordinal)),
-            CSharpBuildGateDiagnosticIds.Pkcg002,
-            path,
-            "The finite collection must use stable ordinal ordering.");
+        var duplicate = keys
+            .GroupBy(static value => value, StringComparer.Ordinal)
+            .FirstOrDefault(static group => group.Count() > 1);
+        if (duplicate is not null)
+        {
+            diagnostics.Error(
+                CSharpBuildGateDiagnosticIds.Pkcg002,
+                path,
+                string.Concat(
+                    "The finite collection contains duplicate composite key '",
+                    duplicate.Key,
+                    "'."));
+        }
+
+        for (var index = 1; index < keys.Length; index++)
+        {
+            if (string.CompareOrdinal(keys[index - 1], keys[index]) <= 0)
+            {
+                continue;
+            }
+
+            diagnostics.Error(
+                CSharpBuildGateDiagnosticIds.Pkcg002,
+                path,
+                string.Concat(
+                    "Stable ordinal ordering by the exact composite key is required; adjacent key '",
+                    keys[index - 1],
+                    "' must follow '",
+                    keys[index],
+                    "'."));
+            break;
+        }
     }
 
     public static bool SameReference(

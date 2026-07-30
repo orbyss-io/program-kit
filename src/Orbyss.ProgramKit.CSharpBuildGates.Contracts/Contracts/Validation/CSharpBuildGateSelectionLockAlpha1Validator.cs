@@ -8,15 +8,16 @@ using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Locks;
 
 namespace Orbyss.ProgramKit.CSharpBuildGates.Contracts.Validation;
 
-/// <summary>Pure structural validation for exact selection locks.</summary>
-public sealed class CSharpBuildGateSelectionLockValidator :
-    IProgramKitSemanticValidator<CSharpBuildGateSelectionLockDocument>
+/// <summary>Pure structural validation for selection lock 0.1.0-alpha.1.</summary>
+public sealed class CSharpBuildGateSelectionLockAlpha1Validator :
+    IProgramKitSemanticValidator<CSharpBuildGateSelectionLockDocumentAlpha1>
 {
-    private static readonly SemanticVersion Version = new("1.0.0");
+    private static readonly SemanticVersion Version =
+        new("0.1.0-alpha.1");
 
     /// <inheritdoc />
     public ProgramKitValidationResult Validate(
-        CSharpBuildGateSelectionLockDocument value)
+        CSharpBuildGateSelectionLockDocumentAlpha1 value)
     {
         var diagnostics = ImmutableArray.CreateBuilder<ProgramKitDiagnostic>();
         if (value is null)
@@ -37,7 +38,7 @@ public sealed class CSharpBuildGateSelectionLockValidator :
             value.SuppressionLedger is not null,
             CSharpBuildGateDiagnosticIds.Pkcg011,
             "$",
-            "Selection lock 1.0.0 requires every exact governing artifact.");
+            "Selection lock 0.1.0-alpha.1 requires every exact governing artifact.");
         ValidateReferences(
             value.AnalyzerComponents,
             "$.analyzerComponents",

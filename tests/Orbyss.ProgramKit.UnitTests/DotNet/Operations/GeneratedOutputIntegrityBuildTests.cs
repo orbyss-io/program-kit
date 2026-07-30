@@ -84,6 +84,21 @@ public sealed class GeneratedOutputIntegrityBuildTests
 
                         """),
                     Payload(
+                        "Directory.Build.targets",
+                        """
+                        <Project>
+                          <Target Name="ProgramKitConfigureGeneratedProjectVerification">
+                            <PropertyGroup>
+                              <ProgramKitCSharpGateGeneratedProjectBinding>1.0.0</ProgramKitCSharpGateGeneratedProjectBinding>
+                            </PropertyGroup>
+                          </Target>
+
+                          <Target Name="ProgramKitVerifyGeneratedProject"
+                                  DependsOnTargets="ProgramKitConfigureGeneratedProjectVerification;Build" />
+                        </Project>
+
+                        """),
+                    Payload(
                         "ProgramKitGenerated/Program.cs",
                         """
                         namespace GeneratedHost;
@@ -121,6 +136,7 @@ public sealed class GeneratedOutputIntegrityBuildTests
                     "--no-restore",
                     "--no-incremental",
                     "--nologo",
+                    "-t:ProgramKitVerifyGeneratedProject",
                 ],
                 TestContext.CancellationToken);
             Assert.AreEqual(0, valid.ExitCode, valid.Output);
@@ -137,6 +153,7 @@ public sealed class GeneratedOutputIntegrityBuildTests
                     "GeneratedHost.csproj",
                     "--no-restore",
                     "--nologo",
+                    "-t:ProgramKitVerifyGeneratedProject",
                 ],
                 TestContext.CancellationToken);
 

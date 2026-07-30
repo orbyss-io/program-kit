@@ -62,28 +62,28 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-build",
       "version": "0.1.0-alpha.2",
       "path": "extensions/reusable-csharp-build-gates/build-package-manifest.json",
-      "sha256": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
+      "sha256": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
     },
     {
       "clockId": "operations",
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
       "version": "0.1.0-alpha.2",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:d4d8e56253c798946ff12aefd3885e855702410fc2b3436721ef06643fccbd57"
+      "sha256": "sha256:00efcd057b0f9cbc0360f7a73e97ffebbb2e9d035fa4574eebd3c8e94f72cc12"
     },
     {
       "clockId": "capabilities",
       "identity": "pkid:capability:program-kit:design-csharp-build-gate",
       "version": "1.0.0",
       "path": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:4aa71f2ec28a937af8a1f2270b658338a83256b164a3acaf1fe10f6ff20fa617"
+      "sha256": "sha256:28eed933381be10c9d15e21dd6862e05f21974aaa1fe67f4bcc3ae8b6ca10fc7"
     },
     {
       "clockId": "capability-bundle",
       "identity": "pkid:bundle:program-kit:capabilities",
       "version": "0.1.0-alpha.2",
       "path": ".agent-capabilities/capability-bundle-manifest.json",
-      "sha256": "sha256:2714c2e727c9159a344dd93610b05ad81c246513a8c3f2d152981d307237b913"
+      "sha256": "sha256:5111abc98d0a2fa23b612a680b369f583283ba04c5bb08de53a4614860de0eb0"
     },
     {
       "clockId": "toolchain",
@@ -172,19 +172,19 @@
       "source": "operations",
       "target": "build-mechanics",
       "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:5452eb0d5ebb63ea0e53a0bbd25b164459e7cd4770021bceb2864532f9bb6946"
+      "acceptedSha256": "sha256:3cade4f222cdd292ae6156399ef4524dda7044f9a79d1e4a15a14c31de4128fe"
     },
     {
       "source": "capabilities",
       "target": "operations",
       "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:d4d8e56253c798946ff12aefd3885e855702410fc2b3436721ef06643fccbd57"
+      "acceptedSha256": "sha256:00efcd057b0f9cbc0360f7a73e97ffebbb2e9d035fa4574eebd3c8e94f72cc12"
     },
     {
       "source": "capability-bundle",
       "target": "capabilities",
       "acceptedVersion": "[1.0.0]",
-      "acceptedSha256": "sha256:4aa71f2ec28a937af8a1f2270b658338a83256b164a3acaf1fe10f6ff20fa617"
+      "acceptedSha256": "sha256:28eed933381be10c9d15e21dd6862e05f21974aaa1fe67f4bcc3ae8b6ca10fc7"
     },
     {
       "source": "selection-locks",

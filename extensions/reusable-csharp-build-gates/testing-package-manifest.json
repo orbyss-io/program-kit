@@ -4,7 +4,7 @@
   "operationsVersion": "1.0.0",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:8daa9152cf52fb38092a735ef88c297abadf7de4a8a41d926dbbc6039ae11e5a",
+    "digest": "sha256:1bef0378e9421e5da3e0f6cd4e97a674467b2ea3c40f545d606a0346693b5dba",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/FiniteProcessResult.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Testing/Operations/Execution/PinnedDotNetCSharpGateCompilerHarness.cs",
@@ -15,7 +15,7 @@
   },
   "operationSourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:43b381047fcac93dae8bb7a481ca20bc1ec69f04be1110991517d917de87b7f3",
+    "digest": "sha256:d93aac99369c6aa1a9835acb62187a57f997ae48ec41e9da3256f27a25efdc48",
     "paths": [
       "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
       "src/Orbyss.ProgramKit.CommandLine/Composition/SchemaDependencyClosureModuleFactory.cs",
@@ -48,11 +48,20 @@
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpBuildGateOperationException.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpBuildGateOperationService.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateBindRequest.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateBindRequestAlpha1.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateCompilerHarnessResult.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLocalAssetBinding.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLockInputProjection.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLockIntent.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLockInventoryKind.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLockInventorySet.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateLockLocalAssetIntent.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateSelectionLockOutputProjection.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateSelectionLockProjector.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/CSharpGateVerificationRequest.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/ICSharpBuildGateOperationService.cs",
       "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/ICSharpGateCompilerHarness.cs",
+      "src/Orbyss.ProgramKit.Workbench/Operations/CSharpBuildGates/InventoryRow.cs",
       "src/Orbyss.ProgramKit.Workbench/Orbyss.ProgramKit.Workbench.csproj"
     ]
   },
@@ -73,6 +82,7 @@
     "validate-definition",
     "render-definition",
     "scaffold",
+    "scaffold-lock",
     "bind",
     "verify"
   ],

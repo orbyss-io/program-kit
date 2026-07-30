@@ -452,7 +452,7 @@ public sealed class CSharpBuildGateContractTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid, Format(validation));
-        Assert.HasCount(10, module.Resources);
+        Assert.HasCount(12, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -461,6 +461,16 @@ public sealed class CSharpBuildGateContractTests
                 Convert.ToHexStringLower(SHA256.HashData(stream)));
             Assert.AreEqual(resource.SchemaReference.Digest.Value, actual);
         }
+        Assert.IsTrue(module.Resources.Any(static resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:csharp-gate-lock-intent" &&
+            resource.SchemaReference.Version.Value ==
+                "0.1.0-alpha.1"));
+        Assert.IsTrue(module.Resources.Any(static resource =>
+            resource.SchemaReference.Identity.Value ==
+                "pkid:schema:program-kit:csharp-build-gate-selection-lock" &&
+            resource.SchemaReference.Version.Value ==
+                "0.1.0-alpha.1"));
     }
 
     [TestMethod]

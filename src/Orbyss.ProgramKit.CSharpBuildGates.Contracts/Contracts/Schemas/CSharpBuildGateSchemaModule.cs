@@ -21,7 +21,7 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
     private static readonly SemanticVersion VersionAlphaTwo =
         new("0.1.0-alpha.2");
     private static readonly SemanticVersion CatalogVersion =
-        new("0.1.0-alpha.1");
+        new("0.1.0-alpha.2");
     private static readonly ProgramKitIdentifier Owner =
         new("pkid:package:program-kit:csharp-build-gates-contracts");
     private static readonly ArtifactProvenance Provenance =
@@ -60,6 +60,25 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
             new SemanticVersionRange("[1.0.0]"),
             new SemanticVersionRange("[1.0.0]"),
             []);
+    private static readonly ArtifactProvenance AmendmentProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design-amendment:program-kit:consumer-contract-surface-hardening"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:dc29a4be4fba94801041fc57fb95c4e21780c4db3fcb5376b31b34041ac81f37")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan-amendment:program-kit:consumer-contract-surface-hardening"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:c8b6a2ce5740532204b90202180ebbaa4050b1541da5cbd2401e1f1b89a9c499")),
+            ],
+            new ProgramKitIdentifier(
+                "pkid:project:program-kit:csharp-build-gates-contracts"),
+            "pkcj-w050-approved-review-set-0-1-0-alpha-1");
 
     private static readonly ImmutableArray<ProgramKitSchemaResource>
         SchemaResources =
@@ -76,6 +95,20 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
                 "https://schemas.orbyss.io/program-kit/csharp-build-gates/definition/0.1.0-alpha.1/schema.json",
                 "35a3662d59b85621ea8d2ab0bba03b23de056001cb4ad9b4385996db76da1638",
                 VersionAlphaOne),
+            Create(
+                "csharp-build-gate-selection-lock",
+                "csharp-build-gate-selection-lock-0.1.0-alpha.1.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/selection-lock/0.1.0-alpha.1/schema.json",
+                "c0d326108653b9e986df1a2b361611622d269df8072faf421eabec093e165cc5",
+                VersionAlphaOne,
+                AmendmentProvenance),
+            Create(
+                "csharp-gate-lock-intent",
+                "csharp-gate-lock-intent-0.1.0-alpha.1.schema.json",
+                "https://schemas.orbyss.io/program-kit/csharp-build-gates/lock-intent/0.1.0-alpha.1/schema.json",
+                "5a8175d515606be5c3ee3ae671d1558a1833ccfda0176d671bc6fd5dbdc7163c",
+                VersionAlphaOne,
+                AmendmentProvenance),
             Create(
                 "csharp-build-gate-definitions",
                 "definitions-0.1.0-alpha.2.schema.json",
@@ -168,7 +201,8 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
         string resourceName,
         string canonicalUri,
         string digest,
-        SemanticVersion version) =>
+        SemanticVersion version,
+        ArtifactProvenance? provenance = null) =>
         new(
             new ArtifactReference(
                 new ProgramKitIdentifier(
@@ -186,7 +220,7 @@ public sealed class CSharpBuildGateSchemaModule : IProgramKitSchemaModule
                 new ProgramKitIdentifier(
                     "pkid:project:program-kit:csharp-build-gates-operations"),
             ],
-            Provenance,
+            provenance ?? Provenance,
             CompatibilityFor(version));
 
     private static ArtifactCompatibility CompatibilityFor(

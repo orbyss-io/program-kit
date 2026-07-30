@@ -332,7 +332,13 @@ public static class CommandLineComposition
                 new CSharpBuildGateSelectionLockValidator(),
                 new ConsumerAnalyzerScaffoldingService(
                     new FileSystemConsumerAnalyzerScaffoldWorkspace()),
-                new PinnedDotNetCSharpGateCompilerHarness());
+                new PinnedDotNetCSharpGateCompilerHarness(),
+                new CSharpGateSelectionLockProjector(
+                    serializer,
+                    CommandLineJsonProfiles.CSharpBuildGates.Reference,
+                    CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits,
+                    new CSharpBuildGateDefinitionValidator(),
+                    new CSharpBuildGateSelectionLockAlpha1Validator()));
         ICSharpGateCommandService csharpGateCommands =
             new CSharpGateCommandService(
                 fileSystem,
@@ -399,6 +405,7 @@ public static class CommandLineComposition
                 "csharp-gate.validate-definition" or
                 "csharp-gate.render-definition" or
                 "csharp-gate.scaffold" or
+                "csharp-gate.scaffold-lock" or
                 "csharp-gate.bind" or
                 "csharp-gate.verify" or
                 "csharp-gate.describe-definition" or

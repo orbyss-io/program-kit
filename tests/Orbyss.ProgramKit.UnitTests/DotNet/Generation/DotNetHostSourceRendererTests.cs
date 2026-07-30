@@ -90,6 +90,43 @@ public sealed class DotNetHostSourceRendererTests
     }
 
     [TestMethod]
+    public void ApiAndWorkerShareGeneratedProjectVerificationTarget()
+    {
+        var shell = DotNetTestContractFactory.Shell();
+        var shellRevision = DotNetTestContractFactory.Ref(
+            "shell",
+            "reviewed",
+            '7');
+        DotNetShellLockBuilder lockBuilder =
+            new(CreateValidator());
+        var locks = lockBuilder.Build(shell, shellRevision);
+        var sut = CreateRenderer();
+        var targets = shell.Hosts
+            .Where(static host => host.Kind != DotNetHostKind.Console)
+            .Select(host => Text(
+                sut.Render(
+                    host,
+                    locks.HostLocks.Single(candidate =>
+                        candidate.HostIdentity == host.Identity),
+                    shell.Features,
+                    host.Kind == DotNetHostKind.Api
+                        ? DotNetTestContractFactory.ApiDocument(shell)
+                        : null),
+                "Directory.Build.targets"))
+            .ToArray();
+
+        Assert.HasCount(2, targets);
+        Assert.AreEqual(targets[0], targets[1]);
+        Assert.Contains("ProgramKitVerifyGeneratedProject", targets[0]);
+        Assert.Contains(
+            "ProgramKitCSharpGateGeneratedProjectBinding>1.0.0",
+            targets[0]);
+        Assert.Contains(
+            "DependsOnTargets=\"ProgramKitConfigureGeneratedProjectVerification;Build\"",
+            targets[0]);
+    }
+
+    [TestMethod]
     public void FastEndpointsAddsOnlyPinnedSyntaxAdapterAndPreservesOwners()
     {
         var baselineShell = DotNetTestContractFactory.Shell();

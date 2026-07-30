@@ -4,7 +4,7 @@
   "mechanicsVersion": "1.0.0",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:35b3e8ae37fb281f52409bcc14a163ebf411b2b38e9d737b2dd0acd06d86c747",
+    "digest": "sha256:affda29ba82fb319063235f7a67ac3c59cffe789d36fe8ae72fe0e6f44b201cc",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/CSharpBuildGateActivationResult.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/CSharpBuildGateTaskSupport.cs",

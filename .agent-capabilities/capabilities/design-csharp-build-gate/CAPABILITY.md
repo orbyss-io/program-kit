@@ -173,6 +173,18 @@ collections, and emits BOM-free bytes. Use `commands describe`, `diagnostics
 explain`, and `artifacts inspect` for failures. Never inspect DLL strings or
 guess analyzer identities, null rules, or ordering.
 
+After the human-approved definition and lock intent exist, retrieve
+`pkid:schema:program-kit:csharp-gate-lock-intent@0.1.0-alpha.1` and use
+`program-kit csharp-gate scaffold-lock <definition> <lock-intent>
+--repository-root . --output <new-bind-request>`. The backed command hashes
+only explicitly named contained assets, derives canonical ordering and
+expected receipts, and computes the alpha.1 input/output digest projections.
+Then use `program-kit csharp-gate bind <bind-request> --output
+<new-selection-lock>`; bind recomputes every value and refuses stale or edited
+requests. `describe-definition` owns the exact composite keys, ordinal prefix
+example, receipt derivation, digest projections, and
+`ProgramKitVerifyGeneratedProject` package/target ownership.
+
 ## Provider wrapper mapping and drift check
 
 Codex and Claude wrappers contain only trigger metadata plus exact

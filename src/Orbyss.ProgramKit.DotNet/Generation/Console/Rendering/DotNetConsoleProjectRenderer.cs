@@ -12,7 +12,9 @@ internal sealed class DotNetConsoleProjectRenderer :
         [
             Output("global.json", GlobalJson()),
             Output("Directory.Build.props", BuildProps()),
-            Output("Directory.Build.targets", "<Project />\n"),
+            Output(
+                "Directory.Build.targets",
+                DotNetGeneratedProjectBuildTargets.Content),
             Output("Directory.Packages.props", "<Project />\n"),
             Output("GeneratedHost.csproj", Project(projection)),
             Output(

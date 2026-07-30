@@ -189,7 +189,7 @@ public sealed class ActiveOwnedAlphaTransitionConformanceTests
         var entries = inventory.RootElement.GetProperty("entries")
             .EnumerateArray()
             .ToArray();
-        Assert.HasCount(128, entries);
+        Assert.HasCount(130, entries);
         Assert.HasCount(
             entries.Length,
             entries.Select(entry => string.Concat(

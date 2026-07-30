@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/csharp-build-gates/lock-intent/0.1.0-alpha.1/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:csharp-gate-lock-intent",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit C# Gate Lock Intent 0.1.0-alpha.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "lockIdentity",
+    "disposition",
+    "recipes",
+    "operationRevisions",
+    "sdkVersion",
+    "compilerRoslynVersion",
+    "languageVersion",
+    "targetFramework",
+    "receiptIdentityNamespace",
+    "localAssets"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "pkid:schema:program-kit:csharp-gate-lock-intent@0.1.0-alpha.1"
+    },
+    "version": {
+      "const": "0.1.0-alpha.1"
+    },
+    "lockIdentity": {
+      "$ref": "#/$defs/identifier"
+    },
+    "disposition": {
+      "$ref": "#/$defs/reference"
+    },
+    "recipes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "operationRevisions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "sdkVersion": {
+      "$ref": "#/$defs/version"
+    },
+    "compilerRoslynVersion": {
+      "$ref": "#/$defs/version"
+    },
+    "languageVersion": {
+      "$ref": "#/$defs/version"
+    },
+    "targetFramework": {
+      "type": "string",
+      "minLength": 1
+    },
+    "receiptIdentityNamespace": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/identifier"
+        },
+        {
+          "pattern": "^pkid:receipt:"
+        }
+      ]
+    },
+    "localAssets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/localAsset"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "$ref": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.2/definitions.schema.json#/$defs/programKitIdentifier"
+    },
+    "version": {
+      "$ref": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.2/definitions.schema.json#/$defs/semanticVersion"
+    },
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.2/definitions.schema.json#/$defs/artifactReference"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*\\\\)(?!.*[*?\\[\\]])[^\\r\\n]+$"
+    },
+    "localAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "repositoryRelativePath"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "project",
+            "physical-source",
+            "generated-source",
+            "reference",
+            "additional-file",
+            "analyzer-configuration"
+          ]
+        },
+        "repositoryRelativePath": {
+          "$ref": "#/$defs/repositoryPath"
+        }
+      }
+    }
+  }
+}

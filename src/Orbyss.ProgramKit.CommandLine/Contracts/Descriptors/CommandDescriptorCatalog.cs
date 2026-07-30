@@ -375,6 +375,21 @@ public static class CommandDescriptorCatalog
             "Writes only the explicit binding output and grants no approval.",
             "program-kit csharp-gate bind binding-request.json --output gate"),
         Create(
+            "csharp-gate.scaffold-lock",
+            ["csharp-gate", "scaffold-lock"],
+            [
+                new("definition", true, false),
+                new("lock-intent", true, false),
+            ],
+            [
+                new("repository-root", true, true),
+                new("output", true, true),
+                Diagnostics(),
+            ],
+            "Scaffold one complete digest-bound C# gate bind request.",
+            "Derives only exact named assets, ordering, receipts, and digests; it grants no approval.",
+            "program-kit csharp-gate scaffold-lock gate-definition.json lock-intent.json --repository-root . --output gate-bind-request.json"),
+        Create(
             "csharp-gate.verify",
             ["csharp-gate", "verify"],
             [new("request", true, false)],

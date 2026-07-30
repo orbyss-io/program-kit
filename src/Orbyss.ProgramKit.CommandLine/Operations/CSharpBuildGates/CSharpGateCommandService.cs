@@ -14,6 +14,7 @@ using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
 using Orbyss.ProgramKit.CSharpBuildGates.Authoring.Contracts.Scaffolding;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Definitions;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Schemas;
+using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Validation;
 using Orbyss.ProgramKit.Serialization.Json.Serialization;
 using Orbyss.ProgramKit.Workbench.Operations.CSharpBuildGates;
 using Orbyss.ProgramKit.Workbench.Operations.Schemas;
@@ -73,6 +74,9 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
                     .ConfigureAwait(false),
             "csharp-gate.scaffold" =>
                 await ScaffoldAsync(invocation, cancellationToken)
+                    .ConfigureAwait(false),
+            "csharp-gate.scaffold-lock" =>
+                await ScaffoldLockAsync(invocation, cancellationToken)
                     .ConfigureAwait(false),
             "csharp-gate.bind" =>
                 await BindAsync(invocation, cancellationToken)
@@ -294,7 +298,9 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
             {
                 Activations = definition.ActivationMatrix.Activations
                     .Select(Canonicalize)
-                    .OrderBy(ActivationKey, StringComparer.Ordinal)
+                    .OrderBy(
+                        CSharpBuildGateOrdering.ActivationKey,
+                        StringComparer.Ordinal)
                     .ToImmutableArray(),
             },
             TemporaryExceptions = definition.TemporaryExceptions
@@ -425,15 +431,6 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
         values
             .OrderBy(ReferenceKey, StringComparer.Ordinal)
             .ToImmutableArray();
-
-    private static string ActivationKey(CSharpGateActivation value) =>
-        string.Join(
-            "|",
-            value.ProjectProfileId.Value,
-            value.SourceProfileId.Value,
-            value.Command.ToString(),
-            value.Boundary.ToString(),
-            value.VerificationProfile.ToString());
 
     private static string ReferenceKey(ArtifactReference value) =>
         string.Join(
@@ -577,23 +574,103 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
         return CommandOperationResult.Success();
     }
 
+    private async ValueTask<CommandOperationResult> ScaffoldLockAsync(
+        CommandInvocation invocation,
+        CancellationToken cancellationToken)
+    {
+        var root = Path.GetFullPath(
+            invocation.RequiredOption("repository-root"));
+        if (!fileSystem.DirectoryExists(root))
+        {
+            throw new IOException(
+                "The exact repository root does not exist.");
+        }
+
+        var definitionPath = ResolveBelow(
+            root,
+            invocation.Arguments[0],
+            "The gate definition");
+        var intentPath = ResolveBelow(
+            root,
+            invocation.Arguments[1],
+            "The lock intent");
+        var output = ResolveBelow(
+            root,
+            invocation.RequiredOption("output"),
+            "The scaffold output");
+        RequireNewOutput(output);
+        var definition = await ReadAsync<CSharpBuildGateDefinitionDocument>(
+            definitionPath,
+            cancellationToken).ConfigureAwait(false);
+        var intent = await ReadAsync<CSharpGateLockIntent>(
+            intentPath,
+            cancellationToken).ConfigureAwait(false);
+        var relativeDefinition = Path.GetRelativePath(
+                root,
+                definitionPath)
+            .Replace('\\', '/');
+        var request = operations.ScaffoldLock(
+            definition,
+            relativeDefinition,
+            intent,
+            root);
+        var canonical = serializer.Write(
+            request,
+            CommandLineJsonProfiles.CSharpBuildGates.Reference,
+            CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits);
+        await PromoteFileAsync(
+            output,
+            canonical.ToArray(),
+            cancellationToken).ConfigureAwait(false);
+        return CommandOperationResult.Success(
+            Encoding.UTF8.GetBytes(
+                string.Concat(
+                    "Scaffolded exact C# gate bind request at ",
+                    output,
+                    ".",
+                    Environment.NewLine)));
+    }
+
     private async ValueTask<CommandOperationResult> BindAsync(
         CommandInvocation invocation,
         CancellationToken cancellationToken)
     {
-        var request = await ReadAsync<CSharpGateBindRequest>(
+        var requestBytes = await fileSystem.ReadAllBytesAsync(
             invocation.Arguments[0],
             cancellationToken).ConfigureAwait(false);
         var output = invocation.RequiredOption("output");
         RequireNewOutput(output);
-        var selectionLock = operations.Bind(request);
-        var canonical = serializer.Write(
-            selectionLock,
-            CommandLineJsonProfiles.CSharpBuildGates.Reference,
-            CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits);
-        await fileSystem.WriteAllBytesAsync(
+        byte[] canonical;
+        if (IsAlphaOneBindRequest(requestBytes.Span))
+        {
+            var request = serializer.Read<CSharpGateBindRequestAlpha1>(
+                requestBytes,
+                CommandLineJsonProfiles.CSharpBuildGates.Reference,
+                CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits);
+            var selectionLock = operations.Bind(request);
+            canonical = serializer.Write(
+                selectionLock,
+                CommandLineJsonProfiles.CSharpBuildGates.Reference,
+                CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits)
+                .ToArray();
+        }
+        else
+        {
+            var request = serializer.Read<CSharpGateBindRequest>(
+                requestBytes,
+                CommandLineJsonProfiles.CSharpBuildGates.Reference,
+                CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits);
+            var selectionLock = operations.Bind(request);
+            canonical = serializer.Write(
+                selectionLock,
+                CommandLineJsonProfiles.CSharpBuildGates.Reference,
+                CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits)
+                .ToArray();
+        }
+
+        await PromoteFileAsync(
             output,
-            canonical.ToArray(),
+            canonical,
             cancellationToken).ConfigureAwait(false);
         return CommandOperationResult.Success();
     }
@@ -646,6 +723,96 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
         {
             throw new IOException(
                 "The exact operation output already exists.");
+        }
+    }
+
+    private static bool IsAlphaOneBindRequest(ReadOnlySpan<byte> content)
+    {
+        Utf8JsonReader reader = new(
+            content,
+            new JsonReaderOptions
+            {
+                AllowTrailingCommas = false,
+                CommentHandling = JsonCommentHandling.Disallow,
+                MaxDepth = CommandLineJsonProfiles.CSharpBuildGates
+                    .MaximumLimits.MaxDepth,
+            });
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+        {
+            return false;
+        }
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                return false;
+            }
+
+            var name = reader.GetString();
+            if (!reader.Read())
+            {
+                return false;
+            }
+
+            if (string.Equals(name, "version", StringComparison.Ordinal))
+            {
+                return reader.TokenType == JsonTokenType.String &&
+                    string.Equals(
+                        reader.GetString(),
+                        "0.1.0-alpha.1",
+                        StringComparison.Ordinal);
+            }
+
+            reader.Skip();
+        }
+
+        return false;
+    }
+
+    private static string ResolveBelow(
+        string root,
+        string path,
+        string description)
+    {
+        var candidate = Path.GetFullPath(path, root);
+        var prefix = string.Concat(
+            root.TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar),
+            Path.DirectorySeparatorChar);
+        if (!candidate.StartsWith(
+                prefix,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new IOException(
+                string.Concat(description, " escapes the repository root."));
+        }
+
+        return candidate;
+    }
+
+    private async ValueTask PromoteFileAsync(
+        string output,
+        ReadOnlyMemory<byte> content,
+        CancellationToken cancellationToken)
+    {
+        var stage = string.Concat(output, ".program-kit-stage");
+        RequireNewOutput(stage);
+        try
+        {
+            await fileSystem.WriteAllBytesAsync(
+                stage,
+                content,
+                cancellationToken).ConfigureAwait(false);
+            fileSystem.MoveFile(stage, output, overwrite: false);
+        }
+        finally
+        {
+            if (fileSystem.FileExists(stage))
+            {
+                fileSystem.DeleteFile(stage);
+            }
         }
     }
 }

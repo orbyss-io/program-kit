@@ -25,8 +25,10 @@
       "commands": [
         "artifacts.inspect",
         "commands.describe",
+        "csharp-gate.bind",
         "csharp-gate.describe-definition",
         "csharp-gate.materialize-definition",
+        "csharp-gate.scaffold-lock",
         "csharp-gate.validate-definition",
         "diagnostics.explain",
         "schemas.read"
@@ -41,6 +43,8 @@
         "pkid:schema:program-kit:csharp-build-gate-definitions@0.1.0-alpha.2",
         "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.1",
         "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2",
+        "pkid:schema:program-kit:csharp-build-gate-selection-lock@0.1.0-alpha.1",
+        "pkid:schema:program-kit:csharp-gate-lock-intent@0.1.0-alpha.1",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4"
       ],

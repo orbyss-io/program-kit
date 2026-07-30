@@ -243,7 +243,7 @@ public sealed class CommandParserTests
     }
 
     [TestMethod]
-    public void ParsesOnlyTheSevenFiniteCSharpGateCommands()
+    public void ParsesOnlyTheEightFiniteCSharpGateCommands()
     {
         CommandParser sut = new(CommandDescriptorCatalog.All);
 
@@ -286,6 +286,21 @@ public sealed class CommandParserTests
         Assert.AreEqual(
             "csharp-gate.describe-definition",
             describe.Descriptor.Key);
+
+        var scaffoldLock = sut.Parse(
+        [
+            "csharp-gate",
+            "scaffold-lock",
+            "definition.json",
+            "lock-intent.json",
+            "--repository-root",
+            ".",
+            "--output",
+            "bind-request.json",
+        ]);
+        Assert.AreEqual(
+            "csharp-gate.scaffold-lock",
+            scaffoldLock.Descriptor.Key);
 
         Assert.ThrowsExactly<CommandInvocationException>(
             () => sut.Parse(

@@ -22,7 +22,7 @@ public sealed class DomainSchemaModuleTests
             (
                 new CSharpBuildGateSchemaModule(),
                 "pkid:package:program-kit:csharp-build-gates-contracts",
-                10),
+                12),
             (
                 new DevelopmentSchemaModule(),
                 "pkid:package:program-kit:development",
