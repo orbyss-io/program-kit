@@ -88,24 +88,10 @@ public sealed class KiotaForeignClientConformanceTests
             [],
             []);
 
-    private static string ResolveKiotaPackage()
-    {
-        var packageRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-        if (string.IsNullOrWhiteSpace(packageRoot))
-        {
-            packageRoot = Path.Combine(
-                Environment.GetFolderPath(
-                    Environment.SpecialFolder.UserProfile),
-                ".nuget",
-                "packages");
-        }
-
-        return Path.Combine(
-            packageRoot,
-            "microsoft.openapi.kiota",
-            "1.34.1",
-            "microsoft.openapi.kiota.1.34.1.nupkg");
-    }
+    private static string ResolveKiotaPackage() =>
+        ExternalPackageArchives.EnsureDownloaded(
+            "Microsoft.OpenApi.Kiota",
+            "1.34.1");
 
     private static async Task BuildAndCallFixtureAsync(
         string generatedRoot,

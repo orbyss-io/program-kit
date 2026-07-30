@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Orbyss.ProgramKit.ConformanceTests.Infrastructure;
 using Orbyss.ProgramKit.SecretResolution.Contracts.Schemas;
 
 namespace Orbyss.ProgramKit.ConformanceTests.DotNet.Schemas;
@@ -52,20 +53,13 @@ public sealed class DotNetExternalEvidenceTests
             "no universal platform-independent NuGet lock is claimed",
             root.GetProperty("policies").GetProperty("nugetLockClaim").GetString());
 
-        var packageRoot = Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".nuget",
-                "packages");
         foreach (var package in root.GetProperty("directPackages").EnumerateArray())
         {
             var packageId = package.GetProperty("id").GetString()!;
             var version = package.GetProperty("version").GetString()!;
-            var archivePath = Path.Combine(
-                packageRoot,
-                packageId.ToLowerInvariant(),
-                version,
-                string.Concat(packageId.ToLowerInvariant(), ".", version, ".nupkg"));
+            var archivePath = ExternalPackageArchives.EnsureDownloaded(
+                packageId,
+                version);
             var actual = Convert.ToHexString(
                     SHA256.HashData(File.ReadAllBytes(archivePath)))
                 .ToLowerInvariant();
@@ -386,23 +380,14 @@ public sealed class DotNetExternalEvidenceTests
                         SHA256.HashData(File.ReadAllBytes(generatorPath)))
                     .ToLowerInvariant()));
 
-        var packageRoot = Environment.GetEnvironmentVariable(
-                "NUGET_PACKAGES") ??
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".nuget",
-                "packages");
         foreach (var package in packages)
         {
             var packageId = package.GetProperty("id").GetString()!;
             var version = package.GetProperty("version").GetString()!;
-            var packageDirectory = Path.Combine(
-                packageRoot,
-                packageId.ToLowerInvariant(),
+            var archivePath = ExternalPackageArchives.EnsureDownloaded(
+                packageId,
                 version);
-            var archivePath = Path.Combine(
-                packageDirectory,
-                string.Concat(packageId.ToLowerInvariant(), ".", version, ".nupkg"));
+            var packageDirectory = Path.GetDirectoryName(archivePath)!;
             Assert.AreEqual(
                 package.GetProperty("sha256").GetString(),
                 Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(archivePath)))

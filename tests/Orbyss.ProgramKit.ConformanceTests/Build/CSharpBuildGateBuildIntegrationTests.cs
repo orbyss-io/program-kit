@@ -425,25 +425,52 @@ public sealed class CSharpBuildGateBuildIntegrationTests
         SecurityElement.Escape(value) ??
         throw new InvalidOperationException("Could not XML-escape a path.");
 
-    private static string TaskAssemblyPath() =>
-        Path.Combine(
-            ConformanceInputs.ProgramKitRoot,
-            "src",
-            "Orbyss.ProgramKit.CSharpBuildGates.Build",
-            "bin",
-            "Debug",
-            "net10.0",
-            "Orbyss.ProgramKit.CSharpBuildGates.Build.dll");
+    private static readonly Lazy<string> ProvisionedTaskAssembly = new(() =>
+        BuildDebugAssembly(
+            BuildProjectPath(),
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                "src",
+                "Orbyss.ProgramKit.CSharpBuildGates.Build",
+                "bin",
+                "Debug",
+                "net10.0",
+                "Orbyss.ProgramKit.CSharpBuildGates.Build.dll")));
 
-    private static string PrivateAnalyzerPath() =>
-        Path.Combine(
+    private static readonly Lazy<string> ProvisionedPrivateAnalyzer = new(() =>
+        BuildDebugAssembly(
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                "tools",
+                "Orbyss.ProgramKit.CSharpGate",
+                "Orbyss.ProgramKit.CSharpGate.csproj"),
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                "tools",
+                "Orbyss.ProgramKit.CSharpGate",
+                "bin",
+                "Debug",
+                "net10.0",
+                "Orbyss.ProgramKit.CSharpGate.dll")));
+
+    private static string TaskAssemblyPath() => ProvisionedTaskAssembly.Value;
+
+    private static string PrivateAnalyzerPath() => ProvisionedPrivateAnalyzer.Value;
+
+    private static string BuildDebugAssembly(string project, string assembly)
+    {
+        var build = Run(
             ConformanceInputs.ProgramKitRoot,
-            "tools",
-            "Orbyss.ProgramKit.CSharpGate",
-            "bin",
+            "build",
+            project,
+            "--configuration",
             "Debug",
-            "net10.0",
-            "Orbyss.ProgramKit.CSharpGate.dll");
+            "--no-restore",
+            "--nologo");
+        Assert.AreEqual(0, build.ExitCode, build.Output);
+        Assert.IsTrue(File.Exists(assembly), assembly);
+        return assembly;
+    }
 
     private static string BuildProjectPath() =>
         Path.Combine(
