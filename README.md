@@ -144,25 +144,32 @@ Kit packages as one coordinated set.
 
 ### Fresh clone of a consumer repository
 
-A repository built with Program Kit ignores its machine-local workspace state
-(for example a repository-local feed under `.program-kit/`, provider wrappers,
-and materialized generation inputs). After a fresh clone, recreate that state
-before gate or host commands work:
+A repository built with Program Kit owns whether its AI-provider bindings are
+absent, contributor-local, or committed. Its README should state one of the
+[`none`, `local-optional`, or `repository-managed` postures](.agent-capabilities/consumer-integration.md)
+and pin the exact Program Kit CLI acquisition path.
+
+After a fresh clone:
 
 1. Provide the exact pinned Program Kit packages: install the tool as above,
    or restore the repository-local feed the consumer's `NuGet.Config` maps
    `Orbyss.ProgramKit.*` to.
 2. Run `dotnet tool restore` when the repository pins the CLI in a
    `dotnet-tools.json` manifest.
-3. Run `program-kit capabilities initialize --provider <codex|claude>
-   --workspace-root .` to reinstall the thin wrappers and ownership lock.
+3. For `local-optional`, explicitly run
+   `program-kit capabilities initialize --provider <codex|claude>
+   --workspace-root .`. For `repository-managed`, verify the committed
+   wrappers and lock with `capabilities preflight`; reinitialize only after an
+   explicit version change or exact migration. For `none`, do neither.
 4. Re-run any materialization the repository records (for example
    `program-kit dotnet materialize-console-inputs <request> --workspace-root .
    --output <directory> --build-consumer`) before regenerating or verifying a
    generated host.
 
 `program-kit capabilities preflight <capability> --workspace-root .` verifies
-the recreated state matches the exact recorded bytes.
+that the selected repository-managed or local-optional state matches the exact
+installed CLI and recorded bytes. Program Kit does not edit `.gitignore`,
+stage files, commit files, or silently select a posture.
 
 ## Why it exists
 
@@ -233,8 +240,15 @@ git clone https://github.com/orbyss-io/program-kit.git
 cd program-kit
 dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode
 dotnet build ProgramKit.sln -c Release --no-restore
-dotnet test ProgramKit.sln -c Release --no-build --no-restore
+dotnet test --solution ProgramKit.sln -c Release --no-build --no-restore --minimum-expected-tests 1
 ```
+
+`global.json` selects Microsoft Testing Platform. Test commands that name an
+input must use `--solution`, `--project`, or `--test-modules`; a positional
+path is not the MTP contract. Do not pass the legacy `--maxcpucount` switch to
+`dotnet test`: it can build successfully and then discover zero tests. Run a
+serialized `dotnet build --maxcpucount:1` separately, followed by
+`dotnet test --no-build`, when serialized compilation is required.
 
 When Program Kit is embedded as a submodule, initialize it while cloning:
 
@@ -284,6 +298,19 @@ knowledge closure, modified wrapper, unsupported provider, or Program Kit
 authoring marker. Re-run the explicit initializer to refresh owned wrappers;
 it preserves another reviewed provider and refuses human-modified or unowned
 files without partial writes.
+
+Consumer products choose and document `none`, `local-optional`, or
+`repository-managed`; Program Kit does not force setup. Exact removal is also
+human-started:
+
+```powershell
+program-kit capabilities uninitialize --provider codex --workspace-root .
+```
+
+Codex wrappers use `.agents/skills`; `.codex/skills` is exact legacy migration
+input only. See
+[consumer integration postures](.agent-capabilities/consumer-integration.md)
+for selective Git guidance and the complete authority boundary.
 
 ### Package-only Console host journey
 

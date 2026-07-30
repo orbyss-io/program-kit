@@ -2,7 +2,6 @@
 
 This internal exact-byte verification package carries copies of the six
 consumer Program Kit development capabilities:
-Program Kit development capabilities:
 
 - `design-csharp-build-gate`
 - `develop-software`
@@ -26,3 +25,6 @@ Consumers do not install this package. The `Orbyss.ProgramKit.CommandLine`
 tool embeds and verifies the same canonical closure. Installing or copying
 either package does not register a capability, grant authority, or start work;
 the explicit `program-kit capabilities initialize` operation is required.
+Codex uses `.agents/skills/`; Claude Code uses `.claude/skills/`. Exact legacy
+Codex wrappers under `.codex/skills/` are migration input only. The explicit
+`capabilities uninitialize` operation removes one exact owned provider binding.

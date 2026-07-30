@@ -193,6 +193,59 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
+    public void ImplementationFlowScopesWorkUnitVerificationAndRunsFullClosureOnce()
+    {
+        var design = ConformanceInputs.Read(
+            "Capabilities/design-software/CAPABILITY.md");
+        var implementation = ConformanceInputs.Read(
+            "Capabilities/implement-software-plan/CAPABILITY.md");
+
+        Assert.Contains(
+            "finite reverse dependency/consumer closure",
+            design);
+        Assert.Contains(
+            "Do not default a non-closure unit",
+            design);
+        Assert.Contains(
+            "Select expensive checks by",
+            design);
+        Assert.Contains(
+            "affected behavior rather than by cost alone",
+            design);
+        Assert.Contains(
+            "Include exactly one final `closure` work unit",
+            design);
+        Assert.Contains(
+            "Only that final unit runs the complete repository build",
+            design);
+
+        Assert.Contains(
+            "in its finite affected closure",
+            implementation);
+        Assert.Contains(
+            "Do not add the repository-wide or full-plan",
+            implementation);
+        Assert.Contains(
+            "Select expensive checks",
+            implementation);
+        Assert.Contains(
+            "by impact rather than by category",
+            implementation);
+        Assert.Contains(
+            "only in the plan's final",
+            implementation);
+        Assert.Contains(
+            "requires remediation and another complete pass",
+            implementation);
+        Assert.Contains(
+            "external CI or publication test gate is",
+            implementation);
+        Assert.Contains(
+            "Never silently reinterpret an exact approved legacy plan",
+            implementation);
+    }
+
+    [TestMethod]
     public void MaintenanceFlowIsBoundedSharedAndExactlyHumanUpgraded()
     {
         var routing = ConformanceInputs.Read(
@@ -262,7 +315,45 @@ public sealed class CapabilityDeliveryConformanceTests
             Directory.Exists(
                 Path.Combine(
                     ConformanceInputs.ProgramKitRoot,
+                    ".agents")));
+        Assert.IsFalse(
+            Directory.Exists(
+                Path.Combine(
+                    ConformanceInputs.ProgramKitRoot,
                     ".claude")));
+    }
+
+    [TestMethod]
+    public void ConsumerIntegrationPosturesStayConsumerOwnedAndPinned()
+    {
+        var guidance = ConformanceInputs.Read(
+            "Capabilities/consumer-integration.md");
+
+        foreach (var posture in new[]
+                 {
+                     "`none`",
+                     "`local-optional`",
+                     "`repository-managed`",
+                 })
+        {
+            Assert.Contains(posture, guidance);
+        }
+
+        Assert.Contains("0.1.0-alpha.3", guidance);
+        Assert.Contains(
+            ".agents/skills/<capability-id>/SKILL.md",
+            guidance);
+        Assert.Contains(
+            ".claude/skills/<capability-id>/SKILL.md",
+            guidance);
+        Assert.Contains(
+            "capabilities uninitialize --provider codex",
+            guidance);
+        Assert.Contains("never edits `.gitignore`", guidance);
+        Assert.Contains("never", guidance);
+        Assert.Contains("silently prompts", guidance);
+        Assert.DoesNotContain("CapabilityBundle `4.0.0`", guidance);
+        Assert.DoesNotContain("bundle `4.0.0`", guidance);
     }
 
     [TestMethod]

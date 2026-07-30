@@ -15,6 +15,7 @@ using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Catalog;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Payload;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Readiness;
+using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Removal;
 using Orbyss.ProgramKit.CommandLine.Operations.CSharpBuildGates;
 using Orbyss.ProgramKit.CommandLine.Operations.Execution;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
@@ -320,12 +321,21 @@ public static class CommandLineComposition
             new VerifyCapabilityBundleCommandOperation(
                 new CapabilityBundleVerifier(
                     new CapabilityBundleManifestReader()));
+        ICapabilityWorkspaceTransaction capabilityWorkspaceTransaction =
+            new CapabilityWorkspaceTransaction(fileSystem);
         ICommandOperation capabilityInitializationOperation =
             new InitializeCapabilitiesCommandOperation(
                 new CapabilityInitializer(
                     fileSystem,
                     capabilityPayload,
-                    capabilityLockSerializer));
+                    capabilityLockSerializer,
+                    capabilityWorkspaceTransaction));
+        ICommandOperation capabilityUninitializationOperation =
+            new UninitializeCapabilitiesCommandOperation(
+                new CapabilityUninitializer(
+                    fileSystem,
+                    capabilityLockSerializer,
+                    capabilityWorkspaceTransaction));
         ICSharpBuildGateOperationService csharpGateOperations =
             new CSharpBuildGateOperationService(
                 new CSharpBuildGateDefinitionValidator(),
@@ -377,6 +387,8 @@ public static class CommandLineComposition
                 "capabilities.render-catalog" => capabilityCatalogOperation,
                 "capabilities.verify-bundle" => capabilityBundleOperation,
                 "capabilities.initialize" => capabilityInitializationOperation,
+                "capabilities.uninitialize" =>
+                    capabilityUninitializationOperation,
                 "capabilities.catalog" or
                 "capabilities.preflight" or
                 "capabilities.read" or

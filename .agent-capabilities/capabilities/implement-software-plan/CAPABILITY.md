@@ -129,8 +129,25 @@ bundle-bound resources grant no authority and are not independently invokable.
    compatible lock in dependency order before starting product work.
 7. Resolve and follow the exact inert shared completion profile set. Run
    focused verification while developing, then every required work-unit gate.
+   For each non-closure unit, execute the exact approved verification plus all
+   tests, conformance slices, generated-output checks, fixtures, and consumers
+   in its finite affected closure. Do not add the repository-wide or full-plan
+   suite merely because the unit is being completed. Select expensive checks
+   by impact rather than by category: run an expensive check when it exercises
+   affected behavior and defer unrelated checks to final closure. If the
+   affected closure is repository-wide, or cannot be bounded safely from
+   current source truth, run the broader required verification or stop for the
+   smallest plan correction instead of guessing.
+   Run the complete repository/full-plan suite only in the plan's final
+   `closure` unit after every product unit is complete. A failed final suite
+   requires remediation and another complete pass before closure; it is never
+   treated as successful evidence. An external CI or publication test gate is
+   additional independent evidence and does not replace final closure.
+   Never silently reinterpret an exact approved legacy plan that names broader
+   verification: execute it as approved or request an amended plan.
    At preflight, each applicable gate-establishment/product unit, generated
-   output, and final closure, execute the finite applicable profiles. On
+   output, and final closure, execute the finite profiles applicable at that
+   boundary. On
    consumer-owned source, run exact public `PKCC...` analyzers for public
    Program Kit contract semantics and exact consumer-owned analyzers for
    consumer-specific policy. Require per-analyzer participation and
@@ -198,3 +215,5 @@ Codex and Claude wrappers contain only trigger metadata plus exact
 CLI verifies their recorded bytes before returning this definition. A changed,
 missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
 Wrapper registration does not prove approval.
+Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
+`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.

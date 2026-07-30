@@ -86,21 +86,27 @@ function Invoke-ConformanceSlice {
 
     $arguments = @(
         'test',
+        '--project',
         $conformanceProject,
         '--no-restore',
         '--filter',
         $Filter,
+        '--minimum-expected-tests',
+        '1',
         '--verbosity',
         'minimal'
     )
     if ($NoBuild) {
         $arguments = @(
             'test',
+            '--project',
             $conformanceProject,
             '--no-build',
             '--no-restore',
             '--filter',
             $Filter,
+            '--minimum-expected-tests',
+            '1',
             '--verbosity',
             'minimal'
         )

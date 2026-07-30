@@ -134,6 +134,21 @@ designs.
    conditions. For `create-new` or `extend-existing`, place the exact approved
    gate-establishment fragment before every product and closure unit and make
    downstream work depend on compatible activation evidence.
+   For every non-closure work unit, select verification that fully covers its
+   directly changed scope and the finite reverse dependency/consumer closure
+   that can be affected by it, including affected generated outputs, fixtures,
+   integrity checks, and conformance slices. Do not default a non-closure unit
+   to the repository-wide or full-plan suite. Select expensive checks by
+   affected behavior rather than by cost alone: run them in the work unit when
+   they are inside its affected closure and defer unrelated checks.
+   Make the unit's exact commands and expected observations state the included
+   affected closure and what remains deliberately deferred.
+   Include exactly one final `closure` work unit that depends transitively on
+   every product unit. Only that final unit runs the complete repository build,
+   unit, conformance, exhaustive, integration, determinism, package, and other
+   full-plan profiles. If a non-closure unit's affected closure is genuinely
+   repository-wide, record that impact explicitly instead of presenting a
+   broad default as focused verification.
 9. Define deterministic fixtures and acceptance evidence proportional to risk.
 10. Validate and render the artifacts through backed Program Kit operations when
    available; verify deterministic regeneration and freshness of the
@@ -199,3 +214,5 @@ Codex and Claude wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
 CLI verifies their recorded bytes before returning this definition. A changed,
 missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
+Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
+`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
