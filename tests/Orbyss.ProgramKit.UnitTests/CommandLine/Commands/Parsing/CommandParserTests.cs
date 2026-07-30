@@ -221,6 +221,15 @@ public sealed class CommandParserTests
             "--workspace-root",
             "C:/work",
         ]);
+        var uninitialize = sut.Parse(
+        [
+            "capabilities",
+            "uninitialize",
+            "--provider",
+            "codex",
+            "--workspace-root",
+            "C:/work",
+        ]);
 
         Assert.AreEqual(
             "capabilities.render-catalog",
@@ -240,6 +249,9 @@ public sealed class CommandParserTests
         Assert.AreEqual(
             "claude",
             initializeClaude.RequiredOption("provider"));
+        Assert.AreEqual(
+            "capabilities.uninitialize",
+            uninitialize.Descriptor.Key);
     }
 
     [TestMethod]

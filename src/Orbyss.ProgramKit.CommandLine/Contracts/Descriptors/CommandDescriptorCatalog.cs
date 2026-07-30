@@ -259,6 +259,18 @@ public static class CommandDescriptorCatalog
             "Writes only owned wrappers and the workspace lock; installation does not grant capability authority.",
             "program-kit capabilities initialize --provider codex --workspace-root ."),
         Create(
+            "capabilities.uninitialize",
+            ["capabilities", "uninitialize"],
+            [],
+            [
+                new("provider", true, true, CapabilityProviders),
+                new("workspace-root", true, true),
+                Diagnostics(),
+            ],
+            "Remove one exact Program Kit-owned provider binding.",
+            "Deletes only exact lock-owned wrappers and updates or removes the workspace lock.",
+            "program-kit capabilities uninitialize --provider codex --workspace-root ."),
+        Create(
             "capabilities.catalog",
             ["capabilities", "catalog"],
             [],

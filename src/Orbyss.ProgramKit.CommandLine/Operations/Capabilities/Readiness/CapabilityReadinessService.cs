@@ -2,12 +2,13 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Orbyss.ProgramKit.CommandLine.Contracts;
+using Orbyss.ProgramKit.CommandLine.Contracts.Capabilities;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
+using Orbyss.ProgramKit.CommandLine.Contracts.Product;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Initialization;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Payload;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
-using Orbyss.ProgramKit.CommandLine.Contracts.Product;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Readiness;
 
@@ -18,15 +19,9 @@ public sealed class CapabilityReadinessService : ICapabilityReadinessService
         ".agent-capabilities/authoring-workspace.json";
     private const string LockPath = ".program-kit/capabilities.lock.json";
     private const string TransactionPath =
-        ".program-kit/capabilities.transaction.json";
+        CapabilityWorkspaceTransaction.TransactionDirectory;
     private const int MaximumLockBytes = 256 * 1024;
     private const int MaximumWrapperBytes = 512 * 1024;
-    private static readonly Dictionary<string, string> ProviderRoots =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["claude"] = ".claude/skills/",
-            ["codex"] = ".codex/skills/",
-        };
     private readonly ICommandFileSystem fileSystem;
     private readonly IConsumerCapabilityPayload payload;
     private readonly ICapabilityInitializationLockSerializer lockSerializer;
@@ -156,7 +151,8 @@ public sealed class CapabilityReadinessService : ICapabilityReadinessService
                 "The Program Kit source authoring marker rejects consumer capability retrieval.");
         }
 
-        if (fileSystem.FileExists(ResolveUnder(workspace, TransactionPath)))
+        if (fileSystem.DirectoryExists(
+                ResolveUnder(workspace, TransactionPath)))
         {
             return WorkspaceSetup.Blocked(
                 "A capability transaction is in progress or interrupted; explicit initialization must close it before use.");
@@ -315,12 +311,15 @@ public sealed class CapabilityReadinessService : ICapabilityReadinessService
 
         foreach (var provider in value.Providers)
         {
-            if (!ProviderRoots.TryGetValue(provider.Provider, out var root) ||
+            if (!CapabilityProviderContractCatalog.TryGet(
+                    provider.Provider,
+                    out var contract) ||
                 provider.Capabilities is null)
             {
                 return "The workspace lock contains an unsupported provider.";
             }
 
+            var root = contract.ProjectSkillRoot;
             var expectedIds = payload.Manifest.Capabilities
                 .Select(static item => item.CapabilityId)
                 .Order(StringComparer.Ordinal)
