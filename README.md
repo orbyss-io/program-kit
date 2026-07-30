@@ -10,6 +10,31 @@ The project currently targets .NET 10 and is in alpha. It can be used on its
 own, as a Git submodule, through its .NET packages, or through its command-line
 tooling.
 
+## Choose your path first: consumer or contributor
+
+Program Kit is set up two different ways. Pick the right one before running
+anything:
+
+- **Consumer** — you are building your own software *with* Program Kit (its
+  packages, CLI, or as a submodule). Continue with
+  [Install Program Kit CLI (consumer)](#install-program-kit-cli-consumer) below;
+  you install the CLI and run
+  `program-kit capabilities initialize --provider <claude|codex>`.
+- **Contributor** — you are working *on* Program Kit's own source in a clone of
+  this repository. Follow [CONTRIBUTING.md](CONTRIBUTING.md) instead. This is a
+  source **authoring workspace** (it carries
+  `.agent-capabilities/authoring-workspace.json`), so the consumer commands
+  `capabilities initialize`, `capabilities read`, `capabilities catalog`, and
+  `dotnet materialize-console-inputs` intentionally **fail closed** here. There
+  is no consumer CLI install step; the only capability available is the
+  contributor-only `author-and-maintain-skills`, wired up by hand as
+  CONTRIBUTING.md describes.
+
+**AI agents setting up this workspace:** check for
+`.agent-capabilities/authoring-workspace.json`. If it exists you are in the
+contributor workspace — use [CONTRIBUTING.md](CONTRIBUTING.md) and do not attempt
+consumer initialization. If it is absent, this is a consumer workspace.
+
 ## Install Program Kit CLI (consumer)
 
 Program Kit `0.1.0-alpha.2` is currently distributed as an exact downloadable
