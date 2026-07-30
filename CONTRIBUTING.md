@@ -49,6 +49,30 @@ cd program-kit
 An existing clone you already have is equally valid; just make sure it is on the
 commit you intend to work from.
 
+## Branch lifecycle (required)
+
+Program Kit uses short-lived non-default branches. GitHub's
+`delete_branch_on_merge` repository setting is enabled so a pull request's head
+branch is automatically removed after GitHub merges it into `main`.
+
+After any merge, update `origin/main` and prove the topic-branch tip is
+reachable before cleanup:
+
+```powershell
+git fetch origin --prune
+git merge-base --is-ancestor <topic-branch> origin/main
+```
+
+Only a successful ancestry check permits deletion. If a merge path did not
+trigger GitHub's automatic cleanup, delete the merged remote branch explicitly,
+then delete the clean local branch with `git branch -d`. Remove an associated
+worktree only when it is clean and no contributor or agent is using it.
+
+Never delete `main`, a protected branch, an unmerged branch, a dirty branch, or
+a branch attached to active work. Do not substitute `git branch -D` for a
+failed ancestry check. Preserve the branch and report its unique commits when
+its disposition needs a human decision.
+
 ## 2. Build and test
 
 ```powershell

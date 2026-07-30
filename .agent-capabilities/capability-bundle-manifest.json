@@ -184,7 +184,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
       "resourceId": "software-change-completion-profile-set",
-      "sha256": "sha256:9b72ab12552d583ece808017a8de66d1558978742493f1aa8e5d02b1e381f8a0",
+      "sha256": "sha256:79598741d6b35c8ec1de2bd180ff1449e1158003e3b92da9cee536e2557497b2",
       "sourcePath": ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json"
     },
     {
@@ -196,7 +196,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/commit-and-push-coherently.md",
       "resourceId": "software-change-profile-commit-and-push-coherently",
-      "sha256": "sha256:d60c508bb028414483738e44e2ecb4bd47fd076a8714897922886efa87860e53",
+      "sha256": "sha256:19752674b3a65746cb3c76cad19cab17d35f264171ddf2b31626c43d0913222b",
       "sourcePath": ".agent-capabilities/supporting-resources/completion-profiles/software-change/profiles/commit-and-push-coherently.md"
     },
     {

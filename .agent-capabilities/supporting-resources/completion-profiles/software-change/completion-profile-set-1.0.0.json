@@ -90,7 +90,7 @@
       "path": "profiles/commit-and-push-coherently.md",
       "purpose": "Record one reversible history event and push only when required or authorized.",
       "requiresSeparateAuthority": false,
-      "sha256": "sha256:d60c508bb028414483738e44e2ecb4bd47fd076a8714897922886efa87860e53",
+      "sha256": "sha256:19752674b3a65746cb3c76cad19cab17d35f264171ddf2b31626c43d0913222b",
       "version": "1.0.0"
     }
   ],

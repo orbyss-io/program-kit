@@ -18,3 +18,7 @@
   deliberately not implemented.
 - Commit and push each completed task promptly with an understandable message
   that explains what changed and why.
+- Treat every non-default branch as short-lived. After its tip is verified as
+  reachable from `main`, delete the merged remote branch and then its clean,
+  inactive local branch/worktree. Never delete `main`, a protected branch, an
+  unmerged branch, a dirty branch, or a branch attached to active work.

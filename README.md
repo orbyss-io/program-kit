@@ -35,6 +35,19 @@ anything:
 contributor workspace — use [CONTRIBUTING.md](CONTRIBUTING.md) and do not attempt
 consumer initialization. If it is absent, this is a consumer workspace.
 
+### Branch lifecycle for Program Kit-guided work
+
+Both contributor and consumer repositories should enable their hosting
+platform's automatic merged-head-branch deletion setting (GitHub calls it
+`delete_branch_on_merge`). Program Kit treats every non-default branch as
+short-lived: after its tip is proven reachable from the updated default branch,
+delete the merged remote branch and its clean, inactive local branch/worktree.
+
+Never delete a default or protected branch, an unmerged branch, a dirty branch,
+or a branch attached to active work. If repository settings or permissions
+cannot perform the cleanup, report the exact retained branch and its unique
+commits instead of forcing deletion.
+
 ## Install Program Kit CLI (consumer)
 
 Program Kit `0.1.0-alpha.3` is currently distributed as an exact downloadable
