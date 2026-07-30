@@ -11,12 +11,18 @@ param(
     [Parameter(Mandatory = $true)][string] $ArtifactName,
     [Parameter(Mandatory = $true)][string] $ProfileIdentity,
     [Parameter(Mandatory = $true)][string] $ProfileVersion,
-    [Parameter(Mandatory = $true)][string] $ProfileSha256
+    [Parameter(Mandatory = $true)][string] $ProfileSha256,
+    [string] $SourceRepositoryRoot
 )
 
 $ErrorActionPreference = 'Stop'
-$repositoryRoot = [IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..'))
+$repositoryRoot = if (
+    [string]::IsNullOrWhiteSpace($SourceRepositoryRoot)) {
+    [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+}
+else {
+    [IO.Path]::GetFullPath($SourceRepositoryRoot)
+}
 Import-Module `
     (Join-Path $PSScriptRoot 'ProgramKitCanonicalBuildProvenance.psm1') `
     -Force
