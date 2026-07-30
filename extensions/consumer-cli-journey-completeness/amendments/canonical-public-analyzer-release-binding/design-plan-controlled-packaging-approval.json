@@ -1,0 +1,42 @@
+{
+  "identity": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding-controlled-packaging",
+  "version": "1.0.0",
+  "state": "approved",
+  "decisionDate": "2026-07-30",
+  "authoritySource": "Exact human approval in the active Codex implementation thread after directing synchronization with current origin/main. The approval binds the listed pre-reconciliation plan digest; synchronization changed one exact plan input and therefore requires a separate synchronized-plan approval.",
+  "architectureDesign": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
+  },
+  "implementationPlan": {
+    "identity": "pkid:plan:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5"
+  },
+  "gateDesign": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c"
+  },
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0",
+    "state": "extend-existing"
+  },
+  "acceptedHistoricalEvidenceCompatibility": [
+    "PKRB-W010",
+    "PKRB-W020"
+  ],
+  "approvedWorkUnits": [
+    "PKRB-W030",
+    "PKRB-W040",
+    "PKRB-W050",
+    "PKRB-W060",
+    "PKRB-W070",
+    "PKRB-W080"
+  ],
+  "publicationAuthorized": false,
+  "supersededBy": null
+}

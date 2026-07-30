@@ -4,10 +4,20 @@ Canonical source:
 `implementation-plan.json`
 
 Canonical SHA-256:
-`0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`
+`3b49633d6bfecd0894cef27b5f5baddc71bb02ad492e7084e65b2fb48d9ccc30`
 
-State: amended and ready for human decision. `PKRB-W010` and `PKRB-W020`
-are complete; `PKRB-W030` through `PKRB-W080` require renewed approval.
+State: synchronized and ready for human decision. The human approved the
+pre-synchronization plan digest
+`0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`,
+but the requested `origin/main` synchronization changed the exact
+`build/Invoke-CSharpGateTestPlan.ps1` digest from
+`80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d`
+to
+`2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f`.
+The canonical plan mechanically rebinds all eight verification-profile
+references to the synchronized source. `PKRB-W010` and `PKRB-W020` remain
+complete and evidence-compatible; `PKRB-W030` through `PKRB-W080` require
+approval of this synchronized plan digest.
 
 ## Ordered work
 
@@ -28,8 +38,11 @@ The completed `PKRB-W010` and `PKRB-W020` units retain their exact originally
 approved architecture-design input digest. The current plan traces `PKRB-W010`
 to the amended gate-design digest, while accepting its existing establishment
 evidence because the enforcement allocation and controlled fixture categories
-are unchanged. Only `PKRB-W030` through `PKRB-W080` perform amended product or
-closure work.
+are unchanged. Their active selection-lock chain still records the profile
+digest used when that evidence was produced; after synchronized-plan approval,
+implementation preflight must refresh that derived chain against the current
+profile before `PKRB-W030`. Only `PKRB-W030` through `PKRB-W080` perform
+amended product or closure work.
 
 ## Completion standard
 

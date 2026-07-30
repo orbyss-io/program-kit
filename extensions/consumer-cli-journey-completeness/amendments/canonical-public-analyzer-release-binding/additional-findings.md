@@ -126,6 +126,26 @@ against that mechanically amended, statically unchanged gate.
 
 ## Recorded follow-up, not a separate alpha.3 expansion
 
+### Exact verification-profile references drift when the profile changes
+
+The requested synchronization with current `origin/main` changed
+`build/Invoke-CSharpGateTestPlan.ps1` from SHA-256
+`80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d`
+to
+`2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f`
+without changing its identity or version. Every work unit in the approved plan
+binds that file by exact digest, so the synchronized source made the approved
+plan inadmissible even though the product architecture did not change.
+
+The synchronized plan mechanically rebinds its eight references. The active
+selection lock and completed W010/W020 evidence remain historical proof of the
+profile used at execution time; they are not silently rewritten during design.
+After exact synchronized-plan approval, implementation preflight must refresh
+the derived active lock/evidence chain and rerun the gate before `PKRB-W030`.
+This is another instance of the broader alignment risk: independently
+versioned, digest-bound artifacts need an explicit regeneration or migration
+path whenever their bytes change.
+
 The public JSON validation command checks schemas, while repository-internal
 typed validators enforce additional semantics. During this review, artifacts
 could pass schema validation and still fail typed validation for identity,

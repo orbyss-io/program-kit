@@ -4,7 +4,7 @@ Review set:
 `pkid:review-set:program-kit:canonical-public-analyzer-release-binding@0.1.0-alpha.3`
 
 Source commit:
-`a3c2fe174cd3511e9f3787acb4f7fd2ef59dba07`
+`eabb9363c5a54666407c63a70a4bd7a92a287a31`
 
 Branch:
 `codex/alpha3-canonical-analyzer-selection`
@@ -15,6 +15,12 @@ Branch:
   856 passed, one explicit Linux-only skip, zero failed.
 - PASS — completed `PKRB-W020` exhaustive solution gate: 860 total, 859 passed,
   one explicit Linux-only skip, zero failed.
+- PASS — synchronized source routine gate: 181 total, 180 passed, one explicit
+  Linux-only skip, zero failed.
+- PASS — synchronized source exhaustive gate: 23 total, 23 passed, zero
+  skipped, zero failed.
+- PASS — synchronized capability-bundle digest regression selection: two
+  total, two passed, zero skipped, zero failed.
 - PASS — public CLI schema validation of `architecture-design.json`.
 - PASS — public CLI schema validation of `implementation-plan.json`.
 - PASS — public CLI schema validation of
@@ -37,6 +43,11 @@ Branch:
   `extend-existing` disposition; the established policy, selection lock,
   activation evidence, and deterministic compiler evidence remain compatible
   with the amended product work.
+- PASS — the synchronized plan contains eight exact references to current
+  `build/Invoke-CSharpGateTestPlan.ps1` SHA-256
+  `2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f`
+  and no reference to its pre-synchronization SHA-256
+  `80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d`.
 
 The unchanged disposition and selection lock are historical authority for the
 completed gate-establishment decision. Their original gate-design reference
@@ -44,6 +55,15 @@ and future-SDK residual-risk statement are intentionally not rewritten; the
 amended architecture, gate design, and `PKRB-W030` through `PKRB-W080`
 supersede those packaging mechanics without changing static enforcement
 allocation.
+
+The human approved the amended architecture, pre-synchronization plan, gate
+design, unchanged disposition, W010/W020 evidence compatibility, and revised
+W030-W080. That exact approval is recorded separately. Because the requested
+source synchronization changed a digest-bound verification-profile input, the
+mechanically synchronized plan has a new digest and requires its own exact
+approval. Product implementation remains paused before W030. The historical
+selection lock and W010/W020 evidence chain will be refreshed mechanically
+during implementation preflight only after that approval.
 
 The temporary typed-validation test used for the semantic checks was removed
 after execution; it is not part of the review set.
@@ -84,21 +104,23 @@ after execution; it is not part of the review set.
 - `architecture-design.json`:
   `59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5`
 - `architecture-design.md`:
-  `8bd6df22512691624404d8b7ca8303d1197f1e8f1cf64cee21007218125dea81`
+  `9e9176fb96e4db4268dcc4d1f6718c58374e027e59b96f7fc732c739623cb835`
 - `implementation-plan.json`:
-  `0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`
+  `3b49633d6bfecd0894cef27b5f5baddc71bb02ad492e7084e65b2fb48d9ccc30`
 - `implementation-plan.md`:
-  `cda253830afb0fa5421f4982ef3020e9529f151350644bcd073758013aaa344a`
+  `961a052f42f6843d7094e02565d6a734512dda3983bf8351446c32a3398143f9`
 - `additional-findings.md`:
-  `89fb6c66f4114be4e64feb23c824c6d40e5e9a6325f851a5405649efd6ef0ea0`
+  `169075f885c09535bb2cc283a951678f9ef6f328230e904563196581735499ed`
 - `README.md`:
-  `e683aed4f82e255bb15062876cc687bb1116a0121d5fde9ca6de753092430c2a`
+  `20b8687fd2d10a8541418ff5bdf98b93a4c4a5020f85354db2af024edbf5b436`
+- `design-plan-controlled-packaging-approval.json`:
+  `c5a33c8830428b3b17bdab6ff470f4b7db95ee39dc21498ab181b9eb047c6959`
 
 ## Deliberately not performed
 
-No package version, product source beyond the already completed W010/W020
-commits, schema, workflow, release asset, tag, or external state was changed by
-this amendment design task. No alpha.3 package was pushed, uploaded, or
+No package version, analyzer/compiler/CLI product source, schema, workflow,
+release asset, tag, or external publication state was changed by this
+synchronization reconciliation. No alpha.3 package was pushed, uploaded, or
 published. Repository-owned package canonicalization, published-package
 reconciliation, safe workflow resumption, two-root candidate packing, and
 cold-consumer acceptance remain implementation outcomes. The supported SDK

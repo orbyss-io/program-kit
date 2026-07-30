@@ -95,10 +95,15 @@ substitute for a NuGet.org consumer binding.
 ## Approval boundary
 
 The earlier approval remains the authority for completed `PKRB-W010` and
-`PKRB-W020`. Renewed approval authorizes the amended `PKRB-W030` through
-`PKRB-W080` against the exact canonical JSON digest above, revised plan digest
-`0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`,
-the gate design digest
+`PKRB-W020`. The human approved the amended product boundary against plan
+digest
+`0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`.
+The requested `origin/main` synchronization then changed only the exact
+verification-profile input, so implementation remains paused pending approval
+of synchronized plan digest
+`3b49633d6bfecd0894cef27b5f5baddc71bb02ad492e7084e65b2fb48d9ccc30`.
+That approval authorizes the amended `PKRB-W030` through `PKRB-W080` against
+the exact canonical JSON digest above, the unchanged gate design digest
 `c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c`,
 and the `extend-existing` disposition digest
 `cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0`.

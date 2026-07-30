@@ -2,7 +2,9 @@
 
 This directory contains the exact amended design and implementation boundary
 for the approved `extend-existing` disposition. `PKRB-W010` and `PKRB-W020`
-are completed; the controlled-packaging amendment requires renewed exact
+are completed. The controlled-packaging amendment was approved, but the
+requested `origin/main` synchronization changed the digest of its exact
+verification-profile input. The mechanically synchronized plan requires exact
 approval before `PKRB-W030`.
 
 Review in this order:
@@ -18,12 +20,15 @@ Review in this order:
 5. `implementation-plan.json` and `implementation-plan.md` — exact ordered
    work units.
 6. `additional-findings.md` — related release/validation mismatches.
-7. `validation-report.md` and `review-manifest.json` — validation evidence and
-   the exact approval boundary.
+7. `design-plan-controlled-packaging-approval.json` — the exact supplied
+   approval of the pre-synchronization amended plan.
+8. `validation-report.md` and `review-manifest.json` — synchronization
+   validation evidence and the exact remaining approval boundary.
 
 The review set records completed compiler-output corrections but does not
 claim that canonical package writing, published-package reconciliation,
 remaining product work, or publication has occurred. After explicit approval
-of the amended architecture, plan, and gate-design digests, implementation may
-resume at `PKRB-W030`. The GitHub publication workflow remains a separate human
-action after final candidate and workflow-conformance evidence exists.
+of the synchronized plan digest (with the architecture, gate design, and
+disposition unchanged), implementation may resume at `PKRB-W030`. The GitHub
+publication workflow remains a separate human action after final candidate and
+workflow-conformance evidence exists.
