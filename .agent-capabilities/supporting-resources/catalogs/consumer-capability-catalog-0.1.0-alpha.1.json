@@ -41,7 +41,8 @@
         "pkid:schema:program-kit:csharp-build-gate-definitions@0.1.0-alpha.2",
         "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.1",
         "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2",
-        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3"
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4"
       ],
       "humanInputs": [
         "explicit gate-design start or accepted parent-design handoff",
@@ -62,23 +63,33 @@
         "artifacts.inspect",
         "commands.describe",
         "diagnostics.explain",
+        "dotnet.describe-console-contract",
         "dotnet.materialize-console-inputs",
+        "dotnet.scaffold-console-request",
         "schemas.read",
         "validate"
       ],
       "resources": [
+        "dotnet-console-command-sketch-example",
+        "dotnet-console-contract-style",
         "dotnet-console-input-materialization-guide",
+        "dotnet-console-input-request-example",
         "dotnet-console-integration-project-example",
         "dotnet-console-integration-source-example",
         "software-change-troubleshooting"
       ],
       "schemas": [
         "pkid:schema:program-kit:architecture-design@0.1.0-alpha.2",
+        "pkid:schema:program-kit:architecture-design@0.1.0-alpha.3",
         "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-binding@1.0.0",
+        "pkid:schema:program-kit:dotnet-console-command-sketch@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1",
-        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3"
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4",
+        "pkid:schema:program-kit:open-console@0.1.0-alpha.2"
       ],
       "humanInputs": [
         "human-started design request",
@@ -125,14 +136,19 @@
         "artifacts.inspect",
         "commands.describe",
         "diagnostics.explain",
+        "dotnet.describe-console-contract",
         "dotnet.generate-host",
         "dotnet.materialize-console-inputs",
+        "dotnet.scaffold-console-request",
         "dotnet.verify-host",
         "schemas.read",
         "validate"
       ],
       "resources": [
+        "dotnet-console-command-sketch-example",
+        "dotnet-console-contract-style",
         "dotnet-console-input-materialization-guide",
+        "dotnet-console-input-request-example",
         "dotnet-console-integration-project-example",
         "dotnet-console-integration-source-example",
         "software-change-completion-profile-set",
@@ -148,11 +164,16 @@
       ],
       "schemas": [
         "pkid:schema:program-kit:architecture-design@0.1.0-alpha.2",
+        "pkid:schema:program-kit:architecture-design@0.1.0-alpha.3",
         "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-binding@1.0.0",
+        "pkid:schema:program-kit:dotnet-console-command-sketch@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1",
-        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3"
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4",
+        "pkid:schema:program-kit:open-console@0.1.0-alpha.2"
       ],
       "humanInputs": [
         "exact approved design and plan digests",
@@ -172,14 +193,19 @@
         "artifacts.inspect",
         "commands.describe",
         "diagnostics.explain",
+        "dotnet.describe-console-contract",
         "dotnet.generate-host",
         "dotnet.materialize-console-inputs",
+        "dotnet.scaffold-console-request",
         "dotnet.verify-host",
         "schemas.read",
         "validate"
       ],
       "resources": [
+        "dotnet-console-command-sketch-example",
+        "dotnet-console-contract-style",
         "dotnet-console-input-materialization-guide",
+        "dotnet-console-input-request-example",
         "dotnet-console-integration-project-example",
         "dotnet-console-integration-source-example",
         "software-change-completion-profile-set",
@@ -196,8 +222,11 @@
       "schemas": [
         "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-binding@1.0.0",
+        "pkid:schema:program-kit:dotnet-console-command-sketch@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1",
-        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1"
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1",
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2",
+        "pkid:schema:program-kit:open-console@0.1.0-alpha.2"
       ],
       "humanInputs": [
         "explicit bounded architecture-compatible consumer change",
@@ -216,14 +245,19 @@
         "artifacts.inspect",
         "commands.describe",
         "diagnostics.explain",
+        "dotnet.describe-console-contract",
         "dotnet.generate-host",
         "dotnet.materialize-console-inputs",
         "dotnet.publish-local",
+        "dotnet.scaffold-console-request",
         "dotnet.verify-host",
         "schemas.read"
       ],
       "resources": [
+        "dotnet-console-command-sketch-example",
+        "dotnet-console-contract-style",
         "dotnet-console-input-materialization-guide",
+        "dotnet-console-input-request-example",
         "dotnet-console-integration-project-example",
         "dotnet-console-integration-source-example",
         "software-change-troubleshooting"
@@ -231,8 +265,11 @@
       "schemas": [
         "pkid:schema:program-kit:dotnet-artifact-input-manifest@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-binding@1.0.0",
+        "pkid:schema:program-kit:dotnet-console-command-sketch@0.1.0-alpha.1",
         "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1",
-        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1"
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1",
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2",
+        "pkid:schema:program-kit:open-console@0.1.0-alpha.2"
       ],
       "humanInputs": [
         "explicit local-publish request",

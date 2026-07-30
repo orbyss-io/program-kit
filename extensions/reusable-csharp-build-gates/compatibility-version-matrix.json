@@ -69,7 +69,7 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
       "version": "0.1.0-alpha.2",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:8394dc54ab43991b648dea032cdf74841e854e81c9fa7229c9858332f4733e56"
+      "sha256": "sha256:647aa113461b3176416bdbd145438dbb76ab42889398ee639b76961046ac3f61"
     },
     {
       "clockId": "capabilities",
@@ -83,7 +83,7 @@
       "identity": "pkid:bundle:program-kit:capabilities",
       "version": "0.1.0-alpha.2",
       "path": ".agent-capabilities/capability-bundle-manifest.json",
-      "sha256": "sha256:d7f3f88897160a317ff26de54e02996b31c3e4f07fce2d9a7dc98e0ed00b3da0"
+      "sha256": "sha256:2714c2e727c9159a344dd93610b05ad81c246513a8c3f2d152981d307237b913"
     },
     {
       "clockId": "toolchain",
@@ -178,7 +178,7 @@
       "source": "capabilities",
       "target": "operations",
       "acceptedVersion": "[0.1.0-alpha.2]",
-      "acceptedSha256": "sha256:8394dc54ab43991b648dea032cdf74841e854e81c9fa7229c9858332f4733e56"
+      "acceptedSha256": "sha256:647aa113461b3176416bdbd145438dbb76ab42889398ee639b76961046ac3f61"
     },
     {
       "source": "capability-bundle",

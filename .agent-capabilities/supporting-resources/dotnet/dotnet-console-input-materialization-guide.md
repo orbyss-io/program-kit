@@ -7,9 +7,11 @@ and `program-kit dotnet generate-host console`.
 ## Ownership boundary
 
 Program Kit never writes or edits the consumer integration project, its source,
-the semantic materialization request, or the request's supplied artifacts. The
-agent may author those consumer-owned inputs under the human-started design,
-implementation, or maintenance authority.
+or the request's supplied artifacts. The agent may author those consumer-owned
+inputs under the human-started design, implementation, or maintenance
+authority. The scaffold command may create one new semantic materialization
+request from an explicit consumer-owned command sketch; it never overwrites or
+repairs an existing consumer file.
 
 `program-kit dotnet materialize-console-inputs` writes only:
 
@@ -79,18 +81,75 @@ may have at most one such registration. Do not register the selected
 `IShellFeature`; the generated host constructs that exact feature once and
 invokes `ConfigureServices`.
 
-## Required semantic request
+## Open Console contract style
 
-Read the exact request schema before authoring the request:
+Retrieve the exact product-owned rules in text or JSON:
 
 ```text
-program-kit schemas read pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1
+program-kit dotnet describe-console-contract --format text
+program-kit dotnet describe-console-contract --format json
 ```
 
-The strict request is not a replacement for design. It records values already
-selected by the consumer's accepted shell and Open Console design:
+Open Console `0.1.0-alpha.2` enforces all of these rules:
 
-- `$schema` and `version` use the exact alpha.1 materialization contract;
+1. Every command exit map is non-empty, contains success code `0`, contains
+   every host-owned role, and uses each numeric code once.
+2. `invalidInvocation`, `cancellation`, and `internalFailure` are distinct
+   positive reservations. They never share code `0` or the help exit code.
+   Even semantically similar failures receive different codes because
+   automation must distinguish their lifecycle owner.
+3. Every present stdin, stdout, and stderr contract has one non-null exact
+   `schemaRevision`.
+4. A source whose maximum occurrence exceeds one binds only as
+   ``System.Collections.Immutable.ImmutableArray`1<TScalar>`` with exactly one
+   scalar generic argument matching the finite logical type catalog.
+5. The selected shell host's `operationBindings` are authoritative. Every
+   command's explicit `requestSchemaRevisions`, `resultSchemaRevisions`, and
+   `diagnosticSchemaRevisions` sets must equal the corresponding operation
+   binding sets. Supersets, subsets, duplicates, and merely contained result
+   schemas fail.
+
+Schemas describe structure; the contract-style catalog explains semantics.
+Neither chooses operations, authority, command meanings, CLR types, defaults,
+or package policy for the human.
+
+## Scaffold the required semantic request
+
+Retrieve the complete executable examples and exact schemas:
+
+```text
+program-kit capabilities read-resource dotnet-console-command-sketch-example --workspace-root .
+program-kit capabilities read-resource dotnet-console-input-request-example --workspace-root .
+program-kit schemas read pkid:schema:program-kit:dotnet-console-command-sketch@0.1.0-alpha.1
+program-kit schemas read pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2
+```
+
+The command sketch is not a replacement for design. It records every semantic
+value already selected by the consumer's accepted shell and Open Console
+design: identities, command paths and summaries, arguments/options, operation
+and schema revisions, request/handler/optional-validator CLR metadata names,
+authority references, streams, exit meanings, configuration, defaults, and
+the exact alpha.2 contract style.
+
+Create one complete request without restoring, building, scanning source, or
+inferring semantics:
+
+```text
+program-kit dotnet scaffold-console-request console-command-sketch.json --workspace-root . --consumer-project src/Example.ConsoleIntegration/Example.ConsoleIntegration.csproj --output console-input-request.json
+```
+
+The scaffolder reads only the exact sketch, project, and supplied artifact
+paths. It derives the normalized project path, unambiguous `net10.0` target and
+assembly name, exact operation-binding schema-set mirrors, canonical ordering,
+and supplied artifact digests. It rejects placeholders, stale digests,
+ambiguous project mechanics, unsafe/escaping paths, existing output, and
+partial staging. It writes BOM-less bytes to staging, validates them through
+the public schema and strict typed reader, and atomically promotes one new
+file.
+
+The resulting strict alpha.2 request contains:
+
+- `$schema` and `version` use the exact alpha.2 materialization contract;
 - `identity`, `ownerIdentity`, and `outputSetIdentity` are explicit consumer
   identities;
 - `hostIdentity` selects exactly one Console host in the embedded `shell`;
@@ -121,10 +180,12 @@ The binding maps every Open Console command operation revision to:
 - constructor parameters in exact zero-based order, including CLR type,
   nullability, argument/option source, and canonical default disposition.
 
-Use `program-kit commands describe dotnet.materialize-console-inputs --format
-text` for the backed command contract and `program-kit diagnostics explain
-<PKCIM-id> --format text` for a materialization failure. Do not inspect Program
-Kit assemblies or infer undocumented enum order.
+Use `program-kit commands describe dotnet.scaffold-console-request --format
+text` and `program-kit commands describe
+dotnet.materialize-console-inputs --format text` for the backed command
+contracts. Use `program-kit diagnostics explain <PKCIM-id> --format text` for
+a materialization failure. Do not inspect Program Kit assemblies or infer
+undocumented enum order.
 
 ## Restore, materialize, and generate
 

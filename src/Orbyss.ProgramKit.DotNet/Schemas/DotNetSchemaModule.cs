@@ -7,9 +7,11 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
     private readonly IProgramKitSchemaModule secretResolutionSchemas;
     private readonly ImmutableArray<ProgramKitSchemaResource> registered;
     private static readonly SemanticVersion CatalogVersion =
-        new("0.1.0-alpha.17");
+        new("0.1.0-alpha.18");
     private static readonly SemanticVersion SchemaVersionAlpha1 =
         new("0.1.0-alpha.1");
+    private static readonly SemanticVersion SchemaVersionAlpha2 =
+        new("0.1.0-alpha.2");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -281,6 +283,25 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
                 ],
                 new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
                 "pkcj-w010a-approved-review-set-0-1-0-alpha-1");
+    private static readonly ArtifactProvenance
+        ConsumerContractSurfaceProvenance =
+            new(
+                [
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:design-amendment:program-kit:consumer-contract-surface-hardening"),
+                        new SemanticVersion("0.1.0-alpha.1"),
+                        new Sha256Digest(
+                            "sha256:dc29a4be4fba94801041fc57fb95c4e21780c4db3fcb5376b31b34041ac81f37")),
+                    new ArtifactReference(
+                        new ProgramKitIdentifier(
+                            "pkid:plan-amendment:program-kit:consumer-contract-surface-hardening"),
+                        new SemanticVersion("0.1.0-alpha.1"),
+                        new Sha256Digest(
+                            "sha256:c8b6a2ce5740532204b90202180ebbaa4050b1541da5cbd2401e1f1b89a9c499")),
+                ],
+                new ProgramKitIdentifier("pkid:project:program-kit:dotnet"),
+                "pkcj-w040-approved-review-set-0-1-0-alpha-1");
     private static readonly ImmutableArray<ProgramKitSchemaResource> Owned =
     [
         Create(
@@ -290,6 +311,20 @@ public sealed class DotNetSchemaModule : IProgramKitSchemaModule
             "880a401af4afbd5871e11fe2731b02731783ff9fd45c5ebfa9a291104c977150",
             SchemaVersionAlpha1,
             ConsoleInputMaterializationProvenance),
+        Create(
+            "dotnet-console-input-materialization-request",
+            "dotnet-console-input-materialization-request-0.1.0-alpha.2.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-input-materialization-request/0.1.0-alpha.2/schema.json",
+            "7ccefd4ffd5728ab0ffdcc786e0571d405e436bcc23abce6ad41a5d4d84e6f4b",
+            SchemaVersionAlpha2,
+            ConsumerContractSurfaceProvenance),
+        Create(
+            "dotnet-console-command-sketch",
+            "dotnet-console-command-sketch-0.1.0-alpha.1.schema.json",
+            "https://schemas.orbyss.io/program-kit/dotnet/console-command-sketch/0.1.0-alpha.1/schema.json",
+            "aca8a06c705b208db591d5bbe9baa6c2491ae03c776984962d94560e96e47b48",
+            SchemaVersionAlpha1,
+            ConsumerContractSurfaceProvenance),
         Create(
             "dotnet-console-input-materialization-lock",
             "dotnet-console-input-materialization-lock-0.1.0-alpha.1.schema.json",

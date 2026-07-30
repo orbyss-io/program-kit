@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbyss.io/program-kit/dotnet/console-command-sketch/0.1.0-alpha.1/schema.json",
+  "x-program-kit-identity": "pkid:schema:program-kit:dotnet-console-command-sketch",
+  "x-program-kit-version": "0.1.0-alpha.1",
+  "title": "Program Kit .NET Console Command Sketch 0.1.0-alpha.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "contractStyle",
+    "identity",
+    "ownerIdentity",
+    "outputSetIdentity",
+    "hostIdentity",
+    "consumerProjectIdentity",
+    "configuration",
+    "platform",
+    "shell",
+    "openConsole",
+    "binding",
+    "suppliedArtifacts"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "pkid:schema:program-kit:dotnet-console-command-sketch@0.1.0-alpha.1"
+    },
+    "version": {
+      "const": "0.1.0-alpha.1"
+    },
+    "contractStyle": {
+      "const": "pkid:contract-style:program-kit:open-console@0.1.0-alpha.2"
+    },
+    "identity": {
+      "$ref": "#/$defs/identifier"
+    },
+    "ownerIdentity": {
+      "$ref": "#/$defs/identifier"
+    },
+    "outputSetIdentity": {
+      "$ref": "#/$defs/identifier"
+    },
+    "hostIdentity": {
+      "$ref": "#/$defs/identifier"
+    },
+    "consumerProjectIdentity": {
+      "$ref": "#/$defs/identifier"
+    },
+    "configuration": {
+      "enum": [
+        "Debug",
+        "Release"
+      ]
+    },
+    "platform": {
+      "const": "AnyCPU"
+    },
+    "shell": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/11.0.0/dotnet-shell.schema.json"
+    },
+    "openConsole": {
+      "$ref": "#/$defs/openConsoleSketch"
+    },
+    "binding": {
+      "$ref": "https://schemas.orbyss.io/program-kit/dotnet/console-input-materialization-request/0.1.0-alpha.2/schema.json#/$defs/bindingIntent"
+    },
+    "suppliedArtifacts": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "https://schemas.orbyss.io/program-kit/dotnet/console-input-materialization-request/0.1.0-alpha.2/schema.json#/$defs/suppliedArtifact"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "$ref": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.2/definitions.schema.json#/$defs/programKitIdentifier"
+    },
+    "reference": {
+      "$ref": "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.2/definitions.schema.json#/$defs/artifactReference"
+    },
+    "openConsoleSketch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "info",
+        "hostRevision",
+        "parsing",
+        "hostExitCodeRoles",
+        "globalOptions",
+        "commands",
+        "help",
+        "completion",
+        "compatibility",
+        "generatorRevision",
+        "operationRevisions"
+      ],
+      "properties": {
+        "info": {
+          "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/info"
+        },
+        "hostRevision": {
+          "$ref": "#/$defs/reference"
+        },
+        "parsing": {
+          "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/parsing"
+        },
+        "hostExitCodeRoles": {
+          "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/hostExitCodeRoles"
+        },
+        "globalOptions": {
+          "type": "array",
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/option"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/commandSketch"
+          }
+        },
+        "help": {
+          "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/help"
+        },
+        "completion": {
+          "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/completion"
+        },
+        "compatibility": {
+          "$ref": "https://schemas.orbyss.io/program-kit/open-console/0.1.0-alpha.2/schema.json#/$defs/compatibility"
+        },
+        "generatorRevision": {
+          "$ref": "#/$defs/reference"
+        },
+        "operationRevisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    }
+  }
+}

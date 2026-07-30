@@ -80,6 +80,12 @@
                       LogicalName="Orbyss.ProgramKit.CommandLine.ConsumerPayload.Resource.csharp-gate-authoring-catalog" />
     <EmbeddedResource Include="..\..\.agent-capabilities\supporting-resources\dotnet\dotnet-console-input-materialization-guide.md"
                       LogicalName="Orbyss.ProgramKit.CommandLine.ConsumerPayload.Resource.dotnet-console-input-materialization-guide" />
+    <EmbeddedResource Include="..\..\.agent-capabilities\supporting-resources\dotnet\dotnet-console-contract-style-0.1.0-alpha.1.json"
+                      LogicalName="Orbyss.ProgramKit.CommandLine.ConsumerPayload.Resource.dotnet-console-contract-style" />
+    <EmbeddedResource Include="..\..\.agent-capabilities\supporting-resources\dotnet\dotnet-console-input-request-example.json"
+                      LogicalName="Orbyss.ProgramKit.CommandLine.ConsumerPayload.Resource.dotnet-console-input-request-example" />
+    <EmbeddedResource Include="..\..\.agent-capabilities\supporting-resources\dotnet\dotnet-console-command-sketch-example.json"
+                      LogicalName="Orbyss.ProgramKit.CommandLine.ConsumerPayload.Resource.dotnet-console-command-sketch-example" />
     <EmbeddedResource Include="..\..\.agent-capabilities\supporting-resources\dotnet\Example.ConsoleIntegration.csproj"
                       LogicalName="Orbyss.ProgramKit.CommandLine.ConsumerPayload.Resource.dotnet-console-integration-project-example" />
     <EmbeddedResource Include="..\..\.agent-capabilities\supporting-resources\dotnet\ConsoleIntegration.cs"

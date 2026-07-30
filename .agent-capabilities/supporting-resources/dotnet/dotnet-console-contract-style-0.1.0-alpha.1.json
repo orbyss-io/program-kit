@@ -1,0 +1,64 @@
+{
+  "identity": "pkid:contract-style:program-kit:open-console",
+  "version": "0.1.0-alpha.1",
+  "openConsoleVersion": "0.1.0-alpha.2",
+  "materializationRequestVersion": "0.1.0-alpha.2",
+  "commandSketchVersion": "0.1.0-alpha.1",
+  "rules": [
+    {
+      "id": "exhaustive-exit-map",
+      "summary": "Every command exit map is non-empty, has unique numeric codes, and includes success code 0 plus every host-owned exit-code role."
+    },
+    {
+      "id": "distinct-positive-host-roles",
+      "summary": "invalidInvocation, cancellation, and internalFailure are distinct positive reservations and never share code 0 or the help exit code."
+    },
+    {
+      "id": "non-null-stream-schema",
+      "summary": "Every present stdin, stdout, or stderr contract carries one non-null exact schemaRevision."
+    },
+    {
+      "id": "repeated-clr-binding",
+      "summary": "A source whose maximum occurrence exceeds one binds only as System.Collections.Immutable.ImmutableArray`1<TScalar> with exactly one scalar generic argument from the finite logical type catalog."
+    },
+    {
+      "id": "exact-operation-schema-sets",
+      "summary": "The selected shell host operationBindings are authoritative; each command requestSchemaRevisions, resultSchemaRevisions, and diagnosticSchemaRevisions set must exactly match the corresponding operation binding set."
+    }
+  ],
+  "logicalClrTypes": [
+    {
+      "logicalType": "string",
+      "scalarMetadataName": "System.String"
+    },
+    {
+      "logicalType": "boolean",
+      "scalarMetadataName": "System.Boolean"
+    },
+    {
+      "logicalType": "int32",
+      "scalarMetadataName": "System.Int32"
+    },
+    {
+      "logicalType": "int64",
+      "scalarMetadataName": "System.Int64"
+    },
+    {
+      "logicalType": "decimal",
+      "scalarMetadataName": "System.Decimal"
+    },
+    {
+      "logicalType": "guid",
+      "scalarMetadataName": "System.Guid"
+    },
+    {
+      "logicalType": "date-time",
+      "scalarMetadataName": "System.DateTimeOffset"
+    }
+  ],
+  "commands": {
+    "describe": "program-kit dotnet describe-console-contract --format text",
+    "scaffold": "program-kit dotnet scaffold-console-request <command-sketch> --workspace-root <dir> --consumer-project <relative-csproj> --output <new-json-file>",
+    "materialize": "program-kit dotnet materialize-console-inputs <request> --workspace-root <dir> --output <new-directory> --build-consumer"
+  }
+}

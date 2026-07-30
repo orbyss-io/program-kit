@@ -129,6 +129,65 @@ public sealed class ConsoleInputMaterializerTests
     }
 
     [TestMethod]
+    public async Task Alpha2ScaffoldedRequestMaterializesThroughTheOldReaderBoundary()
+    {
+        var root = CreateRoot();
+        CommandFileSystem fileSystem = new();
+        try
+        {
+            var fixtureRoot = GetColdConsumerFixtureRoot();
+            Directory.CreateDirectory(Path.Combine(root, "inputs"));
+            Directory.CreateDirectory(
+                Path.Combine(root, "src", "JTest.Console.Integration"));
+            Copy("console-input-request-alpha2.json");
+            Copy(Path.Combine("inputs", "version-map.json"));
+            Copy(Path.Combine("inputs", "version-selection.json"));
+            Copy(Path.Combine(
+                "src",
+                "JTest.Console.Integration",
+                "JTest.Console.Integration.csproj"));
+            var runner = new RecordingConsoleMaterializationRunner(
+                typeof(JTestRunRequest).Assembly.Location);
+            var materializer = CreateMaterializer(
+                fileSystem,
+                runner,
+                CreateSerializer());
+            var output = Path.Combine(
+                root,
+                ".program-kit",
+                "console-inputs");
+
+            var result = await materializer.MaterializeAsync(
+                Path.Combine(root, "console-input-request-alpha2.json"),
+                root,
+                output,
+                TestContext.CancellationToken);
+
+            Assert.AreEqual(
+                ConsoleInputMaterializationStatus.Created,
+                result.Status);
+            Assert.Contains(
+                "\"$schema\":\"pkid:schema:program-kit:open-console@1.0.0\"",
+                await File.ReadAllTextAsync(
+                    Path.Combine(output, "open-console.json"),
+                    TestContext.CancellationToken));
+            Assert.IsTrue(File.Exists(
+                Path.Combine(output, "artifact-manifest.json")));
+
+            void Copy(string relativePath)
+            {
+                File.Copy(
+                    Path.Combine(fixtureRoot, relativePath),
+                    Path.Combine(root, relativePath));
+            }
+        }
+        finally
+        {
+            fileSystem.DeleteDirectory(root);
+        }
+    }
+
+    [TestMethod]
     public async Task BuildFailurePromotesNoProgramKitOutput()
     {
         var root = CreateRoot();
@@ -551,6 +610,8 @@ public sealed class ConsoleInputMaterializerTests
                 new Orbyss.ProgramKit.SecretResolution.Contracts.Validation.SecretResolutionContractValidator(),
                 DotNetTestContractFactory.ProviderCatalog()),
             new OpenConsoleDocumentValidator(),
+            new OpenConsoleDocumentAlpha2Validator(
+                new OpenConsoleDocumentValidator()),
             new DotNetConsoleBindingValidator(),
             new DotNetConsoleMetadataInspector(),
             new DotNetConsoleIntegrationAssemblyInspector());

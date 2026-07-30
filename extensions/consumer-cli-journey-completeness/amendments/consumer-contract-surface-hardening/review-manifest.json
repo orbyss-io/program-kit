@@ -117,6 +117,18 @@
         "focusedAcceptance": "33 PKID, schema dependency-closure, migration, and design-flow command tests passed",
         "formatVerification": "passed",
         "migrationDigestPins": "passed for all three exact migration implementations"
+      },
+      "PKCJ-W040": {
+        "status": "verified",
+        "releaseBuild": "passed with zero warnings and zero errors",
+        "unitTests": "636 passed",
+        "routineConformanceTests": "180 passed; 1 explicitly opt-in Linux fixture skipped",
+        "observatoryFixtureTests": "15 passed",
+        "privateCSharpGateProfile": "160 passed; 1 explicitly opt-in Linux fixture skipped",
+        "focusedAcceptance": "18 Console alpha.2 contract, describe, scaffold, materialize, payload, and failure-boundary tests passed",
+        "isolatedConsumerProof": "a small command sketch scaffolded identical request bytes twice, materialized Console inputs, generated a Console host, and verified the sealed host without hand-authored mirrored contract data",
+        "formatVerification": "passed",
+        "schemaAndManifestDigestPins": "passed for the Open Console alpha.2, Console request alpha.2, command-sketch alpha.1, capability payload, and testing package manifests"
       }
     }
   },

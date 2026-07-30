@@ -250,9 +250,26 @@ public static class CommandLineComposition
                     serializer,
                     shellValidator,
                     new OpenConsoleDocumentValidator(),
+                    new OpenConsoleDocumentAlpha2Validator(
+                        new OpenConsoleDocumentValidator()),
                     new DotNetConsoleBindingValidator(),
                     new DotNetConsoleMetadataInspector(),
                     new DotNetConsoleIntegrationAssemblyInspector()));
+        ICommandOperation consoleContractDescription =
+            new DescribeConsoleContractCommandOperation(
+                capabilityPayload,
+                serializer);
+        ICommandOperation consoleRequestScaffolding =
+            new ScaffoldConsoleRequestCommandOperation(
+                new ConsoleRequestScaffolder(
+                    fileSystem,
+                    serializer,
+                    schemaSelector,
+                    schemaValidator,
+                    shellValidator,
+                    new OpenConsoleDocumentAlpha2Validator(
+                        new OpenConsoleDocumentValidator()),
+                    new DotNetConsoleBindingValidator()));
         ICommandOperation generatedOutputVerification =
             new DotNetVerifyHostCommandOperation(
                 new GeneratedOutputIntegrityVerifier());
@@ -341,6 +358,10 @@ public static class CommandLineComposition
                     canonicalizer),
                 "dotnet.materialize-console-inputs" =>
                     consoleInputMaterialization,
+                "dotnet.describe-console-contract" =>
+                    consoleContractDescription,
+                "dotnet.scaffold-console-request" =>
+                    consoleRequestScaffolding,
                 "dotnet.generate-host" => dotNetGeneration,
                 "dotnet.verify-host" => generatedOutputVerification,
                 "dotnet.refresh-host" => hostRefresh,

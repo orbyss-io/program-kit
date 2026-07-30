@@ -31,7 +31,7 @@ public sealed class DotNetSchemaModuleTests
         var validation = validator.Validate(module);
 
         Assert.IsTrue(validation.IsValid);
-        Assert.HasCount(40, module.Resources);
+        Assert.HasCount(42, module.Resources);
         foreach (var resource in module.Resources)
         {
             using var stream = module.OpenRead(resource.SchemaReference);
@@ -142,6 +142,8 @@ public sealed class DotNetSchemaModuleTests
                     : module;
             var schema = selectedModule.Resources.Single(resource =>
                 resource.SchemaReference.Identity.Name == document.Name &&
+                (document.Name != "open-console" ||
+                 resource.SchemaReference.Version.Value == "1.0.0") &&
                 (document.Name != "dotnet-artifact-input-manifest" ||
                  resource.SchemaReference.Version.Value == "1.0.0") &&
                 (document.Name != "dotnet-shell" ||

@@ -394,7 +394,7 @@ public sealed class CapabilityDeliveryConformanceTests
                             "/SKILL.md"))));
         }
 
-        Assert.HasCount(16, manifest.SupportingResources);
+        Assert.HasCount(19, manifest.SupportingResources);
         foreach (var resource in manifest.SupportingResources)
         {
             const string sourcePrefix =
@@ -447,7 +447,25 @@ public sealed class CapabilityDeliveryConformanceTests
                 "Example.ConsoleIntegration.csproj"));
         var source = ConformanceInputs.ReadBytes(
             string.Concat(resourceRoot, "ConsoleIntegration.cs"));
+        var style = ConformanceInputs.ReadBytes(
+            string.Concat(
+                resourceRoot,
+                "dotnet-console-contract-style-0.1.0-alpha.1.json"));
+        var requestExample = ConformanceInputs.ReadBytes(
+            string.Concat(
+                resourceRoot,
+                "dotnet-console-input-request-example.json"));
+        var sketchExample = ConformanceInputs.ReadBytes(
+            string.Concat(
+                resourceRoot,
+                "dotnet-console-command-sketch-example.json"));
 
+        Assert.Contains(
+            "program-kit dotnet describe-console-contract",
+            guide);
+        Assert.Contains(
+            "program-kit dotnet scaffold-console-request",
+            guide);
         Assert.Contains(
             "program-kit dotnet materialize-console-inputs",
             guide);
@@ -460,6 +478,33 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.Contains("I<Command>Handler", guide);
         Assert.Contains("contracts-only", guide);
         Assert.Contains("Never edit", guide);
+        using (var styleDocument = JsonDocument.Parse(style))
+        {
+            Assert.HasCount(
+                5,
+                styleDocument.RootElement.GetProperty("rules")
+                    .EnumerateArray()
+                    .ToArray());
+        }
+
+        Assert.AreSequenceEqual(
+            requestExample,
+            File.ReadAllBytes(
+                Path.Combine(
+                    ConformanceInputs.RepositoryRoot,
+                    "tests",
+                    "Fixtures",
+                    "ConsumerCliConsole",
+                    "console-input-request-alpha2.json")));
+        Assert.AreSequenceEqual(
+            sketchExample,
+            File.ReadAllBytes(
+                Path.Combine(
+                    ConformanceInputs.RepositoryRoot,
+                    "tests",
+                    "Fixtures",
+                    "ConsumerCliConsole",
+                    "console-command-sketch.json")));
         Assert.AreSequenceEqual(
             project,
             File.ReadAllBytes(
@@ -500,6 +545,35 @@ public sealed class CapabilityDeliveryConformanceTests
                 "dotnet-console-input-materialization-guide",
                 capability,
                 capabilityId);
+        }
+
+        using var catalog = JsonDocument.Parse(
+            ConformanceInputs.ReadBytes(
+                "Capabilities/SupportingResources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json"));
+        foreach (var capabilityId in new[]
+                 {
+                     "design-software",
+                     "implement-software-plan",
+                     "maintain-software",
+                     "publish-dotnet-application-locally",
+                 })
+        {
+            var closure = catalog.RootElement.GetProperty("capabilities")
+                .EnumerateArray()
+                .Single(entry =>
+                    entry.GetProperty("capabilityId").GetString() ==
+                        capabilityId);
+            var resourceIds = closure.GetProperty("resources")
+                .EnumerateArray()
+                .Select(static value => value.GetString())
+                .ToHashSet(StringComparer.Ordinal);
+            Assert.IsTrue(resourceIds.IsSupersetOf(
+                [
+                    "dotnet-console-command-sketch-example",
+                    "dotnet-console-contract-style",
+                    "dotnet-console-input-materialization-guide",
+                    "dotnet-console-input-request-example",
+                ]));
         }
     }
 
@@ -618,7 +692,7 @@ public sealed class CapabilityDeliveryConformanceTests
         Assert.IsEmpty(project.Descendants("ProjectReference"));
         Assert.IsEmpty(project.Descendants("PackageReference"));
         Assert.HasCount(
-            35,
+            38,
             project
                 .Descendants("None")
                 .Where(

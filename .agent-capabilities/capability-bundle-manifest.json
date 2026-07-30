@@ -130,7 +130,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
       "resourceId": "consumer-capability-catalog",
-      "sha256": "sha256:4f35c466e68c0e01268ec49971964d8d2a46ebfbf2eef4f18ffa2d0a4c772089",
+      "sha256": "sha256:f365166c0abcfb34a56bc071b5ffc2bc0cb940f9d56a590dcf78468ce35bf2da",
       "sourcePath": ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json"
     },
     {
@@ -148,8 +148,26 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/dotnet-console-input-materialization-guide.md",
       "resourceId": "dotnet-console-input-materialization-guide",
-      "sha256": "sha256:b0d276d2cf8a049f565a56befcbc019109a677627643fc62ce7aa60877b84ee8",
+      "sha256": "sha256:73159753f4b7a76ff77d024eba29a81f5cf0c3b9d752fc9f500759a924fe6f1a",
       "sourcePath": ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-materialization-guide.md"
+    },
+    {
+      "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/dotnet-console-contract-style-0.1.0-alpha.1.json",
+      "resourceId": "dotnet-console-contract-style",
+      "sha256": "sha256:bc2f536d7b56ccd4e02b7edaf9dec1312dc75ca6ce8b7b81953ce98a263ef14e",
+      "sourcePath": ".agent-capabilities/supporting-resources/dotnet/dotnet-console-contract-style-0.1.0-alpha.1.json"
+    },
+    {
+      "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/dotnet-console-input-request-example.json",
+      "resourceId": "dotnet-console-input-request-example",
+      "sha256": "sha256:f7d42545e2eb3da699ded6cd74b7fd090969e2ab816645e83a57e70201d26830",
+      "sourcePath": ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-request-example.json"
+    },
+    {
+      "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/dotnet-console-command-sketch-example.json",
+      "resourceId": "dotnet-console-command-sketch-example",
+      "sha256": "sha256:72d66b02e670afecb7df68ffe268e0f615c805e40eda8fea668e2c39f0db5f5f",
+      "sourcePath": ".agent-capabilities/supporting-resources/dotnet/dotnet-console-command-sketch-example.json"
     },
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/dotnet/Example.ConsoleIntegration.csproj",

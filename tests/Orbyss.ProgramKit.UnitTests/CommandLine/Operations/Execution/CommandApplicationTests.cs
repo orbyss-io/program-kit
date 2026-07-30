@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.CommandLine.Composition;
 using Orbyss.ProgramKit.CommandLine.Contracts;
 using Orbyss.ProgramKit.UnitTests.CommandLine.Hosting.IO;
@@ -329,6 +331,350 @@ public sealed class CommandApplicationTests
             Encoding.UTF8.GetString(console.StandardOutput));
         Assert.AreSequenceEqual(before, after);
         Assert.IsEmpty(console.StandardError);
+    }
+
+    [TestMethod]
+    public async Task ConsoleContractDescriptionProjectsOneCatalogInTextAndJson()
+    {
+        TestCommandConsole textConsole = new();
+        var textApplication = CommandLineComposition.CreateDefault(textConsole);
+        var textExit = await textApplication.RunAsync(
+        [
+            "dotnet",
+            "describe-console-contract",
+            "--format",
+            "text",
+        ],
+        TestContext.CancellationToken);
+        TestCommandConsole jsonConsole = new();
+        var jsonApplication = CommandLineComposition.CreateDefault(jsonConsole);
+        var jsonExit = await jsonApplication.RunAsync(
+        [
+            "dotnet",
+            "describe-console-contract",
+            "--format",
+            "json",
+        ],
+        TestContext.CancellationToken);
+
+        Assert.AreEqual(CommandExitCode.Success, textExit);
+        Assert.AreEqual(CommandExitCode.Success, jsonExit);
+        var text = Encoding.UTF8.GetString(textConsole.StandardOutput);
+        using var document = JsonDocument.Parse(jsonConsole.StandardOutput);
+        var rules = document.RootElement.GetProperty("rules")
+            .EnumerateArray()
+            .ToArray();
+        Assert.HasCount(5, rules);
+        foreach (var rule in rules)
+        {
+            Assert.Contains(rule.GetProperty("id").GetString()!, text);
+            Assert.Contains(rule.GetProperty("summary").GetString()!, text);
+        }
+
+        Assert.IsEmpty(textConsole.StandardError);
+        Assert.IsEmpty(jsonConsole.StandardError);
+    }
+
+    [TestMethod]
+    public async Task ConsoleRequestScaffoldIsDeterministicAndMatchesPackagedExample()
+    {
+        var root = CreateConsoleScaffoldRoot();
+        try
+        {
+            var first = await RunConsoleScaffoldAsync(
+                root,
+                "request-one.json");
+            var second = await RunConsoleScaffoldAsync(
+                root,
+                "request-two.json");
+
+            Assert.AreEqual(CommandExitCode.Success, first.ExitCode);
+            Assert.AreEqual(CommandExitCode.Success, second.ExitCode);
+            var firstBytes = await File.ReadAllBytesAsync(
+                Path.Combine(root, "request-one.json"),
+                TestContext.CancellationToken);
+            var secondBytes = await File.ReadAllBytesAsync(
+                Path.Combine(root, "request-two.json"),
+                TestContext.CancellationToken);
+            var expected = await File.ReadAllBytesAsync(
+                Path.Combine(
+                    FindProgramKitRoot(),
+                    "tests",
+                    "Fixtures",
+                    "ConsumerCliConsole",
+                    "console-input-request-alpha2.json"),
+                TestContext.CancellationToken);
+            Assert.AreSequenceEqual(firstBytes, secondBytes);
+            Assert.AreSequenceEqual(expected, firstBytes);
+            Assert.IsFalse(
+                firstBytes.AsSpan().StartsWith(
+                    [(byte)0xef, (byte)0xbb, (byte)0xbf]));
+            Assert.IsEmpty(first.StandardError);
+            Assert.IsEmpty(second.StandardError);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task InitializedConsumerRetrievesExactConsoleExamples()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            string.Concat(
+                "program-kit-console-resources-",
+                Guid.NewGuid().ToString("N")));
+        Directory.CreateDirectory(root);
+        try
+        {
+            TestCommandConsole initializeConsole = new();
+            var initializeApplication =
+                CommandLineComposition.CreateDefault(initializeConsole);
+            var initializeExit = await initializeApplication.RunAsync(
+            [
+                "capabilities",
+                "initialize",
+                "--provider",
+                "codex",
+                "--workspace-root",
+                root,
+            ],
+            TestContext.CancellationToken);
+            Assert.AreEqual(
+                CommandExitCode.Success,
+                initializeExit,
+                Encoding.UTF8.GetString(initializeConsole.StandardError));
+
+            var resources = new[]
+            {
+                (
+                    Id: "dotnet-console-command-sketch-example",
+                    Path:
+                        ".agent-capabilities/supporting-resources/dotnet/dotnet-console-command-sketch-example.json"),
+                (
+                    Id: "dotnet-console-input-request-example",
+                    Path:
+                        ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-request-example.json"),
+            };
+            foreach (var resource in resources)
+            {
+                TestCommandConsole readConsole = new();
+                var readApplication =
+                    CommandLineComposition.CreateDefault(readConsole);
+                var readExit = await readApplication.RunAsync(
+                [
+                    "capabilities",
+                    "read-resource",
+                    resource.Id,
+                    "--workspace-root",
+                    root,
+                ],
+                TestContext.CancellationToken);
+
+                Assert.AreEqual(
+                    CommandExitCode.Success,
+                    readExit,
+                    Encoding.UTF8.GetString(readConsole.StandardError));
+                Assert.AreSequenceEqual(
+                    await File.ReadAllBytesAsync(
+                        Path.Combine(FindProgramKitRoot(), resource.Path),
+                        TestContext.CancellationToken),
+                    readConsole.StandardOutput);
+            }
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    [DataRow("placeholder")]
+    [DataRow("missing-semantics")]
+    [DataRow("repeated-scalar")]
+    [DataRow("stale-artifact")]
+    [DataRow("bom")]
+    [DataRow("escaping-project")]
+    [DataRow("existing-output")]
+    public async Task ConsoleRequestScaffoldRefusesInvalidOrOwnedInputs(
+        string scenario)
+    {
+        var root = CreateConsoleScaffoldRoot();
+        try
+        {
+            var sketch = Path.Combine(root, "console-command-sketch.json");
+            var output = Path.Combine(root, "request.json");
+            var consumerProject =
+                "src/JTest.Console.Integration/JTest.Console.Integration.csproj";
+            switch (scenario)
+            {
+                case "placeholder":
+                    await MutateSketchAsync(
+                        sketch,
+                        static rootNode =>
+                            rootNode["openConsole"]!["info"]!["summary"] =
+                                "TODO");
+                    break;
+                case "missing-semantics":
+                    await MutateSketchAsync(
+                        sketch,
+                        static rootNode =>
+                            rootNode["openConsole"]!["commands"] =
+                                new JsonArray());
+                    break;
+                case "repeated-scalar":
+                    await MutateSketchAsync(
+                        sketch,
+                        static rootNode =>
+                            rootNode["openConsole"]!["commands"]![0]![
+                                "arguments"]![0]!["occurrence"]!["maximum"] = 2);
+                    break;
+                case "stale-artifact":
+                    await File.AppendAllTextAsync(
+                        Path.Combine(root, "inputs", "version-map.json"),
+                        " ",
+                        TestContext.CancellationToken);
+                    break;
+                case "bom":
+                    var bytes = await File.ReadAllBytesAsync(
+                        sketch,
+                        TestContext.CancellationToken);
+                    await File.WriteAllBytesAsync(
+                        sketch,
+                        [0xef, 0xbb, 0xbf, .. bytes],
+                        TestContext.CancellationToken);
+                    break;
+                case "escaping-project":
+                    consumerProject = "../outside.csproj";
+                    break;
+                case "existing-output":
+                    await File.WriteAllTextAsync(
+                        output,
+                        "human-owned",
+                        TestContext.CancellationToken);
+                    break;
+                default:
+                    Assert.Fail(string.Concat("Unknown scenario: ", scenario));
+                    break;
+            }
+
+            var result = await RunConsoleScaffoldAsync(
+                root,
+                "request.json",
+                consumerProject);
+
+            Assert.AreEqual(
+                CommandExitCode.ConformanceFailure,
+                result.ExitCode);
+            Assert.Contains("PKCIS001", result.StandardError);
+            if (scenario == "placeholder")
+            {
+                Assert.Contains(
+                    "/openConsole/info/summary",
+                    result.StandardError);
+            }
+            Assert.IsFalse(File.Exists(
+                string.Concat(output, ".program-kit-staging")));
+            if (scenario == "existing-output")
+            {
+                Assert.AreEqual(
+                    "human-owned",
+                    await File.ReadAllTextAsync(
+                        output,
+                        TestContext.CancellationToken));
+            }
+            else
+            {
+                Assert.IsFalse(File.Exists(output));
+            }
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private async Task<(
+        CommandExitCode ExitCode,
+        string StandardOutput,
+        string StandardError)> RunConsoleScaffoldAsync(
+        string root,
+        string output,
+        string consumerProject =
+            "src/JTest.Console.Integration/JTest.Console.Integration.csproj")
+    {
+        TestCommandConsole console = new();
+        var application = CommandLineComposition.CreateDefault(console);
+        var exitCode = await application.RunAsync(
+        [
+            "dotnet",
+            "scaffold-console-request",
+            "console-command-sketch.json",
+            "--workspace-root",
+            root,
+            "--consumer-project",
+            consumerProject,
+            "--output",
+            output,
+        ],
+        TestContext.CancellationToken);
+        return (
+            exitCode,
+            Encoding.UTF8.GetString(console.StandardOutput),
+            Encoding.UTF8.GetString(console.StandardError));
+    }
+
+    private static string CreateConsoleScaffoldRoot()
+    {
+        var source = Path.Combine(
+            FindProgramKitRoot(),
+            "tests",
+            "Fixtures",
+            "ConsumerCliConsole");
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            string.Concat(
+                "program-kit-console-scaffold-",
+                Guid.NewGuid().ToString("N")));
+        Directory.CreateDirectory(Path.Combine(root, "inputs"));
+        Directory.CreateDirectory(
+            Path.Combine(root, "src", "JTest.Console.Integration"));
+        File.Copy(
+            Path.Combine(source, "console-command-sketch.json"),
+            Path.Combine(root, "console-command-sketch.json"));
+        File.Copy(
+            Path.Combine(source, "inputs", "version-map.json"),
+            Path.Combine(root, "inputs", "version-map.json"));
+        File.Copy(
+            Path.Combine(source, "inputs", "version-selection.json"),
+            Path.Combine(root, "inputs", "version-selection.json"));
+        File.Copy(
+            Path.Combine(
+                source,
+                "src",
+                "JTest.Console.Integration",
+                "JTest.Console.Integration.csproj"),
+            Path.Combine(
+                root,
+                "src",
+                "JTest.Console.Integration",
+                "JTest.Console.Integration.csproj"));
+        return root;
+    }
+
+    private static async Task MutateSketchAsync(
+        string path,
+        Action<JsonNode> mutation)
+    {
+        var root = JsonNode.Parse(await File.ReadAllBytesAsync(path)) ??
+            throw new InvalidDataException("The fixture sketch is empty.");
+        mutation(root);
+        await File.WriteAllTextAsync(
+            path,
+            root.ToJsonString(),
+            new UTF8Encoding(false));
     }
 
     private static string FindProgramKitRoot()

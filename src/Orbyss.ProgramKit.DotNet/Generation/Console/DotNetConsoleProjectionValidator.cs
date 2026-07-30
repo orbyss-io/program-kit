@@ -10,6 +10,46 @@ namespace Orbyss.ProgramKit.DotNet.Generation.Console;
 /// </summary>
 public static class DotNetConsoleProjectionValidator
 {
+    /// <summary>
+    /// Determines whether alpha.2 commands declare exactly the schema sets
+    /// owned by one selected shell host.
+    /// </summary>
+    public static bool IsExactAlpha2(
+        DotNetHostDefinition host,
+        ImmutableArray<OpenConsoleCommandAlpha2> commands)
+    {
+        ArgumentNullException.ThrowIfNull(host);
+        if (commands.IsDefault ||
+            host.OperationBindings.Length != commands.Length)
+        {
+            return false;
+        }
+
+        foreach (var command in commands)
+        {
+            var matches = host.OperationBindings
+                .Where(binding =>
+                    binding.OperationContract.OperationRevision ==
+                        command.OperationRevision)
+                .ToArray();
+            if (matches.Length != 1 ||
+                !ExactDeclaredSet(
+                    matches[0].GetInputSchemaRevisions(),
+                    command.RequestSchemaRevisions) ||
+                !ExactDeclaredSet(
+                    matches[0].GetResultSchemaRevisions(),
+                    command.ResultSchemaRevisions) ||
+                !ExactDeclaredSet(
+                    matches[0].GetDiagnosticSchemaRevisions(),
+                    command.DiagnosticSchemaRevisions))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>Determines whether the document is the host's exact projection.</summary>
     public static bool IsExact(
         ArtifactReference shellRevision,

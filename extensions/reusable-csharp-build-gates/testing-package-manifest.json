@@ -15,7 +15,7 @@
   },
   "operationSourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:defee44e1f1e50aa851daa04719292949ba3e7d7539aca4eb3b459c082b9e9c3",
+    "digest": "sha256:43b381047fcac93dae8bb7a481ca20bc1ec69f04be1110991517d917de87b7f3",
     "paths": [
       "src/Orbyss.ProgramKit.CommandLine/Composition/CommandLineComposition.cs",
       "src/Orbyss.ProgramKit.CommandLine/Composition/SchemaDependencyClosureModuleFactory.cs",

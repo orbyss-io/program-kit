@@ -40,10 +40,16 @@ public sealed class CapabilityBundleVerifier : ICapabilityBundleVerifier
                 ".agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json",
             ["dotnet-console-input-materialization-guide"] =
                 ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-materialization-guide.md",
+            ["dotnet-console-command-sketch-example"] =
+                ".agent-capabilities/supporting-resources/dotnet/dotnet-console-command-sketch-example.json",
+            ["dotnet-console-contract-style"] =
+                ".agent-capabilities/supporting-resources/dotnet/dotnet-console-contract-style-0.1.0-alpha.1.json",
             ["dotnet-console-integration-project-example"] =
                 ".agent-capabilities/supporting-resources/dotnet/Example.ConsoleIntegration.csproj",
             ["dotnet-console-integration-source-example"] =
                 ".agent-capabilities/supporting-resources/dotnet/ConsoleIntegration.cs",
+            ["dotnet-console-input-request-example"] =
+                ".agent-capabilities/supporting-resources/dotnet/dotnet-console-input-request-example.json",
             ["software-change-completion-profile-set"] =
                 ".agent-capabilities/supporting-resources/completion-profiles/software-change/completion-profile-set-1.0.0.json",
             ["software-change-completion-profile-set-schema"] =

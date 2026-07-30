@@ -112,6 +112,30 @@ public static class CommandDescriptorCatalog
             "Read-only verification over explicit inputs.",
             "program-kit check artifact.json --profile routine"),
         Create(
+            "dotnet.describe-console-contract",
+            ["dotnet", "describe-console-contract"],
+            [],
+            [
+                new("format", true, false, TextOrJsonFormats),
+                Diagnostics(),
+            ],
+            "Describe the exact supported Open Console authoring and binding contract.",
+            "Read-only product knowledge; it does not select consumer semantics or grant authority.",
+            "program-kit dotnet describe-console-contract --format text"),
+        Create(
+            "dotnet.scaffold-console-request",
+            ["dotnet", "scaffold-console-request"],
+            [new("sketch", true, false)],
+            [
+                new("workspace-root", true, true),
+                new("consumer-project", true, true),
+                new("output", true, true),
+                Diagnostics(),
+            ],
+            "Create one complete Console input-materialization request from an exact command sketch and project.",
+            "Writes one new request; it derives only project mechanics, operation schema-set mirrors, ordering, and digests.",
+            "program-kit dotnet scaffold-console-request console-command-sketch.json --workspace-root . --consumer-project src/Example.Console.Integration/Example.Console.Integration.csproj --output console-input-request.json"),
+        Create(
             "dotnet.materialize-console-inputs",
             ["dotnet", "materialize-console-inputs"],
             [new("request", true, false)],

@@ -32,18 +32,24 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
         ".agent-capabilities/authoring-workspace.json";
     private const string RequestSchema =
         "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1";
+    private const string RequestSchemaAlpha2 =
+        "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2";
     private const string LockSchema =
         "pkid:schema:program-kit:dotnet-console-input-materialization-lock@0.1.0-alpha.1";
     private const string LockFile =
         ".program-kit-console-inputs.lock.json";
     private static readonly SemanticVersion ContractVersion =
         new("0.1.0-alpha.1");
+    private static readonly SemanticVersion ContractVersionAlpha2 =
+        new("0.1.0-alpha.2");
     private readonly ICommandFileSystem fileSystem;
     private readonly ICommandProcessRunner processRunner;
     private readonly IProgramKitJsonSerializer serializer;
     private readonly IDotNetShellValidator shellValidator;
     private readonly IProgramKitSemanticValidator<OpenConsoleDocument>
         openConsoleValidator;
+    private readonly IProgramKitSemanticValidator<OpenConsoleDocumentAlpha2>
+        openConsoleAlpha2Validator;
     private readonly IDotNetConsoleBindingValidator bindingValidator;
     private readonly IDotNetConsoleMetadataInspector metadataInspector;
     private readonly IDotNetConsoleIntegrationAssemblyInspector
@@ -57,6 +63,8 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
         IDotNetShellValidator shellValidator,
         IProgramKitSemanticValidator<OpenConsoleDocument>
             openConsoleValidator,
+        IProgramKitSemanticValidator<OpenConsoleDocumentAlpha2>
+            openConsoleAlpha2Validator,
         IDotNetConsoleBindingValidator bindingValidator,
         IDotNetConsoleMetadataInspector metadataInspector,
         IDotNetConsoleIntegrationAssemblyInspector integrationInspector)
@@ -71,6 +79,8 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
             throw new ArgumentNullException(nameof(shellValidator));
         this.openConsoleValidator = openConsoleValidator ??
             throw new ArgumentNullException(nameof(openConsoleValidator));
+        this.openConsoleAlpha2Validator = openConsoleAlpha2Validator ??
+            throw new ArgumentNullException(nameof(openConsoleAlpha2Validator));
         this.bindingValidator = bindingValidator ??
             throw new ArgumentNullException(nameof(bindingValidator));
         this.metadataInspector = metadataInspector ??
@@ -90,12 +100,10 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
         var requestBytes = await fileSystem.ReadAllBytesAsync(
             paths.RequestPath,
             cancellationToken).ConfigureAwait(false);
-        var request = ReadRequest(requestBytes);
-        ValidateRequest(request, paths);
-        var canonicalRequest = serializer.Write(
-            request,
-            DotNetJsonProfiles.ShellBootstrap.Reference,
-            JsonSerializationLimits.Default).ToArray();
+        var read = ReadRequest(requestBytes);
+        var request = read.LegacyRequest;
+        ValidateRequest(read, paths);
+        var canonicalRequest = read.CanonicalBytes;
         var requestDigest = LocalOperationHashes.Sha256(canonicalRequest);
         var previous = await VerifyExistingOutputAsync(
             paths.OutputRoot,
@@ -224,22 +232,57 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
         }
     }
 
-    private DotNetConsoleInputMaterializationRequest ReadRequest(
+    private MaterializationRequestReadResult ReadRequest(
         ReadOnlyMemory<byte> requestBytes)
     {
         try
         {
-            return serializer.Read<DotNetConsoleInputMaterializationRequest>(
-                requestBytes,
+            var schema = ReadDeclaredSchema(requestBytes.Span);
+            if (string.Equals(
+                    schema,
+                    RequestSchemaAlpha2,
+                    StringComparison.Ordinal))
+            {
+                var alpha2 =
+                    serializer.Read<DotNetConsoleInputMaterializationRequestAlpha2>(
+                        requestBytes,
+                        DotNetJsonProfiles.ShellBootstrap.Reference,
+                        JsonSerializationLimits.Default);
+                var canonical = serializer.Write(
+                    alpha2,
+                    DotNetJsonProfiles.ShellBootstrap.Reference,
+                    JsonSerializationLimits.Default).ToArray();
+                return new MaterializationRequestReadResult(
+                    alpha2.ToAlpha1Reader(),
+                    alpha2,
+                    canonical);
+            }
+
+            var alpha1 =
+                serializer.Read<DotNetConsoleInputMaterializationRequest>(
+                    requestBytes,
+                    DotNetJsonProfiles.ShellBootstrap.Reference,
+                    JsonSerializationLimits.Default);
+            var alpha1Canonical = serializer.Write(
+                alpha1,
                 DotNetJsonProfiles.ShellBootstrap.Reference,
-                JsonSerializationLimits.Default);
+                JsonSerializationLimits.Default).ToArray();
+            return new MaterializationRequestReadResult(
+                alpha1,
+                null,
+                alpha1Canonical);
         }
-        catch (ProgramKitJsonException exception)
+        catch (Exception exception) when (
+            exception is ProgramKitJsonException or
+                System.Text.Json.JsonException)
         {
+            var path = exception is ProgramKitJsonException programKit
+                ? programKit.Diagnostic.Path
+                : ((System.Text.Json.JsonException)exception).Path ?? "";
             throw new ConsoleInputMaterializationException(
                 ConsoleInputMaterializationDiagnosticIds.InvalidRequest,
                 exception.Message,
-                PrefixPath("/request", exception.Diagnostic.Path));
+                PrefixPath("/request", path));
         }
         catch (ArgumentException exception)
         {
@@ -250,15 +293,57 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
         }
     }
 
+    private static string? ReadDeclaredSchema(ReadOnlySpan<byte> requestBytes)
+    {
+        System.Text.Json.Utf8JsonReader reader = new(requestBytes);
+        if (!reader.Read() ||
+            reader.TokenType != System.Text.Json.JsonTokenType.StartObject)
+        {
+            throw new System.Text.Json.JsonException(
+                "The Console materialization request root must be an object.");
+        }
+
+        while (reader.Read() &&
+               reader.TokenType != System.Text.Json.JsonTokenType.EndObject)
+        {
+            if (reader.TokenType !=
+                    System.Text.Json.JsonTokenType.PropertyName ||
+                reader.CurrentDepth != 1)
+            {
+                continue;
+            }
+
+            var isSchema = reader.ValueTextEquals("$schema"u8);
+            if (!reader.Read())
+            {
+                throw new System.Text.Json.JsonException(
+                    "The Console materialization request contains an incomplete property.");
+            }
+
+            if (isSchema)
+            {
+                return reader.TokenType ==
+                        System.Text.Json.JsonTokenType.String
+                    ? reader.GetString()
+                    : null;
+            }
+
+            reader.Skip();
+        }
+
+        return null;
+    }
+
     private static string PrefixPath(string prefix, string path) =>
         string.IsNullOrEmpty(path)
             ? prefix
             : string.Concat(prefix, path);
 
     private void ValidateRequest(
-        DotNetConsoleInputMaterializationRequest request,
+        MaterializationRequestReadResult read,
         ConsoleInputMaterializationPaths paths)
     {
+        var request = read.LegacyRequest;
         if (!string.Equals(request.Schema, RequestSchema, StringComparison.Ordinal) ||
             request.Version != ContractVersion ||
             request.TargetFramework != "net10.0" ||
@@ -330,10 +415,62 @@ public sealed class ConsoleInputMaterializer : IConsoleInputMaterializer
                 "The request must select exactly one Console host and its exact declared host revision.");
         }
 
+        if (read.Alpha2Request is not null)
+        {
+            ValidateAlpha2(read.Alpha2Request, hosts[0]);
+        }
+
         EnsureValid(
             shellValidator.Validate(request.Shell),
             "The supplied shell intent is invalid.");
         _ = paths;
+    }
+
+    private void ValidateAlpha2(
+        DotNetConsoleInputMaterializationRequestAlpha2 request,
+        DotNetHostDefinition host)
+    {
+        if (!string.Equals(
+                request.Schema,
+                RequestSchemaAlpha2,
+                StringComparison.Ordinal) ||
+            request.Version != ContractVersionAlpha2)
+        {
+            throw InvalidRequest(
+                "The current request must select the exact 0.1.0-alpha.2 contract.");
+        }
+
+        OpenConsoleDocumentAlpha2 document = new(
+            request.OpenConsole.Schema,
+            request.OpenConsole.DocumentVersion,
+            request.OpenConsole.Info,
+            request.OpenConsole.HostRevision,
+            request.OpenConsole.Parsing,
+            request.OpenConsole.HostExitCodeRoles,
+            request.OpenConsole.GlobalOptions,
+            request.OpenConsole.Commands,
+            request.OpenConsole.Help,
+            request.OpenConsole.Completion,
+            request.OpenConsole.Compatibility,
+            new OpenConsoleProvenance(
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:shell:program-kit:materialization-preflight"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:0000000000000000000000000000000000000000000000000000000000000000")),
+                request.OpenConsole.GeneratorRevision,
+                request.OpenConsole.OperationRevisions));
+        EnsureValid(
+            openConsoleAlpha2Validator.Validate(document),
+            "The Open Console alpha.2 intent is invalid.");
+        if (!DotNetConsoleProjectionValidator.IsExactAlpha2(
+                host,
+                request.OpenConsole.Commands))
+        {
+            throw InvalidRequest(
+                "The Open Console alpha.2 request, result, and diagnostic schema sets must exactly mirror the selected shell host operation bindings.");
+        }
     }
 
     private async ValueTask BuildConsumerAsync(

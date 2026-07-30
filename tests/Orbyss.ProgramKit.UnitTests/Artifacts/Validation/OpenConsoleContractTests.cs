@@ -24,23 +24,26 @@ public sealed class OpenConsoleContractTests
 
         Assert.IsTrue(schemaValidation.IsValid);
         Assert.IsTrue(documentValidation.IsValid);
-        Assert.HasCount(1, module.Resources);
+        Assert.HasCount(2, module.Resources);
 
-        var resource = module.Resources[0];
-        using var stream = module.OpenRead(resource.SchemaReference);
-        var actualDigest = string.Concat(
-            "sha256:",
-            Convert.ToHexStringLower(SHA256.HashData(stream)));
-        Assert.AreEqual(
-            resource.SchemaReference.Digest.Value,
-            actualDigest);
+        foreach (var resource in module.Resources)
+        {
+            using var stream = module.OpenRead(resource.SchemaReference);
+            var actualDigest = string.Concat(
+                "sha256:",
+                Convert.ToHexStringLower(SHA256.HashData(stream)));
+            Assert.AreEqual(
+                resource.SchemaReference.Digest.Value,
+                actualDigest);
+        }
     }
 
     [TestMethod]
     public void NormativeDocumentContainsNoHostImplementationVocabulary()
     {
         OpenConsoleSchemaModule module = new();
-        var resource = module.Resources.Single();
+        var resource = module.Resources.Single(candidate =>
+            candidate.SchemaReference.Version.Value == "1.0.0");
         using var stream = module.OpenRead(resource.SchemaReference);
         using StreamReader reader = new(
             stream,
