@@ -71,7 +71,7 @@ public sealed class CSharpBuildGateAuthoringTests
         }
 
         Assert.AreEqual(
-            "sha256:8bfba8e6e9c41cedf6b6f3109d37cf6655f3a818e536ce107a25bc66a8f89863",
+            "sha256:63fc1dea11c11820a3e2b8aeb568dca85f39510103ab7945a9569db39875b604",
             string.Concat(
                 "sha256:",
                 Convert.ToHexStringLower(hash.GetHashAndReset())));

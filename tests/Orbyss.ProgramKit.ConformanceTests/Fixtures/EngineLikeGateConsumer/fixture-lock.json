@@ -8,7 +8,7 @@
     },
     {
       "path": "Analyzer/Generation/EngineSemanticsAnalyzersParticipationReceiptGenerator.cs",
-      "digest": "sha256:78a3046e4d41c709e0ab13b64c1a4a438d0d4e2c0d69de471cad8c1df87ffed5"
+      "digest": "sha256:bc9ccc7c767f8240f61b23fd823b11964e34ea13e82e10b0f97a58661bf0aac8"
     },
     {
       "path": "Analyzer/Rules/ENGINE0001Analyzer.cs",

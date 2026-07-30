@@ -3,7 +3,7 @@
   "version": "0.1.0-alpha.3",
   "sourceInventory": {
     "digestAlgorithm": "sha256(path-utf8,0,file-bytes,0)",
-    "digest": "sha256:0911a5d2566e7cf258894e393b6a333f6935fa9191a9e6f28eb849e468218383",
+    "digest": "sha256:64f6b8d2974907315b75825885ebcb69a75af0c402f0e98bf2a1e05787bfd37f",
     "paths": [
       "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Composition/Scaffolding/FileSystemConsumerAnalyzerScaffoldTransaction.cs",
       "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Composition/Scaffolding/FileSystemConsumerAnalyzerScaffoldWorkspace.cs",

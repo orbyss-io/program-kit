@@ -395,10 +395,19 @@ public sealed class PrepareCSharpBuildGateTask : ITask
                 "ReceiptRelativePathTemplate");
             if (Path.IsPathRooted(receiptPath) ||
                 receiptPath.Split('/', '\\').Any(segment => segment == "..") ||
-                !receiptPath.Contains("{nonce}", StringComparison.Ordinal))
+                ContainsReceiptSubstitution(receiptPath))
             {
                 throw new InvalidOperationException(
-                    $"Analyzer component '{component}' has an unsafe receipt path.");
+                    $"Analyzer component '{component}' has an unsafe or unstable receipt path.");
+            }
+
+            var receiptMarker = CSharpBuildGateTaskSupport.RequiredMetadata(
+                analyzer,
+                "ReceiptMarkerTemplate");
+            if (ContainsReceiptSubstitution(receiptMarker))
+            {
+                throw new InvalidOperationException(
+                    $"Analyzer component '{component}' has an unstable receipt marker.");
             }
 
             var diagnostics = CSharpBuildGateTaskSupport.RequiredMetadata(
@@ -441,6 +450,11 @@ public sealed class PrepareCSharpBuildGateTask : ITask
 
         return selected;
     }
+
+    private static bool ContainsReceiptSubstitution(string value) =>
+        value.Contains("{nonce}", StringComparison.Ordinal) ||
+        value.Contains("{project}", StringComparison.Ordinal) ||
+        value.Contains("{profile}", StringComparison.Ordinal);
 
     private CSharpBuildGateActivationResult EvaluateActivations(
         IReadOnlyDictionary<string, ITaskItem> selected)

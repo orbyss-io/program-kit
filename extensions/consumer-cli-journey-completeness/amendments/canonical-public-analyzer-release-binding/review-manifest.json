@@ -106,6 +106,13 @@
       "version": "1.0.0",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/program-kit-private-gate-selection-lock.json",
       "sha256": "42c952f2ca3448e24ff9f7abb138bc6e5fa5ec475bda973131b877ffcfd1ff8c"
+    },
+    {
+      "role": "deterministic-compiler-evidence",
+      "identity": "pkid:evidence:program-kit:pkrb-deterministic-compiler",
+      "version": "1.0.0",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/pkrb-deterministic-compiler-evidence.json",
+      "sha256": "a50edfcc61fb9c26db3540e28033305d4f6741d579538cc5a063d214bba486b7"
     }
   ],
   "staticConformanceDisposition": {
@@ -147,9 +154,10 @@
   },
   "implementationProgress": {
     "completedWorkUnits": [
-      "PKRB-W010"
+      "PKRB-W010",
+      "PKRB-W020"
     ],
-    "nextWorkUnit": "PKRB-W020",
+    "nextWorkUnit": "PKRB-W030",
     "activeSelectionLock": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate@1.0.0"
   },
   "validation": {
@@ -157,7 +165,7 @@
     "registeredSchemas": "passed for architecture, plan, and disposition through the installed CLI",
     "typedSemantics": "passed for architecture alpha.3, plan alpha.4, and disposition alpha.2",
     "commandLineBuild": "passed with active private gate and zero warnings or errors",
-    "runtimeImplementation": "PKRB-W010 gate establishment completed; PKRB-W020 through PKRB-W080 remain",
+    "runtimeImplementation": "PKRB-W010 gate establishment and PKRB-W020 deterministic compiler outputs completed; PKRB-W030 through PKRB-W080 remain",
     "publication": "not performed and not authorized"
   }
 }

@@ -1286,7 +1286,7 @@
       <_ProgramKitPriorCompilerExecutionReceipt
         Remove="@(_ProgramKitPriorCompilerExecutionReceipt)" />
       <_ProgramKitPriorCompilerExecutionReceipt
-        Include="$(_ProgramKitExpectedCompilerGeneratedFilesOutputPath)\**\ProgramKitCompilerInvocationReceipt.$(_ProgramKitExpectedCompilerInvocationNonce).cs"
+        Include="$(_ProgramKitExpectedCompilerGeneratedFilesOutputPath)\**\ProgramKitCompilerInvocationReceipt.cs"
         Condition="'$(_ProgramKitRequireCompilerExecutionReceipt)' == 'true'" />
       <_ProgramKitCompilerInputForHash Remove="@(_ProgramKitCompilerInputForHash)" />
       <_ProgramKitCompilerInputContentSnapshot Remove="@(_ProgramKitCompilerInputContentSnapshot)" />
@@ -1371,7 +1371,7 @@
       <_ProgramKitPostCompilerInputContent
         Remove="@(_ProgramKitPostCompilerInputContent)" />
       <_ProgramKitCompilerExecutionReceipt
-        Include="$(_ProgramKitExpectedCompilerGeneratedFilesOutputPath)\**\ProgramKitCompilerInvocationReceipt.$(_ProgramKitExpectedCompilerInvocationNonce).cs"
+        Include="$(_ProgramKitExpectedCompilerGeneratedFilesOutputPath)\**\ProgramKitCompilerInvocationReceipt.cs"
         Condition="'$(_ProgramKitRequireCompilerExecutionReceipt)' == 'true'" />
     </ItemGroup>
     <ReadLinesFromFile File="@(_ProgramKitCompilerExecutionReceipt)"
@@ -1433,7 +1433,7 @@
         Condition="'%(Identity)' == '// &lt;auto-generated program-kit&gt;'" />
       <_ProgramKitCompilerExecutionReceiptMarker
         Include="@(_ProgramKitCompilerExecutionReceiptLine)"
-        Condition="'%(Identity)' == '// compiler-executed:$(_ProgramKitExpectedCompilerInvocationNonce)'" />
+        Condition="'%(Identity)' == '// compiler-executed:program-kit'" />
 
       <_ProgramKitCompilerAnalyzerArgument
         Include="@(CscCommandLineArgs)"

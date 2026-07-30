@@ -24,11 +24,11 @@
     },
     {
       "path": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/Operations/Generation/GeneratedSourceContractReceiptGenerator.cs",
-      "digest": "sha256:3f58e4aaf1d6d6205beed0280bddf580101b804c1a2febfaf8f0523dda97ee17"
+      "digest": "sha256:a9319f31cdd3d35aeee6091ae6f91c5a6135c9099d117fa11840c5dfc813d418"
     },
     {
       "path": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/README.md",
-      "digest": "sha256:014ec9aadf7e1e11f2977c843ad3d78f2d91c49fda27e9da885d8ce1b430f117"
+      "digest": "sha256:a496568586c3bda64d3593c40544dd311542f330b44d7e91c34ec7070655f4f9"
     }
   ],
   "requiredPackageAssets": [

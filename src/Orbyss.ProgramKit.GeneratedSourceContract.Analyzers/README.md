@@ -28,4 +28,6 @@ Selection is direct and opt-in:
 
 The package contains only `analyzers/dotnet/cs` plus its contract, schema, and
 README. It contains no `lib`, `ref`, `runtime`, `build`, or `buildTransitive`
-asset and activates no unrelated Program Kit rule.
+asset and activates no unrelated Program Kit rule. The nonce requests
+current-invocation evidence, but it is never written into the receipt source,
+hint name, assembly, or portable PDB.

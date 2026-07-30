@@ -87,6 +87,8 @@ public sealed class CSharpBuildGateBuildIntegrationTests
     [DataRow("demoted", "PKCG100")]
     [DataRow("extra-input", "PKCG100")]
     [DataRow("private-analyzer", "PKCG100")]
+    [DataRow("nonce-receipt-path", "PKCG100")]
+    [DataRow("nonce-receipt-marker", "PKCG100")]
     [DataRow("missing-receipt", "PKCG200")]
     [DataRow("wrong-receipt", "PKCG200")]
     public void TamperingFailsClosedAtTheOwningMechanicsLayer(
@@ -303,15 +305,20 @@ public sealed class CSharpBuildGateBuildIntegrationTests
             : string.Empty;
         var marker = scenario == "wrong-receipt"
             ? "wrong-marker"
-            : "consumer-receipt:{nonce}:{project}:{profile}";
+            : scenario == "nonce-receipt-marker"
+                ? "consumer-receipt:{nonce}"
+                : "consumer-receipt:stable";
+        var receiptPathTemplate = scenario == "nonce-receipt-path"
+            ? "Fake/Receipt.{nonce}.cs"
+            : "Fake/Receipt.cs";
         var writeReceipt = scenario == "missing-receipt" ||
             scenario is "valid-exception" or "expired-exception"
             ? string.Empty
             : """
               <MakeDir Directories="$(_ProgramKitCSharpGateInvocationRoot)\generated\Fake" />
               <WriteLinesToFile
-                File="$(_ProgramKitCSharpGateInvocationRoot)\generated\Fake\Receipt.$(_ProgramKitCSharpGateNonce).cs"
-                Lines="consumer-receipt:$(_ProgramKitCSharpGateNonce):pkid:profile:consumer:project:work-unit"
+                File="$(_ProgramKitCSharpGateInvocationRoot)\generated\Fake\Receipt.cs"
+                Lines="consumer-receipt:stable"
                 Overwrite="true" />
               """;
         var boundary = scenario is "valid-exception" or "expired-exception"
@@ -379,7 +386,7 @@ public sealed class CSharpBuildGateBuildIntegrationTests
                   <HasRuntimeAssets>false</HasRuntimeAssets>
                   <HasBuildTransitiveAssets>false</HasBuildTransitiveAssets>
                   <ReceiptIdentity>pkid:receipt:consumer:boundary</ReceiptIdentity>
-                  <ReceiptRelativePathTemplate>Fake/Receipt.{nonce}.cs</ReceiptRelativePathTemplate>
+                  <ReceiptRelativePathTemplate>{{receiptPathTemplate}}</ReceiptRelativePathTemplate>
                   <ReceiptMarkerTemplate>{{marker}}</ReceiptMarkerTemplate>
                   <DiagnosticIds>CNS0001</DiagnosticIds>
                 </ProgramKitCSharpGateAnalyzer>

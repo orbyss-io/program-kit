@@ -1,7 +1,8 @@
 <Project TreatAsLocalProperty="_ProgramKitCSharpGateCommand;
                                _ProgramKitCSharpGateInvocationRoot;
                                _ProgramKitCSharpGateNonce;
-                               _ProgramKitCSharpGatePreCompilerInputDigest">
+                               _ProgramKitCSharpGatePreCompilerInputDigest;
+                               _ProgramKitCSharpGateExistingPathMap">
   <UsingTask TaskName="Orbyss.ProgramKit.CSharpBuildGates.Build.Operations.Execution.PrepareCSharpBuildGateTask"
              AssemblyFile="$(ProgramKitCSharpGateTaskAssembly)" />
   <UsingTask TaskName="Orbyss.ProgramKit.CSharpBuildGates.Build.Operations.Execution.VerifyCSharpBuildGateTask"
@@ -11,6 +12,11 @@
           BeforeTargets="CoreCompile"
           Condition="'$(ProgramKitCSharpGateEnabled)' == 'true'">
     <PropertyGroup>
+      <_ProgramKitCSharpGateExistingPathMap>$(PathMap)</_ProgramKitCSharpGateExistingPathMap>
+      <Deterministic>true</Deterministic>
+      <DeterministicSourcePaths>true</DeterministicSourcePaths>
+      <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+      <DebugType>portable</DebugType>
       <_ProgramKitCSharpGateCommand>build</_ProgramKitCSharpGateCommand>
       <_ProgramKitCSharpGateCommand Condition="'$(IsTestProject)' == 'true'">test</_ProgramKitCSharpGateCommand>
       <_ProgramKitCSharpGateCommand Condition="'$(_IsPacking)' == 'true'">pack</_ProgramKitCSharpGateCommand>
@@ -79,6 +85,8 @@
       <ProgramKitCompilerInvocationNonce>$(_ProgramKitCSharpGateNonce)</ProgramKitCompilerInvocationNonce>
       <ProgramKitPublicAnalyzerReceiptNonce>$(_ProgramKitCSharpGateNonce)</ProgramKitPublicAnalyzerReceiptNonce>
       <NonExistentFile>$(_ProgramKitCSharpGateInvocationRoot)\compiler-execution-required.receipt</NonExistentFile>
+      <PathMap>$(_ProgramKitCSharpGateInvocationRoot)\generated=/_/ProgramKitCompilerGenerated,$(MSBuildProjectDirectory)=/_/</PathMap>
+      <PathMap Condition="'$(_ProgramKitCSharpGateExistingPathMap)' != ''">$(PathMap),$(_ProgramKitCSharpGateExistingPathMap)</PathMap>
     </PropertyGroup>
     <ItemGroup>
       <CompilerVisibleProperty Include="MSBuildProjectName" />

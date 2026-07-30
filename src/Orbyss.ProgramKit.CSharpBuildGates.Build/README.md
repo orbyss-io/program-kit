@@ -14,8 +14,10 @@ The package:
 - rejects analyzer substitution, duplication, disablement, warning demotion,
   inventory drift, and post-validation mutation;
 - evaluates only the four versioned temporary-exception kinds;
-- creates a unique compilation nonce and isolated receipt root;
-- requires a distinct same-assembly receipt from every applicable analyzer;
+- creates a unique compilation nonce and isolated receipt root while mapping
+  compiler document paths to a stable logical root;
+- requires a distinct, byte-stable same-assembly receipt from every applicable
+  analyzer beneath that isolated root;
 - emits a participation receipt or a typed exception-use receipt; and
 - runs from normal compiler invocation, including build, test-project, pack,
   publish, and explicitly bound generated-project verification profiles.

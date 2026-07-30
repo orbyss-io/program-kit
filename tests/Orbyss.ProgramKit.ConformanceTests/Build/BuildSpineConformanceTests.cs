@@ -100,6 +100,13 @@ public sealed class BuildSpineConformanceTests
         AssertProperty(document, "ProgramKitAllowPrereleaseSdk", "false");
         AssertProperty(document, "Version", "0.1.0-alpha.3");
         AssertProperty(document, "Deterministic", "true");
+        AssertProperty(document, "DeterministicSourcePaths", "true");
+        AssertProperty(document, "ContinuousIntegrationBuild", "true");
+        AssertProperty(document, "DebugType", "portable");
+        AssertProperty(
+            document,
+            "PathMap",
+            "$(ProgramKitCompilerGeneratedFilesOutputPath)=/_/ProgramKitCompilerGenerated,$(MSBuildProjectDirectory)=/_/");
         AssertProperty(document, "TreatWarningsAsErrors", "true");
         AssertProperty(document, "CodeAnalysisTreatWarningsAsErrors", "true");
         AssertProperty(document, "MSBuildTreatWarningsAsErrors", "true");

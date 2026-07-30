@@ -188,14 +188,68 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
         var receipt = Directory
             .EnumerateFiles(
                 positive.ProjectDirectory,
-                "GeneratedSourceContractReceipt.*.cs",
+                "GeneratedSourceContractReceipt.cs",
                 SearchOption.AllDirectories)
             .Single();
         Assert.Contains(
-            string.Concat(
-                "// public-analyzer-receipt:generated-source-contract:",
-                Nonce),
+            "// public-analyzer-receipt:generated-source-contract",
             File.ReadAllText(receipt));
+    }
+
+    [TestMethod]
+    public void AnalyzerAndConsumerOutputsAreStableAcrossCheckoutRoots()
+    {
+        using var directory = new PublicAnalyzerTemporaryDirectory();
+        var firstAnalyzerRoot = directory.Create("analyzer-first");
+        var secondAnalyzerRoot = directory.Create("analyzer-second");
+        var firstAnalyzer = BuildCopiedAnalyzer(firstAnalyzerRoot);
+        var secondAnalyzer = BuildCopiedAnalyzer(secondAnalyzerRoot);
+
+        Assert.AreEqual(0, firstAnalyzer.ExitCode, firstAnalyzer.Output);
+        Assert.AreEqual(0, secondAnalyzer.ExitCode, secondAnalyzer.Output);
+        AssertMatchingOutput(
+            firstAnalyzerRoot,
+            secondAnalyzerRoot,
+            "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
+            ".dll");
+        AssertMatchingOutput(
+            firstAnalyzerRoot,
+            secondAnalyzerRoot,
+            "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
+            ".pdb");
+
+        var analyzerPath = AnalyzerPath();
+        var firstConsumerRoot = directory.Create("consumer-first");
+        var secondConsumerRoot = directory.Create("consumer-second");
+        const string source =
+            "namespace Consumer; public sealed class StableConsumer;";
+        var firstConsumer = BuildConsumer(
+            firstConsumerRoot,
+            analyzerPath,
+            "StableConsumer.cs",
+            source,
+            optIn: true,
+            receiptNonce: new string('1', 32));
+        var secondConsumer = BuildConsumer(
+            secondConsumerRoot,
+            analyzerPath,
+            "StableConsumer.cs",
+            source,
+            optIn: true,
+            receiptNonce: new string('2', 32));
+
+        Assert.AreEqual(0, firstConsumer.ExitCode, firstConsumer.Output);
+        Assert.AreEqual(0, secondConsumer.ExitCode, secondConsumer.Output);
+        AssertMatchingOutput(
+            firstConsumerRoot,
+            secondConsumerRoot,
+            "Consumer",
+            ".dll");
+        AssertMatchingOutput(
+            firstConsumerRoot,
+            secondConsumerRoot,
+            "Consumer",
+            ".pdb");
     }
 
     [TestMethod]
@@ -310,12 +364,93 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
             "net10.0",
             "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.dll");
 
+    private static PublicAnalyzerBuildResult BuildCopiedAnalyzer(string root)
+    {
+        var sourceRoot = Path.Combine(
+            ConformanceInputs.ProgramKitRoot,
+            "src",
+            "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers");
+        foreach (var sourcePath in Directory.EnumerateFiles(
+                     Path.Combine(sourceRoot, "Operations"),
+                     "*.cs",
+                     SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(
+                root,
+                Path.GetRelativePath(sourceRoot, sourcePath));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(sourcePath, destination);
+        }
+
+        var projectPath = Path.Combine(root, "Analyzer.csproj");
+        File.WriteAllText(
+            projectPath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>net10.0</TargetFramework>
+                <LangVersion>14.0</LangVersion>
+                <Nullable>enable</Nullable>
+                <ImplicitUsings>enable</ImplicitUsings>
+                <AssemblyName>Orbyss.ProgramKit.GeneratedSourceContract.Analyzers</AssemblyName>
+                <RootNamespace>Orbyss.ProgramKit.GeneratedSourceContract</RootNamespace>
+                <Deterministic>true</Deterministic>
+                <DeterministicSourcePaths>true</DeterministicSourcePaths>
+                <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+                <DebugType>portable</DebugType>
+                <PathMap>$(MSBuildProjectDirectory)=/_/</PathMap>
+              </PropertyGroup>
+              <ItemGroup>
+                <Reference Include="Microsoft.CodeAnalysis">
+                  <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.dll</HintPath>
+                  <Private>false</Private>
+                </Reference>
+                <Reference Include="Microsoft.CodeAnalysis.CSharp">
+                  <HintPath>$(MSBuildToolsPath)\Roslyn\bincore\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+                  <Private>false</Private>
+                </Reference>
+              </ItemGroup>
+            </Project>
+            """,
+            Encoding.UTF8);
+        return Run(
+            root,
+            "build",
+            projectPath,
+            "--configuration",
+            "Release",
+            "--nologo",
+            "--property:UseSharedCompilation=false");
+    }
+
+    private static void AssertMatchingOutput(
+        string firstRoot,
+        string secondRoot,
+        string assemblyName,
+        string extension)
+    {
+        var relative = Path.Combine(
+            "bin",
+            "Release",
+            "net10.0",
+            string.Concat(assemblyName, extension));
+        var first = Path.Combine(firstRoot, relative);
+        var second = Path.Combine(secondRoot, relative);
+        Assert.IsTrue(File.Exists(first), first);
+        Assert.IsTrue(File.Exists(second), second);
+        Assert.AreSequenceEqual(
+            SHA256.HashData(File.ReadAllBytes(first)),
+            SHA256.HashData(File.ReadAllBytes(second)),
+            extension);
+    }
+
     private static PublicAnalyzerBuildResult BuildConsumer(
         string projectDirectory,
         string analyzerPath,
         string sourcePath,
         string source,
-        bool optIn)
+        bool optIn,
+        string receiptNonce = Nonce)
     {
         var projectPath = Path.Combine(projectDirectory, "Consumer.csproj");
         var absoluteSourcePath = Path.Combine(
@@ -325,9 +460,9 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
             Path.GetDirectoryName(absoluteSourcePath)!);
         File.WriteAllText(absoluteSourcePath, source, Encoding.UTF8);
         var activation = optIn
-            ? """
+            ? $$"""
                 <ProgramKitGeneratedSourceContract>1.0.0</ProgramKitGeneratedSourceContract>
-                <ProgramKitPublicAnalyzerReceiptNonce>0123456789abcdef0123456789abcdef</ProgramKitPublicAnalyzerReceiptNonce>
+                <ProgramKitPublicAnalyzerReceiptNonce>{{receiptNonce}}</ProgramKitPublicAnalyzerReceiptNonce>
               """
             : string.Empty;
         File.WriteAllText(
@@ -338,6 +473,11 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
                 <TargetFramework>net10.0</TargetFramework>
                 <Nullable>enable</Nullable>
                 <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+                <Deterministic>true</Deterministic>
+                <DeterministicSourcePaths>true</DeterministicSourcePaths>
+                <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+                <DebugType>portable</DebugType>
+                <PathMap>$(MSBuildProjectDirectory)=/_/</PathMap>
                 <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
                 <CompilerGeneratedFilesOutputPath>GeneratedOutput</CompilerGeneratedFilesOutputPath>
             {{activation}}

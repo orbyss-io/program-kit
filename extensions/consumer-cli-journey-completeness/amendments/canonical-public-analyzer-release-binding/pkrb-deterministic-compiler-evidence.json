@@ -1,0 +1,109 @@
+{
+  "identity": "pkid:evidence:program-kit:pkrb-deterministic-compiler",
+  "version": "1.0.0",
+  "state": "completed",
+  "workUnitId": "PKRB-W020",
+  "sourceBasisCommit": "eb789a18789da4f2cfe93dcaa16d6b384465dec1",
+  "approvalRecord": {
+    "identity": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding",
+    "version": "1.0.0",
+    "digest": "sha256:d9fa6706e70206e634931910291e87723c47940feecce22f683ffe3ed0bd478c"
+  },
+  "activeGateSelection": {
+    "identity": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate",
+    "version": "1.0.0",
+    "digest": "sha256:42c952f2ca3448e24ff9f7abb138bc6e5fa5ec475bda973131b877ffcfd1ff8c"
+  },
+  "implementationBindings": [
+    {
+      "role": "repository-compiler-determinism",
+      "path": "Directory.Build.props",
+      "digest": "sha256:1245f184646a3954b34b546a50c1bd056a873c3fbbd0beccbc5ef5473de35999"
+    },
+    {
+      "role": "private-gate-receipt-lookup",
+      "path": "Directory.Build.targets",
+      "digest": "sha256:42383f665ff035c97b7a196dc5fb64e53fe2dd537d22ca481eed875f2dd23747"
+    },
+    {
+      "role": "private-gate-receipt-generator",
+      "path": "tools/Orbyss.ProgramKit.CSharpGate/Generation/ProgramKitCompilerInvocationReceiptGenerator.cs",
+      "digest": "sha256:31cd9dd8c15b70deb46715c66bad770e16dc554888a10511feda1c1b6a8f366f"
+    },
+    {
+      "role": "private-gate-receipt-validator",
+      "path": "tools/Orbyss.ProgramKit.CSharpGate/Analysis/ProgramKitCSharpGateAnalyzer.cs",
+      "digest": "sha256:9ad02b87fbb80a33f385c685d5b7011e78106d5308a9edcd73828d25720b34f1"
+    },
+    {
+      "role": "public-receipt-generator",
+      "path": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/Operations/Generation/GeneratedSourceContractReceiptGenerator.cs",
+      "digest": "sha256:a9319f31cdd3d35aeee6091ae6f91c5a6135c9099d117fa11840c5dfc813d418"
+    },
+    {
+      "role": "consumer-build-determinism",
+      "path": "src/Orbyss.ProgramKit.CSharpBuildGates.Build/build/Orbyss.ProgramKit.CSharpBuildGates.Build.targets",
+      "digest": "sha256:e112d6355aa9dd941caee6f5b94f1f96e547fb3fc9a7fc04289698ea5b0d469c"
+    },
+    {
+      "role": "consumer-receipt-boundary-validation",
+      "path": "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Operations/Execution/PrepareCSharpBuildGateTask.cs",
+      "digest": "sha256:b79ef953a5d8b2c03bab778e2737728e2b3bfa1e72ea658255b0f956556259fd"
+    },
+    {
+      "role": "authoring-receipt-template",
+      "path": "src/Orbyss.ProgramKit.CSharpBuildGates.Authoring/Templates/participation-receipt-generator.cs.template",
+      "digest": "sha256:3fba5bf31038232b3fcf5da5b4e2718cf8124ecbb019046c557e43258b37b761"
+    }
+  ],
+  "invariants": {
+    "freshCompilerParticipation": "Each prepared build retains a distinct externally supplied nonce and a distinct generated-files output root.",
+    "compiledRepresentation": "Receipt source, hint name, relative path, marker, assemblies, and portable PDBs contain no nonce, profile, project, machine, or absolute checkout-root variation.",
+    "trustBoundary": "Only the stable receipt emitted beneath the current prepared invocation root is accepted; stale, spoofed, tampered, and substitution-bearing receipt declarations fail closed.",
+    "publicDiagnostics": "Existing PKCC and PKCS diagnostic identities and meanings are unchanged."
+  },
+  "verification": {
+    "focusedUnitTests": {
+      "result": "passed",
+      "total": 3,
+      "succeeded": 3,
+      "failed": 0,
+      "observation": "Authoring, build-spine, and manifest source-inventory bindings match the stable receipt representation."
+    },
+    "focusedConformanceTests": {
+      "result": "passed",
+      "total": 8,
+      "succeeded": 8,
+      "failed": 0,
+      "observation": "Private concurrent invocations use distinct nonce roots while receipt, assembly, and portable-PDB bytes agree; public analyzer and opted-in consumer outputs agree across clean checkout roots; stale, spoofed, tampered, and substitution-bearing receipts fail closed."
+    },
+    "exactSourceInventory": {
+      "result": "passed",
+      "total": 4,
+      "succeeded": 4,
+      "failed": 0
+    },
+    "compatibilityMatrix": {
+      "result": "passed",
+      "total": 2,
+      "succeeded": 2,
+      "failed": 0
+    },
+    "approvedPlanCommandCompatibility": {
+      "command": "dotnet test ProgramKit.sln --no-restore --maxcpucount:1 --property:UseSharedCompilation=false",
+      "result": "incompatible-with-current-microsoft-testing-platform-routing",
+      "observation": "The .NET 10 solution test driver forwards the MSBuild switches to the test applications and reports zero tests, so this command cannot supply closure evidence."
+    },
+    "exhaustiveSolution": {
+      "command": "dotnet test --solution ProgramKit.sln --no-restore --max-parallel-test-modules 1",
+      "result": "passed",
+      "total": 860,
+      "succeeded": 859,
+      "skipped": 1,
+      "failed": 0,
+      "duration": "00:15:37.943",
+      "note": "Directory.Build.props forces UseSharedCompilation=false. The single skip is the explicit human-started Linux Keycloak profile."
+    }
+  },
+  "publicationAuthorized": false
+}

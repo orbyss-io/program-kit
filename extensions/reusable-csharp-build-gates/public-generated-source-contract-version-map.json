@@ -36,7 +36,7 @@
       "revision": {
         "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+        "digest": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:generated-source-contract",
@@ -52,7 +52,7 @@
       "revision": {
         "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+        "digest": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:generated-source-contract",
@@ -99,7 +99,7 @@
       "source": {
         "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+        "digest": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
       },
       "targetIdentity": "pkid:contract:program-kit:generated-source-convention",
       "kind": "implements",
@@ -127,7 +127,7 @@
       "source": {
         "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+        "digest": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
       },
       "targetIdentity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
       "kind": "publicly-exposes",
@@ -135,7 +135,7 @@
       "resolution": {
         "identity": "pkid:implementation:program-kit:generated-source-contract-analyzer",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+        "digest": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
       },
       "exposure": "public",
       "compatibilityDimensions": [

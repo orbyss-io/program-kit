@@ -11,4 +11,6 @@ profiles, fixtures, compatibility claim, and suppression policy.
 
 Program Kit public contract analyzers remain Program Kit-owned selections.
 Scaffolding records those selections separately and never copies a `PKCC`
-diagnostic into consumer-owned source.
+diagnostic into consumer-owned source. Scaffolded participation generators
+validate the fresh invocation nonce but emit a constant receipt marker and
+constant hint name, so freshness evidence does not perturb consumer binaries.

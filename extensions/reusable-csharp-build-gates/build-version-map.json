@@ -4,7 +4,7 @@
       "revision": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+        "digest": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
       },
       "kind": "implementation",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
@@ -20,7 +20,7 @@
       "revision": {
         "identity": "pkid:package:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+        "digest": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
       },
       "kind": "package",
       "ownerId": "pkid:domain:program-kit:csharp-build-gate-mechanics",
@@ -39,7 +39,7 @@
       "source": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+        "digest": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
       },
       "targetIdentity": "pkid:schema:program-kit:csharp-build-gate-selection-lock",
       "kind": "uses-contract",
@@ -68,7 +68,7 @@
       "source": {
         "identity": "pkid:package:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+        "digest": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
       },
       "targetIdentity": "pkid:implementation:program-kit:csharp-build-gates-build",
       "kind": "publicly-exposes",
@@ -76,7 +76,7 @@
       "resolution": {
         "identity": "pkid:implementation:program-kit:csharp-build-gates-build",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+        "digest": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
       },
       "exposure": "public",
       "compatibilityDimensions": [

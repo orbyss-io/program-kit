@@ -33,7 +33,7 @@
 
     <Deterministic>true</Deterministic>
     <DeterministicSourcePaths>true</DeterministicSourcePaths>
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <DebugType>portable</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
@@ -59,6 +59,7 @@
     <ProgramKitCompilerInvocationNonce>$([System.Guid]::NewGuid().ToString('N'))</ProgramKitCompilerInvocationNonce>
     <ProgramKitCompilerGeneratedFilesOutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\obj\ProgramKitCompilerGenerated\$(TargetFramework)\$(ProgramKitCompilerInvocationNonce)'))</ProgramKitCompilerGeneratedFilesOutputPath>
     <CompilerGeneratedFilesOutputPath>$(ProgramKitCompilerGeneratedFilesOutputPath)</CompilerGeneratedFilesOutputPath>
+    <PathMap>$(ProgramKitCompilerGeneratedFilesOutputPath)=/_/ProgramKitCompilerGenerated,$(MSBuildProjectDirectory)=/_/</PathMap>
     <OptimizeImplicitlyTriggeredBuild>false</OptimizeImplicitlyTriggeredBuild>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

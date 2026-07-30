@@ -41,14 +41,14 @@
       "identity": "pkid:analyzer:program-kit:generated-source-contract",
       "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/public-generated-source-analyzer-manifest.json",
-      "sha256": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+      "sha256": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
     },
     {
       "clockId": "consumer-owned-analyzers",
       "identity": "pkid:analyzer:engine-fixture:semantics",
       "version": "1.0.0",
       "path": "tests/Orbyss.ProgramKit.ConformanceTests/Fixtures/EngineLikeGateConsumer/fixture-lock.json",
-      "sha256": "sha256:52588cbce95d7e80353ce750b07a5f82adc67af3112ca208eaac734c7b1a5551"
+      "sha256": "sha256:3c9394f46620e5eca8534375d0f54231c345439d74a71a57ca3a82c8ad952e82"
     },
     {
       "clockId": "recipes",
@@ -62,7 +62,7 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-build",
       "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/build-package-manifest.json",
-      "sha256": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+      "sha256": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
     },
     {
       "clockId": "operations",
@@ -142,7 +142,7 @@
       "source": "consumer-owned-analyzers",
       "target": "public-analyzers",
       "acceptedVersion": "[0.1.0-alpha.3]",
-      "acceptedSha256": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+      "acceptedSha256": "sha256:08918f3ce11772a91103df9fc727f0e8d6f4c9c63fecb121ff4c3e291ad6df3d"
     },
     {
       "source": "build-mechanics",
@@ -172,7 +172,7 @@
       "source": "operations",
       "target": "build-mechanics",
       "acceptedVersion": "[0.1.0-alpha.3]",
-      "acceptedSha256": "sha256:2f8a5d878059401cceef85baa3fa3327d94eaa0722d804bedf40c4496e6ff695"
+      "acceptedSha256": "sha256:9d8b253799c277141d87f28bfb55b1ffabe7e04dadca8739a0d466da86bf73ff"
     },
     {
       "source": "capabilities",
