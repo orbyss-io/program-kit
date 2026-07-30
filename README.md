@@ -233,8 +233,15 @@ git clone https://github.com/orbyss-io/program-kit.git
 cd program-kit
 dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode
 dotnet build ProgramKit.sln -c Release --no-restore
-dotnet test ProgramKit.sln -c Release --no-build --no-restore
+dotnet test --solution ProgramKit.sln -c Release --no-build --no-restore --minimum-expected-tests 1
 ```
+
+`global.json` selects Microsoft Testing Platform. Test commands that name an
+input must use `--solution`, `--project`, or `--test-modules`; a positional
+path is not the MTP contract. Do not pass the legacy `--maxcpucount` switch to
+`dotnet test`: it can build successfully and then discover zero tests. Run a
+serialized `dotnet build --maxcpucount:1` separately, followed by
+`dotnet test --no-build`, when serialized compilation is required.
 
 When Program Kit is embedded as a submodule, initialize it while cloning:
 
