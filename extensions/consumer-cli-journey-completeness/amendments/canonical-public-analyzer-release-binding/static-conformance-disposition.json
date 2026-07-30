@@ -1,0 +1,96 @@
+{
+  "$schema": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.2/static-conformance-disposition.schema.json",
+  "softwareDesign": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+  },
+  "invariantAllocations": [
+    {
+      "identity": "pkid:invariant:program-kit:canonical-selection-source",
+      "invariant": "Every published public-analyzer version has one immutable package, assembly, and exact supported generated-output generator selection that the installed CLI emits without caller invention.",
+      "layer": "executable-test",
+      "rationale": "The invariant spans release evidence, exact artifact bytes, semantic validation, and a read projection; one Roslyn diagnostic cannot establish it."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:compiler-output-reproducibility",
+      "invariant": "Compiler participation evidence proves the current invocation without random values or absolute source roots changing assembly or portable-PDB bytes.",
+      "layer": "msbuild",
+      "rationale": "The existing gate owns compiler attachment, while clean-root digest comparison proves the output property."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:generator-revision-execution-link",
+      "invariant": "Every receiptGeneratorRevisions entry used by a gate is matched by deterministic generated-output evidence from the selected Program Kit generator.",
+      "layer": "executable-test",
+      "rationale": "Current definition validation checks only reference shape; generated-output integrity and gate verification must prove the revision was actually used."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:package-output-reproducibility",
+      "invariant": "Two clean packs of the same manifest-selected Program Kit source produce the same complete nupkg set byte for byte.",
+      "layer": "executable-test",
+      "rationale": "NuGet container metadata and timestamps are pack outputs and require deterministic pack configuration plus complete-set comparison."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:release-path-convergence",
+      "invariant": "Local candidate packing, consumer proof, GitHub workflow publication, checksums, and public-analyzer selection use one canonical release-package manifest and the same exact package bytes.",
+      "layer": "architecture-test",
+      "rationale": "Static workflow inspection and an isolated package-only journey catch release-path divergence before publication."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:gate-schema-transition",
+      "invariant": "An alpha.1 gate definition receives an explicit loss-rejecting alpha.2 migration assessment instead of an implicit schema assumption.",
+      "layer": "executable-test",
+      "rationale": "Only the consumer can supply artifact-kind facts that the migration cannot invent; the command must preserve valid bytes or fail at exact paths."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:private-source-conformance",
+      "invariant": "All changed Program Kit-owned C# remains governed by the existing private PKCS source-quality policy and exhaustive verification profile.",
+      "layer": "roslyn-compiler",
+      "rationale": "The existing private analyzer remains the correct semantic owner; no new diagnostic family is justified."
+    }
+  ],
+  "disposition": "extend-existing",
+  "gateSelections": [
+    {
+      "gate": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      }
+    }
+  ],
+  "linkedGateDesigns": [
+    {
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+      "version": "0.1.0-alpha.3",
+      "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+    }
+  ],
+  "rationale": "Extend the existing Program Kit private build gate with establishment-first executable conformance for deterministic compiler receipts, cross-root assembly equality, complete nupkg equality, canonical public-analyzer selections, manifest-selected publication, schema migration assessment, and a real package-only consumer rebind. Reuse the existing private analyzer for C# source semantics and add no consumer-owned analyzer.",
+  "residualRisks": [
+    "The deterministic NuGet pack capability requires a newer pinned SDK than the currently installed 10.0.302 toolchain.",
+    "Cross-operating-system byte identity remains a release-qualification obligation even after two clean Windows roots agree.",
+    "NuGet.org and GitHub publication remain external human-authorized actions and cannot be proven by pre-publication local tests.",
+    "Alpha.2 did not publish a dotnet-host generator descriptor, so its row must be backfilled from the exact release tag and must remain explicitly historical rather than inferred from analyzer bytes."
+  ],
+  "nonStaticClaims": [
+    "Package download availability, NuGet.org immutability, GitHub Actions identity, OIDC exchange, and external publication success require release evidence outside Roslyn analysis.",
+    "Human review remains authoritative for release approval, alpha ordinal selection, semantic ownership, and material design deviation.",
+    "The completed historical alpha.3 handoff proof remains immutable evidence of its own run but does not establish inner-nupkg reproducibility."
+  ],
+  "decisionSource": {
+    "source": {
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+      "version": "0.1.0-alpha.3",
+      "digest": "sha256:9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+    },
+    "jsonPointer": "/staticConformanceDisposition"
+  },
+  "emptySelectionAcceptance": null,
+  "blockers": []
+}

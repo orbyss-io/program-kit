@@ -1,0 +1,21 @@
+{
+  "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+  "version": "0.1.0-alpha.3",
+  "repository": "program-kit",
+  "requestedOutcome": "Unblock consumers binding the public generated-source analyzer, correct deterministic assembly and package production, align release evidence and publication, support the alpha.1-to-alpha.2 gate-definition transition, and prepare alpha.3 without unlisting alpha.2.",
+  "approvedRecommendations": [
+    "Publish one canonical public-analyzer selection containing exact package, assembly, and receipt-generator revision evidence.",
+    "Remove build-path and invocation-randomness effects from compiled bytes.",
+    "Produce byte-identical first-party nupkgs through one manifest-selected release path.",
+    "Define exact dotnet-host generator-revision evidence, keep it distinct from the analyzer's compiler-participation receipt, and bind generated-output evidence to the selected revision.",
+    "Provide an explicit alpha.1-to-alpha.2 gate-definition migration assessment path.",
+    "Prove the complete package-only consumer rebind journey without hand-supplied Program Kit-internal digests."
+  ],
+  "staticConformanceDisposition": "extend-existing",
+  "publicationAuthority": "withheld-until-implementation-and-release-qualification-handoff",
+  "sourceStatements": [
+    "Apart from that question, I approve your recommendations",
+    "Make sure capability is installed, and then implement this according the guidelines. Let me know when I must publish alpha.3 in github workflow",
+    "I approve extend-existing"
+  ]
+}

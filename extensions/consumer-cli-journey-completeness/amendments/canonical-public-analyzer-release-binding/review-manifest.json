@@ -1,0 +1,126 @@
+{
+  "identity": "pkid:review-set:program-kit:canonical-public-analyzer-release-binding",
+  "version": "0.1.0-alpha.3",
+  "state": "ready-for-human-decision",
+  "implementationStatus": "not-started",
+  "publicationStatus": "not-authorized",
+  "sourceBasis": {
+    "commit": "f555745e77ebce234f7e54665869a32cc555ba45",
+    "branch": "codex/alpha3-canonical-analyzer-selection",
+    "scope": "Program Kit repository source truth and immutable alpha.2 NuGet/GitHub package evidence."
+  },
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf"
+  },
+  "artifacts": [
+    {
+      "role": "human-intent-and-authority-basis",
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+      "version": "0.1.0-alpha.3",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/design-input.json",
+      "sha256": "9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+    },
+    {
+      "role": "csharp-build-gate-design",
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+      "version": "0.1.0-alpha.3",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/csharp-build-gate-design.md",
+      "sha256": "f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+    },
+    {
+      "role": "static-conformance-disposition",
+      "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.2",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/static-conformance-disposition.json",
+      "sha256": "cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+    },
+    {
+      "role": "canonical-architecture-design",
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.3",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/architecture-design.json",
+      "sha256": "dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+    },
+    {
+      "role": "architecture-design-projection",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/architecture-design.md",
+      "sha256": "afa48f9a54bda152641e72d6ec64b3904fafa53755edb8d3f75537646171bdc7"
+    },
+    {
+      "role": "canonical-implementation-plan",
+      "identity": "pkid:plan:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.3",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/implementation-plan.json",
+      "sha256": "6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d"
+    },
+    {
+      "role": "implementation-plan-projection",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/implementation-plan.md",
+      "sha256": "6ed7b3c846c6547d5e0daa199ba9c190db1f3b86c542c973c16b2f3817b4613c"
+    },
+    {
+      "role": "additional-alignment-audit",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/additional-findings.md",
+      "sha256": "d8f72bf60a966c91a6735a29f91d6ab4b6b4d98a2a28bef7d682fd9d7828ffd4"
+    },
+    {
+      "role": "design-validation-report",
+      "identity": "pkid:evidence:program-kit:canonical-public-analyzer-release-binding-design-validation",
+      "version": "0.1.0-alpha.3",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/validation-report.md",
+      "sha256": "0dec573215cb3399eb4deb53f41d31790f3787b983e21c0547955c61ebcfdd1b"
+    },
+    {
+      "role": "review-navigation",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/README.md",
+      "sha256": "41cf0d43f4adfa8ebc8777deb37b6efcef6f8b47c4e8efacf7ec2b89a89f24a5"
+    }
+  ],
+  "staticConformanceDisposition": {
+    "state": "extend-existing",
+    "prospectiveGateDefinition": "pkid:policy:program-kit:csharp-source-quality-gate@1.11.0",
+    "establishmentWorkUnit": "PKRB-W010"
+  },
+  "implementationBoundary": {
+    "orderedWorkUnits": [
+      "PKRB-W010",
+      "PKRB-W020",
+      "PKRB-W030",
+      "PKRB-W040",
+      "PKRB-W050",
+      "PKRB-W060",
+      "PKRB-W070",
+      "PKRB-W080"
+    ],
+    "acceptedOutcome": "An installed alpha.3 CLI emits exact ready-to-embed alpha.2 and alpha.3 analyzer selections, deterministic complete package bytes back those selections, migration and generated-output provenance are enforced, and a real cold consumer rebind succeeds.",
+    "doesNotAuthorize": [
+      "material deviation from the exact design or implementation plan",
+      "mutation, replacement, deletion, or unlisting of alpha.2",
+      "tag creation or movement",
+      "GitHub workflow invocation",
+      "NuGet or GitHub Release publication",
+      "deployment, promotion, or signing",
+      "consumer repository mutation",
+      "implementation of the broader public typed-validation follow-up"
+    ]
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-plan-gate-and-disposition-digests-and-PKRB-W010-through-PKRB-W080",
+    "candidateDesignSha256": "dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1",
+    "candidatePlanSha256": "6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d",
+    "candidateGateDesignSha256": "f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70",
+    "candidateDispositionSha256": "cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+  },
+  "validation": {
+    "jsonSyntax": "passed",
+    "registeredSchemas": "passed for architecture, plan, and disposition through the installed CLI",
+    "typedSemantics": "passed for architecture alpha.3, plan alpha.4, and disposition alpha.2",
+    "commandLineBuild": "passed with active private gate and zero warnings or errors",
+    "runtimeImplementation": "not performed under design authority",
+    "publication": "not performed and not authorized"
+  }
+}

@@ -1,0 +1,743 @@
+{
+  "$schema": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.3/architecture-design.schema.json",
+  "title": "Program Kit canonical public-analyzer release binding and reproducible packages",
+  "intent": "Make every published public generated-source analyzer selection discoverable from the installed CLI, bind that selection to immutable NuGet bytes and exact generated-output generator revisions, execution-link those revisions through generated-output evidence, and make the coordinated alpha.3 assembly and package closure reproducible before human-authorized publication.",
+  "scope": [
+    "Stable private and public compiler participation receipts that do not change compiled outputs.",
+    "Explicit source-root normalization and deterministic Program Kit assembly production.",
+    "Deterministic manifest-selected nupkg production, including the consumer meta-package.",
+    "One immutable public-analyzer release-selection catalog covering alpha.2 and the alpha.3 candidate.",
+    "Installed CLI projection of a ready-to-embed public analyzer component.",
+    "Defined receipt-generator identity, version, digest, and validation semantics.",
+    "Explicit loss-rejecting alpha.1-to-alpha.2 C# gate-definition migration assessment.",
+    "One GitHub workflow path using the same package, checksum, selection, and cold-consumer evidence.",
+    "Establishment-first private-gate and executable conformance coverage."
+  ],
+  "nonGoals": [
+    "No alpha.2 package mutation, repack, deletion, or unlisting.",
+    "No package, GitHub Release, deployment, or promotion action under design or implementation authority.",
+    "No network lookup during installed CLI selection description.",
+    "No new consumer-owned analyzer, Program Kit private diagnostic family, hook, watcher, or autonomous release loop.",
+    "No weakening of exact package, assembly, schema, selection-lock, generated-output, or compiler-participation verification.",
+    "No promise that a pre-fix alpha.2 source rebuild can reproduce already-published alpha.2 bytes."
+  ],
+  "assumptions": [
+    "NuGet.org retains the immutable published alpha.2 analyzer nupkg whose SHA-256 is 282a10899e45c302cb0ba879b01f9ff6bf92bee0a73fd5c996ad77a4dee22a6c.",
+    "The alpha.2 analyzer assembly SHA-256 is 7ec050ca9434657060b8e18400fc8d2db26424424e1840925abe383c4bc4e8e1.",
+    "The historical GitHub alpha.2 handoff analyzer nupkg SHA-256 is 96cf2d7fd2cff80b4d10a00d11e2375318cec3639af89ed451070eb699e6b8b5 and is not authoritative for a NuGet.org consumer binding because it names different bytes.",
+    "The pinned .NET SDK can progress from 10.0.302 to the first approved 10.0.400-or-later SDK that supports deterministic NuGet packing.",
+    "A fixed ZIP-compatible package timestamp is reproducibility metadata rather than a claim about human decision time.",
+    "The existing Program Kit private C# gate remains the semantic owner of PKCS source diagnostics.",
+    "The current manifest-selected source packer is the intended release-package-set authority and may be extended rather than replaced."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:canonical-release-binding-intent",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "source": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+      },
+      "sourcePath": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/design-input.json",
+      "governs": "The exact requested outcome, approved recommendations, extend-existing disposition, and withheld publication authority."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-build-properties",
+      "ownerId": "pkid:domain:program-kit:build-reproducibility",
+      "source": {
+        "identity": "pkid:source:program-kit:directory-build-props",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:4e4674f1e7b841d502c9cfd85f680ba553895d40c2ccacce233e70e5b1d4863d"
+      },
+      "sourcePath": "Directory.Build.props",
+      "governs": "The current deterministic flags, random compiler-visible nonce, generated-file root, and repository-wide analyzer attachment."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-csharp-gate-build-integration",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "source": {
+        "identity": "pkid:source:program-kit:csharp-build-gate-targets",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:04ff9f4772815a7706ebd2fccd50404fbcee8c904b2d2bc8217173a2e571c9ad"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.CSharpBuildGates.Build/build/Orbyss.ProgramKit.CSharpBuildGates.Build.targets",
+      "governs": "The current fresh invocation root, nonce transport, compiler-visible properties, and participation receipt verification boundary."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-release-package-manifest",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "source": {
+        "identity": "pkid:manifest:program-kit:release-packages",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:c255c9b27405e2bf4c5f2d5cba1382c4859ea206baf79a14a6df6dfbc8e2a9d3"
+      },
+      "sourcePath": "build/program-kit-release-packages.json",
+      "governs": "The current 29 manifest-selected package projects and roles."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-consumer-feed-packer",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "source": {
+        "identity": "pkid:source:program-kit:consumer-feed-packer",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:63d2ac1ceb88328a6a3a4f9a8143525b5a94d0ce47bb9d6261bff0a0f0310acb"
+      },
+      "sourcePath": "build/Invoke-PackConsumerFeed.ps1",
+      "governs": "The one-restore, one-build, manifest-selected aggregate pack transaction and current package manifest."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-nuget-publish-workflow",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "source": {
+        "identity": "pkid:workflow:program-kit:publish-nuget",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f556de0f20d9baa413d5904a2fcf33cea80583f16e194e8a47ee67664d3f9c98"
+      },
+      "sourcePath": ".github/workflows/publish-nuget.yml",
+      "governs": "The current divergent workflow that enumerates src directories and separately packs the meta-package."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-public-analyzer-manifest",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "source": {
+        "identity": "pkid:manifest:program-kit:generated-source-contract-analyzer",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+      },
+      "sourcePath": "extensions/reusable-csharp-build-gates/public-generated-source-analyzer-manifest.json",
+      "governs": "The analyzer source inputs, package layout, public contract, and compiler-participation generator type without binary or generated-output generator selection evidence."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-gate-authoring-catalog",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "source": {
+        "identity": "pkid:catalog:program-kit:csharp-gate-authoring",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:bc5fc9580462c996ef15148057a929952d8915e3c4aefd9986086ddb7b3a7e58"
+      },
+      "sourcePath": ".agent-capabilities/supporting-resources/csharp-gates/csharp-gate-authoring-catalog-0.1.0-alpha.1.json",
+      "governs": "The current installed describe-definition projection and its non-value package digest evidence text."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-gate-migration-descriptor",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "source": {
+        "identity": "pkid:migration:program-kit:csharp-build-gate-definition-alpha1-to-alpha2",
+        "version": "1.0.0",
+        "digest": "sha256:e6baae3e1c5886a46b95a9c0037505562bf49c0cb416fa600fa5922994b9f2b6"
+      },
+      "sourcePath": "schemas/csharp-build-gates/csharp-build-gate-definition-alpha.1-to-alpha.2-migration.json",
+      "governs": "The value-preserving but currently non-executable alpha.1-to-alpha.2 migration semantics."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-cold-consumer-proof",
+      "ownerId": "pkid:domain:program-kit:consumer-journey",
+      "source": {
+        "identity": "pkid:source:program-kit:consumer-cli-cold-proof",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:4e4d08179d6d80a0c105edc437a8a7324782c9ee59928e74c5b31d847527cf92"
+      },
+      "sourcePath": "build/Invoke-ConsumerCliColdProof.ps1",
+      "governs": "The current package-only proof, including its synthetic analyzer bytes and hand-supplied assembly digest."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:gate-extension-design",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "source": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+      },
+      "sourcePath": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/csharp-build-gate-design.md",
+      "governs": "The approved-direction establishment-first extension of the existing private gate and non-static release checks."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:generated-source-contract",
+      "purpose": "Own the public generated-source convention, analyzer component, compiler-participation receipt, and exact generated-output generator selection semantics.",
+      "vocabulary": [
+        {
+          "term": "public analyzer release selection",
+          "meaning": "One immutable versioned association between a published analyzer nupkg, its analyzer assembly asset, its public contract, and the exact generated-output generator revisions accepted by the gate.",
+          "acceptedAliases": [
+            "analyzer selection"
+          ]
+        },
+        {
+          "term": "generated-output generator revision",
+          "meaning": "An exact artifact reference such as pkid:generator:program-kit:dotnet-host whose digest is the SHA-256 of an immutable revision descriptor and whose use is proven by generated-output evidence.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:build-reproducibility",
+      "purpose": "Own compiler and pack inputs whose normalization makes exact Program Kit outputs independently reproducible.",
+      "vocabulary": [
+        {
+          "term": "reproducible package closure",
+          "meaning": "The complete manifest-selected package set whose nupkg bytes agree across clean builds of the same source and pinned toolchain.",
+          "acceptedAliases": [
+            "deterministic package set"
+          ]
+        },
+        {
+          "term": "invocation evidence",
+          "meaning": "Fresh build-intermediate proof that analyzers ran, excluded from compiled and packaged product bytes.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:release-evidence",
+      "purpose": "Own the canonical package selection, checksums, analyzer selections, reproducibility observations, and publication input set.",
+      "vocabulary": [
+        {
+          "term": "release evidence set",
+          "meaning": "The exact package manifest, nupkg checksums, public-analyzer selection catalog, and repeat-build comparison consumed by the publication workflow.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:csharp-build-gates",
+      "purpose": "Own C# gate definition, selection, migration assessment, compiler participation, and verification mechanics.",
+      "vocabulary": [
+        {
+          "term": "gate-definition migration assessment",
+          "meaning": "A loss-rejecting check that preserves an alpha.1 definition when it already conforms to alpha.2 and otherwise reports the exact consumer decision that cannot be invented.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:consumer-journey",
+      "purpose": "Own isolated package-only evidence that installed Program Kit mechanics are sufficient for a clean consumer.",
+      "vocabulary": [
+        {
+          "term": "digest-complete rebind",
+          "meaning": "A consumer gate rebind using only CLI-emitted Program Kit selection evidence and consumer-owned inputs.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:toolkit",
+      "purpose": "Own Program Kit command transport, repository integration, and implementation governance.",
+      "vocabulary": [
+        {
+          "term": "publication authority",
+          "meaning": "Separate human permission to run the GitHub workflow after implementation and release evidence are complete.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:public-analyzer-release-selection",
+      "ownerDomainId": "pkid:domain:program-kit:generated-source-contract",
+      "meaning": "The canonical package, assembly, contract, diagnostic, and generated-output generator values for one published analyzer version.",
+      "termContractIds": [],
+      "invariants": "Exactly one row exists per version; package and assembly hashes use exact published bytes; each generator revision digest equals its immutable descriptor bytes; generated-output evidence names a selected revision; placeholder prose is invalid."
+    },
+    {
+      "identity": "pkid:model:program-kit:reproducible-package-closure",
+      "ownerDomainId": "pkid:domain:program-kit:build-reproducibility",
+      "meaning": "The pinned source, compiler, normalized paths, stable generated sources, deterministic package timestamp, selected projects, and exact package outputs for one Program Kit version.",
+      "termContractIds": [],
+      "invariants": "Random values and absolute roots remain outside product bytes; every selected package is compared; the meta-package participates in the same selection and pack mechanism."
+    },
+    {
+      "identity": "pkid:model:program-kit:gate-definition-migration-assessment",
+      "ownerDomainId": "pkid:domain:program-kit:csharp-build-gates",
+      "meaning": "The explicit source schema, target schema, canonical input, preservation outcome, and path diagnostics for an alpha.1-to-alpha.2 gate-definition transition.",
+      "termContractIds": [],
+      "invariants": "The operation invents no artifact kind, project path, package reference, or packability value; a conforming input is preserved and a nonconforming input fails without output."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:public-analyzer-selection-catalog",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "kind": "evaluated-artifact",
+      "purpose": "Carry immutable public-analyzer selection rows derived from exact finalized packages.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Rows are immutable after publication; new package versions add rows."
+    },
+    {
+      "identity": "pkid:component:program-kit:public-analyzer-selection-command",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "kind": "read-projection",
+      "purpose": "Emit one canonical ready-to-embed analyzer component from installed release evidence.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Command JSON is versioned and fails on unavailable or inconsistent package versions."
+    },
+    {
+      "identity": "pkid:component:program-kit:dotnet-host-generator-revision-evidence",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "kind": "evaluated-artifact",
+      "purpose": "Carry immutable alpha.2 historical and alpha.3 candidate descriptors for pkid:generator:program-kit:dotnet-host.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "A descriptor digest is its exact file SHA-256; changed generator semantics require a new version and descriptor."
+    },
+    {
+      "identity": "pkid:component:program-kit:generated-source-contract-analyzer",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "kind": "design-time-source",
+      "purpose": "Enforce PKCC001 and emit the separate deterministic compiler-participation receipt.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "The public diagnostic and package asset layout remain immutable per analyzer package version."
+    },
+    {
+      "identity": "pkid:component:program-kit:generated-output-generator-revision-verifier",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "kind": "focused-helper",
+      "purpose": "Require deterministic generated-output evidence to name a generator revision selected by the analyzer component.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "A structurally valid but unobserved or mismatched receiptGeneratorRevisions entry fails verification."
+    },
+    {
+      "identity": "pkid:component:program-kit:deterministic-release-packer",
+      "ownerId": "pkid:domain:program-kit:build-reproducibility",
+      "kind": "focused-helper",
+      "purpose": "Build and pack the exact release package closure with stable compiler and NuGet bytes.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "The repository manifest and pinned SDK define the selected package set and pack semantics."
+    },
+    {
+      "identity": "pkid:component:program-kit:gate-definition-migration-command",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "kind": "read-projection",
+      "purpose": "Assess and canonically preserve an alpha.1 gate definition under alpha.2 semantics without inventing consumer facts.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Only explicitly registered schema transitions are accepted."
+    }
+  ],
+  "projects": [
+    {
+      "identity": "pkid:project:program-kit:command-line",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "projectPath": "src/Orbyss.ProgramKit.CommandLine/Orbyss.ProgramKit.CommandLine.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:public-analyzer-selection-catalog",
+        "pkid:component:program-kit:public-analyzer-selection-command",
+        "pkid:component:program-kit:gate-definition-migration-command"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:command-line"
+    },
+    {
+      "identity": "pkid:project:program-kit:generated-source-contract-analyzers",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "projectPath": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:generated-source-contract-analyzer"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:generated-source-contract-analyzers"
+    },
+    {
+      "identity": "pkid:project:program-kit:dotnet",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "projectPath": "src/Orbyss.ProgramKit.DotNet/Orbyss.ProgramKit.DotNet.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:dotnet-host-generator-revision-evidence"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:dotnet"
+    },
+    {
+      "identity": "pkid:project:program-kit:csharp-build-gates-build",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "projectPath": "src/Orbyss.ProgramKit.CSharpBuildGates.Build/Orbyss.ProgramKit.CSharpBuildGates.Build.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:generated-output-generator-revision-verifier"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:csharp-build-gates-build"
+    }
+  ],
+  "packages": [
+    {
+      "identity": "pkid:package:program-kit:command-line",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "version": "0.1.0-alpha.3",
+      "projectIds": [
+        "pkid:project:program-kit:command-line"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "The installed tool includes the immutable release-selection catalog used by the read projection."
+    },
+    {
+      "identity": "pkid:package:program-kit:generated-source-contract-analyzers",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "version": "0.1.0-alpha.3",
+      "projectIds": [
+        "pkid:project:program-kit:generated-source-contract-analyzers"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "The analyzer assembly, package layout, public diagnostic, and selected generated-output generator revisions are immutable per package version."
+    },
+    {
+      "identity": "pkid:package:program-kit:dotnet",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "version": "0.1.0-alpha.3",
+      "projectIds": [
+        "pkid:project:program-kit:dotnet"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Generator-revision descriptor bytes and their exact source inventories are immutable per revision."
+    },
+    {
+      "identity": "pkid:package:program-kit:csharp-build-gates-build",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "version": "0.1.0-alpha.3",
+      "projectIds": [
+        "pkid:project:program-kit:csharp-build-gates-build"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Generator-revision evidence matching remains fail-closed and versioned with build mechanics."
+    }
+  ],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:selection-from-finalized-package",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "disposition": "allowed",
+      "referencingScope": "The installed CLI release-selection catalog.",
+      "referencedScope": "Only exact packages finalized by the canonical release-package manifest.",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:manifest:program-kit:release-packages",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:c255c9b27405e2bf4c5f2d5cba1382c4859ea206baf79a14a6df6dfbc8e2a9d3"
+        },
+        "path": "/packages"
+      },
+      "rationale": "Selection evidence must derive from finalized package bytes and cannot be authored before the package digest exists."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:workflow-uses-manifest-packer",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "disposition": "allowed",
+      "referencingScope": "The NuGet GitHub workflow.",
+      "referencedScope": "The canonical manifest-selected consumer-feed packer and its exact evidence outputs.",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:source:program-kit:consumer-feed-packer",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:63d2ac1ceb88328a6a3a4f9a8143525b5a94d0ce47bb9d6261bff0a0f0310acb"
+        },
+        "path": "/"
+      },
+      "rationale": "A second project enumeration or separate meta-package pack would recreate the release-path divergence."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "requestedOutcome": "Represent canonical public-analyzer selection, deterministic compiler and package production, migration assessment, release convergence, and the consumer proof as one exact review authority.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design grants no build, implementation, publication, workflow, or external mutation authority."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "The canonical JSON is schema-validated and digest-bound by the implementation plan and review manifest."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review set is explicit repository-owned input and creates no retrieval integration."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "This artifact creates no capability, hook, watcher, MCP binding, tool binding, or autonomous procedure."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit reviewer and later bounded implementer.",
+        "decisionAuthorityBoundary": "Only explicit human approval of the exact design and plan digests authorizes implementation; publication remains separately withheld.",
+        "rationale": "The design, gate amendment, plan, validation report, and manifest expose exact boundaries, proof obligations, risks, and stop conditions."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "No generated navigation is required."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+        "ownerId": "pkid:domain:program-kit:toolkit",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:95b4ab88cbac9f5356fece5af7d6c43ff4cd49bc2464e2e84414df6767b536fc"
+        },
+        "provenancePolicy": "The captured human input, current Program Kit source commit f555745e77ebce234f7e54665869a32cc555ba45, and exact observed artifact hashes are named.",
+        "digestPolicy": "Material change requires schema revalidation, new exact digests, and renewed human approval.",
+        "consumerIds": [
+          "pkid:component:program-kit:public-analyzer-selection-catalog",
+          "pkid:component:program-kit:public-analyzer-selection-command",
+          "pkid:component:program-kit:deterministic-release-packer",
+          "pkid:component:program-kit:gate-definition-migration-command"
+        ],
+        "compatibilityPolicy": "Published package rows and alpha.2 bytes remain immutable; commands, schemas, and release evidence version explicitly.",
+        "migrationPolicy": "Gate definitions use explicit registered transitions; package versions add immutable selection rows and are never overwritten."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "Artifacts contain repository paths, identities, versions, digests, commands, and outcomes only.",
+        "externalizationPolicy": "Only separately approved GitHub and NuGet workflows may externalize release evidence and package bytes.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Temporary roots, compiler nonces, process observations, and credentials are excluded from durable design content."
+      },
+      "rationale": "A schema-governed amendment is required because the accepted alpha.3 consumer journey did not define canonical analyzer binary selections or prove inner package reproducibility."
+    }
+  ],
+  "representationRelationships": [],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "policy": "Fresh compiler participation is proven from one prepared contained invocation root; caller-authored or stale receipts fail.",
+      "guarantees": [
+        "Selected analyzer assemblies are checked by exact digest.",
+        "The receipt generator remains in the selected analyzer assembly.",
+        "Random nonces are excluded from product bytes."
+      ],
+      "exclusions": [
+        "The design does not prove compiler or NuGet service freedom from defects."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Design approval, implementation approval, package version selection, and publication are separate human decisions.",
+      "guarantees": [
+        "The CLI selection command is read-only and non-authoritative.",
+        "The GitHub workflow cannot be invoked by implementation work."
+      ],
+      "exclusions": [
+        "No principal, decision time, release approval, or publication success is inferred."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "policy": "Build and proof artifacts contain no NuGet credentials, OIDC tokens, or secret values.",
+      "guarantees": [
+        "Temporary publication credentials remain workflow-owned."
+      ],
+      "exclusions": [
+        "The design does not inspect or manage repository secrets."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "policy": "Canonical release evidence is immutable per package version and transaction-local output is promoted atomically.",
+      "guarantees": [
+        "Existing output roots are refused.",
+        "Alpha.2 remains unchanged and listed.",
+        "A changed candidate byte invalidates prior evidence."
+      ],
+      "exclusions": [
+        "Temporary build directories are not durable evidence."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "policy": "Missing, duplicate, placeholder, non-reproducible, mismatched, or unknown selections fail without publication.",
+      "guarantees": [
+        "Migration assessment emits no partial target.",
+        "CLI selection emits no row for an unregistered version.",
+        "Workflow publication follows successful complete evidence only."
+      ],
+      "exclusions": [
+        "External service outages are reported but not repaired automatically."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:build-reproducibility",
+      "policy": "Bounded aggregate packing may run concurrently only after one exact build and with isolated transaction paths.",
+      "guarantees": [
+        "Parallel order does not affect package or manifest bytes."
+      ],
+      "exclusions": [
+        "Concurrent publication of the same version is not supported."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "policy": "Cancelled builds and workflows publish no partial package set.",
+      "guarantees": [
+        "Staging output is not promoted after cancellation or failure."
+      ],
+      "exclusions": [
+        "Cleanup does not delete consumer or previously promoted output."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "policy": "Evidence records source commit, pinned SDK, package set, exact digests, comparison results, and cold-proof outcomes.",
+      "guarantees": [
+        "Absolute temporary roots and credentials are excluded.",
+        "Each published analyzer row identifies exact package and assembly bytes."
+      ],
+      "exclusions": [
+        "Logs are not authority or a substitute for canonical evidence."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "policy": "Published versions are immutable; new command and evidence contracts add explicit alpha revisions while legacy readers remain.",
+      "guarantees": [
+        "Alpha.2 remains available for restore and rollback.",
+        "Alpha.3 never overwrites alpha.2.",
+        "The migration assessment preserves already-conforming alpha.1 gate bytes."
+      ],
+      "exclusions": [
+        "Reproducing the historical alpha.2 source build is not guaranteed."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:consumer-rebinds-public-analyzer",
+      "actor": "A consumer with only the installed alpha.3 Program Kit CLI and public NuGet access.",
+      "intent": "Rebind a consumer-owned gate from the alpha.1 analyzer selection to the immutable alpha.2 or alpha.3 public analyzer.",
+      "preconditions": [
+        "The requested analyzer version is present in the installed release-selection catalog.",
+        "The consumer owns the gate definition, lock intent, and repository paths."
+      ],
+      "steps": [
+        "Invoke describe-public-analyzer-selection for the exact package version.",
+        "Embed the emitted canonical analyzer component without supplying Program Kit-internal digests.",
+        "Assess or materialize the gate definition under alpha.2 semantics.",
+        "Run scaffold-lock, bind, and verify."
+      ],
+      "outcomes": [
+        "The definition binds the exact immutable nupkg and analyzer assembly.",
+        "The dotnet-host generator has one exact versioned descriptor whose digest is execution-linked through generated-output evidence.",
+        "Verification completes without a Program Kit checkout."
+      ],
+      "failureOutcomes": [
+        "An unavailable version, mismatched digest, nonconforming alpha.1 artifact selection, or tampered package fails with no output."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:builder-reproduces-package-set",
+      "actor": "A Program Kit contributor or GitHub Actions runner using the pinned source and SDK.",
+      "intent": "Produce the exact alpha.3 candidate package and evidence set independently.",
+      "preconditions": [
+        "The clean source commit and pinned SDK are identical.",
+        "The output roots do not exist."
+      ],
+      "steps": [
+        "Restore and build once with stable generated sources and normalized paths.",
+        "Pack the manifest-selected complete package set with the invariant timestamp.",
+        "Repeat from a second clean absolute root.",
+        "Compare every assembly and nupkg digest and generate the release evidence."
+      ],
+      "outcomes": [
+        "Every selected nupkg is byte-identical.",
+        "The analyzer selection matches the exact candidate package and assembly.",
+        "Only the exact evidence-backed package set becomes eligible for publication."
+      ],
+      "failureOutcomes": [
+        "Any differing package, extra or missing project, timestamp drift, path leak, or placeholder selection blocks the candidate."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:human-publishes-qualified-alpha3",
+      "actor": "The human Program Kit release authority.",
+      "intent": "Publish alpha.3 after implementation and release evidence are complete.",
+      "preconditions": [
+        "The exact implementation plan was approved and completed.",
+        "The branch is merged and the release evidence set passed.",
+        "The agent has explicitly handed off the GitHub workflow action."
+      ],
+      "steps": [
+        "Review the final commit and release evidence digests.",
+        "Create or confirm the exact v0.1.0-alpha.3 tag as required by the workflow.",
+        "Run the approved GitHub NuGet publication workflow once."
+      ],
+      "outcomes": [
+        "Alpha.3 is published alongside alpha.2.",
+        "GitHub Release evidence and NuGet packages correspond to the same manifest-selected bytes."
+      ],
+      "failureOutcomes": [
+        "A tag/version mismatch, failed qualification, changed byte, or incomplete publication prevents handoff or stops the workflow."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+        }
+      ],
+      "claim": "The review design exists from explicit human intent and current repository source truth; no implementation or publication is claimed."
+    },
+    {
+      "subjectId": "pkid:model:program-kit:reproducible-package-closure",
+      "status": "aspirational",
+      "evidence": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+        }
+      ],
+      "claim": "The exact reproducibility and release-selection behavior remains blocked pending approval and implementation."
+    }
+  ],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+  }
+}

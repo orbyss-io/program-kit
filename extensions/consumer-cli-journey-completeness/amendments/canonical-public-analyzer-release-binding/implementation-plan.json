@@ -1,0 +1,805 @@
+{
+  "$schema": "https://schemas.orbyss.io/program-kit/planning/implementation-plan/0.1.0-alpha.4/schema.json",
+  "design": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+  },
+  "ownerId": "pkid:domain:program-kit:toolkit",
+  "state": "ready-for-human-decision",
+  "requirementIds": [
+    "PKRB-R001",
+    "PKRB-R002",
+    "PKRB-R003",
+    "PKRB-R004",
+    "PKRB-R005",
+    "PKRB-R006",
+    "PKRB-R007",
+    "PKRB-R008"
+  ],
+  "workUnits": [
+    {
+      "workUnitId": "PKRB-W010",
+      "requiredOutcome": "Establish the extended private-gate and executable conformance harness before product corrections, including controlled negative fixtures for random compiler-receipt bytes, absolute-root leakage, nondeterministic package metadata, placeholder selections, release-path divergence, unobserved generated-output generator revisions, and caller-supplied internal digests.",
+      "sequence": 10,
+      "parallelGroupId": null,
+      "dependsOn": [],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        },
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+          "version": "1.11.0",
+          "state": "prospective",
+          "integrityDigest": null
+        },
+        {
+          "identity": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        },
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-gate-establishment",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "tests/Orbyss.ProgramKit.ConformanceTests; tests/Orbyss.ProgramKit.UnitTests; bounded test fixtures and test-only helpers; the exact private-gate activation/profile evidence required to register the new checks."
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+            "version": "1.10.0",
+            "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+          },
+          "purpose": "Preserve the existing private PKCS source semantic owner while extending closure verification."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if establishment requires a new analyzer or diagnostic family, changes public PKCC semantics, weakens the existing private gate, or cannot prove each broken controlled fixture is rejected."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Existing tests remain green and the new controlled negative fixtures demonstrate that each targeted regression is observable before product corrections."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "gate-establishment",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W020",
+      "requiredOutcome": "Remove random and absolute-root influence from Program Kit and opted-in consumer compiled bytes while preserving fresh compiler-participation evidence beneath one prepared invocation root.",
+      "sequence": 20,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W010"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-deterministic-compiler",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Directory.Build.props; tools/Orbyss.ProgramKit.CSharpGate; src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers; src/Orbyss.ProgramKit.CSharpBuildGates.Build; src/Orbyss.ProgramKit.CSharpBuildGates.Authoring receipt templates; directly affected tests, manifests, version maps, documentation, and exact source-inventory digests."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:policy:program-kit:csharp-source-quality-gate",
+          "acceptedVersions": "[1.10.0]",
+          "expectedDisposition": "Preserve PKCS diagnostics and the fresh invocation trust boundary while changing only receipt representation."
+        }
+      ],
+      "stopConditions": [
+        "Stop if stable compiled bytes require removing current-invocation proof, permitting receipts outside the invocation root, or changing public generated-source diagnostic semantics."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Receipt tamper and stale-receipt tests pass; repeated and cross-root analyzer/library assembly and portable-PDB digests agree."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W030",
+      "requiredOutcome": "Produce the complete manifest-selected Program Kit package set byte-identically across clean roots through a pinned deterministic-pack SDK, invariant timestamp, and one SDK pack mechanism including the consumer meta-package.",
+      "sequence": 30,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W020"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-deterministic-package-closure",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "global.json; Directory.Build.props; build/ProgramKit.Pack.proj; build/Invoke-PackConsumerFeed.ps1; build/program-kit-release-packages.json; build/Orbyss.ProgramKit.nuspec or its bounded SDK-pack replacement; package projects; directly affected tests, documentation, locks, and evidence."
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:manifest:program-kit:release-packages",
+            "version": "0.1.0-alpha.3",
+            "digest": "sha256:c255c9b27405e2bf4c5f2d5cba1382c4859ea206baf79a14a6df6dfbc8e2a9d3"
+          },
+          "purpose": "Extend the existing release package selection rather than enumerate projects through a second path."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:manifest:program-kit:release-packages",
+          "acceptedVersions": "[0.1.0-alpha.3]",
+          "expectedDisposition": "Preserve existing package IDs and add the consumer meta-package to the canonical selected closure."
+        }
+      ],
+      "stopConditions": [
+        "Stop if the required deterministic-pack SDK cannot be pinned and installed, any selected package remains byte-variable, or the meta-package requires a separate nondeterministic packer."
+      ],
+      "verification": [
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Verify-ReproducibleConsumerFeed.ps1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Two clean absolute roots produce identical hashes for every selected nupkg, package manifest, and checksum projection."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W040",
+      "requiredOutcome": "Define the immutable public-analyzer release-selection catalog and dotnet-host generator-revision descriptors, backfill alpha.2 from published bytes and its exact release tag, generate alpha.3 from finalized package and generator evidence, ship the catalog with the CLI, and expose one canonical ready-to-embed selection command.",
+      "sequence": 40,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W030"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:manifest:program-kit:generated-source-contract-analyzer",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:catalog:program-kit:public-analyzer-release-selections",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        },
+        {
+          "identity": "pkid:generator:program-kit:dotnet-host",
+          "version": "0.1.0-alpha.3",
+          "state": "prospective",
+          "integrityDigest": null
+        },
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-public-analyzer-selection",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/csharp-build-gates; src/Orbyss.ProgramKit.CSharpBuildGates.Contracts; src/Orbyss.ProgramKit.CSharpBuildGates.Authoring; src/Orbyss.ProgramKit.CSharpBuildGates.Build; src/Orbyss.ProgramKit.CommandLine; src/Orbyss.ProgramKit.DotNet generator evidence; src/Orbyss.ProgramKit.GeneratedOutputIntegrity; src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers; .agent-capabilities supporting resources; release-selection build projections; directly affected tests, manifests, version maps, documentation, and exact digests."
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:manifest:program-kit:generated-source-contract-analyzer",
+            "version": "0.1.0-alpha.3",
+            "digest": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+          },
+          "purpose": "Preserve the public contract, package layout, diagnostic, and compiler-participation source generator while adding distinct analyzer-binary and dotnet-host generator-revision evidence."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:package:program-kit:orbyss-programkit-generatedsourcecontract-analyzers",
+          "acceptedVersions": "[0.1.0-alpha.2,0.1.0-alpha.3]",
+          "expectedDisposition": "Keep alpha.2 immutable and add one exact alpha.3 row without overwriting either version."
+        }
+      ],
+      "stopConditions": [
+        "Stop if the catalog creates a package self-digest cycle, needs online discovery, cannot be included without recompiling finalized assemblies, derives a dotnet-host revision from analyzer bytes, or cannot execution-link the selected revision through generated-output evidence."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Catalog schema/model, alpha.2 exact package and historical generator evidence, alpha.3 derived package and generator evidence, CLI canonical output, placeholder rejection, generator match/mismatch, and package tamper tests pass."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W050",
+      "requiredOutcome": "Expose an explicit alpha.1-to-alpha.2 gate-definition migration assessment that preserves already-conforming canonical values and fails with exact path diagnostics when consumer-owned artifact facts cannot be invented.",
+      "sequence": 50,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W010"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:migration:program-kit:csharp-build-gate-definition-alpha1-to-alpha2",
+          "version": "1.0.0",
+          "digest": "sha256:e6baae3e1c5886a46b95a9c0037505562bf49c0cb416fa600fa5922994b9f2b6"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-gate-migration-assessment",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/csharp-build-gates migration resources; src/Orbyss.ProgramKit.CSharpBuildGates.Contracts; src/Orbyss.ProgramKit.CommandLine; .agent-capabilities supporting resources; directly affected tests, fixtures, manifests, documentation, and exact digests."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [
+        {
+          "identity": "pkid:migration:program-kit:csharp-build-gate-definition-alpha1-to-alpha2",
+          "version": "1.0.0",
+          "digest": "sha256:e6baae3e1c5886a46b95a9c0037505562bf49c0cb416fa600fa5922994b9f2b6"
+        }
+      ],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the command would infer package versus local-project semantics, alter alpha.1 values silently, or emit a partial alpha.2 definition."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Already-conforming alpha.1 bytes are preserved canonically, invalid artifact combinations fail at exact paths, and no output is created on failure."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W060",
+      "requiredOutcome": "Make the GitHub NuGet workflow consume the exact manifest-selected deterministic pack and release-evidence set, removing src-directory enumeration and the separate nondeterministic meta-package path without publishing during implementation.",
+      "sequence": 60,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W030",
+        "PKRB-W040"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        },
+        {
+          "identity": "pkid:workflow:program-kit:publish-nuget",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:f556de0f20d9baa413d5904a2fcf33cea80583f16e194e8a47ee67664d3f9c98"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-workflow-convergence",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".github/workflows/publish-nuget.yml; build manifest-selected pack and evidence scripts; workflow-conformance tests; README release instructions."
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:workflow:program-kit:publish-nuget",
+            "version": "0.1.0-alpha.3",
+            "digest": "sha256:f556de0f20d9baa413d5904a2fcf33cea80583f16e194e8a47ee67664d3f9c98"
+          },
+          "purpose": "Preserve tag/version, stable-release denial, locked restore, test, OIDC, and push safety boundaries while replacing only divergent packing."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if workflow convergence weakens locked restore, tests, prerelease-only checks, OIDC timing, package-set verification, or creates publication authority."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Workflow source-conformance tests prove one manifest-selected pack path, exact evidence upload, no src enumeration, and no separate nuget pack command."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W070",
+      "requiredOutcome": "Prove from an isolated workspace and only candidate packages that the installed CLI emits the real alpha.2 and alpha.3 selections and completes migration assessment, materialize-definition, scaffold-lock, bind, and verify without hand-supplied Program Kit-internal digests.",
+      "sequence": 70,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W040",
+        "PKRB-W050",
+        "PKRB-W060"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        },
+        {
+          "identity": "pkid:migration:program-kit:csharp-build-gate-definition-alpha1-to-alpha2",
+          "version": "1.0.0",
+          "digest": "sha256:e6baae3e1c5886a46b95a9c0037505562bf49c0cb416fa600fa5922994b9f2b6"
+        },
+        {
+          "identity": "pkid:source:program-kit:consumer-cli-cold-proof",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:4e4d08179d6d80a0c105edc437a8a7324782c9ee59928e74c5b31d847527cf92"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-isolated-consumer-rebind",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "build/Invoke-ConsumerCliColdProof.ps1; bounded package-only consumer fixtures; consumer capability resources; directly affected tests, documentation, manifests, and exact digests."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if the proof reads Program Kit source, uses a locally built analyzer path instead of the candidate package, supplies a Program Kit-internal digest, mutates JTest, or omits tamper verification."
+      ],
+      "verification": [
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Invoke-ConsumerCliColdProof.ps1",
+            "-PackageRoot",
+            "<candidate-feed>",
+            "-OutputRoot",
+            "<new-isolated-output>"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The package-only journey binds and verifies the exact public analyzer selections and rejects package, assembly, selection, lock, and generated-output tampering."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    },
+    {
+      "workUnitId": "PKRB-W080",
+      "requiredOutcome": "Close the exact alpha.3 candidate review boundary with full tests, private-gate verification, two-root complete-package reproducibility, final package/selection/checksum evidence, documentation, and a human GitHub-workflow publication handoff without invoking publication.",
+      "sequence": 80,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKRB-W070"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:evidence:program-kit:pkrb-alpha3-release-candidate",
+          "version": "1.0.0",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Review-set validation and manifest artifacts; release documentation; exact source-inventory, version-map, compatibility, package, capability, and workflow evidence mechanically affected by approved implementation."
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [],
+      "stopConditions": [
+        "Stop if any test or private-gate profile fails, any selected package differs across clean roots, any artifact digest is stale, the branch is not current with main, or publication would be required to complete verification."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--maxcpucount:1",
+            "--property:UseSharedCompilation=false"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The complete selected test profile passes with zero warnings and zero errors."
+        },
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Verify-ReproducibleConsumerFeed.ps1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The complete clean-root package and evidence sets are byte-identical."
+        },
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "format",
+            "ProgramKit.sln",
+            "--no-restore",
+            "--verify-no-changes"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Formatting verification passes without modifying source."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "closure",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.0",
+        "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+      }
+    }
+  ],
+  "parallelGroups": [],
+  "trace": [
+    {
+      "requirementId": "PKRB-R001",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+      },
+      "workUnitIds": [
+        "PKRB-W010",
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "The existing private gate gains establishment-first executable checks for every targeted reproducibility and selection regression.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Controlled broken fixtures fail and all product work depends on compatible gate-establishment evidence."
+    },
+    {
+      "requirementId": "PKRB-R002",
+      "ownerId": "pkid:domain:program-kit:build-reproducibility",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+      },
+      "workUnitIds": [
+        "PKRB-W020",
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "Private and public compiler receipts remain fresh but produce stable source, hint paths, assemblies, and PDBs across clean roots.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Repeated and cross-root public analyzer and representative library hashes agree while stale/spoofed receipts fail."
+    },
+    {
+      "requirementId": "PKRB-R003",
+      "ownerId": "pkid:domain:program-kit:build-reproducibility",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+      },
+      "workUnitIds": [
+        "PKRB-W030",
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "One pinned deterministic SDK and invariant timestamp produce the same complete manifest-selected package set, including the meta-package.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Every nupkg and evidence file has the same digest in two clean absolute roots."
+    },
+    {
+      "requirementId": "PKRB-R004",
+      "ownerId": "pkid:domain:program-kit:generated-source-contract",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+      },
+      "workUnitIds": [
+        "PKRB-W040",
+        "PKRB-W070",
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "The installed CLI emits exact alpha.2 and alpha.3 package, assembly, and dotnet-host generator selections from one immutable offline catalog, and generated-output evidence is checked against the selected revision.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "One command returns a canonical ready-to-embed selection; package and assembly hashes equal exact candidate or published bytes; generator digests equal immutable descriptors; mismatched generated-output evidence fails."
+    },
+    {
+      "requirementId": "PKRB-R005",
+      "ownerId": "pkid:domain:program-kit:csharp-build-gates",
+      "contractOrArtifact": {
+        "identity": "pkid:migration:program-kit:csharp-build-gate-definition-alpha1-to-alpha2",
+        "version": "1.0.0",
+        "digest": "sha256:e6baae3e1c5886a46b95a9c0037505562bf49c0cb416fa600fa5922994b9f2b6"
+      },
+      "workUnitIds": [
+        "PKRB-W050",
+        "PKRB-W070"
+      ],
+      "implementationOutcome": "Consumers can explicitly assess alpha.1 definitions against alpha.2 and receive preserved output or exact non-inventable path diagnostics.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Already-conforming input survives canonically and incompatible artifact combinations fail without output."
+    },
+    {
+      "requirementId": "PKRB-R006",
+      "ownerId": "pkid:domain:program-kit:release-evidence",
+      "contractOrArtifact": {
+        "identity": "pkid:workflow:program-kit:publish-nuget",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:f556de0f20d9baa413d5904a2fcf33cea80583f16e194e8a47ee67664d3f9c98"
+      },
+      "workUnitIds": [
+        "PKRB-W060",
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "The GitHub workflow uses the same deterministic manifest-selected package and evidence set as local qualification.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Workflow inspection contains one pack path and no src enumeration or separate meta-package pack."
+    },
+    {
+      "requirementId": "PKRB-R007",
+      "ownerId": "pkid:domain:program-kit:consumer-journey",
+      "contractOrArtifact": {
+        "identity": "pkid:source:program-kit:consumer-cli-cold-proof",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:4e4d08179d6d80a0c105edc437a8a7324782c9ee59928e74c5b31d847527cf92"
+      },
+      "workUnitIds": [
+        "PKRB-W070",
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "A package-only workspace rebinds and verifies the actual Program Kit public analyzer without source checkout or hand-supplied internal digest.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Describe, migrate/materialize, scaffold-lock, bind, and verify succeed; tampered package/selection/lock/output paths fail."
+    },
+    {
+      "requirementId": "PKRB-R008",
+      "ownerId": "pkid:domain:program-kit:toolkit",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
+        "version": "0.1.0-alpha.3",
+        "digest": "sha256:9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+      },
+      "workUnitIds": [
+        "PKRB-W080"
+      ],
+      "implementationOutcome": "The exact alpha.3 candidate is fully verified and handed to the human with publication still separate.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The agent reports final commit and evidence digests and explicitly tells the human when the GitHub workflow is ready; no publication is invoked."
+    }
+  ],
+  "unresolvedDecisions": [],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+  },
+  "staticConformanceState": "extend-existing",
+  "gateDesign": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.11.0",
+    "state": "prospective",
+    "integrityDigest": null
+  },
+  "selectionLock": {
+    "identity": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate",
+    "version": "1.0.0",
+    "state": "prospective",
+    "integrityDigest": null
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:pkrb-gate-establishment",
+    "version": "1.0.0",
+    "state": "prospective",
+    "integrityDigest": null
+  }
+}
