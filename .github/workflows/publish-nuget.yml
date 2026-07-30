@@ -1,0 +1,96 @@
+name: publish-nuget
+
+# Publishes every Program Kit package to nuget.org:
+#   - all 29 library/tool packages under src/ (packed one by one through the
+#     explicit build/ProgramKit.Pack.proj mechanism),
+#   - the Orbyss.ProgramKit consumer meta-package (build/Orbyss.ProgramKit.nuspec),
+#   - Orbyss.ProgramKit.CommandLine, which installs as the `program-kit` dotnet tool.
+#
+# The version comes from the single source in Directory.Build.props. Publishing
+# refuses to run for a version without a prerelease suffix (e.g. -alpha.2), so
+# nothing can accidentally appear as a stable release.
+#
+# Requires the repository secret NUGET_API_KEY (a nuget.org API key scoped to
+# push Orbyss.ProgramKit.*).
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Resolve version and require a prerelease suffix
+        id: version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.PackageVersion |
+            Where-Object { $_ } | Select-Object -First 1
+          if (-not $version) { throw 'PackageVersion was not found in Directory.Build.props.' }
+          if ($version -notmatch '-') {
+            throw "Version '$version' has no prerelease suffix; stable publishing is not enabled in this workflow."
+          }
+          if ('${{ github.ref_type }}' -eq 'tag' -and '${{ github.ref_name }}' -ne "v$version") {
+            throw "Tag '${{ github.ref_name }}' does not match the single version source v$version."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Publishing Program Kit $version"
+
+      - name: Restore (locked mode)
+        run: dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode
+
+      - name: Build
+        run: dotnet build ProgramKit.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test ProgramKit.sln -c Release --no-build --no-restore
+
+      - name: Pack every src package
+        shell: pwsh
+        run: |
+          $out = Join-Path $PWD 'artifacts/packages'
+          New-Item -ItemType Directory -Force $out | Out-Null
+          foreach ($directory in Get-ChildItem src -Directory) {
+            $project = Join-Path $directory.FullName "$($directory.Name).csproj"
+            if (-not (Test-Path $project)) { throw "Expected project file $project does not exist." }
+            dotnet msbuild build/ProgramKit.Pack.proj -t:Pack `
+              "-p:ProgramKitPackageProject=$project" `
+              "-p:PackageOutputPath=$out"
+            if ($LASTEXITCODE -ne 0) { throw "Packing $project failed." }
+          }
+          Write-Host "Packed $((Get-ChildItem $out -Filter *.nupkg).Count) packages."
+
+      - name: Pack the Orbyss.ProgramKit consumer meta-package
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          nuget pack build/Orbyss.ProgramKit.nuspec `
+            -Properties "version=$version" `
+            -OutputDirectory artifacts/packages
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the meta-package failed.' }
+
+      - name: Upload packages as a run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-${{ steps.version.outputs.version }}
+          path: artifacts/packages/*.nupkg
+
+      - name: Push to nuget.org
+        shell: pwsh
+        run: |
+          dotnet nuget push "artifacts/packages/*.nupkg" `
+            --source https://api.nuget.org/v3/index.json `
+            --api-key "${{ secrets.NUGET_API_KEY }}" `
+            --skip-duplicate
+          if ($LASTEXITCODE -ne 0) { throw 'Pushing packages failed.' }
