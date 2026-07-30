@@ -1,8 +1,8 @@
 {
   "identity": "pkid:review-set:program-kit:canonical-public-analyzer-release-binding",
   "version": "0.1.0-alpha.3",
-  "state": "ready-for-human-decision",
-  "implementationStatus": "not-started",
+  "state": "approved",
+  "implementationStatus": "in-progress",
   "publicationStatus": "not-authorized",
   "sourceBasis": {
     "commit": "f555745e77ebce234f7e54665869a32cc555ba45",
@@ -78,6 +78,34 @@
       "role": "review-navigation",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/README.md",
       "sha256": "41cf0d43f4adfa8ebc8777deb37b6efcef6f8b47c4e8efacf7ec2b89a89f24a5"
+    },
+    {
+      "role": "exact-human-approval-record",
+      "identity": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding",
+      "version": "1.0.0",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/design-plan-approval.json",
+      "sha256": "d9fa6706e70206e634931910291e87723c47940feecce22f683ffe3ed0bd478c"
+    },
+    {
+      "role": "prospective-release-binding-gate-policy",
+      "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+      "version": "1.11.0",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/csharp-source-quality-gate-1.11.0.md",
+      "sha256": "9c77f460a634d0036a1099d60dc3e83b73e674291d4060d57208cb4b6a3a8020"
+    },
+    {
+      "role": "private-gate-establishment-evidence",
+      "identity": "pkid:evidence:program-kit:pkrb-gate-establishment",
+      "version": "1.0.0",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/pkrb-gate-establishment-evidence.json",
+      "sha256": "63e3fb71a49e78d867519f2b5937f5deed76c6c8c327133e582de291621480bb"
+    },
+    {
+      "role": "active-private-gate-selection-lock",
+      "identity": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate",
+      "version": "1.0.0",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/program-kit-private-gate-selection-lock.json",
+      "sha256": "42c952f2ca3448e24ff9f7abb138bc6e5fa5ec475bda973131b877ffcfd1ff8c"
     }
   ],
   "staticConformanceDisposition": {
@@ -110,17 +138,26 @@
   },
   "approvalBoundary": {
     "requiredDecision": "explicit-human-approval-of-exact-canonical-design-plan-gate-and-disposition-digests-and-PKRB-W010-through-PKRB-W080",
+    "decision": "approved",
+    "approvalRecord": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding@1.0.0",
     "candidateDesignSha256": "dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1",
     "candidatePlanSha256": "6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d",
     "candidateGateDesignSha256": "f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70",
     "candidateDispositionSha256": "cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+  },
+  "implementationProgress": {
+    "completedWorkUnits": [
+      "PKRB-W010"
+    ],
+    "nextWorkUnit": "PKRB-W020",
+    "activeSelectionLock": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate@1.0.0"
   },
   "validation": {
     "jsonSyntax": "passed",
     "registeredSchemas": "passed for architecture, plan, and disposition through the installed CLI",
     "typedSemantics": "passed for architecture alpha.3, plan alpha.4, and disposition alpha.2",
     "commandLineBuild": "passed with active private gate and zero warnings or errors",
-    "runtimeImplementation": "not performed under design authority",
+    "runtimeImplementation": "PKRB-W010 gate establishment completed; PKRB-W020 through PKRB-W080 remain",
     "publication": "not performed and not authorized"
   }
 }

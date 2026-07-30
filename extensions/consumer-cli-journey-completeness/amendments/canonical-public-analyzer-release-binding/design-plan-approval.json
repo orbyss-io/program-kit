@@ -1,0 +1,40 @@
+{
+  "identity": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding",
+  "version": "1.0.0",
+  "state": "approved",
+  "decisionDate": "2026-07-30",
+  "authoritySource": "Exact human approval in the active Codex implementation thread.",
+  "architectureDesign": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+  },
+  "implementationPlan": {
+    "identity": "pkid:plan:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d"
+  },
+  "gateDesign": {
+    "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+  },
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0",
+    "state": "extend-existing"
+  },
+  "approvedWorkUnits": [
+    "PKRB-W010",
+    "PKRB-W020",
+    "PKRB-W030",
+    "PKRB-W040",
+    "PKRB-W050",
+    "PKRB-W060",
+    "PKRB-W070",
+    "PKRB-W080"
+  ],
+  "publicationAuthorized": false,
+  "supersededBy": null
+}

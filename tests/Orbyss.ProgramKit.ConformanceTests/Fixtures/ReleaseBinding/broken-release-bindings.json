@@ -1,0 +1,69 @@
+[
+  {
+    "caseId": "random-compiler-receipt",
+    "kind": "random-compiler-receipt",
+    "expectedViolation": "stable-compiler-output",
+    "facts": {
+      "receiptContainsRandomData": true,
+      "firstAssemblyDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "secondAssemblyDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  },
+  {
+    "caseId": "absolute-root-leakage",
+    "kind": "absolute-root-leakage",
+    "expectedViolation": "checkout-root-normalization",
+    "facts": {
+      "pathMapApplied": false,
+      "firstAssemblyDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "secondAssemblyDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    }
+  },
+  {
+    "caseId": "nondeterministic-package-metadata",
+    "kind": "nondeterministic-package-metadata",
+    "expectedViolation": "package-byte-reproducibility",
+    "facts": {
+      "firstPackageDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "secondPackageDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "firstEntryTimestamp": "2026-07-30T10:00:00Z",
+      "secondEntryTimestamp": "2026-07-30T10:00:01Z"
+    }
+  },
+  {
+    "caseId": "placeholder-selection",
+    "kind": "placeholder-selection",
+    "expectedViolation": "canonical-selection-concreteness",
+    "facts": {
+      "packageSha256": "exact package digest from the selected Program Kit release asset manifest",
+      "assemblyDigest": "sha256:<assembly-digest>"
+    }
+  },
+  {
+    "caseId": "release-path-divergence",
+    "kind": "release-path-divergence",
+    "expectedViolation": "single-release-package-authority",
+    "facts": {
+      "manifestPackageDigest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "workflowPackageDigest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    }
+  },
+  {
+    "caseId": "unobserved-generator-revision",
+    "kind": "unobserved-generator-revision",
+    "expectedViolation": "generator-revision-execution-link",
+    "facts": {
+      "declaredRevisionDigest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+    }
+  },
+  {
+    "caseId": "caller-supplied-internal-digest",
+    "kind": "caller-supplied-internal-digest",
+    "expectedViolation": "catalog-owned-internal-digest",
+    "facts": {
+      "digestSource": "caller",
+      "selectedDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "catalogDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "identity": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate",
+  "version": "1.0.0",
+  "disposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.11.0",
+    "digest": "sha256:9c77f460a634d0036a1099d60dc3e83b73e674291d4060d57208cb4b6a3a8020"
+  },
+  "activationMatrix": {
+    "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+    "version": "1.0.0",
+    "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+  },
+  "verificationProfile": {
+    "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+    "version": "1.0.0",
+    "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:pkrb-gate-establishment",
+    "version": "1.0.0",
+    "digest": "sha256:63e3fb71a49e78d867519f2b5937f5deed76c6c8c327133e582de291621480bb"
+  },
+  "sourceCommit": "7cea96b8a1d61368e20a5151e5ce5ad709c3c777",
+  "scope": "Program Kit-owned implementation and release qualification only; never consumer-owned source.",
+  "state": "active"
+}

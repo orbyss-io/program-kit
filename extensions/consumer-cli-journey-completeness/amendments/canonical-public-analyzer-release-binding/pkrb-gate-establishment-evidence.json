@@ -1,0 +1,83 @@
+{
+  "identity": "pkid:evidence:program-kit:pkrb-gate-establishment",
+  "version": "1.0.0",
+  "state": "active",
+  "workUnitId": "PKRB-W010",
+  "sourceBasisCommit": "7cea96b8a1d61368e20a5151e5ce5ad709c3c777",
+  "approvalRecord": {
+    "identity": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding",
+    "version": "1.0.0",
+    "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/design-plan-approval.json",
+    "digest": "sha256:d9fa6706e70206e634931910291e87723c47940feecce22f683ffe3ed0bd478c"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.11.0",
+    "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/csharp-source-quality-gate-1.11.0.md",
+    "digest": "sha256:9c77f460a634d0036a1099d60dc3e83b73e674291d4060d57208cb4b6a3a8020"
+  },
+  "baseGateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "path": "governance/csharp-source-quality-gate.md",
+    "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1",
+    "state": "active-and-unchanged"
+  },
+  "activationMatrix": {
+    "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+    "version": "1.0.0",
+    "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+  },
+  "verificationProfile": {
+    "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+    "version": "1.0.0",
+    "path": "build/Invoke-CSharpGateTestPlan.ps1",
+    "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+  },
+  "controlledFixtureBindings": [
+    {
+      "role": "fail-closed-validator",
+      "path": "tests/Orbyss.ProgramKit.ConformanceTests/Build/ReleaseBindingFixtureValidator.cs",
+      "digest": "sha256:cbbc02cf23a868bab4662353f85ba1a4df1110b2fedf9888fc1ccdba4831d49e"
+    },
+    {
+      "role": "gate-establishment-tests",
+      "path": "tests/Orbyss.ProgramKit.ConformanceTests/Build/ReleaseBindingGateEstablishmentTests.cs",
+      "digest": "sha256:d468345c0b83644cd20d1e41c72744773e9c386afa46ce73c6ac5364943e9a9c"
+    },
+    {
+      "role": "controlled-broken-release-bindings",
+      "path": "tests/Orbyss.ProgramKit.ConformanceTests/Fixtures/ReleaseBinding/broken-release-bindings.json",
+      "digest": "sha256:a2034500d306c885e362c5f19af59e0e9a6fd69d619f67a4c0d3910b60390a67"
+    },
+    {
+      "role": "complete-canonical-release-binding",
+      "path": "tests/Orbyss.ProgramKit.ConformanceTests/Fixtures/ReleaseBinding/valid-release-binding.json",
+      "digest": "sha256:4be9866e4c765b60d8bf8ee9d3ee5b83b32ec3b5ac6ddbee2f39d4f3c1e650d0"
+    }
+  ],
+  "verification": {
+    "focusedGateEstablishment": {
+      "command": "dotnet test tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj --no-build --no-restore --filter \"Name=ControlledBrokenFixturesFailClosed|Name=CompleteCanonicalBindingIsAccepted|Name=UnknownFixtureKindFailsClosed\" --verbosity minimal",
+      "result": "passed",
+      "total": 3,
+      "succeeded": 3,
+      "failed": 0
+    },
+    "approvedPlanCommandCompatibility": {
+      "command": "dotnet test ProgramKit.sln --no-restore --maxcpucount:1 --property:UseSharedCompilation=false",
+      "result": "incompatible-with-current-microsoft-testing-platform-routing",
+      "observation": "The .NET 10 solution test driver forwarded the MSBuild switches to the test applications and reported zero tests; this command therefore supplied no closure evidence."
+    },
+    "exhaustiveSolution": {
+      "command": "dotnet test --solution ProgramKit.sln --no-restore --max-parallel-test-modules 1",
+      "result": "passed",
+      "total": 857,
+      "succeeded": 856,
+      "skipped": 1,
+      "failed": 0,
+      "note": "Directory.Build.props already forces UseSharedCompilation=false. The single skip is the explicit Linux-only Keycloak profile."
+    }
+  },
+  "publicationAuthorized": false
+}
