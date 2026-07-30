@@ -11,7 +11,7 @@
     {
       "capabilityId": "design-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-software/CAPABILITY.md",
-      "sha256": "sha256:5c15bc524e04c941f8e79c8c1019a0f7f359cd9cb14aaaeeb20dd3d93ba0daa0",
+      "sha256": "sha256:3db9b631390850265d72575a071582cd38e33f7e977386ae3df43c43c9f41990",
       "sourcePath": ".agent-capabilities/capabilities/design-software/CAPABILITY.md"
     },
     {
@@ -23,7 +23,7 @@
     {
       "capabilityId": "implement-software-plan",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md",
-      "sha256": "sha256:a417c4d77eb19c5cb901c316a114e41be9388ce53d483c4d1dc35d5b8c50bc44",
+      "sha256": "sha256:add0c94d3399a8c46adcd06989b87dcc2dd1b13e69f82483e2bde5ef3d6f9f1b",
       "sourcePath": ".agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md"
     },
     {

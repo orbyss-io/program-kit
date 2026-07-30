@@ -193,6 +193,59 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
+    public void ImplementationFlowScopesWorkUnitVerificationAndRunsFullClosureOnce()
+    {
+        var design = ConformanceInputs.Read(
+            "Capabilities/design-software/CAPABILITY.md");
+        var implementation = ConformanceInputs.Read(
+            "Capabilities/implement-software-plan/CAPABILITY.md");
+
+        Assert.Contains(
+            "finite reverse dependency/consumer closure",
+            design);
+        Assert.Contains(
+            "Do not default a non-closure unit",
+            design);
+        Assert.Contains(
+            "Select expensive checks by",
+            design);
+        Assert.Contains(
+            "affected behavior rather than by cost alone",
+            design);
+        Assert.Contains(
+            "Include exactly one final `closure` work unit",
+            design);
+        Assert.Contains(
+            "Only that final unit runs the complete repository build",
+            design);
+
+        Assert.Contains(
+            "in its finite affected closure",
+            implementation);
+        Assert.Contains(
+            "Do not add the repository-wide or full-plan",
+            implementation);
+        Assert.Contains(
+            "Select expensive checks",
+            implementation);
+        Assert.Contains(
+            "by impact rather than by category",
+            implementation);
+        Assert.Contains(
+            "only in the plan's final",
+            implementation);
+        Assert.Contains(
+            "requires remediation and another complete pass",
+            implementation);
+        Assert.Contains(
+            "external CI or publication test gate is",
+            implementation);
+        Assert.Contains(
+            "Never silently reinterpret an exact approved legacy plan",
+            implementation);
+    }
+
+    [TestMethod]
     public void MaintenanceFlowIsBoundedSharedAndExactlyHumanUpgraded()
     {
         var routing = ConformanceInputs.Read(
