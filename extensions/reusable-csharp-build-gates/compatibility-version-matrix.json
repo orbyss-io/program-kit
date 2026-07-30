@@ -83,7 +83,7 @@
       "identity": "pkid:bundle:program-kit:capabilities",
       "version": "0.1.0-alpha.3",
       "path": ".agent-capabilities/capability-bundle-manifest.json",
-      "sha256": "sha256:849b9a2273d4ffa5d8e6a5e10cb0c9ac87ecf087c42d6b80c61fc6d0ad2d22a6"
+      "sha256": "sha256:8306ecd87eb2c051eb31499e852c9c0afd4d9ef415016324baa9368b7149cec4"
     },
     {
       "clockId": "toolchain",
