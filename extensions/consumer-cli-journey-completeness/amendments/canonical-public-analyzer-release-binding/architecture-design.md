@@ -4,17 +4,23 @@ Canonical source:
 `architecture-design.json`
 
 Canonical SHA-256:
-`dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1`
+`59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5`
 
-State: ready for human decision. No implementation or publication is claimed.
+State: amended and ready for human decision. `PKRB-W010` and `PKRB-W020`
+remain completed and evidence-bound. No controlled package canonicalization,
+published-evidence finalization, remaining product implementation, or
+publication is claimed.
 
 ## Outcome
 
 Program Kit alpha.3 will make a published analyzer selection an installed,
-offline CLI capability and will make the package closure that supplies that
-selection reproducible. The consumer receives exact, ready-to-embed package,
-assembly, and generated-output generator-revision references without inventing
-Program Kit-internal evidence.
+offline CLI capability. The unsigned producer package closure will be
+reproducible without waiting for a future SDK, and the human-started GitHub
+workflow will reconcile those controlled candidate bytes with NuGet.org's
+repository-signed published bytes before it packs the same-version CLI. The
+consumer receives exact, ready-to-embed published-package, assembly, and
+generated-output generator-revision references without inventing Program
+Kit-internal evidence.
 
 The command boundary is:
 
@@ -42,19 +48,37 @@ caller supplies only the selected published version.
 4. Remove random and absolute-path data from compiler-produced source, hint
    names, documents, assemblies, and portable PDBs. Preserve fresh invocation
    evidence outside compiler outputs.
-5. Use explicit path mapping, deterministic compiler settings, a pinned
-   10.0.400-or-later .NET SDK, a fixed ZIP-compatible package timestamp, and
-   one manifest-selected package closure.
-6. Include the consumer meta-package in that closure and make local
-   qualification and GitHub Actions consume the same pack outputs and
-   evidence.
-7. Assess alpha.1 definitions rather than silently rewriting them: preserve
+5. Keep the supported .NET 10.0.302 SDK pinned. Pass every SDK-produced
+   unsigned package through one repository-owned canonical profile using
+   ordinal safe entry paths, the fixed `1980-01-01T00:00:00Z` ZIP timestamp,
+   zero external attributes, and stored payloads. Reject signatures, duplicate
+   or unsafe paths, and any changed entry content.
+6. Record three distinct identities: reproducible unsigned
+   `candidatePackageSha256`, signature-independent `packageContentDigest`, and
+   the exact NuGet.org repository-signed `publishedPackageSha256` used as the
+   gate's `packageSha256`.
+7. Include the consumer meta-package in the same manifest-selected SDK-pack and
+   canonicalization path.
+8. After explicit human start, let GitHub Actions publish or verify the analyzer
+   first, download and verify the NuGet.org-signed package, compare all
+   non-signature content, finalize and repeat-pack the CLI catalog, run the cold
+   proof, and only then publish the remaining package set.
+9. Treat analyzer-first publication as an accepted irreversible phase:
+   mismatch stops; a matching safe retry verifies and resumes; no workflow
+   overwrites or rolls back a package.
+10. Assess alpha.1 definitions rather than silently rewriting them: preserve
    already conforming fields, report exact incompatible paths, and produce no
    output on loss.
-8. Extend the existing private C# source-quality gate and establish its
+11. Extend the existing private C# source-quality gate and establish its
    negative fixtures before changing product behavior.
-9. Keep publication outside implementation authority. The human runs the
-   GitHub workflow only after candidate evidence is complete.
+12. Keep publication outside implementation authority. The human runs the
+   GitHub workflow only after candidate and workflow-conformance evidence are
+   complete.
+
+NuGet.org adds or countersigns `.signature.p7s` after upload. A local builder
+therefore does not and cannot reproduce the raw repository-signed package
+SHA-256. The workflow proves that the signed package contains the exact
+canonical candidate content, then records both identities honestly.
 
 ## Historical alpha.2 authority
 
@@ -70,10 +94,12 @@ substitute for a NuGet.org consumer binding.
 
 ## Approval boundary
 
-Approval authorizes implementation work units `PKRB-W010` through
-`PKRB-W080` against the exact canonical JSON digest above, the gate design
-digest
-`f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70`,
+The earlier approval remains the authority for completed `PKRB-W010` and
+`PKRB-W020`. Renewed approval authorizes the amended `PKRB-W030` through
+`PKRB-W080` against the exact canonical JSON digest above, revised plan digest
+`0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`,
+the gate design digest
+`c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c`,
 and the `extend-existing` disposition digest
 `cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0`.
 It does not authorize package publication, tagging, release creation,

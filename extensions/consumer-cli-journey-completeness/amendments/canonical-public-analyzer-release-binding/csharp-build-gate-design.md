@@ -29,11 +29,11 @@ autonomous release mechanism is introduced.
 | Program Kit handwritten C# continues to satisfy private PKCS source policy. | Program Kit toolkit; Roslyn compiler | Reuse the exact existing private analyzer, selection lock, activation matrix, and exhaustive profile. |
 | A compiler participation receipt proves the current invocation without changing compiled or portable-PDB bytes. | C# build-gate mechanics; MSBuild/compiler integration | Keep the unpredictable nonce only in the fresh invocation-root/evidence boundary. Generated receipt source, hint names, and compiler document paths are stable. The verifier accepts receipts only beneath the prepared invocation root. |
 | Builds from two clean absolute roots produce the same first-party assembly bytes. | Build spine; executable conformance | Require explicit source-root path mapping and deterministic/CI compiler settings. A clean-root fixture compares SHA-256 for the public analyzer and one representative normal library before product units proceed. |
-| Two clean packs of the same selected source produce identical nupkg bytes. | Release packaging; executable conformance | Use a pinned SDK with deterministic NuGet packing, one invariant ZIP-compatible timestamp, and one manifest-selected pack path. Compare every selected nupkg, not only the outer handoff archive. |
-| The published public analyzer has one exact package digest, assembly digest, and explicit generated-output generator revisions. | Generated-source contract and release evidence; schema/model validation | Define one release-selection entry. For the affected host journey it carries `pkid:generator:program-kit:dotnet-host`; its digest is the SHA-256 of a canonical generator-revision descriptor, not the analyzer assembly digest. |
+| Two clean packs of the same selected source produce identical unsigned candidate nupkg bytes. | Release packaging; executable conformance | Keep the supported 10.0.302 SDK pinned, then rewrite every SDK-produced unsigned package through one repository-owned canonical profile: ordinal entry names, fixed `1980-01-01T00:00:00Z` timestamps, zero external attributes, and stored payloads. Reject signatures, duplicate/unsafe paths, and content drift. Compare every selected nupkg, not only the outer handoff archive. |
+| The published public analyzer has distinct candidate, content, published-package, assembly, and generated-output generator identities. | Generated-source contract and release evidence; schema/model validation | Define one release-selection entry. Its gate fragment uses the raw SHA-256 of the repository-signed NuGet.org package actually consumed. Separate fields bind the reproducible unsigned candidate and a signature-independent ordered package-content digest. For the affected host journey the row carries `pkid:generator:program-kit:dotnet-host`; its digest is the SHA-256 of a canonical generator-revision descriptor, not any package or assembly digest. |
 | The installed CLI can materialize that selection without Program Kit source or caller-invented data. | Command-line read projection; unit and cold-consumer conformance | Add one finite JSON command that reads the installed immutable release-selection catalog and emits a ready-to-embed analyzer component. Reject missing, duplicate, placeholder, or digest-inconsistent entries. |
 | A declared generated-output generator revision is execution-linked. | Generated-output integrity and gate mechanics; executable conformance | The host materializer records the exact selected generator revision in deterministic output evidence, and gate verification requires it to equal one of the analyzer component's `receiptGeneratorRevisions`; a structurally valid but unobserved revision is rejected. |
-| The release package set and GitHub publication use the same source of truth. | Release packaging; workflow conformance | The GitHub workflow invokes the manifest-selected packer, verifies deterministic repeat-pack evidence, uploads the exact package/checksum/selection manifests, and publishes no package outside that set. |
+| The release package set and GitHub publication use the same source of truth. | Release packaging; workflow conformance | The GitHub workflow invokes the manifest-selected packer and canonicalizer. After explicit human start it publishes or verifies the exact analyzer candidate first, downloads and verifies NuGet.org's repository-signed result, compares every non-signature entry, finalizes the alpha.3 catalog, repeat-packs and cold-verifies the CLI/remaining closure, then publishes no package outside that set. |
 | Alpha.1 gate definitions have an explicit alpha.2 assessment path. | C# gate authoring; schema and command conformance | Validate against the named source and target schemas. Preserve canonical bytes when already conformant; otherwise fail with exact non-inventable artifact-selection decisions. |
 | A package-only consumer completes describe/select, materialize, scaffold-lock, bind, and verify. | Consumer journey; isolated executable conformance | The cold proof installs only released candidate packages, selects the real public analyzer, supplies no internal digest, and checks positive and tamper paths. |
 
@@ -71,6 +71,12 @@ The canonical catalog contains an immutable row per published analyzer version:
   "semanticOwnerId": "pkid:domain:program-kit:generated-source-contract",
   "nugetPackageId": "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers",
   "packageAssetPath": "analyzers/dotnet/cs/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.dll",
+  "packageEvidence": {
+    "candidatePackageSha256": "sha256:<exact-reproducible-unsigned-nupkg-digest>",
+    "packageContentDigest": "sha256:<exact-signature-independent-entry-content-digest>",
+    "publishedPackageSha256": "sha256:<exact-nuget-org-repository-signed-nupkg-digest>",
+    "repositorySignatureVerified": true
+  },
   "gateDefinitionFragment": {
     "artifact": {
       "kind": "analyzer-package",
@@ -78,7 +84,7 @@ The canonical catalog contains an immutable row per published analyzer version:
       "package": {
         "identity": "pkid:package:program-kit:orbyss-programkit-generatedsourcecontract-analyzers",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:<exact-nupkg-digest>"
+        "digest": "sha256:<exact-nuget-org-repository-signed-nupkg-digest>"
       },
       "assemblyFileName": "Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.dll",
       "assemblyDigest": "sha256:<exact-assembly-digest>",
@@ -114,11 +120,26 @@ for a different alpha.2 analyzer nupkg. The backfill therefore names NuGet.org
 bytes explicitly, and alpha.3 qualification requires the GitHub evidence and
 NuGet publication input to be the same file rather than two same-version packs.
 
-The release packer derives the candidate alpha.3 row after the deterministic
-analyzer package is finalized. It writes the catalog to transaction-local
-output, includes it as installed CLI data without recompiling the CLI, and
-publishes the same bytes as release evidence. This avoids a package
-self-digest cycle.
+The local release packer derives candidate alpha.3 package and content
+evidence after the analyzer candidate is canonicalized. It cannot derive the
+raw NuGet.org package digest because NuGet.org adds or countersigns
+`.signature.p7s` after upload.
+
+After the human explicitly starts publication, the workflow publishes or
+verifies the exact analyzer candidate first, downloads the repository-signed
+package, verifies the NuGet.org signature, verifies every non-signature entry
+against the candidate, and derives `publishedPackageSha256`. It then writes the
+final catalog to transaction-local output, includes it as installed CLI data
+without recompiling the CLI, repeat-packs the CLI deterministically, and runs
+the package-only proof before publishing the remaining packages. This avoids a
+package self-digest cycle without pretending a local builder can reproduce
+NuGet.org's private-key signature.
+
+Analyzer-first publication is an explicit irreversible phase boundary. If a
+later phase fails, alpha.3 may contain only the analyzer package. A retry must
+download that existing package, prove its raw and content identities match the
+expected candidate, and resume; it never overwrites or accepts mismatched
+bytes.
 
 The generator-revision descriptor follows the existing Program Kit convention
 already used by `dotnet-configuration-provider`: the artifact reference digest
@@ -165,10 +186,14 @@ evidence before product work:
 1. same-root repeat assembly proof;
 2. cross-root assembly proof;
 3. repeat complete-package-set proof;
-4. public-selection structural and digest proof;
-5. generated-output generator-revision match and mismatch proof;
-6. publish-workflow/manifest selection proof;
-7. package-only consumer rebind proof.
+4. canonical-package normalization equality and unsafe/signature-bearing input
+   rejection;
+5. candidate/published signature-independent content equivalence and mismatch
+   proof;
+6. public-selection structural and digest proof;
+7. generated-output generator-revision match and mismatch proof;
+8. analyzer-first/resumable publish-workflow and manifest-selection proof;
+9. package-only consumer rebind proof.
 
 Unknown package rows, package versions, analyzer assets, receipt identities,
 timestamps, paths, or workflow selections fail closed. There are no temporary
@@ -185,8 +210,8 @@ set, consumer journey, and private gate pass.
 Implementation must stop for renewed design approval if it needs a new
 analyzer, changes public PKCC diagnostic semantics, changes alpha.2 bytes,
 uses an online lookup for selection, weakens the fresh-invocation trust
-boundary, publishes a package, or cannot make every selected nupkg
-byte-reproducible.
+boundary, invokes publication, or cannot make every selected unsigned candidate
+nupkg byte-reproducible through the exact canonical profile.
 
 ## Update and rollback
 
@@ -195,6 +220,8 @@ byte-reproducible.
   exists.
 - After approved alpha.3 publication, rollback means consumers select alpha.2;
   alpha.3 is never overwritten or silently rebuilt under the same version.
+- If the workflow stops after analyzer-first publication, the partial alpha.3
+  state is explicit and irreversible; a safe rerun verifies and resumes it.
 - A changed candidate byte requires a new deterministic evidence set before
   publication authority is requested.
 

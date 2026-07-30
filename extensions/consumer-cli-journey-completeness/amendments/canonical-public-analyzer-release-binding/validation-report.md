@@ -4,16 +4,17 @@ Review set:
 `pkid:review-set:program-kit:canonical-public-analyzer-release-binding@0.1.0-alpha.3`
 
 Source commit:
-`f555745e77ebce234f7e54665869a32cc555ba45`
+`a3c2fe174cd3511e9f3787acb4f7fd2ef59dba07`
 
 Branch:
 `codex/alpha3-canonical-analyzer-selection`
 
 ## Results
 
-- PASS — `ProgramKit.sln` dependency restore.
-- PASS — Debug build of `Orbyss.ProgramKit.CommandLine`; zero warnings and
-  errors, including the active private-gate self-validation.
+- PASS — previously completed `PKRB-W010` exhaustive solution gate: 857 total,
+  856 passed, one explicit Linux-only skip, zero failed.
+- PASS — completed `PKRB-W020` exhaustive solution gate: 860 total, 859 passed,
+  one explicit Linux-only skip, zero failed.
 - PASS — public CLI schema validation of `architecture-design.json`.
 - PASS — public CLI schema validation of `implementation-plan.json`.
 - PASS — public CLI schema validation of
@@ -24,15 +25,27 @@ Branch:
   `ImplementationPlanDocumentAlpha4`.
 - PASS — repository typed semantic validation of
   `StaticConformanceDispositionAlpha2`.
-- PASS — canonical design/plan/disposition/gate references resolve to the
-  exact review-file SHA-256 values.
+- PASS — canonical amended design/plan/disposition/gate and amendment-input
+  references resolve to the exact review-file SHA-256 values; completed
+  `PKRB-W010` and `PKRB-W020` retain their exact historically approved
+  architecture-design inputs, and current `PKRB-W010` traces the amended gate
+  design whose enforcement allocation and controlled fixture categories are
+  unchanged.
 - PASS — all planned product and closure work reaches establishment unit
   `PKRB-W010` and final closure unit `PKRB-W080`; no parallel groups exist.
-- PASS — static conformance is the human-approved `extend-existing`
-  disposition and declares prospective policy, selection-lock, and activation
-  evidence outputs before product work.
+- PASS — static conformance remains the exact human-approved
+  `extend-existing` disposition; the established policy, selection lock,
+  activation evidence, and deterministic compiler evidence remain compatible
+  with the amended product work.
 
-The temporary typed-validator project used for the semantic checks was removed
+The unchanged disposition and selection lock are historical authority for the
+completed gate-establishment decision. Their original gate-design reference
+and future-SDK residual-risk statement are intentionally not rewritten; the
+amended architecture, gate design, and `PKRB-W030` through `PKRB-W080`
+supersede those packaging mechanics without changing static enforcement
+allocation.
+
+The temporary typed-validation test used for the semantic checks was removed
 after execution; it is not part of the review set.
 
 ## Independently checked alpha.2 facts
@@ -52,33 +65,41 @@ after execution; it is not part of the review set.
   separate meta-package pack path.
 - Current `receiptGeneratorRevisions` validation establishes reference shape
   and ordering, not correspondence to executed generated-output evidence.
+- NuGet.org repository-signs uploaded packages and adds or countersigns
+  `.signature.p7s`; a local builder therefore cannot reproduce the raw
+  repository-signed nupkg SHA-256.
+- The installed supported SDK is 10.0.302 with NuGet 7.6. The amended design
+  no longer depends on unreleased SDK 10.0.400 functionality.
 
 ## Exact canonical review digests
 
 - `design-input.json`:
   `9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034`
+- `design-amendment-input.json`:
+  `d4fdea2e13118db2fbc0c66350f31e5d027478e9e976266512d9985d1fef01e6`
 - `csharp-build-gate-design.md`:
-  `f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70`
+  `c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c`
 - `static-conformance-disposition.json`:
   `cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0`
 - `architecture-design.json`:
-  `dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1`
+  `59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5`
 - `architecture-design.md`:
-  `afa48f9a54bda152641e72d6ec64b3904fafa53755edb8d3f75537646171bdc7`
+  `8bd6df22512691624404d8b7ca8303d1197f1e8f1cf64cee21007218125dea81`
 - `implementation-plan.json`:
-  `6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d`
+  `0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5`
 - `implementation-plan.md`:
-  `6ed7b3c846c6547d5e0daa199ba9c190db1f3b86c542c973c16b2f3817b4613c`
+  `cda253830afb0fa5421f4982ef3020e9529f151350644bcd073758013aaa344a`
 - `additional-findings.md`:
-  `d8f72bf60a966c91a6735a29f91d6ab4b6b4d98a2a28bef7d682fd9d7828ffd4`
+  `89fb6c66f4114be4e64feb23c824c6d40e5e9a6325f851a5405649efd6ef0ea0`
 - `README.md`:
-  `41cf0d43f4adfa8ebc8777deb37b6efcef6f8b47c4e8efacf7ec2b89a89f24a5`
+  `e683aed4f82e255bb15062876cc687bb1116a0121d5fde9ca6de753092430c2a`
 
 ## Deliberately not performed
 
-No Program Kit product source, package version, schema, workflow, or release
-asset was changed. No alpha.3 package was built, tagged, pushed, uploaded, or
-published. Reproducible two-root packing and cold-consumer acceptance are
-implementation outcomes, not design-review claims. The pinned SDK remains
-10.0.302 until the approved implementation deliberately selects and verifies a
-10.0.400-or-later SDK.
+No package version, product source beyond the already completed W010/W020
+commits, schema, workflow, release asset, tag, or external state was changed by
+this amendment design task. No alpha.3 package was pushed, uploaded, or
+published. Repository-owned package canonicalization, published-package
+reconciliation, safe workflow resumption, two-root candidate packing, and
+cold-consumer acceptance remain implementation outcomes. The supported SDK
+deliberately remains pinned to 10.0.302.

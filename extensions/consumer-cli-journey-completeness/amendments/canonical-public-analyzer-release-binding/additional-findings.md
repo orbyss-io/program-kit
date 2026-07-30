@@ -5,6 +5,55 @@ CLI field. The following related mismatches were found while tracing the
 selection from compiler output through package publication and cold-consumer
 verification.
 
+## Controlled-packaging amendment findings
+
+### Raw NuGet.org bytes are not locally reproducible
+
+NuGet.org repository-signs every uploaded package and adds or countersigns
+`.signature.p7s`. The raw repository-signed nupkg SHA-256 consumed from
+NuGet.org therefore cannot equal the reproducible unsigned candidate SHA-256,
+and a local builder cannot reproduce Microsoft's private-key signature.
+
+The original acceptance language incorrectly required one raw digest to be
+both locally reproducible and equal to NuGet.org's modified download. The
+amendment splits:
+
+- `candidatePackageSha256` for exact reproducible unsigned producer bytes;
+- `packageContentDigest` for ordered signature-independent entry contents;
+- `publishedPackageSha256` for exact NuGet.org repository-signed consumer
+  bytes.
+
+The gate's `packageSha256` uses the published digest. The workflow verifies the
+repository signature and every non-signature entry before connecting that
+published identity to the candidate.
+
+### The deterministic-pack SDK assumption named unavailable functionality
+
+The original design treated .NET SDK 10.0.400-or-later as an installable
+implementation dependency even though the repository and supported public
+toolchain currently stop at 10.0.302. That made `PKRB-W030` depend on a future
+feature band.
+
+The amendment keeps 10.0.302 pinned and owns canonical package-envelope
+production in the repository. SDK pack remains responsible for valid package
+contents and NuSpec relationships; the bounded canonical writer owns safe
+entry validation, ordinal ordering, fixed timestamps and attributes, and
+stored payload envelope bytes.
+
+### A same-version CLI catalog creates a publication-time phase boundary
+
+An alpha.3 CLI cannot contain the raw NuGet.org-signed alpha.3 analyzer digest
+before that analyzer is uploaded and signed. Finalizing the catalog entirely
+before publication is therefore impossible without either using a later CLI
+version or changing package-digest semantics.
+
+The selected lifecycle publishes or verifies the exact analyzer candidate
+first, obtains and verifies the signed package, injects the final catalog into
+the already-built CLI package, repeat-packs and cold-verifies the remaining
+closure, then publishes the rest. This accepts explicit irreversible partial
+alpha.3 state if a later phase fails; safe retry verifies exact existing bytes
+before resuming.
+
 ## Included in the alpha.3 plan
 
 ### GitHub and NuGet alpha.2 identify different package bytes
@@ -15,7 +64,9 @@ NuGet.org serves SHA-256
 `282a10899e45c302cb0ba879b01f9ff6bf92bee0a73fd5c996ad77a4dee22a6c`
 for the same package ID and alpha.2 version. A release manifest is therefore
 not automatically a NuGet consumer authority. `PKRB-W060` makes both channels
-use one selected package file.
+bind one canonical unsigned candidate, one signature-independent content
+identity, and the exact repository-signed NuGet.org package the consumer
+downloads.
 
 ### Generator-revision references are shape-checked but not execution-linked
 
@@ -55,12 +106,23 @@ provide a loss-rejecting transition for an existing consumer document.
 `PKRB-W050` assesses exact incompatibilities, preserves conforming data, and
 materializes only when no information is lost.
 
-### The pinned SDK cannot provide the planned deterministic pack semantics
+### Historical conformance evidence must not be rewritten around the amendment
 
-The current pin resolves to .NET SDK 10.0.302. The deterministic package plan
-requires the first approved 10.0.400-or-later SDK with the needed pack
-normalization. This is an explicit implementation prerequisite, not an
-implicit environment upgrade.
+The exact approved static-conformance disposition and active selection lock
+record the original future-SDK residual risk and original gate-design digest.
+They are evidence for the already completed `PKRB-W010`, not mutable current
+packaging instructions. Rewriting them would invalidate the exact selection
+lock and require gate re-establishment.
+
+The amended architecture, gate design, and `PKRB-W030` through `PKRB-W080`
+supersede that implementation premise without changing the enforcement
+allocation: the disposition remains `extend-existing`, while repository-owned
+canonicalization on 10.0.302 replaces the future-SDK dependency. The amended
+plan deliberately leaves `PKRB-W010` and `PKRB-W020` bound to the originally
+approved architecture-design input digest. `PKRB-W010` also consumes the
+amended gate-design digest so the current plan remains semantically closed;
+renewed approval explicitly accepts the existing establishment evidence
+against that mechanically amended, statically unchanged gate.
 
 ## Recorded follow-up, not a separate alpha.3 expansion
 

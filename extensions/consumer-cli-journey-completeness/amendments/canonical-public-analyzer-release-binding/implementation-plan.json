@@ -3,7 +3,7 @@
   "design": {
     "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
     "version": "0.1.0-alpha.3",
-    "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+    "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
   },
   "ownerId": "pkid:domain:program-kit:toolkit",
   "state": "ready-for-human-decision",
@@ -33,7 +33,7 @@
         {
           "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
           "version": "0.1.0-alpha.3",
-          "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+          "digest": "sha256:c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c"
         }
       ],
       "outputs": [
@@ -170,7 +170,7 @@
     },
     {
       "workUnitId": "PKRB-W030",
-      "requiredOutcome": "Produce the complete manifest-selected Program Kit package set byte-identically across clean roots through a pinned deterministic-pack SDK, invariant timestamp, and one SDK pack mechanism including the consumer meta-package.",
+      "requiredOutcome": "Produce the complete manifest-selected unsigned Program Kit candidate package set byte-identically across clean roots with the pinned supported 10.0.302 SDK, one repository-owned canonical-package profile, and one manifest-selected mechanism including the consumer meta-package.",
       "sequence": 30,
       "parallelGroupId": null,
       "dependsOn": [
@@ -180,7 +180,7 @@
         {
           "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
           "version": "0.1.0-alpha.3",
-          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+          "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
         }
       ],
       "outputs": [
@@ -192,7 +192,7 @@
         }
       ],
       "allowedEdits": [
-        "global.json; Directory.Build.props; build/ProgramKit.Pack.proj; build/Invoke-PackConsumerFeed.ps1; build/program-kit-release-packages.json; build/Orbyss.ProgramKit.nuspec or its bounded SDK-pack replacement; package projects; directly affected tests, documentation, locks, and evidence."
+        "build/ProgramKit.Pack.proj; build/Invoke-PackConsumerFeed.ps1; build/Verify-ReproducibleConsumerFeed.ps1; build/program-kit-release-packages.json; build/package-canonicalization-profile.json; build/Orbyss.ProgramKit.nuspec or its bounded SDK-pack replacement; tools/Orbyss.ProgramKit.NuGetCanonicalizer; package projects; directly affected tests, documentation, locks, manifests, version maps, and evidence. global.json and the repository SDK declarations remain pinned to 10.0.302."
       ],
       "sourceDependencies": [
         {
@@ -201,7 +201,7 @@
             "version": "0.1.0-alpha.3",
             "digest": "sha256:c255c9b27405e2bf4c5f2d5cba1382c4859ea206baf79a14a6df6dfbc8e2a9d3"
           },
-          "purpose": "Extend the existing release package selection rather than enumerate projects through a second path."
+          "purpose": "Extend the existing release package selection rather than enumerate projects through a second path, and add the meta-package to that authority."
         }
       ],
       "externalDependencies": [],
@@ -214,7 +214,7 @@
         }
       ],
       "stopConditions": [
-        "Stop if the required deterministic-pack SDK cannot be pinned and installed, any selected package remains byte-variable, or the meta-package requires a separate nondeterministic packer."
+        "Stop if canonicalization changes any SDK-produced entry content, accepts .signature.p7s in an unsigned candidate, accepts duplicate/backslash/rooted/traversal entry names, depends on compression implementation details, cannot reproduce every selected candidate nupkg/package-content digest/manifest/checksum across clean roots, or leaves the meta-package on a separate pack path."
       ],
       "verification": [
         {
@@ -225,7 +225,7 @@
             "build/Verify-ReproducibleConsumerFeed.ps1"
           ],
           "workingDirectory": ".",
-          "expectedObservation": "Two clean absolute roots produce identical hashes for every selected nupkg, package manifest, and checksum projection."
+          "expectedObservation": "Two clean absolute roots using SDK 10.0.302 produce identical hashes for every canonical unsigned candidate nupkg, signature-independent package-content digest, package manifest, and checksum projection; normalization fixtures with different source ZIP order/timestamps/compression converge, while signature-bearing and unsafe inputs fail."
         }
       ],
       "selectedTests": [],
@@ -243,13 +243,18 @@
     },
     {
       "workUnitId": "PKRB-W040",
-      "requiredOutcome": "Define the immutable public-analyzer release-selection catalog and dotnet-host generator-revision descriptors, backfill alpha.2 from published bytes and its exact release tag, generate alpha.3 from finalized package and generator evidence, ship the catalog with the CLI, and expose one canonical ready-to-embed selection command.",
+      "requiredOutcome": "Define the immutable public-analyzer release-selection catalog, publication-time catalog finalizer, and dotnet-host generator-revision descriptors; backfill alpha.2 from repository-signed published bytes and its exact release tag; derive alpha.3 candidate/content/assembly/generator evidence locally; finalize its published packageSha256 only from verified NuGet.org-signed bytes; inject that final catalog into the CLI package without recompiling; and expose one canonical ready-to-embed selection command.",
       "sequence": 40,
       "parallelGroupId": null,
       "dependsOn": [
         "PKRB-W030"
       ],
       "inputs": [
+        {
+          "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+          "version": "0.1.0-alpha.3",
+          "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
+        },
         {
           "identity": "pkid:manifest:program-kit:generated-source-contract-analyzer",
           "version": "0.1.0-alpha.3",
@@ -277,7 +282,7 @@
         }
       ],
       "allowedEdits": [
-        "schemas/csharp-build-gates; src/Orbyss.ProgramKit.CSharpBuildGates.Contracts; src/Orbyss.ProgramKit.CSharpBuildGates.Authoring; src/Orbyss.ProgramKit.CSharpBuildGates.Build; src/Orbyss.ProgramKit.CommandLine; src/Orbyss.ProgramKit.DotNet generator evidence; src/Orbyss.ProgramKit.GeneratedOutputIntegrity; src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers; .agent-capabilities supporting resources; release-selection build projections; directly affected tests, manifests, version maps, documentation, and exact digests."
+        "schemas/csharp-build-gates; src/Orbyss.ProgramKit.CSharpBuildGates.Contracts; src/Orbyss.ProgramKit.CSharpBuildGates.Authoring; src/Orbyss.ProgramKit.CSharpBuildGates.Build; src/Orbyss.ProgramKit.CommandLine; src/Orbyss.ProgramKit.DotNet generator evidence; src/Orbyss.ProgramKit.GeneratedOutputIntegrity; src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers; .agent-capabilities supporting resources; release-selection candidate, content-equivalence, finalization, and package-injection projections; directly affected tests, manifests, version maps, documentation, and exact digests."
       ],
       "sourceDependencies": [
         {
@@ -299,7 +304,7 @@
         }
       ],
       "stopConditions": [
-        "Stop if the catalog creates a package self-digest cycle, needs online discovery, cannot be included without recompiling finalized assemblies, derives a dotnet-host revision from analyzer bytes, or cannot execution-link the selected revision through generated-output evidence."
+        "Stop if installed CLI execution needs online discovery; alpha.3 packageSha256 can be materialized without verified repository-signed bytes; final catalog injection recompiles CLI assemblies; candidatePackageSha256, packageContentDigest, publishedPackageSha256, and assemblyDigest are conflated; the catalog creates a package self-digest cycle; a dotnet-host revision is derived from analyzer bytes; or generated-output evidence cannot execution-link the selected revision."
       ],
       "verification": [
         {
@@ -312,7 +317,7 @@
             "--property:UseSharedCompilation=false"
           ],
           "workingDirectory": ".",
-          "expectedObservation": "Catalog schema/model, alpha.2 exact package and historical generator evidence, alpha.3 derived package and generator evidence, CLI canonical output, placeholder rejection, generator match/mismatch, and package tamper tests pass."
+          "expectedObservation": "Catalog schema/model, alpha.2 exact repository-signed package and historical generator evidence, alpha.3 candidate/content/assembly/generator evidence, controlled repository-signed finalization, final catalog package injection without assembly changes, CLI canonical output, placeholder rejection, signature/content mismatch, generator match/mismatch, and package tamper tests pass."
         }
       ],
       "selectedTests": [],
@@ -396,7 +401,7 @@
     },
     {
       "workUnitId": "PKRB-W060",
-      "requiredOutcome": "Make the GitHub NuGet workflow consume the exact manifest-selected deterministic pack and release-evidence set, removing src-directory enumeration and the separate nondeterministic meta-package path without publishing during implementation.",
+      "requiredOutcome": "Make the GitHub NuGet workflow consume the exact manifest-selected canonical candidate and evidence set; remove src-directory enumeration and the separate meta-package path; implement bounded analyzer-first publication, NuGet.org repository-signature/content reconciliation, final alpha.3 catalog injection, repeat-pack/cold-proof qualification, remaining-package publication, and mismatch-safe resumption; and do not invoke publication during implementation.",
       "sequence": 60,
       "parallelGroupId": null,
       "dependsOn": [
@@ -407,7 +412,7 @@
         {
           "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
           "version": "0.1.0-alpha.3",
-          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+          "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
         },
         {
           "identity": "pkid:workflow:program-kit:publish-nuget",
@@ -424,7 +429,7 @@
         }
       ],
       "allowedEdits": [
-        ".github/workflows/publish-nuget.yml; build manifest-selected pack and evidence scripts; workflow-conformance tests; README release instructions."
+        ".github/workflows/publish-nuget.yml; build manifest-selected pack, published-package reconciliation, final catalog injection, resumption, and evidence scripts; tools/Orbyss.ProgramKit.NuGetCanonicalizer verification mode if required; workflow-conformance and controlled phase-simulation tests; README release and partial-publication recovery instructions."
       ],
       "sourceDependencies": [
         {
@@ -433,14 +438,14 @@
             "version": "0.1.0-alpha.3",
             "digest": "sha256:f556de0f20d9baa413d5904a2fcf33cea80583f16e194e8a47ee67664d3f9c98"
           },
-          "purpose": "Preserve tag/version, stable-release denial, locked restore, test, OIDC, and push safety boundaries while replacing only divergent packing."
+          "purpose": "Preserve tag/version, stable-release denial, locked restore, tests, late OIDC acquisition, and push safety boundaries while replacing divergent packing and making the accepted analyzer-first phase explicit and resumable."
         }
       ],
       "externalDependencies": [],
       "migrations": [],
       "compatibility": [],
       "stopConditions": [
-        "Stop if workflow convergence weakens locked restore, tests, prerelease-only checks, OIDC timing, package-set verification, or creates publication authority."
+        "Stop if workflow convergence weakens locked restore, tests, prerelease-only checks, late OIDC acquisition, canonical candidate selection, NuGet.org repository-signature verification, non-signature content equivalence, final catalog repeat-pack/cold proof, exact remaining package selection, or mismatch-safe resumption; hides partial publication; attempts rollback/overwrite; or creates authority to invoke publication."
       ],
       "verification": [
         {
@@ -453,7 +458,7 @@
             "--property:UseSharedCompilation=false"
           ],
           "workingDirectory": ".",
-          "expectedObservation": "Workflow source-conformance tests prove one manifest-selected pack path, exact evidence upload, no src enumeration, and no separate nuget pack command."
+          "expectedObservation": "Workflow source-conformance and controlled phase-simulation tests prove one canonical manifest-selected pack path; analyzer-first publish-or-verify; bounded signed-package polling; NuGet.org signature and non-signature content verification; final catalog injection and repeat-pack equality; cold proof before remaining pushes; exact candidate/published evidence upload; safe matching resume; mismatch refusal; no src enumeration; no separate meta-package command; and no publication invocation during implementation."
         }
       ],
       "selectedTests": [],
@@ -471,7 +476,7 @@
     },
     {
       "workUnitId": "PKRB-W070",
-      "requiredOutcome": "Prove from an isolated workspace and only candidate packages that the installed CLI emits the real alpha.2 and alpha.3 selections and completes migration assessment, materialize-definition, scaffold-lock, bind, and verify without hand-supplied Program Kit-internal digests.",
+      "requiredOutcome": "Prove from an isolated workspace and only a finalized package feed that the installed CLI emits the real alpha.2 selection and a workflow-equivalent finalized alpha.3 selection, distinguishes candidate/content/published evidence, and completes migration assessment, materialize-definition, scaffold-lock, bind, and verify without hand-supplied Program Kit-internal digests; the human-started workflow reruns the same proof against actual NuGet.org-signed alpha.3 bytes before remaining publication.",
       "sequence": 70,
       "parallelGroupId": null,
       "dependsOn": [
@@ -483,7 +488,7 @@
         {
           "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
           "version": "0.1.0-alpha.3",
-          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+          "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
         },
         {
           "identity": "pkid:migration:program-kit:csharp-build-gate-definition-alpha1-to-alpha2",
@@ -512,7 +517,7 @@
       "migrations": [],
       "compatibility": [],
       "stopConditions": [
-        "Stop if the proof reads Program Kit source, uses a locally built analyzer path instead of the candidate package, supplies a Program Kit-internal digest, mutates JTest, or omits tamper verification."
+        "Stop if the proof reads Program Kit source, uses a loose locally built analyzer path instead of the exact package feed, conflates candidate and published package identity, supplies a Program Kit-internal digest, mutates JTest, omits package/signature/content/catalog/assembly/lock/generated-output tamper verification, or differs from the cold-proof phase invoked by the publication workflow."
       ],
       "verification": [
         {
@@ -527,7 +532,7 @@
             "<new-isolated-output>"
           ],
           "workingDirectory": ".",
-          "expectedObservation": "The package-only journey binds and verifies the exact public analyzer selections and rejects package, assembly, selection, lock, and generated-output tampering."
+          "expectedObservation": "The package-only journey binds and verifies the exact public analyzer selections and rejects raw package, candidate/content linkage, repository-signature state, assembly, selection, lock, and generated-output tampering; the workflow can invoke the same command after actual signed-package finalization."
         }
       ],
       "selectedTests": [],
@@ -545,7 +550,7 @@
     },
     {
       "workUnitId": "PKRB-W080",
-      "requiredOutcome": "Close the exact alpha.3 candidate review boundary with full tests, private-gate verification, two-root complete-package reproducibility, final package/selection/checksum evidence, documentation, and a human GitHub-workflow publication handoff without invoking publication.",
+      "requiredOutcome": "Close the exact alpha.3 controlled-publication review boundary with full tests, private-gate verification, two-root canonical candidate-package reproducibility, candidate/content/catalog-template/checksum evidence, controlled signed-package and resumption simulation, documentation of the accepted analyzer-first partial-publication boundary, and a human GitHub-workflow handoff without invoking publication; exact NuGet.org-signed alpha.3 package and final installed-catalog evidence complete inside that later human-started workflow.",
       "sequence": 80,
       "parallelGroupId": null,
       "dependsOn": [
@@ -555,7 +560,7 @@
         {
           "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
           "version": "0.1.0-alpha.3",
-          "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+          "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
         }
       ],
       "outputs": [
@@ -574,7 +579,7 @@
       "migrations": [],
       "compatibility": [],
       "stopConditions": [
-        "Stop if any test or private-gate profile fails, any selected package differs across clean roots, any artifact digest is stale, the branch is not current with main, or publication would be required to complete verification."
+        "Stop if any test or private-gate profile fails; any selected canonical candidate package, content digest, manifest, or checksum differs across clean roots; signed-package/content/resumption simulation fails; any artifact digest is stale; the branch is not current with main; workflow source can publish outside explicit human start; or actual publication would be required to complete implementation verification."
       ],
       "verification": [
         {
@@ -597,7 +602,7 @@
             "build/Verify-ReproducibleConsumerFeed.ps1"
           ],
           "workingDirectory": ".",
-          "expectedObservation": "The complete clean-root package and evidence sets are byte-identical."
+          "expectedObservation": "The complete clean-root unsigned canonical candidate package and evidence sets are byte-identical; no claim is made that local output reproduces NuGet.org repository signatures."
         },
         {
           "executable": "dotnet",
@@ -633,7 +638,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+        "digest": "sha256:c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c"
       },
       "workUnitIds": [
         "PKRB-W010",
@@ -651,7 +656,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
       },
       "workUnitIds": [
         "PKRB-W020",
@@ -669,17 +674,17 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
       },
       "workUnitIds": [
         "PKRB-W030",
         "PKRB-W080"
       ],
-      "implementationOutcome": "One pinned deterministic SDK and invariant timestamp produce the same complete manifest-selected package set, including the meta-package.",
+      "implementationOutcome": "The pinned supported 10.0.302 SDK supplies package contents and one repository-owned canonical profile produces the same complete manifest-selected unsigned candidate package set, including the meta-package.",
       "dependencyOrExtensionImpact": [],
       "tests": [],
       "evidence": [],
-      "observableAcceptanceOutcome": "Every nupkg and evidence file has the same digest in two clean absolute roots."
+      "observableAcceptanceOutcome": "Every canonical unsigned candidate nupkg, signature-independent package-content digest, manifest, and checksum file has the same digest in two clean absolute roots; unsafe and signature-bearing candidate inputs fail."
     },
     {
       "requirementId": "PKRB-R004",
@@ -687,18 +692,18 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
         "version": "0.1.0-alpha.3",
-        "digest": "sha256:dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+        "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
       },
       "workUnitIds": [
         "PKRB-W040",
         "PKRB-W070",
         "PKRB-W080"
       ],
-      "implementationOutcome": "The installed CLI emits exact alpha.2 and alpha.3 package, assembly, and dotnet-host generator selections from one immutable offline catalog, and generated-output evidence is checked against the selected revision.",
+      "implementationOutcome": "The installed CLI emits exact alpha.2 and alpha.3 published-package, assembly, and dotnet-host generator selections from one immutable offline catalog; alpha.3 candidate/content evidence is linked to its verified NuGet.org-signed package; and generated-output evidence is checked against the selected revision.",
       "dependencyOrExtensionImpact": [],
       "tests": [],
       "evidence": [],
-      "observableAcceptanceOutcome": "One command returns a canonical ready-to-embed selection; package and assembly hashes equal exact candidate or published bytes; generator digests equal immutable descriptors; mismatched generated-output evidence fails."
+      "observableAcceptanceOutcome": "One command returns a canonical ready-to-embed selection whose packageSha256 equals exact repository-signed bytes and whose assembly digest equals the contained analyzer; separate candidate/content hashes remain reproducible and content-equivalent; generator digests equal immutable descriptors; mismatched generated-output evidence fails."
     },
     {
       "requirementId": "PKRB-R005",
@@ -730,11 +735,11 @@
         "PKRB-W060",
         "PKRB-W080"
       ],
-      "implementationOutcome": "The GitHub workflow uses the same deterministic manifest-selected package and evidence set as local qualification.",
+      "implementationOutcome": "The GitHub workflow uses the same canonical manifest-selected candidate set as local qualification, publishes or verifies the analyzer first, verifies NuGet.org repository-signed bytes and content equivalence, finalizes and repeat-packs the CLI catalog, cold-verifies it, and safely resumes only matching partial publication.",
       "dependencyOrExtensionImpact": [],
       "tests": [],
       "evidence": [],
-      "observableAcceptanceOutcome": "Workflow inspection contains one pack path and no src enumeration or separate meta-package pack."
+      "observableAcceptanceOutcome": "Workflow inspection and phase simulation contain one canonical pack path, no src enumeration or separate meta-package pack, explicit analyzer-first/finalize/remaining phases, exact evidence upload, matching resume, and mismatch refusal."
     },
     {
       "requirementId": "PKRB-R007",
@@ -752,24 +757,24 @@
       "dependencyOrExtensionImpact": [],
       "tests": [],
       "evidence": [],
-      "observableAcceptanceOutcome": "Describe, migrate/materialize, scaffold-lock, bind, and verify succeed; tampered package/selection/lock/output paths fail."
+      "observableAcceptanceOutcome": "Describe, migrate/materialize, scaffold-lock, bind, and verify succeed from package-only inputs; tampered raw package, candidate/content linkage, repository-signature state, assembly, selection, lock, and generated output fail."
     },
     {
       "requirementId": "PKRB-R008",
       "ownerId": "pkid:domain:program-kit:toolkit",
       "contractOrArtifact": {
-        "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-basis",
-        "version": "0.1.0-alpha.3",
-        "digest": "sha256:9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
+        "identity": "pkid:design-basis:program-kit:canonical-public-analyzer-release-binding-controlled-packaging-amendment",
+        "version": "1.0.0",
+        "digest": "sha256:d4fdea2e13118db2fbc0c66350f31e5d027478e9e976266512d9985d1fef01e6"
       },
       "workUnitIds": [
         "PKRB-W080"
       ],
-      "implementationOutcome": "The exact alpha.3 candidate is fully verified and handed to the human with publication still separate.",
+      "implementationOutcome": "The exact alpha.3 canonical candidate, controlled published-package reconciliation, safe resumption behavior, and human-started workflow boundary are fully verified while actual publication remains separate.",
       "dependencyOrExtensionImpact": [],
       "tests": [],
       "evidence": [],
-      "observableAcceptanceOutcome": "The agent reports final commit and evidence digests and explicitly tells the human when the GitHub workflow is ready; no publication is invoked."
+      "observableAcceptanceOutcome": "The agent reports final commit, canonicalization profile, candidate/content evidence, workflow phase contract, accepted partial-publication boundary, and exact digests, then explicitly tells the human when the GitHub workflow is ready; no publication is invoked."
     }
   ],
   "unresolvedDecisions": [],
@@ -782,7 +787,7 @@
   "gateDesign": {
     "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
     "version": "0.1.0-alpha.3",
-    "digest": "sha256:f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+    "digest": "sha256:c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c"
   },
   "gateDefinition": {
     "identity": "pkid:policy:program-kit:csharp-source-quality-gate",

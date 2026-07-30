@@ -1,13 +1,13 @@
 {
   "identity": "pkid:review-set:program-kit:canonical-public-analyzer-release-binding",
   "version": "0.1.0-alpha.3",
-  "state": "approved",
-  "implementationStatus": "in-progress",
+  "state": "ready-for-human-amendment-decision",
+  "implementationStatus": "paused-for-amendment-approval",
   "publicationStatus": "not-authorized",
   "sourceBasis": {
-    "commit": "f555745e77ebce234f7e54665869a32cc555ba45",
+    "commit": "a3c2fe174cd3511e9f3787acb4f7fd2ef59dba07",
     "branch": "codex/alpha3-canonical-analyzer-selection",
-    "scope": "Program Kit repository source truth and immutable alpha.2 NuGet/GitHub package evidence."
+    "scope": "Program Kit repository source truth, immutable alpha.2 NuGet/GitHub package evidence, NuGet.org repository-signing behavior, and the supported .NET 10.0.302 toolchain."
   },
   "digestProfile": {
     "algorithm": "sha256",
@@ -25,11 +25,18 @@
       "sha256": "9c47696376b9be8ae928087efc06d2f849a400a119274ce60a073a5bafeb3034"
     },
     {
+      "role": "human-controlled-packaging-amendment-basis",
+      "identity": "pkid:design-basis:program-kit:canonical-public-analyzer-release-binding-controlled-packaging-amendment",
+      "version": "1.0.0",
+      "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/design-amendment-input.json",
+      "sha256": "d4fdea2e13118db2fbc0c66350f31e5d027478e9e976266512d9985d1fef01e6"
+    },
+    {
       "role": "csharp-build-gate-design",
       "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding-gate",
       "version": "0.1.0-alpha.3",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/csharp-build-gate-design.md",
-      "sha256": "f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70"
+      "sha256": "c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c"
     },
     {
       "role": "static-conformance-disposition",
@@ -43,41 +50,41 @@
       "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
       "version": "0.1.0-alpha.3",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/architecture-design.json",
-      "sha256": "dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1"
+      "sha256": "59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
     },
     {
       "role": "architecture-design-projection",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/architecture-design.md",
-      "sha256": "afa48f9a54bda152641e72d6ec64b3904fafa53755edb8d3f75537646171bdc7"
+      "sha256": "8bd6df22512691624404d8b7ca8303d1197f1e8f1cf64cee21007218125dea81"
     },
     {
       "role": "canonical-implementation-plan",
       "identity": "pkid:plan:program-kit:canonical-public-analyzer-release-binding",
       "version": "0.1.0-alpha.3",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/implementation-plan.json",
-      "sha256": "6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d"
+      "sha256": "0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5"
     },
     {
       "role": "implementation-plan-projection",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/implementation-plan.md",
-      "sha256": "6ed7b3c846c6547d5e0daa199ba9c190db1f3b86c542c973c16b2f3817b4613c"
+      "sha256": "cda253830afb0fa5421f4982ef3020e9529f151350644bcd073758013aaa344a"
     },
     {
       "role": "additional-alignment-audit",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/additional-findings.md",
-      "sha256": "d8f72bf60a966c91a6735a29f91d6ab4b6b4d98a2a28bef7d682fd9d7828ffd4"
+      "sha256": "89fb6c66f4114be4e64feb23c824c6d40e5e9a6325f851a5405649efd6ef0ea0"
     },
     {
       "role": "design-validation-report",
       "identity": "pkid:evidence:program-kit:canonical-public-analyzer-release-binding-design-validation",
       "version": "0.1.0-alpha.3",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/validation-report.md",
-      "sha256": "0dec573215cb3399eb4deb53f41d31790f3787b983e21c0547955c61ebcfdd1b"
+      "sha256": "bb8d80815f279963431baf182017f7b614bb012e8eb0a97c90eee183e03bd052"
     },
     {
       "role": "review-navigation",
       "path": "extensions/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/README.md",
-      "sha256": "41cf0d43f4adfa8ebc8777deb37b6efcef6f8b47c4e8efacf7ec2b89a89f24a5"
+      "sha256": "e683aed4f82e255bb15062876cc687bb1116a0121d5fde9ca6de753092430c2a"
     },
     {
       "role": "exact-human-approval-record",
@@ -131,7 +138,7 @@
       "PKRB-W070",
       "PKRB-W080"
     ],
-    "acceptedOutcome": "An installed alpha.3 CLI emits exact ready-to-embed alpha.2 and alpha.3 analyzer selections, deterministic complete package bytes back those selections, migration and generated-output provenance are enforced, and a real cold consumer rebind succeeds.",
+    "acceptedOutcome": "An installed alpha.3 CLI emits exact ready-to-embed alpha.2 and alpha.3 analyzer selections; repository-owned canonicalization reproduces each unsigned candidate and signature-independent content identity on .NET 10.0.302; an analyzer-first workflow verifies NuGet.org repository signing and records the final published analyzer package SHA-256 before finalizing the CLI package; migration and generated-output provenance are enforced; and a real package-only cold consumer rebind succeeds.",
     "doesNotAuthorize": [
       "material deviation from the exact design or implementation plan",
       "mutation, replacement, deletion, or unlisting of alpha.2",
@@ -144,13 +151,42 @@
     ]
   },
   "approvalBoundary": {
-    "requiredDecision": "explicit-human-approval-of-exact-canonical-design-plan-gate-and-disposition-digests-and-PKRB-W010-through-PKRB-W080",
+    "requiredDecision": "historical-explicit-human-approval-of-the-original-exact-canonical-design-plan-gate-and-disposition-digests-and-PKRB-W010-through-PKRB-W080",
     "decision": "approved",
     "approvalRecord": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding@1.0.0",
+    "authorizedCompletedWorkUnits": [
+      "PKRB-W010",
+      "PKRB-W020"
+    ],
+    "stoppedAtMaterialDeviationBefore": "PKRB-W030",
     "candidateDesignSha256": "dee52330c5da79a68bc4869b8f140faed02347d36f49119e6fd673258170fdb1",
     "candidatePlanSha256": "6735e42bb93d6c18ada00e0961fdb645f07864e9629c6a663e757a10b9020f3d",
     "candidateGateDesignSha256": "f668b6746af54d64ea26bc5d56e91fa7c0dccffdd3e030ed7d92da08f87dcb70",
     "candidateDispositionSha256": "cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0"
+  },
+  "amendmentApprovalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-the-amended-exact-canonical-design-plan-gate-and-unchanged-disposition-digests-and-revised-PKRB-W030-through-PKRB-W080",
+    "decision": "pending-human-decision",
+    "candidateDesignSha256": "59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5",
+    "candidatePlanSha256": "0821ef64266769c79e68b5754a585ca9452aa6eb2b44e2b0668c50ae20fe88e5",
+    "candidateGateDesignSha256": "c739d476e2d0589caa02e940b7f8257af190882602fa66f857bf6fee8c244e3c",
+    "candidateDispositionSha256": "cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0",
+    "requestedWorkUnits": [
+      "PKRB-W030",
+      "PKRB-W040",
+      "PKRB-W050",
+      "PKRB-W060",
+      "PKRB-W070",
+      "PKRB-W080"
+    ],
+    "requestedHistoricalEvidenceAcceptance": {
+      "workUnits": [
+        "PKRB-W010",
+        "PKRB-W020"
+      ],
+      "basis": "Their approved architecture-design inputs and implementation evidence remain exact. PKRB-W010 is traced to the amended gate-design digest because the current plan requires exact gate-design closure; the static enforcement allocation and controlled fixture categories are unchanged."
+    },
+    "publicationAuthorized": false
   },
   "implementationProgress": {
     "completedWorkUnits": [
@@ -158,6 +194,7 @@
       "PKRB-W020"
     ],
     "nextWorkUnit": "PKRB-W030",
+    "status": "waiting-for-exact-amendment-approval",
     "activeSelectionLock": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate@1.0.0"
   },
   "validation": {
@@ -165,7 +202,7 @@
     "registeredSchemas": "passed for architecture, plan, and disposition through the installed CLI",
     "typedSemantics": "passed for architecture alpha.3, plan alpha.4, and disposition alpha.2",
     "commandLineBuild": "passed with active private gate and zero warnings or errors",
-    "runtimeImplementation": "PKRB-W010 gate establishment and PKRB-W020 deterministic compiler outputs completed; PKRB-W030 through PKRB-W080 remain",
+    "runtimeImplementation": "PKRB-W010 gate establishment and PKRB-W020 deterministic compiler outputs completed under the historical approval; amended PKRB-W030 through PKRB-W080 await exact human approval",
     "publication": "not performed and not authorized"
   }
 }

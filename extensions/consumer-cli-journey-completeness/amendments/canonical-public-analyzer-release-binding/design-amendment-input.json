@@ -1,0 +1,28 @@
+{
+  "identity": "pkid:design-basis:program-kit:canonical-public-analyzer-release-binding-controlled-packaging-amendment",
+  "version": "1.0.0",
+  "state": "requested",
+  "decisionDate": "2026-07-30",
+  "authoritySource": "Explicit human direction in the active Codex design and implementation thread.",
+  "requestedChange": {
+    "removeDependency": "Any unreleased .NET SDK or future deterministic NuGet-pack capability.",
+    "controlledMechanism": "Use repository-owned package canonicalization and make the GitHub workflow reconcile deterministic unsigned candidate bytes with NuGet.org repository-signed published bytes.",
+    "releaseLifecycle": "Permit the human-started workflow to publish the analyzer first, derive its exact NuGet.org-signed identity, finalize the installed alpha.3 CLI selection catalog, qualify that final package set, and then publish the remaining packages.",
+    "acceptedRisk": "An alpha.3 analyzer package may remain immutably published if a later workflow phase fails; a safe retry must verify the existing published package before resuming and must never overwrite it."
+  },
+  "preservedAuthority": {
+    "completedWorkUnits": [
+      "PKRB-W010",
+      "PKRB-W020"
+    ],
+    "staticConformanceDisposition": {
+      "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.2",
+      "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0",
+      "state": "extend-existing"
+    },
+    "alpha2Disposition": "Remain listed and immutable."
+  },
+  "publicationAuthorized": false,
+  "publicationBoundary": "Implementation may change and verify the workflow source but may not invoke it, create or move tags, publish packages, or create GitHub Release state. A later explicit human action starts publication."
+}
