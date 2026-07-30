@@ -215,3 +215,5 @@ Codex and Claude wrappers contain only trigger metadata plus exact
 CLI verifies their recorded bytes before returning this definition. A changed,
 missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
 Wrapper registration does not prove approval.
+Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
+`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.

@@ -171,10 +171,18 @@ one canonical definition. The adapter may contain provider-required metadata
 and concise loading instructions, but must not copy canonical purpose,
 procedure, boundaries, or verification rules.
 
+The reviewed project roots are `.agents/skills/` for Codex and
+`.claude/skills/` for Claude Code. `.codex/skills/` is legacy Codex migration
+input only and is not a current adapter contract. A new provider root or
+format requires an explicit reviewed provider contract; folder recognition
+alone is insufficient.
+
 For every wrapper update:
 
 - Verify the initialized wrapper path links to the exact canonical definition
   selected by the Program Kit initialization lock.
+- Confirm the ownership lock preserves every other exact provider binding and
+  records the current provider root.
 - Compare the wrapper body with the canonical definition for copied substantial instruction text.
 - Confirm the wrapper still contains only provider-specific registration and loading details.
 - Confirm the index row points to both the canonical definition and the wrapper.

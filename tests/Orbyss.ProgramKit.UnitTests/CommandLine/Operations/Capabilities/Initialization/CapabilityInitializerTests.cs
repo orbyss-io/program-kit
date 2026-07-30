@@ -55,7 +55,7 @@ public sealed class CapabilityInitializerTests
                 var wrapper = await File.ReadAllTextAsync(
                     Path.Combine(
                         workspace,
-                        ".codex",
+                        ".agents",
                         "skills",
                         capabilityId,
                         "SKILL.md"),
@@ -107,7 +107,7 @@ public sealed class CapabilityInitializerTests
                 workspace);
             var codexPath = Path.Combine(
                 workspace,
-                ".codex",
+                ".agents",
                 "skills",
                 "design-software",
                 "SKILL.md");
@@ -156,7 +156,7 @@ public sealed class CapabilityInitializerTests
         {
             var collision = Path.Combine(
                 workspace,
-                ".codex",
+                ".agents",
                 "skills",
                 "design-software",
                 "SKILL.md");
@@ -227,7 +227,85 @@ public sealed class CapabilityInitializerTests
                 result.ExitCode);
             Assert.Contains("source authoring workspace", result.Error);
             Assert.IsFalse(
-                Directory.Exists(Path.Combine(workspace, ".codex")));
+                Directory.Exists(Path.Combine(workspace, ".agents")));
+        }
+        finally
+        {
+            Directory.Delete(workspace, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task MigratesExactAlpha3CodexWrappersToCurrentRoot()
+    {
+        var workspace = CreateWorkspace();
+        try
+        {
+            var initialized = await RunAsync(
+                workspace,
+                "capabilities",
+                "initialize",
+                "--provider",
+                "codex",
+                "--workspace-root",
+                workspace);
+            Assert.AreEqual(CommandExitCode.Success, initialized.ExitCode);
+            var currentRoot = Path.Combine(workspace, ".agents", "skills");
+            var legacyRoot = Path.Combine(workspace, ".codex", "skills");
+            Directory.CreateDirectory(Path.Combine(workspace, ".codex"));
+            Directory.Move(currentRoot, legacyRoot);
+            var lockPath = Path.Combine(
+                workspace,
+                ".program-kit",
+                "capabilities.lock.json");
+            var lockText = await File.ReadAllTextAsync(
+                lockPath,
+                TestContext.CancellationToken);
+            lockText = lockText.Replace(
+                ".agents/skills/",
+                ".codex/skills/",
+                StringComparison.Ordinal);
+            await File.WriteAllTextAsync(
+                lockPath,
+                lockText,
+                new UTF8Encoding(false),
+                TestContext.CancellationToken);
+
+            var migrated = await RunAsync(
+                workspace,
+                "capabilities",
+                "initialize",
+                "--provider",
+                "codex",
+                "--workspace-root",
+                workspace);
+            var preflight = await RunAsync(
+                workspace,
+                "capabilities",
+                "preflight",
+                "design-software",
+                "--workspace-root",
+                workspace);
+
+            Assert.AreEqual(CommandExitCode.Success, migrated.ExitCode);
+            Assert.AreEqual(CommandExitCode.Success, preflight.ExitCode);
+            Assert.IsTrue(
+                File.Exists(
+                    Path.Combine(
+                        currentRoot,
+                        "design-software",
+                        "SKILL.md")));
+            Assert.IsFalse(
+                File.Exists(
+                    Path.Combine(
+                        legacyRoot,
+                        "design-software",
+                        "SKILL.md")));
+            Assert.Contains(
+                "\"outputPath\":\".agents/skills/design-software/SKILL.md\"",
+                await File.ReadAllTextAsync(
+                    lockPath,
+                    TestContext.CancellationToken));
         }
         finally
         {

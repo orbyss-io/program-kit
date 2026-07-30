@@ -94,6 +94,9 @@
     <None Include="..\..\.agent-capabilities\capabilities\README.md"
           Link="ConformanceInputs/Capabilities/README.md"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.agent-capabilities\consumer-integration.md"
+          Link="ConformanceInputs/Capabilities/consumer-integration.md"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\capabilities\author-and-maintain-skills\CAPABILITY.md"
           Link="ConformanceInputs/Capabilities/author-and-maintain-skills/CAPABILITY.md"
           CopyToOutputDirectory="PreserveNewest" />

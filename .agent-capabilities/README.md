@@ -16,11 +16,14 @@ human-led workspace root. Initialization does not copy canonical definitions,
 grant authority, or start work. See
 [provider-adapters/README.md](provider-adapters/README.md) for the adapter
 contract and [capabilities/INDEX.md](capabilities/INDEX.md) for Program Kit's
-canonical availability catalog.
+canonical availability catalog. Consumer products choose their own
+`none`, `local-optional`, or `repository-managed` posture as described in
+[consumer-integration.md](consumer-integration.md); Program Kit never selects
+or enforces that repository policy.
 
 The source tree carries `authoring-workspace.json`; explicit initialization
-fails closed while that marker is present. Consumer initialization uses the
-verified content-only capability bundle, which deliberately excludes the
+fails closed while that marker is present. The installed consumer CLI embeds
+the verified content-only capability closure, which deliberately excludes the
 marker, and rejects user-home global provider roots.
 
 Non-discoverable supporting resources live below `supporting-resources/`.

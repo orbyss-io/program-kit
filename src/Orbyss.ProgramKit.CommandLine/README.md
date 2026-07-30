@@ -24,6 +24,7 @@ The consumer-journey additions are:
 
 ```text
 program-kit capabilities initialize --provider <claude|codex> --workspace-root <dir>
+program-kit capabilities uninitialize --provider <claude|codex> --workspace-root <dir>
 program-kit capabilities catalog --workspace-root <dir> [--format text|json]
 program-kit capabilities preflight <capability-id> --workspace-root <dir> [--format text|json]
 program-kit capabilities read <capability-id> --workspace-root <dir>
@@ -52,7 +53,7 @@ The installed tool embeds the exact six-capability consumer closure: canonical
 definitions, Codex/Claude trigger templates, supporting resources, registered
 schema modules, and digest-bound catalogs. Initialization verifies those
 package-owned bytes and transactionally renders only
-`.codex/skills/<capability>/SKILL.md` or
+`.agents/skills/<capability>/SKILL.md` or
 `.claude/skills/<capability>/SKILL.md`, plus the multi-provider ownership lock
 at `.program-kit/capabilities.lock.json`. The wrappers call back into
 `capabilities preflight/read`; they contain no canonical procedure or source
@@ -62,7 +63,21 @@ Every read verifies exact CLI/bundle/manifest versions, resource closure,
 provider registration, lock evidence, and owned wrapper bytes. A second
 provider is preserved. Unowned or modified files, stale versions, incomplete
 closure, and the Program Kit authoring marker fail closed. Reads never repair
-state. There is no knowledge mutation or export command; resistance to a
+state. Exact `.codex/skills` ownership is accepted only for explicit migration.
+`capabilities uninitialize` removes one selected provider only when every
+wrapper matches its lock evidence, preserving other providers and removing the
+lock when the set becomes empty. Initialization and removal use a durable
+journal so the next explicit lifecycle command completes or restores an
+interrupted mutation.
+
+Consumer products choose and document `none`, `local-optional`, or
+`repository-managed`; the CLI never selects a posture, edits `.gitignore`,
+stages or commits files, installs an AI provider, or grants trust or work
+authority. See
+[`consumer-integration.md`](../../.agent-capabilities/consumer-integration.md)
+for the exact alpha.3 setup/removal and selective Git guidance.
+
+There is no knowledge mutation or export command; resistance to a
 malicious same-user edit of the installed executable itself requires an
 external OS read-only installation boundary.
 Host generation requires `hostDocuments[]` in the artifact manifest, binding

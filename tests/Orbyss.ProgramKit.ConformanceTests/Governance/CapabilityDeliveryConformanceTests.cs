@@ -315,7 +315,45 @@ public sealed class CapabilityDeliveryConformanceTests
             Directory.Exists(
                 Path.Combine(
                     ConformanceInputs.ProgramKitRoot,
+                    ".agents")));
+        Assert.IsFalse(
+            Directory.Exists(
+                Path.Combine(
+                    ConformanceInputs.ProgramKitRoot,
                     ".claude")));
+    }
+
+    [TestMethod]
+    public void ConsumerIntegrationPosturesStayConsumerOwnedAndPinned()
+    {
+        var guidance = ConformanceInputs.Read(
+            "Capabilities/consumer-integration.md");
+
+        foreach (var posture in new[]
+                 {
+                     "`none`",
+                     "`local-optional`",
+                     "`repository-managed`",
+                 })
+        {
+            Assert.Contains(posture, guidance);
+        }
+
+        Assert.Contains("0.1.0-alpha.3", guidance);
+        Assert.Contains(
+            ".agents/skills/<capability-id>/SKILL.md",
+            guidance);
+        Assert.Contains(
+            ".claude/skills/<capability-id>/SKILL.md",
+            guidance);
+        Assert.Contains(
+            "capabilities uninitialize --provider codex",
+            guidance);
+        Assert.Contains("never edits `.gitignore`", guidance);
+        Assert.Contains("never", guidance);
+        Assert.Contains("silently prompts", guidance);
+        Assert.DoesNotContain("CapabilityBundle `4.0.0`", guidance);
+        Assert.DoesNotContain("bundle `4.0.0`", guidance);
     }
 
     [TestMethod]

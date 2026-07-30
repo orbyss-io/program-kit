@@ -13,7 +13,8 @@ rules. Installing an adapter does not grant authority or begin work.
 
 Initialization is project-scoped only. It rejects the Program Kit source
 authoring marker, filesystem roots, and the user-home root so provider-global
-`.codex` or `.claude` configuration cannot be written. Building, packing, and
+`.agents` or `.claude` configuration cannot be written at user-global scope.
+Building, packing, and
 testing adapter templates never renders a wrapper.
 
 ## Implemented provider: Codex
@@ -22,7 +23,12 @@ Codex templates live under `provider-adapters/codex/<capability-id>/SKILL.md`.
 Each consumer template calls
 `program-kit capabilities preflight <capability-id> --workspace-root .` and
 `program-kit capabilities read <capability-id> --workspace-root .`. Canonical
-knowledge stays embedded in the exact installed CLI.
+knowledge stays embedded in the exact installed CLI. Initialization renders
+the templates at `.agents/skills/<capability-id>/SKILL.md`.
+
+The legacy `.codex/skills/` root is not a current adapter contract. Program Kit
+recognizes it only as exact ownership-verified migration input during an
+explicit human-started initialization or removal operation.
 
 ## Implemented provider: Claude Code
 
@@ -42,7 +48,19 @@ The workspace ownership lock at `.program-kit/capabilities.lock.json` records
 every initialized reviewed provider plus exact CLI, payload, resource,
 template, and output digests. Initializing a second provider preserves the
 first provider's verified wrappers. Unowned or modified paths are refused
-without partial writes.
+without partial writes. Explicit
+`capabilities uninitialize --provider <claude|codex> --workspace-root <dir>`
+removes only one selected exact provider binding and removes the lock only
+when no owned provider remains.
+
+Initialization and removal use a durable project-contained journal. An
+interrupted operation either already reached the complete desired state or
+restores the exact prior bytes on the next explicit lifecycle operation.
+
+Consumer products, not Program Kit, select `none`, `local-optional`, or
+`repository-managed` integration. See
+[consumer integration postures](../consumer-integration.md) for exact pinned
+setup and removal commands and selective Git guidance.
 
 The contributor-only `author-and-maintain-skills` wrappers are not consumer
 templates. They retain the repository-frozen canonical-path token and are
