@@ -40,6 +40,10 @@ Outputs:
 
 - A reviewable design artifact.
 - A separate implementation plan with bounded, dependency-ordered work units.
+- An adjacent human-readable documentation projection for the canonical
+  implementation-plan artifact. The projection is explicitly
+  non-authoritative, identifies its canonical source, and binds the exact
+  current canonical digest.
 - Exactly one explicit static-conformance disposition: `reuse-existing`,
   `extend-existing`, `create-new`, human-accepted `not-justified`, or
   `blocked-unavailable`.
@@ -121,15 +125,20 @@ designs.
 7. Resolve reversible details independently; present material alternatives and
    tradeoffs to the human.
 8. Produce an Architecture Design `0.1.0-alpha.2` artifact and a separate
-   Implementation Plan `0.1.0-alpha.3`. Keep work
-   units bounded, dependency-ordered, reviewable, and explicit about allowed
-   edits, outputs, verification, and stop conditions. For `create-new` or
-   `extend-existing`, place the exact approved gate-establishment fragment
-   before every product and closure unit and make downstream work depend on
-   compatible activation evidence.
+   Implementation Plan `0.1.0-alpha.3`. Materialize an adjacent human-readable
+   documentation projection for the canonical implementation plan in the same
+   operation. Label the projection as non-authoritative, name the canonical
+   source, bind its exact current digest, and state that canonical bytes govern
+   any disagreement. Keep work units bounded, dependency-ordered, reviewable,
+   and explicit about allowed edits, outputs, verification, and stop
+   conditions. For `create-new` or `extend-existing`, place the exact approved
+   gate-establishment fragment before every product and closure unit and make
+   downstream work depend on compatible activation evidence.
 9. Define deterministic fixtures and acceptance evidence proportional to risk.
 10. Validate and render the artifacts through backed Program Kit operations when
-   available; record exact versions and digests.
+   available; verify deterministic regeneration and freshness of the
+   human-readable implementation-plan projection; record exact versions and
+   digests.
 11. Reconcile every human comment into an explicit change, disposition, or open
    decision.
 12. Present the exact review set and stop for human approval.
@@ -140,12 +149,15 @@ hashes, renders, and compares artifacts but cannot make approval decisions.
 ## Verification and failure reporting
 
 Verify traceability from intent to design decisions, plan tasks, and acceptance
-evidence; verify no unresolved material decision is hidden; verify rendered
-projections match their sources; and report every unavailable check. State
-deliberately unimplemented or deferred work. Never label a design as approved
-without the exact human decision record. Verify the disposition is explicit,
-its gate selections or accepted empty value have exact human authority, and
-every create/extend plan is establishment-first.
+evidence; verify no unresolved material decision is hidden; verify the
+canonical plan has an adjacent, readable, explicitly non-authoritative
+projection; verify the projection binds the current canonical identity and
+digest and regenerates byte-deterministically; and report every unavailable
+check. Never present raw canonical plan JSON as the only human review surface.
+State deliberately unimplemented or deferred work. Never label a design as
+approved without the exact human decision record. Verify the disposition is
+explicit, its gate selections or accepted empty value have exact human
+authority, and every create/extend plan is establishment-first.
 
 ## Authority and safety boundaries
 

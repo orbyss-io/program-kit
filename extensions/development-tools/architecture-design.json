@@ -34,7 +34,7 @@
       "source": {
         "identity": "pkid:intent:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+        "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
       },
       "sourcePath": "extensions/development-tools/design-intent.md",
       "governs": "The human outcome, ownership, exact technical shape, authority transitions, knowledge closure, acceptance, and exclusions."
@@ -45,7 +45,7 @@
       "source": {
         "identity": "pkid:decision-log:program-kit:development-tools-convergence",
         "version": "2.0.0",
-        "digest": "sha256:8d6718031878c5a008d264a016a36773f27f374a13432a6131e6b115243c68c9"
+        "digest": "sha256:391da26e7070a4bbcc6f5f275fb0716efaf08e6b7482495bf9b525a556a4a51e"
       },
       "sourcePath": "extensions/development-tools/convergence-notes.md",
       "governs": "The completed section-by-section alignments, committed health-task reconciliation, catalog integrity clarification, and exact static-conformance decision."
@@ -554,7 +554,7 @@
         "artifact": {
           "identity": "pkid:intent:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
         },
         "path": "design-intent.md#host-neutral-operation-catalog"
       },
@@ -570,7 +570,7 @@
         "artifact": {
           "identity": "pkid:intent:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
         },
         "path": "design-intent.md#optional-application-capability-bundle"
       },
@@ -586,7 +586,7 @@
         "artifact": {
           "identity": "pkid:intent:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
         },
         "path": "design-intent.md#capability-knowledge-closure"
       },
@@ -618,7 +618,7 @@
         "artifact": {
           "identity": "pkid:intent:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
         },
         "path": "design-intent.md#registration-authority"
       },
@@ -632,7 +632,7 @@
     {
       "identity": "pkid:design:program-kit:development-tools",
       "ownerId": "pkid:domain:program-kit:operation-exposure",
-      "requestedOutcome": "Represent host-neutral operations, generated host introspection, dual-era MCP, explicit tool registration, optional application outcome capabilities, exact knowledge closure, deterministic workspace lifecycle, provider-native guidance, and package-only dogfood as one validated review candidate.",
+      "requestedOutcome": "Represent host-neutral operations, generated host introspection, dual-era MCP, explicit tool registration, optional application outcome capabilities, exact knowledge closure, deterministic workspace lifecycle, provider-native guidance, and package-only dogfood as one validated review candidate with an adjacent digest-bound human-readable implementation-plan projection.",
       "artifactKind": "schema-instance",
       "executableBehavior": {
         "isRequired": false,
@@ -661,7 +661,7 @@
         "isRequired": true,
         "audience": "The human Program Kit reviewer, later bounded implementer, application publishers, provider acceptance operators, and conformance reviewers.",
         "decisionAuthorityBoundary": "Only separate explicit human approval of the exact canonical design and implementation-plan digests authorizes bounded implementation.",
-        "rationale": "Canonical JSON, human projections, provider evidence, compatibility, fixtures, validation, and manifest expose the complete decision and proof boundary."
+        "rationale": "Canonical JSON, the adjacent non-authoritative digest-bound human-readable implementation plan, provider evidence, compatibility, fixtures, validation, and manifest expose the complete decision and proof boundary."
       },
       "generatedNavigation": {
         "isRequired": false,
@@ -710,7 +710,15 @@
       "rationale": "One schema-governed design preserves the semantic, transport, guidance, conformance, lifecycle, provider, and human-authority boundaries without implementing them."
     }
   ],
-  "representationRelationships": [],
+  "representationRelationships": [
+    {
+      "projectionId": "pkid:ai-artifact:program-kit:development-tools-plan-markdown",
+      "canonicalId": "pkid:plan:program-kit:development-tools",
+      "projectionRule": "The canonical plan materializer emits adjacent implementation-plan.md from the same in-memory plan, including every dependency, work unit, allowed edit, verification outcome, stop condition, requirement trace, authority boundary, and exact canonical plan digest.",
+      "lossPolicy": "The Markdown is explicitly non-authoritative and optimized for human review; canonical implementation-plan.json governs every disagreement.",
+      "isRegenerable": true
+    }
+  ],
   "boundaries": {
     "security": {
       "ownerId": "pkid:domain:program-kit:operation-exposure",
@@ -975,12 +983,12 @@
         {
           "identity": "pkid:intent:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
         },
         {
           "identity": "pkid:decision-log:program-kit:development-tools-convergence",
           "version": "2.0.0",
-          "digest": "sha256:8d6718031878c5a008d264a016a36773f27f374a13432a6131e6b115243c68c9"
+          "digest": "sha256:391da26e7070a4bbcc6f5f275fb0716efaf08e6b7482495bf9b525a556a4a51e"
         },
         {
           "identity": "pkid:evidence:program-kit:development-tools-provider-contract",
@@ -994,6 +1002,6 @@
   "staticConformanceDisposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
     "version": "2.0.0",
-    "digest": "sha256:c4db1b5a72285101ded7e2f692eac0aed08f83997ab065bc9d7b04260fbb277b"
+    "digest": "sha256:e956991542cd36a5869f6e214fb8168250d3739383f33b1c80b103fe00062e81"
   }
 }

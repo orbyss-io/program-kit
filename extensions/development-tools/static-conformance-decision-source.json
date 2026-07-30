@@ -4,7 +4,7 @@
   "designBasis": {
     "identity": "pkid:design:program-kit:development-tools-static-basis",
     "version": "2.0.0",
-    "digest": "sha256:f0b79f8c1f3fe4908da4c00b8b3d1732ab6c7cd85fa78a02fa86340d88bb98a0"
+    "digest": "sha256:43fa28867d12bf3e23d3a3e8e4f58ce770b167a57f2413ffaff6818af3ea1b9d"
   },
   "decision": {
     "disposition": "reuse-existing",

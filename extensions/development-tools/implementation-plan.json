@@ -2,7 +2,7 @@
   "design": {
     "identity": "pkid:design:program-kit:development-tools",
     "version": "3.0.0",
-    "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+    "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
   },
   "ownerId": "pkid:domain:program-kit:operation-exposure",
   "state": "ready-for-human-decision",
@@ -37,7 +37,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -97,7 +97,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -157,7 +157,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -226,7 +226,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -303,7 +303,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -363,7 +363,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -424,7 +424,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -501,7 +501,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -561,7 +561,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -621,7 +621,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -691,7 +691,7 @@
         {
           "identity": "pkid:design:program-kit:development-tools",
           "version": "3.0.0",
-          "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+          "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
         }
       ],
       "outputs": [
@@ -757,7 +757,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W010",
@@ -778,7 +778,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W020",
@@ -797,7 +797,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W030",
@@ -817,7 +817,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W040",
@@ -838,7 +838,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W050",
@@ -858,7 +858,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W050",
@@ -881,7 +881,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W050",
@@ -902,7 +902,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W060",
@@ -922,7 +922,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W070",
@@ -943,7 +943,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W070",
@@ -964,7 +964,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W070",
@@ -985,7 +985,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W050",
@@ -1007,7 +1007,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W080",
@@ -1027,7 +1027,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W050",
@@ -1050,7 +1050,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W030",
@@ -1073,7 +1073,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W090",
@@ -1092,7 +1092,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W050",
@@ -1113,7 +1113,7 @@
       "contractOrArtifact": {
         "identity": "pkid:design:program-kit:development-tools",
         "version": "3.0.0",
-        "digest": "sha256:7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+        "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
       },
       "workUnitIds": [
         "PKDT-W010",
@@ -1139,7 +1139,7 @@
   "staticConformanceDisposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
     "version": "2.0.0",
-    "digest": "sha256:c4db1b5a72285101ded7e2f692eac0aed08f83997ab065bc9d7b04260fbb277b"
+    "digest": "sha256:e956991542cd36a5869f6e214fb8168250d3739383f33b1c80b103fe00062e81"
   },
   "staticConformanceState": "reuse-existing",
   "gateDesign": {
@@ -1157,7 +1157,7 @@
     "identity": "pkid:selection-lock:program-kit:development-tools-private-gate",
     "version": "2.0.0",
     "state": "materialized",
-    "integrityDigest": "sha256:ce63a6dfb96e07d9fdb58b8d4a8512daa3063ec73beeb5f9362a469f450f2a37"
+    "integrityDigest": "sha256:65cf8c9ffbad16b8a1b19b3929fd3f00a2d33aedf1702d6df5dd50b698948ba9"
   },
   "activationEvidence": {
     "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",

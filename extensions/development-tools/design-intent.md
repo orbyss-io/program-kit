@@ -27,6 +27,12 @@ This review set defines design and implementation planning only. It creates no
 runtime, schema, package, MCP bridge, provider registration, provider mutation,
 capability payload, permission, or autonomous behavior.
 
+The canonical machine-readable implementation plan must always be materialized
+with an adjacent human-readable documentation projection. The projection is
+explicitly non-authoritative, names and digest-binds the canonical plan, is
+generated in the same deterministic operation, and is the primary human review
+surface. Any disagreement is resolved in favor of the canonical plan bytes.
+
 ## Product and semantic ownership
 
 An application product is customer-owned application/domain logic exposed

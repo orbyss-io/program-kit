@@ -17,6 +17,11 @@ workspace lifecycle, provider adapters, and evidence. The application publisher
 owns operation meaning, capability triggers and intake, workflow interpretation,
 authority boundaries, stop conditions, and completion meaning.
 
+The canonical implementation plan is always accompanied by adjacent
+`implementation-plan.md`. That Markdown is generated from the same in-memory
+plan, explicitly non-authoritative, and bound to the exact canonical JSON
+digest. It is the primary human review surface; the JSON governs disagreement.
+
 ## Technical shape
 
 ```text

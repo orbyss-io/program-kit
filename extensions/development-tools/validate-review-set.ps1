@@ -194,6 +194,22 @@ Assert-True `
     ($architecture.unresolvedDecisions.Count -eq 0) `
     'The architecture design still contains an unresolved decision.'
 
+$canonicalPlanPath = Join-Path $ExtensionRoot 'implementation-plan.json'
+$humanPlanPath = Join-Path $ExtensionRoot 'implementation-plan.md'
+Assert-True `
+    (Test-Path -LiteralPath $humanPlanPath -PathType Leaf) `
+    'The adjacent human-readable implementation-plan projection is absent.'
+$humanPlan = Get-Content -LiteralPath $humanPlanPath -Raw
+$canonicalPlanDigest = Get-Digest $canonicalPlanPath
+Assert-True `
+    ($humanPlan.Contains(
+        'Non-authoritative human-readable projection. The canonical source is')) `
+    'The human-readable implementation plan is not explicitly non-authoritative.'
+Assert-True `
+    ($humanPlan.Contains(
+        "Canonical SHA-256: ``sha256:$canonicalPlanDigest``")) `
+    'The human-readable implementation plan does not bind the current canonical plan digest.'
+
 $fixtureIds = @($fixtures.fixtures | ForEach-Object { $_.fixtureId })
 Assert-True `
     ($fixtureIds.Count -eq 42) `
@@ -240,24 +256,25 @@ foreach ($artifact in $manifest.artifacts) {
         "Review artifact $($artifact.path) does not match its manifest digest."
 }
 
-$planDigestBefore = Get-Digest (
-    Join-Path $ExtensionRoot 'implementation-plan.json'
-)
+$planDigestBefore = Get-Digest $canonicalPlanPath
+$humanPlanDigestBefore = Get-Digest $humanPlanPath
 & (Join-Path $ExtensionRoot 'materialize-implementation-plan.ps1') `
     -ExtensionRoot $ExtensionRoot |
     Out-Null
-$planDigestAfterOne = Get-Digest (
-    Join-Path $ExtensionRoot 'implementation-plan.json'
-)
+$planDigestAfterOne = Get-Digest $canonicalPlanPath
+$humanPlanDigestAfterOne = Get-Digest $humanPlanPath
 & (Join-Path $ExtensionRoot 'materialize-implementation-plan.ps1') `
     -ExtensionRoot $ExtensionRoot |
     Out-Null
-$planDigestAfterTwo = Get-Digest (
-    Join-Path $ExtensionRoot 'implementation-plan.json'
-)
+$planDigestAfterTwo = Get-Digest $canonicalPlanPath
+$humanPlanDigestAfterTwo = Get-Digest $humanPlanPath
 Assert-True `
     ($planDigestBefore -eq $planDigestAfterOne -and
         $planDigestAfterOne -eq $planDigestAfterTwo) `
     'The implementation-plan materializer is not byte-deterministic.'
+Assert-True `
+    ($humanPlanDigestBefore -eq $humanPlanDigestAfterOne -and
+        $humanPlanDigestAfterOne -eq $humanPlanDigestAfterTwo) `
+    'The human-readable implementation-plan projection is not byte-deterministic.'
 
 Write-Output 'Development Tools review set validation passed.'

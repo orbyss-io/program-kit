@@ -48,12 +48,34 @@ succeeded after using the user's readable NuGet configuration.
   scope;
 - unique, preceding work-unit dependencies and complete requirement trace;
 - no unresolved architecture or plan decision;
+- an adjacent human-readable implementation-plan projection that is explicitly
+  non-authoritative and binds the exact current canonical plan digest;
 - exactly 42 unique acceptance fixtures, each assigned to one evidence profile;
 - `awaiting-human-approval`, `not-started`, and no inferred approval record;
 - exact review-manifest file digests; and
-- two consecutive byte-identical implementation-plan materializations.
+- two consecutive byte-identical materializations of both
+  `implementation-plan.json` and `implementation-plan.md`.
 
 The final validator run passed.
+
+## Design-capability maintenance verification
+
+The repository-owned `design-software` capability now requires every canonical
+implementation plan to have an adjacent digest-bound, explicitly
+non-authoritative human-readable projection. Its stable capability identity and
+provider triggers are unchanged.
+
+- The canonical capability definition, canonical index, generated catalog, and
+  exact capability-bundle manifest were refreshed.
+- The alpha version-intent inventory and reusable-gate compatibility evidence
+  were rebound to the current manifest bytes.
+- A fresh content-only
+  `Orbyss.ProgramKit.CapabilityBundle.0.1.0-alpha.3.nupkg` built with zero
+  warnings/errors and passed `program-kit capabilities verify-bundle`.
+- Focused `CapabilityDeliveryConformanceTests` passed 10/10.
+- Focused `CapabilityCatalogRendererTests` and
+  `CapabilityBundleVerifierTests` passed 11/11.
+- No capability was initialized or activated in the authoring workspace.
 
 ## Current static-conformance binding
 
@@ -93,8 +115,11 @@ startup protocol flag, and preserves provider-owned trust and permissions.
 
 ## Deliberately not validated under design authority
 
-- No runtime, CLI, schema, package, MCP, provider, capability, catalog, lock, or
-  workspace-lifecycle behavior was implemented.
+- No prospective runtime, CLI, schema, package, MCP, provider adapter,
+  application outcome capability, workspace catalog, lock, or lifecycle
+  behavior was implemented. The existing `design-software` procedure and inert
+  bundle metadata were documentation-only maintenance explicitly requested by
+  the human.
 - The prospective 42-fixture implementation acceptance matrix was not executed.
 - No Codex or Claude Code project configuration, trust, permission, tool
   registration, or capability initialization was mutated.

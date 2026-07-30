@@ -34,7 +34,9 @@ Review in this order:
     boundary.
 
 `materialize-implementation-plan.ps1` deterministically rebuilds the canonical
-plan from the exact design and supporting evidence. It performs no runtime,
+plan and adjacent non-authoritative `implementation-plan.md` from the exact
+design and supporting evidence. The Markdown binds the canonical digest and is
+the primary human review surface. The materializer performs no runtime,
 provider, registration, capability, permission, or external-system mutation.
 
 No runtime, CLI command, schema, package, generated host, bridge, registration,

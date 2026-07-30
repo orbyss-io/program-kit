@@ -89,6 +89,120 @@ function Write-Json([string] $name, [object] $value) {
         [Text.UTF8Encoding]::new($false))
 }
 
+function Write-Text([string] $name, [string] $value) {
+    $text = $value.Replace("`r`n", "`n")
+    [IO.File]::WriteAllText(
+        (Join-Path $ExtensionRoot $name),
+        $text,
+        [Text.UTF8Encoding]::new($false))
+}
+
+function New-HumanPlanProjection(
+    [object] $plan,
+    [object] $requirements,
+    [string] $planDigest
+) {
+    $builder = [Text.StringBuilder]::new()
+    [void] $builder.AppendLine(
+        '# Program Kit operation exposure and application capabilities — implementation plan')
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine(
+        '> Non-authoritative human-readable projection. The canonical source is')
+    [void] $builder.AppendLine(
+        '> `implementation-plan.json`. If this projection and the canonical JSON differ,')
+    [void] $builder.AppendLine(
+        '> the canonical JSON governs. This document grants no implementation authority.')
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine(
+        "Canonical SHA-256: ``sha256:$planDigest``")
+    [void] $builder.AppendLine(
+        'State: `ready-for-human-decision`; implementation remains `not-started`.')
+    [void] $builder.AppendLine(
+        'Static conformance: `reuse-existing`.')
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine('## Dependency order')
+    [void] $builder.AppendLine()
+    foreach ($workUnit in $plan.workUnits) {
+        $dependencies = if ($workUnit.dependsOn.Count -eq 0) {
+            'none'
+        } else {
+            $workUnit.dependsOn -join ', '
+        }
+        [void] $builder.AppendLine(
+            "- ``$($workUnit.workUnitId)`` depends on: $dependencies")
+    }
+
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine('## Work units')
+    foreach ($workUnit in $plan.workUnits) {
+        $dependencies = if ($workUnit.dependsOn.Count -eq 0) {
+            'none'
+        } else {
+            $workUnit.dependsOn -join ', '
+        }
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine(
+            "### $($workUnit.workUnitId)")
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine(
+            "**Depends on:** $dependencies")
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine('**Required outcome**')
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine($workUnit.requiredOutcome)
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine('**Allowed edits**')
+        [void] $builder.AppendLine()
+        foreach ($allowedEdit in $workUnit.allowedEdits) {
+            [void] $builder.AppendLine("- $allowedEdit")
+        }
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine('**Expected verification**')
+        [void] $builder.AppendLine()
+        foreach ($verification in $workUnit.verification) {
+            [void] $builder.AppendLine(
+                "- $($verification.expectedObservation)")
+        }
+        [void] $builder.AppendLine()
+        [void] $builder.AppendLine('**Stop conditions**')
+        [void] $builder.AppendLine()
+        foreach ($stopCondition in $workUnit.stopConditions) {
+            [void] $builder.AppendLine("- $stopCondition")
+        }
+    }
+
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine('## Requirements')
+    [void] $builder.AppendLine()
+    foreach ($entry in $requirements.GetEnumerator()) {
+        $trace = $plan.trace |
+            Where-Object { $_.requirementId -eq $entry.Key } |
+            Select-Object -First 1
+        [void] $builder.AppendLine(
+            "- **$($entry.Key):** $($entry.Value) Work units: $($trace.workUnitIds -join ', ').")
+    }
+
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine('## Approval boundary')
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine(
+        'Approval must identify the exact canonical design and plan digests.')
+    [void] $builder.AppendLine(
+        'Approval would not authorize provider trust or permission, user-global writes,')
+    [void] $builder.AppendLine(
+        'application semantic approval, publication, release, deployment, external')
+    [void] $builder.AppendLine(
+        'repository mutation, or autonomous behavior. Material deviation stops for')
+    [void] $builder.AppendLine('renewed human design review.')
+    [void] $builder.AppendLine()
+    [void] $builder.AppendLine(
+        '_Generated deterministically beside the canonical plan by_')
+    [void] $builder.AppendLine(
+        '_`materialize-implementation-plan.ps1`._')
+
+    return $builder.ToString().Replace("`r`n", "`n")
+}
+
 $designDigest = Get-Digest `
     'extensions/development-tools/architecture-design.json'
 $providerEvidenceDigest = Get-Digest `
@@ -363,10 +477,15 @@ $plan = [ordered]@{
     }
 }
 
+$planPath = 'extensions/development-tools/implementation-plan.json'
 Write-Json 'implementation-plan.json' $plan
+$materializedPlanDigest = Get-Digest $planPath
+Write-Text `
+    'implementation-plan.md' `
+    (New-HumanPlanProjection $plan $requirements $materializedPlanDigest)
 Write-Output (
     New-Reference `
         'pkid:plan:program-kit:development-tools' `
         '3.0.0' `
-        (Get-Digest 'extensions/development-tools/implementation-plan.json') |
+        $materializedPlanDigest |
         ConvertTo-Json)

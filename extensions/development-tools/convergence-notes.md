@@ -244,6 +244,26 @@ These findings support companion guidance plus executable MCP. They do not
 justify skills as transport, Program Kit ranking, or provider permission
 mutation.
 
+## Post-materialization review feedback
+
+The human reported that the canonical artifact was not readable through the
+review surface and required the implementation plan to be reported directly.
+The review candidate therefore adds one durable design-flow invariant:
+
+- every canonical implementation plan has an adjacent human-readable
+  documentation projection;
+- the canonical plan and projection are produced by the same deterministic
+  materializer;
+- the projection is explicitly non-authoritative and binds the current
+  canonical plan digest;
+- validation rejects a missing, stale, unlabelled, or non-deterministic
+  projection; and
+- the human-facing response reports the plan directly instead of requiring raw
+  JSON access.
+
+This changes review delivery, not the product architecture, implementation
+authority, or exact `reuse-existing` static-conformance decision.
+
 ## Convergence result
 
 All material architecture and static-conformance decisions are explicit.

@@ -2,7 +2,7 @@
   "softwareDesign": {
     "identity": "pkid:design:program-kit:development-tools-static-basis",
     "version": "2.0.0",
-    "digest": "sha256:f0b79f8c1f3fe4908da4c00b8b3d1732ab6c7cd85fa78a02fa86340d88bb98a0"
+    "digest": "sha256:43fa28867d12bf3e23d3a3e8e4f58ce770b167a57f2413ffaff6818af3ea1b9d"
   },
   "invariantAllocations": [
     {
@@ -79,7 +79,7 @@
     "source": {
       "identity": "pkid:decision-source:program-kit:development-tools-static-conformance",
       "version": "2.0.0",
-      "digest": "sha256:3141126d860b1acac2f6f86c46b41dd32f81cd89a0fe8d69cfc40e4d5442f998"
+      "digest": "sha256:75bdf49ff8dac419b165e3c0941756433281939a019e32251e56f5c7abe7071c"
     },
     "jsonPointer": "/decision"
   },

@@ -4,7 +4,7 @@
   "disposition": {
     "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
     "version": "2.0.0",
-    "digest": "sha256:c4db1b5a72285101ded7e2f692eac0aed08f83997ab065bc9d7b04260fbb277b"
+    "digest": "sha256:e956991542cd36a5869f6e214fb8168250d3739383f33b1c80b103fe00062e81"
   },
   "gateDefinition": {
     "identity": "pkid:policy:program-kit:csharp-source-quality-gate",

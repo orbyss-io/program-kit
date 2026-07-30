@@ -21,28 +21,28 @@
       "artifactVersion": "3.0.0",
       "role": "human-intent-record",
       "path": "extensions/development-tools/design-intent.md",
-      "sha256": "bc74d0de4b5c7766d981564187a73edf1bd816300c73e488a5620b320cba6f21"
+      "sha256": "a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
     },
     {
       "artifactId": "pkid:decision-log:program-kit:development-tools-convergence",
       "artifactVersion": "2.0.0",
       "role": "section-by-section-human-convergence-record",
       "path": "extensions/development-tools/convergence-notes.md",
-      "sha256": "8d6718031878c5a008d264a016a36773f27f374a13432a6131e6b115243c68c9"
+      "sha256": "391da26e7070a4bbcc6f5f275fb0716efaf08e6b7482495bf9b525a556a4a51e"
     },
     {
       "artifactId": "pkid:design:program-kit:development-tools-static-basis",
       "artifactVersion": "2.0.0",
       "role": "non-circular-static-conformance-design-basis",
       "path": "extensions/development-tools/static-conformance-design-basis.json",
-      "sha256": "f0b79f8c1f3fe4908da4c00b8b3d1732ab6c7cd85fa78a02fa86340d88bb98a0"
+      "sha256": "43fa28867d12bf3e23d3a3e8e4f58ce770b167a57f2413ffaff6818af3ea1b9d"
     },
     {
       "artifactId": "pkid:decision-source:program-kit:development-tools-static-conformance",
       "artifactVersion": "2.0.0",
       "role": "human-static-conformance-decision-source",
       "path": "extensions/development-tools/static-conformance-decision-source.json",
-      "sha256": "3141126d860b1acac2f6f86c46b41dd32f81cd89a0fe8d69cfc40e4d5442f998"
+      "sha256": "75bdf49ff8dac419b165e3c0941756433281939a019e32251e56f5c7abe7071c"
     },
     {
       "artifactId": "pkid:static-conformance-disposition:program-kit:development-tools",
@@ -52,14 +52,14 @@
       "contractVersion": "0.1.0-alpha.1",
       "contractSha256": "9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811",
       "path": "extensions/development-tools/static-conformance-disposition.json",
-      "sha256": "c4db1b5a72285101ded7e2f692eac0aed08f83997ab065bc9d7b04260fbb277b"
+      "sha256": "e956991542cd36a5869f6e214fb8168250d3739383f33b1c80b103fe00062e81"
     },
     {
       "artifactId": "pkid:selection-lock:program-kit:development-tools-private-gate",
       "artifactVersion": "2.0.0",
       "role": "materialized-private-gate-selection-lock",
       "path": "extensions/development-tools/program-kit-private-gate-selection-lock.json",
-      "sha256": "ce63a6dfb96e07d9fdb58b8d4a8512daa3063ec73beeb5f9362a469f450f2a37"
+      "sha256": "65cf8c9ffbad16b8a1b19b3929fd3f00a2d33aedf1702d6df5dd50b698948ba9"
     },
     {
       "artifactId": "pkid:evidence:program-kit:development-tools-provider-contract",
@@ -90,7 +90,7 @@
       "contractVersion": "0.1.0-alpha.2",
       "contractSha256": "e94b5e1dab8292066669ccee5069f27a6e220962906051931fc1f1607fe2dbf7",
       "path": "extensions/development-tools/architecture-design.json",
-      "sha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b"
+      "sha256": "a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:development-tools-design-markdown",
@@ -98,9 +98,9 @@
       "role": "human-readable-design-projection",
       "canonicalDesignId": "pkid:design:program-kit:development-tools",
       "canonicalDesignVersion": "3.0.0",
-      "canonicalDesignSha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b",
+      "canonicalDesignSha256": "a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592",
       "path": "extensions/development-tools/architecture-design.md",
-      "sha256": "666f1d69ce7d9702b3af9ccd237f9e62f4fa73974a0fa3f203967892c6dc1f76"
+      "sha256": "dcc474ee9f7f30ce935d45def6e2d602e6a56f6d8a599dd20f37be24e1b0ec32"
     },
     {
       "artifactId": "pkid:plan:program-kit:development-tools",
@@ -111,9 +111,9 @@
       "contractSha256": "774c6b945ac2b63c2e4beca0afab9c282669274f0c7d4eb4b9e936ba38460c7c",
       "designId": "pkid:design:program-kit:development-tools",
       "designVersion": "3.0.0",
-      "designSha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b",
+      "designSha256": "a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592",
       "path": "extensions/development-tools/implementation-plan.json",
-      "sha256": "98c3356511307944504f66bf90467d573e09569ca8577a33b87d527c1094934f"
+      "sha256": "0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3"
     },
     {
       "artifactId": "pkid:ai-artifact:program-kit:development-tools-plan-markdown",
@@ -121,43 +121,43 @@
       "role": "human-readable-plan-projection",
       "canonicalPlanId": "pkid:plan:program-kit:development-tools",
       "canonicalPlanVersion": "3.0.0",
-      "canonicalPlanSha256": "98c3356511307944504f66bf90467d573e09569ca8577a33b87d527c1094934f",
+      "canonicalPlanSha256": "0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3",
       "path": "extensions/development-tools/implementation-plan.md",
-      "sha256": "f4e884f0cd8a41261dd01536e6bc01727d7e78581e6fb5a9efa13cc1f2efe9a7"
+      "sha256": "552635b02b78a6eeb990b44032f54e367fa69f81d764779f3fe46e03d7d1c54c"
     },
     {
       "artifactId": "pkid:tool:program-kit:development-tools-plan-materializer",
       "artifactVersion": "3.0.0",
       "role": "deterministic-implementation-plan-materializer",
       "path": "extensions/development-tools/materialize-implementation-plan.ps1",
-      "sha256": "25f0adde1f5c41e8ef213a7db573eeeb373988515d8c8f5de37d1e3c02968a4f"
+      "sha256": "ae07f7bbb4f321c4f6c109678b884dd38907f0fe72a4c42660206928784a2e0e"
     },
     {
       "artifactId": "pkid:tool:program-kit:development-tools-review-validator",
       "artifactVersion": "3.0.0",
       "role": "deterministic-review-validator",
       "path": "extensions/development-tools/validate-review-set.ps1",
-      "sha256": "94940e57f83ba6b3b57e3c564f8b55ace7022415dd06fb71dcfad5e141f1b1b2"
+      "sha256": "68adf3c513cc108530fd492b071c1fe616d68c43626aa4f5f6ca3a0366259ced"
     },
     {
       "artifactId": "pkid:evidence:program-kit:development-tools-validation",
       "artifactVersion": "3.0.0",
       "role": "design-validation-report",
       "path": "extensions/development-tools/validation-report.md",
-      "sha256": "82a64aacccf903fd723b7e7c82b1b29a4d3ccbe6bede4bd353af8b2ab0d18067"
+      "sha256": "69b5e308f086dd2cdbd4c797642117565d9e96e372df52d2f83c7216ccc77597"
     },
     {
       "artifactId": "pkid:guide:program-kit:development-tools-review",
       "artifactVersion": "3.0.0",
       "role": "review-navigation",
       "path": "extensions/development-tools/README.md",
-      "sha256": "8f71a68c5183e8132bf88870e8944097d2444faa420ace833048109481318894"
+      "sha256": "f78362faf26a1dd749e33cba0294bf5f4f1f67f0cea82fecd1993e7f2ffb8120"
     }
   ],
   "approvalBoundary": {
     "requiredDecision": "explicit human approval of the exact canonical design and implementation-plan digests after reviewing this candidate set",
-    "candidateDesignSha256": "7a3d877ec92cae62580049b3ba1bdb055ca384b3ee2ea7d5540cf2004c5b7b9b",
-    "candidatePlanSha256": "98c3356511307944504f66bf90467d573e09569ca8577a33b87d527c1094934f",
+    "candidateDesignSha256": "a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592",
+    "candidatePlanSha256": "0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3",
     "candidateStaticConformanceDisposition": "reuse-existing",
     "candidateWorkUnits": "PKDT-W010 through PKDT-W110 exactly as represented by the canonical Architecture Design and Implementation Plan artifacts.",
     "doesNotAuthorize": [
@@ -179,7 +179,7 @@
     "canonicalPlanSchema": "passed against Implementation Plan 0.1.0-alpha.3",
     "staticConformanceDispositionSchema": "passed against StaticConformanceDisposition 0.1.0-alpha.1",
     "targetedSemantics": "passed for exact source, decision, gate, plan, trace, fixture-profile, refresh/update, approval-state, and manifest bindings",
-    "materializerDeterminism": "passed: two consecutive runs produced byte-identical canonical plan bytes",
+    "materializerDeterminism": "passed: two consecutive runs produced byte-identical canonical JSON and adjacent non-authoritative human-readable plan bytes",
     "runtimeImplementationOrAcceptance": "not performed under design authority"
   },
   "provenance": {
