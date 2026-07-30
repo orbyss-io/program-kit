@@ -196,6 +196,25 @@ public sealed class ImplementationPlanV3Tests
                 source,
                 null!,
                 alphaDisposition));
+
+        var current = ImplementationPlanAlpha3ToAlpha4Migration.Migrate(
+            first,
+            Reference(
+                "pkid:design:consumer:software",
+                "0.1.0-alpha.3"),
+            Reference(
+                "pkid:static-conformance-disposition:consumer:software",
+                "0.1.0-alpha.2"));
+        ImplementationPlanDocumentAlpha4Validator currentValidator =
+            new(versionTwo);
+        Assert.AreEqual(ImplementationPlanDocumentAlpha4.SchemaUri, current.Schema);
+        Assert.IsTrue(
+            currentValidator.Validate(current).IsValid,
+            Format(currentValidator.Validate(current)));
+        Assert.IsFalse(currentValidator.Validate(current with
+        {
+            Schema = "https://schemas.orbyss.io/wrong",
+        }).IsValid);
     }
 
     [TestMethod]

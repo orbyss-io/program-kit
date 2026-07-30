@@ -64,11 +64,11 @@
       "ownerId": "pkid:domain:program-kit:version-governance",
       "sourcePath": "src/Orbyss.ProgramKit.Planning/Schemas/PlanningSchemaModule.cs",
       "sourceLocator": "/CatalogVersion",
-      "currentValue": "0.1.0-alpha.3",
-      "sourceDigest": "sha256:02570c15c10d1a689064c1b89233ab377b87cb9008b5224b8114adf3bb796573",
+      "currentValue": "0.1.0-alpha.4",
+      "sourceDigest": "sha256:65b3f0a72a09442f8bf1671d2d6f696bf2e3954137f5e82d0afd937731b0f3a4",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 3,
+      "ownedRevisionOrdinal": 4,
       "transitionDisposition": "retain-owned-revision"
     },
     {
@@ -148,11 +148,11 @@
       "ownerId": "pkid:domain:program-kit:version-governance",
       "sourcePath": "src/Orbyss.ProgramKit.Artifacts/Schemas/ArtifactsSchemaModule.cs",
       "sourceLocator": "/CatalogVersion",
-      "currentValue": "0.1.0-alpha.1",
-      "sourceDigest": "sha256:c8d51cb904ad34da9767504432df53db81c4e41c9a85f81bf435676f23862090",
+      "currentValue": "0.1.0-alpha.2",
+      "sourceDigest": "sha256:0ee2b8cb5c011c3b7c13c67126d5c7d2cdadb9fa64e35ee719c8b1d78ad25f54",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 1,
+      "ownedRevisionOrdinal": 2,
       "transitionDisposition": "retain-owned-revision"
     },
     {
@@ -160,11 +160,11 @@
       "ownerId": "pkid:domain:program-kit:version-governance",
       "sourcePath": "src/Orbyss.ProgramKit.Architecture/Schemas/ArchitectureSchemaModule.cs",
       "sourceLocator": "/CatalogVersion",
-      "currentValue": "0.1.0-alpha.1",
-      "sourceDigest": "sha256:630ce7c76c24f4b8e44d23d3f473f8b6b322f294d449ead848279fe420ad3737",
+      "currentValue": "0.1.0-alpha.3",
+      "sourceDigest": "sha256:b77e056e1d0496d24a2d13e321537d078e712cc8f3f319a582c562cd450b86ea",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 1,
+      "ownedRevisionOrdinal": 3,
       "transitionDisposition": "retain-owned-revision"
     },
     {
@@ -194,13 +194,13 @@
     {
       "identity": "pkid:schema:program-kit:static-conformance-disposition",
       "ownerId": "pkid:domain:program-kit:version-governance",
-      "sourcePath": "schemas/architecture/static-conformance-disposition-0.1.0-alpha.1.schema.json",
+      "sourcePath": "schemas/architecture/static-conformance-disposition-0.1.0-alpha.2.schema.json",
       "sourceLocator": "/x-program-kit-version",
-      "currentValue": "0.1.0-alpha.1",
-      "sourceDigest": "sha256:9de8f2dfcc52bb629ef802db26bd67ffc38687d73d08084292127f6eeda29811",
+      "currentValue": "0.1.0-alpha.2",
+      "sourceDigest": "sha256:4c071112daf165a8e95462a325af9d52437f8c6e2a20639839e5f7ecfffcfd18",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 1,
+      "ownedRevisionOrdinal": 2,
       "transitionDisposition": "retain-owned-revision"
     },
     {
@@ -278,13 +278,13 @@
     {
       "identity": "pkid:schema:program-kit:architecture-design",
       "ownerId": "pkid:domain:program-kit:version-governance",
-      "sourcePath": "schemas/architecture/architecture-design-0.1.0-alpha.2.schema.json",
+      "sourcePath": "schemas/architecture/architecture-design-0.1.0-alpha.3.schema.json",
       "sourceLocator": "/x-program-kit-version",
-      "currentValue": "0.1.0-alpha.2",
-      "sourceDigest": "sha256:e94b5e1dab8292066669ccee5069f27a6e220962906051931fc1f1607fe2dbf7",
+      "currentValue": "0.1.0-alpha.3",
+      "sourceDigest": "sha256:95b4ab88cbac9f5356fece5af7d6c43ff4cd49bc2464e2e84414df6767b536fc",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 2,
+      "ownedRevisionOrdinal": 3,
       "transitionDisposition": "retain-owned-revision"
     },
     {
@@ -362,13 +362,13 @@
     {
       "identity": "pkid:schema:program-kit:implementation-plan",
       "ownerId": "pkid:domain:program-kit:version-governance",
-      "sourcePath": "schemas/planning/implementation-plan-0.1.0-alpha.3.schema.json",
+      "sourcePath": "schemas/planning/implementation-plan-0.1.0-alpha.4.schema.json",
       "sourceLocator": "/x-program-kit-version",
-      "currentValue": "0.1.0-alpha.3",
-      "sourceDigest": "sha256:774c6b945ac2b63c2e4beca0afab9c282669274f0c7d4eb4b9e936ba38460c7c",
+      "currentValue": "0.1.0-alpha.4",
+      "sourceDigest": "sha256:78f666674061f748078f39b79f6504f3ad01570e15af9380da68c9688d50a4ca",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 3,
+      "ownedRevisionOrdinal": 4,
       "transitionDisposition": "retain-owned-revision"
     },
     {
@@ -1106,14 +1106,14 @@
     {
       "identity": "pkid:schema:program-kit:artifact-definitions",
       "ownerId": "pkid:domain:program-kit:version-governance",
-      "sourcePath": "schemas/artifacts/definitions.schema.json",
+      "sourcePath": "schemas/artifacts/definitions-0.1.0-alpha.2.schema.json",
       "sourceLocator": "/x-program-kit-version",
-      "currentValue": "1.0.0",
-      "sourceDigest": "sha256:009a1360b1afcb1d91874d694f18318a91800d38626ca0c7696ce931856598ff",
+      "currentValue": "0.1.0-alpha.2",
+      "sourceDigest": "sha256:0b82ecf5b23425dbcf33c21f0f9dc0125297fb864256e38038fca7442ac49722",
       "intent": "owned-artifact-revision",
       "isActive": true,
-      "ownedRevisionOrdinal": 1,
-      "transitionDisposition": "migrate-owned-revision"
+      "ownedRevisionOrdinal": 2,
+      "transitionDisposition": "retain-owned-revision"
     },
     {
       "identity": "pkid:schema:program-kit:artifact-decision",

@@ -146,9 +146,6 @@ public static class CommandLineComposition
             new OperationsSchemaModule(),
             new Orbyss.ProgramKit.SecretResolution.Contracts.Schemas.SecretResolutionSchemaModule());
         CSharpBuildGateSchemaModule csharpBuildGateSchemas = new();
-        CompositeSchemaModule csharpBuildGateSchemaClosure = new(
-            artifactsSchemas,
-            csharpBuildGateSchemas);
         IProgramKitSchemaModule[] schemaModules =
         [
             artifactsSchemas,
@@ -163,20 +160,14 @@ public static class CommandLineComposition
             dotNetSchemas,
             csharpBuildGateSchemas,
         ];
-        ICommandSchemaSelector schemaSelector = new CommandSchemaSelector(
-            artifactsSchemas,
-            architectureSchemas,
-            qualitySchemas,
-            planningSchemas,
-            developmentSchemas,
-            serializationSchemas,
-            taskCoreSchemas,
-            taskScheduleSchemas,
-            openConsoleSchemas,
-            dotNetSchemas,
-            csharpBuildGateSchemas,
-            csharpBuildGateSchemaClosure);
         ISchemaCatalog schemaCatalog = new SchemaCatalog(schemaModules);
+        ISchemaDependencyClosureProvider schemaClosureProvider =
+            new SchemaDependencyClosureProvider(
+                schemaCatalog,
+                new SchemaDependencyClosureModuleFactory());
+        ICommandSchemaSelector schemaSelector = new CommandSchemaSelector(
+            schemaCatalog,
+            schemaClosureProvider);
         ICommandHelpRenderer help =
             new CommandHelpRenderer(CommandDescriptorCatalog.All);
         IConsumerCapabilityPayload capabilityPayload =
@@ -332,7 +323,7 @@ public static class CommandLineComposition
                 csharpGateOperations,
                 capabilityPayload,
                 schemaValidator,
-                csharpBuildGateSchemaClosure);
+                schemaSelector);
         ICommandOperationChain? chain = null;
         foreach (var descriptor in CommandDescriptorCatalog.All.Reverse())
         {

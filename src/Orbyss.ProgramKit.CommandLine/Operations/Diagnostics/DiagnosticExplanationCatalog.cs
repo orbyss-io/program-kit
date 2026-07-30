@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using Orbyss.ProgramKit.Artifacts.Diagnostics;
+using Orbyss.ProgramKit.Artifacts.Primitives;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Diagnostics;
 
@@ -70,6 +71,14 @@ public sealed class DiagnosticExplanationCatalog :
     private static DiagnosticExplanation Create(
         ProgramKitDiagnosticDefinition definition)
     {
+        if (string.Equals(
+                definition.Id,
+                ArtifactDiagnosticIds.InvalidProgramKitIdentifier,
+                StringComparison.Ordinal))
+        {
+            return ProgramKitIdentifierExplanation(definition);
+        }
+
         var owner = Owner(definition.Id);
         return new DiagnosticExplanation(
             definition.Id,
@@ -84,6 +93,28 @@ public sealed class DiagnosticExplanationCatalog :
             ["artifacts.inspect", "commands.describe", "schemas.read"],
             []);
     }
+
+    private static DiagnosticExplanation ProgramKitIdentifierExplanation(
+        ProgramKitDiagnosticDefinition definition) =>
+        new(
+            definition.Id,
+            "program-kit-owned",
+            "Program Kit PKART",
+            string.Concat(
+                ProgramKitIdentifier.Grammar,
+                ". Exact pattern: ",
+                ProgramKitIdentifier.CanonicalPattern,
+                ". Valid examples: pkid:package:program-kit:command-line; ",
+                "pkid:approval-record:jtest:jtest-2.0. Invalid examples include ",
+                "uppercase, underscores, empty or extra colon segments, and ",
+                "repeated or trailing dots or hyphens."),
+            "canonical Program Kit identifier grammar",
+            "Retain the exact identifier and the artifact member or command argument that supplied it.",
+            "The identifier does not satisfy the exact four-segment grammar.",
+            "Choose explicit lowercase kebab tokens for kind and scope and one or more dot-separated lowercase kebab tokens for name; do not normalize or infer identity text.",
+            "Stop when the intended semantic identity has not been supplied by the consumer or governing artifact.",
+            ["diagnostics.explain", "schemas.read"],
+            ["pkid:schema:program-kit:artifact-definitions@0.1.0-alpha.2"]);
 
     private static DiagnosticExplanation External(string id)
     {

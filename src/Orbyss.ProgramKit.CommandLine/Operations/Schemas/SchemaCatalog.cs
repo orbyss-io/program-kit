@@ -60,7 +60,8 @@ public sealed class SchemaCatalog : ISchemaCatalog
                         resource.CanonicalUri.AbsoluteUri,
                         digest,
                         resource.OwnerId.Value,
-                        content));
+                        content,
+                        resource));
             }
         }
 
@@ -92,7 +93,8 @@ public sealed class SchemaCatalog : ISchemaCatalog
                     candidate.Sha256,
                     candidate.OwnerId,
                     ReadDependencies(candidate, exactByUri),
-                    candidate.Content))
+                    candidate.Content,
+                    candidate.Resource))
             .OrderBy(static item => item.ExactId, StringComparer.Ordinal)
             .ToImmutableArray();
         byExactId = Entries.ToDictionary(

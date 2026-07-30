@@ -5,6 +5,14 @@ namespace Orbyss.ProgramKit.Artifacts.Primitives;
 /// <summary>A stable Program Kit semantic identifier.</summary>
 public readonly record struct ProgramKitIdentifier
 {
+    /// <summary>The exact canonical Program Kit identifier regular expression.</summary>
+    public const string CanonicalPattern =
+        "^pkid:[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$";
+
+    /// <summary>The exact human-readable Program Kit identifier grammar.</summary>
+    public const string Grammar =
+        "pkid:<kind>:<scope>:<name>, where kind and scope are lowercase ASCII kebab tokens and name is one or more lowercase ASCII kebab tokens separated by single dots";
+
     /// <summary>Initializes a validated Program Kit identifier.</summary>
     /// <exception cref="ArgumentException">The value does not match the PKID grammar.</exception>
     public ProgramKitIdentifier(string value)
@@ -12,7 +20,11 @@ public readonly record struct ProgramKitIdentifier
         if (!IsValid(value))
         {
             throw new ArgumentException(
-                "A Program Kit identifier must match pkid:<kind>:<scope>:<name> using lowercase ASCII kebab-case tokens.",
+                string.Concat(
+                    "A Program Kit identifier must match ",
+                    Grammar,
+                    ". Exact pattern: ",
+                    CanonicalPattern),
                 nameof(value));
         }
 
@@ -61,7 +73,11 @@ public readonly record struct ProgramKitIdentifier
                 new ProgramKitDiagnostic(
                     ArtifactDiagnosticIds.InvalidProgramKitIdentifier,
                     ProgramKitDiagnosticSeverity.Error,
-                    "The value must match pkid:<kind>:<scope>:<name> using lowercase ASCII kebab-case tokens.",
+                    string.Concat(
+                        "The value must match ",
+                        Grammar,
+                        ". Exact pattern: ",
+                        CanonicalPattern),
                     path),
             ]);
     }
@@ -81,8 +97,11 @@ public readonly record struct ProgramKitIdentifier
                segments[0] == "pkid" &&
                IsKebabToken(segments[1]) &&
                IsKebabToken(segments[2]) &&
-               IsKebabToken(segments[3]);
+               IsDottedName(segments[3]);
     }
+
+    private static bool IsDottedName(string value) =>
+        value.Split('.').All(IsKebabToken);
 
     private static bool IsKebabToken(string value)
     {

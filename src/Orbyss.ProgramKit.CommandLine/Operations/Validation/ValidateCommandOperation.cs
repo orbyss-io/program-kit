@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using Orbyss.ProgramKit.Artifacts.References;
+using Orbyss.ProgramKit.Artifacts.Schemas;
 using Orbyss.ProgramKit.CommandLine.Commands.Parsing;
 using Orbyss.ProgramKit.CommandLine.Contracts;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
@@ -50,13 +52,17 @@ public sealed class ValidateCommandOperation : ICommandOperation
                 ]);
         }
 
+        var explicitSchema = invocation.OptionalOption("schema");
         var diagnostics = ImmutableArray.CreateBuilder<CommandDiagnostic>();
         foreach (var artifact in invocation.Arguments)
         {
             var content = await fileSystem.ReadAllBytesAsync(
                 artifact,
                 cancellationToken).ConfigureAwait(false);
-            var module = schemaSelector.Resolve(content, out var revision);
+            ArtifactReference revision;
+            IProgramKitSchemaModule module = explicitSchema is null
+                ? schemaSelector.Resolve(content, out revision)
+                : schemaSelector.Resolve(explicitSchema, out revision);
             var validation = validator.Validate(
                 content,
                 module,

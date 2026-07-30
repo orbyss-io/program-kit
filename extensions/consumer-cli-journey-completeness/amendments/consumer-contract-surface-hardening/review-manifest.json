@@ -106,6 +106,17 @@
         "observatoryFixtureTests": "15 passed",
         "privateCSharpGateProfile": "158 passed; 1 explicitly opt-in Linux fixture skipped",
         "focusedAcceptance": "34 strict diagnostic and adapter tests passed, including the 57 KB nested Console request and dotted dictionary keys"
+      },
+      "PKCJ-W030": {
+        "status": "verified",
+        "releaseBuild": "passed with zero warnings and zero errors",
+        "unitTests": "619 passed",
+        "routineConformanceTests": "180 passed; 1 explicitly opt-in Linux fixture skipped",
+        "observatoryFixtureTests": "15 passed",
+        "privateCSharpGateProfile": "160 passed; 1 explicitly opt-in Linux fixture skipped",
+        "focusedAcceptance": "33 PKID, schema dependency-closure, migration, and design-flow command tests passed",
+        "formatVerification": "passed",
+        "migrationDigestPins": "passed for all three exact migration implementations"
       }
     }
   },

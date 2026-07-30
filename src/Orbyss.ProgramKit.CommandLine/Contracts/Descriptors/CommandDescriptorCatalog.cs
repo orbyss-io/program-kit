@@ -30,10 +30,14 @@ public static class CommandDescriptorCatalog
             "validate",
             ["validate"],
             [new("artifact", false, true)],
-            [new("manifest", true, false), Diagnostics()],
+            [
+                new("manifest", true, false),
+                new("schema", true, false),
+                Diagnostics(),
+            ],
             "Validate one or more Program Kit artifacts against their registered schemas.",
             "Read-only; validation grants no authority and changes no artifact.",
-            "program-kit validate artifact.json"),
+            "program-kit validate artifact.json --schema pkid:schema:program-kit:static-conformance-disposition@0.1.0-alpha.1"),
         Create(
             "normalize",
             ["normalize"],

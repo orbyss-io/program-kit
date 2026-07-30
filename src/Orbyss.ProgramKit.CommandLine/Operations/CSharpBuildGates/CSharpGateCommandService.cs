@@ -9,6 +9,7 @@ using Orbyss.ProgramKit.CommandLine.Contracts;
 using Orbyss.ProgramKit.CommandLine.Contracts.Diagnostics;
 using Orbyss.ProgramKit.CommandLine.Operations.Capabilities.Payload;
 using Orbyss.ProgramKit.CommandLine.Operations.Files;
+using Orbyss.ProgramKit.CommandLine.Operations.Validation;
 using Orbyss.ProgramKit.CommandLine.Operations.Serialization;
 using Orbyss.ProgramKit.CSharpBuildGates.Authoring.Contracts.Scaffolding;
 using Orbyss.ProgramKit.CSharpBuildGates.Contracts.Definitions;
@@ -29,7 +30,7 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
     private readonly ICSharpBuildGateOperationService operations;
     private readonly IConsumerCapabilityPayload capabilityPayload;
     private readonly IWorkbenchSchemaValidator schemaValidator;
-    private readonly IProgramKitSchemaModule schemaModule;
+    private readonly ICommandSchemaSelector schemaSelector;
 
     /// <summary>Initializes the exact file, serialization, and operation edges.</summary>
     public CSharpGateCommandService(
@@ -38,7 +39,7 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
         ICSharpBuildGateOperationService operations,
         IConsumerCapabilityPayload capabilityPayload,
         IWorkbenchSchemaValidator schemaValidator,
-        IProgramKitSchemaModule schemaModule)
+        ICommandSchemaSelector schemaSelector)
     {
         this.fileSystem = fileSystem ??
             throw new ArgumentNullException(nameof(fileSystem));
@@ -50,8 +51,8 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
             throw new ArgumentNullException(nameof(capabilityPayload));
         this.schemaValidator = schemaValidator ??
             throw new ArgumentNullException(nameof(schemaValidator));
-        this.schemaModule = schemaModule ??
-            throw new ArgumentNullException(nameof(schemaModule));
+        this.schemaSelector = schemaSelector ??
+            throw new ArgumentNullException(nameof(schemaSelector));
     }
 
     /// <inheritdoc />
@@ -221,18 +222,13 @@ public sealed class CSharpGateCommandService : ICSharpGateCommandService
             ];
         }
 
-        var revision = schemaModule.Resources.Single(
-            static resource =>
-                string.Equals(
-                    resource.SchemaReference.Identity.Value,
-                    "pkid:schema:program-kit:csharp-build-gate-definition",
-                    StringComparison.Ordinal) &&
-                resource.SchemaReference.Version ==
-                    new SemanticVersion("0.1.0-alpha.2"));
+        var schemaModule = schemaSelector.Resolve(
+            "pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2",
+            out var revision);
         var validation = schemaValidator.Validate(
             content,
             schemaModule,
-            revision.SchemaReference,
+            revision,
             CommandLineJsonProfiles.CSharpBuildGates.MaximumLimits);
         return validation.Diagnostics.Select(
                 static diagnostic => new CommandDiagnostic(

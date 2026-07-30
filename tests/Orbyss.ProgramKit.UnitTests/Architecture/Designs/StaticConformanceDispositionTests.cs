@@ -215,6 +215,44 @@ public sealed class StaticConformanceDispositionTests
                 "pkid:design:consumer:software",
                 "2.0.0"),
         }).IsValid);
+
+        var alpha3Design = Reference(
+            "pkid:design:consumer:software",
+            "0.1.0-alpha.3");
+        var currentDisposition =
+            StaticConformanceDispositionAlpha1ToAlpha2Migration.Migrate(
+                firstDisposition,
+                alpha3Design);
+        StaticConformanceDispositionAlpha2Validator currentDispositionValidator =
+            new(new StaticConformanceDispositionValidator());
+        Assert.AreEqual(
+            StaticConformanceDispositionAlpha2.SchemaUri,
+            currentDisposition.Schema);
+        Assert.IsTrue(
+            currentDispositionValidator.Validate(currentDisposition).IsValid);
+
+        var alpha2Disposition = Reference(
+            "pkid:static-conformance-disposition:consumer:software",
+            "0.1.0-alpha.2");
+        var currentDesign =
+            ArchitectureDesignAlpha2ToAlpha3Migration.Migrate(
+                firstDesign,
+                alpha2Disposition);
+        ArchitectureDesignAlpha3Validator currentDesignValidator =
+            new(versionOneValidator);
+        Assert.AreEqual(
+            ArchitectureDesignDocumentAlpha3.SchemaUri,
+            currentDesign.Schema);
+        var currentDesignValidation =
+            currentDesignValidator.Validate(currentDesign);
+        Assert.IsFalse(currentDesignValidation.Diagnostics.Any(
+            static diagnostic =>
+                diagnostic.Id is ArchitectureDiagnosticIds.Pkarc001 or
+                    ArchitectureDiagnosticIds.Pkarc711));
+        Assert.IsFalse(currentDesignValidator.Validate(currentDesign with
+        {
+            Schema = "https://schemas.orbyss.io/wrong",
+        }).IsValid);
     }
 
     private static StaticConformanceDisposition Create(

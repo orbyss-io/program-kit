@@ -1,0 +1,39 @@
+{
+  "sourceIdentity": "pkid:schema:program-kit:implementation-plan",
+  "sourceRange": "[0.1.0-alpha.3]",
+  "target": {
+    "identity": "pkid:schema:program-kit:implementation-plan",
+    "version": "0.1.0-alpha.4",
+    "digest": "sha256:78f666674061f748078f39b79f6504f3ad01570e15af9380da68c9688d50a4ca"
+  },
+  "mode": "source-guidance",
+  "preconditions": [
+    {
+      "code": "exact-current-design-flow-references",
+      "description": "The caller supplies exact Architecture Design 0.1.0-alpha.3 and StaticConformanceDisposition 0.1.0-alpha.2 references; migration does not infer or default them.",
+      "evidenceReferences": [
+        {
+          "identity": "pkid:plan-amendment:program-kit:consumer-contract-surface-hardening",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:c8b6a2ce5740532204b90202180ebbaa4050b1541da5cbd2401e1f1b89a9c499"
+        }
+      ]
+    }
+  ],
+  "lossPolicy": "reject-loss",
+  "isDeterministic": true,
+  "isIdempotent": true,
+  "failurePolicy": "preserve-source-and-report",
+  "implementationReference": {
+    "identity": "pkid:guidance:program-kit:implementation-plan-alpha3-to-alpha4",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:f0c896b64848ad4b78b37379639e7a8fe40c27c5e73ab09c55cc5ada4bee25f1"
+  },
+  "fixtureReferences": [
+    {
+      "identity": "pkid:fixture:program-kit:implementation-plan-alpha3-to-alpha4",
+      "version": "0.1.0-alpha.1",
+      "digest": "sha256:b29e9dc3d6ca83b2f6f7f2ec83d2737fa0e71264047467dbb78e16a45914a105"
+    }
+  ]
+}

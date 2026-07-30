@@ -7,7 +7,7 @@ public sealed class ArtifactsSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Artifacts.Schemas.";
     private static readonly SemanticVersion CatalogVersion =
-        new("0.1.0-alpha.1");
+        new("0.1.0-alpha.2");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:artifacts");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -49,6 +49,24 @@ public sealed class ArtifactsSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:artifacts"),
             "PKAV-W010");
+    private static readonly ArtifactProvenance ConsumerContractProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design-amendment:program-kit:consumer-contract-surface-hardening"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:dc29a4be4fba94801041fc57fb95c4e21780c4db3fcb5376b31b34041ac81f37")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan-amendment:program-kit:consumer-contract-surface-hardening"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:c8b6a2ce5740532204b90202180ebbaa4050b1541da5cbd2401e1f1b89a9c499")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:artifacts"),
+            "PKCJ-W030");
 
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
@@ -59,6 +77,13 @@ public sealed class ArtifactsSchemaModule : IProgramKitSchemaModule
             "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.1/definitions.schema.json",
             "8e359a3436da57d0f5488d5f32cdc34915f546723a79b903b265ff4f3aeb625b",
             TransitionSchemaProvenance),
+        Create(
+            "artifact-definitions",
+            "0.1.0-alpha.2",
+            "definitions-0.1.0-alpha.2.schema.json",
+            "https://schemas.orbyss.io/program-kit/artifacts/0.1.0-alpha.2/definitions.schema.json",
+            "0b82ecf5b23425dbcf33c21f0f9dc0125297fb864256e38038fca7442ac49722",
+            ConsumerContractProvenance),
         Create(
             "artifact-definitions",
             "1.0.0",

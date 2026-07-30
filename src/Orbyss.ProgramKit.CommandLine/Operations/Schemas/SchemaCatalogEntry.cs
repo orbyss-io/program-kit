@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Orbyss.ProgramKit.Artifacts.Schemas;
 
 namespace Orbyss.ProgramKit.CommandLine.Operations.Schemas;
 
@@ -11,4 +12,5 @@ public sealed record SchemaCatalogEntry(
     string Sha256,
     string OwnerId,
     ImmutableArray<string> Dependencies,
-    ReadOnlyMemory<byte> Content);
+    ReadOnlyMemory<byte> Content,
+    ProgramKitSchemaResource Resource);

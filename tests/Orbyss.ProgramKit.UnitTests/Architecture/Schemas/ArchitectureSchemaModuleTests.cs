@@ -19,8 +19,10 @@ public sealed class ArchitectureSchemaModuleTests
         "structural-pattern-catalog.schema.json",
         "architecture-design-2.0.0.schema.json",
         "architecture-design-0.1.0-alpha.2.schema.json",
+        "architecture-design-0.1.0-alpha.3.schema.json",
         "static-conformance-disposition.schema.json",
         "static-conformance-disposition-0.1.0-alpha.1.schema.json",
+        "static-conformance-disposition-0.1.0-alpha.2.schema.json",
     ];
 
     [TestMethod]
