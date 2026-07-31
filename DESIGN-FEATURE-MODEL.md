@@ -289,7 +289,124 @@ SBOMs, and documentation are its concrete artifacts.
 
 No `FTR-B03` answer is implied by accepting `DEC-021`.
 
-## 8. Revision record
+## 8. Draft recommendations for human review
+
+These recommendations are recorded but remain **unaccepted** until the human
+confirms or revises them. They establish identity and resolution mechanics; they
+do not prescribe consumer architecture.
+
+### FTR-008 — Authority-scoped identity, globally unambiguous references
+
+**Recommendation:** Every governed object has a canonical identity that is
+globally unambiguous by construction, but Program Kit does not operate a global
+name registry. Identity is allocated inside an explicit authority-owned
+namespace, such as a verified DNS- or URI-backed authority, and includes the
+object kind and authority-local name. The complete identifier is the identity;
+repository, solution, project, folder, package, and CLR names are locators or
+aliases only.
+
+A local alias may improve authoring ergonomics inside one software-definition
+bundle, but it must resolve to exactly one canonical identity before validation
+or construction. Moving files or repositories does not change identity.
+Renaming, splitting, merging, or transferring authority requires explicit
+successor, migration, or authority-transfer evidence. A retired identity is
+never reassigned to unrelated meaning.
+
+Every reference used for construction resolves to an immutable revision: the
+canonical identity plus an exact version and content digest. Human-readable
+version ranges may express intake constraints, but resolved construction input
+is exact. The schema-design phase must pin one textual grammar and
+canonicalization algorithm; this recommendation decides its authority and
+uniqueness semantics, not its punctuation.
+
+### FTR-009 — Semantic feature revision versus implementation revision
+
+**Recommendation:** A feature identity has immutable semantic revisions, while
+its code and produced artifacts have separately identified implementation
+revisions. An admitted implementation revision declares and proves which exact
+feature revision it realizes.
+
+A new feature revision is required whenever governance-relevant declared
+meaning changes, including purpose, provided or required interfaces, contract
+revisions, compatibility claims, configuration meaning, externally observable
+guarantees, security or operational guarantees, or applicable mandatory
+policy. Compatibility is evaluated and recorded; it is not inferred solely from
+a semantic-version label.
+
+An implementation revision is sufficient when source, dependencies, build
+inputs, optimization, or artifacts change while the approved feature meaning
+and compatibility envelope remain identical and fresh evidence proves
+conformance. A defect correction that restores already-declared behavior may be
+implementation-only; changing the declared behavior is a feature revision.
+Published feature and implementation revisions are immutable. No artifact may
+silently replace another under the same version and digest identity.
+
+### FTR-010 — Explicit, contract-typed relations
+
+**Recommendation:** Nesting, composition, specialization, inheritance,
+dependency, replacement, and other relations are neither universally allowed
+nor universally forbidden. Program Kit core stores an explicit directed
+relation whose record names the source revision, target identity or revision
+constraint, versioned relation-contract type, provenance, and evidence.
+
+The selected relation contract or consumer policy defines the relation's
+semantics, permitted endpoint kinds, cardinality, transitivity, compatibility,
+cycle policy, and impact propagation. Core enforces valid identities, resolvable
+and pinned contract types, declared constraints, applicable validators,
+truthful unknown state, and fail-closed diagnostics. It does not invent domain
+meaning or treat differently named relations as synonyms.
+
+CLR inheritance, project references, package dependencies, and inferred call
+graphs are implementation evidence, not semantic feature relations by
+themselves. A semantic specialization or dependency must be declared and
+validated explicitly. Program Kit may ship opt-in default relation profiles;
+they become enforceable only when selected and pinned.
+
+### FTR-011 — Alternative contract implementations are first-class
+
+**Recommendation:** Yes, multiple components may contain features that satisfy
+the same interface and contract revision. This is required for provider
+adapters such as Keycloak and Entra ID implementing a shared canonical OpenID
+Connect contract.
+
+Contract satisfaction does not make the components or features identical. Each
+component, feature, implementation revision, binding, target profile, support
+envelope, and evidence set retains its own identity. Conformance is evaluated
+independently. Multiple candidates may coexist in a catalog or even in one
+application when the application's explicit composition and runtime contracts
+permit it.
+
+Catalog presence is not activation, and satisfying the same contract does not
+authorize substitution. Replacement and migration require compatibility and
+impact evidence against the consuming graph.
+
+### FTR-012 — Explicit request, deterministic resolution, immutable lock
+
+**Recommendation:** Construction-time implementation selection uses two
+separate records:
+
+1. A human-approved selection request names the required interface or contract,
+   target profile, constraints, and any provider preference.
+2. A deterministic resolution lock records the exact selected component,
+   feature revision, implementation revision, binding, package or artifact
+   digests, capability revisions, and evidence used.
+
+A human may select the implementation directly. Alternatively, an explicitly
+adopted and version-pinned resolution policy may select it deterministically.
+Such a policy is valid only inside its declared support envelope, must explain
+its result, and must yield exactly one candidate. Zero candidates is
+unavailable; more than one candidate is ambiguous. Both are structured
+diagnostic results with candidate identities, failed constraints, evidence, and
+actionable remediation—not permission to guess, choose the newest package, or
+use whatever happens to be installed.
+
+A selected profile may contain a default implementation, but selecting and
+pinning that profile is the human approval of its default. Catalog discovery
+only enumerates candidates. Runtime implementation switching, if desired, is a
+separate consumer-owned runtime contract; it does not weaken construction-time
+resolution or the immutable lock.
+
+## 9. Revision record
 
 - The human rejected the generic contract/implementation/component ontology,
   built-in cross-domain bridge policy, and built-in interface-role taxonomy.
