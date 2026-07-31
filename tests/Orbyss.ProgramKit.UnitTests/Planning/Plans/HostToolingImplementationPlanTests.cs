@@ -25,7 +25,7 @@ public sealed partial class HostToolingImplementationPlanTests
     {
         var extensionRoot = Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var markdownPath = Path.Combine(extensionRoot, "implementation-plan.md");
         var jsonPath = Path.Combine(extensionRoot, "implementation-plan.json");
@@ -66,7 +66,7 @@ public sealed partial class HostToolingImplementationPlanTests
     {
         var jsonPath = Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "host-tooling",
             "implementation-plan.json");
         var jsonBytes = File.ReadAllBytes(jsonPath);

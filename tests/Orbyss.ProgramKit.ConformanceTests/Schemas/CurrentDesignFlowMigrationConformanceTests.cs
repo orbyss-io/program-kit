@@ -12,7 +12,7 @@ public sealed class CurrentDesignFlowMigrationConformanceTests
         var root = ConformanceInputs.RepositoryRoot;
         var migrationRoot = Path.Combine(
             root,
-            "extensions",
+            ".review-sets",
             "consumer-cli-journey-completeness",
             "amendments",
             "consumer-contract-surface-hardening",

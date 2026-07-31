@@ -214,7 +214,7 @@ public sealed class CSharpBuildGateAuthoringTests
         var root = FindProgramKitRoot();
         using var document = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(
             root.FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "authoring-package-manifest.json")));
         var inventory = document.RootElement.GetProperty("sourceInventory");

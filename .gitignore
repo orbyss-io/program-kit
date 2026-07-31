@@ -89,6 +89,7 @@ BenchmarkDotNet.Artifacts/
 # .NET Core
 project.lock.json
 project.fragment.lock.json
+# Generated build output; committed review evidence lives under /.evidence/.
 /artifacts/
 .artifacts/
 

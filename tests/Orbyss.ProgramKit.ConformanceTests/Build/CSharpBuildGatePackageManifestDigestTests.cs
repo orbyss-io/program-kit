@@ -29,7 +29,7 @@ public sealed class CSharpBuildGatePackageManifestDigestTests
     {
         var manifestPath = Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             manifestName);
         using var manifest = JsonDocument.Parse(

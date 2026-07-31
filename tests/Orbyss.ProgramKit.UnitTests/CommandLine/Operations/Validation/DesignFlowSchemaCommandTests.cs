@@ -26,7 +26,7 @@ public sealed class DesignFlowSchemaCommandTests
             var architecture = WriteCurrentWriter(
                 Path.Combine(
                     repositoryRoot,
-                    "extensions",
+                    ".review-sets",
                     "alpha-version-transition",
                     "architecture-design.json"),
                 Path.Combine(temporaryRoot, "architecture-design.json"),
@@ -40,7 +40,7 @@ public sealed class DesignFlowSchemaCommandTests
             var disposition = WriteCurrentWriter(
                 Path.Combine(
                     repositoryRoot,
-                    "extensions",
+                    ".review-sets",
                     "alpha-version-transition",
                     "static-conformance-disposition.json"),
                 Path.Combine(temporaryRoot, "disposition.json"),
@@ -54,14 +54,17 @@ public sealed class DesignFlowSchemaCommandTests
             var plan = WriteCurrentWriter(
                 Path.Combine(
                     repositoryRoot,
-                    "extensions",
+                    ".review-sets",
                     "alpha-version-transition",
                     "implementation-plan.json"),
                 Path.Combine(temporaryRoot, "implementation-plan.json"),
-                ImplementationPlanDocumentAlpha4.SchemaUri,
+                ImplementationPlanDocumentAlpha5.SchemaUri,
                 static root =>
+                {
                     root["ownerId"] =
-                        "pkid:approval-record:jtest:jtest-2.0");
+                        "pkid:approval-record:jtest:jtest-2.0";
+                    AddExplicitPlanBindings(root);
+                });
 
             foreach (var artifact in new[] { architecture, disposition, plan })
             {
@@ -87,7 +90,7 @@ public sealed class DesignFlowSchemaCommandTests
     {
         var artifact = Path.Combine(
             FindProgramKitRoot(),
-            "extensions",
+            ".review-sets",
             "alpha-version-transition",
             "static-conformance-disposition.json");
 
@@ -179,6 +182,59 @@ public sealed class DesignFlowSchemaCommandTests
                 root,
                 IndentedJson));
         return destination;
+    }
+
+    private static void AddExplicitPlanBindings(JsonObject root)
+    {
+        foreach (var unit in root["workUnits"]!.AsArray())
+        {
+            var workUnit = unit!.AsObject();
+            workUnit["activationMatrix"] = ApprovalFixed(
+                workUnit["activationMatrix"]);
+            workUnit["verificationProfile"] = ExecutionResolved(
+                workUnit["verificationProfile"]);
+        }
+    }
+
+    private static JsonObject? ApprovalFixed(JsonNode? reference) =>
+        reference is null
+            ? null
+            : new JsonObject
+            {
+                ["resolutionMode"] = "approval-fixed",
+                ["approvedArtifact"] = reference.DeepClone(),
+                ["approvedIdentity"] = null,
+                ["acceptedVersions"] = null,
+                ["compatibilityPolicy"] = null,
+            };
+
+    private static JsonObject? ExecutionResolved(JsonNode? reference)
+    {
+        if (reference is null)
+        {
+            return null;
+        }
+
+        var artifact = reference.AsObject();
+        return new JsonObject
+        {
+            ["resolutionMode"] = "execution-resolved",
+            ["approvedArtifact"] = null,
+            ["approvedIdentity"] =
+                artifact["identity"]!.GetValue<string>(),
+            ["acceptedVersions"] = string.Concat(
+                "[",
+                artifact["version"]!.GetValue<string>(),
+                "]"),
+            ["compatibilityPolicy"] = new JsonObject
+            {
+                ["identity"] =
+                    "pkid:contract:program-kit:verification-profile-compatibility",
+                ["version"] = "1.0.0",
+                ["digest"] =
+                    "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            },
+        };
     }
 
     private static string CreateTemporaryRoot()

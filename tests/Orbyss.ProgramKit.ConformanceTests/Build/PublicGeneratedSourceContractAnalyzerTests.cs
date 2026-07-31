@@ -21,7 +21,7 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
         var root = ConformanceInputs.ProgramKitRoot;
         var ledgerPath = Path.Combine(
             root,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "pkcs-private-rule-classification-ledger.json");
         using var ledger = JsonDocument.Parse(File.ReadAllBytes(ledgerPath));
@@ -96,7 +96,7 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
             "public-generated-source-contract-1.0.0.schema.json");
         var contractPath = Path.Combine(
             root,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "public-generated-source-contract.json");
         var schema = JsonSchema.FromText(File.ReadAllText(schemaPath));
@@ -283,7 +283,7 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
             .ToArray();
         var manifestPath = Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "public-generated-source-analyzer-manifest.json");
         using var manifest = JsonDocument.Parse(
@@ -337,7 +337,7 @@ public sealed class PublicGeneratedSourceContractAnalyzerTests
                 SHA256.HashData(File.ReadAllBytes(manifestPath))));
         using var versionMap = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "public-generated-source-contract-version-map.json")));
         var packageAndImplementation = versionMap.RootElement

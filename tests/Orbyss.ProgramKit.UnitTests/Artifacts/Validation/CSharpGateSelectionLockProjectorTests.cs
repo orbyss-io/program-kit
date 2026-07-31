@@ -338,7 +338,7 @@ public sealed class CSharpGateSelectionLockProjectorTests
     {
         var path = Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "fixtures",
             "consumer-owned-build-gate-definition.json");

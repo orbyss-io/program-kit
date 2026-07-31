@@ -200,7 +200,7 @@ public sealed class CSharpBuildGateBuildIntegrationTests
     {
         var manifestPath = Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "build-package-manifest.json");
         using var manifest = JsonDocument.Parse(File.ReadAllBytes(manifestPath));
@@ -238,7 +238,7 @@ public sealed class CSharpBuildGateBuildIntegrationTests
             FileDigest(manifestPath));
         var versionMap = File.ReadAllText(Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "build-version-map.json"));
         Assert.AreEqual(

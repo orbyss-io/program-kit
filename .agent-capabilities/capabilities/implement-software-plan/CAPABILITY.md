@@ -33,6 +33,9 @@ Inputs:
 - For Implementation Plan `0.1.0-alpha.3`, the exact static-conformance disposition,
   gate design/definition/selection lock, activation matrix/profile references,
   and current compatible activation evidence.
+- For Implementation Plan `0.1.0-alpha.5`, every explicit artifact binding and
+  an exact execution receipt for each execution-resolved binding used by the
+  active work unit.
 - A valid, non-superseded human approval binding both exact digests.
 - Current repository-owned source truth and applicable `AGENTS.md` guidance.
 - Explicit secrets, network, provider, or destructive-action authority if a
@@ -93,6 +96,13 @@ artifacts are missing, accepted-empty lacks its human decision, blocked is
 selected, reuse lacks a compatible active lock, or product/closure work is
 requested before create/extend activation evidence. Report the exact deviation
 and smallest safe decision needed.
+For Implementation Plan `0.1.0-alpha.5`, additionally stop when a binding mode
+is absent or malformed, an approval-fixed selection differs by identity,
+version, or digest, an execution-resolved selection differs by identity or
+falls outside its approved version range, the exact compatibility-policy
+evidence differs, or the exact selected artifact receipt is absent. Compatible
+execution resolution cannot change scope, authority, outcomes, allowed edits,
+stop conditions, package selection, or compatibility policy.
 
 ## Source of truth and freshness
 
@@ -102,11 +112,14 @@ state before the first edit and before each materially dependent work unit. Do
 not rely on cached artifact digests, sibling repositories, or remembered
 implementation state.
 
-The shared `software-change-completion-profile-set` resource, retrieved through
-`program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`, owns the reusable
-source-review, refresh, integrity, build/test, optional
-publication, evidence, diff-review, commit, and push procedures. Its exact
-bundle-bound resources grant no authority and are not independently invokable.
+The shared `software-change-completion-profile-set` resource owns the reusable
+source-review, refresh, integrity, build/test, optional publication, evidence,
+diff-review, commit, and push procedures. In a consumer workspace, retrieve it
+through `program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`.
+In the Program Kit source
+authoring workspace, read the exact same-tree resource and its digest-bound
+profiles directly; do not invoke consumer capability delivery. These resources
+grant no authority and are not independently invokable.
 
 ## Procedure
 
@@ -114,12 +127,20 @@ bundle-bound resources grant no authority and are not independently invokable.
    boundary.
 2. Load applicable guidance and validate the exact design, plan, and approval
    relationship.
-3. Validate the Implementation Plan `0.1.0-alpha.3` static-conformance disposition and
-   gate admission state. `reuse-existing` requires a compatible active
+3. Validate the selected Implementation Plan revision, static-conformance
+   disposition, and gate admission state. `reuse-existing` requires a
+   compatible active
    selection lock at preflight. `create-new` and `extend-existing` admit only
    dependency-ready `gate-establishment` units until exact activation evidence
    exists. Human-accepted `not-justified` admits only the exact approved empty
    plan. `blocked-unavailable` admits no work.
+   For alpha.5, resolve each active work-unit binding before execution.
+   Approval-fixed bindings require the exact approved artifact.
+   Execution-resolved bindings require the approved identity, an exact selected
+   version within the approved range, the exact selected digest, and exact
+   compatibility-policy evidence. Record the deterministic receipt as execution
+   evidence; never rewrite the approved plan or treat compatible bytes as new
+   human-approved product semantics.
 4. Inspect working-tree and recent commit state; preserve unrelated human work.
 5. Restate the current work unit's allowed edits, outputs, verification, and
    stop conditions.
@@ -193,12 +214,19 @@ wrapper migration, and removal of stale registration.
 
 ## Program Kit knowledge and failure resolution
 
-Retrieve completion profiles through `capabilities read-resource`. Use
-`commands describe` before unfamiliar backed operations. For Program Kit
-failures, follow the `software-change-troubleshooting` resource and use
-`diagnostics explain`, `artifacts inspect`, and `schemas read`. Do not infer a
-shape from sequential validator failures or inspect assemblies for hidden
-values.
+In a consumer workspace, retrieve completion profiles through `capabilities
+read-resource` and use CLI descriptions, diagnostics, artifact inspection, and
+schema retrieval for backed operations. In the Program Kit source authoring
+workspace, read the exact same-tree resources and schemas and use
+repository-backed source operations or tests; do not require an installed
+`program-kit` executable. Do not infer a shape from sequential validator
+failures or inspect assemblies for hidden values.
+
+For an alpha.5 plan, retrieve
+`pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5` and preserve the
+approved binding object in every execution receipt. Schema validity alone does
+not prove compatibility: the selected artifact and exact compatibility-policy
+evidence must pass the repository-backed Planning resolver.
 
 Before implementing an approved typed .NET Console integration or generation
 unit, retrieve and follow `dotnet-console-input-materialization-guide`,
@@ -210,10 +238,15 @@ through the backed CLI commands and are never edited or adopted as source.
 
 ## Provider wrapper mapping and drift check
 
-Codex and Claude wrappers contain only trigger metadata plus exact
+Registered consumer provider wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
-CLI verifies their recorded bytes before returning this definition. A changed,
-missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
-Wrapper registration does not prove approval.
-Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
-`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
+CLI verifies their recorded bytes before returning this definition and renders
+each provider into its exact registered root. Legacy roots are migration input
+only when the provider contract says so.
+
+The Program Kit source authoring workspace instead refreshes an ignored,
+provider-local projection beneath the active provider's registered root only at
+a fresh task boundary or on explicit human request. It contains this complete
+canonical definition rather than a path reference or consumer CLI invocation.
+A changed, missing, stale, partial, or non-exact projection at load time is a
+setup blocker. Wrapper registration does not prove approval.

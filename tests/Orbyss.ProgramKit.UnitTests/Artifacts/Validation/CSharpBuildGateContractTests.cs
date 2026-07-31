@@ -478,7 +478,7 @@ public sealed class CSharpBuildGateContractTests
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "fixtures",
             "consumer-owned-build-gate-definition.json"));
@@ -555,7 +555,7 @@ public sealed class CSharpBuildGateContractTests
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "csharp-build-gate-contracts-version-map.json"));
         ArtifactsSchemaModule module = new();
@@ -588,7 +588,7 @@ public sealed class CSharpBuildGateContractTests
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "public-generated-source-contract-version-map.json"));
         ArtifactsSchemaModule module = new();
@@ -621,7 +621,7 @@ public sealed class CSharpBuildGateContractTests
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "authoring-version-map.json"));
         ArtifactsSchemaModule module = new();

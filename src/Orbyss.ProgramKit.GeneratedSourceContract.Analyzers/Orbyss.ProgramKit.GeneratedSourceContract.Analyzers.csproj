@@ -26,7 +26,7 @@
           PackagePath="analyzers/dotnet/cs"
           Visible="false" />
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include="..\..\extensions\reusable-csharp-build-gates\public-generated-source-contract.json"
+    <None Include="..\..\.review-sets\reusable-csharp-build-gates\public-generated-source-contract.json"
           Pack="true"
           PackagePath="contracts"
           Link="Contracts/public-generated-source-contract.json" />
