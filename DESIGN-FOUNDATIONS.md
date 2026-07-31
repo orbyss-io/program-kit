@@ -139,6 +139,18 @@ respective categories converge.
    distinct identities. Construction uses a human-approved request and an exact
    resolution lock; unavailable or ambiguous selection fails with actionable
    diagnostics.
+   The canonical feature definition is a thin immutable identity-and-reference
+   manifest. It records explicit dispositions without duplicating contracts,
+   artifacts, evidence, diagnostics, or migrations. A bounded component is
+   admitted through an exact named multidimensional evaluation profile with
+   non-removable kernel integrity gates, fresh evidence, structured outcomes,
+   and actionable remediation.
+   The Program Kit kernel is the actual trusted core software built and executed
+   as part of the product. It owns non-bypassable invariant and admission
+   mechanics. The CLI is the primary public application layer that invokes and
+   exposes kernel-controlled workflows; capabilities and providers execute
+   around it through governed contracts. Neither the kernel nor CLI becomes an
+   implicit runtime dependency of generated products.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
    should be explicit, typed, versioned, and canonical.
 5. Extension discovery and selection should be explicit and pinned rather than

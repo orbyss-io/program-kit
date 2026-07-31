@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: feature-model
-status: active
+status: closed
 last-updated: 2026-07-31
-active-batch: FTR-B04
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -44,7 +44,7 @@ The accepted boundary is:
 | `FTR-B01` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `completed` | Thin target-specific feature identity, semantic boundaries, cardinality, kernel ownership, and portability accepted by `DEC-013`. |
 | `FTR-B02` | `FTR-002`, `FTR-005`–`FTR-007` | `completed` | Exact initial CShells profile, multiple-interface representation, minimal vocabulary, and component identity accepted by `DEC-021`. |
 | `FTR-B03` | `FTR-008`–`FTR-012` | `completed` | Authority-scoped identity, separate semantic and implementation revisions, typed relations, alternative implementations, and deterministic resolution accepted by `DEC-022`. |
-| `FTR-B04` | `FTR-013`–`FTR-014` | `active` | Define the minimum records and how consumer-defined contracts and rules are referenced. |
+| `FTR-B04` | `FTR-013`–`FTR-014` | `completed` | Thin feature definition and named multidimensional component evaluation accepted by `DEC-023`. |
 
 ## 3. Accepted batch: Thin feature boundary
 
@@ -154,6 +154,7 @@ The accepted boundary is:
 | `DEC-013` | `accepted` | Program Kit uses a thin target-specific feature model: the portable software-definition bundle is distinct from implemented features; CShells supplies selected .NET host mechanics; interfaces, contracts, intake, and bindings are distinct; feature/interface relationships are many-to-many; the kernel owns integrity while consumers own architecture; and cross-target reuse occurs through software definitions, contracts, and explicit capabilities rather than a universal runtime model. |
 | `DEC-021` | `accepted` | Program Kit v1 begins with an exact .NET 10 and CShells 0.0.28 target profile; features may expose multiple capability-owned interfaces; feature, operation, component, application, package, module, service, and extension are not synonyms; and components have governed identity distinct from their artifacts without duplicating domain contracts. |
 | `DEC-022` | `accepted` | Governed identities are authority-scoped and globally unambiguous; semantic feature and implementation revisions are distinct and immutable; relations are explicit and contract-typed; alternative contract implementations retain separate identities; and construction selection produces an exact immutable resolution lock or an actionable unavailable or ambiguous diagnostic. |
+| `DEC-023` | `accepted` | A feature definition is a thin immutable identity-and-reference manifest with explicit dispositions. Components evaluate against exact named multidimensional profiles. Kernel admission gates are non-removable, every dimension returns a structured non-Boolean result, and only fresh complete conformance permits admission. |
 
 ## 5. Accepted batch: CShells support and component vocabulary
 
@@ -412,9 +413,9 @@ only enumerates candidates. Runtime implementation switching, if desired, is a
 separate consumer-owned runtime contract; it does not weaken construction-time
 resolution or the immutable lock.
 
-## 9. Active batch: Minimum records and contract evaluation
+## 9. Accepted batch: Minimum records and contract evaluation
 
-`FTR-B04`, the final currently known Feature Model batch, now resolves:
+`FTR-B04`, the final Feature Model batch, resolved:
 
 - `FTR-013`: the smallest mandatory feature definition that preserves identity,
   meaning, traceability, evaluation, and actionable diagnostics without
@@ -422,18 +423,19 @@ resolution or the immutable lock.
 - `FTR-014`: the explicit multidimensional contract set against which a bounded
   component is evaluated without requiring every dimension for every component.
 
-No `FTR-B04` answer is implied by accepting `DEC-022`.
+The human accepted both answers below; they are governed by `DEC-023`.
 
-## 10. Draft recommendations for human review
+## 10. Accepted answers
 
-These recommendations are recorded but remain **unaccepted** until the human
-confirms or revises them. They keep the canonical feature definition thin while
-making contract evaluation explicit, multidimensional, and useful to humans and
-AI sessions.
+These answers are now authoritative product design unless explicitly reopened
+or superseded. They keep the canonical feature definition thin while making
+contract evaluation explicit, multidimensional, and useful to humans and AI
+sessions.
 
 ### FTR-013 — Thin mandatory feature definition
 
-**Recommendation:** The canonical feature definition is a small immutable
+**Status:** `accepted`
+**Accepted answer:** The canonical feature definition is a small immutable
 manifest of identity and exact references. It does not duplicate design
 documents, contracts, source code, artifact metadata, evidence, diagnostics, or
 migration procedures that have their own governed records.
@@ -473,7 +475,8 @@ records describe what has actually been proven.
 
 ### FTR-014 — Named multidimensional component evaluation profile
 
-**Recommendation:** A bounded component does not evaluate against one vague
+**Status:** `accepted`
+**Accepted answer:** A bounded component does not evaluate against one vague
 monolithic contract or against every conceivable contract dimension. It
 evaluates against one exact, named, versioned **evaluation profile** containing
 the applicable contract dimensions and policy gates for that component kind,
@@ -527,7 +530,23 @@ The semantic layer therefore describes only what the selected contracts and
 fresh evidence admit. Undeclared or unverified implementation behavior remains
 explicitly outside Program Kit's claimed understanding.
 
-## 11. Revision record
+## 11. Category closure
+
+All known Feature Model questions are resolved by accepted decisions `DEC-013`,
+`DEC-021`, `DEC-022`, and `DEC-023`. The category is closed unless a later
+decision explicitly reopens or supersedes part of it.
+
+**Kernel terminology:** The Program Kit kernel is the actual trusted core
+software that will be built and executed as part of the product. It owns the
+non-bypassable identity, integrity, resolution, evidence, evaluation,
+diagnostic, and admission mechanics. The Program Kit CLI is the primary public
+application layer that invokes and exposes kernel-controlled workflows; it is
+not identical to the kernel. Capability and provider implementations execute
+through governed contracts around the kernel and cannot override its
+invariants. Generated products do not depend on the kernel or CLI at runtime
+unless such a dependency is explicitly selected and governed.
+
+## 12. Revision record
 
 - The human rejected the generic contract/implementation/component ontology,
   built-in cross-domain bridge policy, and built-in interface-role taxonomy.
@@ -540,5 +559,7 @@ explicitly outside Program Kit's claimed understanding.
   exact initial CShells profile and component vocabulary; `FTR-B03` is active.
 - The human accepted all five `FTR-B03` recommendations. `DEC-022` governs
   identity, revision, relation, alternative implementation, and resolution mechanics.
+- The human accepted both `FTR-B04` recommendations. `DEC-023` closes Feature
+  Model with a thin manifest and multidimensional admission evaluation.
 - Git history preserves rejected and superseded candidates; they are not current
   design.
