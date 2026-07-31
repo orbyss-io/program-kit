@@ -1,0 +1,154 @@
+{
+  "manifestKind": "program-kit-design-review",
+  "manifestVersion": "1.0.0",
+  "reviewSetId": "pkid:approval:program-kit:integration-release-provenance-review-set",
+  "reviewSetVersion": "0.1.0-alpha.1",
+  "owner": "human-led-program-kit-integration-release-provenance",
+  "reviewState": "awaiting-human-approval",
+  "implementationStatus": "not-started",
+  "approvalRecord": null,
+  "digestProfile": {
+    "algorithm": "sha256",
+    "byteProfile": "repository file bytes",
+    "encoding": "utf-8",
+    "byteOrderMark": false,
+    "lineEndings": "lf",
+    "attributes": "/.gitattributes"
+  },
+  "artifacts": [
+    {
+      "artifactId": "pkid:intent:program-kit:integration-release-provenance",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "human-intent-record",
+      "path": "extensions/integration-release-provenance/design-intent.md",
+      "sha256": "f457405de8c44dbcc9b94cba83c77576c0e38628b92a69e22dea7030c11ce018"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:integration-release-provenance-static-basis",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "non-circular-static-conformance-design-basis",
+      "path": "extensions/integration-release-provenance/static-conformance-design-basis.json",
+      "sha256": "aa197a772490f4b538ab7142d74a64eb55761f24b8a5cfbfdbcc4a6865fce2fe"
+    },
+    {
+      "artifactId": "pkid:decision-source:program-kit:integration-release-provenance-static-conformance",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "human-static-conformance-decision-source",
+      "path": "extensions/integration-release-provenance/static-conformance-decision-source.json",
+      "sha256": "3346aa73637292389a054dec734a16b072bcdd54d997fa6da9db05b7377eb7ba"
+    },
+    {
+      "artifactId": "pkid:static-conformance-disposition:program-kit:integration-release-provenance",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "static-conformance-disposition",
+      "contract": "pkid:schema:program-kit:static-conformance-disposition",
+      "contractVersion": "0.1.0-alpha.2",
+      "contractSha256": "4c071112daf165a8e95462a325af9d52437f8c6e2a20639839e5f7ecfffcfd18",
+      "path": "extensions/integration-release-provenance/static-conformance-disposition.json",
+      "sha256": "1aeb91d4a5164366ef850da31c8d4fa2b013cd6cf40b5ccf4a2d9a183e1c8012"
+    },
+    {
+      "artifactId": "pkid:selection-lock:program-kit:integration-release-provenance-private-gate",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "review-candidate-private-gate-selection-lock",
+      "path": "extensions/integration-release-provenance/program-kit-private-gate-selection-lock.json",
+      "sha256": "8514e40a4ceea9c36772c0ee9a01d1e8ade481983250bbe74a69318912f5f279"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:github-integration-release-contracts",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "official-platform-design-evidence",
+      "path": "extensions/integration-release-provenance/github-platform-evidence.json",
+      "sha256": "7b439de918dddf9b22d22c5670fafec61e269689e3ba398cbc9206de5aefff70"
+    },
+    {
+      "artifactId": "pkid:design:program-kit:integration-release-provenance",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "canonical-design",
+      "contract": "pkid:schema:program-kit:architecture-design",
+      "contractVersion": "0.1.0-alpha.2",
+      "contractSha256": "e94b5e1dab8292066669ccee5069f27a6e220962906051931fc1f1607fe2dbf7",
+      "path": "extensions/integration-release-provenance/architecture-design.json",
+      "sha256": "50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:integration-release-provenance-design-markdown",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "human-readable-design-projection",
+      "canonicalDesignId": "pkid:design:program-kit:integration-release-provenance",
+      "canonicalDesignVersion": "0.1.0-alpha.1",
+      "canonicalDesignSha256": "50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae",
+      "path": "extensions/integration-release-provenance/architecture-design.md",
+      "sha256": "a5c75fe87542812924df1c42dda846822faf3c7a113b6e7fe204909bdec58190"
+    },
+    {
+      "artifactId": "pkid:plan:program-kit:integration-release-provenance",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "canonical-implementation-plan",
+      "contract": "pkid:schema:program-kit:implementation-plan",
+      "contractVersion": "0.1.0-alpha.3",
+      "contractSha256": "774c6b945ac2b63c2e4beca0afab9c282669274f0c7d4eb4b9e936ba38460c7c",
+      "designId": "pkid:design:program-kit:integration-release-provenance",
+      "designVersion": "0.1.0-alpha.1",
+      "designSha256": "50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae",
+      "path": "extensions/integration-release-provenance/implementation-plan.json",
+      "sha256": "082fae48f202e61943066e10f0293edb1d90b6428f3a43c162d1865e059f714c"
+    },
+    {
+      "artifactId": "pkid:ai-artifact:program-kit:integration-release-provenance-plan-markdown",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "human-readable-plan-projection",
+      "canonicalPlanId": "pkid:plan:program-kit:integration-release-provenance",
+      "canonicalPlanVersion": "0.1.0-alpha.1",
+      "canonicalPlanSha256": "082fae48f202e61943066e10f0293edb1d90b6428f3a43c162d1865e059f714c",
+      "path": "extensions/integration-release-provenance/implementation-plan.md",
+      "sha256": "e4d96f1f2e4757e992f74db63c2086bd97164e83134188902151e3cd5837c0c0"
+    },
+    {
+      "artifactId": "pkid:evidence:program-kit:integration-release-provenance-validation",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "design-validation-report",
+      "path": "extensions/integration-release-provenance/validation-report.md",
+      "sha256": "ce30f7f21c3dcfae8c30ad9f915f7f332368e597e41ef5b93948034d4d6853ff"
+    },
+    {
+      "artifactId": "pkid:guide:program-kit:integration-release-provenance-review",
+      "artifactVersion": "0.1.0-alpha.1",
+      "role": "review-navigation",
+      "path": "extensions/integration-release-provenance/README.md",
+      "sha256": "112fbc35383c734d8b4aa823b233a3fc661fcdd77ba184be674ce8e98842c5c4"
+    }
+  ],
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-exact-design-and-plan-digests-together",
+    "candidateDesignSha256": "50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae",
+    "candidatePlanSha256": "082fae48f202e61943066e10f0293edb1d90b6428f3a43c162d1865e059f714c",
+    "acceptedScope": "PKIP-W010 through PKIP-W060 exactly as represented by the canonical Architecture Design 0.1.0-alpha.2 and Implementation Plan 0.1.0-alpha.3 artifacts.",
+    "doesNotAuthorize": [
+      "implementation before exact design-and-plan digest approval",
+      "material deviation from the approved design or plan",
+      "GitHub ruleset, merge-queue, environment, secret, variable, permission, or repository-setting mutation",
+      "NuGet trusted-publishing policy mutation or package-feed publication",
+      "pull-request merge, tag creation, release creation, deployment, or external repository mutation",
+      "refresh of the provider-local capability copy active in this task",
+      "provider-specific hooks, watchers, plugins, autonomous starts, silent upgrades, or user-global writes"
+    ]
+  },
+  "validation": {
+    "jsonSyntax": "passed for every review JSON artifact",
+    "canonicalArchitectureSchema": "passed through the Program Kit validator against Architecture Design 0.1.0-alpha.2",
+    "canonicalPlanSchema": "passed through the Program Kit validator against Implementation Plan 0.1.0-alpha.3",
+    "staticConformanceDispositionSchema": "passed through the Program Kit validator against Static Conformance Disposition 0.1.0-alpha.2",
+    "targetedSemantics": "passed for exact requirement trace, known linear work-unit dependencies, one closure unit, reuse-existing state, and exact gate, activation, profile, selection-lock, and activation-evidence bindings",
+    "humanReadableProjection": "manually maintained because the repository render adapter is unavailable; canonical JSON remains authoritative",
+    "changedFileWhitespace": "passed",
+    "productImplementation": "not started"
+  },
+  "provenance": {
+    "mainBaseCommit": "8443998",
+    "contributorLifecycleCommit": "9d45a6e",
+    "branch": "codex/contributor-pr-integration",
+    "source": "human-started Program Kit contributor integration and exact release-provenance redesign",
+    "details": "Bounded to Program Kit repository source truth. The review set records one static reuse-existing decision and one exact design-and-plan approval boundary. No GitHub setting, NuGet policy, external repository, package publication, tag, release, provider-local active capability copy, or user-global configuration was mutated."
+  }
+}

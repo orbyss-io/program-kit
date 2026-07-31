@@ -1,0 +1,239 @@
+{
+  "evidenceKind": "program-kit-integration-release-provenance-closure",
+  "evidenceVersion": "0.1.0-alpha.1",
+  "recordedAtUtc": "2026-07-31T00:47:39.1316291Z",
+  "status": "passed",
+  "completionClaim": true,
+  "approval": {
+    "source": "explicit human approval in the implementation task",
+    "designSha256": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae",
+    "planSha256": "sha256:082fae48f202e61943066e10f0293edb1d90b6428f3a43c162d1865e059f714c",
+    "decision": "approved",
+    "conditions": []
+  },
+  "source": {
+    "mainBaseCommit": "84439980e987f99d8c34009d70dfc01a2771cc5d",
+    "contributorLifecycleCommit": "9d45a6e",
+    "branch": "codex/contributor-pr-integration",
+    "tipBeforeClosureEvidence": "731a4b07d4634abecc01f917c286bcbd10cb8ee2"
+  },
+  "workUnits": [
+    {
+      "workUnit": "PKIP-W010",
+      "commit": "575d7de",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKIP-W020",
+      "commit": "c55e832",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKIP-W030",
+      "commit": "11975ef",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKIP-W040",
+      "commit": "a037580",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKIP-W050",
+      "commit": "731a4b0",
+      "status": "passed"
+    },
+    {
+      "workUnit": "PKIP-W060",
+      "sourceCommit": "731a4b07d4634abecc01f917c286bcbd10cb8ee2",
+      "closureCommit": "the Git commit containing this immutable evidence",
+      "status": "passed"
+    }
+  ],
+  "closureReconciliation": {
+    "initialFullSolutionResult": {
+      "status": "failed",
+      "tests": 901,
+      "passed": 895,
+      "failed": 5,
+      "skipped": 1
+    },
+    "disposition": "The failed closure correctly exposed stale repository-owned counts and digests for approved changed Planning, capability, bundle, and command-line source. Bounded W060 corrections refreshed only exact derived integrity bindings; no behavior, version, API, workflow, or release authority changed.",
+    "correctedFiles": [
+      "extensions/alpha-version-transition/version-intent-inventory.json",
+      "extensions/reusable-csharp-build-gates/compatibility-version-matrix.json",
+      "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
+      "extensions/reusable-csharp-build-gates/testing-version-map.json",
+      "tests/Orbyss.ProgramKit.UnitTests/TestSupport/Schemas/DomainSchemaModuleTests.cs"
+    ],
+    "focusedRemediationVerification": {
+      "unit": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "conformance": {
+        "tests": 12,
+        "passed": 12,
+        "failed": 0
+      },
+      "versionIntentMismatches": 0,
+      "compatibilityClockMismatches": 0
+    },
+    "completePassRepeatedAfterRemediation": true
+  },
+  "verification": [
+    {
+      "gate": "locked-restore",
+      "command": "dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode",
+      "result": "passed",
+      "observation": "The final post-remediation restore completed with the locked graph and no fallback."
+    },
+    {
+      "gate": "full-solution",
+      "command": "dotnet test --solution ProgramKit.sln --configuration Release --no-restore --minimum-expected-tests 1",
+      "result": "passed",
+      "tests": 901,
+      "passed": 900,
+      "failed": 0,
+      "skipped": 1,
+      "skipDisposition": "The existing ExplicitLinuxProfileRunsGeneratedTopologyAndAdditiveVectors test remains human-started and requires PROGRAM_KIT_RUN_KEYCLOAK_FIXTURE=1."
+    },
+    {
+      "gate": "private-csharp-gate-routine",
+      "command": "pwsh -NoProfile -File build/Invoke-CSharpGateTestPlan.ps1 -Profile Exhaustive",
+      "result": "passed",
+      "profileIdentity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+      "profileVersion": "1.0.1",
+      "profileSha256": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f",
+      "tests": 207,
+      "passed": 206,
+      "failed": 0,
+      "skipped": 1
+    },
+    {
+      "gate": "private-csharp-gate-exhaustive",
+      "command": "pwsh -NoProfile -File build/Invoke-CSharpGateTestPlan.ps1 -Profile Exhaustive",
+      "result": "passed",
+      "tests": 20,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "selfValidationWarnings": 0,
+      "selfValidationErrors": 0
+    },
+    {
+      "gate": "finite-consumer-feed",
+      "command": "pwsh -NoProfile -File build/Invoke-PackConsumerFeed.ps1 -OutputRoot artifacts/integration-release-provenance-closure",
+      "result": "passed",
+      "productVersion": "0.1.0-alpha.3",
+      "packageCount": 29,
+      "totalPackageBytes": 11336630,
+      "sourceManifestSha256": "sha256:c255c9b27405e2bf4c5f2d5cba1382c4859ea206baf79a14a6df6dfbc8e2a9d3",
+      "packageManifestSha256": "sha256:b0291d660ca0c90ad5a85ceba819ee22f2e93e4d3c8b07810a87ebbfaeb93b49",
+      "checksumsSha256": "sha256:35278ba776465966d38deeadbe374d73a75ddf22e69a59f47d77221ba2557099"
+    },
+    {
+      "gate": "canonical-provenance",
+      "result": "passed",
+      "localSimulation": true,
+      "simulatedRunId": "1",
+      "simulatedEvent": "push",
+      "simulatedBranch": "refs/heads/main",
+      "sourceCommit": "731a4b07d4634abecc01f917c286bcbd10cb8ee2",
+      "provenanceSha256": "sha256:89557060bebc888352cdb184256ea702c17b7fda54063d3eb3e28da2fbd169d0",
+      "packageCount": 29,
+      "independentVerification": "passed"
+    },
+    {
+      "gate": "canonical-package-tamper-rejection",
+      "result": "passed",
+      "subject": "Orbyss.ProgramKit.Architecture.0.1.0-alpha.3.nupkg",
+      "tamperedExitCode": 1,
+      "expectedDiagnostic": "Package evidence does not match exact bytes",
+      "originalBytesRestored": true,
+      "postRestoreVerification": "passed"
+    },
+    {
+      "gate": "changed-scope",
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "postClosureCorrection": {
+    "recordedAtUtc": "2026-07-31T06:54:45.9243434Z",
+    "approval": "explicit human approval in the implementation task",
+    "trigger": "GitHub rejected both workflows during source validation because the runner context was referenced from job-level env.",
+    "scope": "Moved the canonical build root binding to only the steps that consume it and added conformance guards against job-level regression.",
+    "githubValidationFailures": [
+      {
+        "workflow": ".github/workflows/program-kit-integration.yml",
+        "runId": "30594670064",
+        "diagnostic": "Unrecognized named-value: 'runner' in job-level env"
+      },
+      {
+        "workflow": ".github/workflows/publish-nuget.yml",
+        "runId": "30594670528",
+        "diagnostic": "Unrecognized named-value: 'runner' in job-level env"
+      }
+    ],
+    "verification": [
+      {
+        "gate": "continuous-integration-workflow-conformance",
+        "result": "passed",
+        "tests": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      {
+        "gate": "publication-workflow-conformance",
+        "result": "passed",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0
+      },
+      {
+        "gate": "workflow-yaml-parse",
+        "result": "passed",
+        "files": 2
+      }
+    ],
+    "disposition": "The correction changes workflow expression scope only; it does not change package bytes, provenance meaning, release authority, or the recorded full closure results."
+  },
+  "artifacts": {
+    "integrationWorkflowSha256": "sha256:52a65afec8c5f0f22c36ecd218112dc1b067051baf30859bcadd6964ece6e3c0",
+    "publicationWorkflowSha256": "sha256:79ef733cada6885f4a86592f09fbb385614c33ba6bb863011042ff90af5b1c6a",
+    "integrationEntrypointSha256": "sha256:d03d7507a94f7ffeadd7b18ab029728e2e4d73282b1e1ca37209aafadae21ed8",
+    "canonicalProvenanceModuleSha256": "sha256:5960c0e06007d59f5b858c589ae322116d0644f10627de5736c76950d0da7e9a",
+    "canonicalProvenanceWriterSha256": "sha256:bef6e8afda0bf72abe2765b57abfe9dfe3d19225a2e92ff9c392ad0d08f439d9",
+    "canonicalProvenanceVerifierSha256": "sha256:7d296b11c9196709417eda6526d564531f95eb30a441edb07e01c508db542af3",
+    "canonicalRunVerifierSha256": "sha256:3a5ea239d3d9d9f608aae7cc93fcfb86c9f5a089fe9b50e6b195a152cee5a475",
+    "canonicalPublisherSha256": "sha256:b09d474f413b6dc340f3d79b799e228939af8f9ac29a4ed8bd400b73af41755b",
+    "administrationHandoffSha256": "sha256:6bb122575df04bdb90bb2dd3dbed310bfe9803331825192c4e5d09b67d6bd361",
+    "versionIntentInventorySha256": "sha256:cd52c3e769b3c04b2451d718b1c3c37ba45f0720d616a1161b742646a0b39459",
+    "testingPackageManifestSha256": "sha256:056be483a889795ee32ab21772825ee9d8a6042859470bf71ca7c131d9bc25b0",
+    "testingVersionMapSha256": "sha256:02b8eaabd689e9edcf957e4f5fb0a81596f768360d2a0371f56335c357601b98",
+    "compatibilityVersionMatrixSha256": "sha256:572c07d368a4bfc55b9263700e223be9cb1b892b80ea8679f843949665015ec6"
+  },
+  "temporaryArtifact": {
+    "path": "artifacts/integration-release-provenance-closure",
+    "retained": false,
+    "disposition": "removed after exact package, checksum, provenance, tamper, and restoration evidence was recorded"
+  },
+  "externalState": {
+    "githubSettingsConfigured": false,
+    "mergeQueueConfigured": false,
+    "requiredCheckConfigured": false,
+    "publicationEnvironmentConfigured": false,
+    "secretConfigured": false,
+    "nugetTrustedPublisherConfigured": false,
+    "workflowDispatched": false,
+    "publicationCredentialRequested": false,
+    "packagePublished": false,
+    "tagCreated": false,
+    "releaseCreated": false,
+    "pullRequestMerged": false,
+    "providerLocalCapabilitiesRefreshed": false,
+    "activationStatus": "pending explicit human administration after merge"
+  }
+}

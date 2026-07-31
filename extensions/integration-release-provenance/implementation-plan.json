@@ -1,0 +1,857 @@
+{
+  "design": {
+    "identity": "pkid:design:program-kit:integration-release-provenance",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+  },
+  "ownerId": "pkid:domain:program-kit:integration-provenance",
+  "state": "ready-for-human-decision",
+  "requirementIds": [
+    "PKIP-R001",
+    "PKIP-R002",
+    "PKIP-R003",
+    "PKIP-R004",
+    "PKIP-R005",
+    "PKIP-R006",
+    "PKIP-R007",
+    "PKIP-R008",
+    "PKIP-R009",
+    "PKIP-R010",
+    "PKIP-R011",
+    "PKIP-R012"
+  ],
+  "workUnits": [
+    {
+      "workUnitId": "PKIP-W010",
+      "requiredOutcome": "Establish a backward-readable Planning 0.1.0-alpha.5 execution-binding contract and capability semantics that keep human-approved semantic obligations exact while resolving compatible verification-profile bytes into exact execution evidence.",
+      "sequence": 10,
+      "parallelGroupId": null,
+      "dependsOn": [],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:integration-release-provenance",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkip-w010",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "schemas/planning/ for new immutable 0.1.0-alpha.5 implementation-plan and definitions revisions beside existing readable revisions",
+        "src/Orbyss.ProgramKit.Planning/ versioned models, validation, serialization, schema registration, compatibility, and migration support for approval-fixed and execution-resolved bindings",
+        "src/Orbyss.ProgramKit.CommandLine/ exact schema and artifact inspection registrations required by the new planning revision",
+        ".agent-capabilities/capabilities/design-software/CAPABILITY.md and .agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md for compatible execution-resolution and material-drift boundaries",
+        ".agent-capabilities/capability-bundle-manifest.json plus generated capability catalog bytes required by changed distributable capabilities",
+        "Focused Planning, CLI, schema, migration, capability-delivery, and bundle tests and fixtures"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:schema:program-kit:implementation-plan",
+          "acceptedVersions": "0.1.0-alpha.3 || 0.1.0-alpha.4 || 0.1.0-alpha.5",
+          "expectedDisposition": "Existing approved plan revisions remain readable and retain exact legacy behavior; new designs select alpha.5 when execution-resolved verification is required."
+        }
+      ],
+      "stopConditions": [
+        "Stop if execution resolution can change approved scope, authority, required outcomes, allowed edits, stop conditions, package selection, or compatibility policy.",
+        "Stop if an unresolved or incompatible profile can be accepted, if exact run evidence is optional, or if historical plan bytes must be rewritten.",
+        "Stop if the active task's ignored provider-local capability projection would need refresh; canonical and distributable bytes change without changing loaded session instructions."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.UnitTests/Orbyss.ProgramKit.UnitTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~Planning",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The new alpha.5 planning contract, writer, validator, compatibility path, and legacy alpha.3/alpha.4 read behavior pass in the directly affected Planning and CLI closure."
+        },
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~CapabilityDeliveryConformanceTests",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Capability guidance, full source-contributor delivery, exact bundle bindings, and the no-mid-task-refresh safeguard remain conformant after the planning-procedure revision."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.1",
+        "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+      }
+    },
+    {
+      "workUnitId": "PKIP-W020",
+      "requiredOutcome": "Establish repository-backed integration and package-provenance operations that produce and verify a closed canonical-build artifact without GitHub-specific secrets or publication side effects.",
+      "sequence": 20,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKIP-W010"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:integration-release-provenance",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkip-w020",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "build/ repository-backed integration entrypoint, canonical-build provenance writer, and exact artifact verifier",
+        "One new immutable Program Kit CI build-provenance schema revision and its schema registry/model support when structured contract validation requires it",
+        "Existing build/Invoke-PackConsumerFeed.ps1 only for compatible composition or evidence fields required by the canonical-build contract; package selection and package bytes remain governed by current sources",
+        "Focused build and conformance tests proving plan-only behavior, finite commands, provenance completeness, package inventory, SHA256SUMS, tamper rejection, and no publication"
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:tool:program-kit:consumer-feed-packer",
+            "version": "0.1.0-alpha.1",
+            "digest": "sha256:63d2ac1ceb88328a6a3a4f9a8143525b5a94d0ce47bb9d6261bff0a0f0310acb"
+          },
+          "purpose": "Reuse the existing finite package selection, aggregate pack, package inspection, manifest, and checksum implementation."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:manifest:program-kit:release-packages",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "The current finite release-package manifest remains the only package inventory and coordinated version source."
+        }
+      ],
+      "stopConditions": [
+        "Stop if a second package inventory, version source, checksum format, ambient project scan, publication side effect, secret, or network dependency is required.",
+        "Stop if provenance can omit repository, event, branch, source commit, workflow identity, run ID, profile revision and digest, source package-manifest digest, package-manifest digest, checksum digest, or complete package evidence.",
+        "Stop if the verifier executes package contents or trusts artifact name alone."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~ConsumerFeedPackagingConformanceTests",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The directly affected package-selection, aggregate-pack, manifest, checksum, provenance, verifier, tamper, and no-publication closure passes."
+        },
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Invoke-ProgramKitIntegration.ps1",
+            "-PlanOnly"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The plan contains one locked restore and the finite current-source integration commands without running or mutating build outputs."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.1",
+        "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+      }
+    },
+    {
+      "workUnitId": "PKIP-W030",
+      "requiredOutcome": "Add one least-privilege GitHub integration workflow whose stable required-check job validates pull-request combined source and merge groups, then creates an attested canonical package artifact only after successful integration on a push to main.",
+      "sequence": 30,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKIP-W020"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:integration-release-provenance",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkip-w030",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".github/workflows/ one new integration workflow triggered by pull_request targeting main, merge_group checks_requested, and push to main",
+        "Immutable commit pins for official checkout, SDK setup, artifact upload, and attestation actions selected from reviewed current official releases",
+        "Focused workflow conformance tests covering event triggers, default synthetic checkout, stable job name, permissions, concurrency, integration entrypoint, main-only package job, provenance, attestation, artifact identity, and failure behavior",
+        "No publication workflow changes in this work unit"
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:evidence:program-kit:github-integration-release-contracts",
+            "version": "0.1.0-alpha.1",
+            "digest": "sha256:7b439de918dddf9b22d22c5670fafec61e269689e3ba398cbc9206de5aefff70"
+          },
+          "purpose": "Bind workflow event, merge-queue, artifact, attestation, ruleset, and environment behavior to reviewed official platform documentation."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:workflow:program-kit:required-integration",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "The required job name is stable across pull_request and merge_group; no path filter can leave the required check permanently pending."
+        }
+      ],
+      "stopConditions": [
+        "Stop if pull_request_target, write permissions, publication credentials, explicit pull-request-head checkout, arbitrary workflow_run promotion, mutable unreviewed action tags, or path-filtered required checks are introduced.",
+        "Stop if merge_group does not report the same required job or if a pull-request or merge-group run can create a publication-eligible artifact.",
+        "Stop if a main package job can run without the exact integration job succeeding for the same GITHUB_SHA."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~ContinuousIntegrationWorkflowConformanceTests",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Workflow conformance proves exact event coverage, combined-source checkout, stable required check, least privileges, safe concurrency, main-only canonical packaging, action pins, provenance, attestations, and immutable upload."
+        },
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Invoke-ProgramKitIntegration.ps1",
+            "-PlanOnly"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The workflow-called integration plan remains deterministic and contains no package publication or external settings mutation."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.1",
+        "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+      }
+    },
+    {
+      "workUnitId": "PKIP-W040",
+      "requiredOutcome": "Replace the current rebuild-and-publish workflow with a protected human-dispatched no-rebuild publisher that accepts one exact canonical-main build run, verifies all eligibility and package evidence before authentication, publishes exact bytes, and creates matching durable release assets.",
+      "sequence": 40,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKIP-W030"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:integration-release-provenance",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkip-w040",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        ".github/workflows/publish-nuget.yml while preserving its filename for the existing trusted-publishing policy relationship",
+        "Repository-backed publication input and artifact verification scripts under build/ when needed to keep complex trust decisions testable outside YAML",
+        "Focused publication-workflow and provenance-verifier conformance fixtures and tests",
+        "No package projects, product version, release-package inventory, or package contents except corrections strictly required by exact verification"
+      ],
+      "sourceDependencies": [
+        {
+          "artifact": {
+            "identity": "pkid:workflow-source:program-kit:publish-nuget",
+            "version": "0.1.0-alpha.3",
+            "digest": "sha256:d8b47b5932132321313f5ee8fd87bac7522e73930bdbf52c2c64f6d0c27425b5"
+          },
+          "purpose": "Replace the current combined rebuild-and-publish implementation while preserving the reviewed filename and temporary-credential relationship."
+        }
+      ],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:workflow:program-kit:publish-nuget",
+          "acceptedVersions": "0.1.0-alpha.3",
+          "expectedDisposition": "The workflow filename and NuGet trusted-publishing subject remain stable while trigger, input, verification, and no-rebuild behavior change under this exact approved design."
+        }
+      ],
+      "stopConditions": [
+        "Stop if the publisher restores, builds, tests, generates, packs, executes downloaded package contents, accepts tag-triggered rebuilds, or selects the latest artifact implicitly.",
+        "Stop if credentials are requested before run and artifact verification or if the selected run can be anything other than a successful push-to-main run of the exact registered integration workflow.",
+        "Stop if tag/release target differs from the canonical-build commit, if release assets differ from verified bytes, or if existing-version collision can be silently hidden.",
+        "Stop on partial external publication and report the exact packages accepted before failure; do not retry autonomously."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~PublicationWorkflowConformanceTests",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Publication conformance proves exact workflow_dispatch input, protected environment, eligible-run checks, verifier-before-login ordering, no build commands, exact package push, no silent duplicate, exact tag target, durable assets, and least permissions."
+        },
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~ConsumerFeedPackagingConformanceTests",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Canonical package-manifest, SHA256SUMS, tamper rejection, finite inventory, and package handoff behavior remain compatible with the publisher."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.1",
+        "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+      }
+    },
+    {
+      "workUnitId": "PKIP-W050",
+      "requiredOutcome": "Document the contributor integration lifecycle and exact human-owned GitHub/NuGet setup so development sessions use shared CI evidence without losing focused local verification, conflict resolution, or release authority.",
+      "sequence": 50,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKIP-W040"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:integration-release-provenance",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkip-w050",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "AGENTS.md, CONTRIBUTING.md, and README.md for provider-neutral focused-local-work, pull-request status, merge-queue, canonical build, and human-dispatched publication guidance",
+        "One repository-owned administration handoff documenting the exact required check name, merge-queue/ruleset settings, environment name and reviewers, branch restriction, NUGET_USER placement, and trusted-publishing workflow binding",
+        "Focused documentation and workflow-guidance conformance tests",
+        "No external repository, ruleset, environment, secret, trusted-publishing policy, merge, release, or package publication mutation"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:guide:program-kit:contributor-integration",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "Guidance remains provider-neutral and distinguishes shared CI evidence from local source conflict resolution and focused verification."
+        }
+      ],
+      "stopConditions": [
+        "Stop if guidance tells agents to skip directly affected local checks, ignore real conflicts, merge automatically, mutate repository settings, approve publication, or treat CI success as semantic approval.",
+        "Stop if general contributor policy lists model or provider brands; concrete GitHub, NuGet, workflow, environment, and registered adapter names remain only where they are actual integration contracts.",
+        "Stop if the patch claims external settings are configured without human-confirmed evidence."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "tests/Orbyss.ProgramKit.ConformanceTests/Orbyss.ProgramKit.ConformanceTests.csproj",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--filter",
+            "FullyQualifiedName~ContributorIntegrationGuidanceConformanceTests",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "Guidance names the stable shared check and exact human setup without provider-brand coupling, local-test abdication, automatic settings mutation, or publication authority."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "product",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.1",
+        "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+      }
+    },
+    {
+      "workUnitId": "PKIP-W060",
+      "requiredOutcome": "Close the single Program Kit patch with complete schema, capability, workflow, integration, exhaustive gate, package, provenance, tamper, documentation, and changed-scope evidence while leaving external settings and publication unperformed.",
+      "sequence": 60,
+      "parallelGroupId": null,
+      "dependsOn": [
+        "PKIP-W050"
+      ],
+      "inputs": [
+        {
+          "identity": "pkid:design:program-kit:integration-release-provenance",
+          "version": "0.1.0-alpha.1",
+          "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+        }
+      ],
+      "outputs": [
+        {
+          "identity": "pkid:plan-output:program-kit:pkip-w060",
+          "version": "0.1.0-alpha.1",
+          "state": "prospective",
+          "integrityDigest": null
+        }
+      ],
+      "allowedEdits": [
+        "Closure evidence and bounded corrections within PKIP-W010 through PKIP-W050 allowed paths only",
+        "Temporary ignored package/provenance outputs under an explicit new artifacts path for verification, removed after evidence is recorded",
+        "No external repository, GitHub settings, environment, secret, NuGet policy, merge, tag, release, or publication mutation"
+      ],
+      "sourceDependencies": [],
+      "externalDependencies": [],
+      "migrations": [],
+      "compatibility": [
+        {
+          "subjectId": "pkid:evidence:program-kit:integration-release-provenance-closure",
+          "acceptedVersions": "0.1.0-alpha.1",
+          "expectedDisposition": "Binds the exact implemented planning, capability, workflow, package, provenance, documentation, and full-suite results while external activation remains explicitly pending."
+        }
+      ],
+      "stopConditions": [
+        "Stop on any failing restore, build, gate, unit, conformance, exhaustive, schema, capability bundle, workflow, package, provenance, tamper, documentation, or changed-file check.",
+        "Stop if source differs materially from the approved design or plan, if main introduced incompatible source, or if exact review bindings cannot be reconciled without human authority.",
+        "Stop if closure would dispatch a workflow, configure GitHub, request a publication credential, publish a package, create a tag or release, mutate another repository, or refresh active provider-local capabilities."
+      ],
+      "verification": [
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "restore",
+            "ProgramKit.sln",
+            "--configfile",
+            "NuGet.Config",
+            "--locked-mode"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The complete locked dependency graph restores without mutation or fallback."
+        },
+        {
+          "executable": "dotnet",
+          "arguments": [
+            "test",
+            "--solution",
+            "ProgramKit.sln",
+            "--configuration",
+            "Release",
+            "--no-restore",
+            "--minimum-expected-tests",
+            "1"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The full solution builds under the private gate and all unit, conformance, integration, schema, capability, workflow, package, provenance, and documentation tests pass."
+        },
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Invoke-CSharpGateTestPlan.ps1",
+            "-Profile",
+            "Exhaustive"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The exact exhaustive private-gate profile 1.0.1 completes for current source with all routine and exhaustive conformance observations passing."
+        },
+        {
+          "executable": "pwsh",
+          "arguments": [
+            "-NoProfile",
+            "-File",
+            "build/Invoke-PackConsumerFeed.ps1",
+            "-OutputRoot",
+            "artifacts/integration-release-provenance-closure"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The finite coordinated package set is built once and contains only the exact feed, package-manifest.json, and SHA256SUMS with complete matching identities, versions, dependencies, sizes, and digests."
+        },
+        {
+          "executable": "git",
+          "arguments": [
+            "diff",
+            "--check"
+          ],
+          "workingDirectory": ".",
+          "expectedObservation": "The complete approved patch has no whitespace errors, unrelated tracked edits, provider-local projections, generated build output, secrets, external settings state, or publication evidence."
+        }
+      ],
+      "selectedTests": [],
+      "workUnitKind": "closure",
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+      },
+      "verificationProfile": {
+        "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+        "version": "1.0.1",
+        "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+      }
+    }
+  ],
+  "parallelGroups": [],
+  "trace": [
+    {
+      "requirementId": "PKIP-R001",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W020",
+        "PKIP-W030",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Repository CI owns the canonical integration entrypoint and shared result.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Development sessions can rely on one exact CI result while retaining directly affected local checks."
+    },
+    {
+      "requirementId": "PKIP-R002",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W030",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Pull-request checks use the event-provided synthetic merge commit and read-only permissions.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Each pull request reports integration against current combined source without a publication artifact."
+    },
+    {
+      "requirementId": "PKIP-R003",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W030",
+        "PKIP-W050",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "The same stable required check runs for merge_group and the human handoff requires merge queue.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Multiple queued changes are proven together on latest main before merge."
+    },
+    {
+      "requirementId": "PKIP-R004",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W030",
+        "PKIP-W040",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Workflow permissions, event separation, action pins, concurrency, and required-check naming fail closed.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Untrusted combined-source runs cannot access publication authority or leave a missing path-filtered required check."
+    },
+    {
+      "requirementId": "PKIP-R005",
+      "ownerId": "pkid:domain:program-kit:package-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W020",
+        "PKIP-W030",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Only successful push-to-main integration creates the canonical coordinated package set.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "One eligible artifact contains every manifest-selected package exactly once."
+    },
+    {
+      "requirementId": "PKIP-R006",
+      "ownerId": "pkid:domain:program-kit:package-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W020",
+        "PKIP-W030",
+        "PKIP-W040",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Canonical build provenance and SHA256SUMS bind source, workflow, profile, inventory, and every package byte.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Tampered, missing, extra, stale, or ineligible artifacts are rejected before publication authentication."
+    },
+    {
+      "requirementId": "PKIP-R007",
+      "ownerId": "pkid:domain:program-kit:package-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W040",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "The human-dispatched publisher consumes exact prebuilt bytes and contains no restore, build, test, generate, or pack phase.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "NuGet submissions and durable release assets match the selected canonical build."
+    },
+    {
+      "requirementId": "PKIP-R008",
+      "ownerId": "pkid:domain:program-kit:package-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W040",
+        "PKIP-W050",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Protected-environment approval and temporary trusted-publishing credentials remain human-controlled and late-bound.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "No package-feed credential reaches integration or an unverified publication artifact."
+    },
+    {
+      "requirementId": "PKIP-R009",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W010",
+        "PKIP-W020",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Planning and capability contracts distinguish exact semantic approval from compatible exact execution evidence.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Compatible verification-byte drift no longer mechanically invalidates approved product semantics, while material drift still blocks."
+    },
+    {
+      "requirementId": "PKIP-R010",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W050",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "Provider-neutral contributor guidance uses focused local work plus shared CI evidence and retains real conflict resolution.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "Agents wait for and inspect shared checks instead of repeatedly reproducing whole-repository integration."
+    },
+    {
+      "requirementId": "PKIP-R011",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W050",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "A finite human setup handoff names required ruleset, merge-queue, environment, secret, and trusted-publishing configuration without claiming it is applied.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The repository owner can activate the design without guessing settings or granting broader authority."
+    },
+    {
+      "requirementId": "PKIP-R012",
+      "ownerId": "pkid:domain:program-kit:integration-provenance",
+      "contractOrArtifact": {
+        "identity": "pkid:design:program-kit:integration-release-provenance",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae"
+      },
+      "workUnitIds": [
+        "PKIP-W010",
+        "PKIP-W020",
+        "PKIP-W030",
+        "PKIP-W040",
+        "PKIP-W050",
+        "PKIP-W060"
+      ],
+      "implementationOutcome": "One Program Kit branch and pull request closes the complete approved source change with full verification and no external activation.",
+      "dependencyOrExtensionImpact": [],
+      "tests": [],
+      "evidence": [],
+      "observableAcceptanceOutcome": "The patch is reviewable as one coherent change and external settings/publication remain explicit follow-up actions."
+    }
+  ],
+  "unresolvedDecisions": [],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:integration-release-provenance",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:1aeb91d4a5164366ef850da31c8d4fa2b013cd6cf40b5ccf4a2d9a183e1c8012"
+  },
+  "staticConformanceState": "reuse-existing",
+  "gateDesign": null,
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "selectionLock": {
+    "identity": "pkid:selection-lock:program-kit:integration-release-provenance-private-gate",
+    "version": "0.1.0-alpha.1",
+    "state": "materialized",
+    "integrityDigest": "sha256:8514e40a4ceea9c36772c0ee9a01d1e8ade481983250bbe74a69318912f5f279"
+  },
+  "activationEvidence": {
+    "identity": "pkid:evidence:program-kit:reusable-csharp-build-gates-closure",
+    "version": "1.0.0",
+    "state": "materialized",
+    "integrityDigest": "sha256:c4b247449959317dd95eca5aab4baf61d709ff27155e84cae0a9d111f0e4b09b"
+  }
+}

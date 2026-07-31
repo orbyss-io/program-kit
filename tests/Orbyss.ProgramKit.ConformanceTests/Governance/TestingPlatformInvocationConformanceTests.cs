@@ -7,7 +7,10 @@ public sealed class TestingPlatformInvocationConformanceTests
     public void ActiveTestCommandsUseExplicitMicrosoftTestingPlatformSelectors()
     {
         string globalJson = Read("global.json");
-        string workflow = Read(".github", "workflows", "publish-nuget.yml");
+        string publicationWorkflow = Read(
+            ".github",
+            "workflows",
+            "publish-nuget.yml");
         string contributing = Read("CONTRIBUTING.md");
         string readme = Read("README.md");
         string gateTestPlan = Read("build", "Invoke-CSharpGateTestPlan.ps1");
@@ -16,7 +19,6 @@ public sealed class TestingPlatformInvocationConformanceTests
 
         foreach (string solutionCommandSource in new[]
                  {
-                     workflow,
                      contributing,
                      readme,
                  })
@@ -50,6 +52,7 @@ public sealed class TestingPlatformInvocationConformanceTests
         Assert.DoesNotContain(
             "'test',\n        $conformanceProject",
             gateTestPlan);
+        Assert.DoesNotContain("dotnet test", publicationWorkflow);
     }
 
     private static int Count(string source, string value)

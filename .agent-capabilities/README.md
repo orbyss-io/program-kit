@@ -21,10 +21,23 @@ canonical availability catalog. Consumer products choose their own
 [consumer-integration.md](consumer-integration.md); Program Kit never selects
 or enforces that repository policy.
 
-The source tree carries `authoring-workspace.json`; explicit initialization
-fails closed while that marker is present. The installed consumer CLI embeds
-the verified content-only capability closure, which deliberately excludes the
-marker, and rejects user-home global provider roots.
+The source tree carries `authoring-workspace.json`; consumer initialization,
+catalog, preflight, retrieval, and removal fail closed while that marker is
+present. The marker separately records ignored provider-local projection
+contracts, independently of the consumer CLI provider allow-list. Each active
+provider skill contains a complete copy of its canonical definition and
+requires no installed Program Kit CLI or runtime path lookup.
+
+At the start of a fresh task, before a source capability is loaded,
+`build/Sync-SourceContributorCapabilities.ps1 -Provider
+<active-provider-id> -RefreshIfStale` resolves the registered provider root,
+compares the local copies with current canonical content, and refreshes only
+missing or stale ones. An active task never refreshes a capability it is
+already executing unless the human explicitly requests that experiment.
+
+The installed consumer CLI embeds the verified content-only capability
+closure, which deliberately excludes the marker and provider-local source
+projections, and rejects user-home global provider roots.
 
 Non-discoverable supporting resources live below `supporting-resources/`.
 They may hold exact shared procedure bytes referenced by canonical

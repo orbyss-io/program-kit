@@ -5,31 +5,31 @@
     {
       "capabilityId": "design-csharp-build-gate",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:b4eb7c2a188a7fb7fd946a9f1cbe4347904e51d9b9b76345e51d669c31d0092c",
+      "sha256": "sha256:184a4603e114bf3e4b759af256ab58494bb55eb4840e72ca4d57d913f8441436",
       "sourcePath": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md"
     },
     {
       "capabilityId": "design-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/design-software/CAPABILITY.md",
-      "sha256": "sha256:c8dfba3e7e2fc4afe01a5a87f9ccdfc0c01be3cb89b500c42c281480244b9cc3",
+      "sha256": "sha256:1b8577bf224d1662c392ac9652ff6f79f63d4962e4754d28391e7b165de9289e",
       "sourcePath": ".agent-capabilities/capabilities/design-software/CAPABILITY.md"
     },
     {
       "capabilityId": "develop-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/develop-software/CAPABILITY.md",
-      "sha256": "sha256:b7b53970176c9d0ea7bfae4e15887fc1ddceb9b0310cce2208d4a096c0bdbd15",
+      "sha256": "sha256:29e4b8f5a8891cac977ae89d007b10e203dc7f150964f1c7e81427bd0482ff7e",
       "sourcePath": ".agent-capabilities/capabilities/develop-software/CAPABILITY.md"
     },
     {
       "capabilityId": "implement-software-plan",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md",
-      "sha256": "sha256:d431502b12ffeb07cfcf87ba43e550956538a94a09343fa9eadb7d632549799f",
+      "sha256": "sha256:52415c5b99fc677ef1732ea39ac884955a113cc99f87cfe314839efc8e89149f",
       "sourcePath": ".agent-capabilities/capabilities/implement-software-plan/CAPABILITY.md"
     },
     {
       "capabilityId": "maintain-software",
       "packagePath": "contentFiles/any/any/.agent-capabilities/capabilities/maintain-software/CAPABILITY.md",
-      "sha256": "sha256:f1006070c6173e3de52c14e7694fb304d02656c4e3f6bcebed502f2963b7b0b5",
+      "sha256": "sha256:b833043bd051ed8cda3fe8b79992d6c4dfca22c6f9290a40cd1fbcfb9ea56dde",
       "sourcePath": ".agent-capabilities/capabilities/maintain-software/CAPABILITY.md"
     },
     {
@@ -130,7 +130,7 @@
     {
       "packagePath": "contentFiles/any/any/.agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
       "resourceId": "consumer-capability-catalog",
-      "sha256": "sha256:8a0ee1681d66e8b5503dd1bc5bb1c96d70e32b9cd6c6f19e59df09f31ceccbc6",
+      "sha256": "sha256:d2ff291fb2b6e4ea76e503f7b5b7e772118ddbc38fa58f75c4c1f924a3e35a7d",
       "sourcePath": ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json"
     },
     {
