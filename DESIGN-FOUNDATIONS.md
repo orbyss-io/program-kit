@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 31 are accepted decisions governed by the
+Items 1 through 3 and 6 through 32 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -483,3 +483,32 @@ respective categories converge.
     proves reviewable record presence and provenance assertion, not a person's
     cryptographic identity. Stronger authority providers can implement the same
     contract later.
+32. Gate status is passed, failed, not-applicable, waived, or not-evaluated;
+    unknown applicability fails closed and unevaluated gates cannot support
+    admission. Kernel gates for integrity, identity, closure, exact resolution,
+    authority, ownership/publication safety, provenance, evidence, diagnostic
+    truth/disclosure, and trusted-state atomicity are never waivable by flags,
+    environments, profiles, extensions, providers, or administrators.
+    Waivable policy violations require exact canonical waiver artifacts with
+    authority, gate/diagnostic revisions, subjects, operation/profile/effect
+    scope, risk, rationale, controls, evidence, finite expiry, and revocation.
+    Wildcards, implicit inheritance, default repository scope, global force, and
+    non-expiring waivers are invalid. Waivers are identity-forming and
+    revalidated on every use. A waived result remains visible, never becomes
+    passed, and does not rewrite history after expiry.
+    Every principle declares executable-invariant, evidence-backed,
+    human-review, or explicit-aspiration enforcement plus owner, subjects,
+    applicability, evidence, failure disposition, and waivability. Mechanizable
+    parts should be automated, but aspirations are not gates and subjective
+    judgment is not presented as machine proof.
+    Human review owns intent and semantic adequacy, architecture fitness, user
+    impact, threat/privacy risk acceptance, exception rationale and controls,
+    and policy-required release readiness. Program Kit validates the exact
+    review's authority, scope, schema, and freshness but not competence or truth.
+    Review cannot override a kernel gate.
+    Severity, status, outcome, and admission are separate. Warnings apply only
+    to non-blocking observations or visible waived policy violations. Mandatory
+    failed or unevaluated gates block or request input. Exact locked governance
+    profiles may strengthen policy and define policy applicability/waivability
+    but cannot downgrade kernel gates or disclosure; profile change is
+    identity-forming and authorized.
