@@ -160,6 +160,22 @@ public sealed class ContinuousIntegrationWorkflowConformanceTests
     }
 
     [TestMethod]
+    public void RunnerTemporaryRootIsBoundOnlyInsideCanonicalBuildSteps()
+    {
+        string workflow = ReadWorkflow();
+        string packageJob = CanonicalBuildJob(workflow);
+        string jobConfiguration = Slice(
+            packageJob,
+            "  canonical-build:\n",
+            "    steps:\n");
+        const string binding =
+            "CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build";
+
+        Assert.DoesNotContain(binding, jobConfiguration);
+        Assert.AreEqual(5, Count(packageJob, binding));
+    }
+
+    [TestMethod]
     public void OfficialActionsArePinnedToReviewedImmutableCommits()
     {
         string workflow = ReadWorkflow();

@@ -28,7 +28,6 @@ jobs:
       artifact-name: ${{ steps.selection.outputs.artifact-name }}
       product-version: ${{ steps.canonical-build.outputs.product-version }}
     env:
-      CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
       INTEGRATION_WORKFLOW: .github/workflows/program-kit-integration.yml
       INTEGRATION_PROFILE_IDENTITY: pkid:profile:program-kit:private-csharp-gate-exhaustive
       INTEGRATION_PROFILE_VERSION: 1.0.1
@@ -113,6 +112,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact artifact ID
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ steps.selection.outputs.artifact-id }}
@@ -123,6 +124,8 @@ jobs:
           digest-mismatch: error
 
       - name: Verify internal provenance and exact package bytes
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         id: canonical-build
         shell: pwsh
         run: |
@@ -148,6 +151,8 @@ jobs:
           "product-version=$($result.productVersion)" >> $env:GITHUB_OUTPUT
 
       - name: Verify exact signer workflow attestations
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         shell: pwsh
         run: |
           $manifest = Get-Content `
@@ -187,7 +192,6 @@ jobs:
       contents: write
       id-token: write
     env:
-      CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
       INTEGRATION_WORKFLOW: .github/workflows/program-kit-integration.yml
       INTEGRATION_PROFILE_IDENTITY: pkid:profile:program-kit:private-csharp-gate-exhaustive
       INTEGRATION_PROFILE_VERSION: 1.0.1
@@ -226,6 +230,8 @@ jobs:
           global-json-file: global.json
 
       - name: Download the same exact artifact ID
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ needs.verify.outputs.artifact-id }}
@@ -236,6 +242,8 @@ jobs:
           digest-mismatch: error
 
       - name: Reverify immutable bytes inside the protected job
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         shell: pwsh
         run: |
           pwsh -NoProfile -File build/Test-ProgramKitCanonicalBuild.ps1 `
@@ -292,6 +300,7 @@ jobs:
       - name: Publish exact bytes and create matching durable assets
         shell: pwsh
         env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
           pwsh -NoProfile -File build/Publish-ProgramKitCanonicalBuild.ps1 `

@@ -149,6 +149,29 @@ public sealed class PublicationWorkflowConformanceTests
     }
 
     [TestMethod]
+    public void RunnerTemporaryRootIsBoundOnlyInsidePublicationSteps()
+    {
+        string workflow = ReadWorkflow();
+        string verify = VerifyJob(workflow);
+        string publish = PublishJob(workflow);
+        string verifyConfiguration = Slice(
+            verify,
+            "  verify:\n",
+            "    steps:\n");
+        string publishConfiguration = Slice(
+            publish,
+            "  publish:\n",
+            "    steps:\n");
+        const string binding =
+            "CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build";
+
+        Assert.DoesNotContain(binding, verifyConfiguration);
+        Assert.DoesNotContain(binding, publishConfiguration);
+        Assert.AreEqual(3, Count(verify, binding));
+        Assert.AreEqual(3, Count(publish, binding));
+    }
+
+    [TestMethod]
     public void PublisherUsesManifestBytesAndFailsLoudlyOnPartialPublication()
     {
         string publisher = ReadRepositoryFile(

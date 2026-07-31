@@ -160,9 +160,49 @@
       "result": "passed"
     }
   ],
+  "postClosureCorrection": {
+    "recordedAtUtc": "2026-07-31T06:54:45.9243434Z",
+    "approval": "explicit human approval in the implementation task",
+    "trigger": "GitHub rejected both workflows during source validation because the runner context was referenced from job-level env.",
+    "scope": "Moved the canonical build root binding to only the steps that consume it and added conformance guards against job-level regression.",
+    "githubValidationFailures": [
+      {
+        "workflow": ".github/workflows/program-kit-integration.yml",
+        "runId": "30594670064",
+        "diagnostic": "Unrecognized named-value: 'runner' in job-level env"
+      },
+      {
+        "workflow": ".github/workflows/publish-nuget.yml",
+        "runId": "30594670528",
+        "diagnostic": "Unrecognized named-value: 'runner' in job-level env"
+      }
+    ],
+    "verification": [
+      {
+        "gate": "continuous-integration-workflow-conformance",
+        "result": "passed",
+        "tests": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      {
+        "gate": "publication-workflow-conformance",
+        "result": "passed",
+        "tests": 11,
+        "passed": 11,
+        "failed": 0
+      },
+      {
+        "gate": "workflow-yaml-parse",
+        "result": "passed",
+        "files": 2
+      }
+    ],
+    "disposition": "The correction changes workflow expression scope only; it does not change package bytes, provenance meaning, release authority, or the recorded full closure results."
+  },
   "artifacts": {
-    "integrationWorkflowSha256": "sha256:0bc71552d8a4a7682985637a3421ae887ca0123652d169cc11604fbc72a9b34f",
-    "publicationWorkflowSha256": "sha256:62692aaeffbd38449a949a97dea679b7c3fee02f8c1f07a0585729436f30275e",
+    "integrationWorkflowSha256": "sha256:52a65afec8c5f0f22c36ecd218112dc1b067051baf30859bcadd6964ece6e3c0",
+    "publicationWorkflowSha256": "sha256:79ef733cada6885f4a86592f09fbb385614c33ba6bb863011042ff90af5b1c6a",
     "integrationEntrypointSha256": "sha256:d03d7507a94f7ffeadd7b18ab029728e2e4d73282b1e1ca37209aafadae21ed8",
     "canonicalProvenanceModuleSha256": "sha256:5960c0e06007d59f5b858c589ae322116d0644f10627de5736c76950d0da7e9a",
     "canonicalProvenanceWriterSha256": "sha256:bef6e8afda0bf72abe2765b57abfe9dfe3d19225a2e92ff9c392ad0d08f439d9",

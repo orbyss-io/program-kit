@@ -47,7 +47,6 @@ jobs:
       attestations: write
       artifact-metadata: write
     env:
-      CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
       CANONICAL_ARTIFACT_NAME: program-kit-canonical-build-${{ github.sha }}
       INTEGRATION_PROFILE_IDENTITY: pkid:profile:program-kit:private-csharp-gate-exhaustive
       INTEGRATION_PROFILE_VERSION: 1.0.1
@@ -66,12 +65,16 @@ jobs:
           global-json-file: global.json
 
       - name: Pack the finite canonical consumer feed
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         shell: pwsh
         run: |
           pwsh -NoProfile -File build/Invoke-PackConsumerFeed.ps1 `
             -OutputRoot "$env:CANONICAL_BUILD_ROOT"
 
       - name: Close canonical-build provenance
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         shell: pwsh
         run: |
           pwsh -NoProfile -File build/Write-ProgramKitCanonicalBuildProvenance.ps1 `
@@ -89,6 +92,8 @@ jobs:
             -ProfileSha256 "$env:INTEGRATION_PROFILE_DIGEST"
 
       - name: Verify the closed canonical build
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         shell: pwsh
         run: |
           pwsh -NoProfile -File build/Test-ProgramKitCanonicalBuild.ps1 `
@@ -106,6 +111,8 @@ jobs:
             -ProfileSha256 "$env:INTEGRATION_PROFILE_DIGEST"
 
       - name: Attest every canonical-build subject
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-path: |
@@ -115,6 +122,8 @@ jobs:
             ${{ env.CANONICAL_BUILD_ROOT }}/canonical-build-provenance.json
 
       - name: Upload the immutable canonical build
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
         id: canonical-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
