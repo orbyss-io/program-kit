@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: extensions-and-composition
-active-batch: EXT-B02
+active-batch: EXT-B03
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -73,7 +73,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Feature model | `FTR` | `closed` | 17 | All four batches are accepted by `DEC-013` and `DEC-021`–`DEC-023`. |
 | Semantic language and bounded contexts | `SEM` | `closed` | 14 | All batches are accepted by `DEC-016`, `DEC-019`, and `DEC-024`–`DEC-026`. |
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
-| Extensions and composition | `EXT` | `active` | 13 | `EXT-B01` is accepted by `DEC-031`; `EXT-B02` defines deterministic composition. |
+| Extensions and composition | `EXT` | `active` | 13 | `EXT-B02` is accepted by `DEC-032`; final batch `EXT-B03` defines trust and packaging. |
 | Determinism and generated artifacts | `DET` | `queued` | 10 | `DET-010` is accepted; remaining deterministic-generation questions are queued. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
@@ -101,8 +101,8 @@ Consumer Planning and Delivery is closed in
 Program Kit owns independently callable factory-operation contracts.
 
 Extensions and Composition is active in
-[`DESIGN-EXTENSIONS.md`](DESIGN-EXTENSIONS.md). Batch `EXT-B01` defines the
-accepted operation roles; `EXT-B02` now defines deterministic composition.
+[`DESIGN-EXTENSIONS.md`](DESIGN-EXTENSIONS.md). Batches `EXT-B01` and `EXT-B02`
+define the accepted operation roles and composition; `EXT-B03` now defines trust and packaging.
 
 ## 8. Queued question catalog
 
@@ -112,7 +112,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-031`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-032`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Consumer Planning and Delivery is closed; Extensions and Composition is active.
 
@@ -149,6 +149,7 @@ Consumer Planning and Delivery is closed; Extensions and Composition is active.
 | `DEC-029` | `PID-008`, `PID-009`, `PLN-001`–`PLN-004`, `EXT-012`–`EXT-013` | `accepted` | Spec Kit owns the recommended guided discovery, specification, planning, and task workflow. Program Kit v1 owns no native planning system and remains independently callable through exact public factory-operation contracts. A separately installed external adapter, implemented after the Program Kit CLI is stable, maps approved Spec Kit work into Program Kit requests and returns structured results without internal coupling or authority escalation. Other orchestrators may use the same contracts. | 2026-07-31 |
 | `DEC-030` | `SEM-007`, `SEM-008`, `MIG-001`–`MIG-012` | `accepted` | Program Kit v1 is exclusively a development- and construction-time factory. It may generate and development-time evaluate ordinary software that runs, but provides no Program Kit runtime, runtime plugin host, deployment controller, operational-state manager, or runtime semantic interpreter. Automated migration design is deferred until an independently usable CLI and real consumer version evolution expose a concrete problem. V1 preserves exact versions and admission artifacts, detects drift or unsupported changes, and returns actionable diagnostics without claiming automatic migration. | 2026-07-31 |
 | `DEC-031` | `EXT-001`–`EXT-003` | `accepted` | Normative terminology separates extension bundles, factory operation contracts, executable operation providers, AI-facing session capabilities, declarative vocabulary packages, and provider profiles. V1 kernel invocation has three initial roles: intake mapping, construction, and evaluation. The role set is closed per protocol version but may grow through an explicit revision. Resolution and admission remain kernel mechanics; migration is not a primitive role. Extensions may carry exact vocabularies but cannot invent canonical meaning during execution. | 2026-07-31 |
+| `DEC-032` | `EXT-004`–`EXT-007` | `accepted` | Operation providers produce immutable candidate outputs and cannot edit one another's artifacts. Contract-declared contribution seams feed one exact assembler that owns each final generated artifact. Seam contracts own composition, cardinality, conflict, and ordering rules; the kernel enforces them. Meaningful order is explicit and identity-forming. Every executed input resolves exactly in the accepted lock; v1 has no compatibility solver, implicit best match, or automatic upgrade. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -439,3 +440,12 @@ answer or tension that created them.
   protocol revision as real needs emerge.
 - Completed `EXT-B01` and activated `EXT-B02` for deterministic contribution,
   ownership, conflict, ordering, and exact-version rules.
+
+### 2026-07-31 — Deterministic extension composition accepted
+
+- The human explicitly accepted all `EXT-B02` recommendations.
+- Accepted `DEC-032` for immutable contributions, single-owner artifact
+  assembly, contract-owned conflict and ordering rules, and exact locked
+  selection without a solver.
+- Completed `EXT-B02` and activated final Extensions batch `EXT-B03` for trust,
+  isolation, packaging, metadata, diagnostics, and conformance obligations.

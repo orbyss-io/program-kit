@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 21 are accepted decisions governed by the
+Items 1 through 3 and 6 through 22 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -284,3 +284,15 @@ respective categories converge.
     new role may be added through an explicit protocol and kernel revision.
     Operation providers and session capabilities remain separately identified,
     activated, trusted, and authorized.
+22. Operation providers compose through immutable candidate outputs and
+    contract-declared contribution seams. Providers cannot edit one another's
+    outputs. One exact assembler owns each final generated artifact.
+    The seam contract owns cardinality, compatibility, identity-key, conflict,
+    and ordering rules; the kernel enforces them. Installation, discovery,
+    filesystem, service-registration, and scheduling order carry no semantic
+    authority.
+    Meaningful order is explicit and identity-forming. Independent scheduling
+    cannot change canonical output. Every executed bundle, operation contract,
+    provider, vocabulary, provider profile, target profile, and dependency is
+    exact in the accepted resolution lock. V1 has no compatibility solver,
+    transitive best-match selection, or automatic upgrade.

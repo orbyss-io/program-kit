@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: extensions-and-composition
 status: active
 last-updated: 2026-07-31
-active-batch: EXT-B01
+active-batch: EXT-B03
 parent-ledger: DESIGN.md
 ---
 
@@ -37,8 +37,8 @@ The category preserves these accepted boundaries:
 |---|---|---|---|
 | `EXT-B00` | `EXT-012`–`EXT-013` | `completed` | No internal Spec Kit product dependency; later external adapter invokes stable public factory contracts. |
 | `EXT-B01` | `EXT-001`–`EXT-003` | `completed` | Separate factory execution, session guidance, packaging, provider metadata, and vocabulary; define minimum operation roles. |
-| `EXT-B02` | `EXT-004`–`EXT-007` | `active` | Define composition, output ownership, conflict resolution, ordering, and version selection. |
-| `EXT-B03` | `EXT-008`–`EXT-011` | `queued` | Define trust, isolation, packaging, mandatory metadata, and conformance obligations. |
+| `EXT-B02` | `EXT-004`–`EXT-007` | `completed` | Define composition, output ownership, conflict resolution, ordering, and version selection. |
+| `EXT-B03` | `EXT-008`–`EXT-011` | `active` | Define trust, isolation, packaging, mandatory metadata, and conformance obligations. |
 
 ## 3. Accepted Spec Kit boundary
 
@@ -164,7 +164,7 @@ The initial .NET/CShells path may use first-party in-process implementations.
 That is an implementation profile, not permission to couple the kernel to their
 concrete types or bypass factory operation contracts.
 
-## 5. Active batch: Deterministic composition
+## 5. Accepted batch: Deterministic composition
 
 `EXT-B02` resolves:
 
@@ -173,8 +173,8 @@ concrete types or bypass factory operation contracts.
 - `EXT-006`: when extension ordering is meaningful; and
 - `EXT-007`: exact pins versus a compatibility solver.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all four recommendations. They are governed by
+`DEC-032`.
 
 ### EXT-004 — Immutable contributions; one declared owner per final artifact
 
@@ -255,7 +255,109 @@ fixtures for duplicate, incompatible, cyclic, and ambiguously ordered
 contributions. It does not require dynamic loading, a package marketplace, or a
 version solver.
 
-## 6. Revision record
+## 6. Active batch: Trust, packaging, and conformance
+
+`EXT-B03` resolves:
+
+- `EXT-008`: whether operation providers are trusted build inputs initially;
+- `EXT-009`: when real isolation or sandboxing becomes mandatory;
+- `EXT-010`: how executable extensions and semantic metadata are packaged; and
+- `EXT-011`: which schemas, diagnostics, compatibility declarations, and
+  conformance fixtures are mandatory.
+
+The following recommendations remain **unaccepted** until the human confirms or
+revises them.
+
+### EXT-008 — V1 executes only explicit first-party trusted build code
+
+**Recommendation:** The initial CLI executes only first-party operation
+providers shipped as part of the selected Program Kit distribution and
+registered explicitly in its composition root. They are trusted development-time
+code, selected by exact identity and digest through an authorized factory
+request and resolution lock.
+
+An operation provider receives declared immutable inputs and returns candidate
+outputs, evidence, and diagnostics. The kernel validates those results and owns
+publication into the consumer workspace. This contract reduces accidental
+effects and makes behavior testable, but it is not a security sandbox: in-process
+code remains capable of violating its contract.
+
+Installing or discovering an extension bundle does not authorize execution.
+Third-party executable operation providers are unsupported in the first CLI
+rather than being accepted under a misleading trust prompt. Session capabilities
+remain separately activated clients running with the human-led session's
+authority; they do not gain kernel trust.
+
+### EXT-009 — Isolation is a prerequisite for future untrusted provider execution
+
+**Recommendation:** Program Kit makes no isolation claim for in-process
+operation providers. Before a future version executes third-party or untrusted
+provider code, it must define and prove an out-of-process build-time isolation
+profile with explicit filesystem, process, environment, network, resource,
+secret, input, output, and diagnostic boundaries.
+
+.NET load contexts, assembly naming, code review, signatures, and package
+allowlists may support identity or policy but are not security sandboxes.
+Isolation design is deferred because v1 performs no dynamic provider loading.
+If a real extension use case cannot be satisfied by first-party providers,
+public factory calls, or session capabilities, that evidence reopens the
+boundary.
+
+### EXT-010 — NuGet execution package plus canonical extension manifest
+
+**Recommendation:** A v1 .NET operation provider is delivered through an exact
+NuGet package referenced by the Program Kit distribution and registered
+explicitly at build time. The executable package includes or is referenced by a
+canonical extension manifest that provides Program Kit identity, contracts,
+support, provenance, and content digests.
+
+The NuGet package is the executable delivery mechanism; its ordinary NuGet
+metadata is not the semantic authority. The canonical extension manifest is the
+semantic artifact; it is not a second executable package manager or permission
+to discover assemblies by reflection.
+
+Vocabulary packages, schemas, target assets, diagnostic resources, and fixtures
+may be content-addressed members referenced by that manifest. Session
+capabilities have separate provider-neutral definitions and provider-specific
+projections; they are not hidden resources inside an executable provider
+assembly.
+
+### EXT-011 — Claims require complete manifests, diagnostics, and fixtures
+
+**Recommendation:** Every operation provider, including first-party providers,
+must declare at least:
+
+- authority-owned identity, immutable revision, digest, provenance, and
+  execution posture;
+- supported factory-protocol versions and operation roles;
+- exact operation contracts, dependencies, vocabularies, provider profiles,
+  targets, and support envelopes;
+- determinism classification and every declared external or late-bound input;
+- input and result schemas, owned output kinds, contribution seams, and
+  assembler relationships;
+- a stable diagnostic namespace with catalog definitions, explanations, and
+  machine-actionable remediation references; and
+- conformance fixtures with expected canonical results for every claimed support
+  profile.
+
+Compatibility is declared only where evidence exists. Migration rules are not
+mandatory and are outside v1 under `DEC-030`. Missing required metadata or
+fixtures makes the provider unavailable or incomplete; it cannot advertise the
+unsupported claim.
+
+A session capability instead declares its identity, supported Program Kit CLI
+versions and public operations, required preconditions and authority, expected
+artifacts and diagnostics, and provider projections. It cannot duplicate or
+override factory operation semantics in instructional text.
+
+### EXT-B03 delivery boundary
+
+The first CLI needs only compiled-in first-party .NET operation providers,
+canonical manifests, stable diagnostics, and conformance fixtures. It does not
+need dynamic loading, a trust store, package signing infrastructure, an
+extension marketplace, or a sandbox.
+
+## 7. Revision record
 
 - Created after Consumer Planning and Delivery closed under `DEC-029`.
 - Recorded the Spec Kit adapter only as an accepted future external client; no
@@ -274,3 +376,8 @@ version solver.
   factory operation roles; later roles may be added only through an explicit
   protocol revision.
 - Activated `EXT-B02` for deterministic composition.
+- Accepted `EXT-B02` under `DEC-032` with immutable contribution records,
+  single-owner assembly, contract-owned conflict and ordering rules, and exact
+  resolution locks without a compatibility solver.
+- Completed `EXT-B02` and activated final Extensions batch `EXT-B03` for trust,
+  isolation, packaging, metadata, diagnostics, and conformance obligations.
