@@ -9,13 +9,13 @@ namespace Orbyss.ProgramKit.ConformanceTests.Schemas;
 public sealed class ActiveOwnedAlphaTransitionConformanceTests
 {
     private const string SelectionRelativePath =
-        "extensions/alpha-version-transition/active-owned-schema-migration-selection.json";
+        ".review-sets/alpha-version-transition/active-owned-schema-migration-selection.json";
     private const string MapRelativePath =
-        "extensions/alpha-version-transition/active-owned-alpha-transition-map.json";
+        ".review-sets/alpha-version-transition/active-owned-alpha-transition-map.json";
     private const string InventoryRelativePath =
-        "extensions/alpha-version-transition/version-intent-inventory.json";
+        ".review-sets/alpha-version-transition/version-intent-inventory.json";
     private const string BoundaryRelativePath =
-        "extensions/alpha-version-transition/version-intent-observation-boundary.json";
+        ".review-sets/alpha-version-transition/version-intent-observation-boundary.json";
 
     [TestMethod]
     public void EverySelectedLegacySchemaHasOneExactAlphaTargetAndMigration()
@@ -72,7 +72,7 @@ public sealed class ActiveOwnedAlphaTransitionConformanceTests
             var migrationPath = RepositoryPath(
                 root,
                 string.Concat(
-                    "extensions/alpha-version-transition/migrations/active-owned-schemas/",
+                    ".review-sets/alpha-version-transition/migrations/active-owned-schemas/",
                     suffix,
                     "-to-alpha-",
                     ordinal.ToString(CultureInfo.InvariantCulture),

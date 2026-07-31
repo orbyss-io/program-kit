@@ -207,8 +207,8 @@ The implemented baseline includes:
 - a strict repository-owned C# source gate;
 - an Observatory Scheduling fixture that proves the domain-neutral baseline.
 
-Some host-tooling extensions are still being completed. Their review artifacts
-and tests distinguish implemented, incomplete, and deferred behavior.
+Some host-tooling review sets are still being completed. Their artifacts and
+tests distinguish implemented, incomplete, and deferred behavior.
 
 ## How it works
 
@@ -362,9 +362,8 @@ never load capability prose or provider configuration.
 
 ## Explore the repository
 
-- [Final baseline review](artifacts/final/final-review-report.md)
-- [Final topology and closure evidence](artifacts/final/README.md)
-- [Self-hosted comparison](artifacts/self-hosted/README.md)
+- [Change review sets](.review-sets/README.md)
+- [Program Kit baseline evidence](.evidence/program-kit-baseline/README.md)
 - [Observatory Scheduling fixture](fixtures/observatory-scheduling/README.md)
 - [CLI commands](src/Orbyss.ProgramKit.CommandLine/README.md)
 - [.NET generation contracts](src/Orbyss.ProgramKit.DotNet/README.md)
