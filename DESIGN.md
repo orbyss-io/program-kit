@@ -4,9 +4,9 @@ status: active
 authority: human-led
 implementation-authority: none
 created: 2026-07-31
-last-updated: 2026-07-31
+last-updated: 2026-08-01
 active-category: determinism-and-generated-artifacts
-active-batch: DET-B01
+active-batch: DET-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -74,7 +74,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Semantic language and bounded contexts | `SEM` | `closed` | 14 | All batches are accepted by `DEC-016`, `DEC-019`, and `DEC-024`–`DEC-026`. |
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
 | Extensions and composition | `EXT` | `closed` | 13 | All batches are accepted by `DEC-029` and `DEC-031`–`DEC-033`. |
-| Determinism and generated artifacts | `DET` | `active` | 10 | `DET-010` is accepted; `DET-B01` defines reproducibility claims and construction identity. |
+| Determinism and generated artifacts | `DET` | `active` | 10 | `DET-B01` is accepted by `DEC-034`; `DET-B02` defines atomic publication, ownership, and drift. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
@@ -104,8 +104,8 @@ Extensions and Composition is closed in
 [`DESIGN-EXTENSIONS.md`](DESIGN-EXTENSIONS.md). All three batches are complete.
 
 Determinism and Generated Artifacts is active in
-[`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). `DET-B01` defines exact
-reproducibility claims and the complete construction identity.
+[`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). `DET-B01` is accepted;
+`DET-B02` now defines logical atomicity, artifact ownership, and drift handling.
 
 ## 8. Queued question catalog
 
@@ -115,7 +115,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-033`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-034`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Extensions and Composition is closed; Determinism and Generated Artifacts is active.
 
@@ -154,6 +154,7 @@ Extensions and Composition is closed; Determinism and Generated Artifacts is act
 | `DEC-031` | `EXT-001`–`EXT-003` | `accepted` | Normative terminology separates extension bundles, factory operation contracts, executable operation providers, AI-facing session capabilities, declarative vocabulary packages, and provider profiles. V1 kernel invocation has three initial roles: intake mapping, construction, and evaluation. The role set is closed per protocol version but may grow through an explicit revision. Resolution and admission remain kernel mechanics; migration is not a primitive role. Extensions may carry exact vocabularies but cannot invent canonical meaning during execution. | 2026-07-31 |
 | `DEC-032` | `EXT-004`–`EXT-007` | `accepted` | Operation providers produce immutable candidate outputs and cannot edit one another's artifacts. Contract-declared contribution seams feed one exact assembler that owns each final generated artifact. Seam contracts own composition, cardinality, conflict, and ordering rules; the kernel enforces them. Meaningful order is explicit and identity-forming. Every executed input resolves exactly in the accepted lock; v1 has no compatibility solver, implicit best match, or automatic upgrade. | 2026-07-31 |
 | `DEC-033` | `EXT-008`–`EXT-011` | `accepted` | V1 executes only exact, explicitly registered first-party operation providers shipped with the selected distribution; installation and discovery grant no execution authority, and in-process code carries no sandbox claim. Exact NuGet packages deliver .NET code while canonical extension manifests carry Program Kit semantic identity, contracts, provenance, digests, support, composition, diagnostics, and conformance evidence. Unsupported or incomplete claims remain unavailable. Future third-party or untrusted provider execution requires a proven out-of-process isolation profile. Dynamic loading, a marketplace, trust store, signing infrastructure, and sandbox are outside v1. | 2026-07-31 |
+| `DEC-034` | `DET-001`–`DET-003`, `DET-009` | `accepted` | Deterministic construction claims are scoped to exact named reproducibility profiles. Equal construction identities yield byte-identical canonical outputs; portability across platforms or toolchains is claimed only when proven. Results distinguish canonical-byte reproducible, verified-equivalent under an exact named verifier, and custom-bounded with no deterministic derivation claim. Program Kit-owned canonical artifacts require byte reproducibility. Construction identity covers the complete resolved operation closure and every output-affecting input; ambient influence is normalized, explicit, or rejected. | 2026-08-01 |
 
 ## 10. Emergent-question register
 
@@ -464,3 +465,13 @@ answer or tension that created them.
   proven out-of-process isolation profile protects it.
 - Closed Extensions and Composition and activated Determinism and Generated
   Artifacts batch `DET-B01`.
+
+### 2026-08-01 — Reproducibility contract accepted
+
+- The human explicitly accepted all four `DET-B01` recommendations.
+- Accepted `DEC-034` for named reproducibility profiles, distinct
+  byte/equivalence/custom claim strengths, and exhaustive construction
+  identity.
+- Required Program Kit-owned canonical artifacts to be byte reproducible and
+  prohibited hidden output-affecting environmental input.
+- Completed `DET-B01` and activated `DET-B02` for logical atomicity, generated

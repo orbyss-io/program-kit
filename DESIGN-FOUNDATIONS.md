@@ -1,7 +1,7 @@
 ---
 artifact-kind: program-kit-design-foundations
 status: active
-last-updated: 2026-07-31
+last-updated: 2026-08-01
 parent-ledger: DESIGN.md
 ---
 
@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 23 are accepted decisions governed by the
+Items 1 through 3 and 6 through 24 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -310,3 +310,20 @@ respective categories converge.
     and conformance fixtures with expected canonical results. An incomplete
     claim is unavailable. V1 has no dynamic third-party loader, marketplace,
     trust store, signing infrastructure, or sandbox.
+24. Every deterministic claim is scoped to an exact named reproducibility
+    profile. Equal construction identities under that profile produce
+    byte-identical canonical outputs. Cross-platform, architecture, runtime,
+    SDK, or toolchain portability is claimed only where fixtures prove it;
+    otherwise the relevant identity is an explicit construction input.
+    Output claims distinguish canonical-byte reproducible, verified-equivalent
+    under an exact named verifier, and custom-bounded with no deterministic
+    derivation claim. Program Kit-owned canonical artifacts require byte
+    reproducibility. External-tool outputs receive only the strongest claim
+    their exact provider profile proves.
+    Construction identity covers the complete resolved operation closure and
+    every output-affecting input, selection, provider, tool, template, option,
+    dependency, policy, and declared environment property. Ambient path,
+    culture, time, ordering, random, machine, and environment influence is
+    normalized, made explicit, or rejected. Late-bound secret values and
+    deployment configuration are excluded from generated output and identity;
+    their non-secret parameter contracts may be included.

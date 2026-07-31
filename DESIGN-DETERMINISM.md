@@ -2,8 +2,8 @@
 artifact-kind: program-kit-design-category
 category: determinism-and-generated-artifacts
 status: active
-last-updated: 2026-07-31
-active-batch: DET-B01
+last-updated: 2026-08-01
+active-batch: DET-B02
 parent-ledger: DESIGN.md
 ---
 
@@ -34,8 +34,8 @@ The category preserves these accepted boundaries:
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
 | `DET-B00` | `DET-010` | `completed` | Bound deterministic construction separately from human judgment, custom implementation, conformance, and runtime behavior. |
-| `DET-B01` | `DET-001`–`DET-003`, `DET-009` | `active` | Define reproducibility profiles, claim strengths, and the complete construction identity. |
-| `DET-B02` | `DET-004`–`DET-007` | `queued` | Define atomic publication, generated-file ownership, editing, and drift handling. |
+| `DET-B01` | `DET-001`–`DET-003`, `DET-009` | `completed` | Define reproducibility profiles, claim strengths, and the complete construction identity. |
+| `DET-B02` | `DET-004`–`DET-007` | `active` | Define atomic publication, generated-file ownership, editing, and drift handling. |
 | `DET-B03` | `DET-008` | `queued` | Define retention and evidence sufficiency without prematurely designing archival policy. |
 
 ## 3. Accepted determinism boundary
@@ -46,7 +46,7 @@ requested operation is inside a declared support envelope. Semantic coverage,
 construction method, and conformance are independent. This boundary is governed
 by `DEC-018` and `DEC-028`.
 
-## 4. Active batch: Reproducibility claims and construction identity
+## 4. Accepted batch: Reproducibility claims and construction identity
 
 `DET-B01` resolves:
 
@@ -56,8 +56,8 @@ by `DEC-018` and `DEC-028`.
 - `DET-003`: which values form the exact construction identity; and
 - `DET-009`: whether a weaker semantic-equivalence claim is permitted.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all four recommendations. They are governed by
+`DEC-034`.
 
 ### DET-001 — Determinism is relative to a named reproducibility profile
 
@@ -147,10 +147,113 @@ It does not need to prove reproducible binaries for every .NET SDK, operating
 system, or architecture. Those claims remain absent until a provider profile
 supplies evidence.
 
-## 5. Revision record
+## 5. Active batch: Atomic publication, ownership, and drift
+
+`DET-B02` resolves:
+
+- `DET-004`: whether generation yields one complete trusted artifact set or no
+  trusted output;
+- `DET-005`: whether consumers may edit generated files;
+- `DET-006`: how generated and consumer ownership remain unambiguous; and
+- `DET-007`: how Program Kit responds to generated-artifact drift.
+
+The following recommendations remain **unaccepted** until the human confirms or
+revises them.
+
+### DET-004 — Artifact sets are logically atomic and physically recoverable
+
+**Recommendation:** Construction first writes an immutable candidate artifact
+set into an isolated staging location. Its manifest declares every path,
+digest, provenance record, construction classification, and owner. Program Kit
+performs all mandatory candidate validation and a collision/precondition check
+before modifying live consumer paths.
+
+Trust is atomic at the artifact-set level: the complete set receives one
+admission and publication receipt only after all mandatory checks and writes
+succeed. A failed or interrupted operation produces no partially trusted new
+state. The candidate and diagnostics may be retained outside live paths for
+inspection, but they are not admitted outputs.
+
+Program Kit must not claim that arbitrary multi-file writes are physically
+atomic on every filesystem. It uses atomic replacement where supported and an
+exact publish plan, pre-write fingerprints, and recoverable journal otherwise.
+An interruption or failed rollback leaves an explicit incomplete-publication
+state that the next operation detects and refuses to treat as trusted. The last
+complete receipt remains the last trusted state.
+
+### DET-005 and DET-006 — Ownership is per artifact, never mixed inside a file
+
+**Recommendation:** Every materialized artifact has exactly one of three
+ownership modes:
+
+1. **Program Kit generated-owned** — canonically reproducible bytes that
+   Program Kit may replace only when the observed current digest matches its
+   recorded precondition or an explicit repair is authorized. Consumer edits
+   are drift, not new canonical input.
+2. **Seeded handoff** — Program Kit creates an initial artifact only when the
+   target is absent. Successful publication transfers ownership to the
+   consumer; subsequent content is `custom-bounded`, and Program Kit never
+   regenerates or overwrites it implicitly.
+3. **Consumer-owned** — created and maintained outside the operation. A
+   provider may read it only as a declared input and may never modify it.
+
+V1 permits no generated and editable regions inside the same file. Marker
+blocks and heuristic merges obscure authority and make regeneration unsafe.
+Composition instead uses separate partial-class files, sibling artifacts,
+explicit contribution records, include/import seams, or another target-owned
+structured boundary. A future structured merge profile would need an exact
+parser, canonical ownership model, conflict semantics, and conformance proof.
+
+The artifact-set manifest records the owner authority and ownership mode.
+Creating a seed is deterministic; the consumer's later implementation is not.
+This allows Program Kit to help start custom code without later claiming or
+destroying it.
+
+### DET-007 — Drift is diagnosed before any explicit repair
+
+**Recommendation:** Evaluation is read-only and classifies each governed
+artifact at least as exact, missing, modified under the same construction
+identity, stale because its construction identity changed, blocked by a path
+collision, or indeterminate after interrupted publication.
+
+The default construction path fails closed rather than overwriting a modified,
+missing, colliding, or indeterminate live artifact. Its machine result reports
+the expected and observed identities, ownership, consequence, and permitted
+next actions. Program Kit never silently adopts edited generated bytes,
+reverse-engineers them into canonical intent, or repairs them as a side effect
+of evaluation.
+
+Repair is a separate, explicit construction request. Safe actions may include
+previewing the candidate difference, restoring exact generated-owned bytes,
+moving a colliding consumer artifact, or revising the authoritative definition
+and ownership. Reclassifying generated-owned output as consumer-owned requires
+a human-approved definition change; an `accept drift` shortcut cannot present
+custom bytes as deterministically generated.
+
+A changed construction identity is a new construction request, not an
+automated migration. This batch does not reopen migration scope.
+
+### DET-B02 delivery boundary
+
+The first CLI needs an isolated candidate directory, artifact-set manifest,
+preconditioned publish plan, completion receipt, and recoverable interrupted
+publication marker. One generated-owned file and one seeded-handoff file are
+enough to prove ownership. Fixtures must cover modification, deletion,
+collision, stale identity, and interrupted publication.
+
+V1 does not need a general merge engine, source-control integration, arbitrary
+filesystem transactions, or automatic repair.
+
+## 6. Revision record
 
 - Created after Extensions and Composition closed under `DEC-033`.
 - Preserved the already accepted `DET-010` boundary from `DEC-018` and
   `DEC-028`.
 - Activated `DET-B01` to prevent an unscoped or environment-dependent use of
   the word deterministic before generated-file ownership and drift are defined.
+- The human accepted `DET-B01` in full under `DEC-034`.
+- Established named reproducibility profiles, explicit byte/equivalence/custom
+  claim strengths, and a complete construction identity with no ambient
+  output-affecting inputs.
+- Completed `DET-B01` and activated `DET-B02` for logical atomicity, generated
+  artifact ownership, consumer editing, and drift handling.
