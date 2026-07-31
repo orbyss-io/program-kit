@@ -169,7 +169,106 @@ deliberately did not decide:
 
 No `FTR-B02` answer is implied by accepting `DEC-013`.
 
-## 6. Revision record
+## 6. Draft recommendations for human review
+
+These recommendations are recorded but remain **unaccepted** until the human
+confirms or revises them.
+
+### FTR-002 — One evidence-backed CShells target profile
+
+**Recommendation:** Program Kit v1 initially supports one exact construction
+profile: `.NET 10 + CShells 0.0.28`. The profile is a versioned Program Kit
+contract and pins package bytes, target framework, compiler/generator inputs,
+ABI symbols, emitted syntax, and conformance expectations. A newer CShells
+release creates a new profile; it never silently widens this one.
+
+Package placement should be role-specific:
+
+- generated non-web feature libraries reference `CShells.Abstractions 0.0.28`;
+- generated web feature libraries reference
+  `CShells.AspNetCore.Abstractions 0.0.28`;
+- generated generic hosts reference `CShells 0.0.28`;
+- generated ASP.NET Core hosts reference `CShells 0.0.28` and
+  `CShells.AspNetCore 0.0.28`;
+- `CShells.AspNetCore.Testing 0.0.28` is test-only when the applicable testing
+  capability is selected; and
+- FastEndpoints, storage providers, and other integrations are separately
+  selected capability profiles, never implicit core dependencies.
+
+Program Kit owns its generators and analyzers. Those remain build-time
+dependencies and do not become runtime dependencies of generated products.
+Feature abstraction packages remain declared package dependencies because their
+types form part of the implemented feature ABI; full CShells runtime packages
+belong only in generated hosts.
+
+Generated hosts use an exact, profile-verified CShells invocation template and
+explicit feature assembly/activation selection. Ambient discovery and syntax
+copied from an unpinned source branch cannot establish conformance.
+
+The conformance suite must prove at least restore integrity, compilation,
+deterministic repeated generation, feature ABI inspection, explicit discovery,
+generic-host activation, ASP.NET Core endpoint activation, declared DI
+participation, negative invalid-feature cases, and structured diagnostic
+results. Diagnostics preserve the Program Kit code, stage, affected identity,
+profile and package revisions, evidence, cause, and actionable remediation;
+an upstream exception alone is never the user-facing result.
+
+Migration between CShells profiles is an explicit, versioned capability with
+preflight and impact evidence. Program Kit never silently rewrites or upgrades a
+profile. Until such a migration exists, it reports the exact unsupported edge
+and preserves the old definition as readable evidence.
+
+Evidence checked on 2026-07-31: the archived implementation had byte-level
+evidence for `0.0.28`, and the official NuGet catalog still identifies `0.0.28`
+as the current stable version of the four core packages. This evidence supports
+the initial pin but does not make the archived architecture authoritative.
+
+### FTR-005 — Multiple interfaces without a core surface taxonomy
+
+**Recommendation:** Yes, one feature may provide or require any number of
+interfaces simultaneously. API, CLI, worker, configuration, event, and internal
+are examples owned by target or contract capabilities, not values in a closed
+Program Kit enum. Core records only explicit `provides` and `requires`
+references among stable feature, interface, contract, and binding identities.
+
+An interface or binding may carry capability-owned typed facets. A single
+canonical operation may therefore have HTTP and CLI bindings, while one feature
+may participate in service registration, endpoints, background work, and other
+mechanics. Consumer policy may require a feature to be split, but the kernel
+does not infer that rule from the number or kinds of interfaces.
+
+### FTR-006 — Minimal, non-synonymous vocabulary
+
+**Recommendation:** Use the following minimum distinctions and do not infer
+equivalence from names:
+
+| Term | Minimum Program Kit meaning |
+|---|---|
+| **feature** | A target-specific implemented software unit with stable identity and purpose. |
+| **operation** | An optional, contract-owned unit of invocable behavior with governed input, output, failure, and compatibility meaning. Not every interface or feature is operational. |
+| **component** | A separately governed target-specific composition and delivery boundary that references its features, interfaces, artifacts, provenance, and evidence. |
+| **application** | A constructed composition root that selects components, hosts, target profiles, configuration boundaries, and deployable outputs. |
+| **package** | A concrete distribution artifact such as a NuGet package, npm package, archive, or container image; packaging does not create semantic identity by itself. |
+| **module** | Consumer-owned architectural vocabulary with no intrinsic kernel behavior. |
+| **service** | Consumer-owned domain or runtime vocabulary with no intrinsic kernel behavior; a capability may define a service profile. |
+| **extension** | A Program Kit contribution/distribution concept defined by the extension system, not a synonym for feature or component. It contributes only through explicit public capability contracts. |
+
+### FTR-007 — Component identity without duplicated domain semantics
+
+**Recommendation:** A component is more than an artifact boundary and carries
+its own stable, versioned identity, purpose, composition, target, lifecycle, and
+evidence. That identity is necessary for dependency maps, release boundaries,
+impact analysis, diagnostics, replacement, and migration.
+
+A component does not automatically invent a new domain contract. It references
+the features, interfaces, contracts, bindings, and artifacts it contains or
+exposes. It may contain one feature, several features, or no runtime feature at
+all, such as a contracts-only or infrastructure component. Cardinality and
+project layout remain consumer-owned. The component descriptor is the governed
+boundary; NuGet packages, assemblies, containers, source projects, manifests,
+SBOMs, and documentation are its concrete artifacts.
+
+## 7. Revision record
 
 - The human rejected the generic contract/implementation/component ontology,
   built-in cross-domain bridge policy, and built-in interface-role taxonomy.
