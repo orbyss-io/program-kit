@@ -1,7 +1,0 @@
-{
-  "sourceVersion": "0.1.0-alpha.1",
-  "targetVersion": "0.1.0-alpha.2",
-  "targetSchema": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.2/static-conformance-disposition.schema.json",
-  "suppliedSoftwareDesignVersion": "0.1.0-alpha.3",
-  "preservationRule": "Every StaticConformanceDisposition alpha.1 decision field is preserved; the exact $schema and caller-supplied alpha.3 design reference are the only replacements."
-}

@@ -1,19 +1,1 @@
 * text=auto eol=lf
-
-bootstrap/*.md text eol=lf
-bootstrap/*.json text eol=lf
-.review-sets/**/*.md text eol=lf
-.agent-capabilities/**/*.md text eol=lf
-.review-sets/reusable-csharp-build-gates/**/*.json text eol=lf
-.review-sets/reusable-csharp-build-gates/**/*.md text eol=lf
-.review-sets/reusable-csharp-build-gates/**/*.ps1 text eol=lf
-.agent-capabilities/**/*.json text eol=lf
-global.json text eol=lf
-**/*.cs text eol=lf
-**/*.csproj text eol=lf
-**/*.dot text eol=lf
-**/*.json text eol=lf
-**/*.props text eol=lf
-**/*.targets text eol=lf
-**/*.sln text eol=lf
-NuGet.Config text eol=lf

@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.orbyss.io/program-kit/quality/independent-review/0.1.0-alpha.1/schema.json",
-  "x-program-kit-identity": "pkid:schema:program-kit:independent-review",
-  "x-program-kit-version": "0.1.0-alpha.1",
-  "$ref": "https://schemas.orbyss.io/program-kit/quality/0.1.0-alpha.1/definitions.schema.json#/$defs/independentReview"
-}

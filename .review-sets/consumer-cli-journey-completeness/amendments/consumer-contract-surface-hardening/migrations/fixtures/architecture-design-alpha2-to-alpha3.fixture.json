@@ -1,7 +1,0 @@
-{
-  "sourceVersion": "0.1.0-alpha.2",
-  "targetVersion": "0.1.0-alpha.3",
-  "targetSchema": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.3/architecture-design.schema.json",
-  "suppliedStaticConformanceDispositionVersion": "0.1.0-alpha.2",
-  "preservationRule": "Every Architecture Design alpha.2 semantic field is preserved; the exact $schema and caller-supplied alpha.2 disposition reference are the only replacements."
-}

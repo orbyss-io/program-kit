@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.orbyss.io/program-kit/planning/implementation-plan/1.0.0/schema.json",
-  "x-program-kit-identity": "pkid:schema:program-kit:implementation-plan",
-  "x-program-kit-version": "1.0.0",
-  "$ref": "https://schemas.orbyss.io/program-kit/planning/1.0.0/definitions.schema.json#/$defs/implementationPlanDocument"
-}
