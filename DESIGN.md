@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
-active-category: determinism-and-generated-artifacts
-active-batch: DET-B03
+active-category: diagnostics-and-ai-guidance
+active-batch: DIA-B01
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -74,8 +74,8 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Semantic language and bounded contexts | `SEM` | `closed` | 14 | All batches are accepted by `DEC-016`, `DEC-019`, and `DEC-024`–`DEC-026`. |
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
 | Extensions and composition | `EXT` | `closed` | 13 | All batches are accepted by `DEC-029` and `DEC-031`–`DEC-033`. |
-| Determinism and generated artifacts | `DET` | `active` | 10 | `DET-B02` is accepted by `DEC-035`; final batch `DET-B03` defines retention and evidence sufficiency. |
-| Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
+| Determinism and generated artifacts | `DET` | `closed` | 10 | All batches are accepted by `DEC-018`, `DEC-028`, and `DEC-034`–`DEC-036`. |
+| Diagnostics and AI guidance | `DIA` | `active` | 16 | `DIA-B01` defines the universal operation-result and diagnostic foundation. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
 | First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
@@ -103,9 +103,12 @@ Program Kit owns independently callable factory-operation contracts.
 Extensions and Composition is closed in
 [`DESIGN-EXTENSIONS.md`](DESIGN-EXTENSIONS.md). All three batches are complete.
 
-Determinism and Generated Artifacts is active in
-[`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). `DET-B01` and `DET-B02` are
-accepted; final batch `DET-B03` now defines retention and evidence sufficiency.
+Determinism and Generated Artifacts is closed in
+[`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). All three batches are complete.
+
+Diagnostics and AI Guidance is active in
+[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). `DIA-B01` defines the
+universal operation-result envelope, outcomes, categories, and mandatory data.
 
 ## 8. Queued question catalog
 
@@ -115,9 +118,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-035`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-036`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
-Extensions and Composition is closed; Determinism and Generated Artifacts is active.
+Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is active.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -157,6 +160,7 @@ Extensions and Composition is closed; Determinism and Generated Artifacts is act
 | `DEC-034` | `DET-001`–`DET-003`, `DET-009` | `accepted` | Deterministic construction claims are scoped to exact named reproducibility profiles. Equal construction identities yield byte-identical canonical outputs; portability across platforms or toolchains is claimed only when proven. Results distinguish canonical-byte reproducible, verified-equivalent under an exact named verifier, and custom-bounded with no deterministic derivation claim. Program Kit-owned canonical artifacts require byte reproducibility. Construction identity covers the complete resolved operation closure and every output-affecting input; ambient influence is normalized, explicit, or rejected. | 2026-08-01 |
 | `DEC-035` | `DET-004`–`DET-007` | `accepted` | Trust is atomic at the complete artifact-set level: construction stages immutable candidates, validates them, checks live-path preconditions, and issues admission/publication only after complete success. Physical publication is recoverable and partial output is never trusted. Artifacts are generated-owned, seeded-handoff, or consumer-owned, with no mixed generated/editable regions inside a v1 file. Evaluation diagnoses drift without mutation; construction fails closed; repair is separately authorized. Program Kit never silently overwrites, adopts drift, or presents custom bytes as deterministic output. | 2026-08-01 |
 
+| `DEC-036` | `DET-008` | `accepted` | Manifests, locks, receipts, and any future signatures preserve historical identity and authenticity but cannot substitute for unavailable content. While construction is presented as actively supported or reproducible, every identity-forming input, provider, tool artifact, dependency, and required evidence must remain exactly resolvable and digest-verifiable under a declared policy. Eternal retention and repository-local duplication are not required. Missing or expired content makes current reproduction, re-evaluation, or repair explicitly stale or unavailable without rewriting historical receipts. Secrets are never retained as reproducibility inputs. | 2026-08-01 |
 ## 10. Emergent-question register
 
 New items receive the next stable ID within the relevant category and cite the
@@ -487,3 +491,16 @@ answer or tension that created them.
   drifted generated artifacts.
 - Required read-only diagnosis followed by a separately authorized repair.
 - Completed `DET-B02` and activated final Determinism batch `DET-B03` for
+  retention and evidence sufficiency.
+
+### 2026-08-01 — Determinism and Generated Artifacts closed
+
+- The human accepted the final `DET-B03` recommendation.
+- Accepted `DEC-036`: active reproducibility requires every exact referenced
+  input and evidence artifact to remain resolvable and digest-verifiable under
+  a declared retention policy.
+- Rejected both eternal-retention requirements and the claim that manifests,
+  hashes, or signatures can substitute for missing bytes.
+- Closed Determinism and Generated Artifacts with all ten questions resolved.
+- Activated Diagnostics and AI Guidance batch `DIA-B01` for the universal
+  operation-result protocol.

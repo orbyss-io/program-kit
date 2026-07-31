@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 25 are accepted decisions governed by the
+Items 1 through 3 and 6 through 26 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -346,3 +346,18 @@ respective categories converge.
     and reclassification requires a human-approved definition change. Program
     Kit never silently adopts drift, derives canonical intent from edited
     output, or presents custom bytes as deterministically generated.
+26. A construction manifest, resolution lock, and receipt are the authoritative
+    historical index of what Program Kit used and claimed, but hashes or a
+    future signature cannot reproduce or currently verify missing bytes.
+    While an admitted construction is presented as actively supported or
+    reproducible, every identity-forming canonical input, provider, template,
+    tool artifact, dependency, and applicable evidence remains exactly
+    resolvable and digest-verifiable under a declared retention and support
+    policy. The bytes need not all be duplicated in the consumer repository.
+    Program Kit imposes no eternal retention. Expired policy or unavailable
+    content preserves historical receipts but makes current reproduction,
+    re-evaluation, or repair explicitly stale or unavailable. Evidence
+    freshness determines whether admission remains current.
+    Secret values are never retained as reproducibility inputs. V1 requires
+    complete digest references, availability preflight, and missing-input
+    diagnostics, not signing, archival, garbage-collection, or storage systems.

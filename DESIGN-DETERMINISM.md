@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: determinism-and-generated-artifacts
-status: active
+status: closed
 last-updated: 2026-08-01
-active-batch: DET-B03
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -36,7 +36,7 @@ The category preserves these accepted boundaries:
 | `DET-B00` | `DET-010` | `completed` | Bound deterministic construction separately from human judgment, custom implementation, conformance, and runtime behavior. |
 | `DET-B01` | `DET-001`–`DET-003`, `DET-009` | `completed` | Define reproducibility profiles, claim strengths, and the complete construction identity. |
 | `DET-B02` | `DET-004`–`DET-007` | `completed` | Define atomic publication, generated-file ownership, editing, and drift handling. |
-| `DET-B03` | `DET-008` | `active` | Define retention and evidence sufficiency without prematurely designing archival policy. |
+| `DET-B03` | `DET-008` | `completed` | Define retention and evidence sufficiency without prematurely designing archival policy. |
 
 ## 3. Accepted determinism boundary
 
@@ -244,13 +244,13 @@ collision, stale identity, and interrupted publication.
 V1 does not need a general merge engine, source-control integration, arbitrary
 filesystem transactions, or automatic repair.
 
-## 6. Active batch: Retention and evidence sufficiency
+## 6. Accepted batch: Retention and evidence sufficiency
 
 `DET-B03` resolves `DET-008`: whether canonical inputs must be retained forever
 or whether a generation manifest alone can remain sufficient evidence.
 
-The following recommendation remains **unaccepted** until the human confirms or
-revises it.
+The human accepted the recommendation. It is governed by
+`DEC-036`.
 
 ### DET-008 — Reproducibility requires resolvable bytes, not eternal retention
 
@@ -316,3 +316,8 @@ their exact identities and refuse unavailable claims.
   ownership in v1.
 - Required read-only drift diagnosis and separately authorized repair.
 - Completed `DET-B02` and activated final Determinism batch `DET-B03`.
+- The human accepted `DET-B03` under `DEC-036`: active reproducibility requires
+  exact referenced bytes to remain resolvable under a declared policy; records
+  and signatures cannot substitute for unavailable content.
+- Closed Determinism and Generated Artifacts and activated Diagnostics and AI
+  Guidance.
