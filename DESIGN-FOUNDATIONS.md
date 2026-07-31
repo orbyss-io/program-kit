@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 16 are accepted decisions governed by the
+Items 1 through 3 and 6 through 17 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -213,3 +213,15 @@ respective categories converge.
     comprehensive lifecycle engines, global knowledge graphs, inference
     platforms, and general semantic runtimes are deferred until a product
     workflow proves their need; they are not permanently prohibited.
+17. Consumers and third parties may extend semantic vocabulary through exact,
+    versioned packages over a small kernel-owned declarative protocol.
+    Vocabulary packages own their terms, fields, relations, and constraints but
+    cannot redefine kernel invariants or embed executable behavior. The same
+    package mechanics apply to first-party platform-contract vocabularies.
+    Software-definition bundles pin vocabulary identity, revision, protocol
+    profile, and digest; discovery and upgrade are never ambient. Executable
+    validation, mapping, evaluation, migration, and generation belong to
+    separately pinned capabilities that cannot mutate approved canonical
+    meaning or bypass kernel gates. New vocabularies using supported primitives
+    require no kernel change; genuinely new primitives require an explicit
+    protocol and kernel revision.

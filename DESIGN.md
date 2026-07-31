@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: semantic-language-and-bounded-contexts
-active-batch: SEM-B02
+active-batch: SEM-B03
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -71,7 +71,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
 | Feature model | `FTR` | `closed` | 17 | All four batches are accepted by `DEC-013` and `DEC-021`–`DEC-023`. |
-| Semantic language and bounded contexts | `SEM` | `active` | 14 | `SEM-B01` is accepted by `DEC-024`; `SEM-B02` now resolves bounded consumer vocabulary extension. |
+| Semantic language and bounded contexts | `SEM` | `active` | 14 | `SEM-B02` is accepted by `DEC-025`; final batch `SEM-B03` resolves relationships and bounded implementation contexts. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
 | Determinism and generated artifacts | `DET` | `queued` | 10 | `DET-010` is accepted; remaining deterministic-generation questions are queued. |
@@ -93,8 +93,8 @@ Feature Model is closed at its accepted thin target-specific boundary in
 complete.
 
 Semantic Language and Bounded Contexts is active in
-[`DESIGN-SEMANTIC-LANGUAGE.md`](DESIGN-SEMANTIC-LANGUAGE.md). Batch `SEM-B01`
-is accepted; `SEM-B02` now resolves consumer-owned vocabulary extension.
+[`DESIGN-SEMANTIC-LANGUAGE.md`](DESIGN-SEMANTIC-LANGUAGE.md). Batches `SEM-B01`
+and `SEM-B02` are accepted; final batch `SEM-B03` is active.
 
 ## 8. Queued question catalog
 
@@ -104,7 +104,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-024` are accepted. `DEC-012`
+Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-025` are accepted. `DEC-012`
 is superseded. Feature Model is closed; Semantic Language and Bounded Contexts
 is active.
 
@@ -134,6 +134,7 @@ is active.
 | `DEC-022` | `FTR-008`–`FTR-012` | `accepted` | Governed identities are globally unambiguous within authority-owned namespaces and resolve to immutable revisions. Feature semantics and implementation artifacts revise separately. Relations are explicit and contract-typed. Alternative implementations retain distinct identities. Construction selection requires a human-approved request and exact resolution lock; zero or multiple matches yield actionable diagnostics rather than implicit selection. | 2026-07-31 |
 | `DEC-023` | `FTR-013`, `FTR-014` | `accepted` | The canonical feature definition is a thin immutable identity-and-reference manifest with explicit dispositions and no duplicated linked records. A bounded component evaluates against an exact named multidimensional evaluation profile. Non-removable kernel gates enforce integrity, closure, provenance, applicability, evidence freshness, and diagnostic truth. Admission requires fresh conformance across every mandatory applicable dimension; all other outcomes remain explicit and actionable. | 2026-07-31 |
 | `DEC-024` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `accepted` | The semantic layer uses a formal API-neutral typed artifact model, a restricted YAML workspace projection, structured JSON automation projections, and one exact versioned canonical JSON byte profile. V1 definitions are declarative and non-Turing-complete; executable derivation belongs to exact pinned capabilities. Semantic authority is primarily construction-time, generated products have no implicit Program Kit runtime, and optional runtime semantic projections are explicit and purpose-bound. The broader semantic purpose remains, while first-CLI delivery defines only mechanics required by concrete end-to-end workflows and defers unproven semantic-engine machinery. | 2026-07-31 |
+| `DEC-025` | `SEM-005`, `SEM-006` | `accepted` | Consumers extend semantics through exact versioned vocabulary packages over a small kernel-owned declarative protocol. Packages own their terms and constraints but cannot redefine kernel invariants or embed executable behavior. Bundles pin package identity, revision, protocol profile, and digest with no ambient discovery or implicit upgrade. Executable validation, mapping, evaluation, migration, and generation remain in separately pinned capabilities. A new vocabulary within supported primitives requires no kernel change; a new primitive requires an explicit protocol and kernel revision. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -348,3 +349,13 @@ answer or tension that created them.
   design and implementation depth, not the semantic layer's broader purpose.
 - Completed `SEM-B01` and activated `SEM-B02`; its consumer-vocabulary
   recommendations remain unaccepted pending human review.
+
+### 2026-07-31 — Consumer vocabulary boundary accepted
+
+- The human explicitly accepted both `SEM-B02` recommendations.
+- Accepted `DEC-025` for versioned consumer vocabulary packages, exact
+  resolution, a small declarative kernel protocol, and capability-owned
+  executable semantics.
+- Completed `SEM-B02` and activated final Semantic Language batch `SEM-B03`.
+- Recorded bounded draft recommendations for cross-authority relationships,
+  explicit reconciliation, finite graph closure, and evaluation scope.

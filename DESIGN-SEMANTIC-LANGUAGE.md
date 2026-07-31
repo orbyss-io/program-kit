@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: semantic-language-and-bounded-contexts
 status: active
 last-updated: 2026-07-31
-active-batch: SEM-B02
+active-batch: SEM-B03
 parent-ledger: DESIGN.md
 ---
 
@@ -37,8 +37,8 @@ The active work must preserve these accepted constraints:
 |---|---|---|---|
 | `SEM-B00` | `SEM-013`–`SEM-014` | `completed` | Provider/canonical intake and semantic admissibility accepted by `DEC-016` and `DEC-019`. |
 | `SEM-B01` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `completed` | Resolve the semantic model, authored projections, canonical representation, declarative boundary, and build/runtime presence. |
-| `SEM-B02` | `SEM-005`–`SEM-006` | `active` | Define consumer-owned vocabulary extension without core changes. |
-| `SEM-B03` | `SEM-009`–`SEM-012` | `queued` | Define graph federation, cross-authority ownership, disagreement resolution, and the bounded implementation context. |
+| `SEM-B02` | `SEM-005`–`SEM-006` | `completed` | Define consumer-owned vocabulary extension without core changes. |
+| `SEM-B03` | `SEM-009`–`SEM-012` | `active` | Define graph federation, cross-authority ownership, disagreement resolution, and the bounded implementation context. |
 
 ## 3. Accepted prior decisions
 
@@ -245,7 +245,7 @@ health, deployment topology, and environment-resolved values remain outside
 immutable semantic definition. Runtime contracts may consume explicit values
 or references to them without recasting mutable facts as canonical semantics.
 
-## 7. Active batch: Consumer-owned vocabulary extension
+## 7. Accepted batch: Consumer-owned vocabulary extension
 
 `SEM-B02` resolves:
 
@@ -254,8 +254,7 @@ or references to them without recasting mutable facts as canonical semantics.
 - `SEM-006`: how those vocabularies are versioned and interpreted without
   changing Program Kit core.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted both recommendations. They are governed by `DEC-025`.
 
 ### SEM-005 — Versioned vocabulary packages over a small core protocol
 
@@ -316,7 +315,108 @@ first-party vocabulary and one independently identified consumer vocabulary
 fixture. That proof should exercise the same kernel path without pretending the
 initial vocabulary surface is a complete semantic engine.
 
-## 8. Revision record
+## 8. Active batch: Relationships and bounded implementation context
+
+`SEM-B03` resolves:
+
+- `SEM-009`: ownership of relationships across consumers or bounded domains;
+- `SEM-010`: failure versus explicit reconciliation when definitions disagree;
+- `SEM-011`: global graph versus bounded graph federation; and
+- `SEM-012`: the exact boundary of a bounded implementation context.
+
+The following recommendations remain **unaccepted** until the human confirms or
+revises them.
+
+### SEM-009 — Cross-boundary relationships are separately owned assertions
+
+**Recommendation:** A relationship that crosses independently owned definitions
+is an immutable, contract-bound assertion owned by the authority responsible for
+the composition in which it is used. It does not become jointly owned merely
+because it references two endpoints, and its owner gains no authority to rewrite
+or extend either endpoint's meaning.
+
+The relationship record minimally identifies:
+
+- its owning authority, identity, immutable revision, and digest;
+- the exact endpoint revisions and their roles or direction;
+- the relation contract, vocabulary, and evaluation profile;
+- the composition scope in which the assertion is intended to apply; and
+- the approvals and evidence required by that profile.
+
+The kernel admits the relationship only when both endpoints resolve exactly,
+the relationship kind is declared, and applicable endpoint constraints,
+approvals, and evidence conform. V1 records those authority and approval facts;
+it does not introduce a general delegation, trust-negotiation, or multi-party
+authorization system.
+
+### SEM-010 — Integrity conflicts fail; semantic differences need explicit mapping
+
+**Recommendation:** Definitions are never silently merged. Conflicting bytes or
+digests for the same exact identity and revision are an integrity failure that
+an adapter cannot repair.
+
+Distinct, internally valid definitions may be reconciled only by an explicit,
+versioned mapping, adapter, or migration whose input contracts, output
+contracts, support envelope, implementation revision, and evidence are pinned.
+The reconciliation produces a separately identified binding or derived
+artifact; it never rewrites either source definition.
+
+Any non-equivalence, default, omission, or loss is named in the result and
+requires the approval allowed by the target evaluation profile. If required
+meaning cannot be represented, or the profile forbids the identified loss, the
+result is a structured incompatibility rather than a guessed mapping.
+
+### SEM-011 — Federated source truth with a finite resolved graph per operation
+
+**Recommendation:** Program Kit has no single global semantic graph as source
+truth. Authority-owned definitions and relationship records remain separately
+canonical. For a construction or evaluation operation, the kernel follows exact
+references from the approved root request, computes the finite required closure,
+and freezes that resolved graph in a lock with exact revisions and digests.
+
+The resolved graph is a deterministic, inspectable view for that operation, not
+a second semantic authority or a long-lived global knowledge database. A
+catalog, registry, or search index may later help locate candidates as a
+capability, but it cannot select them implicitly or replace exact resolution and
+the approved lock.
+
+### SEM-012 — An exact operation-scoped semantic and evidence closure
+
+**Recommendation:** A bounded implementation context is the exact, finite,
+operation-scoped closure within which Program Kit may claim semantic
+understanding and evaluate admission for an implementation. It is bounded by
+the combination of:
+
+1. the approved root construction or evaluation request;
+2. exact feature, component, interface, contract, vocabulary, relationship,
+   profile, and capability references in the resolution lock;
+3. the declared implementation artifacts and dependency closure relevant to
+   that request;
+4. the applicable policies, approvals, mappings, evidence, and diagnostics; and
+5. the authority responsible for every included semantic assertion.
+
+A source folder, project, package, repository, consumer domain, or deployment
+boundary may contribute artifacts, but none defines the context by itself. The
+kernel materializes a canonical context descriptor and a separate evaluation
+report. A change to any included identity, digest, dependency, policy, approval,
+capability, or evidence input invalidates the affected report. A change outside
+the closure has no effect unless an explicit dependency makes it part of the
+next closure.
+
+This context is not a runtime container, a universal Domain-Driven Design
+bounded context, a security sandbox, or a lifecycle engine. It is a
+construction-time claim and evaluation boundary that gives the CLI something
+finite, reproducible, and testable.
+
+### SEM-B03 delivery boundary
+
+The first CLI needs only to resolve a small explicit relationship closure,
+materialize its context descriptor, evaluate it, and return a stable conformance
+or incompatibility result with actionable diagnostics. This batch does not
+authorize a graph service, ambient repository crawler, discovery registry,
+delegation system, multi-party negotiation workflow, or lifecycle orchestrator.
+
+## 9. Revision record
 
 - Created after Feature Model closed under `DEC-023`.
 - Imported only accepted cross-category constraints; no queued Semantic Language
@@ -326,3 +426,8 @@ initial vocabulary surface is a complete semantic engine.
   depth.
 - Activated `SEM-B02` with bounded recommendations for consumer vocabulary
   packages; no draft recommendation in that batch is yet accepted.
+- Accepted `SEM-B02` under `DEC-025` for versioned consumer vocabulary packages,
+  exact declarative loading, and capability-owned executable semantics.
+- Activated `SEM-B03` with operational recommendations for relationship
+  ownership, reconciliation, resolved graph closure, and the bounded
+  implementation context; none is yet accepted.
