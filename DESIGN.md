@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
 active-category: first-vertical-slice
-active-batch: VSL-B01
+active-batch: VSL-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -78,7 +78,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Diagnostics and AI guidance | `DIA` | `closed` | 16 | All four batches are accepted by `DEC-037`–`DEC-040`. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `closed` | 12 | All three batches are accepted by `DEC-041`–`DEC-043`. |
-| First vertical slice | `VSL` | `active` | 8 | `VSL-B01` selects the reference consumer, proof flow, host, and first seam. |
+| First vertical slice | `VSL` | `active` | 8 | `VSL-B01` is accepted by `DEC-044`; final batch `VSL-B02` defines product proof and system understanding. |
 
 Counts are a live snapshot, not a quota. New questions are expected.
 
@@ -113,8 +113,8 @@ Governance, Enforcement, and Self-Hosting is closed in
 [`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). All three batches are complete.
 
 First Vertical Slice is active in
-[`DESIGN-VERTICAL-SLICE.md`](DESIGN-VERTICAL-SLICE.md). `VSL-B01` selects the
-two-bundle reference consumer, exact proof flow, ASP.NET host, and first seam.
+[`DESIGN-VERTICAL-SLICE.md`](DESIGN-VERTICAL-SLICE.md). `VSL-B01` is accepted;
+final batch `VSL-B02` now defines failure criteria and system understanding.
 
 ## 8. Queued question catalog
 
@@ -124,7 +124,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-043`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-044`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting is active.
 
@@ -176,6 +176,7 @@ Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting
 | `DEC-042` | `GOV-005`–`GOV-009` | `accepted` | Kernel integrity gates are never waivable. Policy exceptions use exact scoped, finite, authority-backed waiver artifacts that remain visibly waived and identity-forming; there is no global suppression or force bypass. Every principle declares executable-invariant, evidence-backed, human-review, or aspirational enforcement and cannot claim more evidence than that mode provides. Human review owns fitness and accepted risk but cannot override kernel invariants. Warnings are permitted only for non-blocking observations or visible approved waivers under an exact locked governance profile; mandatory failed or unevaluated gates block, and profiles cannot downgrade kernel gates or disclosure. | 2026-08-01 |
 
 | `DEC-043` | `GOV-010`–`GOV-012` | `accepted` | V1 is local-first with no secrets in governed outputs, no telemetry/source upload/network by default, exact locked dependencies and sources, complete release provenance, freshness-bound vulnerability/license evidence, and deterministic SBOMs for Program Kit and executable-provider releases. Signing is explicitly deferred. Kernel, CLI, first-party .NET providers, and the initial generated profile target `net10.0` with stable C# and an exact deliberately updated SDK patch. System.Text.Json, JSON Schema, NuGet, SDK-style MSBuild/dotnet, and provider-scoped Roslyn have bounded roles. Source generators, custom build tasks, weaving, reflection discovery, and hidden generation are outside the first CLI. | 2026-08-01 |
+| `DEC-044` | `VSL-001`–`VSL-005` | `accepted` | The first slice constructs independent consumer-owned Status component and ASP.NET API bundles. The component supplies a contract, custom-bounded implementation, and CShells feature; the API consumes its exact local package and exposes one endpoint through a provider-owned contribution seam and assembler. The public diagnostics-first flow maps, validates, resolves, constructs, evaluates, publishes, packs, builds/tests, proves repeatability, and diagnoses/repairs drift. Custom code remains consumer-owned, generated plumbing is deterministic, the output has no Program Kit runtime, and larger platform capabilities remain outside the slice. | 2026-08-01 |
 New items receive the next stable ID within the relevant category and cite the
 answer or tension that created them.
 
@@ -610,3 +611,18 @@ answer or tension that created them.
 - Closed Governance, Enforcement, and Self-Hosting with all twelve questions
   resolved.
 - Activated First Vertical Slice batch `VSL-B01`.
+
+### 2026-08-01 — First vertical-slice shape accepted
+
+- The human explicitly accepted all `VSL-B01` recommendations.
+- Accepted `DEC-044` for the two-bundle Status component/API proof, exact local
+  package integration, diagnostics-first public flow, ASP.NET Core host, and one
+  provider-owned HTTP endpoint contribution seam.
+- Preserved custom behavior as consumer-owned while deterministic construction
+  owns projects, package and CShells plumbing, endpoint assembly, manifests,
+  locks, and evidence.
+- Deferred authentication, persistence, telemetry, infrastructure, deployment,
+  migration, runtime control, marketplaces, and external Spec Kit integration.
+- Completed `VSL-B01` and activated the final convergence batch `VSL-B02` for
+  semantic product-failure criteria, architect-visible integration explanation,
+  and the canonical AI-readable workspace snapshot.

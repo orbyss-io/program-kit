@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 33 are accepted decisions governed by the
+Items 1 through 3 and 6 through 34 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -546,3 +546,30 @@ respective categories converge.
     makes no framework constitutional; implementation planning selects the
     smallest package satisfying a contract with provenance, determinism,
     diagnostics, update policy, and exit path.
+34. The first vertical slice constructs two independently identified
+    consumer-owned `Reference.Status` bundles. A .NET component package exposes
+    a consumer contract, custom-bounded implementation, and CShells feature. A
+    separate ordinary ASP.NET Core API consumes the exact local package and
+    contract, activates the feature, and exposes `GET /status`. Exact version,
+    digest, and lock prove governed cross-product integration without external
+    publication or Program Kit runtime.
+    Custom behavior remains seeded-handoff or consumer-owned. Projects,
+    references, CShells plumbing, endpoint contribution/assembly, manifests,
+    locks, and evidence are generated-owned deterministic artifacts.
+    Invalid definitions prove structured diagnostics with no live writes before
+    host generation. The public flow maps intake, validates, resolves exact
+    inputs, constructs isolated component/host candidates, evaluates them,
+    publishes atomically, packs to an isolated feed, builds and black-box tests
+    the host, proves cross-path/culture repeatability, and diagnoses then
+    explicitly repairs generated drift.
+    The first host is an ordinary ASP.NET Core minimal API with no Program Kit
+    runtime. The first composition extension is an exact first-party .NET/ASP.NET
+    host projection: one canonical HTTP endpoint contribution feeds one owning
+    assembler. Duplicate routes, incompatible contracts, missing assemblers,
+    and ambiguous order fail diagnostically.
+    OpenID Connect, identity providers, persistence, telemetry, secrets
+    providers, infrastructure, deployment, migration, runtime control, external
+    Spec Kit adaptation, marketplace loading, and other ecosystems remain
+    outside this slice. Platform endpoint vocabulary belongs to the provider;
+    Status semantics belong to the consumer and nothing is hard-coded into the
+    kernel.
