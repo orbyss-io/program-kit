@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 28 are accepted decisions governed by the
+Items 1 through 3 and 6 through 29 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -409,3 +409,26 @@ respective categories converge.
     follow normal lock and approval rules; secrets use secure references. Known
     independent missing fields are requested together, without hidden session
     state or serial question loops.
+29. An authority-qualified diagnostic ID's trigger and violated-invariant
+    meaning are permanent. It may be deprecated, retired, or replaced but never
+    recycled or silently redefined, including across catalog majors. Exact
+    catalogs retain immutable identity, revision, schema/protocol version, and
+    digest; providers own non-colliding namespaces. Compatibility labels inform
+    clients but operation locks select exact catalogs.
+    Automation consumes IDs, categories, outcomes, dispositions, and typed
+    fields, never rendered prose. Wording may improve within a new catalog
+    revision without a new ID; materially changing trigger, invariant, primary
+    category, subject semantics, or consequence requires a replacement ID.
+    Human output always displays the stable ID.
+    V1 ships invariant structured data and an English renderer. Future exact
+    language resources may localize prose without changing machine meaning,
+    ordering, parsing, or canonical bytes. Operating-system locale has no
+    ambient semantic effect.
+    Every operation has one complete canonically ordered diagnostic collection.
+    Exact duplicates group by ID, subject, rule, parameters, and cause while
+    preserving occurrence count and evidence. Distinct subjects, observations,
+    rules, or causes remain distinct. A bounded view declares total, returned,
+    and omitted counts, grouping, full-collection digest and artifact reference,
+    and a content-bound retrieval cursor. Every determinant of outcome, effect,
+    or disposition remains represented. Truncation and pagination never alter
+    semantics, silently omit diagnostics, or query mutable live state.

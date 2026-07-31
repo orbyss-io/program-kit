@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: diagnostics-and-ai-guidance
 status: active
 last-updated: 2026-08-01
-active-batch: DIA-B03
+active-batch: DIA-B04
 parent-ledger: DESIGN.md
 ---
 
@@ -35,8 +35,8 @@ This category preserves these accepted boundaries:
 |---|---|---|---|
 | `DIA-B01` | `DIA-001`–`DIA-005` | `completed` | Define the universal result envelope, normative rendering, outcomes, categories, and mandatory fields. |
 | `DIA-B02` | `DIA-006`–`DIA-008`, `DIA-015`–`DIA-016` | `completed` | Define remediation, agent disposition, documentation links, and resumable input requests. |
-| `DIA-B03` | `DIA-009`–`DIA-012` | `active` | Define catalog compatibility, message evolution, localization, ordering, deduplication, and truncation. |
-| `DIA-B04` | `DIA-013`–`DIA-014` | `queued` | Define information safety and the last-resort host-failure boundary. |
+| `DIA-B03` | `DIA-009`–`DIA-012` | `completed` | Define catalog compatibility, message evolution, localization, ordering, deduplication, and truncation. |
+| `DIA-B04` | `DIA-013`–`DIA-014` | `active` | Define information safety and the last-resort host-failure boundary. |
 
 ## 3. Founding requirement
 
@@ -317,7 +317,7 @@ argument representation, and multi-field input collection.
 V1 does not need arbitrary shell execution, automatic patch application, a
 hidden continuation database, or a general autonomous-agent policy engine.
 
-## 6. Active batch: Catalog compatibility and bounded rendering
+## 6. Accepted batch: Catalog compatibility and bounded rendering
 
 `DIA-B03` resolves:
 
@@ -327,8 +327,8 @@ hidden continuation database, or a general autonomous-agent policy engine.
 - `DIA-012`: deterministic ordering, deduplication, grouping, and safe
   truncation.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all four recommendations. They are governed by
+`DEC-039`.
 
 ### DIA-009 — A diagnostic ID's meaning is permanent; catalogs still version
 
@@ -425,7 +425,93 @@ the full collection.
 V1 does not need localized resources, remote catalog discovery, diagnostic
 telemetry, or compatibility-range selection.
 
-## 7. Revision record
+## 7. Active batch: Information safety and host failure
+
+`DIA-B04` resolves:
+
+- `DIA-013`: how diagnostics avoid leaking secrets, protected paths, topology,
+  and unauthorized existence information; and
+- `DIA-014`: when an unexpected crash can and cannot become a structured
+  last-resort host diagnostic.
+
+The following recommendations remain **unaccepted** until the human confirms or
+revises them.
+
+### DIA-013 — Disclosure is schema-governed and fails closed
+
+**Recommendation:** Every diagnostic parameter, subject reference, evidence
+reference, and remediation value declares a disclosure classification and
+permitted rendering. The kernel enforces a non-bypassable minimum; an
+applicable policy may restrict disclosure further but cannot authorize secret
+values in ordinary diagnostic output.
+
+Secret values, credentials, tokens, protected environment values, raw command
+lines containing secrets, and secret-derived hashes are never emitted.
+Workspace paths are repository-relative when disclosure is permitted;
+otherwise diagnostics use logical subject identities. Absolute user, temporary,
+cache, credential-store, and protected-system paths are omitted or redacted.
+Unauthorized resources use non-enumerating results such as
+`not-found-or-not-authorized` rather than confirming existence.
+
+Every redaction is structured with a safe reason and governing policy or
+classification reference. It never includes a reversible placeholder or
+stable secret fingerprint. Machine JSON, human rendering, verbose mode, and
+debug mode obey the same disclosure floor; structured output is not a privileged
+leak channel.
+
+External tool output, provider exceptions, compiler messages, and logs are
+untrusted input. Program Kit parses only declared structured adapters, applies
+disclosure policy to typed fields, and otherwise reports a bounded sanitized
+summary with a separately authorized evidence reference. It never copies raw
+stdout, stderr, exception messages, environment dumps, or stack traces into the
+operation-result contract.
+
+A catalog or provider whose diagnostic parameter schema omits disclosure
+classification fails conformance. Unknown values are withheld rather than
+rendered optimistically.
+
+### DIA-014 — A minimal fallback result exists whenever the process still can
+
+**Recommendation:** The CLI host wraps every recoverable command path and
+converts an unexpected kernel, provider, adapter, serializer, or external-tool
+failure into the most specific available structured `faulted` result. The
+fallback reports a stable host-fault diagnostic, the furthest known phase, a
+safe cause category, and an effect state derived from publication records. It
+never asserts `none` when state cannot be proven; it reports `indeterminate` and
+directs recovery instead.
+
+The last-resort result uses a tiny embedded schema, catalog entry, disclosure
+filter, and serializer that do not depend on provider loading, workspace
+schemas, normal rendering, or the failing diagnostic pipeline. JSON mode
+buffers the complete document before writing it so a recoverable exception
+cannot intentionally stream malformed partial JSON. Human fallback output is a
+projection of the same minimal result.
+
+Raw exception and stack information may be captured only in a separately
+authorized protected evidence artifact with its own disclosure controls. The
+ordinary result exposes a safe reference when one was successfully created.
+The next invocation inspects any publication journal before permitting further
+construction.
+
+Program Kit cannot guarantee an envelope when the process cannot start, is
+forcibly terminated, suffers an unrecoverable runtime or operating-system
+failure, runs out of resources required by the fallback, or cannot write the
+selected output channel. This is an explicit availability boundary, not a
+missing diagnostic case. No catch-all may conceal such limits or claim that
+workspace state is safe.
+
+### DIA-B04 delivery boundary
+
+The first CLI needs parameter disclosure metadata, repository-relative/logical
+subject rendering, redaction fixtures for secrets and protected paths,
+sanitized external-failure fixtures, and a minimal top-level host fallback.
+Fault injection before, during, and after publication must prove honest effect
+state and recovery guidance.
+
+V1 does not need crash-dump collection, remote telemetry, a privileged debug
+mode, or a general data-loss-prevention engine.
+
+## 8. Revision record
 
 - Created after Determinism and Generated Artifacts closed under `DEC-036`.
 - Made structured guidance to human-led AI sessions a product-level protocol
@@ -444,3 +530,10 @@ telemetry, or compatibility-range selection.
 - Prohibited raw shell remedies, inferred authority, hidden continuation state,
   and unbounded agent retry.
 - Completed `DIA-B02` and activated `DIA-B03` for catalog compatibility and
+- The human accepted `DIA-B03` in full under `DEC-039`.
+- Made diagnostic meaning permanent per authority-qualified ID while retaining
+  exact versioned catalogs, machine-independent message rendering, and a
+  pluggable but deferred localization boundary.
+- Required complete canonical diagnostic collections with deterministic
+  ordering, exact duplicate grouping, and explicit retrievable bounded views.
+- Completed `DIA-B03` and activated final Diagnostics batch `DIA-B04` for

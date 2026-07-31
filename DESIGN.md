@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
 active-category: diagnostics-and-ai-guidance
-active-batch: DIA-B03
+active-batch: DIA-B04
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -75,7 +75,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
 | Extensions and composition | `EXT` | `closed` | 13 | All batches are accepted by `DEC-029` and `DEC-031`–`DEC-033`. |
 | Determinism and generated artifacts | `DET` | `closed` | 10 | All batches are accepted by `DEC-018`, `DEC-028`, and `DEC-034`–`DEC-036`. |
-| Diagnostics and AI guidance | `DIA` | `active` | 16 | `DIA-B02` is accepted by `DEC-038`; `DIA-B03` defines catalog compatibility and bounded rendering. |
+| Diagnostics and AI guidance | `DIA` | `active` | 16 | `DIA-B03` is accepted by `DEC-039`; final batch `DIA-B04` defines disclosure safety and host faults. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
 | First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
@@ -107,8 +107,8 @@ Determinism and Generated Artifacts is closed in
 [`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). All three batches are complete.
 
 Diagnostics and AI Guidance is active in
-[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). `DIA-B01` and `DIA-B02` are
-accepted; `DIA-B03` now defines catalog compatibility and bounded rendering.
+[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). `DIA-B01`–`DIA-B03` are
+accepted; final batch `DIA-B04` now defines disclosure safety and host faults.
 
 ## 8. Queued question catalog
 
@@ -118,7 +118,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-038`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-039`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is active.
 
@@ -163,6 +163,7 @@ Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is ac
 | `DEC-036` | `DET-008` | `accepted` | Manifests, locks, receipts, and any future signatures preserve historical identity and authenticity but cannot substitute for unavailable content. While construction is presented as actively supported or reproducible, every identity-forming input, provider, tool artifact, dependency, and required evidence must remain exactly resolvable and digest-verifiable under a declared policy. Eternal retention and repository-local duplication are not required. Missing or expired content makes current reproduction, re-evaluation, or repair explicitly stale or unavailable without rewriting historical receipts. Secrets are never retained as reproducibility inputs. | 2026-08-01 |
 | `DEC-037` | `DIA-001`–`DIA-005` | `accepted` | Every running public CLI path returns one versioned structured result envelope with furthest phase and explicit effect state. Machine data is authoritative; human output is a faithful projection; JSON mode emits one clean document; non-canonical execution metadata cannot affect canonical results. V1 outcomes are succeeded, needs-input, blocked, cancelled, and faulted. Diagnostic categories are request, semantic, resolution, policy, conformance, workspace, external, and internal. Results and diagnostics carry stable identities, bounded causes and consequences, rule and subject references, safe expected/observed values, evidence, remediation, and next-action data without guessed fields or raw exception prose. | 2026-08-01 |
 | `DEC-038` | `DIA-006`–`DIA-008`, `DIA-015`–`DIA-016` | `accepted` | Remediation is a typed, bounded, preconditioned action proposal, never executable prose or authority. AI automation may act only within a current exact grant independently revalidated by the kernel; identity-forming, selection, dependency, policy, ownership, and out-of-grant publication changes require approval. Every result has one primary disposition: complete, retry, provide-input, request-approval, repair, revise, or stop. Exact explanation resources are structured and offline-resolvable. Needs-input returns a stateless canonical continuation artifact whose authority, exact inputs, lock, workspace, and evidence are fully revalidated on resume. | 2026-08-01 |
+| `DEC-039` | `DIA-009`–`DIA-012` | `accepted` | An authority-qualified diagnostic ID's trigger and invariant meaning are permanent and never reused; exact diagnostic catalogs remain independently versioned and digested. Automation consumes IDs and typed fields, never rendered prose. Wording may evolve under exact catalog revision, while material semantic changes require a new ID. V1 ships invariant structured data and English rendering; localization remains exact and pluggable later. Operations retain a complete canonically ordered diagnostic collection with exact duplicate grouping. Any bounded view declares omission counts and a content-bound reference to the full immutable collection without hiding outcome, effect, or disposition causes. | 2026-08-01 |
 ## 10. Emergent-question register
 
 New items receive the next stable ID within the relevant category and cite the
@@ -531,3 +532,16 @@ answer or tension that created them.
   workspace, and evidence preconditions.
 - Completed `DIA-B02` and activated `DIA-B03` for catalog compatibility,
   rendering evolution, ordering, grouping, and bounded output.
+
+### 2026-08-01 — Diagnostic catalog contract accepted
+
+- The human explicitly accepted all `DIA-B03` recommendations.
+- Accepted `DEC-039` for permanent diagnostic meaning, exact versioned catalogs,
+  machine independence from message prose, and deferred pluggable localization.
+- Required one complete canonically ordered diagnostic collection, exact
+  duplicate grouping, and explicit content-bound retrieval whenever a view is
+  truncated.
+- Preserved every cause determining outcome, effect state, or disposition in
+  bounded AI-facing results.
+- Completed `DIA-B03` and activated final Diagnostics batch `DIA-B04` for
+  information safety and last-resort host failure.
