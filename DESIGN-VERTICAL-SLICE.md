@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: first-vertical-slice
-status: active
+status: closed
 last-updated: 2026-08-01
-active-batch: VSL-B02
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -34,7 +34,7 @@ The category preserves these accepted boundaries:
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
 | `VSL-B01` | `VSL-001`–`VSL-005` | `completed` | Select the reference consumer, proof flow, first host, and first composition seam. |
-| `VSL-B02` | `VSL-006`–`VSL-008` | `active` | Define product-failure criteria, architect-visible value, and the AI-readable system artifact. |
+| `VSL-B02` | `VSL-006`–`VSL-008` | `completed` | Define product-failure criteria, architect-visible value, and the AI-readable system artifact. |
 
 ## 3. Accepted batch: Reference consumer and proof flow
 
@@ -158,7 +158,7 @@ It does not need an extension marketplace, external package publication,
 database, authentication, telemetry, infrastructure generation, migration,
 runtime control plane, Spec Kit adapter, or a second programming ecosystem.
 
-## 4. Active batch: Product proof and system understanding
+## 4. Accepted batch: Product proof and system understanding
 
 `VSL-B02` resolves:
 
@@ -166,8 +166,8 @@ runtime control plane, Spec Kit adapter, or a second programming ecosystem.
 - `VSL-007`: the first architect-visible value beyond ordinary .NET tooling; and
 - `VSL-008`: the exact artifact a new AI session reads before source code.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all three recommendations. They are governed by
+`DEC-045`.
 
 ### VSL-006 — Green tests cannot excuse a false product proof
 
@@ -290,3 +290,10 @@ summaries, a global graph database, or automatic source-code understanding.
   inside the deterministic construction envelope.
 - Completed `VSL-B01` and activated final design batch `VSL-B02` for failure
   criteria, architect-visible value, and the AI-readable workspace snapshot.
+- The human accepted `VSL-B02` under `DEC-045`.
+- Made hard-coding, ambient/manual steps, false determinism, runtime coupling,
+  poor diagnostics, unexplained integration, unreproducibility, public-contract
+  bypass, and bootstrap coupling semantic product failures even with green tests.
+- Established one structured workspace snapshot and deterministic Integration
+  Resolution Explanation for architects and AI sessions.
+- Closed First Vertical Slice and completed design convergence.

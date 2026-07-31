@@ -1,12 +1,12 @@
 ---
 artifact-kind: program-kit-design-convergence-ledger
-status: active
+status: converged
 authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
-active-category: first-vertical-slice
-active-batch: VSL-B02
+active-category: none
+active-batch: none
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -78,7 +78,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Diagnostics and AI guidance | `DIA` | `closed` | 16 | All four batches are accepted by `DEC-037`–`DEC-040`. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `closed` | 12 | All three batches are accepted by `DEC-041`–`DEC-043`. |
-| First vertical slice | `VSL` | `active` | 8 | `VSL-B01` is accepted by `DEC-044`; final batch `VSL-B02` defines product proof and system understanding. |
+| First vertical slice | `VSL` | `closed` | 8 | Both batches are accepted by `DEC-044`–`DEC-045`. |
 
 Counts are a live snapshot, not a quota. New questions are expected.
 
@@ -112,9 +112,9 @@ Diagnostics and AI Guidance is closed in
 Governance, Enforcement, and Self-Hosting is closed in
 [`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). All three batches are complete.
 
-First Vertical Slice is active in
-[`DESIGN-VERTICAL-SLICE.md`](DESIGN-VERTICAL-SLICE.md). `VSL-B01` is accepted;
-final batch `VSL-B02` now defines failure criteria and system understanding.
+First Vertical Slice is closed in
+[`DESIGN-VERTICAL-SLICE.md`](DESIGN-VERTICAL-SLICE.md). Both batches are complete.
+All non-deferred design categories have converged; migration remains deferred.
 
 ## 8. Queued question catalog
 
@@ -124,9 +124,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-044`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-045`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
-Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting is active.
+All non-deferred categories are closed. Migration remains deferred by `DEC-030`.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -177,6 +177,7 @@ Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting
 
 | `DEC-043` | `GOV-010`–`GOV-012` | `accepted` | V1 is local-first with no secrets in governed outputs, no telemetry/source upload/network by default, exact locked dependencies and sources, complete release provenance, freshness-bound vulnerability/license evidence, and deterministic SBOMs for Program Kit and executable-provider releases. Signing is explicitly deferred. Kernel, CLI, first-party .NET providers, and the initial generated profile target `net10.0` with stable C# and an exact deliberately updated SDK patch. System.Text.Json, JSON Schema, NuGet, SDK-style MSBuild/dotnet, and provider-scoped Roslyn have bounded roles. Source generators, custom build tasks, weaving, reflection discovery, and hidden generation are outside the first CLI. | 2026-08-01 |
 | `DEC-044` | `VSL-001`–`VSL-005` | `accepted` | The first slice constructs independent consumer-owned Status component and ASP.NET API bundles. The component supplies a contract, custom-bounded implementation, and CShells feature; the API consumes its exact local package and exposes one endpoint through a provider-owned contribution seam and assembler. The public diagnostics-first flow maps, validates, resolves, constructs, evaluates, publishes, packs, builds/tests, proves repeatability, and diagnoses/repairs drift. Custom code remains consumer-owned, generated plumbing is deterministic, the output has no Program Kit runtime, and larger platform capabilities remain outside the slice. | 2026-08-01 |
+| `DEC-045` | `VSL-006`–`VSL-008` | `accepted` | Green tests cannot excuse hard-coded reference semantics, ambient/manual steps, Program Kit runtime coupling, false deterministic claims, weak AI diagnostics, unexplained integration, unreproducibility, public-contract bypass, or bootstrap coupling. The first architect-visible value is a deterministic Integration Resolution Explanation. Every workspace receives a generated-owned canonical `.program-kit/workspace.snapshot.json`, scoped to an exact finite root closure and tracing identity, semantics, bindings, selections, graph, seams, artifacts, ownership, provenance, evidence, gates, waivers, support, and diagnostic state to authoritative sources. It becomes stale visibly and is a reproducible view, not competing truth. | 2026-08-01 |
 New items receive the next stable ID within the relevant category and cite the
 answer or tension that created them.
 
@@ -626,3 +627,16 @@ answer or tension that created them.
 - Completed `VSL-B01` and activated the final convergence batch `VSL-B02` for
   semantic product-failure criteria, architect-visible integration explanation,
   and the canonical AI-readable workspace snapshot.
+
+### 2026-08-01 — Design convergence completed
+
+- The human explicitly accepted all final `VSL-B02` recommendations.
+- Accepted `DEC-045` for semantic product-failure criteria, the deterministic
+  Integration Resolution Explanation, and canonical scoped workspace snapshot.
+- Required a one-hour fresh-contributor walkthrough and explicit human product
+  review in addition to green automated tests.
+- Closed First Vertical Slice and all non-deferred design categories.
+- Preserved Dependencies, Impact, and Migration as deliberately deferred under
+  `DEC-030`; no unproven migration design was invented to close the ledger.
+- Marked the root design and foundations converged and ready for Spec Kit
+  constitution synthesis.

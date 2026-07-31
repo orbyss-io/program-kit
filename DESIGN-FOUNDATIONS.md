@@ -1,6 +1,6 @@
 ---
 artifact-kind: program-kit-design-foundations
-status: active
+status: converged
 last-updated: 2026-08-01
 parent-ledger: DESIGN.md
 ---
@@ -104,11 +104,10 @@ design.
   "Admitted" is essential: the semantic layer does not claim complete knowledge
   of arbitrary, undeclared, unverified, inferred-only, stale, or drifted code.
 
-## 5. Accepted foundations and provisional synthesis
+## 5. Accepted foundations
 
-Items 1 through 3 and 6 through 34 are accepted decisions governed by the
-decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
-respective categories converge.
+Items 1 through 35 are accepted decisions governed by the decision register in
+`DESIGN.md`.
 
 1. Program Kit is a human-led, AI-assisted modular software-development tool
    that translates human intent into bounded, contract-evaluated software.
@@ -151,9 +150,9 @@ respective categories converge.
    exposes kernel-controlled workflows; capabilities and providers execute
    around it through governed contracts. Neither the kernel nor CLI becomes an
    implicit runtime dependency of generated products.
-4. Deterministic mechanisms should be executable code; consumer-owned semantics
-   should be explicit, typed, versioned, and canonical.
-5. Extension discovery and selection should be explicit and pinned rather than
+4. Deterministic mechanisms are executable code; consumer-owned semantics are
+   explicit, typed, versioned, and canonical.
+5. Extension discovery and selection are explicit and pinned rather than
    ambient, order-dependent, or based on an implicit "best match."
 6. Unknown, incomplete, incompatible, and unavailable states should remain
    explicit. They should never be disguised as success or guessed into
@@ -573,3 +572,30 @@ respective categories converge.
     outside this slice. Platform endpoint vocabulary belongs to the provider;
     Status semantics belong to the consumer and nothing is hard-coded into the
     kernel.
+35. Green automated tests do not make the first slice a product success when it
+    hard-codes reference semantics, requires ambient/manual steps, creates
+    runtime Program Kit coupling, misrepresents custom code as generated,
+    provides weak diagnostics, cannot explain exact integration, cannot
+    reproduce or safely diagnose drift, bypasses public contracts, or harms
+    independent bootstrap. A human product review covers these criteria and a
+    fresh contributor completes the valid/invalid/repeatability/drift walkthrough
+    within one hour from pinned prerequisites.
+    The first architect-visible value is a deterministic Integration Resolution
+    Explanation showing declared meaning, ownership, exact contract and
+    implementation selection, direct/adapted/incompatible relations, provider
+    and seam decisions, artifact ownership, semantic coverage, evidence, gates,
+    waivers, and blockers before generated code. It claims neither generalized
+    impact/migration nor source-level or runtime understanding.
+    Every consumer workspace receives generated-owned canonical
+    `.program-kit/workspace.snapshot.json` of type
+    `program-kit.workspace-snapshot/v1`, scoped to one exact root bundle and
+    finite resolved operation closure. It traces identity, semantics, coverage,
+    bindings, selections, graph, seams, artifacts, ownership, provenance,
+    construction identity, gates, reviews, waivers, evidence, receipts, support,
+    retention, and unresolved/drifted/unavailable/redacted diagnostic state to
+    authoritative sources without copied meaning or inference. Closure and
+    evidence digests expose staleness.
+    New AI sessions inspect this structured snapshot and only the referenced
+    declarations needed for their task before source. Source remains necessary
+    for debugging and custom behavior. The snapshot is a reproducible view, not
+    a competing source of truth or global semantic graph.
