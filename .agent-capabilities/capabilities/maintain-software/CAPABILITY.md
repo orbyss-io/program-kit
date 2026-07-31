@@ -34,8 +34,10 @@ Inputs:
 - The human's explicit bounded change request.
 - Current repository guidance, authoritative consumer source, accepted
   architecture, contracts, and generated-output ownership state.
-- The exact inert software-change completion profile set retrieved with
-  `program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`.
+- The exact inert software-change completion profile set: retrieved through
+  `program-kit capabilities read-resource software-change-completion-profile-set --workspace-root .`
+  in a consumer workspace or read from its exact same-tree source in the
+  Program Kit source authoring workspace.
 - An exact human-approved Program Kit version when the requested maintenance
   unit includes a Program Kit upgrade.
 - Separate network, secret, publication, destructive-action, or provider
@@ -179,14 +181,14 @@ migration, and removal of stale registration.
 
 ## Program Kit knowledge and failure resolution
 
-Retrieve the completion profile set and every selected profile with
-`program-kit capabilities read-resource <resource-id> --workspace-root .`.
-Before an unfamiliar backed command, run `program-kit commands describe
-<command-key> --format text`. For failures, follow the
-`software-change-troubleshooting` resource and use `diagnostics explain`,
-`artifacts inspect`, and `schemas read`; do not reverse-engineer assemblies or
-guess required shapes, allowed values, package identities, or collection
-ordering.
+In a consumer workspace, retrieve the completion profile set and every selected
+profile with `program-kit capabilities read-resource <resource-id>
+--workspace-root .`; use CLI descriptions, diagnostics, artifact inspection,
+and schema retrieval for backed operations. In the Program Kit source
+authoring workspace, read the exact same-tree resources and schemas and use
+repository-backed source operations or tests; do not require an installed
+`program-kit` executable. Do not reverse-engineer assemblies or guess required
+shapes, allowed values, package identities, or collection ordering.
 
 For any typed .NET Console integration or generation-input change, first
 retrieve and follow `dotnet-console-input-materialization-guide`,
@@ -198,9 +200,15 @@ owned output, reference closure, manifest, or lock.
 
 ## Provider wrapper mapping and drift check
 
-Codex and Claude wrappers contain only trigger metadata plus exact
+Registered consumer provider wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
-CLI verifies their recorded bytes before returning this definition. A changed,
-missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
-Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
-`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
+CLI verifies their recorded bytes before returning this definition and renders
+each provider into its exact registered root. Legacy roots are migration input
+only when the provider contract says so.
+
+The Program Kit source authoring workspace instead refreshes an ignored,
+provider-local projection beneath the active provider's registered root only at
+a fresh task boundary or on explicit human request. It contains this complete
+canonical definition rather than a path reference or consumer CLI invocation.
+A changed, missing, stale, partial, or non-exact projection at load time is a
+setup blocker.

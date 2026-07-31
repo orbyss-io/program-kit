@@ -47,6 +47,43 @@ public sealed class SchemaDependencyClosureProviderTests
     }
 
     [TestMethod]
+    public void PlanningAlpha5ClosureContainsItsImmutablePredecessorDependencies()
+    {
+        IProgramKitSchemaModule[] modules =
+        [
+            new ArtifactsSchemaModule(),
+            new ArchitectureSchemaModule(),
+            new PlanningSchemaModule(),
+            new QualitySchemaModule(),
+        ];
+        ISchemaCatalog catalog = new SchemaCatalog(modules);
+        SchemaDependencyClosureProvider sut = new(
+            catalog,
+            new SchemaDependencyClosureModuleFactory());
+        var revision = modules[2].Resources.Single(static resource =>
+            resource.SchemaReference.Identity.Name == "implementation-plan" &&
+            resource.SchemaReference.Version.Value == "0.1.0-alpha.5")
+            .SchemaReference;
+
+        var closure = sut.Create(revision);
+
+        Assert.AreSequenceEqual(
+            [
+                "pkid:schema:program-kit:artifact-definitions@0.1.0-alpha.2",
+                "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5",
+                "pkid:schema:program-kit:planning-definitions@0.1.0-alpha.4",
+                "pkid:schema:program-kit:planning-definitions@0.1.0-alpha.5",
+            ],
+            closure.Resources
+                .Select(static resource => string.Concat(
+                    resource.SchemaReference.Identity.Value,
+                    "@",
+                    resource.SchemaReference.Version.Value))
+                .Order(StringComparer.Ordinal)
+                .ToArray());
+    }
+
+    [TestMethod]
     public void CatalogRejectsEveryUnregisteredExternalReference()
     {
         TestSchemaModule module = new(

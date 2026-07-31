@@ -62,9 +62,13 @@ Consumer products, not Program Kit, select `none`, `local-optional`, or
 [consumer integration postures](../consumer-integration.md) for exact pinned
 setup and removal commands and selective Git guidance.
 
-The contributor-only `author-and-maintain-skills` wrappers are not consumer
-templates. They retain the repository-frozen canonical-path token and are
-excluded from the installed CLI payload.
+Program Kit source-contributor projections are not consumer wrappers. Their
+provider contracts are recorded independently of the consumer CLI provider
+allow-list. At a fresh task boundary, the repository refresh operation takes
+front matter from the registered adapter template and writes the complete
+canonical body into the ignored provider-local capability file. The thin
+template body and its canonical-path token are never loaded as contributor
+instructions. Source projections are excluded from the installed CLI payload.
 
 ## Adding another provider
 
@@ -91,3 +95,8 @@ current documentation or direct provider behavior. A contributor must:
 Knowing only an output directory is insufficient. Until the provider's exact
 adapter format and discovery behavior are reviewed and tested, Program Kit
 must not claim that provider is initialized or supported.
+
+A source-contributor adapter may be registered without adding that provider to
+the consumer CLI. Its authoring contract must still record an exact local root,
+adapter root, and capability filename; supply reviewed front matter for every
+source-contributor capability; and pass the deterministic projection checks.

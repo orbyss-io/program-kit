@@ -15,7 +15,7 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
 {
     private const string ResourcePrefix = "Orbyss.ProgramKit.Planning.Schemas.";
     private static readonly SemanticVersion CatalogVersion =
-        new("0.1.0-alpha.4");
+        new("0.1.0-alpha.5");
     private static readonly SemanticVersion SchemaVersionV1 = new("1.0.0");
     private static readonly SemanticVersion SchemaVersionV2 = new("2.0.0");
     private static readonly SemanticVersion SchemaVersionV3 = new("3.0.0");
@@ -23,6 +23,8 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
         new("0.1.0-alpha.3");
     private static readonly SemanticVersion SchemaVersionAlpha4 =
         new("0.1.0-alpha.4");
+    private static readonly SemanticVersion SchemaVersionAlpha5 =
+        new("0.1.0-alpha.5");
     private static readonly ProgramKitIdentifier SchemaOwner =
         new("pkid:package:program-kit:planning");
     private static readonly ImmutableArray<ProgramKitIdentifier> SchemaConsumers =
@@ -116,6 +118,24 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             ],
             new ProgramKitIdentifier("pkid:project:program-kit:planning"),
             "PKCJ-W030");
+    private static readonly ArtifactProvenance IntegrationProvenance =
+        new(
+            [
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:design:program-kit:integration-release-provenance"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:50f31d1ab276c3597d9ac5e004a1657f94ad6fe062ee200615e2b56462ceacae")),
+                new ArtifactReference(
+                    new ProgramKitIdentifier(
+                        "pkid:plan:program-kit:integration-release-provenance"),
+                    new SemanticVersion("0.1.0-alpha.1"),
+                    new Sha256Digest(
+                        "sha256:082fae48f202e61943066e10f0293edb1d90b6428f3a43c162d1865e059f714c")),
+            ],
+            new ProgramKitIdentifier("pkid:project:program-kit:planning"),
+            "PKIP-W010");
 
     private static readonly ImmutableArray<ProgramKitSchemaResource> SchemaResources =
     [
@@ -189,6 +209,20 @@ public sealed class PlanningSchemaModule : IProgramKitSchemaModule
             "78f666674061f748078f39b79f6504f3ad01570e15af9380da68c9688d50a4ca",
             SchemaVersionAlpha4,
             ConsumerContractProvenance),
+        Create(
+            "planning-definitions",
+            "definitions-0.1.0-alpha.5.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/0.1.0-alpha.5/definitions.schema.json",
+            "079ab9e55f13375a20861767ee524af04d5a77f35bdb379c2425fe202005687b",
+            SchemaVersionAlpha5,
+            IntegrationProvenance),
+        Create(
+            "implementation-plan",
+            "implementation-plan-0.1.0-alpha.5.schema.json",
+            "https://schemas.orbyss.io/program-kit/planning/implementation-plan/0.1.0-alpha.5/schema.json",
+            "f6e0e0d630e99d6e9d709860a41261c54aa637475259d17ae249ea26a2a212b9",
+            SchemaVersionAlpha5,
+            IntegrationProvenance),
     ];
 
     /// <summary>Initializes an explicitly composed schema module.</summary>

@@ -39,6 +39,15 @@ public sealed class CapabilityDeliveryConformanceTests
         "claude",
         "codex",
     ];
+    private static readonly string[] SourceContributorCapabilityIds =
+    [
+        "author-and-maintain-skills",
+        "design-csharp-build-gate",
+        "design-software",
+        "develop-software",
+        "implement-software-plan",
+        "maintain-software",
+    ];
     private static readonly string[] ExpectedCompletionConsumers =
     [
         "implement-software-plan",
@@ -163,7 +172,7 @@ public sealed class CapabilityDeliveryConformanceTests
             "A yes is an explicit",
             design);
         Assert.Contains(
-            "A non-ready result is a setup blocker",
+            "A non-ready result is a setup",
             design);
         Assert.Contains(
             "Use it only after a human explicitly starts",
@@ -281,7 +290,7 @@ public sealed class CapabilityDeliveryConformanceTests
     }
 
     [TestMethod]
-    public void ProductCapabilityStandardIsDistributableAndAuthoringInert()
+    public void ProductCapabilityStandardSeparatesConsumerAndSourceContributorRegistration()
     {
         var authoring = ConformanceInputs.Read(
             "Capabilities/author-and-maintain-skills/CAPABILITY.md");
@@ -306,6 +315,120 @@ public sealed class CapabilityDeliveryConformanceTests
             marker.RootElement
                 .GetProperty("capabilityInitialization")
                 .GetString());
+        Assert.AreEqual(
+            "provider-local",
+            marker.RootElement
+                .GetProperty("sourceContributorRegistration")
+                .GetString());
+        Assert.AreEqual(
+            "fresh-session-or-human-request",
+            marker.RootElement
+                .GetProperty("sourceContributorRefresh")
+                .GetString());
+        Assert.AreSequenceEqual(
+            SourceContributorCapabilityIds,
+            marker.RootElement
+                .GetProperty("sourceContributorCapabilities")
+                .EnumerateArray()
+                .Select(node => node.GetString())
+                .ToArray());
+
+        var gitIgnore = File.ReadAllText(
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                ".gitignore"));
+        var providerContracts = marker.RootElement
+            .GetProperty("sourceContributorProviderContracts")
+            .EnumerateArray()
+            .ToArray();
+        var sourceContributorProviderIds = providerContracts
+            .Select(node => node.GetProperty("provider").GetString())
+            .ToArray();
+        Assert.AreSequenceEqual(
+            sourceContributorProviderIds
+                .Order(StringComparer.Ordinal)
+                .ToArray(),
+            sourceContributorProviderIds);
+        Assert.HasCount(
+            sourceContributorProviderIds.Length,
+            sourceContributorProviderIds
+                .Distinct(StringComparer.Ordinal)
+                .ToArray());
+        Assert.IsGreaterThan(0, sourceContributorProviderIds.Length);
+        Assert.HasCount(
+            providerContracts.Length,
+            providerContracts
+                .Select(node => node.GetProperty("root").GetString())
+                .Distinct(StringComparer.Ordinal)
+                .ToArray());
+        foreach (var providerContract in providerContracts)
+        {
+            var providerRoot = providerContract
+                .GetProperty("root")
+                .GetString();
+            var adapterRoot = providerContract
+                .GetProperty("adapterRoot")
+                .GetString();
+            var capabilityFileName = providerContract
+                .GetProperty("capabilityFileName")
+                .GetString();
+            Assert.IsNotNull(providerRoot);
+            Assert.IsNotNull(adapterRoot);
+            Assert.AreEqual("SKILL.md", capabilityFileName);
+            var providerDirectory = providerRoot.Split('/')[0];
+            Assert.Contains(
+                string.Concat("/", providerDirectory, "/"),
+                gitIgnore);
+        }
+
+        var refreshScript = File.ReadAllText(
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                "build",
+                "Sync-SourceContributorCapabilities.ps1"));
+        Assert.Contains("[string] $Provider", refreshScript);
+        Assert.Contains("[switch] $RefreshIfStale", refreshScript);
+        Assert.Contains("sourceContributorProviderContracts", refreshScript);
+        Assert.Contains("sourceContributorCapabilities", refreshScript);
+        Assert.Contains("provider roots must be unique", refreshScript);
+        Assert.Contains("$providerContract.adapterRoot", refreshScript);
+        Assert.Contains("$providerContract.capabilityFileName", refreshScript);
+        Assert.Contains("Get-ProviderFrontMatter", refreshScript);
+        Assert.Contains("$actual -cne $expected", refreshScript);
+        Assert.Contains("stale or non-exact", refreshScript);
+        Assert.DoesNotContain("program-kit capabilities", refreshScript);
+
+        foreach (var providerContract in providerContracts)
+        {
+            var provider = providerContract
+                .GetProperty("provider")
+                .GetString();
+            var adapterRoot = providerContract
+                .GetProperty("adapterRoot")
+                .GetString()!;
+            var capabilityFileName = providerContract
+                .GetProperty("capabilityFileName")
+                .GetString()!;
+            foreach (var capabilityId in SourceContributorCapabilityIds)
+            {
+                var canonicalPath = Path.Combine(
+                    ConformanceInputs.ProgramKitRoot,
+                    ".agent-capabilities",
+                    "capabilities",
+                    capabilityId,
+                    "CAPABILITY.md");
+                var adapterPath = Path.Combine(
+                    ConformanceInputs.ProgramKitRoot,
+                    adapterRoot,
+                    capabilityId,
+                    capabilityFileName);
+                Assert.IsTrue(File.Exists(canonicalPath), capabilityId);
+                Assert.IsTrue(
+                    File.Exists(adapterPath),
+                    string.Concat(provider, ":", capabilityId));
+            }
+        }
+
         Assert.IsFalse(
             Directory.Exists(
                 Path.Combine(
@@ -315,12 +438,41 @@ public sealed class CapabilityDeliveryConformanceTests
             Directory.Exists(
                 Path.Combine(
                     ConformanceInputs.ProgramKitRoot,
-                    ".agents")));
-        Assert.IsFalse(
-            Directory.Exists(
-                Path.Combine(
-                    ConformanceInputs.ProgramKitRoot,
                     ".claude")));
+        Assert.IsFalse(
+            SourceContributorCapabilityIds.Contains(
+                "publish-dotnet-application-locally",
+                StringComparer.Ordinal));
+    }
+
+    [TestMethod]
+    public void SourceContributorRefreshGuidancePreservesLoadedSessionRules()
+    {
+        var agentGuidance = File.ReadAllText(
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                "AGENTS.md"));
+        var contributing = File.ReadAllText(
+            Path.Combine(
+                ConformanceInputs.ProgramKitRoot,
+                "CONTRIBUTING.md"));
+
+        Assert.Contains(
+            "Sync-SourceContributorCapabilities.ps1",
+            agentGuidance);
+        Assert.Contains("<active-provider-id>", agentGuidance);
+        Assert.Contains("-RefreshIfStale", agentGuidance);
+        Assert.Contains("freshly initialized task", agentGuidance);
+        Assert.Contains(
+            "Never refresh source-contributor skills after a capability has been loaded",
+            agentGuidance);
+        Assert.Contains("explicitly requests it", agentGuidance);
+        Assert.Contains("complete canonical definition", contributing);
+        Assert.Contains("<active-provider-id>", contributing);
+        Assert.Contains("not run it after a capability has been loaded", contributing);
+        Assert.Contains("Do not commit source-contributor projections", contributing);
+        Assert.DoesNotContain("Codex", agentGuidance);
+        Assert.DoesNotContain("Claude", agentGuidance);
     }
 
     [TestMethod]

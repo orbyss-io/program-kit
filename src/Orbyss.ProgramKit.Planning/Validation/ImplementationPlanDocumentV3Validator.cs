@@ -42,7 +42,21 @@ public sealed class ImplementationPlanDocumentV3Validator :
         IProgramKitSemanticValidator<ImplementationPlanDocument>
             versionTwoValidator,
         SemanticVersion staticConformanceDispositionVersion,
-        string planVersion)
+        string planVersion) =>
+        ValidateVersioned(
+            value,
+            versionTwoValidator,
+            staticConformanceDispositionVersion,
+            planVersion,
+            validateLegacyExactUnitBindings: true);
+
+    internal static ProgramKitValidationResult ValidateVersioned(
+        ImplementationPlanDocumentV3 value,
+        IProgramKitSemanticValidator<ImplementationPlanDocument>
+            versionTwoValidator,
+        SemanticVersion staticConformanceDispositionVersion,
+        string planVersion,
+        bool validateLegacyExactUnitBindings)
     {
         var diagnostics = ImmutableArray.CreateBuilder<ProgramKitDiagnostic>();
         if (value is null)
@@ -116,7 +130,11 @@ public sealed class ImplementationPlanDocumentV3Validator :
             ValidateWorkUnit(units[index], index, diagnostics);
         }
 
-        ValidateState(value, units, diagnostics);
+        ValidateState(
+            value,
+            units,
+            diagnostics,
+            validateLegacyExactUnitBindings);
         ValidateDependencyRoles(units, diagnostics);
         return ProgramKitValidationResult.From(diagnostics);
     }
@@ -124,7 +142,8 @@ public sealed class ImplementationPlanDocumentV3Validator :
     private static void ValidateState(
         ImplementationPlanDocumentV3 plan,
         ImmutableArray<PlanWorkUnitV3> units,
-        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics)
+        ImmutableArray<ProgramKitDiagnostic>.Builder diagnostics,
+        bool validateLegacyExactUnitBindings)
     {
         var establishments = units
             .Where(static unit =>
@@ -138,7 +157,11 @@ public sealed class ImplementationPlanDocumentV3Validator :
                     "$.workUnits",
                     diagnostics);
                 RequireMaterializedGateArtifacts(plan, diagnostics);
-                ValidateGatedUnits(units, diagnostics);
+                if (validateLegacyExactUnitBindings)
+                {
+                    ValidateGatedUnits(units, diagnostics);
+                }
+
                 break;
             case StaticConformancePlanState.ExtendExisting:
             case StaticConformancePlanState.CreateNew:
@@ -157,7 +180,11 @@ public sealed class ImplementationPlanDocumentV3Validator :
                     "$.workUnits",
                     diagnostics);
                 ValidateEstablishmentArtifacts(plan, establishments, diagnostics);
-                ValidateGatedUnits(units, diagnostics);
+                if (validateLegacyExactUnitBindings)
+                {
+                    ValidateGatedUnits(units, diagnostics);
+                }
+
                 break;
             case StaticConformancePlanState.AcceptedEmpty:
                 Require(plan.GateDesign is null &&

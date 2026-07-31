@@ -30,6 +30,8 @@ Outputs:
 
 - One canonical provider-neutral definition at `.agent-capabilities/capabilities/<capability-id>/CAPABILITY.md` when a capability is registered.
 - Provider wrapper updates only for providers explicitly requested or already active for that capability.
+- A deterministic refresh contract for ignored, full-definition
+  source-contributor projections.
 - Exact capability-bundle, supporting-resource, digest, and initializer updates
   for every product capability.
 - Index and navigation updates in the same change.
@@ -44,6 +46,9 @@ Outputs:
   a justified repository-only capability.
 - Confirm the target provider wrapper format from locally documented provider requirements before writing wrapper metadata.
 - Treat a missing required active-provider wrapper as a setup blocker unless the human explicitly authorizes creating that wrapper.
+- Treat a stale source-contributor projection as expected while its canonical
+  definition is under authorized edit. It is user/session state, not
+  mergeable or releasable content.
 
 ## Required capability content
 
@@ -73,6 +78,9 @@ Every proposed capability must state:
 - Create or update requested provider wrappers as thin loaders.
 - Update capability indexes, navigation, the existing content-only capability
   bundle, exact-byte manifests, and initializer policy.
+- Maintain the provider-local refresh operation, marker, and startup
+  guidance that make full source projections available without consumer
+  capability delivery.
 - Run deterministic local checks that do not require network access unless network use was authorized.
 
 ## Prohibited actions
@@ -84,6 +92,10 @@ Every proposed capability must state:
 - Do not perform destructive actions unless the human explicitly requested the destructive action and the active environment permits it.
 - Do not activate, initialize, or render a newly authored product capability in
   the Program Kit source authoring workspace or a user-global provider root.
+- Do not refresh a source-contributor projection after it has been loaded for
+  the active task unless the human explicitly requests that experiment. The
+  authoring agent must continue executing its previously loaded projection
+  throughout an ordinary capability change.
 
 ## Stop conditions
 
@@ -119,6 +131,35 @@ index, must not enter the product bundle, and must not be presented as
 consumer-installable. Packaging and availability do not grant authority or
 start the capability.
 
+## Program Kit source-contributor projection standard
+
+Program Kit's ignored provider-local skills beneath the active provider's
+registered root are full-definition projections, not consumer initialization
+output and not canonical sources. Each projection contains the registered
+provider front matter followed by the complete canonical `CAPABILITY.md` body.
+It must not rely on a runtime file-path reference or an installed
+`program-kit` executable.
+
+Capability authoring deliberately uses a staged lifecycle:
+
+1. Begin and execute the authorized change under the previously accepted,
+   already-loaded source projection.
+2. Edit the canonical definition and its consumer distribution inputs without
+   rewriting the active projection.
+3. Run the focused validation for the canonical definition, consumer adapters,
+   bundle bindings, and supporting resources.
+4. Complete and commit the canonical capability change without committing the
+   ignored local projection.
+5. At the beginning of a fresh task, or when the human explicitly requests it,
+   run the repository-backed refresh-if-stale operation before loading the
+   capability.
+
+This task boundary prevents a capability from changing the rules governing its
+own in-progress authoring task while allowing a user to choose when to try
+newly created or updated guidance. The local refresh must reject extra
+capabilities and must replace missing, partial, path-only, stale, or
+non-byte-equivalent projected bodies.
+
 ## Authority and safety boundaries
 
 The human owns capability intent, registration, compatibility, provider
@@ -147,37 +188,54 @@ When updating a capability, read the current canonical definition, relevant inde
 5. Classify the capability as product-distributable or explicitly
    repository-only. For a product capability, bind its canonical definition
    and supporting resources into the existing content-only capability bundle.
-6. Add or update inert provider templates as thin adapters only. For example,
-   a Codex or Claude Code template may use that provider's skill front matter
-   for triggering, then use the exact canonical-path token that initialization
-   resolves to
+6. Add or update inert consumer provider templates as thin adapters only. A
+   registered provider template may use that provider's skill front matter for
+   triggering, then use the exact canonical-path token that initialization resolves to
    `.agent-capabilities/capabilities/<capability-id>/CAPABILITY.md`.
 7. Update the capability index and nearby navigation in the same change. Mark
    a product capability available only after its backing implementation and
    distribution verification pass.
-8. Verify exact bundle digests, content-only packaging, authoring-workspace and
+8. Verify the changed canonical definition, consumer adapters, bundle
+   bindings, and supporting resources while the authoring agent still follows
+   its previously loaded projection. Do not refresh that active projection.
+9. Verify the provider-local refresh contract, finite capability inventory,
+   ignored provider root, and fresh-task-only startup guidance without
+   materializing those files as committed source.
+10. Verify exact bundle digests, content-only packaging, authoring-workspace and
    user-global denial, isolated consumer initialization, ownership-lock drift,
-   required paths, Markdown links, wrapper-to-canonical pointers,
-   duplicate-rule-body absence, and status accuracy.
-9. Report results: summarize implemented, scaffolded, deferred, and
+   required paths, Markdown links, consumer wrapper-to-canonical pointers,
+   duplicate-rule-body absence in committed consumer wrappers, and status
+   accuracy.
+11. Report results: summarize implemented, scaffolded, deferred, and
    aspirational claims; include verification commands and any failures.
 
 Keep judgment steps separate from deterministic tooling: decide ownership, authority, and boundaries before generating files; use tools only to create files and verify consistency.
 
 ## Provider wrapper mapping and drift check
 
-Each provider-adapter template and initialized wrapper must point to exactly
-one canonical definition. The adapter may contain provider-required metadata
-and concise loading instructions, but must not copy canonical purpose,
+Each consumer provider-adapter template and initialized wrapper must point to
+exactly one canonical definition. The adapter may contain provider-required
+metadata and concise loading instructions, but must not copy canonical purpose,
 procedure, boundaries, or verification rules.
 
-The reviewed project roots are `.agents/skills/` for Codex and
-`.claude/skills/` for Claude Code. `.codex/skills/` is legacy Codex migration
-input only and is not a current adapter contract. A new provider root or
-format requires an explicit reviewed provider contract; folder recognition
-alone is insufficient.
+Program Kit provider-local source projections are the explicit exception:
+they must contain the complete canonical body because provider discovery must
+not depend on runtime path traversal or the unavailable consumer CLI. Their
+canonical file remains the source of truth, deterministic fresh-task refresh
+owns the ignored copy, and exact local comparison prevents independent edits.
 
-For every wrapper update:
+Every provider root and format must come from an explicit reviewed provider
+contract; folder recognition or a model brand alone is insufficient. Legacy
+migration roots remain provider-contract data and are not current adapter
+contracts.
+
+Source-contributor provider contracts are independent of the consumer CLI
+provider allow-list. A source-only contract may be added without claiming
+consumer initialization support, but it must record an exact local root,
+adapter root, and capability filename and supply reviewed front matter for the
+finite source-contributor capability inventory.
+
+For every consumer wrapper update:
 
 - Verify the initialized wrapper path links to the exact canonical definition
   selected by the Program Kit initialization lock.
@@ -186,6 +244,19 @@ For every wrapper update:
 - Compare the wrapper body with the canonical definition for copied substantial instruction text.
 - Confirm the wrapper still contains only provider-specific registration and loading details.
 - Confirm the index row points to both the canonical definition and the wrapper.
+
+For every source-contributor refresh-contract update:
+
+- Confirm its provider front matter comes from the selected registered
+  provider adapter.
+- Confirm the body after front matter is byte-equivalent to the complete
+  canonical definition.
+- Confirm it contains no path-only loading instruction or consumer capability
+  delivery command in place of the definition.
+- Confirm `AGENTS.md` allows refresh only at a fresh task boundary or after an
+  explicit human request, before the capability is loaded.
+- Confirm the selected provider root remains ignored and no provider-local
+  projection is staged, committed, packaged, or treated as CI source.
 
 ## Verification and failure reporting
 

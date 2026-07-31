@@ -46,7 +46,8 @@
         "pkid:schema:program-kit:csharp-build-gate-selection-lock@0.1.0-alpha.1",
         "pkid:schema:program-kit:csharp-gate-lock-intent@0.1.0-alpha.1",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
-        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4"
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5"
       ],
       "humanInputs": [
         "explicit gate-design start or accepted parent-design handoff",
@@ -93,6 +94,7 @@
         "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5",
         "pkid:schema:program-kit:open-console@0.1.0-alpha.2"
       ],
       "humanInputs": [
@@ -177,6 +179,7 @@
         "pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.2",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3",
         "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.4",
+        "pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5",
         "pkid:schema:program-kit:open-console@0.1.0-alpha.2"
       ],
       "humanInputs": [
