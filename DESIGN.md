@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: semantic-language-and-bounded-contexts
-active-batch: SEM-B01
+active-batch: SEM-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -71,7 +71,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
 | Feature model | `FTR` | `closed` | 17 | All four batches are accepted by `DEC-013` and `DEC-021`–`DEC-023`. |
-| Semantic language and bounded contexts | `SEM` | `active` | 14 | `SEM-013` and `SEM-014` are accepted; `SEM-B01` now resolves language, canonical form, and execution boundary. |
+| Semantic language and bounded contexts | `SEM` | `active` | 14 | `SEM-B01` is accepted by `DEC-024`; `SEM-B02` now resolves bounded consumer vocabulary extension. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
 | Determinism and generated artifacts | `DET` | `queued` | 10 | `DET-010` is accepted; remaining deterministic-generation questions are queued. |
@@ -94,7 +94,7 @@ complete.
 
 Semantic Language and Bounded Contexts is active in
 [`DESIGN-SEMANTIC-LANGUAGE.md`](DESIGN-SEMANTIC-LANGUAGE.md). Batch `SEM-B01`
-resolves the language, canonical representation, and build/runtime boundary.
+is accepted; `SEM-B02` now resolves consumer-owned vocabulary extension.
 
 ## 8. Queued question catalog
 
@@ -104,7 +104,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-023` are accepted. `DEC-012`
+Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-024` are accepted. `DEC-012`
 is superseded. Feature Model is closed; Semantic Language and Bounded Contexts
 is active.
 
@@ -133,6 +133,7 @@ is active.
 | `DEC-021` | `FTR-002`, `FTR-005`–`FTR-007` | `accepted` | Program Kit v1 begins with one exact `.NET 10 + CShells 0.0.28` construction profile with role-specific dependencies, explicit activation, conformance evidence, structured diagnostics, and explicit migration. Features may provide or require multiple capability-owned interfaces. Core terms remain non-synonymous, and components carry governed identity distinct from concrete artifacts without duplicating domain contracts. | 2026-07-31 |
 | `DEC-022` | `FTR-008`–`FTR-012` | `accepted` | Governed identities are globally unambiguous within authority-owned namespaces and resolve to immutable revisions. Feature semantics and implementation artifacts revise separately. Relations are explicit and contract-typed. Alternative implementations retain distinct identities. Construction selection requires a human-approved request and exact resolution lock; zero or multiple matches yield actionable diagnostics rather than implicit selection. | 2026-07-31 |
 | `DEC-023` | `FTR-013`, `FTR-014` | `accepted` | The canonical feature definition is a thin immutable identity-and-reference manifest with explicit dispositions and no duplicated linked records. A bounded component evaluates against an exact named multidimensional evaluation profile. Non-removable kernel gates enforce integrity, closure, provenance, applicability, evidence freshness, and diagnostic truth. Admission requires fresh conformance across every mandatory applicable dimension; all other outcomes remain explicit and actionable. | 2026-07-31 |
+| `DEC-024` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `accepted` | The semantic layer uses a formal API-neutral typed artifact model, a restricted YAML workspace projection, structured JSON automation projections, and one exact versioned canonical JSON byte profile. V1 definitions are declarative and non-Turing-complete; executable derivation belongs to exact pinned capabilities. Semantic authority is primarily construction-time, generated products have no implicit Program Kit runtime, and optional runtime semantic projections are explicit and purpose-bound. The broader semantic purpose remains, while first-CLI delivery defines only mechanics required by concrete end-to-end workflows and defers unproven semantic-engine machinery. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -336,3 +337,14 @@ answer or tension that created them.
   dependency.
 - Closed Feature Model and activated Semantic Language and Bounded Contexts
   batch `SEM-B01`.
+
+### 2026-07-31 — Semantic representation boundary accepted
+
+- The human explicitly accepted all six `SEM-B01` recommendations.
+- Accepted `DEC-024` for the typed artifact model, strict authored and canonical
+  projections, declarative boundary, construction-time authority, and optional
+  purpose-bound runtime projections.
+- Recorded the human's correction that first-CLI pragmatism limits current
+  design and implementation depth, not the semantic layer's broader purpose.
+- Completed `SEM-B01` and activated `SEM-B02`; its consumer-vocabulary
+  recommendations remain unaccepted pending human review.

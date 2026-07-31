@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 15 are accepted decisions governed by the
+Items 1 through 3 and 6 through 16 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -197,3 +197,19 @@ respective categories converge.
     is **AI builds it. Human intent governs it.** Every admitted implementation
     is legible through human-approved semantic contracts, traceability, and
     verifiable evidence.
+16. Program Kit represents governed meaning through a formal, API-neutral typed
+    artifact model. V1 provides a restricted YAML workspace projection,
+    structured JSON automation projections, and one exact canonical JSON byte
+    profile. Semantic definitions remain declarative and non-Turing-complete;
+    executable derivation belongs to explicit pinned capabilities.
+    Semantic authority is primarily a development- and construction-time
+    concern. Generated products have no implicit Program Kit runtime dependency.
+    A product may explicitly select a separately governed, purpose-bound runtime
+    semantic projection and interpreter.
+    The semantic layer retains its broader purpose of making admitted software
+    legible and governable through human-approved meaning. For the first CLI,
+    only mechanics required by concrete, end-to-end testable workflows are
+    designed and implemented. Reconstruction, generalized authority systems,
+    comprehensive lifecycle engines, global knowledge graphs, inference
+    platforms, and general semantic runtimes are deferred until a product
+    workflow proves their need; they are not permanently prohibited.

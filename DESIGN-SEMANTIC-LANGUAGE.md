@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: semantic-language-and-bounded-contexts
 status: active
 last-updated: 2026-07-31
-active-batch: SEM-B01
+active-batch: SEM-B02
 parent-ledger: DESIGN.md
 ---
 
@@ -36,8 +36,8 @@ The active work must preserve these accepted constraints:
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
 | `SEM-B00` | `SEM-013`–`SEM-014` | `completed` | Provider/canonical intake and semantic admissibility accepted by `DEC-016` and `DEC-019`. |
-| `SEM-B01` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `active` | Resolve the semantic model, authored projections, canonical representation, declarative boundary, and build/runtime presence. |
-| `SEM-B02` | `SEM-005`–`SEM-006` | `queued` | Define consumer-owned vocabulary extension without core changes. |
+| `SEM-B01` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `completed` | Resolve the semantic model, authored projections, canonical representation, declarative boundary, and build/runtime presence. |
+| `SEM-B02` | `SEM-005`–`SEM-006` | `active` | Define consumer-owned vocabulary extension without core changes. |
 | `SEM-B03` | `SEM-009`–`SEM-012` | `queued` | Define graph federation, cross-authority ownership, disagreement resolution, and the bounded implementation context. |
 
 ## 3. Accepted prior decisions
@@ -61,9 +61,9 @@ fresh evidence. Unknown, inferred-only, omitted, stale, drifted, or unverified
 behavior remains explicit and cannot be admitted as understood. Governed by
 `DEC-019` and evaluated through `DEC-023`.
 
-## 4. Active batch: Semantic model and execution boundary
+## 4. Accepted batch: Semantic model and execution boundary
 
-`SEM-B01` resolves:
+`SEM-B01` resolved:
 
 - `SEM-001`: whether the semantic layer has a formal grammar, type system,
   validator, or compiler without contradicting the accepted non-language claim;
@@ -76,8 +76,8 @@ behavior remains explicit and cannot be admitted as understood. Governed by
 - `SEM-008`: whether generated artifacts must carry the semantic model or may
   compile meaning into code, contracts, metadata, and evidence.
 
-No answer is implied merely by activating this batch. Recommendations will be
-recorded separately and remain unaccepted until human confirmation.
+The human accepted all six recommendations. They are governed together by
+`DEC-024`.
 
 ## 5. Non-authoritative stress-test lessons
 
@@ -96,10 +96,28 @@ recommendations:
 - interpreted or generated runtime projections must bind exact semantic inputs
   and generator/evaluator revisions without becoming a second source of truth.
 
-## 6. Draft recommendations for human review
+## 6. Accepted SEM-B01 decisions
 
-These recommendations remain **unaccepted** until the human confirms or revises
-them.
+These recommendations are accepted under `DEC-024`.
+
+### Delivery-depth boundary
+
+The semantic layer retains its broader product purpose: making admitted
+software legible and governable through human-approved meaning. Acceptance of
+this batch does not reduce that purpose to implementation convenience for the
+kernel or CLI.
+
+For the current design and first implementation, however, Program Kit defines
+only the semantic mechanics required to deliver a tangible, end-to-end testable
+CLI. Richer semantic capabilities remain possible, but are deferred until a
+concrete product workflow proves they are needed. In particular, this batch
+does not authorize a reconstruction engine, generalized authority or delegation
+system, comprehensive state-machine or lifecycle framework, global knowledge
+graph, inference engine, ontology platform, or general semantic runtime.
+
+Minimal identity, approval, authority reference, state, and lifecycle facts may
+still be introduced where an actual CLI workflow requires them. This is a
+delivery-depth boundary, not a permanent semantic-purpose boundary.
 
 ### SEM-001 — Formal typed artifact model, not a programming language
 
@@ -227,8 +245,84 @@ health, deployment topology, and environment-resolved values remain outside
 immutable semantic definition. Runtime contracts may consume explicit values
 or references to them without recasting mutable facts as canonical semantics.
 
-## 7. Revision record
+## 7. Active batch: Consumer-owned vocabulary extension
+
+`SEM-B02` resolves:
+
+- `SEM-005`: whether consumers may introduce their own semantic types and
+  vocabulary; and
+- `SEM-006`: how those vocabularies are versioned and interpreted without
+  changing Program Kit core.
+
+The following recommendations remain **unaccepted** until the human confirms or
+revises them.
+
+### SEM-005 — Versioned vocabulary packages over a small core protocol
+
+**Recommendation:** Consumers may introduce semantic vocabulary through
+separately versioned vocabulary packages. A vocabulary package owns its
+domain- or platform-specific terms and constraints. The kernel owns only the
+small package protocol and the immutable integrity mechanics needed to identify,
+load, canonicalize, validate, diagnose, and pin those packages.
+
+A v1 vocabulary package minimally declares:
+
+- an authority-scoped identity, immutable revision, and content digest;
+- the semantic-model and vocabulary-protocol versions it supports;
+- named types, fields, relations, and constraint parameters composed from the
+  closed declarative primitives supported by that protocol;
+- the explicit extension locations at which those definitions may appear; and
+- references to any required mappings, validators, evaluators, or migrations.
+
+It cannot redefine kernel identities or invariants, add undeclared fields,
+embed executable behavior, or claim semantics beyond its declared support
+envelope. Program Kit's first-party platform-contract families use the same
+package protocol as consumer and third-party vocabularies; first-party status
+does not create a second semantic mechanism.
+
+V1 will implement only the declarative primitives exercised by the first
+vertical slice. It will not attempt a universal ontology or type system in
+anticipation of unknown consumers.
+
+### SEM-006 — Exact declarative loading; executable meaning stays in capabilities
+
+**Recommendation:** A software-definition bundle references every vocabulary
+package by exact identity, revision, protocol profile, and digest. Construction
+records the exact resolution in its lock. The kernel performs no ambient
+discovery, implicit upgrade, semantic-version guess, or best-match selection.
+
+The kernel interprets package manifests and supported declarative constraints
+generically. Any validation, mapping, evaluation, migration, or generation that
+cannot be expressed by those primitives belongs to a separately identified and
+pinned capability. Such a capability executes outside the semantic data,
+declares its support envelope, and returns structured evidence and diagnostics.
+It cannot mutate a human-approved canonical revision or bypass kernel gates.
+
+Adding a vocabulary that stays within the supported protocol therefore requires
+no kernel code change. Requiring a genuinely new semantic primitive does require
+an explicit protocol/kernel revision, compatibility decision, and migration;
+the old kernel reports `unsupported` rather than guessing. Cross-vocabulary and
+cross-authority reconciliation remain for `SEM-B03`.
+
+### SEM-B02 delivery boundary
+
+This batch defines only vocabulary packaging, exact loading, and the
+declarative-versus-capability boundary. It does not design an ontology registry,
+query language, inference system, vocabulary marketplace, trust federation,
+general authority service, reconstruction engine, or full vocabulary lifecycle.
+
+The first vertical slice should prove this mechanism with the smallest useful
+first-party vocabulary and one independently identified consumer vocabulary
+fixture. That proof should exercise the same kernel path without pretending the
+initial vocabulary surface is a complete semantic engine.
+
+## 8. Revision record
 
 - Created after Feature Model closed under `DEC-023`.
 - Imported only accepted cross-category constraints; no queued Semantic Language
   answer was promoted silently.
+- Accepted `SEM-B01` under `DEC-024` and recorded the human's distinction
+  between broad semantic purpose and deliberately shallow first-CLI delivery
+  depth.
+- Activated `SEM-B02` with bounded recommendations for consumer vocabulary
+  packages; no draft recommendation in that batch is yet accepted.
