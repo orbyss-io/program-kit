@@ -2,11 +2,11 @@
 
 bootstrap/*.md text eol=lf
 bootstrap/*.json text eol=lf
-extensions/**/*.md text eol=lf
+.review-sets/**/*.md text eol=lf
 .agent-capabilities/**/*.md text eol=lf
-extensions/reusable-csharp-build-gates/**/*.json text eol=lf
-extensions/reusable-csharp-build-gates/**/*.md text eol=lf
-extensions/reusable-csharp-build-gates/**/*.ps1 text eol=lf
+.review-sets/reusable-csharp-build-gates/**/*.json text eol=lf
+.review-sets/reusable-csharp-build-gates/**/*.md text eol=lf
+.review-sets/reusable-csharp-build-gates/**/*.ps1 text eol=lf
 .agent-capabilities/**/*.json text eol=lf
 global.json text eol=lf
 **/*.cs text eol=lf

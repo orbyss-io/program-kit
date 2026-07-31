@@ -1,0 +1,26 @@
+{
+  "artifactId": "pkid:amendment:program-kit:development-tools-review-layout-reconciliation",
+  "artifactVersion": "0.1.0-alpha.1",
+  "sourceMainCommit": "11978dc6f3cbd66cd204214318eb166cb02c3e1c",
+  "frozenReviewSet": {
+    "identity": "pkid:review-set:program-kit:development-tools",
+    "version": "3.0.0",
+    "designSha256": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592",
+    "planSha256": "sha256:0ee9304510bbfaa6de508bf4fd5f0726625cb33e77aced26cbfe5a15db72c5a3",
+    "approvalSha256": "sha256:8b8eec00e88e94a0fb544973ff7b7f1d95a9eff6aacd462b45e28e73d6111ceb"
+  },
+  "resolution": {
+    "historicalPrefix": "extensions/development-tools/",
+    "livePrefix": ".review-sets/development-tools/",
+    "allowedPathsSource": ".review-sets/development-tools/review-manifest.json#/artifacts",
+    "digestProfile": {
+      "algorithm": "sha256",
+      "encoding": "utf-8",
+      "byteOrderMark": false,
+      "lineEndings": "lf"
+    },
+    "rejectUndeclaredPaths": true,
+    "rejectDigestMismatch": true,
+    "rejectRemovedHistoricalRoot": true
+  }
+}

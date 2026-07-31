@@ -1,0 +1,28 @@
+{
+  "identity": "pkid:selection-lock:program-kit:integration-release-provenance-private-gate",
+  "version": "0.1.0-alpha.1",
+  "disposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:integration-release-provenance",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:1aeb91d4a5164366ef850da31c8d4fa2b013cd6cf40b5ccf4a2d9a183e1c8012"
+  },
+  "gateDefinition": {
+    "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+    "version": "1.10.0",
+    "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+  },
+  "activationMatrix": {
+    "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+    "version": "1.0.0",
+    "digest": "sha256:bb09e733aae5746784b38c0e71ca9a50acad1a123b50d986fe10abd2b7d27b6b"
+  },
+  "verificationProfile": {
+    "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+    "version": "1.0.1",
+    "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+  },
+  "sourceCommit": "9d45a6ea9c625ec1fc638d2ef9674cfefc01fd9f",
+  "scope": "Applicable Program Kit-owned implementation source only; GitHub workflow, package provenance, publication, external settings, and human authority remain executable or review obligations.",
+  "state": "review-candidate",
+  "compatibilityNote": "Verification-profile 1.0.1 binds the current explicit Microsoft.Testing.Platform selector bytes. This review set treats future compatible execution-profile resolution separately from human-approved product semantics."
+}

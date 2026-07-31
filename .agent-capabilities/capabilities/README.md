@@ -4,7 +4,7 @@ This file is a generated, non-authoritative projection of [`INDEX.md`](INDEX.md)
 Capability availability is owned only by the canonical index.
 
 Source path: `.agent-capabilities/capabilities/INDEX.md`
-Source digest: `sha256:0076f301545f380711207246b4d4c553000fa45da0eef2151de9d78bdabda4c7`
+Source digest: `sha256:4f454eb024ffacb7e0d9af25778287ecb6fbb0a5b6929939c2dc40f05ac3d43a`
 
 | Capability ID | Flow category | Status | Canonical definition | Provider adapter template | Notes |
 | --- | --- | --- | --- | --- | --- |

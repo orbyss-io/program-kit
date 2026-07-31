@@ -26,14 +26,18 @@ anything:
   `.agent-capabilities/authoring-workspace.json`), so the consumer commands
   `capabilities initialize`, `capabilities read`, `capabilities catalog`, and
   `dotnet materialize-console-inputs` intentionally **fail closed** here. There
-  is no consumer CLI install step; the only capability available is the
-  contributor-only `author-and-maintain-skills`, wired up by hand as
-  CONTRIBUTING.md describes.
+  is no consumer CLI install or capability-reactivation step. At the start of
+  a fresh task, the repository-backed contributor refresh resolves the active
+  provider's registered local root and creates or updates full `SKILL.md`
+  projections containing the complete canonical definitions. An active task
+  never refreshes instructions it is already executing unless the human
+  explicitly requests it.
 
 **AI agents setting up this workspace:** check for
 `.agent-capabilities/authoring-workspace.json`. If it exists you are in the
-contributor workspace — use [CONTRIBUTING.md](CONTRIBUTING.md) and do not attempt
-consumer initialization. If it is absent, this is a consumer workspace.
+contributor workspace — follow the fresh-task check in `AGENTS.md` and
+[CONTRIBUTING.md](CONTRIBUTING.md), and do not attempt consumer initialization.
+If it is absent, this is a consumer workspace.
 
 ### Branch lifecycle for Program Kit-guided work
 
@@ -48,26 +52,40 @@ or a branch attached to active work. If repository settings or permissions
 cannot perform the cleanup, report the exact retained branch and its unique
 commits instead of forcing deletion.
 
+### Shared integration for Program Kit contributors
+
+Contributor branches run directly affected checks locally, then rely on the
+stable `Program Kit integration` pull-request status for the current synthetic
+combined source. A still-mergeable branch does not repeatedly absorb `main`
+just to duplicate that result. Real source conflicts and failing focused checks
+remain local work; the same stable job runs again for the merge queue's
+`merge_group`.
+
+A successful `main` run creates an attested canonical package artifact but
+does not publish it. Publication remains a separate protected,
+human-dispatched workflow that accepts one exact canonical-build run ID and
+rebuilds nothing. CI evidence does not approve, merge, change settings, or
+grant release authority. Contributor details are in
+[CONTRIBUTING.md](CONTRIBUTING.md); repository owners use the explicitly
+unapplied
+[administration handoff](.github/PROGRAM-KIT-ADMINISTRATION.md).
+
 ## Install Program Kit CLI (consumer)
 
-Program Kit `0.1.0-alpha.3` is currently distributed as an exact downloadable
-local NuGet-feed ZIP. It requires the .NET 10 SDK selected by
-[`global.json`](global.json). A consumer does not need a Program Kit checkout,
-submodule, or separate CapabilityBundle installation.
+Program Kit packages are published on
+[NuGet.org](https://www.nuget.org/packages?q=Orbyss.ProgramKit).
+The easiest consumer path is the
+[`Orbyss.ProgramKit.CommandLine`](https://www.nuget.org/packages/Orbyss.ProgramKit.CommandLine)
+.NET global tool. The coordinated `0.1.0-alpha.3` release requires the .NET 10
+SDK selected by [`global.json`](global.json). A consumer does not need a
+Program Kit checkout, submodule, local feed, or separate CapabilityBundle
+installation.
 
-Download `orbyss-program-kit-nuget-0.1.0-alpha.3.zip` and its checksum, verify
-the ZIP, then extract it to a bounded temporary directory:
+Install the exact tool version directly from NuGet.org:
 
 ```powershell
-$archive = Resolve-Path .\orbyss-program-kit-nuget-0.1.0-alpha.3.zip
-$expected = (Get-Content .\orbyss-program-kit-nuget-0.1.0-alpha.3.zip.sha256).Split(' ')[0]
-$actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
-if ($actual -ne $expected) { throw "Program Kit archive checksum mismatch." }
-$feed = Join-Path $env:TEMP 'orbyss-program-kit-0.1.0-alpha.3'
-Expand-Archive -LiteralPath $archive -DestinationPath $feed
 dotnet tool install --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.3 `
-  --add-source (Join-Path $feed 'feed')
+  --version 0.1.0-alpha.3
 ```
 
 From the human-led consumer workspace root, initialize the provider that is
@@ -90,14 +108,20 @@ ambient `latest`:
 ```powershell
 dotnet tool list --global
 dotnet tool update --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.3 `
-  --add-source (Join-Path $feed 'feed')
+  --version 0.1.0-alpha.3
 program-kit --help
 program-kit capabilities catalog --workspace-root . --format text
 ```
 
-Remove the bounded extracted feed after installation if it is no longer
-needed. Do not change permanent global NuGet configuration for Program Kit.
+The remaining `Orbyss.ProgramKit.*` packages are available from the same
+NuGet.org feed for exact-version `PackageReference` use.
+
+As a source-based alternative, download **Source code (zip)** for the matching
+tag from [GitHub Releases](https://github.com/orbyss-io/program-kit/releases),
+extract it, and follow
+[Build an isolated local feed from source](#build-an-isolated-local-feed-from-source)
+below. The release ZIP is useful for an offline or independently built local
+feed; ordinary consumers can install the global tool directly from NuGet.org.
 
 ### Build an isolated local feed from source
 
@@ -207,8 +231,8 @@ The implemented baseline includes:
 - a strict repository-owned C# source gate;
 - an Observatory Scheduling fixture that proves the domain-neutral baseline.
 
-Some host-tooling extensions are still being completed. Their review artifacts
-and tests distinguish implemented, incomplete, and deferred behavior.
+Some host-tooling review sets are still being completed. Their artifacts and
+tests distinguish implemented, incomplete, and deferred behavior.
 
 ## How it works
 
@@ -356,15 +380,16 @@ under the active human authority. They must never edit Program Kit-owned
 materialized or generated bytes; change the source/request and rerun the
 backed operation instead.
 
-Program Kit itself uses repository-frozen contributor guidance, never
-CLI-returned consumer capabilities as authoring authority. Runtime packages
-never load capability prose or provider configuration.
+Program Kit contributors use ignored, full-definition active-provider projections
+refreshed from same-tree canonical guidance only at a fresh task boundary or
+on explicit human request. They never use CLI-returned consumer capabilities
+as authoring authority. Runtime packages never load capability prose or
+provider configuration.
 
 ## Explore the repository
 
-- [Final baseline review](artifacts/final/final-review-report.md)
-- [Final topology and closure evidence](artifacts/final/README.md)
-- [Self-hosted comparison](artifacts/self-hosted/README.md)
+- [Change review sets](.review-sets/README.md)
+- [Program Kit baseline evidence](.evidence/program-kit-baseline/README.md)
 - [Observatory Scheduling fixture](fixtures/observatory-scheduling/README.md)
 - [CLI commands](src/Orbyss.ProgramKit.CommandLine/README.md)
 - [.NET generation contracts](src/Orbyss.ProgramKit.DotNet/README.md)

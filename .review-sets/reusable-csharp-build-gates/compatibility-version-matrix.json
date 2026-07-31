@@ -41,7 +41,7 @@
       "identity": "pkid:analyzer:program-kit:generated-source-contract",
       "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/public-generated-source-analyzer-manifest.json",
-      "sha256": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+      "sha256": "sha256:56851218f47724de075a811e5298b7ba461a449dde78c904e4c1ad260adf95b9"
     },
     {
       "clockId": "consumer-owned-analyzers",
@@ -69,21 +69,21 @@
       "identity": "pkid:package:program-kit:csharp-build-gates-testing",
       "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/testing-package-manifest.json",
-      "sha256": "sha256:b4bb4b566f186677c232e715133aea2e11528cfdd8c86d194dd1d5aa56ad8106"
+      "sha256": "sha256:056be483a889795ee32ab21772825ee9d8a6042859470bf71ca7c131d9bc25b0"
     },
     {
       "clockId": "capabilities",
       "identity": "pkid:capability:program-kit:design-csharp-build-gate",
       "version": "1.0.0",
       "path": ".agent-capabilities/capabilities/design-csharp-build-gate/CAPABILITY.md",
-      "sha256": "sha256:28eed933381be10c9d15e21dd6862e05f21974aaa1fe67f4bcc3ae8b6ca10fc7"
+      "sha256": "sha256:184a4603e114bf3e4b759af256ab58494bb55eb4840e72ca4d57d913f8441436"
     },
     {
       "clockId": "capability-bundle",
       "identity": "pkid:bundle:program-kit:capabilities",
       "version": "0.1.0-alpha.3",
       "path": ".agent-capabilities/capability-bundle-manifest.json",
-      "sha256": "sha256:b3fcedf81cc09c39281e13a8e2ca94dd445ff9c3a7ec71a7d4a6983634d04ac9"
+      "sha256": "sha256:4f417dffb744e7ffc400b2206c79e17d2a58cd205e74cb68b41140a5c7dd29a1"
     },
     {
       "clockId": "toolchain",
@@ -142,7 +142,7 @@
       "source": "consumer-owned-analyzers",
       "target": "public-analyzers",
       "acceptedVersion": "[0.1.0-alpha.3]",
-      "acceptedSha256": "sha256:298fdc005e41f3d645d52145e1035791bf5c16bead5c04ea4d114be484921123"
+      "acceptedSha256": "sha256:56851218f47724de075a811e5298b7ba461a449dde78c904e4c1ad260adf95b9"
     },
     {
       "source": "build-mechanics",
@@ -178,13 +178,13 @@
       "source": "capabilities",
       "target": "operations",
       "acceptedVersion": "[0.1.0-alpha.3]",
-      "acceptedSha256": "sha256:b4bb4b566f186677c232e715133aea2e11528cfdd8c86d194dd1d5aa56ad8106"
+      "acceptedSha256": "sha256:056be483a889795ee32ab21772825ee9d8a6042859470bf71ca7c131d9bc25b0"
     },
     {
       "source": "capability-bundle",
       "target": "capabilities",
       "acceptedVersion": "[1.0.0]",
-      "acceptedSha256": "sha256:28eed933381be10c9d15e21dd6862e05f21974aaa1fe67f4bcc3ae8b6ca10fc7"
+      "acceptedSha256": "sha256:184a4603e114bf3e4b759af256ab58494bb55eb4840e72ca4d57d913f8441436"
     },
     {
       "source": "selection-locks",

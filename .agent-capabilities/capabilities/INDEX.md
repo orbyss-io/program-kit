@@ -18,3 +18,14 @@ grant authority, or start work.
 | `release-software` | release | unavailable | Not created | Not registered | Reserved stable flow ID; unavailable until the Release Cycle is implemented in a later backing phase. |
 | `qualify-release-candidate` | qualification | unavailable | Not created | Not registered | Reserved stable flow ID; unavailable until release qualification is implemented in a later backing phase. |
 | `promote-qualified-release` | promotion | unavailable | Not created | Not registered | Reserved stable flow ID; unavailable until release promotion is implemented in a later backing phase. |
+
+## Program Kit source contributors
+
+The Program Kit source authoring workspace can refresh ignored, full-definition
+skills beneath the active provider's registered local root for
+`author-and-maintain-skills`, `develop-software`, `design-software`,
+`design-csharp-build-gate`, `implement-software-plan`, and
+`maintain-software`. Refresh occurs only at a fresh task boundary or on
+explicit human request. These provider-local projections are not consumer
+initialization output, do not enter the installed CLI payload, and do not make
+`publish-dotnet-application-locally` available to source authors.

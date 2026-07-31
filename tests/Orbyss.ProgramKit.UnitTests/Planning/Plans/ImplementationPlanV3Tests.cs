@@ -374,7 +374,7 @@ public sealed class ImplementationPlanV3Tests
         var root = FindProgramKitRoot();
         var bytes = File.ReadAllBytes(Path.Combine(
             root.FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "migrations",
             "fixtures",

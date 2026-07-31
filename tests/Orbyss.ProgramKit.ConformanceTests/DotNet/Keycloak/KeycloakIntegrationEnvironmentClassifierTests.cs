@@ -42,7 +42,7 @@ public sealed class KeycloakIntegrationEnvironmentClassifierTests
     {
         var root = Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling-keycloak-tls-proof",
             "integration-environment",
             "linux-amd64");

@@ -15,7 +15,7 @@ public sealed class ArchitectureStaticConformanceVersioningTests
         var root = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             root.FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates");
         var mapPath = Path.Combine(
             extensionRoot,

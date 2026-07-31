@@ -31,7 +31,7 @@ Inputs:
 - Applicable `AGENTS.md` guidance and repository-owned source truth.
 - Existing accepted designs, contracts, schemas, plans, decisions, and evidence
   explicitly in scope.
-- The exact `StaticConformanceDisposition@1.0.0` decision or the information
+- The exact current static-conformance disposition decision or the information
   needed for the human to make it.
 - Supplied identity, authority, time, or correlation values when durable
   artifacts require them.
@@ -116,24 +116,40 @@ designs.
 6. If no compatible layered build gate exists and the human has not accepted
    an empty selection, ask: “This design has no compatible layered build gate
    and no approved empty selection. Should we design one?” A yes is an explicit
-   human start of `design-csharp-build-gate`; run
+   human start of `design-csharp-build-gate`. In a consumer workspace, run
    `program-kit capabilities preflight design-csharp-build-gate
-   --workspace-root .` and then
-   `program-kit capabilities read design-csharp-build-gate
-   --workspace-root .`. A non-ready result is a setup blocker. A no is not
-   empty acceptance and must leave an explicit human decision or a blocker.
+   --workspace-root .` and then `program-kit capabilities read
+   design-csharp-build-gate --workspace-root .`. A non-ready result is a setup
+   blocker. In the Program Kit source authoring workspace, load the complete
+   provider-local `design-csharp-build-gate` projection from the active
+   provider's registered root; do not invoke consumer capability delivery or
+   chase a canonical path at runtime. A missing or drifted source projection is
+   a setup blocker.
+   A no is not empty acceptance and must leave an explicit human decision or a
+   blocker.
 7. Resolve reversible details independently; present material alternatives and
    tradeoffs to the human.
-8. Produce an Architecture Design `0.1.0-alpha.2` artifact and a separate
-   Implementation Plan `0.1.0-alpha.3`. Materialize an adjacent human-readable
-   documentation projection for the canonical implementation plan in the same
-   operation. Label the projection as non-authoritative, name the canonical
-   source, bind its exact current digest, and state that canonical bytes govern
-   any disagreement. Keep work units bounded, dependency-ordered, reviewable,
-   and explicit about allowed edits, outputs, verification, and stop
-   conditions. For `create-new` or `extend-existing`, place the exact approved
-   gate-establishment fragment before every product and closure unit and make
-   downstream work depend on compatible activation evidence.
+8. Produce a current Architecture Design artifact and a separate current
+   Implementation Plan. Preserve exact historical `0.1.0-alpha.2` /
+   `0.1.0-alpha.3` and `0.1.0-alpha.3` / `0.1.0-alpha.4` review sets without
+   rewriting them. Select Implementation Plan `0.1.0-alpha.5` whenever a
+   compatible verification artifact must be resolved at execution rather than
+   frozen as product semantics. Every alpha.5 activation-matrix and
+   verification-profile binding declares exactly one mode:
+   `approval-fixed` carries the exact approved artifact, while
+   `execution-resolved` carries the approved identity, finite semantic-version
+   range, and exact compatibility-policy artifact. Never use execution
+   resolution for scope, authority, required outcomes, allowed edits, stop
+   conditions, package selection, or another product-semantic obligation.
+   Materialize an adjacent human-readable documentation projection for the
+   canonical implementation plan in the same operation. Label the projection
+   as non-authoritative, name the canonical source, bind its exact current
+   digest, and state that canonical bytes govern any disagreement. Keep work
+   units bounded, dependency-ordered, reviewable, and explicit about allowed
+   edits, outputs, verification, and stop conditions. For `create-new` or
+   `extend-existing`, place the exact approved gate-establishment fragment
+   before every product and closure unit and make downstream work depend on
+   compatible activation evidence.
    For every non-closure work unit, select verification that fully covers its
    directly changed scope and the finite reverse dependency/consumer closure
    that can be affected by it, including affected generated outputs, fixtures,
@@ -169,10 +185,11 @@ canonical plan has an adjacent, readable, explicitly non-authoritative
 projection; verify the projection binds the current canonical identity and
 digest and regenerates byte-deterministically; and report every unavailable
 check. Never present raw canonical plan JSON as the only human review surface.
-State deliberately unimplemented or deferred work. Never label a design as
-approved without the exact human decision record. Verify the disposition is
-explicit, its gate selections or accepted empty value have exact human
-authority, and every create/extend plan is establishment-first.
+State
+deliberately unimplemented or deferred work. Never label a design as approved
+without the exact human decision record. Verify the disposition is explicit,
+its gate selections or accepted empty value have exact human authority, and
+every create/extend plan is establishment-first.
 
 ## Authority and safety boundaries
 
@@ -191,13 +208,17 @@ and wrapper migration.
 
 ## Program Kit knowledge and failure resolution
 
-Retrieve exact schemas with `program-kit schemas read
-pkid:schema:program-kit:architecture-design@0.1.0-alpha.2` and `program-kit
-schemas read pkid:schema:program-kit:implementation-plan@0.1.0-alpha.3`. Use
-`commands describe` before unfamiliar backed operations. For Program Kit
-failures, follow the `software-change-troubleshooting` resource and use
-`diagnostics explain` and `artifacts inspect`; do not reverse-engineer
-assemblies or guess a contract.
+In a consumer workspace, retrieve the exact selected design-flow schemas with
+`program-kit schemas read`; execution-resolved plans use
+`pkid:schema:program-kit:architecture-design@0.1.0-alpha.3` and
+`pkid:schema:program-kit:implementation-plan@0.1.0-alpha.5`. Historical
+alpha.3 and alpha.4 plan schemas remain readable. Use
+`commands describe` before unfamiliar backed operations. In the Program Kit
+source authoring workspace, read those exact schema versions from `schemas/`
+and use repository-backed source operations or tests; do not require an
+installed `program-kit` executable. For failures, follow the same-tree
+`software-change-troubleshooting` resource and backed diagnostics when
+available; do not reverse-engineer assemblies or guess a contract.
 
 Before designing a typed .NET Console host or its consumer integration seam,
 retrieve and follow `dotnet-console-input-materialization-guide`,
@@ -210,9 +231,15 @@ journey.
 
 ## Provider wrapper mapping and drift check
 
-Codex and Claude wrappers contain only trigger metadata plus exact
+Registered consumer provider wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
-CLI verifies their recorded bytes before returning this definition. A changed,
-missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
-Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
-`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
+CLI verifies their recorded bytes before returning this definition and renders
+each provider into its exact registered root. Legacy roots are migration input
+only when the provider contract says so.
+
+The Program Kit source authoring workspace instead refreshes an ignored,
+provider-local projection beneath the active provider's registered root only at
+a fresh task boundary or on explicit human request. It contains this complete
+canonical definition rather than a path reference or consumer CLI invocation.
+A changed, missing, stale, partial, or non-exact projection at load time is a
+setup blocker.

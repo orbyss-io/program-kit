@@ -10,8 +10,8 @@ public sealed class CurrentWriterPkidGrammarConformanceTests
         "schemas/artifacts/definitions-0.1.0-alpha.2.schema.json",
         "schemas/architecture/architecture-design-0.1.0-alpha.3.schema.json",
         "schemas/architecture/static-conformance-disposition-0.1.0-alpha.2.schema.json",
-        "schemas/planning/definitions-0.1.0-alpha.4.schema.json",
-        "schemas/planning/implementation-plan-0.1.0-alpha.4.schema.json",
+        "schemas/planning/definitions-0.1.0-alpha.5.schema.json",
+        "schemas/planning/implementation-plan-0.1.0-alpha.5.schema.json",
     ];
 
     [TestMethod]

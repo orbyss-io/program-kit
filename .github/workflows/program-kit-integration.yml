@@ -1,0 +1,135 @@
+name: Program Kit integration
+
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+    types: [checks_requested]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: program-kit-integration-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  integration:
+    name: Program Kit integration
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out the event-provided commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up the repository SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Run the exhaustive repository integration profile
+        shell: pwsh
+        run: pwsh -NoProfile -File build/Invoke-ProgramKitIntegration.ps1
+
+  canonical-build:
+    name: Canonical package build
+    needs: integration
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.integration.result == 'success'
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    env:
+      CANONICAL_ARTIFACT_NAME: program-kit-canonical-build-${{ github.sha }}
+      INTEGRATION_PROFILE_IDENTITY: pkid:profile:program-kit:private-csharp-gate-exhaustive
+      INTEGRATION_PROFILE_VERSION: 1.0.1
+      INTEGRATION_PROFILE_DIGEST: sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f
+      WORKFLOW_IDENTITY: .github/workflows/program-kit-integration.yml
+      WORKFLOW_REVISION: ${{ github.workflow_sha }}
+    steps:
+      - name: Check out the integrated main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up the repository SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Pack the finite canonical consumer feed
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File build/Invoke-PackConsumerFeed.ps1 `
+            -OutputRoot "$env:CANONICAL_BUILD_ROOT"
+
+      - name: Close canonical-build provenance
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File build/Write-ProgramKitCanonicalBuildProvenance.ps1 `
+            -CanonicalBuildRoot "$env:CANONICAL_BUILD_ROOT" `
+            -Repository "$env:GITHUB_REPOSITORY" `
+            -Event "$env:GITHUB_EVENT_NAME" `
+            -Branch "$env:GITHUB_REF" `
+            -SourceCommit "$env:GITHUB_SHA" `
+            -WorkflowIdentity "$env:WORKFLOW_IDENTITY" `
+            -WorkflowRevision "$env:WORKFLOW_REVISION" `
+            -RunId "$env:GITHUB_RUN_ID" `
+            -ArtifactName "$env:CANONICAL_ARTIFACT_NAME" `
+            -ProfileIdentity "$env:INTEGRATION_PROFILE_IDENTITY" `
+            -ProfileVersion "$env:INTEGRATION_PROFILE_VERSION" `
+            -ProfileSha256 "$env:INTEGRATION_PROFILE_DIGEST"
+
+      - name: Verify the closed canonical build
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File build/Test-ProgramKitCanonicalBuild.ps1 `
+            -CanonicalBuildRoot "$env:CANONICAL_BUILD_ROOT" `
+            -Repository "$env:GITHUB_REPOSITORY" `
+            -Event "$env:GITHUB_EVENT_NAME" `
+            -Branch "$env:GITHUB_REF" `
+            -SourceCommit "$env:GITHUB_SHA" `
+            -WorkflowIdentity "$env:WORKFLOW_IDENTITY" `
+            -WorkflowRevision "$env:WORKFLOW_REVISION" `
+            -RunId "$env:GITHUB_RUN_ID" `
+            -ArtifactName "$env:CANONICAL_ARTIFACT_NAME" `
+            -ProfileIdentity "$env:INTEGRATION_PROFILE_IDENTITY" `
+            -ProfileVersion "$env:INTEGRATION_PROFILE_VERSION" `
+            -ProfileSha256 "$env:INTEGRATION_PROFILE_DIGEST"
+
+      - name: Attest every canonical-build subject
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        with:
+          subject-path: |
+            ${{ env.CANONICAL_BUILD_ROOT }}/feed/*.nupkg
+            ${{ env.CANONICAL_BUILD_ROOT }}/package-manifest.json
+            ${{ env.CANONICAL_BUILD_ROOT }}/SHA256SUMS
+            ${{ env.CANONICAL_BUILD_ROOT }}/canonical-build-provenance.json
+
+      - name: Upload the immutable canonical build
+        env:
+          CANONICAL_BUILD_ROOT: ${{ runner.temp }}/program-kit-canonical-build
+        id: canonical-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.CANONICAL_ARTIFACT_NAME }}
+          path: ${{ env.CANONICAL_BUILD_ROOT }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+          include-hidden-files: false

@@ -1,0 +1,13 @@
+{
+  "identity": "pkid:design:program-kit:integration-release-provenance-static-basis",
+  "version": "0.1.0-alpha.1",
+  "sourceCommit": "9d45a6ea9c625ec1fc638d2ef9674cfefc01fd9f",
+  "purpose": "Provide a non-circular source basis for the human-selected static-conformance disposition before the canonical architecture-design digest exists.",
+  "invariants": [
+    "Program Kit-owned C# added or changed by implementation continues to satisfy the existing private C# source-quality gate.",
+    "Pull-request and merge-group workflow permissions, trigger coverage, combined-source checkout, and stable required-check behavior are executable workflow and conformance obligations.",
+    "Only a successful protected-main push run may produce a canonical package artifact eligible for publication.",
+    "A publication run consumes and verifies exact prebuilt package bytes and never rebuilds them.",
+    "Human approval semantics and execution-time byte evidence remain distinct and traceable."
+  ]
+}

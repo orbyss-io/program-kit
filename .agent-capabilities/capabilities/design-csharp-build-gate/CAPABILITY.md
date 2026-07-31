@@ -164,14 +164,18 @@ semantics require compatibility review and an updated definition digest.
 
 ## Program Kit knowledge and failure resolution
 
-Begin with `program-kit csharp-gate describe-definition --format text`. Retrieve
-the exact gate schema through `program-kit schemas read
-pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2`. Create a
-complete draft, then use `csharp-gate materialize-definition`; it accepts one
-UTF-8 BOM, diagnoses all known shape/semantic problems together, stable-sorts
-collections, and emits BOM-free bytes. Use `commands describe`, `diagnostics
-explain`, and `artifacts inspect` for failures. Never inspect DLL strings or
-guess analyzer identities, null rules, or ordering.
+In a consumer workspace, begin with `program-kit csharp-gate
+describe-definition --format text` and retrieve the exact gate schema through
+`program-kit schemas read
+pkid:schema:program-kit:csharp-build-gate-definition@0.1.0-alpha.2`. In the
+Program Kit source authoring workspace, read the exact same-tree schema and use
+the corresponding repository-backed source operation or test; do not require
+an installed `program-kit` executable. Create a complete draft, then use the
+backed `csharp-gate materialize-definition` operation; it accepts one UTF-8
+BOM, diagnoses all known shape/semantic problems together, stable-sorts
+collections, and emits BOM-free bytes. Use backed descriptions and diagnostics
+for failures. Never inspect DLL strings or guess analyzer identities, null
+rules, or ordering.
 
 After the human-approved definition and lock intent exist, retrieve
 `pkid:schema:program-kit:csharp-gate-lock-intent@0.1.0-alpha.1` and use
@@ -187,9 +191,15 @@ example, receipt derivation, digest projections, and
 
 ## Provider wrapper mapping and drift check
 
-Codex and Claude wrappers contain only trigger metadata plus exact
+Registered consumer provider wrappers contain only trigger metadata plus exact
 `capabilities preflight` and `capabilities read` invocations. The installed
-CLI verifies their recorded bytes before returning this definition. A changed,
-missing, unowned, stale, or version-mismatched wrapper is a setup blocker.
-Initialization renders Codex beneath `.agents/skills/` and Claude Code beneath
-`.claude/skills/`; `.codex/skills/` is exact legacy migration input only.
+CLI verifies their recorded bytes before returning this definition and renders
+each provider into its exact registered root. Legacy roots are migration input
+only when the provider contract says so.
+
+The Program Kit source authoring workspace instead refreshes an ignored,
+provider-local projection beneath the active provider's registered root only at
+a fresh task boundary or on explicit human request. It contains this complete
+canonical definition rather than a path reference or consumer CLI invocation.
+A changed, missing, stale, partial, or non-exact projection at load time is a
+setup blocker.
