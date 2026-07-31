@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 27 are accepted decisions governed by the
+Items 1 through 3 and 6 through 28 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -384,3 +384,28 @@ respective categories converge.
     observed values, remediation and next-action kinds, and applicable evidence
     and documentation. Unknown or unsafe fields are absent or redacted, never
     guessed or replaced by raw exception prose.
+28. Diagnostics offer typed remediation descriptors with exact preconditions,
+    bounded targets, effect class, authority requirements, postconditions, and
+    retry phase. Commands are structured requests or argument arrays, never
+    executable prose; patches are digested candidates with target and ownership
+    preconditions. A remedy proposes action but grants no authority.
+    AI automation may consume only an existing exact human or policy grant
+    revalidated by the kernel. Read-only work, isolated candidates, and bounded
+    declared-transient retry may normally be automated. Identity, definition,
+    provider selection, dependency, policy, exception, ownership, or
+    out-of-grant publication changes require approval. Instructions and
+    confidence cannot elevate authority.
+    Every result has one primary disposition: complete, retry, provide-input,
+    request-approval, repair, revise, or stop. Retry is conditional and bounded;
+    disposition guides but does not authorize.
+    Exact authority-qualified catalog, diagnostic, rule, schema, contract,
+    provider, profile, evidence, and documentation references are resolvable
+    through a structured offline explanation lookup; web links are optional.
+    Migration is referenced only when an exact future migration exists.
+    Needs-input returns a canonical stateless continuation artifact with typed
+    missing inputs, choices, authority, completed work, and freshness
+    preconditions. Resume revalidates the digest, authority, inputs, lock,
+    workspace, and evidence. Stale state fails visibly; identity-forming answers
+    follow normal lock and approval rules; secrets use secure references. Known
+    independent missing fields are requested together, without hidden session
+    state or serial question loops.

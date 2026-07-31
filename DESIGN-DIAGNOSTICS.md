@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: diagnostics-and-ai-guidance
 status: active
 last-updated: 2026-08-01
-active-batch: DIA-B02
+active-batch: DIA-B03
 parent-ledger: DESIGN.md
 ---
 
@@ -34,8 +34,8 @@ This category preserves these accepted boundaries:
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
 | `DIA-B01` | `DIA-001`–`DIA-005` | `completed` | Define the universal result envelope, normative rendering, outcomes, categories, and mandatory fields. |
-| `DIA-B02` | `DIA-006`–`DIA-008`, `DIA-015`–`DIA-016` | `active` | Define remediation, agent disposition, documentation links, and resumable input requests. |
-| `DIA-B03` | `DIA-009`–`DIA-012` | `queued` | Define catalog compatibility, message evolution, localization, ordering, deduplication, and truncation. |
+| `DIA-B02` | `DIA-006`–`DIA-008`, `DIA-015`–`DIA-016` | `completed` | Define remediation, agent disposition, documentation links, and resumable input requests. |
+| `DIA-B03` | `DIA-009`–`DIA-012` | `active` | Define catalog compatibility, message evolution, localization, ordering, deduplication, and truncation. |
 | `DIA-B04` | `DIA-013`–`DIA-014` | `queued` | Define information safety and the last-resort host-failure boundary. |
 
 ## 3. Founding requirement
@@ -191,7 +191,7 @@ V1 does not yet need localization, a resumable continuation store, automatic
 patch application, a documentation portal, or the final catalog compatibility
 policy. Those belong to later diagnostics batches.
 
-## 5. Active batch: Remediation and session control
+## 5. Accepted batch: Remediation and session control
 
 `DIA-B02` resolves:
 
@@ -202,8 +202,8 @@ policy. Those belong to later diagnostics batches.
   documentation, and any applicable future migration; and
 - `DIA-016`: whether missing input is a first-class resumable continuation.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all five recommendations. They are governed by
+`DEC-038`.
 
 ### DIA-006 — Remedies are typed actions, never executable prose
 
@@ -317,7 +317,115 @@ argument representation, and multi-field input collection.
 V1 does not need arbitrary shell execution, automatic patch application, a
 hidden continuation database, or a general autonomous-agent policy engine.
 
-## 6. Revision record
+## 6. Active batch: Catalog compatibility and bounded rendering
+
+`DIA-B03` resolves:
+
+- `DIA-009`: whether diagnostic IDs are permanent or only catalog-major stable;
+- `DIA-010`: how message text evolves independently from machine meaning;
+- `DIA-011`: whether localization belongs in v1; and
+- `DIA-012`: deterministic ordering, deduplication, grouping, and safe
+  truncation.
+
+The following recommendations remain **unaccepted** until the human confirms or
+revises them.
+
+### DIA-009 — A diagnostic ID's meaning is permanent; catalogs still version
+
+**Recommendation:** A diagnostic ID is authority-qualified and never reused for
+a different trigger condition or violated invariant. It may be deprecated,
+retired, or linked to a replacement, but its recorded meaning remains permanent
+across catalog major versions. Provider diagnostic IDs live in their provider's
+namespace and cannot collide with kernel or other-provider IDs.
+
+Every composed diagnostic catalog has an exact identity, immutable revision,
+schema/protocol version, and content digest selected by the Program Kit
+distribution and operation lock. A catalog revision may add IDs, templates,
+remedies, examples, or metadata. A breaking schema change or removal requires a
+new catalog major version, but even a major version cannot recycle an old ID or
+silently redefine it.
+
+Compatibility labels help clients understand catalog evolution; execution and
+explanation always use the exact selected catalog. An unknown diagnostic ID is
+preserved as structured unknown provider data and never guessed from its text.
+
+### DIA-010 — Machines consume identity and fields, never rendered wording
+
+**Recommendation:** Each diagnostic separates its stable ID, typed fields,
+message key, structured parameters, and catalog-owned templates. Automation
+branches only on the ID, category, outcome, disposition, and typed fields; it
+never parses a rendered sentence.
+
+Meaning-neutral wording, grammar, examples, and documentation may improve under
+the same diagnostic ID in a new exact catalog revision. Severity defaults,
+remediation options, and links may also evolve only through an explicit catalog
+revision. A material change to the trigger, violated invariant, primary
+category, subject semantics, or consequence requires a new diagnostic ID with
+an explicit replacement relation.
+
+Every human rendering includes the stable diagnostic ID so copied output can be
+resolved without relying on its exact prose.
+
+### DIA-011 — English is the v1 rendering; localization remains pluggable
+
+**Recommendation:** V1 ships one invariant structured protocol and one English
+human rendering. Localization is allowed later through exact versioned language
+resources keyed by catalog identity, diagnostic ID, message key, and typed
+parameters. Localized prose never changes machine meaning or canonical result
+data.
+
+A future renderer reports requested and effective locale and falls back
+explicitly to the catalog's invariant English template when a translation is
+missing. Program Kit never uses the operating-system locale to alter machine
+fields, ordering, parsing, numbers, dates, paths, or generated bytes.
+
+V1 does not need translation infrastructure or localized diagnostic catalogs.
+Deferring them avoids blocking the CLI while keeping localization compatible
+with the protocol.
+
+### DIA-012 — Full canonical diagnostics; bounded deterministic views
+
+**Recommendation:** Program Kit produces one complete canonical diagnostic
+collection for the operation. Its order is deterministic by:
+
+1. whether the diagnostic determines outcome, effect state, or primary
+   disposition;
+2. operation-phase ordinal;
+3. severity rank;
+4. category ordinal;
+5. canonical subject identity;
+6. diagnostic ID; and
+7. stable occurrence key.
+
+Exact duplicate occurrences share the same diagnostic ID, subject, rule,
+structured parameter fingerprint, and cause fingerprint. They collapse into
+one group with an occurrence count and combined evidence references. Distinct
+subjects, observed values, rules, or causes are never deduplicated merely
+because their rendered messages match.
+
+A result envelope or human renderer may expose a bounded view, but truncation
+is explicit. It reports total and returned counts, omitted counts by severity
+and category, grouping information, the full collection's digest and artifact
+reference, and a stable content-bound cursor for further structured retrieval.
+Every cause that determines the top-level outcome, effect state, or disposition
+must remain represented in the bounded view, at least through a lossless group
+summary.
+
+Truncation never changes outcome, effect state, admission, or disposition and
+never silently drops diagnostics. Pagination is over the immutable canonical
+collection, not a mutable live query or unstable numeric offset.
+
+### DIA-B03 delivery boundary
+
+The first CLI needs one exact core catalog, validation for unique IDs and typed
+message parameters, an English renderer, canonical ordering and duplicate
+grouping, and an explicit bounded-view fixture with content-bound retrieval of
+the full collection.
+
+V1 does not need localized resources, remote catalog discovery, diagnostic
+telemetry, or compatibility-range selection.
+
+## 7. Revision record
 
 - Created after Determinism and Generated Artifacts closed under `DEC-036`.
 - Made structured guidance to human-led AI sessions a product-level protocol
@@ -329,3 +437,10 @@ hidden continuation database, or a general autonomous-agent policy engine.
   diagnostic data.
 - Completed `DIA-B01` and activated `DIA-B02` for remediation, session control,
   explanation lookup, and resumable input.
+- The human accepted `DIA-B02` in full under `DEC-038`.
+- Established typed non-authorizing remedies, authority-aware automation, one
+  primary session disposition, exact offline explanation resources, and
+  stateless continuation artifacts with full freshness revalidation.
+- Prohibited raw shell remedies, inferred authority, hidden continuation state,
+  and unbounded agent retry.
+- Completed `DIA-B02` and activated `DIA-B03` for catalog compatibility and
