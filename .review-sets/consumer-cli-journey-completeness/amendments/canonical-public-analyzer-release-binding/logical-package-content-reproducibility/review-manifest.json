@@ -1,0 +1,146 @@
+{
+  "identity": "pkid:review-set-amendment:program-kit:canonical-public-analyzer-logical-package-content",
+  "version": "0.1.0-alpha.1",
+  "state": "ready-for-human-decision",
+  "implementationStatus": "paused-before-PKRB-W030-completion",
+  "sourceBasis": {
+    "branch": "codex/alpha3-canonical-analyzer-selection",
+    "reviewSetSourceCommit": "f6c824e4e1da63df326687942d82aa7a82bc82c2",
+    "synchronizedMainCommit": "11978dc6f3cbd66cd204214318eb166cb02c3e1c",
+    "productVersion": "0.1.0-alpha.3",
+    "sdkVersion": "10.0.302"
+  },
+  "baseReviewSet": {
+    "identity": "pkid:review-set:program-kit:canonical-public-analyzer-release-binding",
+    "version": "0.1.0-alpha.3",
+    "architectureDesign": {
+      "identity": "pkid:design:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.3",
+      "digest": "sha256:59315e450e33a79a39dc1079e1587d6a6747c3343714e3dd8957fff0dddd47d5"
+    },
+    "implementationPlan": {
+      "identity": "pkid:plan:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.3",
+      "digest": "sha256:3b49633d6bfecd0894cef27b5f5baddc71bb02ad492e7084e65b2fb48d9ccc30"
+    },
+    "approvalRecord": {
+      "identity": "pkid:approval-record:program-kit:canonical-public-analyzer-release-binding-synchronized-plan",
+      "version": "1.0.0",
+      "digest": "sha256:df81e6a36aa0bb5ad84b5de9051a3c92cf69bbf010e33d1a633ec899cb409e2d"
+    },
+    "preservedExactBytes": true
+  },
+  "materialDeviation": {
+    "workUnit": "PKRB-W030",
+    "finding": "SDK 10.0.302 emits a random OPC core-properties physical part name and matching relationship identity, so two otherwise equal packs cannot satisfy both raw nupkg equality and the approved prohibition on changing SDK-produced entry paths or contents.",
+    "affectedPackages": 30,
+    "ordinaryEntryContentEquality": "passed",
+    "compilerOutputEquality": "passed",
+    "rawCandidatePackageEquality": "failed-only-at-validated-OPC-core-properties-identity",
+    "publicationPipelinePattern": "pack once, attest exact subjects, select exact artifact ID, reverify, and publish without rebuilding"
+  },
+  "artifacts": [
+    {
+      "role": "design-amendment",
+      "identity": "pkid:design-amendment:program-kit:canonical-public-analyzer-logical-package-content",
+      "version": "0.1.0-alpha.1",
+      "path": ".review-sets/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/logical-package-content-reproducibility/architecture-design-amendment.md",
+      "sha256": "fe0314875012e896e4dc597288ccdf98612e6936ea1dd6ef8c58dc2f58bed979"
+    },
+    {
+      "role": "implementation-plan-amendment",
+      "identity": "pkid:plan-amendment:program-kit:canonical-public-analyzer-logical-package-content",
+      "version": "0.1.0-alpha.1",
+      "path": ".review-sets/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/logical-package-content-reproducibility/implementation-plan-amendment.md",
+      "sha256": "81eff2377f83a8eb701015731991eed71164fee87b34bcb79c1922b1041f0664"
+    },
+    {
+      "role": "validation-report",
+      "identity": "pkid:evidence:program-kit:canonical-public-analyzer-logical-package-content-design-validation",
+      "version": "1.0.0",
+      "path": ".review-sets/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/logical-package-content-reproducibility/validation-report.md",
+      "sha256": "892ccf29c86d9f86da2eab38a659b190bcedcb36c8811c1cfe120e257289eae8"
+    },
+    {
+      "role": "readme",
+      "path": ".review-sets/consumer-cli-journey-completeness/amendments/canonical-public-analyzer-release-binding/logical-package-content-reproducibility/README.md",
+      "sha256": "6ea615c9727737abd21d8816b51c00510dd062b47ef6b3068fc8763ba9b575a1"
+    }
+  ],
+  "decision": {
+    "candidatePackageSha256": "exact run-scoped unsigned candidate instance identity",
+    "packageContentDigest": "cross-root reproducible validated logical non-signature package-content identity",
+    "publishedPackageSha256": "exact verified NuGet.org repository-signed consumer package identity",
+    "rawUnsignedNupkgCrossRootEqualityRequired": false,
+    "compilerOutputCrossRootEqualityRequired": true,
+    "logicalPackageContentCrossRootEqualityRequired": true,
+    "publishExactAttestedCandidateWithoutRebuildRequired": true
+  },
+  "staticConformanceDisposition": {
+    "disposition": "extend-existing",
+    "historicalArtifact": {
+      "identity": "pkid:static-conformance-disposition:program-kit:canonical-public-analyzer-release-binding",
+      "version": "0.1.0-alpha.2",
+      "digest": "sha256:cd8adf3db8caf4f0b719fbc4e5ad7cdf730aac94802288535559e10d93c664a0",
+      "preservedExactBytes": true
+    },
+    "amendedExecutableInvariant": "Complete logical package-content equality across clean roots plus publication of the same exact attested candidate instance without rebuilding.",
+    "newAnalyzerAuthorized": false,
+    "activeSelectionLock": {
+      "identity": "pkid:selection-lock:program-kit:canonical-public-analyzer-release-binding-private-gate",
+      "version": "1.0.0",
+      "digest": "sha256:42c952f2ca3448e24ff9f7abb138bc6e5fa5ec475bda973131b877ffcfd1ff8c"
+    }
+  },
+  "implementationBoundary": {
+    "completedAndUnchanged": [
+      "PKRB-W010",
+      "PKRB-W020"
+    ],
+    "pendingAmendedApproval": [
+      "PKRB-W030",
+      "PKRB-W040",
+      "PKRB-W060",
+      "PKRB-W070",
+      "PKRB-W080"
+    ],
+    "pendingUnchanged": [
+      "PKRB-W050"
+    ],
+    "serialExecutionRequired": true,
+    "publicationAuthorized": false,
+    "doesNotAuthorize": [
+      "GitHub workflow invocation",
+      "NuGet or other package publication",
+      "tag or release creation",
+      "deployment or promotion",
+      "SDK or published Program Kit CLI installation",
+      "alpha.2 mutation or unlisting",
+      "rewriting historical review artifacts"
+    ]
+  },
+  "layout": {
+    "currentReviewRoot": ".review-sets/",
+    "historicalLiteralPathsPreserved": true,
+    "rootExtensionsDirectoryPermitted": false,
+    "baselineEvidenceRoot": ".evidence/program-kit-baseline/",
+    "artifactsDirectoryClassification": "generated-output"
+  },
+  "validation": {
+    "artifactIdentityAndVersion": "passed",
+    "baseArtifactDigestBindings": "passed",
+    "jsonSyntax": "passed",
+    "currentPathPolicy": "passed",
+    "staticConformanceDisposition": "extend-existing",
+    "workUnitTrace": "passed",
+    "publicationBoundary": "passed-no-publication-authority",
+    "implementationVerification": "deferred-until-exact-human-approval"
+  },
+  "approvalBoundary": {
+    "requiredDecision": "explicit-human-approval-of-the-exact-design-and-plan-amendment-digests-and-retained-extend-existing-disposition",
+    "candidateDesignSha256": "fe0314875012e896e4dc597288ccdf98612e6936ea1dd6ef8c58dc2f58bed979",
+    "candidatePlanSha256": "81eff2377f83a8eb701015731991eed71164fee87b34bcb79c1922b1041f0664",
+    "humanDecision": null,
+    "authorizedWorkUnits": []
+  }
+}
