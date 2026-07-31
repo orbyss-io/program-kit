@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 24 are accepted decisions governed by the
+Items 1 through 3 and 6 through 25 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -327,3 +327,22 @@ respective categories converge.
     normalized, made explicit, or rejected. Late-bound secret values and
     deployment configuration are excluded from generated output and identity;
     their non-secret parameter contracts may be included.
+25. Trust is atomic at the artifact-set level. Construction uses an isolated
+    immutable candidate, complete manifest, mandatory validation, and
+    collision/precondition checks before publication. Only a completely
+    published set receives an admission and publication receipt. Physical
+    multi-file writes use atomic replacement where possible and an exact plan,
+    journal, and explicit incomplete-publication state otherwise; partial
+    output is never trusted.
+    Every materialized artifact is Program Kit generated-owned, seeded-handoff,
+    or consumer-owned. Generated-owned edits are drift. A seeded artifact is
+    created only when absent and becomes custom-bounded consumer work after
+    handoff. Consumer-owned artifacts are never modified. V1 has no mixed
+    generated/editable regions inside one file; composition uses separate files
+    or exact structured seams.
+    Evaluation diagnoses exact, missing, modified, stale, colliding, and
+    interrupted states without mutation. Construction fails closed rather than
+    overwriting them. Repair is a separate authorized construction request,
+    and reclassification requires a human-approved definition change. Program
+    Kit never silently adopts drift, derives canonical intent from edited
+    output, or presents custom bytes as deterministically generated.

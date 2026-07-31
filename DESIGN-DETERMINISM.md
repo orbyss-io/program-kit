@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: determinism-and-generated-artifacts
 status: active
 last-updated: 2026-08-01
-active-batch: DET-B02
+active-batch: DET-B03
 parent-ledger: DESIGN.md
 ---
 
@@ -35,8 +35,8 @@ The category preserves these accepted boundaries:
 |---|---|---|---|
 | `DET-B00` | `DET-010` | `completed` | Bound deterministic construction separately from human judgment, custom implementation, conformance, and runtime behavior. |
 | `DET-B01` | `DET-001`–`DET-003`, `DET-009` | `completed` | Define reproducibility profiles, claim strengths, and the complete construction identity. |
-| `DET-B02` | `DET-004`–`DET-007` | `active` | Define atomic publication, generated-file ownership, editing, and drift handling. |
-| `DET-B03` | `DET-008` | `queued` | Define retention and evidence sufficiency without prematurely designing archival policy. |
+| `DET-B02` | `DET-004`–`DET-007` | `completed` | Define atomic publication, generated-file ownership, editing, and drift handling. |
+| `DET-B03` | `DET-008` | `active` | Define retention and evidence sufficiency without prematurely designing archival policy. |
 
 ## 3. Accepted determinism boundary
 
@@ -147,7 +147,7 @@ It does not need to prove reproducible binaries for every .NET SDK, operating
 system, or architecture. Those claims remain absent until a provider profile
 supplies evidence.
 
-## 5. Active batch: Atomic publication, ownership, and drift
+## 5. Accepted batch: Atomic publication, ownership, and drift
 
 `DET-B02` resolves:
 
@@ -157,8 +157,8 @@ supplies evidence.
 - `DET-006`: how generated and consumer ownership remain unambiguous; and
 - `DET-007`: how Program Kit responds to generated-artifact drift.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all four recommendations. They are governed by
+`DEC-035`.
 
 ### DET-004 — Artifact sets are logically atomic and physically recoverable
 
@@ -244,7 +244,60 @@ collision, stale identity, and interrupted publication.
 V1 does not need a general merge engine, source-control integration, arbitrary
 filesystem transactions, or automatic repair.
 
-## 6. Revision record
+## 6. Active batch: Retention and evidence sufficiency
+
+`DET-B03` resolves `DET-008`: whether canonical inputs must be retained forever
+or whether a generation manifest alone can remain sufficient evidence.
+
+The following recommendation remains **unaccepted** until the human confirms or
+revises it.
+
+### DET-008 — Reproducibility requires resolvable bytes, not eternal retention
+
+**Recommendation:** A construction manifest, resolution lock, and receipt are
+the authoritative index and historical record of what Program Kit used and
+claimed. They are not by themselves sufficient to reproduce or currently
+verify an output when the exact referenced content is unavailable. A signature
+could authenticate a record but cannot recover missing bytes or prove their
+present availability.
+
+For as long as an admitted construction is presented as actively supported or
+reproducible, every identity-forming canonical input, provider, template, tool
+artifact, dependency, and applicable evidence must remain exactly resolvable
+and digest-verifiable under a declared retention and support policy. Content
+may live in the repository, selected Program Kit distribution, an immutable
+package source, or a content-addressed store; location is not authority and
+duplication inside every consumer repository is not required.
+
+Program Kit does not impose eternal retention. When policy expires or exact
+content becomes unavailable, the historical receipt still records the prior
+operation, but Program Kit must report that current reproduction,
+re-evaluation, or repair is unavailable or stale. It cannot continue making an
+active reproducibility claim from hashes alone. Evidence freshness and support
+policy determine whether admission remains current; history is not silently
+rewritten.
+
+Secret values are never retained as reproducibility inputs. Only their
+non-secret parameter contracts and identifiers may be governed. Transient
+staging bytes, caches, human renderings, and ordinary logs need not be retained
+after their declared purpose, provided no manifest identifies them as canonical
+input or required evidence.
+
+V1 requires no signing infrastructure, archival service, garbage collector, or
+content-addressed repository product. It needs complete digest references,
+availability preflight for the selected operation, and a stable diagnostic when
+a required exact input cannot be resolved. A fixture that removes one
+referenced input is sufficient to prove the failure boundary.
+
+### DET-B03 delivery boundary
+
+The first CLI retains its root definition, resolution lock, construction
+identity, artifact-set manifest, publication receipt, and applicable evidence.
+It verifies every required referenced input before claiming reproduction. The
+consumer or selected distribution may retain the bytes; Program Kit must know
+their exact identities and refuse unavailable claims.
+
+## 7. Revision record
 
 - Created after Extensions and Composition closed under `DEC-033`.
 - Preserved the already accepted `DET-010` boundary from `DEC-018` and
@@ -257,3 +310,9 @@ filesystem transactions, or automatic repair.
   output-affecting inputs.
 - Completed `DET-B01` and activated `DET-B02` for logical atomicity, generated
   artifact ownership, consumer editing, and drift handling.
+- The human accepted `DET-B02` in full under `DEC-035`.
+- Established logical artifact-set atomicity with recoverable physical
+  publication, explicit generated/seeded/consumer ownership, and no mixed file
+  ownership in v1.
+- Required read-only drift diagnosis and separately authorized repair.
+- Completed `DET-B02` and activated final Determinism batch `DET-B03`.
