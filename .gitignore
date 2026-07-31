@@ -10,7 +10,10 @@
 *.userosscache
 *.sln.docstates
 *.env
-/.agents/
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/speckit-*/
 /.codex/
 /.program-kit/
 
