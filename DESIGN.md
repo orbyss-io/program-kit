@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
-active-category: none
-active-batch: none
+active-category: feature-model
+active-batch: FTR-B01
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -70,7 +70,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 11 | All Product Identity decisions accepted on 2026-07-31. |
-| Feature model | `FTR` | `queued` | 14 | Includes the multidimensional contract used to evaluate bounded components. |
+| Feature model | `FTR` | `active` | 14 | Batch `FTR-B01` defines the feature primitive and semantic interface. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 12 | May be reshaped by identity and feature answers. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -82,11 +82,13 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 Counts are a live snapshot, not a quota. New questions are expected.
 
-## 7. Completed category: Product identity
+## 7. Category progression
 
 Product Identity is closed and recorded in
-[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). No new category is
-active until the human selects or confirms the next category.
+[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md).
+
+Feature Model is active and recorded in
+[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` is active.
 
 ## 8. Queued question catalog
 
@@ -110,6 +112,7 @@ Product Identity decisions are accepted; all other categories remain unresolved.
 | `DEC-008` | `PID-006` | `accepted` | Program Kit v1 refuses autonomous semantic authority, forced universal composability, ambiguous integration, ambient or unpinned selection, built-in business-domain meaning, multi-ecosystem implementation, runtime dependence on development tooling, and self-hosting during the redesign. | 2026-07-31 |
 | `DEC-009` | `PID-007` | `accepted` | Program Kit v1 is a semantic development toolchain, not a new programming language; a language claim requires a formal grammar, type system, compiler semantics, and compatibility model. | 2026-07-31 |
 | `DEC-010` | `PID-009`, `EXT-012`, `EXT-013` | `accepted` | Program Kit owns independent public commands, artifacts, diagnostics, and compatibility promises; internal Spec Kit reuse is replaceable, and optional Spec Kit integration may invoke only Program Kit's public contract. | 2026-07-31 |
+| `DEC-011` | `EXT-013` | `accepted` | The Spec Kit-to-Program Kit adapter is outside the current design; reconsider it only after Program Kit CLI is implemented, independently usable, and published, as a separate optional adapter. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -120,7 +123,7 @@ answer or tension that created them.
 |---|---|---|---|
 | `PID-008` | Human separated Program Kit's consumer capabilities from the workflow used to build Program Kit itself | `accepted` | Governed by `DEC-001` and `DEC-002`; internal Spec Kit composition is separate. |
 | `EXT-012` | Program Kit may internally reuse selected Spec Kit techniques | `open` | Define a governed, explicit, pinned, replaceable, non-circular internal composition model. |
-| `EXT-013` | Existing Spec Kit users may benefit from invoking Program Kit at explicit handoff points | `deferred` | Evaluate an optional Spec Kit-to-Program Kit bridge only after standalone Program Kit is proven; require measurable value and no core coupling. |
+| `EXT-013` | Existing Spec Kit users may benefit from invoking Program Kit at explicit handoff points | `deferred` | Outside current design; revisit only after Program Kit CLI is independently usable and published, then require measurable value and no core coupling. |
 | `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `accepted` | Program Kit owns independent public contracts; optional interoperability uses those contracts. |
 | `DET-010` | Consumer outcome described as semi-deterministic software components | `follow-up` | Define the exact judgment-to-determinism acceptance boundary. |
 | `PLN-001` | Archived planning domain retains serious product value | `open` | Define the canonical planning concepts and lifecycle relations. |
@@ -175,3 +178,10 @@ answer or tension that created them.
   use only public Program Kit contracts, remain non-circular, and justify its
   cost with measurable workflow value.
 - The constitution remains an unratified proposal pending further convergence.
+
+### 2026-07-31 — Feature Model activated
+
+- Accepted `DEC-011`: the Spec Kit adapter is outside the current design and
+  may be reconsidered only after Program Kit CLI is independently published.
+- Activated Feature Model batch `FTR-B01` with three primitive-defining
+  questions; later Feature Model questions remain queued and may be reshaped.

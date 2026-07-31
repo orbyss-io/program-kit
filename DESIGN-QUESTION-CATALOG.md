@@ -96,11 +96,11 @@ record the revision or supersession rather than silently deleting it.
   techniques, what are the explicit dependency direction, artifact handoff,
   authority boundary, version pinning, diagnostics, and non-circularity rules
   while Program Kit retains independent public contracts?
-- **EXT-013:** Should an optional Spec Kit integration invoke Program Kit's
-  public, non-interactive CLI at explicit workflow handoff points while keeping
-  both products independently usable and preventing callback cycles? What
-  measurable value must the bridge prove—such as reduced duplicate planning,
-  reliable artifact handoff, and preserved diagnostics—to justify its cost?
+- **EXT-013:** This integration is outside the current design. Revisit it only
+  after Program Kit CLI is implemented, independently usable, and published.
+  Then determine whether an optional Spec Kit adapter can invoke Program Kit's
+  public CLI at explicit handoffs while proving measurable value, preserving
+  diagnostics, and avoiding duplicate truth, core coupling, or callback cycles.
 
 ### 8.4 Determinism and generated artifacts
 
