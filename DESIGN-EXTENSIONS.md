@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: extensions-and-composition
-status: active
+status: closed
 last-updated: 2026-07-31
-active-batch: EXT-B03
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -38,7 +38,7 @@ The category preserves these accepted boundaries:
 | `EXT-B00` | `EXT-012`–`EXT-013` | `completed` | No internal Spec Kit product dependency; later external adapter invokes stable public factory contracts. |
 | `EXT-B01` | `EXT-001`–`EXT-003` | `completed` | Separate factory execution, session guidance, packaging, provider metadata, and vocabulary; define minimum operation roles. |
 | `EXT-B02` | `EXT-004`–`EXT-007` | `completed` | Define composition, output ownership, conflict resolution, ordering, and version selection. |
-| `EXT-B03` | `EXT-008`–`EXT-011` | `active` | Define trust, isolation, packaging, mandatory metadata, and conformance obligations. |
+| `EXT-B03` | `EXT-008`–`EXT-011` | `completed` | Define trust, isolation, packaging, mandatory metadata, and conformance obligations. |
 
 ## 3. Accepted Spec Kit boundary
 
@@ -255,7 +255,7 @@ fixtures for duplicate, incompatible, cyclic, and ambiguously ordered
 contributions. It does not require dynamic loading, a package marketplace, or a
 version solver.
 
-## 6. Active batch: Trust, packaging, and conformance
+## 6. Accepted batch: Trust, packaging, and conformance
 
 `EXT-B03` resolves:
 
@@ -265,8 +265,8 @@ version solver.
 - `EXT-011`: which schemas, diagnostics, compatibility declarations, and
   conformance fixtures are mandatory.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all four recommendations. They are governed by
+`DEC-033`.
 
 ### EXT-008 — V1 executes only explicit first-party trusted build code
 
@@ -381,3 +381,9 @@ extension marketplace, or a sandbox.
   resolution locks without a compatibility solver.
 - Completed `EXT-B02` and activated final Extensions batch `EXT-B03` for trust,
   isolation, packaging, metadata, diagnostics, and conformance obligations.
+- Accepted `EXT-B03` under `DEC-033`: v1 executes only explicitly registered
+  first-party operation providers, NuGet delivers .NET code while a canonical
+  manifest carries Program Kit meaning, and support claims require stable
+  diagnostics plus conformance evidence.
+- Closed Extensions and Composition. Third-party executable loading and its
+  prerequisite out-of-process isolation remain outside v1.

@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 22 are accepted decisions governed by the
+Items 1 through 3 and 6 through 23 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -296,3 +296,17 @@ respective categories converge.
     provider, vocabulary, provider profile, target profile, and dependency is
     exact in the accepted resolution lock. V1 has no compatibility solver,
     transitive best-match selection, or automatic upgrade.
+23. V1 executes only exact, explicitly registered first-party operation
+    providers shipped with its selected distribution. Installation or
+    discovery never authorizes execution, and in-process code is trusted rather
+    than sandboxed. Executing future third-party or untrusted providers first
+    requires a proven out-of-process build-time isolation profile.
+    Exact NuGet packages deliver .NET provider code, while a canonical Program
+    Kit extension manifest is the semantic authority for identity, contracts,
+    provenance, digests, support, composition, and conformance. Ordinary NuGet
+    metadata and reflection discovery do not define Program Kit meaning.
+    Every advertised support claim requires complete metadata, a stable
+    diagnostic namespace and catalog with actionable remediation references,
+    and conformance fixtures with expected canonical results. An incomplete
+    claim is unavailable. V1 has no dynamic third-party loader, marketplace,
+    trust store, signing infrastructure, or sandbox.
