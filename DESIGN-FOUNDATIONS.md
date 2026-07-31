@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 26 are accepted decisions governed by the
+Items 1 through 3 and 6 through 27 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -361,3 +361,26 @@ respective categories converge.
     Secret values are never retained as reproducibility inputs. V1 requires
     complete digest references, availability preflight, and missing-input
     diagnostics, not signing, archival, garbage-collection, or storage systems.
+27. Every running public CLI operation, including pre-admission refusal,
+    returns one versioned structured operation-result envelope. It reports the
+    furthest phase and an effect state of none, candidate-only, committed, or
+    indeterminate. Human output is a faithful projection; JSON mode emits one
+    clean document, while logs and progress use another channel. Canonical
+    result data excludes random identifiers, timing, and other execution
+    metadata.
+    Top-level outcomes are succeeded, needs-input, blocked, cancelled, and
+    faulted. Warning and change indicators remain orthogonal. There is no
+    partial-success or unknown outcome and no success for incomplete bytes.
+    Every diagnostic has exactly one primary category: request, semantic,
+    resolution, policy, conformance, workspace, external, or internal.
+    Providers may add namespaced IDs but not categories without a protocol
+    revision.
+    Results identify operation, available request/construction identities,
+    outcome, phase, effect, changes, artifacts, receipts, evidence,
+    diagnostics, and applicable continuation. Diagnostics carry stable
+    authority-qualified ID and catalog revision, severity, category, phase,
+    occurrence key, typed subjects, rule/contract/profile references, message
+    key and safe parameters, bounded cause and consequence, safe expected and
+    observed values, remediation and next-action kinds, and applicable evidence
+    and documentation. Unknown or unsafe fields are absent or redacted, never
+    guessed or replaced by raw exception prose.

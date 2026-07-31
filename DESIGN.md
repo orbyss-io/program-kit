@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
 active-category: diagnostics-and-ai-guidance
-active-batch: DIA-B01
+active-batch: DIA-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -75,7 +75,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
 | Extensions and composition | `EXT` | `closed` | 13 | All batches are accepted by `DEC-029` and `DEC-031`–`DEC-033`. |
 | Determinism and generated artifacts | `DET` | `closed` | 10 | All batches are accepted by `DEC-018`, `DEC-028`, and `DEC-034`–`DEC-036`. |
-| Diagnostics and AI guidance | `DIA` | `active` | 16 | `DIA-B01` defines the universal operation-result and diagnostic foundation. |
+| Diagnostics and AI guidance | `DIA` | `active` | 16 | `DIA-B01` is accepted by `DEC-037`; `DIA-B02` defines remediation and session control. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
 | First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
@@ -107,8 +107,8 @@ Determinism and Generated Artifacts is closed in
 [`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). All three batches are complete.
 
 Diagnostics and AI Guidance is active in
-[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). `DIA-B01` defines the
-universal operation-result envelope, outcomes, categories, and mandatory data.
+[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). `DIA-B01` is accepted;
+`DIA-B02` now defines remediation, session disposition, and resumable input.
 
 ## 8. Queued question catalog
 
@@ -118,7 +118,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-036`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-037`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is active.
 
@@ -161,6 +161,7 @@ Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is ac
 | `DEC-035` | `DET-004`–`DET-007` | `accepted` | Trust is atomic at the complete artifact-set level: construction stages immutable candidates, validates them, checks live-path preconditions, and issues admission/publication only after complete success. Physical publication is recoverable and partial output is never trusted. Artifacts are generated-owned, seeded-handoff, or consumer-owned, with no mixed generated/editable regions inside a v1 file. Evaluation diagnoses drift without mutation; construction fails closed; repair is separately authorized. Program Kit never silently overwrites, adopts drift, or presents custom bytes as deterministic output. | 2026-08-01 |
 
 | `DEC-036` | `DET-008` | `accepted` | Manifests, locks, receipts, and any future signatures preserve historical identity and authenticity but cannot substitute for unavailable content. While construction is presented as actively supported or reproducible, every identity-forming input, provider, tool artifact, dependency, and required evidence must remain exactly resolvable and digest-verifiable under a declared policy. Eternal retention and repository-local duplication are not required. Missing or expired content makes current reproduction, re-evaluation, or repair explicitly stale or unavailable without rewriting historical receipts. Secrets are never retained as reproducibility inputs. | 2026-08-01 |
+| `DEC-037` | `DIA-001`–`DIA-005` | `accepted` | Every running public CLI path returns one versioned structured result envelope with furthest phase and explicit effect state. Machine data is authoritative; human output is a faithful projection; JSON mode emits one clean document; non-canonical execution metadata cannot affect canonical results. V1 outcomes are succeeded, needs-input, blocked, cancelled, and faulted. Diagnostic categories are request, semantic, resolution, policy, conformance, workspace, external, and internal. Results and diagnostics carry stable identities, bounded causes and consequences, rule and subject references, safe expected/observed values, evidence, remediation, and next-action data without guessed fields or raw exception prose. | 2026-08-01 |
 ## 10. Emergent-question register
 
 New items receive the next stable ID within the relevant category and cite the
@@ -504,3 +505,15 @@ answer or tension that created them.
 - Closed Determinism and Generated Artifacts with all ten questions resolved.
 - Activated Diagnostics and AI Guidance batch `DIA-B01` for the universal
   operation-result protocol.
+
+### 2026-08-01 — Universal diagnostic result accepted
+
+- The human explicitly accepted all `DIA-B01` recommendations.
+- Accepted `DEC-037` for one universal structured result envelope, five closed
+  outcomes, eight primary diagnostic categories, explicit effect state, and
+  mandatory actionable data.
+- Kept human rendering, logs, progress, exit codes, and non-canonical execution
+  metadata subordinate to the structured result contract.
+- Completed `DIA-B01` and activated `DIA-B02` for typed remediation, session
+  disposition, exact explanations, authority-aware automation, and resumable
+  input.
