@@ -15,12 +15,13 @@ record the revision or supersession rather than silently deleting it.
 
 - **FTR-001:** Is `CShells.IFeature` a canonical foundation to retain, or prior
   art whose contract must be independently re-specified?
-- **FTR-002:** If retained, should Program Kit depend on CShells directly, own a
-  successor contract, or use a neutral extracted package?
-- **FTR-003:** Does every logical unit qualify as a feature, or only a capability
-  that is independently selectable, composable, or reusable?
-- **FTR-004:** Does "every feature is an interface" mean a literal CLR interface,
-  or a governed semantic contract that may project to several interfaces?
+- **FTR-002:** Should Program Kit ship a first-party, version-pinned CShells
+  projection adapter, and which syntax, generation, conformance, diagnostics,
+  compatibility, and migration obligations must each supported version carry?
+- **FTR-003:** What precisely distinguishes a feature contract, a concrete
+  feature implementation, and the component that packages implementations?
+- **FTR-004:** How are governed interface facets modeled without making CLR,
+  mediator, messaging, registry, transport, or configuration choices semantic?
 - **FTR-005:** Can one feature expose API, CLI, worker, configuration, event, and
   internal facets at the same time?
 - **FTR-006:** How are feature, operation, component, module, package, service,
@@ -42,6 +43,13 @@ record the revision or supersession rather than silently deleting it.
 - **FTR-014:** Which explicit contracts must a bounded component evaluate
   against: semantic, behavioral, API, schema, dependency, integration, policy,
   deployment, or a defined multidimensional contract set?
+- **FTR-015:** What are the exact cardinality and identity rules among feature
+  contracts, feature implementations, and components?
+- **FTR-016:** May sibling bounded domains reference one another's public
+  contracts directly, or must consumer-owned contracts and explicit bridges
+  mediate them except when both adopt a neutral protocol?
+- **FTR-017:** Must every interface facet declare direction, semantic role,
+  audience, contract/version, and a separately selected technical binding?
 
 ### 8.2 Semantic language and bounded contexts
 

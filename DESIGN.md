@@ -70,7 +70,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 11 | All Product Identity decisions accepted on 2026-07-31. |
-| Feature model | `FTR` | `active` | 14 | Batch `FTR-B01` defines the feature primitive and semantic interface. |
+| Feature model | `FTR` | `active` | 17 | Batch `FTR-B01` refines contracts, implementations, dependencies, and facets. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 12 | May be reshaped by identity and feature answers. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -98,7 +98,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Product Identity decisions are accepted; all other categories remain unresolved.
+Product Identity and `DEC-012` are accepted; remaining categories are unresolved.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -113,6 +113,7 @@ Product Identity decisions are accepted; all other categories remain unresolved.
 | `DEC-009` | `PID-007` | `accepted` | Program Kit v1 is a semantic development toolchain, not a new programming language; a language claim requires a formal grammar, type system, compiler semantics, and compatibility model. | 2026-07-31 |
 | `DEC-010` | `PID-009`, `EXT-012`, `EXT-013` | `accepted` | Program Kit owns independent public commands, artifacts, diagnostics, and compatibility promises; internal Spec Kit reuse is replaceable, and optional Spec Kit integration may invoke only Program Kit's public contract. | 2026-07-31 |
 | `DEC-011` | `EXT-013` | `accepted` | The Spec Kit-to-Program Kit adapter is outside the current design; reconsider it only after Program Kit CLI is implemented, independently usable, and published, as a separate optional adapter. | 2026-07-31 |
+| `DEC-012` | `FTR-001`, `FTR-002` | `accepted` | `CShells.IFeature` is prior art rather than Program Kit's canonical dependency; selected CShells generation requires an explicit, version-pinned projection adapter with generation, conformance, diagnostics, and migration rules. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -133,6 +134,9 @@ answer or tension that created them.
 | `PID-010` | Human contributor named as governing identity in `PID-001` | `accepted` | Human governs intent; currently accepted contracts govern admitted outputs until explicitly revised and reaccepted. |
 | `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `accepted` | Precise irreconcilability is a resolution; universal composability is not promised. |
 | `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
+| `FTR-015` | Contracts and feature implementations must be separate | `follow-up` | Define exact cardinality and identity among feature contracts, implementations, and components. |
+| `FTR-016` | Features collaborate through contracts and sibling domains may require bridges | `follow-up` | Define contract-dependency and cross-domain bridge rules. |
+| `FTR-017` | Interface roles must not prescribe middleware mechanisms | `follow-up` | Confirm direction, role, audience, contract/version, and binding as separate facet dimensions. |
 
 ## 11. Session log
 
@@ -185,3 +189,13 @@ answer or tension that created them.
   may be reconsidered only after Program Kit CLI is independently published.
 - Activated Feature Model batch `FTR-B01` with three primitive-defining
   questions; later Feature Model questions remain queued and may be reshaped.
+
+### 2026-07-31 — Feature primitive refined
+
+- Accepted `DEC-012`: CShells remains prior art and selected generation uses a
+  versioned projection adapter rather than a canonical core dependency.
+- Recorded the human distinction between feature contracts and concrete feature
+  implementations, with all semantic dependencies targeting contracts.
+- Replaced prescribed messaging mechanisms with a candidate dimensional
+  interface-facet model.
+- Added `FTR-015` through `FTR-017`; `FTR-003` and `FTR-004` remain follow-ups.
