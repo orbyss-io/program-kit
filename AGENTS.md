@@ -27,6 +27,14 @@
   speculatively.
 - Preserve deterministic generation, stable diagnostics, pinned dependencies,
   and fail-closed validation.
+- Run the directly affected local checks before handing a change to shared
+  integration. After a pull request is open, use the stable `Program Kit
+  integration` check as the shared combined-source result; do not repeatedly
+  merge `main` into a still-mergeable topic branch solely to reproduce that
+  integration locally.
+- Treat a real source conflict or failing shared check as work to resolve.
+  Treat CI success only as execution evidence: it does not approve semantics,
+  merge a change, authorize publication, or mutate repository settings.
 - Keep changes reviewable and report assumptions, verification, and anything
   deliberately not implemented.
 - Commit and push each completed task promptly with an understandable message

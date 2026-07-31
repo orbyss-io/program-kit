@@ -52,8 +52,10 @@ commit you intend to work from.
 ## Branch lifecycle (required)
 
 Program Kit uses short-lived non-default branches. GitHub's
-`delete_branch_on_merge` repository setting is enabled so a pull request's head
-branch is automatically removed after GitHub merges it into `main`.
+`delete_branch_on_merge` repository setting should be enabled so a pull
+request's head branch is automatically removed after GitHub merges it into
+`main`. Repository settings remain human-owned; see the unapplied
+[administration handoff](.github/PROGRAM-KIT-ADMINISTRATION.md).
 
 After any merge, update `origin/main` and prove the topic-branch tip is
 reachable before cleanup:
@@ -72,6 +74,38 @@ Never delete `main`, a protected branch, an unmerged branch, a dirty branch, or
 a branch attached to active work. Do not substitute `git branch -D` for a
 failed ancestry check. Preserve the branch and report its unique commits when
 its disposition needs a human decision.
+
+## Pull-request and shared integration lifecycle
+
+Keep local work focused and reviewable. Before pushing, run the directly
+affected tests and any check needed to validate the changed contract. Opening a
+pull request does not excuse a failing focused local check.
+
+The repository workflow
+[`.github/workflows/program-kit-integration.yml`](.github/workflows/program-kit-integration.yml)
+reports one stable `Program Kit integration` job:
+
+1. For `pull_request`, GitHub supplies the current synthetic merge commit. The
+   job verifies the proposed change together with current `main`; it does not
+   check out the pull-request head explicitly.
+2. Contributor sessions may wait for that shared status in the pull request
+   instead of repeatedly merging `main` only to reproduce combined-source
+   integration locally.
+3. A real Git conflict still requires deliberate source reconciliation and
+   directly affected local checks. A branch being behind by itself is not a
+   reason to manufacture a merge commit.
+4. For `merge_group`, the same stable job proves current `main` together with
+   the queued changes. The merge queue serializes accepted changes and exposes
+   cross-contributor failures once at the integration authority.
+5. A successful push to `main` creates one verified, attested canonical-build
+   artifact. It publishes nothing.
+
+CI success is execution evidence, not semantic approval, review approval,
+merge authority, repository-setting authority, or release authority. Humans
+still review and merge source, resolve material decisions, configure GitHub,
+and explicitly dispatch publication with one exact canonical-build run ID.
+Do not enable automatic merge or dispatch publication merely because the
+shared check passed.
 
 ## 2. Build and test
 
@@ -169,6 +203,9 @@ denial. The refresh command owns exact local body comparison.
 ## Day-to-day authoring
 
 - [`AGENTS.md`](AGENTS.md) — agent startup expectations for this repository.
+- [`.github/PROGRAM-KIT-ADMINISTRATION.md`](.github/PROGRAM-KIT-ADMINISTRATION.md)
+  — the exact, unapplied human setup for shared integration, merge queue, the
+  protected publication environment, and NuGet trusted publishing.
 - [`.agent-capabilities/README.md`](.agent-capabilities/README.md) and
   [`.agent-capabilities/provider-adapters/README.md`](.agent-capabilities/provider-adapters/README.md)
   — the canonical capability tree and adapter contract.

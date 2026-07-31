@@ -52,6 +52,24 @@ or a branch attached to active work. If repository settings or permissions
 cannot perform the cleanup, report the exact retained branch and its unique
 commits instead of forcing deletion.
 
+### Shared integration for Program Kit contributors
+
+Contributor branches run directly affected checks locally, then rely on the
+stable `Program Kit integration` pull-request status for the current synthetic
+combined source. A still-mergeable branch does not repeatedly absorb `main`
+just to duplicate that result. Real source conflicts and failing focused checks
+remain local work; the same stable job runs again for the merge queue's
+`merge_group`.
+
+A successful `main` run creates an attested canonical package artifact but
+does not publish it. Publication remains a separate protected,
+human-dispatched workflow that accepts one exact canonical-build run ID and
+rebuilds nothing. CI evidence does not approve, merge, change settings, or
+grant release authority. Contributor details are in
+[CONTRIBUTING.md](CONTRIBUTING.md); repository owners use the explicitly
+unapplied
+[administration handoff](.github/PROGRAM-KIT-ADMINISTRATION.md).
+
 ## Install Program Kit CLI (consumer)
 
 Program Kit `0.1.0-alpha.3` is currently distributed as an exact downloadable
