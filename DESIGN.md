@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: feature-model
-active-batch: FTR-B01
+active-batch: FTR-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -70,7 +70,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
-| Feature model | `FTR` | `active` | 17 | Batch `FTR-B01` resumes against the accepted portable-definition, capability, contract, and admissibility boundaries. |
+| Feature model | `FTR` | `active` | 17 | `FTR-B01` is accepted by `DEC-013`; `FTR-B02` now resolves CShells support and component vocabulary. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 14 | `SEM-013` and `SEM-014` are accepted; remaining questions are queued. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -88,9 +88,9 @@ Product Identity is closed and recorded in
 [`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). The human accepted
 all six consolidated recommendations and the qualified product expression.
 
-Feature Model is active at its corrected thin .NET/CShells boundary in
-[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` now resumes
-under the accepted Product Identity decisions.
+Feature Model is active at its accepted thin target-specific boundary in
+[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` is complete
+and `FTR-B02` is active.
 
 ## 8. Queued question catalog
 
@@ -100,9 +100,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Product Identity decisions `DEC-001`–`DEC-011` and `DEC-014`–`DEC-020` are
-accepted. `DEC-012` is superseded. Feature Model candidate `DEC-013` remains
-unresolved as Feature Model convergence resumes.
+Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-020` are accepted. `DEC-012`
+is superseded. Feature Model convergence continues with the exact CShells
+support and component-vocabulary batch.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -118,7 +118,7 @@ unresolved as Feature Model convergence resumes.
 | `DEC-010` | `PID-009`, `EXT-012`, `EXT-013` | `accepted` | Program Kit owns independent public commands, artifacts, diagnostics, and compatibility promises; internal Spec Kit reuse is replaceable, and optional Spec Kit integration may invoke only Program Kit's public contract. | 2026-07-31 |
 | `DEC-011` | `EXT-013` | `accepted` | The Spec Kit-to-Program Kit adapter is outside the current design; reconsider it only after Program Kit CLI is implemented, independently usable, and published, as a separate optional adapter. | 2026-07-31 |
 | `DEC-012` | `FTR-001`, `FTR-002` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as Program Kit's intended .NET feature mechanism. | — |
-| `DEC-013` | `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `candidate-decision` | Program Kit v1 uses a thin .NET/CShells feature model: features carry concrete implementation identity; interfaces are governed semantic boundaries; immutable kernel mechanics remain Program Kit-owned; and consumers own composition and architecture policies. | — |
+| `DEC-013` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `accepted` | Program Kit uses a thin target-specific feature model: the portable bundle is distinct from implemented features; CShells supplies selected .NET host mechanics; interface, contract, intake, and binding are distinct; relationships are many-to-many; the kernel owns integrity while consumers own architecture; and cross-target reuse uses definitions, contracts, and explicit capabilities rather than a universal runtime model. | 2026-07-31 |
 | `DEC-014` | `PID-013` | `accepted` | Applications retain thin declarative intent, selection, profile, policy, migration, and provenance truth; reusable mechanics and generic AI guidance live in versioned Program Kit capabilities; governed local guidance cannot override kernel invariants. | 2026-07-31 |
 | `DEC-015` | `PID-014` | `accepted` | The portable unit is a versioned software-definition bundle with a canonical root manifest and separately governed linked design, implementation, deployment, and evidence artifacts; source code is a governed artifact rather than the canonical portable semantic unit. | 2026-07-31 |
 | `DEC-016` | `PID-015`, `SEM-013` | `accepted` | Explicit capability contracts support canonical-first and provider-first intake, public-contract-only composition, support-bounded mapping, traceable normalization, provider binding until explicit migration, and fail-closed handling of incomplete or unrepresentable meaning. | 2026-07-31 |
@@ -156,9 +156,9 @@ answer or tension that created them.
 | `SEM-013` | Provider capabilities expose familiar consumer contracts before mapping to canonical contracts | `accepted` | Governed by `DEC-016`: canonical-first and provider-first intake preserve traceable meaning and migration boundaries. |
 | `SEM-014` | Human governance should understand admitted implementation meaning through the semantic layer | `accepted` | Governed by `DEC-019`: admission requires human-approved, traceable, applicable evidence. |
 | `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
-| `FTR-015` | The generic contract/implementation/component cardinality model was rejected | `follow-up` | Separate concrete feature identity from interface identity and decide whether consumer policy alone governs cardinality. |
-| `FTR-016` | Consumers own architecture rules without control over Program Kit's immutable mechanics | `follow-up` | Delimit kernel invariants, consumer policies, and explicit adoption of default profiles. |
-| `FTR-017` | Program Kit v1 is specifically .NET/CShells while React may be supported later | `follow-up` | Decide whether anything beyond the identity-and-interface philosophy must be shared with a future React specialization. |
+| `FTR-015` | The generic contract/implementation/component cardinality model was rejected | `accepted` | Governed by `DEC-013`: feature and interface identities are distinct, relationships may be many-to-many, and consumers may impose stricter cardinality. |
+| `FTR-016` | Consumers own architecture rules without control over Program Kit's immutable mechanics | `accepted` | Governed by `DEC-013`: the kernel owns identity, provenance, mapping, evidence, unknown-state, diagnostic, and admission integrity; consumers own architecture. |
+| `FTR-017` | Program Kit v1 is specifically .NET/CShells while other targets may be supported later | `accepted` | Governed by `DEC-013`: definitions and contracts cross targets; implementations and runtime mechanics remain target-specific. |
 
 ## 11. Session log
 
@@ -284,3 +284,16 @@ answer or tension that created them.
   category work must preserve their already-set boundaries.
 - Resumed Feature Model batch `FTR-B01`; candidate `DEC-013` remains
   unaccepted and requires explicit convergence.
+
+### 2026-07-31 — Thin Feature Model boundary accepted
+
+- The human explicitly accepted all six consolidated `FTR-B01`
+  recommendations.
+- Accepted `DEC-013` for target-specific implemented features, scoped CShells
+  host participation, separate interface/contract/intake/binding vocabulary,
+  many-to-many identities, immutable kernel integrity, consumer-owned
+  architecture, and software-definition-based cross-target portability.
+- Completed `FTR-B01` without selecting exact CShells packages or versions;
+  those remain in `FTR-002`.
+- Activated `FTR-B02` for the CShells support matrix, exposed-surface
+  representation, minimal terminology, and component boundary.

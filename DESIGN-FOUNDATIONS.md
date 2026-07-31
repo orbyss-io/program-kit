@@ -106,8 +106,8 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1, 2, and 6 through 15 are accepted decisions governed by the decision
-register in `DESIGN.md`. Items 3 through 5 remain provisional until their
+Items 1 through 3 and 6 through 15 are accepted decisions governed by the
+decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
 1. Program Kit is a human-led, AI-assisted modular software-development tool
@@ -117,13 +117,14 @@ respective categories converge.
 2. Its non-negotiable promise is governed integration resolution between
    Program Kit-built products: direct compatibility, an explicit adapter or
    migration, or a precise contract-backed incompatibility result.
-3. The current candidate is a thin .NET/CShells feature model. A concrete
-   feature has stable implementation identity, and an interface is its governed
-   semantic boundary with a consumer. Consumer policies own roles, contracts,
-   inheritance, composition, and architecture. The Program Kit kernel owns only
-   the immutable mechanics and truthful evidence required to apply those rules.
-   Exact descriptor fields and kernel invariants remain under Feature Model
-   convergence.
+3. Program Kit uses a thin target-specific feature model. A feature is an
+   implemented unit distinct from the portable software-definition bundle.
+   CShells supplies selected .NET host-participation mechanics without becoming
+   a universal runtime abstraction. Interface, contract, intake, and binding are
+   distinct; feature and interface relations may be many-to-many. The kernel
+   owns identity, provenance, mapping, evidence, unknown-state, diagnostic, and
+   admission integrity. Consumers own architecture and may impose stricter
+   composition and cardinality policies.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
    should be explicit, typed, versioned, and canonical.
 5. Extension discovery and selection should be explicit and pinned rather than
