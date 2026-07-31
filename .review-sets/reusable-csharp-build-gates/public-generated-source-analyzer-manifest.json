@@ -16,7 +16,7 @@
   "sourceInputs": [
     {
       "path": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers.csproj",
-      "digest": "sha256:31b89a15137591d1f66da66c8f31e37cfd79ceb918638286909cfcc19240b928"
+      "digest": "sha256:1c97a023c1086b61ee84740f2858d70779ee529258093f0d399205eff519a244"
     },
     {
       "path": "src/Orbyss.ProgramKit.GeneratedSourceContract.Analyzers/Operations/Analysis/GeneratedSourceContractAnalyzer.cs",

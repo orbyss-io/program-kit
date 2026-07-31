@@ -41,7 +41,7 @@
       "identity": "pkid:analyzer:program-kit:generated-source-contract",
       "version": "0.1.0-alpha.3",
       "path": "extensions/reusable-csharp-build-gates/public-generated-source-analyzer-manifest.json",
-      "sha256": "sha256:6e8aefe50b6ef6d5bc9cd307c8947d865bc6a73bd8bb188bf664e822c6f3e23c"
+      "sha256": "sha256:56851218f47724de075a811e5298b7ba461a449dde78c904e4c1ad260adf95b9"
     },
     {
       "clockId": "consumer-owned-analyzers",
@@ -142,7 +142,7 @@
       "source": "consumer-owned-analyzers",
       "target": "public-analyzers",
       "acceptedVersion": "[0.1.0-alpha.3]",
-      "acceptedSha256": "sha256:6e8aefe50b6ef6d5bc9cd307c8947d865bc6a73bd8bb188bf664e822c6f3e23c"
+      "acceptedSha256": "sha256:56851218f47724de075a811e5298b7ba461a449dde78c904e4c1ad260adf95b9"
     },
     {
       "source": "build-mechanics",
