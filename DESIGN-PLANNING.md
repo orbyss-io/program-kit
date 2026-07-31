@@ -1,11 +1,11 @@
 ---
 artifact-kind: program-kit-design-category
 category: consumer-planning-and-delivery
-status: active
+status: closed
 last-updated: 2026-07-31
-active-batch: PLN-B01
+active-batch: none
 parent-ledger: DESIGN.md
-product-surface: consumer-facing
+product-surface: external-orchestration-boundary
 development-method: spec-kit
 ---
 
@@ -13,40 +13,43 @@ development-method: spec-kit
 
 ## 1. Category objective
 
-Define the planning contracts, CLI workflows, and capability seams Program Kit
-offers to consumers for turning approved intent and design into bounded,
-traceable, executable work.
+Record the accepted boundary between guided planning and Program Kit's
+software-factory responsibilities. Program Kit v1 owns no native planning
+system. Spec Kit owns the recommended human-led discovery, specification,
+planning, and task workflow; a later external adapter invokes Program Kit's
+public factory contracts.
 
-This is a Program Kit product surface, not the development method used to build
-Program Kit. This repository continues to use Spec Kit directly. Program Kit
-planning artifacts cannot govern, authorize, or become source truth for Program
-Kit's own redesign or implementation. Product tests may use isolated consumer
-fixtures to prove the planning surface without introducing self-hosting.
+Program Kit core and CLI remain independently callable and have no runtime
+dependency on Spec Kit. This repository continues to use Spec Kit directly.
+Neither Spec Kit artifacts nor Program Kit factory artifacts grant authority
+without the explicit approvals required by their own contracts.
 
 The category must preserve these accepted constraints:
 
-- consumers receive an integrated Program Kit planning experience and do not
-  need a separate Spec Kit CLI (`DEC-001`);
-- Program Kit itself is developed with Spec Kit and does not consume its own
-  planning facilities as development authority (`DEC-002`, `DEC-027`);
-- Program Kit owns stable public commands, artifacts, diagnostics, and
-  compatibility promises independently of any internally reused technique
-  (`DEC-010`);
-- planning artifacts link into the portable software-definition bundle but do
-  not replace its root manifest or duplicate linked semantic truth (`DEC-015`);
+- Program Kit itself is developed with Spec Kit (`DEC-002`);
+- Program Kit owns stable public factory commands, artifacts, diagnostics, and
+  compatibility promises (`DEC-010`);
+- the guided workflow requires a separate Spec Kit installation, while direct
+  Program Kit use remains available to humans and other orchestrators
+  (`DEC-029`);
+- the later Spec Kit adapter uses only public Program Kit contracts and cannot
+  create internal coupling or bypass the kernel (`DEC-029`);
+- factory protocol artifacts link into the portable software-definition bundle
+  without replacing or duplicating its semantic truth (`DEC-015`);
 - exact references, canonical representation, explicit unknowns, and bounded
   evaluation preserve the accepted semantic decisions (`DEC-024`–`DEC-026`);
   and
-- capabilities may help propose, validate, project, or execute consumer plans
-  only through explicit public contracts and human-authorized invocation.
+- operation request, resolution lock, execution receipt, and evaluation report
+  are factory contracts, not a hidden planning system.
 
 ## 2. Batch register
 
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
 | `PLN-B00` | Product/development-method boundary | `completed` | Preserve consumer-facing planning without Program Kit self-hosting. |
-| `PLN-B01` | `PLN-001`–`PLN-002` | `active` | Define the minimal canonical planning vocabulary and determine the disposition of archived planning concepts. |
-| `PLN-B02` | `PLN-003`–`PLN-004` | `queued` | Define stable artifact links, drift, orchestration, execution, and capability boundaries. |
+| `PLN-B01` | `PLN-001`–`PLN-002` | `withdrawn` | Native planning-vocabulary proposal preserved as unaccepted discovery. |
+| `PLN-B02` | `PLN-003`–`PLN-004` | `superseded` | Native planning execution boundary replaced by the external-orchestration decision. |
+| `PLN-B03` | `PLN-001`–`PLN-004` | `completed` | Spec Kit owns guided planning; Program Kit exposes only factory-operation contracts. |
 
 ## 3. Non-authoritative archive review
 
@@ -73,15 +76,17 @@ The archive also exposed design pressure that should not be imported blindly:
 - several schema generations and migrations reflected historical churn rather
   than a stable minimum product vocabulary.
 
-## 4. Active batch: Minimal planning vocabulary
+## 4. Withdrawn draft: Native planning vocabulary
 
 `PLN-B01` resolves:
 
 - `PLN-001`: the canonical planning concepts and their lifecycle relations; and
 - `PLN-002`: which archived concepts to retain, re-specify, or discard.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+**Status:** Withdrawn before decision. The following recommendations were never
+accepted. They remain recorded to preserve the reasoning that exposed the
+duplication with Spec Kit and may be reconsidered only if evidence later proves
+that an adapter cannot satisfy consumer needs.
 
 ### PLN-001A — Five planning artifacts, with other truth referenced
 
@@ -191,10 +196,88 @@ a small work-unit dependency graph, and deterministic readiness diagnostics.
 Roadmap automation and multi-plan portfolio behavior need not be implemented
 until a concrete consumer workflow requires them.
 
-## 5. Revision record
+## 5. Accepted pivot: Spec Kit plans; Program Kit builds
+
+The software-factory identity reopened all four planning questions. The
+human accepted the complete pivot. It is governed by `DEC-029`.
+
+### PLN-P01 — Guided planning belongs to Spec Kit
+
+**Recommendation:** Program Kit v1 does not own program goals, roadmaps,
+specifications, implementation plans, work-unit graphs, task readiness, or a
+planning lifecycle. The recommended human-led AI workflow uses Spec Kit for
+discovery, specification, planning, and tasks.
+
+Users who want that guided workflow install Spec Kit as well as Program Kit.
+Program Kit does not copy or wrap Spec Kit's planning artifacts into a second
+canonical planning model.
+
+### PLN-P02 — Program Kit remains independently callable as a factory
+
+**Recommendation:** Program Kit core and CLI have no runtime dependency on Spec
+Kit. They accept exact, public factory-operation requests that identify approved
+semantic inputs, the desired operation, target and evaluation profiles, and
+explicit authority. Humans, automation, Spec Kit, or another orchestrator may
+submit the same request.
+
+Program Kit owns only factory protocol artifacts:
+
+- an operation request describing the authorized factory action;
+- the exact resolution lock produced before construction;
+- an execution receipt recording what the factory attempted and produced; and
+- an evaluation report recording conformance, incompatibility, unknowns, and
+  remediation.
+
+These are not a roadmap or planning system. They are the input, reproducibility,
+observation, and quality-control contracts of the software factory.
+
+### PLN-P03 — A thin external adapter performs the guided handoff
+
+**Recommendation:** After the public Program Kit CLI contracts are implemented
+and stable, a separately versioned Spec Kit adapter maps an approved Spec Kit
+plan or task into a Program Kit operation request, invokes only public CLI or
+API contracts, and returns structured artifacts, evidence, status, and
+diagnostics to the Spec Kit workflow.
+
+The adapter owns the translation and declares the exact Spec Kit and Program Kit
+versions it supports. It cannot grant authority, bypass kernel gates, reinterpret
+unknown intent, or make Program Kit depend internally on Spec Kit. Other
+orchestrators can implement the same public handoff contract.
+
+### PLN-P04 — Accepted decision consequences
+
+- `DEC-001` is superseded because the guided planning experience requires a
+  separate Spec Kit installation;
+- `DEC-027` is superseded because Program Kit no longer exposes a native
+  planning product surface, while its non-self-hosting constraint remains;
+- `DEC-002` and `DEC-010` remain accepted;
+- `DEC-011` is revised from an optional post-publication idea to the selected
+  guided-workflow architecture, while adapter implementation still waits for a
+  stable, independently usable Program Kit CLI;
+- `PLN-B01` remains recorded as withdrawn discovery and `PLN-B02` is
+  superseded; and
+- factory request, lock, receipt, and report details move into the categories
+  that own construction, determinism, diagnostics, and governance.
+
+### PLN-B03 delivery boundary
+
+No Spec Kit adapter is designed or implemented during current core-CLI
+construction. The CLI first proves stable public factory contracts through
+direct calls and fixtures. Adapter work begins only after those contracts are
+tangible enough to integrate without coupling either product's internals.
+
+## 6. Revision record
 
 - Created after Semantic Language and Bounded Contexts closed under `DEC-026`.
 - Recorded explicitly that Program Kit planning is a consumer-facing CLI and
   capability surface that Program Kit itself does not use.
 - Imported archived planning only as prior art; no archived type, state machine,
   executor, schema, or workflow is source truth.
+- Withdrew the unaccepted native planning proposal after the software-factory
+  identity exposed duplication with Spec Kit.
+- Activated `PLN-B03` with a candidate boundary in which Spec Kit owns guided
+  planning, Program Kit remains an independently callable factory, and a later
+  external adapter connects their public contracts.
+- Accepted `PLN-B03` under `DEC-029`, superseded the native-planning decisions,
+  retained only factory protocol artifacts, and closed Consumer Planning and
+  Delivery.

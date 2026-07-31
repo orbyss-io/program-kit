@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
-active-category: consumer-planning-and-delivery
-active-batch: PLN-B01
+active-category: extensions-and-composition
+active-batch: EXT-B01
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -69,11 +69,11 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
-| Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
+| Product identity | `PID` | `closed` | 20 | Accepted software-factory identity refined by `DEC-028`. |
 | Feature model | `FTR` | `closed` | 17 | All four batches are accepted by `DEC-013` and `DEC-021`–`DEC-023`. |
 | Semantic language and bounded contexts | `SEM` | `closed` | 14 | All batches are accepted by `DEC-016`, `DEC-019`, and `DEC-024`–`DEC-026`. |
-| Consumer planning and delivery | `PLN` | `active` | 4 | Consumer-facing CLI/capability surface; `PLN-B01` resolves its minimal planning vocabulary. |
-| Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
+| Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
+| Extensions and composition | `EXT` | `active` | 13 | Spec Kit handoff boundary is fixed; `EXT-B01` defines the minimum extension roles. |
 | Determinism and generated artifacts | `DET` | `queued` | 10 | `DET-010` is accepted; remaining deterministic-generation questions are queued. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
 | Dependencies, impact, and migration | `MIG` | `queued` | 12 | Graph truth, compatibility, closure, and evidence. |
@@ -86,7 +86,7 @@ Counts are a live snapshot, not a quota. New questions are expected.
 
 Product Identity is closed and recorded in
 [`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). The human accepted
-all six consolidated recommendations and the qualified product expression.
+the software-factory refinement and qualified deterministic envelope.
 
 Feature Model is closed at its accepted thin target-specific boundary in
 [`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). All four batches are
@@ -96,9 +96,13 @@ Semantic Language and Bounded Contexts is closed in
 [`DESIGN-SEMANTIC-LANGUAGE.md`](DESIGN-SEMANTIC-LANGUAGE.md). All three batches
 are complete.
 
-Consumer Planning and Delivery is active in
-[`DESIGN-PLANNING.md`](DESIGN-PLANNING.md). Batch `PLN-B01` defines the minimal
-planning vocabulary and determines the disposition of archived planning concepts.
+Consumer Planning and Delivery is closed in
+[`DESIGN-PLANNING.md`](DESIGN-PLANNING.md). Guided planning belongs to Spec Kit;
+Program Kit owns independently callable factory-operation contracts.
+
+Extensions and Composition is active in
+[`DESIGN-EXTENSIONS.md`](DESIGN-EXTENSIONS.md). Batch `EXT-B01` defines the
+minimum extension roles and vocabulary boundary.
 
 ## 8. Queued question catalog
 
@@ -108,13 +112,13 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-027` are accepted. `DEC-012`
-is superseded. Semantic Language and Bounded Contexts is closed; Consumer
-Planning and Delivery is active.
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-029`
+are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
+Consumer Planning and Delivery is closed; Extensions and Composition is active.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
-| `DEC-001` | `PID-008` | `accepted` | A Program Kit installation exposes an integrated consumer design, planning, and implementation-plan experience without requiring a separate Spec Kit CLI installation. | 2026-07-31 |
+| `DEC-001` | `PID-008` | `superseded` | The one-install native planning commitment was replaced by the Spec Kit-guided external orchestration boundary in `DEC-029`. | — |
 | `DEC-002` | `PID-008`, `GOV-001` | `accepted` | Program Kit itself is developed with Spec Kit and does not consume its own planning facilities during this redesign. | 2026-07-31 |
 | `DEC-003` | `PID-001` | `accepted` | Program Kit is a human-led, AI-assisted modular software-development tool that translates human intent into bounded, contract-evaluated software components; the human contributor retains final authority. The deterministic construction boundary is refined by `DEC-018`. | 2026-07-31 |
 | `DEC-004` | `PID-002`, `PID-011` | `accepted` | Program Kit's non-negotiable promise is governed integration resolution between Program Kit-built products: direct composition, an explicit adapter or migration, or a precise contract-backed incompatibility result; ambiguity is failure. | 2026-07-31 |
@@ -124,7 +128,7 @@ Planning and Delivery is active.
 | `DEC-008` | `PID-006` | `accepted` | Program Kit v1 refuses autonomous semantic authority, forced universal composability, ambiguous integration, ambient or unpinned selection, built-in business-domain meaning, multi-ecosystem implementation, runtime dependence on development tooling, and self-hosting during the redesign. | 2026-07-31 |
 | `DEC-009` | `PID-007` | `accepted` | Program Kit v1 is a semantic development toolchain, not a new programming language; a language claim requires a formal grammar, type system, compiler semantics, and compatibility model. | 2026-07-31 |
 | `DEC-010` | `PID-009`, `EXT-012`, `EXT-013` | `accepted` | Program Kit owns independent public commands, artifacts, diagnostics, and compatibility promises; internal Spec Kit reuse is replaceable, and optional Spec Kit integration may invoke only Program Kit's public contract. | 2026-07-31 |
-| `DEC-011` | `EXT-013` | `accepted` | The Spec Kit-to-Program Kit adapter is outside the current design; reconsider it only after Program Kit CLI is implemented, independently usable, and published, as a separate optional adapter. | 2026-07-31 |
+| `DEC-011` | `EXT-013` | `superseded` | The optional-adapter deferral was replaced by `DEC-029`: the adapter is the selected guided-workflow architecture, while its implementation still waits for a stable Program Kit CLI. | — |
 | `DEC-012` | `FTR-001`, `FTR-002` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as Program Kit's intended .NET feature mechanism. | — |
 | `DEC-013` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `accepted` | Program Kit uses a thin target-specific feature model: the portable bundle is distinct from implemented features; CShells supplies selected .NET host mechanics; interface, contract, intake, and binding are distinct; relationships are many-to-many; the kernel owns integrity while consumers own architecture; and cross-target reuse uses definitions, contracts, and explicit capabilities rather than a universal runtime model. | 2026-07-31 |
 | `DEC-014` | `PID-013` | `accepted` | Applications retain thin declarative intent, selection, profile, policy, migration, and provenance truth; reusable mechanics and generic AI guidance live in versioned Program Kit capabilities; governed local guidance cannot override kernel invariants. | 2026-07-31 |
@@ -140,7 +144,9 @@ Planning and Delivery is active.
 | `DEC-024` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `accepted` | The semantic layer uses a formal API-neutral typed artifact model, a restricted YAML workspace projection, structured JSON automation projections, and one exact versioned canonical JSON byte profile. V1 definitions are declarative and non-Turing-complete; executable derivation belongs to exact pinned capabilities. Semantic authority is primarily construction-time, generated products have no implicit Program Kit runtime, and optional runtime semantic projections are explicit and purpose-bound. The broader semantic purpose remains, while first-CLI delivery defines only mechanics required by concrete end-to-end workflows and defers unproven semantic-engine machinery. | 2026-07-31 |
 | `DEC-025` | `SEM-005`, `SEM-006` | `accepted` | Consumers extend semantics through exact versioned vocabulary packages over a small kernel-owned declarative protocol. Packages own their terms and constraints but cannot redefine kernel invariants or embed executable behavior. Bundles pin package identity, revision, protocol profile, and digest with no ambient discovery or implicit upgrade. Executable validation, mapping, evaluation, migration, and generation remain in separately pinned capabilities. A new vocabulary within supported primitives requires no kernel change; a new primitive requires an explicit protocol and kernel revision. | 2026-07-31 |
 | `DEC-026` | `SEM-009`–`SEM-012` | `accepted` | Cross-boundary relationships are separately owned immutable assertions that cannot rewrite endpoint meaning. Identity or digest conflicts fail; semantic differences require an explicit pinned mapping, adapter, or migration with visible loss. There is no global semantic graph as source truth: the kernel resolves and locks a finite graph per operation. A bounded implementation context is the exact operation-scoped closure of semantic references, implementation artifacts, dependencies, policies, approvals, capabilities, evidence, diagnostics, and assertion authorities used for evaluation. | 2026-07-31 |
-| `DEC-027` | `PID-008`, `PLN-004`, `GOV-001` | `accepted` | Program Kit planning is a consumer-facing product surface exposed through Program Kit CLI contracts and capabilities. Program Kit's own development remains governed by Spec Kit and may not use Program Kit planning artifacts as authority or source truth. Isolated product fixtures may exercise the consumer surface without creating self-hosting. | 2026-07-31 |
+| `DEC-027` | `PID-008`, `PLN-004`, `GOV-001` | `superseded` | The consumer-facing native planning surface was replaced by the external Spec Kit orchestration boundary in `DEC-029`; the non-self-hosting constraint remains accepted. | — |
+| `DEC-028` | `PID-020`, `DET-010`, `SEM-014` | `accepted` | Program Kit is a human-governed software factory that turns approved intent into contract-bounded software. Deterministic construction is claimed only inside an exact supported semantic and capability envelope. Custom implementation remains bounded and evaluated without claiming deterministic derivation; unresolved or unsupported intent remains visible and actionable. Semantic coverage, construction method, and conformance are independent. Provider discovery informs users but never replaces exact accepted selection and a pinned resolution lock. | 2026-07-31 |
+| `DEC-029` | `PID-008`, `PID-009`, `PLN-001`–`PLN-004`, `EXT-012`–`EXT-013` | `accepted` | Spec Kit owns the recommended guided discovery, specification, planning, and task workflow. Program Kit v1 owns no native planning system and remains independently callable through exact public factory-operation contracts. A separately installed external adapter, implemented after the Program Kit CLI is stable, maps approved Spec Kit work into Program Kit requests and returns structured results without internal coupling or authority escalation. Other orchestrators may use the same contracts. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -149,15 +155,15 @@ answer or tension that created them.
 
 | Question ID | Origin | Status | Question |
 |---|---|---|---|
-| `PID-008` | Human separated Program Kit's consumer capabilities from the workflow used to build Program Kit itself | `accepted` | Governed by `DEC-001` and `DEC-002`; internal Spec Kit composition is separate. |
-| `EXT-012` | Program Kit may internally reuse selected Spec Kit techniques | `open` | Define a governed, explicit, pinned, replaceable, non-circular internal composition model. |
-| `EXT-013` | Existing Spec Kit users may benefit from invoking Program Kit at explicit handoff points | `deferred` | Outside current design; revisit only after Program Kit CLI is independently usable and published, then require measurable value and no core coupling. |
-| `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `accepted` | Program Kit owns independent public contracts; optional interoperability uses those contracts. |
+| `PID-008` | Human separated Program Kit's consumer capabilities from the workflow used to build Program Kit itself | `accepted` | Governed by `DEC-002` and `DEC-029`: Spec Kit plans; Program Kit builds. |
+| `EXT-012` | Program Kit may internally reuse selected Spec Kit techniques | `accepted` | Governed by `DEC-029`: v1 uses no internal Spec Kit product dependency; the adapter remains external. |
+| `EXT-013` | Existing Spec Kit users may benefit from invoking Program Kit at explicit handoff points | `accepted` | Governed by `DEC-029`: the later adapter invokes only stable public Program Kit contracts. |
+| `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `superseded` | Guided users install Spec Kit separately; Program Kit remains directly callable without it. |
 | `DET-010` | Human described generated applications as fully deterministic | `accepted` | Governed by `DEC-018`: deterministic construction and contract-conformant integration are distinct from runtime behavior and availability. |
-| `PLN-001` | Archived planning domain retains serious product value | `open` | Define the canonical planning concepts and lifecycle relations. |
-| `PLN-002` | Archived planning implementation is prior art rather than source truth | `open` | Decide which concepts to retain, re-specify, or discard. |
-| `PLN-003` | Plans integrate with validations, components, and files | `open` | Define stable links and drift behavior. |
-| `PLN-004` | Program Kit enables consumers to design and implement components | `open` | Define the boundary between planning artifacts, orchestration, and execution. |
+| `PLN-001` | Archived planning domain retains serious product value | `accepted` | Governed by `DEC-029`: useful ideas remain prior art, but Program Kit v1 owns no native planning vocabulary. |
+| `PLN-002` | Archived planning implementation is prior art rather than source truth | `accepted` | Governed by `DEC-029`: the native proposal was withdrawn without importing archived workflow. |
+| `PLN-003` | Plans integrate with validations, components, and files | `accepted` | Governed by `DEC-029`: the external adapter maps Spec Kit work to public factory requests and returns results. |
+| `PLN-004` | Program Kit enables consumers to design and implement components | `accepted` | Governed by `DEC-029`: Spec Kit orchestrates guided planning; Program Kit performs factory operations. |
 | `PID-010` | Human contributor named as governing identity in `PID-001` | `accepted` | Human governs intent; currently accepted contracts govern admitted outputs until explicitly revised and reaccepted. |
 | `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `accepted` | Precise irreconcilability is a resolution; universal composability is not promised. |
 | `PID-012` | Per-application AI instructions create inconsistent development methods and contribution friction | `accepted` | Governed by `DEC-020`: Program Kit is an AI-provider-neutral development tool producing ordinary deterministically constructed software. |
@@ -168,6 +174,7 @@ answer or tension that created them.
 | `PID-017` | Program Kit familiarity should transfer across otherwise unfamiliar applications | `accepted` | Governed by `DEC-020`: common platform contracts and development mechanics provide cross-application fluency. |
 | `PID-018` | Canonical contracts should glue recurring platform concerns across provider implementations | `accepted` | Governed by `DEC-017`: core owns contract mechanics; versioned packages own platform semantics. |
 | `PID-019` | Compatible middleware and token exchanges should be stable, predictable, and always working | `accepted` | Governed by `DEC-018`: no ambiguous mismatch inside the declared support envelope; external runtime failure remains possible. |
+| `PID-020` | Software-factory identity must not overclaim deterministic implementation | `accepted` | Governed by `DEC-028`: deterministic construction applies only within exact semantic and capability coverage; custom and unresolved intent remain explicit. |
 | `SEM-013` | Provider capabilities expose familiar consumer contracts before mapping to canonical contracts | `accepted` | Governed by `DEC-016`: canonical-first and provider-first intake preserve traceable meaning and migration boundaries. |
 | `SEM-014` | Human governance should understand admitted implementation meaning through the semantic layer | `accepted` | Governed by `DEC-019`: admission requires human-approved, traceable, applicable evidence. |
 | `FTR-014` | Bounded components evaluate against a contract | `accepted` | Governed by `DEC-023`: an exact named evaluation profile supplies applicable dimensions, non-removable kernel gates, structured outcomes, evidence, and remediation. |
@@ -380,3 +387,31 @@ answer or tension that created them.
 - Accepted that boundary as `DEC-027` rather than leaving it as an assumption.
 - Reviewed archived planning as non-authoritative prior art and drafted a
   minimal vocabulary rather than restoring its workflow.
+
+### 2026-07-31 — Software-factory identity accepted; planning pivot opened
+
+- Accepted `DEC-028` and the definition of Program Kit as a human-governed
+  software factory operating within an exact deterministic construction
+  envelope.
+- Separated semantic coverage, construction method, and conformance so
+  deterministic generation cannot be mistaken for semantic understanding.
+- Classified intent as covered, custom-but-bounded, or unresolved/unsupported.
+- Recorded that capability and provider discovery must help an uninformed user
+  without becoming ambient selection; exact accepted resolution remains pinned.
+- Withdrew the unaccepted native planning proposal without deleting its
+  reasoning.
+- Activated `PLN-B03` with a precise candidate for Spec Kit-owned planning, an
+  independently callable Program Kit factory, and a later thin adapter.
+
+### 2026-07-31 — Native planning removed
+
+- The human explicitly accepted the complete `PLN-B03` pivot.
+- Accepted `DEC-029`: Spec Kit owns the guided planning workflow; Program Kit
+  owns independently callable factory-operation contracts.
+- Superseded `DEC-001`, `DEC-011`, and `DEC-027` while preserving their history.
+- Closed Consumer Planning and Delivery without implementing a native planning
+  vocabulary, lifecycle, or executor.
+- Retained operation request, resolution lock, execution receipt, and evaluation
+  report as factory protocol artifacts rather than planning artifacts.
+- Activated Extensions and Composition without starting Spec Kit adapter design;
+  that implementation still waits for a stable Program Kit CLI.

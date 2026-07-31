@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 18 are accepted decisions governed by the
+Items 1 through 3 and 6 through 19 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -161,16 +161,17 @@ respective categories converge.
 7. Generated runtime outputs should remain independent of Program Kit's
    development-session capabilities.
 8. Product capability ownership and development method are separate boundaries.
-   Program Kit owns a cohesive consumer-facing design, planning, implementation,
-   public artifact, diagnostics, and compatibility surface. It may internally
-   reuse or extend pinned Spec Kit techniques while Program Kit's own repository
-   uses Spec Kit directly and remains non-self-hosted.
-   Program Kit planning contracts, CLI workflows, and capabilities are offered
-   to consumers; they do not govern Program Kit's own development. Isolated
-   product fixtures may exercise them without becoming repository source truth.
-   An optional external
-   Spec Kit bridge may use only Program Kit's public contracts. Exact integration
-   packaging remains an Extensions decision.
+   Spec Kit owns the recommended human-led discovery, specification, planning,
+   and task workflow. Program Kit owns independently callable public
+   factory-operation contracts, construction, artifacts, diagnostics, and
+   compatibility results. Program Kit's repository uses Spec Kit directly and
+   remains non-self-hosted.
+   A separately installed external adapter, implemented only after the Program
+   Kit CLI is stable, maps approved Spec Kit work into public Program Kit
+   requests and returns structured results. It cannot make Program Kit depend
+   internally on Spec Kit or bypass kernel gates. Other orchestrators may invoke
+   the same factory contracts. Program Kit v1 owns no native goals, roadmaps,
+   implementation plans, work units, task readiness, or planning lifecycle.
 9. Applications retain a thin declarative source of truth for human intent,
    domain semantics, selections, profiles, policies, approvals, exceptions,
    migrations, and effective-capability provenance. Reusable mechanics and
@@ -241,3 +242,18 @@ respective categories converge.
     authorities. It produces a canonical context descriptor and separate
     evaluation report. It is not a runtime container, DDD framework, security
     sandbox, global graph service, or lifecycle engine.
+19. Program Kit is a human-governed software factory that turns approved intent
+    into contract-bounded software. Deterministic construction is claimed only
+    when semantic intent, required inputs, capability, adapter or projector,
+    provider, target profile, and resolution are exact, supported, accepted, and
+    pinned. Plumbing, projections, and integrations may then be constructed
+    deterministically inside that envelope.
+    Custom-authored implementation remains explicitly bounded and evaluated
+    without claiming deterministic derivation. Ambiguous, incomplete,
+    conflicting, or unsupported intent remains visible and actionable.
+    Semantic coverage, construction method, and conformance are independent
+    dimensions.
+    Provider and capability support must be discoverable to users who do not
+    know what is installed, but discovery never authorizes ambient selection.
+    Construction uses an exact accepted selection and records it in the
+    resolution lock.

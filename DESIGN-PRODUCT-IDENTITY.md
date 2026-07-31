@@ -641,3 +641,66 @@ promise were accepted with them.
 | `DEC-018` | `PID-019`, `DET-010` | Program Kit guarantees deterministic construction from complete, accepted, pinned inputs and evidence-backed contract-conformant integration within declared support profiles. Human or AI judgment precedes acceptance; missing inputs are not guessed; secrets and environment values are declared late-bound parameters. Runtime health and diagnostics are governed where selected, but uninterrupted availability, deterministic business behavior, and external systems are not guaranteed. |
 | `DEC-019` | `SEM-014` | An implementation is admitted only when its governance-relevant meaning is human-approved, traceable to its artifacts, and supported by all applicable evidence. Unknown, undeclared, inferred-only, unverified, stale, or drifted behavior may not be presented as semantically understood. Semantic legibility supports governance without making source inspection unnecessary for debugging, security, or performance work. |
 | `DEC-020` | `PID-012`, `PID-016`, `PID-017` | Program Kit is an AI-provider-neutral development tool whose generated products are ordinary, deterministically constructed software with no required AI or Program Kit runtime unless selected. Its accepted expression is **AI builds it. Human intent governs it.** Its supporting promise is: **Every admitted implementation is legible through human-approved semantic contracts, traceability, and verifiable evidence.** |
+
+## 8. Accepted software-factory refinement
+
+### PID-020 — Determinism applies within a known construction envelope
+
+**Human input:** Program Kit should focus on building software as a software
+factory. It must not claim every software component is deterministic because
+human- or AI-authored implementation logic remains nondeterministically
+produced. Plumbing, integration, and relationships can be bounded by canonical
+contracts, adapters, and projectors where Program Kit knows how to handle the
+intent exactly.
+
+**Accepted definition:**
+
+> Program Kit is a human-governed software factory that turns approved intent
+> into contract-bounded software. Within an exact supported semantic and
+> capability envelope, it constructs plumbing, projections, and integrations
+> deterministically. Custom implementation remains explicitly bounded and
+> evaluated, while uncertain or unsupported intent remains visible and
+> actionable.
+
+Three independent dimensions govern every claim:
+
+1. **Semantic coverage:** whether intent resolves completely to an exact
+   canonical contract inside a declared support envelope.
+2. **Construction method:** whether an artifact is deterministically projected
+   or custom-authored by a human, AI, or external tool.
+3. **Conformance:** whether applicable current evidence proves the resulting
+   implementation satisfies its contracts.
+
+Intent is classified without conflating those dimensions:
+
+- **covered:** the canonical contract, required approved inputs, capability,
+  adapter or projector, provider, target profile, and resolution are exact and
+  pinned, so supported construction may proceed deterministically;
+- **custom-but-bounded:** Program Kit understands and governs the required
+  boundary but does not claim deterministic derivation of the implementation;
+  and
+- **unresolved or unsupported:** meaning is ambiguous, incomplete, conflicting,
+  or outside installed support and remains visible through actionable
+  diagnostics rather than being guessed.
+
+Provider discovery is not provider selection. A user need not already know
+which providers are installed or supported: the CLI must expose discoverable
+capability and provider support information. Construction still requires an
+exact selected provider, adapter, versions, profiles, and inputs in the
+resolution lock. A proposed or policy-assisted selection becomes authoritative
+only through the accepted resolution process.
+
+**Status:** Accepted by `DEC-028` on 2026-07-31.
+
+### Accepted planning consequence
+
+The software-factory identity removed the reason to duplicate Spec Kit's more
+mature discovery, specification, planning, and task workflow. Under `DEC-029`,
+Program Kit v1 owns no native planning system. It remains independently callable
+through exact public factory-operation contracts.
+
+The recommended guided workflow installs Spec Kit separately. After Program
+Kit's public CLI is stable, a thin external adapter maps approved Spec Kit work
+to Program Kit requests and returns artifacts, evidence, and diagnostics.
+`DEC-029` supersedes the planning commitments in `DEC-001` and `DEC-027` and
+the prior deferral in `DEC-011`; the historical reasoning remains recorded.
