@@ -69,11 +69,12 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
-| Product identity | `PID` | `active` | 8 | Current category; batch `PID-B01` is active. |
-| Feature model | `FTR` | `queued` | 13 | Begins after product identity converges. |
+| Product identity | `PID` | `active` | 11 | Current category; batch `PID-B01` is active. |
+| Feature model | `FTR` | `queued` | 14 | Includes the multidimensional contract used to evaluate bounded components. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 12 | May be reshaped by identity and feature answers. |
+| Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 12 | Includes the deferred question of governed Spec Kit composition. |
-| Determinism and generated artifacts | `DET` | `queued` | 9 | Exact reproducibility and ownership boundaries. |
+| Determinism and generated artifacts | `DET` | `queued` | 10 | Includes the boundary of semi-deterministic behavior. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
 | Dependencies, impact, and migration | `MIG` | `queued` | 12 | Graph truth, compatibility, closure, and evidence. |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
@@ -99,7 +100,10 @@ No product-design decisions have been accepted yet.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
-| — | — | — | — | — |
+| `DEC-001` | `PID-008` | `candidate-decision` | A Program Kit installation exposes an integrated consumer design, planning, and implementation-plan experience without requiring a separate Spec Kit CLI installation. | — |
+| `DEC-002` | `PID-008`, `GOV-001` | `candidate-decision` | Program Kit itself is developed with Spec Kit and does not consume its own planning facilities during this redesign. | — |
+| `DEC-003` | `PID-001` | `candidate-decision` | Program Kit is a human-led, AI-assisted modular software-development tool that translates human intent into bounded, contract-evaluated, semi-deterministic software components; the human contributor retains final authority. | — |
+| `DEC-004` | `PID-002`, `PID-011` | `candidate-decision` | Program Kit's non-negotiable promise is governed integration resolution between Program Kit-built products: direct composition, an explicit adapter or migration, or a precise contract-backed incompatibility result; ambiguity is failure. | — |
 
 ## 10. Emergent-question register
 
@@ -108,8 +112,17 @@ answer or tension that created them.
 
 | Question ID | Origin | Status | Question |
 |---|---|---|---|
-| `PID-008` | Human warning that archived Program Kit duplicated work better owned by Spec Kit | `follow-up` | Define the exact responsibility seam between Spec Kit and Program Kit. |
+| `PID-008` | Human separated Program Kit's consumer capabilities from the workflow used to build Program Kit itself | `candidate-decision` | Confirm `DEC-001` and `DEC-002`; internal Spec Kit composition is tracked separately. |
 | `EXT-012` | Possible future exported capabilities combining Spec Kit techniques and Program Kit mechanics | `deferred` | Define a governed, explicit, non-circular composition model after product identity converges. |
+| `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `follow-up` | Decide whether Program Kit owns independent public planning contracts or promises Spec Kit compatibility. |
+| `DET-010` | Consumer outcome described as semi-deterministic software components | `follow-up` | Define the exact judgment-to-determinism acceptance boundary. |
+| `PLN-001` | Archived planning domain retains serious product value | `open` | Define the canonical planning concepts and lifecycle relations. |
+| `PLN-002` | Archived planning implementation is prior art rather than source truth | `open` | Decide which concepts to retain, re-specify, or discard. |
+| `PLN-003` | Plans integrate with validations, components, and files | `open` | Define stable links and drift behavior. |
+| `PLN-004` | Program Kit enables consumers to design and implement components | `open` | Define the boundary between planning artifacts, orchestration, and execution. |
+| `PID-010` | Human contributor named as governing identity in `PID-001` | `follow-up` | Define precedence between human authority, accepted contracts, product promise, workflow, and technical surfaces. |
+| `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `follow-up` | Decide whether precise irreconcilability is resolution or every pair must ultimately compose. |
+| `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
 
 ## 11. Session log
 
@@ -123,3 +136,23 @@ answer or tension that created them.
 - Recorded the human's warning that the archived product crossed into Spec Kit's
   responsibilities. Added `PID-008` for the product boundary and deferred
   `EXT-012` for possible governed composition with Spec Kit techniques.
+
+### 2026-07-31 — Consumer planning boundary refined
+
+- Corrected the earlier assumption that Program Kit necessarily begins after
+  Spec Kit planning; Program Kit owns an integrated consumer planning surface.
+- Recorded candidate decisions `DEC-001` for the one-install consumer experience
+  and `DEC-002` for Spec Kit-only development of Program Kit during the redesign.
+- Added Product Identity, Consumer Planning, and semi-determinism follow-ups.
+- Did not treat this clarification as an answer to the earlier active batch.
+
+### 2026-07-31 — Product identity answers recorded
+
+- Recorded `PID-001` as answered and created candidate decision `DEC-003`.
+- Separated the product category and human authority from the Spec Kit-based
+  development method already governed by `DEC-002`.
+- Recorded `PID-002` as a follow-up and created candidate `DEC-004` for
+  governed integration resolution.
+- Revised `PID-008`; it no longer carries the entire internal Spec Kit seam.
+- Added `PID-010`, `PID-011`, and `FTR-014` for the remaining ambiguities.
+- No candidate decision was marked accepted.

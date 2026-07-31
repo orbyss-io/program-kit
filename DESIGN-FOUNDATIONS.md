@@ -73,12 +73,13 @@ The following is the current agent synthesis. Every statement remains
 non-authoritative until resolved through identified questions and accepted as a
 decision:
 
-1. Program Kit may be best understood as a human-led semantic construction and
-   evolution toolchain, with an SDK as one delivery surface rather than its
-   governing identity.
-2. Its differentiating promise may be trustworthy change: explicit semantics,
-   deterministic construction, intelligible dependency impact, safe migration,
-   and exact diagnostics for humans and agents.
+1. Program Kit may be best understood as a human-led, AI-assisted modular
+   software-development tool that translates human intent into bounded,
+   contract-evaluated, semi-deterministic software components.
+2. Its non-negotiable promise may be governed integration resolution between
+   Program Kit-built products: direct compatibility, an explicit adapter or
+   migration, or a precise contract-backed incompatibility result. Whether the
+   last outcome counts as resolution still requires human confirmation.
 3. A feature may need to mean a governed semantic contract that can project to
    several technical interfaces, rather than only a literal CLR interface.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
@@ -90,7 +91,9 @@ decision:
    certainty.
 7. Generated runtime outputs should remain independent of Program Kit's
    development-session capabilities.
-8. Spec Kit likely owns feature discovery and specification workflow, while
-   Program Kit must own a different concern: compiling and governing accepted
-   semantic system definitions and their technical realization. The exact seam
-   is unresolved and must be defined before the constitution is ratified.
+8. Product capability ownership and development method are separate boundaries.
+   Program Kit may own a cohesive consumer-facing design, planning, and
+   implementation experience while internally reusing or extending Spec Kit
+   techniques. Program Kit's own repository can still use Spec Kit directly and
+   remain non-self-hosted. The public artifact, dependency, and authority seams
+   remain unresolved and must be defined before the constitution is ratified.

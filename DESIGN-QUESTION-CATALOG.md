@@ -39,6 +39,9 @@ record the revision or supersession rather than silently deleting it.
 - **FTR-013:** What is the smallest mandatory feature definition: identity,
   purpose, owner, contracts, dependencies, artifacts, diagnostics, migration,
   and what else?
+- **FTR-014:** Which explicit contracts must a bounded component evaluate
+  against: semantic, behavioral, API, schema, dependency, integration, policy,
+  deployment, or a defined multidimensional contract set?
 
 ### 8.2 Semantic language and bounded contexts
 
@@ -115,6 +118,10 @@ record the revision or supersession rather than silently deleting it.
   generation manifest be sufficient evidence?
 - **DET-009:** Are deterministic claims always byte-level, or may an explicitly
   named semantic-equivalence claim be made?
+- **DET-010:** What does "semi-deterministic" mean operationally: which stages
+  may use human or AI judgment, and after which acceptance boundary must
+  Program Kit guarantee repeatable mechanics, outputs, validation, and evidence?
+
 
 ### 8.5 Diagnostics and AI guidance
 
@@ -220,3 +227,18 @@ record the revision or supersession rather than silently deleting it.
   .NET tooling does not already provide?
 - **VSL-008:** What exact artifact should let a new AI session understand the
   governed system without rereading all source code?
+
+### 8.9 Consumer planning and delivery
+
+- **PLN-001:** What are the canonical planning concepts and lifecycle relations
+  among program goals, roadmaps, work units, designs, implementation plans,
+  tasks, validation evidence, and completed components?
+- **PLN-002:** Which archived planning concepts and artifacts remain valuable
+  prior art, which must be re-specified, and which restrictions or
+  implementation choices must be discarded?
+- **PLN-003:** How do plan artifacts link stably to features, components,
+  validations, and files, and how is link drift detected across renames and
+  structural changes?
+- **PLN-004:** When Program Kit says it helps consumers "implement," does the CLI
+  orchestrate agent work and source changes, execute validated plans directly,
+  or produce governed implementation artifacts for an external executor?
