@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
-active-category: diagnostics-and-ai-guidance
-active-batch: DIA-B04
+active-category: governance-enforcement-and-self-hosting
+active-batch: GOV-B01
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -75,9 +75,9 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
 | Extensions and composition | `EXT` | `closed` | 13 | All batches are accepted by `DEC-029` and `DEC-031`–`DEC-033`. |
 | Determinism and generated artifacts | `DET` | `closed` | 10 | All batches are accepted by `DEC-018`, `DEC-028`, and `DEC-034`–`DEC-036`. |
-| Diagnostics and AI guidance | `DIA` | `active` | 16 | `DIA-B03` is accepted by `DEC-039`; final batch `DIA-B04` defines disclosure safety and host faults. |
+| Diagnostics and AI guidance | `DIA` | `closed` | 16 | All four batches are accepted by `DEC-037`–`DEC-040`. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
-| Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
+| Governance, enforcement, and self-hosting | `GOV` | `active` | 12 | `GOV-B01` defines bootstrap independence and human authority. |
 | First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
 
 Counts are a live snapshot, not a quota. New questions are expected.
@@ -106,9 +106,12 @@ Extensions and Composition is closed in
 Determinism and Generated Artifacts is closed in
 [`DESIGN-DETERMINISM.md`](DESIGN-DETERMINISM.md). All three batches are complete.
 
-Diagnostics and AI Guidance is active in
-[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). `DIA-B01`–`DIA-B03` are
-accepted; final batch `DIA-B04` now defines disclosure safety and host faults.
+Diagnostics and AI Guidance is closed in
+[`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). All four batches are complete.
+
+Governance, Enforcement, and Self-Hosting is active in
+[`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). `GOV-B01` defines independent
+bootstrap, optional dogfooding, and human authority grants.
 
 ## 8. Queued question catalog
 
@@ -118,9 +121,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-039`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-040`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
-Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is active.
+Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting is active.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -165,6 +168,7 @@ Determinism and Generated Artifacts is closed; Diagnostics and AI Guidance is ac
 | `DEC-038` | `DIA-006`–`DIA-008`, `DIA-015`–`DIA-016` | `accepted` | Remediation is a typed, bounded, preconditioned action proposal, never executable prose or authority. AI automation may act only within a current exact grant independently revalidated by the kernel; identity-forming, selection, dependency, policy, ownership, and out-of-grant publication changes require approval. Every result has one primary disposition: complete, retry, provide-input, request-approval, repair, revise, or stop. Exact explanation resources are structured and offline-resolvable. Needs-input returns a stateless canonical continuation artifact whose authority, exact inputs, lock, workspace, and evidence are fully revalidated on resume. | 2026-08-01 |
 | `DEC-039` | `DIA-009`–`DIA-012` | `accepted` | An authority-qualified diagnostic ID's trigger and invariant meaning are permanent and never reused; exact diagnostic catalogs remain independently versioned and digested. Automation consumes IDs and typed fields, never rendered prose. Wording may evolve under exact catalog revision, while material semantic changes require a new ID. V1 ships invariant structured data and English rendering; localization remains exact and pluggable later. Operations retain a complete canonically ordered diagnostic collection with exact duplicate grouping. Any bounded view declares omission counts and a content-bound reference to the full immutable collection without hiding outcome, effect, or disposition causes. | 2026-08-01 |
 ## 10. Emergent-question register
+| `DEC-040` | `DIA-013`–`DIA-014` | `accepted` | Diagnostic disclosure is schema-classified and fail-closed under a non-bypassable kernel floor. Secrets, secret-derived hashes, protected paths, raw external output, exceptions, and stack traces never enter ordinary results; redaction is structured, paths are safe or logical, and sensitive evidence requires separate authority. Every recoverable command-path failure uses a minimal independent fallback to return the most specific safe faulted result with honest effect state. No envelope is promised before process startup, after forced or unrecoverable termination/resource failure, or when the selected output channel cannot be written. | 2026-08-01 |
 
 New items receive the next stable ID within the relevant category and cite the
 answer or tension that created them.
@@ -545,3 +549,16 @@ answer or tension that created them.
   bounded AI-facing results.
 - Completed `DIA-B03` and activated final Diagnostics batch `DIA-B04` for
   information safety and last-resort host failure.
+
+### 2026-08-01 — Diagnostics and AI Guidance closed
+
+- The human accepted both final `DIA-B04` recommendations.
+- Accepted `DEC-040` for schema-governed disclosure, non-bypassable secret and
+  protected-path safety, sanitized external failures, and the minimal
+  last-resort structured host fault.
+- Recorded the honest availability boundary where process startup, forced or
+  unrecoverable termination, resource exhaustion, or output-channel failure can
+  prevent any result envelope.
+- Closed Diagnostics and AI Guidance with all sixteen questions resolved.
+- Left Dependencies, Impact, and Migration deferred under `DEC-030` and
+  activated Governance, Enforcement, and Self-Hosting batch `GOV-B01`.

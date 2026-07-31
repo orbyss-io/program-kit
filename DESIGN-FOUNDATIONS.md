@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 29 are accepted decisions governed by the
+Items 1 through 3 and 6 through 30 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -432,3 +432,26 @@ respective categories converge.
     and a content-bound retrieval cursor. Every determinant of outcome, effect,
     or disposition remains represented. Truncation and pagination never alter
     semantics, silently omit diagnostics, or query mutable live state.
+30. Every diagnostic value has schema-declared disclosure classification and
+    permitted rendering. The kernel enforces a non-bypassable floor; policy may
+    only restrict it further. Secrets, tokens, protected environment values,
+    secret-derived hashes, unsafe command lines, raw external output,
+    exceptions, stack traces, and protected absolute paths never enter ordinary
+    results. Allowed paths are repository-relative; otherwise logical subject
+    identities and non-enumerating responses are used.
+    Redaction is structured with a safe reason and policy/classification
+    reference but no reversible placeholder or fingerprint. JSON, human,
+    verbose, and debug modes share the disclosure floor. External output is
+    untrusted and must pass a declared structured adapter and disclosure policy;
+    sensitive detail requires separately authorized protected evidence. Missing
+    disclosure metadata fails provider conformance and unknown values are
+    withheld.
+    Every recoverable command-path failure becomes the most specific structured
+    faulted result available. A tiny embedded fallback schema, catalog entry,
+    filter, and serializer report the furthest phase and proven effect state
+    independently of the normal provider and diagnostic pipeline. Unproven
+    state is indeterminate and directs recovery. JSON is buffered before output.
+    No envelope is guaranteed when the process cannot start, is forcibly
+    terminated, suffers unrecoverable runtime/OS or resource failure, or cannot
+    write the selected output channel. These are explicit availability limits;
+    no catch-all may conceal them or claim workspace safety.

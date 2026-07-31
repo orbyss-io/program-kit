@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: diagnostics-and-ai-guidance
-status: active
+status: closed
 last-updated: 2026-08-01
-active-batch: DIA-B04
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -36,7 +36,7 @@ This category preserves these accepted boundaries:
 | `DIA-B01` | `DIA-001`–`DIA-005` | `completed` | Define the universal result envelope, normative rendering, outcomes, categories, and mandatory fields. |
 | `DIA-B02` | `DIA-006`–`DIA-008`, `DIA-015`–`DIA-016` | `completed` | Define remediation, agent disposition, documentation links, and resumable input requests. |
 | `DIA-B03` | `DIA-009`–`DIA-012` | `completed` | Define catalog compatibility, message evolution, localization, ordering, deduplication, and truncation. |
-| `DIA-B04` | `DIA-013`–`DIA-014` | `active` | Define information safety and the last-resort host-failure boundary. |
+| `DIA-B04` | `DIA-013`–`DIA-014` | `completed` | Define information safety and the last-resort host-failure boundary. |
 
 ## 3. Founding requirement
 
@@ -425,7 +425,7 @@ the full collection.
 V1 does not need localized resources, remote catalog discovery, diagnostic
 telemetry, or compatibility-range selection.
 
-## 7. Active batch: Information safety and host failure
+## 7. Accepted batch: Information safety and host failure
 
 `DIA-B04` resolves:
 
@@ -434,8 +434,8 @@ telemetry, or compatibility-range selection.
 - `DIA-014`: when an unexpected crash can and cannot become a structured
   last-resort host diagnostic.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted both recommendations. They are governed by
+`DEC-040`.
 
 ### DIA-013 — Disclosure is schema-governed and fails closed
 
@@ -537,3 +537,9 @@ mode, or a general data-loss-prevention engine.
 - Required complete canonical diagnostic collections with deterministic
   ordering, exact duplicate grouping, and explicit retrievable bounded views.
 - Completed `DIA-B03` and activated final Diagnostics batch `DIA-B04` for
+- The human accepted `DIA-B04` under `DEC-040`.
+- Required schema-governed disclosure, non-bypassable secret and protected-path
+  redaction, sanitized external failures, and a minimal structured fallback for
+  every recoverable host fault.
+- Recorded the honest boundary where process or output-channel failure makes an
+  envelope impossible.
