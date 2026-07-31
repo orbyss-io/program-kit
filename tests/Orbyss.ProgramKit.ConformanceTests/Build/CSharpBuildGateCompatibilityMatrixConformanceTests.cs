@@ -42,11 +42,8 @@ public sealed class CSharpBuildGateCompatibilityMatrixConformanceTests
         {
             Assert.IsTrue(
                 migration!["humanDecisionRequired"]!.GetValue<bool>());
-            Assert.IsTrue(File.Exists(Path.Combine(
-                ConformanceInputs.ProgramKitRoot,
-                migration["manifest"]!.GetValue<string>().Replace(
-                    '/',
-                    Path.DirectorySeparatorChar))));
+            Assert.IsTrue(File.Exists(ResolveRepositoryPath(
+                migration["manifest"]!.GetValue<string>())));
         }
     }
 
@@ -74,7 +71,7 @@ public sealed class CSharpBuildGateCompatibilityMatrixConformanceTests
     private static JsonObject ReadMatrix() =>
         JsonNode.Parse(File.ReadAllBytes(Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "compatibility-version-matrix.json")))!.AsObject();
 
@@ -125,9 +122,7 @@ public sealed class CSharpBuildGateCompatibilityMatrixConformanceTests
                 return false;
             }
 
-            var fullPath = Path.Combine(
-                ConformanceInputs.ProgramKitRoot,
-                relativePath.Replace('/', Path.DirectorySeparatorChar));
+            var fullPath = ResolveRepositoryPath(relativePath);
             if (!File.Exists(fullPath) ||
                 !string.Equals(
                     digest,
@@ -181,6 +176,21 @@ public sealed class CSharpBuildGateCompatibilityMatrixConformanceTests
         }
 
         return edgeArray.Count > 0;
+    }
+
+    private static string ResolveRepositoryPath(string relativePath)
+    {
+        const string historicalReviewSetPrefix = "extensions/";
+        var livePath = relativePath.StartsWith(
+            historicalReviewSetPrefix,
+            StringComparison.Ordinal)
+            ? string.Concat(
+                ".review-sets/",
+                relativePath[historicalReviewSetPrefix.Length..])
+            : relativePath;
+        return Path.Combine(
+            ConformanceInputs.ProgramKitRoot,
+            livePath.Replace('/', Path.DirectorySeparatorChar));
     }
 
     private static string? Text(JsonObject value, string property) =>

@@ -11,7 +11,7 @@ public sealed class ImplementationPlanV3VersioningTests
     {
         var extensionRoot = Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates");
         using var mapJson = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(
             extensionRoot,

@@ -16,7 +16,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         using var mapJson = JsonDocument.Parse(File.ReadAllBytes(
             Path.Combine(extensionRoot, "operation-convergence-version-map.json")));
@@ -113,7 +113,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -183,7 +183,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -250,7 +250,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -317,7 +317,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -384,7 +384,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -451,7 +451,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -518,7 +518,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -585,7 +585,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -652,7 +652,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -719,7 +719,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         var programKitRoot = FindProgramKitRoot();
         var extensionRoot = Path.Combine(
             programKitRoot,
-            "extensions",
+            ".review-sets",
             "host-tooling");
         var migrationPath = Path.Combine(
             extensionRoot,
@@ -768,7 +768,7 @@ public sealed class HostToolingOperationConvergenceVersionTests
         using var mapJson = JsonDocument.Parse(File.ReadAllBytes(
             Path.Combine(
                 programKitRoot,
-                "extensions",
+                ".review-sets",
                 "host-tooling",
                 "secret-resolution-version-map.json")));
         var map = ReadVersionMap(mapJson.RootElement);

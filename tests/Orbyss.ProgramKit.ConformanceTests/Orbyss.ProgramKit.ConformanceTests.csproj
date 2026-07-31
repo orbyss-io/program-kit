@@ -85,7 +85,7 @@
     <None Include="..\..\bootstrap\bootstrap-approval-record.json"
           Link="ConformanceInputs/Bootstrap/bootstrap-approval-record.json"
           CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\artifacts\self-hosted\**\*"
+    <None Include="..\..\.evidence\program-kit-baseline\self-hosted\**\*"
           Link="ConformanceInputs/SelfHosted/%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.agent-capabilities\capabilities\INDEX.md"

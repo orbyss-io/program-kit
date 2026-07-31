@@ -28,7 +28,7 @@ have explicit out-of-closure proof.
 | Typed final topology | map, selection, and migration assessment valid |
 
 The exact package and publish receipts are in
-`../../fixtures/observatory-scheduling/evidence/w090/full-closure-proof.json`.
+`../../../fixtures/observatory-scheduling/evidence/w090/full-closure-proof.json`.
 The full command observations and environmental retries are in
 `verification-observations.json`.
 

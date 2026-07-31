@@ -26,7 +26,7 @@ public sealed class DesignFlowSchemaCommandTests
             var architecture = WriteCurrentWriter(
                 Path.Combine(
                     repositoryRoot,
-                    "extensions",
+                    ".review-sets",
                     "alpha-version-transition",
                     "architecture-design.json"),
                 Path.Combine(temporaryRoot, "architecture-design.json"),
@@ -40,7 +40,7 @@ public sealed class DesignFlowSchemaCommandTests
             var disposition = WriteCurrentWriter(
                 Path.Combine(
                     repositoryRoot,
-                    "extensions",
+                    ".review-sets",
                     "alpha-version-transition",
                     "static-conformance-disposition.json"),
                 Path.Combine(temporaryRoot, "disposition.json"),
@@ -54,7 +54,7 @@ public sealed class DesignFlowSchemaCommandTests
             var plan = WriteCurrentWriter(
                 Path.Combine(
                     repositoryRoot,
-                    "extensions",
+                    ".review-sets",
                     "alpha-version-transition",
                     "implementation-plan.json"),
                 Path.Combine(temporaryRoot, "implementation-plan.json"),
@@ -90,7 +90,7 @@ public sealed class DesignFlowSchemaCommandTests
     {
         var artifact = Path.Combine(
             FindProgramKitRoot(),
-            "extensions",
+            ".review-sets",
             "alpha-version-transition",
             "static-conformance-disposition.json");
 

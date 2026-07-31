@@ -38,7 +38,7 @@ public sealed class CSharpGateOperationTests
     {
         var fixture = Path.Combine(
             FindProgramKitRoot(),
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "fixtures",
             "consumer-owned-build-gate-definition.json");
@@ -93,7 +93,7 @@ public sealed class CSharpGateOperationTests
     {
         var fixture = Path.Combine(
             FindProgramKitRoot(),
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "fixtures",
             "consumer-owned-build-gate-definition.json");
