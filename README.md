@@ -72,24 +72,20 @@ unapplied
 
 ## Install Program Kit CLI (consumer)
 
-Program Kit `0.1.0-alpha.3` is currently distributed as an exact downloadable
-local NuGet-feed ZIP. It requires the .NET 10 SDK selected by
-[`global.json`](global.json). A consumer does not need a Program Kit checkout,
-submodule, or separate CapabilityBundle installation.
+Program Kit packages are published on
+[NuGet.org](https://www.nuget.org/packages?q=Orbyss.ProgramKit).
+The easiest consumer path is the
+[`Orbyss.ProgramKit.CommandLine`](https://www.nuget.org/packages/Orbyss.ProgramKit.CommandLine)
+.NET global tool. The coordinated `0.1.0-alpha.3` release requires the .NET 10
+SDK selected by [`global.json`](global.json). A consumer does not need a
+Program Kit checkout, submodule, local feed, or separate CapabilityBundle
+installation.
 
-Download `orbyss-program-kit-nuget-0.1.0-alpha.3.zip` and its checksum, verify
-the ZIP, then extract it to a bounded temporary directory:
+Install the exact tool version directly from NuGet.org:
 
 ```powershell
-$archive = Resolve-Path .\orbyss-program-kit-nuget-0.1.0-alpha.3.zip
-$expected = (Get-Content .\orbyss-program-kit-nuget-0.1.0-alpha.3.zip.sha256).Split(' ')[0]
-$actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
-if ($actual -ne $expected) { throw "Program Kit archive checksum mismatch." }
-$feed = Join-Path $env:TEMP 'orbyss-program-kit-0.1.0-alpha.3'
-Expand-Archive -LiteralPath $archive -DestinationPath $feed
 dotnet tool install --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.3 `
-  --add-source (Join-Path $feed 'feed')
+  --version 0.1.0-alpha.3
 ```
 
 From the human-led consumer workspace root, initialize the provider that is
@@ -112,14 +108,20 @@ ambient `latest`:
 ```powershell
 dotnet tool list --global
 dotnet tool update --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.3 `
-  --add-source (Join-Path $feed 'feed')
+  --version 0.1.0-alpha.3
 program-kit --help
 program-kit capabilities catalog --workspace-root . --format text
 ```
 
-Remove the bounded extracted feed after installation if it is no longer
-needed. Do not change permanent global NuGet configuration for Program Kit.
+The remaining `Orbyss.ProgramKit.*` packages are available from the same
+NuGet.org feed for exact-version `PackageReference` use.
+
+As a source-based alternative, download **Source code (zip)** for the matching
+tag from [GitHub Releases](https://github.com/orbyss-io/program-kit/releases),
+extract it, and follow
+[Build an isolated local feed from source](#build-an-isolated-local-feed-from-source)
+below. The release ZIP is useful for an offline or independently built local
+feed; ordinary consumers can install the global tool directly from NuGet.org.
 
 ### Build an isolated local feed from source
 
