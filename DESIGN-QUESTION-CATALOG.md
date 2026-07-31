@@ -13,15 +13,17 @@ record the revision or supersession rather than silently deleting it.
 
 ### 8.1 Feature model
 
-- **FTR-001:** Is `CShells.IFeature` a canonical foundation to retain, or prior
-  art whose contract must be independently re-specified?
-- **FTR-002:** Should Program Kit ship a first-party, version-pinned CShells
-  projection adapter, and which syntax, generation, conformance, diagnostics,
-  compatibility, and migration obligations must each supported version carry?
-- **FTR-003:** What precisely distinguishes a feature contract, a concrete
-  feature implementation, and the component that packages implementations?
-- **FTR-004:** How are governed interface facets modeled without making CLR,
-  mediator, messaging, registry, transport, or configuration choices semantic?
+- **FTR-001:** Must every Program Kit-generated .NET feature implement
+  `CShells.IFeature`, and is CShells a generated-project dependency, a generator
+  dependency, or both?
+- **FTR-002:** Which CShells package, generator, syntax, conformance, diagnostics,
+  compatibility, and migration versions must Program Kit pin and support?
+- **FTR-003:** What is the minimum Program Kit-known feature record for a
+  concrete .NET implementation, and which additional validity rules remain
+  entirely consumer-owned?
+- **FTR-004:** What minimum interface descriptor identifies the semantic
+  boundary, connects a feature and consumer, enables impact analysis and
+  diagnostics, and runs consumer rules without prescribing roles or mechanisms?
 - **FTR-005:** Can one feature expose API, CLI, worker, configuration, event, and
   internal facets at the same time?
 - **FTR-006:** How are feature, operation, component, module, package, service,
@@ -43,13 +45,15 @@ record the revision or supersession rather than silently deleting it.
 - **FTR-014:** Which explicit contracts must a bounded component evaluate
   against: semantic, behavioral, API, schema, dependency, integration, policy,
   deployment, or a defined multidimensional contract set?
-- **FTR-015:** What are the exact cardinality and identity rules among feature
-  contracts, feature implementations, and components?
-- **FTR-016:** May sibling bounded domains reference one another's public
-  contracts directly, or must consumer-owned contracts and explicit bridges
-  mediate them except when both adopt a neutral protocol?
-- **FTR-017:** Must every interface facet declare direction, semantic role,
-  audience, contract/version, and a separately selected technical binding?
+- **FTR-015:** How are concrete feature identity and interface identity kept
+  distinct, and should the kernel permit many-to-many declarations while
+  consumers govern cardinality?
+- **FTR-016:** Which immutable mechanics and evidence rules belong to the
+  Program Kit kernel, which composition rules always belong to consumers, and
+  when does an explicitly adopted default profile become enforceable?
+- **FTR-017:** How much of the current .NET/CShells feature model must constrain
+  a possible future React specialization, if anything beyond the shared
+  identity-and-interface philosophy?
 
 ### 8.2 Semantic language and bounded contexts
 

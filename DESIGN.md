@@ -70,7 +70,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 11 | All Product Identity decisions accepted on 2026-07-31. |
-| Feature model | `FTR` | `active` | 17 | Batch `FTR-B01` refines contracts, implementations, dependencies, and facets. |
+| Feature model | `FTR` | `active` | 17 | Batch `FTR-B01` defines a thin .NET/CShells identity boundary and separates kernel mechanics from consumer policy. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 12 | May be reshaped by identity and feature answers. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -98,7 +98,8 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Product Identity and `DEC-012` are accepted; remaining categories are unresolved.
+Product Identity is accepted. `DEC-012` is superseded, and Feature Model
+convergence remains active.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -113,7 +114,8 @@ Product Identity and `DEC-012` are accepted; remaining categories are unresolved
 | `DEC-009` | `PID-007` | `accepted` | Program Kit v1 is a semantic development toolchain, not a new programming language; a language claim requires a formal grammar, type system, compiler semantics, and compatibility model. | 2026-07-31 |
 | `DEC-010` | `PID-009`, `EXT-012`, `EXT-013` | `accepted` | Program Kit owns independent public commands, artifacts, diagnostics, and compatibility promises; internal Spec Kit reuse is replaceable, and optional Spec Kit integration may invoke only Program Kit's public contract. | 2026-07-31 |
 | `DEC-011` | `EXT-013` | `accepted` | The Spec Kit-to-Program Kit adapter is outside the current design; reconsider it only after Program Kit CLI is implemented, independently usable, and published, as a separate optional adapter. | 2026-07-31 |
-| `DEC-012` | `FTR-001`, `FTR-002` | `accepted` | `CShells.IFeature` is prior art rather than Program Kit's canonical dependency; selected CShells generation requires an explicit, version-pinned projection adapter with generation, conformance, diagnostics, and migration rules. | 2026-07-31 |
+| `DEC-012` | `FTR-001`, `FTR-002` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as Program Kit's intended .NET feature mechanism. | — |
+| `DEC-013` | `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `candidate-decision` | Program Kit v1 uses a thin .NET/CShells feature model: features carry concrete implementation identity; interfaces are governed semantic boundaries; immutable kernel mechanics remain Program Kit-owned; and consumers own composition and architecture policies. | — |
 
 ## 10. Emergent-question register
 
@@ -134,9 +136,9 @@ answer or tension that created them.
 | `PID-010` | Human contributor named as governing identity in `PID-001` | `accepted` | Human governs intent; currently accepted contracts govern admitted outputs until explicitly revised and reaccepted. |
 | `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `accepted` | Precise irreconcilability is a resolution; universal composability is not promised. |
 | `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
-| `FTR-015` | Contracts and feature implementations must be separate | `follow-up` | Define exact cardinality and identity among feature contracts, implementations, and components. |
-| `FTR-016` | Features collaborate through contracts and sibling domains may require bridges | `follow-up` | Define contract-dependency and cross-domain bridge rules. |
-| `FTR-017` | Interface roles must not prescribe middleware mechanisms | `follow-up` | Confirm direction, role, audience, contract/version, and binding as separate facet dimensions. |
+| `FTR-015` | The generic contract/implementation/component cardinality model was rejected | `follow-up` | Separate concrete feature identity from interface identity and decide whether consumer policy alone governs cardinality. |
+| `FTR-016` | Consumers own architecture rules without control over Program Kit's immutable mechanics | `follow-up` | Delimit kernel invariants, consumer policies, and explicit adoption of default profiles. |
+| `FTR-017` | Program Kit v1 is specifically .NET/CShells while React may be supported later | `follow-up` | Decide whether anything beyond the identity-and-interface philosophy must be shared with a future React specialization. |
 
 ## 11. Session log
 
@@ -199,3 +201,15 @@ answer or tension that created them.
 - Replaced prescribed messaging mechanisms with a candidate dimensional
   interface-facet model.
 - Added `FTR-015` through `FTR-017`; `FTR-003` and `FTR-004` remain follow-ups.
+
+### 2026-07-31 — Feature Model boundary corrected
+
+- The human rejected the generic feature-contract ontology, prescribed
+  interface-role taxonomy, bridge-only domain policy, and universal cardinality
+  rules as consumer architecture rather than Program Kit mechanics.
+- Superseded `DEC-012` and recorded `DEC-013` as a candidate, not an accepted
+  decision.
+- Reframed Program Kit v1 as a thin .NET/CShells feature identity and governed
+  interface boundary with consumer-owned semantic and architecture policies.
+- Recorded that consumer rules and adopted defaults cannot override Program
+  Kit's immutable deterministic, integrity, provenance, and diagnostic kernel.

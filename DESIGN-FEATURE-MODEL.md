@@ -11,171 +11,175 @@ parent-ledger: DESIGN.md
 
 ## 1. Category objective
 
-Define the fundamental semantic unit Program Kit calls a feature, its relation
-to interfaces and bounded software components, and the identity, versioning,
-composition, implementation, and contract rules required for governed
-integration.
+Define the thinnest enforceable .NET feature model needed for Program Kit to
+generate, identify, inspect, and integrate C# features built with CShells.
 
-The Feature Model must preserve the accepted Product Identity decisions:
+This category does not define a universal feature ontology or prescribe a
+domain-driven architecture. Consumer-owned rules determine whether inheritance,
+direct feature references, sibling-domain dependencies, messaging, registries,
+bridges, or other composition forms are permitted.
 
-- Program Kit produces bounded, contract-evaluated software components.
-- Governed integration resolution is the non-negotiable product promise.
-- The first implementation is .NET-first without treating CLR concepts as
-  universal semantics.
-- Program Kit owns its public contracts independently of internal tooling.
+Unified means that a small app and a complex domain system use the same
+mechanics for identity, generation, artifacts, evidence, diagnostics, impact,
+and evolution. It does not mean they share the same semantic or architectural
+rules.
+
+The current boundary is:
+
+- Program Kit v1 is a .NET programming kit.
+- CShells is the mechanism used for generated .NET features.
+- A feature carries an implementation identity and purpose.
+- An interface is the governed semantic boundary between a feature and a
+  consumer.
+- Program Kit records and evaluates declared boundaries and consumer-supplied
+  rules; it does not invent domain composition rules.
+- React or other targets may later reuse this philosophy through specialized
+  target support, but they do not make the current model universal.
 
 ## 2. Batch register
 
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
-| `FTR-B01` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `active` | Refine contract, implementation, dependency, and interface-facet boundaries. |
-| `FTR-B02` | `FTR-002`, `FTR-005`–`FTR-007` | `queued` | Resolve package ownership, facets, terminology, and component semantics. |
-| `FTR-B03` | `FTR-008`–`FTR-012` | `queued` | Resolve identity, versioning, relations, and multiple implementations. |
-| `FTR-B04` | `FTR-013`–`FTR-014` | `queued` | Define the minimum feature record and multidimensional contract set. |
+| `FTR-B01` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `active` | Define the thin .NET/CShells feature identity, interface boundary, and policy-ownership model. |
+| `FTR-B02` | `FTR-002`, `FTR-005`–`FTR-007` | `queued` | Resolve CShells support, exposed surfaces, and minimal terminology. |
+| `FTR-B03` | `FTR-008`–`FTR-012` | `queued` | Resolve identity scope, versioning, relationships, and implementation selection without imposing architecture. |
+| `FTR-B04` | `FTR-013`–`FTR-014` | `queued` | Define the minimum record and how consumer-defined contracts and rules are referenced. |
 
-`FTR-002` now concerns whether and when Program Kit ships a first-party,
-version-pinned CShells projection adapter and conformance suite.
+## 3. Active batch: Thin feature boundary
 
-## 3. Active batch: Feature primitive
-
-### FTR-001 — Status of `CShells.IFeature`
-
-- **Status:** `accepted`
-- **Question:** Is `CShells.IFeature` a canonical foundation that Program Kit
-  must retain, or is it valuable prior art whose meaning must be independently
-  re-specified?
-- **Why it matters:** A direct foundational dependency imports another package's
-  identity, versioning, lifecycle, and limitations. Rejecting it entirely could
-  discard a concept proven useful in Elsa and in the origin of Program Kit.
-- **Current evidence:** The founding narrative identifies `CShells.IFeature` as
-  the interface beneath Elsa logical units. The archived Program Kit is
-  explicitly prior art rather than source truth, and Program Kit's accepted
-  public contracts must remain independently owned.
-- **Human input:** The ownership recommendation was accepted, with the explicit
-  requirement that deterministic CShells generation understand its syntax and
-  rules through an adapter.
-- **Agent synthesis:** Any selected CShells target requires an explicit,
-  version-pinned projection adapter containing the syntax, conventions,
-  generation rules, conformance validation, diagnostic mapping, and migration
-  knowledge for supported CShells versions. The canonical Program Kit model
-  remains independently owned and does not depend on that adapter.
-- **Consequences and tensions:** Adapter and CShells versions become exact
-  generation inputs. Projects not selecting CShells do not load the adapter.
-- **Accepted decision:** `DEC-012`.
-
-### FTR-003 — What qualifies as a feature
+### FTR-001 — Exact role of `CShells.IFeature`
 
 - **Status:** `follow-up`
-- **Question:** Is a feature specifically a concrete implementation, with its
-  independently identifiable capability contract modeled as a separate object?
-  What is the exact cardinality among contract, feature, and component?
-- **Why it matters:** Treating capability and implementation as the same object
-  prevents multiple implementations and creates implementation-to-implementation
-  coupling. Treating every contract as a feature hides what is actually built.
-- **Human input:** A feature is an actual implementation. Interfaces specify
-  contracts. Features must not consume other features directly; they work
-  together through contracts. Every contract may have different implementations.
-  The consumer-meaning threshold remains substantially correct.
-- **Agent synthesis:** Separate three concepts: a feature contract is the stable
-  semantic capability and consumer boundary; a feature implementation is a
-  concrete realization of a feature contract; and a component is the packaging,
-  source, or deployment boundary containing one or more implementations and
-  artifacts. Semantic dependency edges target required contracts, never feature
-  implementations. Methods and helpers remain implementation details.
-- **Consequences and tensions:** `FTR-015` asks for the exact cardinality and
-  naming rules. `FTR-016` asks how contract mediation changes across domains.
-- **Decision needed:** Confirm or refine this three-concept model and the rule
-  that feature implementations never depend directly on one another.
+- **Previous state:** `DEC-012` treated CShells as prior art behind an optional
+  projection adapter. The human reopened that decision because CShells is the
+  intended .NET feature mechanism, not merely one optional modeling target.
+- **Known intent:** Program Kit generates .NET features using CShells. A
+  deterministic generator must know the exact syntax, conventions, version,
+  validation rules, and diagnostics of the CShells target.
+- **Questions:** Must every Program Kit-generated .NET feature implement
+  `CShells.IFeature`? Is CShells a direct dependency of generated projects, a
+  dependency of the generator, or both? Which package and version boundaries
+  must be pinned and included in generation identity?
+- **Recommendation:** For v1, make `CShells.IFeature` the required runtime marker
+  for generated .NET features and make a version-specific CShells generator the
+  required .NET projection. Keep Program Kit's generation manifest and feature
+  identity metadata under Program Kit ownership. Pin the generator, CShells
+  package, SDK, and rules as exact inputs. Do not generalize this into a
+  cross-language abstraction yet.
+- **Decision needed:** Confirm or refine this direct .NET/CShells role.
 
-### FTR-004 — Meaning of “every feature is an interface”
+### FTR-003 — Minimum meaning of feature
 
 - **Status:** `follow-up`
-- **Question:** How should Program Kit model the roles, audiences, directions,
-  and bindings of an interface without prescribing the consumer's middleware?
-- **Why it matters:** Contribution points, messages, configuration, endpoints,
-  and CLI commands are different semantic surfaces. MediatR, service buses, DI
-  registries, HTTP, configuration providers, and CLI frameworks are mechanisms,
-  not universal semantics.
-- **Human input:** The semantic-boundary definition is accepted. Internal
-  interfaces may provide contributions, messages, webhooks, or other roles, but
-  consumer-owned domains must control their mechanics. Configuration, options,
-  behavioral switches, endpoints, and CLI commands are exposed surfaces of a
-  feature. The archived design over-prescribed mediator, messaging, and events.
-- **Agent synthesis:** This becomes simpler by modeling interface facets along
-  independent dimensions: provided or required direction; semantic role;
-  audience or visibility; contract and version; and selected technical binding.
-  Configuration, operations, contributions, notifications, endpoints, and
-  commands are roles. CLR, HTTP, a service bus, a registry, appsettings, or a
-  CLI framework are replaceable bindings. Public versus internal is an audience
-  dimension, not a separate kind of feature.
-- **Consequences and tensions:** Program Kit defines the stable role vocabulary,
-  contracts, traces, and compatibility rules. Consumer domains or explicit
-  extensions select and govern the mechanisms. `FTR-017` asks for confirmation
-  of this dimensional facet model.
-- **Decision needed:** Confirm or refine the role/audience/direction/binding
-  separation.
+- **Human correction:** The previous candidate introduced feature contracts,
+  feature implementations, components, and dependency restrictions as if they
+  were universal architecture. That was too broad. A feature is an actual
+  implementation and a way to express stable identity internally or externally.
+- **Question:** Is the minimum core definition simply a concrete .NET feature
+  implementation with stable identity, purpose, target, and declared interfaces
+  or relationships, while all additional validity rules are consumer-owned?
+- **Recommendation:** Yes. Program Kit should know that a feature exists, how it
+  is identified, where its artifacts are, which interfaces it declares, and
+  which relationships or policies the consumer attached. It should not decide
+  that feature inheritance, feature references, cycles, nesting, or composition
+  are invalid unless an active consumer rule says so.
+- **Consequences:** Methods and helpers are not features unless explicitly
+  declared or generated as features. Different consumers may impose different
+  feature granularity and composition policies.
+- **Decision needed:** Confirm or refine this minimum feature definition.
 
-
-### FTR-015 — Contract, feature, and component cardinality
+### FTR-004 — Minimum meaning of interface
 
 - **Status:** `follow-up`
-- **Origin:** The human separated contracts from actual feature implementations
-  and noted that every contract may be implemented differently.
-- **Question:** Should one feature implementation realize exactly one primary
-  feature contract, may it realize several, and how many feature implementations
-  may a component contain?
-- **Recommendation:** One feature contract may have many alternative feature
-  implementations. Each feature implementation has exactly one primary feature
-  contract and may expose several interface facets under it. A component may
-  package one or more feature implementations and their artifacts. A separately
-  identifiable capability becomes another feature contract rather than a hidden
-  secondary identity on the same feature.
-- **Why it matters:** This gives selection, replacement, impact, and migration a
-  stable unit while allowing one package or deployment unit to contain several
-  cohesive features.
-- **Decision needed:** Accept or refine this cardinality.
+- **Accepted axiom:** An interface is the governed semantic boundary between a
+  feature and a consumer; it is not necessarily a CLR interface.
+- **Human correction:** Program Kit must not prescribe internal interface roles,
+  public-surface categories, mediator patterns, messaging, eventing, registries,
+  bridges, or transport choices. Consumers define and control those rules.
+- **Question:** What is the minimum information Program Kit itself must know
+  about an interface to identify it, connect it to a feature and consumer, run
+  consumer-supplied rules, calculate impact, and return meaningful diagnostics?
+- **Recommendation:** The core should require only stable interface identity,
+  version, owning feature, consumer or audience reference, exposure direction,
+  and references to consumer-owned contract artifacts and validation policies.
+  Role names, schemas, transports, configuration semantics, compatibility rules,
+  and bindings remain opaque or extensible consumer data unless a selected
+  extension understands them.
+- **Decision needed:** Confirm this minimal descriptor or remove fields that are
+  still too prescriptive.
 
-### FTR-016 — Contract-mediated and cross-domain dependencies
-
-- **Status:** `follow-up`
-- **Origin:** Features must not consume features directly. The human also valued
-  the prohibited sibling-domain rule and explicit bridges from the Domain
-  Semantic Engine design.
-- **Question:** When may one bounded domain reference another domain's contracts
-  directly, and when must an explicit bridge or adapter mediate them?
-- **Recommendation:** No semantic edge ever targets another feature
-  implementation. Within one bounded domain, implementations may require its
-  governed contracts directly. Across sibling bounded domains, default to a
-  consumer-owned required contract plus an explicit bridge that translates
-  between both domains' contracts. Direct sharing is allowed only when both
-  sides deliberately adopt a separately governed neutral or public protocol.
-  Contract-only `<domain>.Core` packages may expose a domain's contracts, but do
-  not by themselves authorize sibling semantic coupling.
-- **Why it matters:** This retains strict domain isolation without generating
-  pointless adapters when both sides genuinely share the same protocol.
-- **Decision needed:** Accept this default-and-exception rule, or require a
-  bridge for every sibling-domain interaction without exception.
-
-### FTR-017 — Interface facet dimensions
+### FTR-015 — Feature identity versus interface identity
 
 - **Status:** `follow-up`
-- **Origin:** The human accepted interfaces as governed semantic boundaries but
-  rejected prescribing mediator, messaging, event, registry, or transport
-  implementations in the Program Kit core.
-- **Question:** Should every interface facet be described independently by
-  direction, semantic role, audience, contract/version, and selected binding?
-- **Recommendation:** Yes. Direction is provided or required. Roles initially
-  include configuration, operation, query, contribution, notification,
-  management, endpoint, and command, and remain explicitly versioned. Audience
-  describes feature, domain, host, operator, external system, or public exposure.
-  Bindings such as CLR, HTTP, service bus, registry, appsettings, or CLI are
-  replaceable mechanisms selected by consumer domains or explicit extensions.
-- **Why it matters:** The semantic model stays enforceable and integration-aware
-  without turning Program Kit into a middleware framework.
-- **Decision needed:** Accept the dimensional model; the exact initial role
-  vocabulary can be refined later in `FTR-005` and `FTR-014`.
+- **Previous candidate rejected:** The earlier model required one primary feature
+  contract per implementation and imposed component cardinality. Program Kit has
+  no authority to impose that architecture.
+- **Question:** Should a concrete feature have its own stable identity while each
+  exposed or consumed interface has a separate identity that may be shared by
+  multiple implementations?
+- **Recommendation:** Yes. Feature identity identifies the concrete implemented
+  unit. Interface identity identifies a consumer boundary or contract. Permit
+  many-to-many declarations: a feature may expose or consume multiple
+  interfaces, and multiple features may expose the same interface. Consumer
+  policies determine whether a particular cardinality is valid.
+- **Decision needed:** Confirm or refine this identity separation.
+
+### FTR-016 — Ownership of composition rules
+
+- **Status:** `follow-up`
+- **Previous candidate rejected:** Program Kit must not impose bridge-only
+  sibling-domain interaction, prohibit direct feature references, or choose a
+  DDD dependency style for every consumer.
+- **Question:** Which rules, if any, are intrinsic structural integrity rules of
+  Program Kit, and which are always supplied by consumer policy?
+- **Human input:** Program Kit's goal is one unified way to write components for
+  both complex domain systems and simple applications. Consumers own their rules
+  provided those rules do not interfere with Program Kit's imperative,
+  immutable internal mechanics. Program Kit may offer defaults, but defaults
+  must not restrict a consumer implicitly.
+- **Recommendation:** The core should enforce only mechanics required to keep its
+  own evidence honest: identifiers are valid and unambiguous; declared
+  references resolve or remain explicitly unknown; exact tool, extension, and
+  policy versions are recorded; required artifacts exist; and diagnostics never
+  claim validation that did not run. Inheritance, feature references, cycles,
+  bridges, domain sibling rules, transports, and composition constraints are
+  consumer policies. Without a selected rule, a combination is not prohibited;
+  without an applicable validator, Program Kit must not claim semantic
+  compatibility.
+  Default policy profiles are advisory until the consumer explicitly adopts a
+  named, version-pinned profile. Adoption makes those rules enforceable for that
+  consumer. Consumers may replace or remove semantic profiles, but no policy may
+  override the kernel invariants required for deterministic mechanics and
+  truthful evidence.
+- **Decision needed:** Confirm this structural-integrity versus consumer-policy
+  boundary.
+
+### FTR-017 — .NET now and React later
+
+- **Status:** `follow-up`
+- **Previous candidate rejected:** The earlier dimensional interface-facet model
+  attempted to create a generic, cross-technology feature language.
+- **Question:** How much, if any, current design must be shared with future React
+  component generation?
+- **Recommendation:** None beyond the accepted philosophy of stable feature
+  identity and governed consumer interfaces. Design and enforce the current
+  model for C#, .NET, and CShells. A future React specialization may reuse the
+  ideas or map compatible metadata, but it must prove its own target rules and
+  must not weaken or generalize the .NET implementation in advance.
+- **Decision needed:** Confirm that React is a future specialization, not a v1
+  feature-model constraint.
+
 ## 4. Category decisions
 
 | Decision | Status | Summary |
 |---|---|---|
-| `DEC-012` | `accepted` | CShells is prior art; selected CShells generation uses an explicit, pinned projection adapter while Program Kit owns the canonical model. |
+| `DEC-012` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as the intended .NET mechanism. |
+| `DEC-013` | `candidate-decision` | Program Kit v1 uses a thin .NET/CShells feature identity and interface-boundary model; consumers own composition and architecture rules. |
+
+## 5. Revision record
+
+- The human rejected the generic contract/implementation/component ontology,
+  built-in cross-domain bridge policy, and built-in interface-role taxonomy.
+- `FTR-015` through `FTR-017` were retained as stable IDs but rewritten around
+  identity separation, policy ownership, and current target scope.
+- Git history preserves the rejected candidates; they are not current design.

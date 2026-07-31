@@ -79,10 +79,13 @@ their respective categories converge.
 2. Its non-negotiable promise is governed integration resolution between
    Program Kit-built products: direct compatibility, an explicit adapter or
    migration, or a precise contract-backed incompatibility result.
-3. A feature contract and a concrete feature implementation are distinct. The
-   current candidate model makes the implementation realize a contract while
-   the contract exposes mechanism-neutral interface facets. Exact cardinality
-   and cross-domain dependency rules remain under Feature Model convergence.
+3. The current candidate is a thin .NET/CShells feature model. A concrete
+   feature has stable implementation identity, and an interface is its governed
+   semantic boundary with a consumer. Consumer policies own roles, contracts,
+   inheritance, composition, and architecture. The Program Kit kernel owns only
+   the immutable mechanics and truthful evidence required to apply those rules.
+   Exact descriptor fields and kernel invariants remain under Feature Model
+   convergence.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
    should be explicit, typed, versioned, and canonical.
 5. Extension discovery and selection should be explicit and pinned rather than
