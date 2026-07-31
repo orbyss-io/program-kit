@@ -66,6 +66,19 @@ design.
   capabilities that use selected Spec Kit techniques within a governed flow and
   combine them with Program Kit CLI extensions or other Program Kit mechanics.
   This is an exploration candidate, not an accepted responsibility or design.
+- AI-assisted applications commonly keep their development instructions and
+  foundational guidance inside each application. This creates duplicated prompt
+  and instruction clutter, inconsistent development methods, and a steep
+  contribution cost when developers move between applications.
+- Program Kit is intended to provide a model-neutral and domain-neutral common
+  development protocol so human developers and AI sessions can recognize how a
+  Program Kit-built application is designed, changed, validated, diagnosed, and
+  integrated without every repository reinventing that foundation.
+- The desired ecosystem effect resembles package management at a broader
+  feature level: complex products compose many applications, APIs, and
+  technologies, while reusable target adapters encode integration knowledge
+  once. A future WordPress adapter that projects supported Program Kit features
+  into governed plugins is an illustrative stress test, not a v1 commitment.
 
 ## 5. Accepted foundations and provisional synthesis
 

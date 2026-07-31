@@ -1,7 +1,7 @@
 ---
 artifact-kind: program-kit-design-category
 category: feature-model
-status: active
+status: paused
 last-updated: 2026-07-31
 active-batch: FTR-B01
 parent-ledger: DESIGN.md
@@ -35,6 +35,10 @@ The current boundary is:
   rules; it does not invent domain composition rules.
 - React or other targets may later reuse this philosophy through specialized
   target support, but they do not make the current model universal.
+
+Discovery is paused at this boundary while Product Identity batch `PID-B05`
+defines the portable unit, model-neutral development protocol, and future target
+adapter promise. `DEC-013` remains a candidate and is not implicitly accepted.
 
 ## 2. Batch register
 

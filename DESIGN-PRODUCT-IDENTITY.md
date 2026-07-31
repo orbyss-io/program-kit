@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: product-identity
-status: closed
+status: active
 last-updated: 2026-07-31
-active-batch: none
+active-batch: PID-B05
 parent-ledger: DESIGN.md
 ---
 
@@ -16,6 +16,11 @@ Converge on what Program Kit is, whom it serves, the promise that governs
 tradeoffs, the authors and consumers of its semantic input, its initial
 ecosystem boundary, its first-hour proof of value, and its deliberate non-goals.
 
+The category is reopened to determine whether Program Kit is also the common,
+model-neutral development protocol that removes duplicated AI foundations from
+individual applications and makes governed features portable through reusable
+target adapters.
+
 ### 7.2 Batch register
 
 | Batch | Items | Status | Purpose |
@@ -24,6 +29,7 @@ ecosystem boundary, its first-hour proof of value, and its deliberate non-goals.
 | `PID-B02` | `PID-003`–`PID-005` | `completed` | Authorship, ecosystem scope, and first-hour proof accepted. |
 | `PID-B03` | `PID-006`–`PID-007` | `completed` | Deliberate refusals and toolchain identity accepted. |
 | `PID-B04` | `PID-009`–`PID-011` | `completed` | Public contract, authority precedence, and integration resolution accepted. |
+| `PID-B05` | `PID-012`–`PID-017` | `active` | Uniform AI-development protocol, instruction ownership, portable feature unit, target adapters, provider neutrality, and cross-project contributor fluency. |
 
 ### 7.3 Product identity questions and decision records
 
@@ -262,3 +268,132 @@ ecosystem boundary, its first-hour proof of value, and its deliberate non-goals.
   resolution—not merely because two valid contracts are intentionally
   irreconcilable.
 - **Accepted decision:** `DEC-004`.
+
+### 7.4 Reopened batch: Uniform AI development and portable features
+
+The accepted decisions above remain in force unless this batch explicitly
+supersedes one. This new input reopens Product Identity because it adds a
+product-level problem and intended network effect that were not captured when
+the category was closed.
+
+#### PID-012 — Uniform AI-development protocol as product identity
+
+- **Status:** `follow-up`
+- **Origin:** The human identified inconsistent, application-local AI
+  instructions and development foundations as perhaps the largest problem
+  Program Kit should solve.
+- **Human input:** Applications built with AI are each developed differently
+  because their AI instructions and foundations live inside the application.
+  Program Kit should offer a uniform, model-neutral and domain-neutral way to
+  develop in a common language, so developers can move between Program Kit-built
+  applications and understand how to contribute.
+- **Question:** Is a uniform AI-development protocol part of Program Kit's
+  primary identity, and how does it relate to the existing non-negotiable promise
+  of governed integration resolution?
+- **Recommendation:** Expand the identity without replacing `DEC-004`. Program
+  Kit standardizes the development protocol through public commands, canonical
+  artifacts, identities, lifecycle links, diagnostics, and integration evidence.
+  That shared protocol is the means by which contributors and AI sessions work
+  consistently; governed integration resolution remains the promise by which
+  the result is judged. For now, "common language" means this explicit protocol
+  and semantic toolchain, not a claim that Program Kit already has the formal
+  programming language required by `DEC-009`.
+- **Decision needed:** Confirm this relationship or identify which promise should
+  govern when workflow uniformity and integration resolution compete.
+
+#### PID-013 — Repository-local versus Program Kit-owned AI guidance
+
+- **Status:** `follow-up`
+- **Origin:** The human wants AI-instruction clutter and duplicated development
+  foundations to stop living independently inside every application.
+- **Question:** Which information must remain with an application as its
+  reviewable source truth, and which reusable instructions and mechanics should
+  be supplied by Program Kit?
+- **Recommendation:** Program Kit owns versioned development mechanics, reusable
+  capability guidance, generation rules, policy engines, diagnostic semantics,
+  and provider integrations. Each application retains a thin, declarative,
+  reviewable record of its intent, domain semantics, selected policies, targets,
+  dependencies, approvals, exceptions, and exact Program Kit inputs. Program Kit
+  should be able to materialize the effective guidance and its provenance for
+  reproducibility, without copying the reusable instruction corpus into every
+  repository.
+- **Important tension:** Removing all local truth would replace visible clutter
+  with hidden global state and make historical builds difficult to reproduce.
+  Keeping generated copies of all generic instructions would preserve the
+  duplication problem.
+- **Decision needed:** Confirm the thin-local-manifest boundary or state what
+  application-specific AI instruction, if any, may exist outside it.
+
+#### PID-014 — The portable unit behind the NuGet analogy
+
+- **Status:** `follow-up`
+- **Origin:** The human compared the desired ecosystem to NuGet and described
+  complex products as containers composed from many applications, APIs, and
+  technologies.
+- **Question:** What is expected to be portable: the development protocol, a
+  feature's governed intent and interfaces, its source implementation, its
+  generated artifacts, or some combination? In the WordPress example, does
+  "translate a feature" mean re-projecting declared intent and contracts or
+  transforming an existing .NET implementation?
+- **Recommendation:** Promise portability first for governed feature identity,
+  declared interfaces, dependency and policy metadata, and integration evidence.
+  Target-specific source and runtime artifacts are portable only where an
+  explicit adapter declares and validates a mapping. Do not imply that arbitrary
+  .NET code can be mechanically converted into an arbitrary ecosystem.
+- **Decision needed:** Select the canonical portable unit before Feature Model
+  identity, package format, or adapter contracts are finalized.
+
+#### PID-015 — Reusable target-adapter promise
+
+- **Status:** `follow-up`
+- **Origin:** A WordPress adapter was offered as an example of target knowledge
+  implemented once and reused by anyone exporting Program Kit features as
+  plugins.
+- **Question:** Does a target adapter promise to export every Program Kit feature,
+  or only features whose declared capabilities fit a versioned target profile?
+- **Recommendation:** An adapter is a deterministic, pinned capability mapping.
+  It declares the source concepts and target versions it supports, validates the
+  feature against that profile, generates governed target artifacts, and returns
+  precise corrective diagnostics or a contract-backed incompatibility result
+  for unsupported semantics. Implemented once, it is reusable for every feature
+  inside that declared envelope. This is the adapter form of `DEC-004`, not a
+  universal-conversion promise.
+- **Scope tension:** WordPress and other non-.NET targets can remain future
+  stress tests. This does not require changing the accepted .NET-only
+  implementation scope of Program Kit v1, but it may impose portability
+  requirements on contracts and manifests designed in v1.
+- **Decision needed:** Confirm the capability-profile boundary and whether
+  future target portability must constrain v1 contracts.
+
+#### PID-016 — AI model and provider neutrality
+
+- **Status:** `follow-up`
+- **Origin:** The intended development method should work "whatever the model."
+- **Question:** Must Program Kit's canonical workflow remain usable through any
+  conforming AI provider and also through humans or automation without an AI
+  model?
+- **Recommendation:** Keep Program Kit's public CLI, artifacts, state
+  transitions, policy inputs, and diagnostic schema provider-neutral. Provider
+  adapters translate those contracts into model-specific tools or prompting,
+  while model, provider, adapter, and version are recorded as execution
+  provenance. The deterministic kernel remains operable without a model; AI is a
+  collaborating client, not hidden semantic authority.
+- **Decision needed:** Confirm both provider neutrality and non-AI operability,
+  or narrow the intended contract.
+
+#### PID-017 — What contributors may assume across applications
+
+- **Status:** `follow-up`
+- **Origin:** Developers should contribute more easily to unfamiliar
+  Program Kit-built applications because they understand the tool used to
+  develop them.
+- **Question:** Which development concepts must be uniform across every
+  Program Kit-built application, and which must remain consumer-defined?
+- **Recommendation:** Standardize capability discovery, lifecycle and artifact
+  links, identity and dependency representation, policy selection, generation
+  provenance, diagnostic codes and correction guidance, impact and migration
+  evidence, and integration outcomes. Do not standardize domain vocabulary,
+  application architecture, framework choices, or composition policies unless
+  the consumer explicitly adopts a profile.
+- **Decision needed:** Confirm this common-contributor surface and identify any
+  missing universal concepts.

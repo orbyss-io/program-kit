@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
-active-category: feature-model
-active-batch: FTR-B01
+active-category: product-identity
+active-batch: PID-B05
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -69,8 +69,8 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
-| Product identity | `PID` | `closed` | 11 | All Product Identity decisions accepted on 2026-07-31. |
-| Feature model | `FTR` | `active` | 17 | Batch `FTR-B01` defines a thin .NET/CShells identity boundary and separates kernel mechanics from consumer policy. |
+| Product identity | `PID` | `active` | 17 | Reopened for batch `PID-B05`: uniform AI development, portable features, target adapters, and transferable contributor fluency. |
+| Feature model | `FTR` | `paused` | 17 | Batch `FTR-B01` resumes after Product Identity defines the portable unit and future target-adapter promise. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 12 | May be reshaped by identity and feature answers. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -84,11 +84,14 @@ Counts are a live snapshot, not a quota. New questions are expected.
 
 ## 7. Category progression
 
-Product Identity is closed and recorded in
-[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md).
+Product Identity has been reopened and is recorded in
+[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). Batch `PID-B05` is
+active; previously accepted decisions remain in force unless explicitly
+superseded.
 
-Feature Model is active and recorded in
-[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` is active.
+Feature Model is paused at its corrected thin .NET/CShells boundary in
+[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` resumes
+after the portability and target-adapter identity questions converge.
 
 ## 8. Queued question catalog
 
@@ -98,8 +101,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Product Identity is accepted. `DEC-012` is superseded, and Feature Model
-convergence remains active.
+`DEC-001` through `DEC-011` remain accepted, but Product Identity is reopened
+for `PID-B05`. `DEC-012` is superseded, and Feature Model candidate `DEC-013`
+remains unresolved.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -135,6 +139,12 @@ answer or tension that created them.
 | `PLN-004` | Program Kit enables consumers to design and implement components | `open` | Define the boundary between planning artifacts, orchestration, and execution. |
 | `PID-010` | Human contributor named as governing identity in `PID-001` | `accepted` | Human governs intent; currently accepted contracts govern admitted outputs until explicitly revised and reaccepted. |
 | `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `accepted` | Precise irreconcilability is a resolution; universal composability is not promised. |
+| `PID-012` | Per-application AI instructions create inconsistent development methods and contribution friction | `follow-up` | Decide whether a uniform AI-development protocol is part of primary identity and how it serves governed integration resolution. |
+| `PID-013` | Reusable AI foundations should not be copied into every application | `follow-up` | Delimit Program Kit-owned reusable guidance from thin, reviewable application-local source truth. |
+| `PID-014` | NuGet analogy and cross-technology composition introduce a portability promise | `follow-up` | Define whether the portable unit is protocol, governed feature intent and interfaces, source code, generated artifacts, or a combination. |
+| `PID-015` | A reusable WordPress target adapter illustrates export beyond .NET | `follow-up` | Define versioned capability profiles, unsupported-feature behavior, and whether future portability constrains v1 contracts. |
+| `PID-016` | The common development method should work whatever the AI model | `follow-up` | Define provider-neutral public contracts, execution provenance, and non-AI operability. |
+| `PID-017` | Program Kit familiarity should transfer across otherwise unfamiliar applications | `follow-up` | Define the universal contributor surface without standardizing consumer domains or architecture. |
 | `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
 | `FTR-015` | The generic contract/implementation/component cardinality model was rejected | `follow-up` | Separate concrete feature identity from interface identity and decide whether consumer policy alone governs cardinality. |
 | `FTR-016` | Consumers own architecture rules without control over Program Kit's immutable mechanics | `follow-up` | Delimit kernel invariants, consumer policies, and explicit adoption of default profiles. |
@@ -213,3 +223,19 @@ answer or tension that created them.
   interface boundary with consumer-owned semantic and architecture policies.
 - Recorded that consumer rules and adopted defaults cannot override Program
   Kit's immutable deterministic, integrity, provenance, and diagnostic kernel.
+
+### 2026-07-31 — Product Identity reopened for uniform AI development
+
+- Recorded the human's product-level concern that per-application AI instruction
+  foundations produce inconsistent development methods, duplicated clutter, and
+  contributor friction.
+- Reopened Product Identity as batch `PID-B05` and added `PID-012` through
+  `PID-017` for the common protocol, local/source-truth boundary, portable
+  unit, target adapters, model neutrality, and transferable contributor surface.
+- Recorded the NuGet analogy and reusable WordPress adapter as intended ecosystem
+  direction while retaining non-.NET targets as future stress tests rather than
+  v1 implementation commitments.
+- Paused Feature Model batch `FTR-B01` because its identity and adapter fields
+  depend on the reopened portability boundary.
+- No previously accepted decision was changed, and no new recommendation was
+  marked accepted.
