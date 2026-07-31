@@ -15,7 +15,7 @@ public sealed class AlphaDesignFlowVersioningTests
         var root = FindProgramKitRoot();
         var transitionRoot = Path.Combine(
             root.FullName,
-            "extensions",
+            ".review-sets",
             "alpha-version-transition");
         using var mapJson = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(
             transitionRoot,

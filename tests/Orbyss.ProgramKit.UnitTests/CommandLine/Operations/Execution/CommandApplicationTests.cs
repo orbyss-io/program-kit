@@ -251,7 +251,7 @@ public sealed class CommandApplicationTests
         {
             var source = Path.Combine(
                 FindProgramKitRoot(),
-                "extensions",
+                ".review-sets",
                 "reusable-csharp-build-gates",
                 "fixtures",
                 "consumer-owned-build-gate-definition.json");
@@ -330,7 +330,7 @@ public sealed class CommandApplicationTests
     {
         var artifact = Path.Combine(
             FindProgramKitRoot(),
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "fixtures",
             "consumer-owned-build-gate-definition.json");

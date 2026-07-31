@@ -71,7 +71,7 @@ public sealed class CSharpBuildGateTestingIntegrationTests
     {
         var manifestPath = Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "testing-package-manifest.json");
         using var manifest = JsonDocument.Parse(File.ReadAllBytes(manifestPath));
@@ -85,7 +85,7 @@ public sealed class CSharpBuildGateTestingIntegrationTests
                 File.ReadAllBytes(manifestPath))));
         var versionMap = File.ReadAllText(Path.Combine(
             ConformanceInputs.ProgramKitRoot,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "testing-version-map.json"));
         Assert.Contains(manifestDigest, versionMap);

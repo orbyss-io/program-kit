@@ -86,7 +86,7 @@ public sealed class ArchitectureSchemaModuleTests
                 "[]"));
         var programKitReuse = File.ReadAllBytes(Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "migrations",
             "fixtures",
@@ -116,7 +116,7 @@ public sealed class ArchitectureSchemaModuleTests
         JsonSchemaWorkbenchValidator sut = CreateValidator();
         var designPath = Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "architecture-design.json");
         var source = JsonNode.Parse(File.ReadAllBytes(designPath))!.AsObject();
@@ -156,7 +156,7 @@ public sealed class ArchitectureSchemaModuleTests
         var root = FindProgramKitRoot();
         var designSource = JsonNode.Parse(File.ReadAllBytes(Path.Combine(
             root.FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "architecture-design.json")))!.AsObject();
         designSource["staticConformanceDisposition"] = JsonNode.Parse(
@@ -165,7 +165,7 @@ public sealed class ArchitectureSchemaModuleTests
         var design = Encoding.UTF8.GetBytes(designSource.ToJsonString());
         var disposition = File.ReadAllBytes(Path.Combine(
             root.FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "migrations",
             "fixtures",
@@ -185,7 +185,7 @@ public sealed class ArchitectureSchemaModuleTests
     {
         var path = Path.Combine(
             FindProgramKitRoot().FullName,
-            "extensions",
+            ".review-sets",
             "reusable-csharp-build-gates",
             "migrations",
             "fixtures",
