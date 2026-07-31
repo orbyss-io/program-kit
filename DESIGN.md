@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: feature-model
-active-batch: FTR-B03
+active-batch: FTR-B04
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -70,7 +70,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
-| Feature model | `FTR` | `active` | 17 | `FTR-B01` and `FTR-B02` are accepted by `DEC-013` and `DEC-021`; `FTR-B03` now resolves identity, relations, and implementation selection. |
+| Feature model | `FTR` | `active` | 17 | `FTR-B01`–`FTR-B03` are accepted by `DEC-013`, `DEC-021`, and `DEC-022`; final batch `FTR-B04` resolves minimum records and contract evaluation. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 14 | `SEM-013` and `SEM-014` are accepted; remaining questions are queued. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -89,8 +89,8 @@ Product Identity is closed and recorded in
 all six consolidated recommendations and the qualified product expression.
 
 Feature Model is active at its accepted thin target-specific boundary in
-[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batches `FTR-B01` and
-`FTR-B02` are complete and `FTR-B03` is active.
+[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batches `FTR-B01` through
+`FTR-B03` are complete and final batch `FTR-B04` is active.
 
 ## 8. Queued question catalog
 
@@ -100,9 +100,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-021` are accepted. `DEC-012`
-is superseded. Feature Model convergence continues with identity, relations,
-and implementation selection.
+Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-022` are accepted. `DEC-012`
+is superseded. Feature Model convergence continues with minimum records and
+multidimensional contract evaluation.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -127,6 +127,7 @@ and implementation selection.
 | `DEC-019` | `SEM-014` | `accepted` | Implementations are admitted only when governance-relevant meaning is human-approved, traceable, and supported by applicable evidence; unknown or unverified behavior may not be presented as semantically understood. | 2026-07-31 |
 | `DEC-020` | `PID-012`, `PID-016`, `PID-017` | `accepted` | Program Kit is an AI-provider-neutral development tool producing ordinary deterministically constructed software with no required AI or Program Kit runtime unless selected. Accepted expression: **AI builds it. Human intent governs it.** | 2026-07-31 |
 | `DEC-021` | `FTR-002`, `FTR-005`–`FTR-007` | `accepted` | Program Kit v1 begins with one exact `.NET 10 + CShells 0.0.28` construction profile with role-specific dependencies, explicit activation, conformance evidence, structured diagnostics, and explicit migration. Features may provide or require multiple capability-owned interfaces. Core terms remain non-synonymous, and components carry governed identity distinct from concrete artifacts without duplicating domain contracts. | 2026-07-31 |
+| `DEC-022` | `FTR-008`–`FTR-012` | `accepted` | Governed identities are globally unambiguous within authority-owned namespaces and resolve to immutable revisions. Feature semantics and implementation artifacts revise separately. Relations are explicit and contract-typed. Alternative implementations retain distinct identities. Construction selection requires a human-approved request and exact resolution lock; zero or multiple matches yield actionable diagnostics rather than implicit selection. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -308,3 +309,13 @@ answer or tension that created them.
 - Completed `FTR-B02` and activated `FTR-B03` for identity scope, semantic and
   implementation revisioning, typed relationships, alternative
   implementations, and deterministic selection.
+
+### 2026-07-31 — Feature identity and resolution accepted
+
+- The human explicitly accepted all five `FTR-B03` recommendations.
+- Accepted `DEC-022` for authority-scoped globally unambiguous identity,
+  separate immutable semantic and implementation revisions, explicit
+  contract-typed relations, first-class alternative implementations, and exact
+  deterministic resolution locks with actionable ambiguity diagnostics.
+- Completed `FTR-B03` and activated final Feature Model batch `FTR-B04` for the
+  minimum feature definition and multidimensional component evaluation.

@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: feature-model
 status: active
 last-updated: 2026-07-31
-active-batch: FTR-B03
+active-batch: FTR-B04
 parent-ledger: DESIGN.md
 ---
 
@@ -43,8 +43,8 @@ The accepted boundary is:
 |---|---|---|---|
 | `FTR-B01` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `completed` | Thin target-specific feature identity, semantic boundaries, cardinality, kernel ownership, and portability accepted by `DEC-013`. |
 | `FTR-B02` | `FTR-002`, `FTR-005`–`FTR-007` | `completed` | Exact initial CShells profile, multiple-interface representation, minimal vocabulary, and component identity accepted by `DEC-021`. |
-| `FTR-B03` | `FTR-008`–`FTR-012` | `active` | Resolve identity scope, versioning, relationships, and implementation selection without imposing architecture. |
-| `FTR-B04` | `FTR-013`–`FTR-014` | `queued` | Define the minimum records and how consumer-defined contracts and rules are referenced. |
+| `FTR-B03` | `FTR-008`–`FTR-012` | `completed` | Authority-scoped identity, separate semantic and implementation revisions, typed relations, alternative implementations, and deterministic resolution accepted by `DEC-022`. |
+| `FTR-B04` | `FTR-013`–`FTR-014` | `active` | Define the minimum records and how consumer-defined contracts and rules are referenced. |
 
 ## 3. Accepted batch: Thin feature boundary
 
@@ -153,6 +153,7 @@ The accepted boundary is:
 | `DEC-012` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as the intended .NET mechanism. |
 | `DEC-013` | `accepted` | Program Kit uses a thin target-specific feature model: the portable software-definition bundle is distinct from implemented features; CShells supplies selected .NET host mechanics; interfaces, contracts, intake, and bindings are distinct; feature/interface relationships are many-to-many; the kernel owns integrity while consumers own architecture; and cross-target reuse occurs through software definitions, contracts, and explicit capabilities rather than a universal runtime model. |
 | `DEC-021` | `accepted` | Program Kit v1 begins with an exact .NET 10 and CShells 0.0.28 target profile; features may expose multiple capability-owned interfaces; feature, operation, component, application, package, module, service, and extension are not synonyms; and components have governed identity distinct from their artifacts without duplicating domain contracts. |
+| `DEC-022` | `accepted` | Governed identities are authority-scoped and globally unambiguous; semantic feature and implementation revisions are distinct and immutable; relations are explicit and contract-typed; alternative contract implementations retain separate identities; and construction selection produces an exact immutable resolution lock or an actionable unavailable or ambiguous diagnostic. |
 
 ## 5. Accepted batch: CShells support and component vocabulary
 
@@ -273,9 +274,9 @@ project layout remain consumer-owned. The component descriptor is the governed
 boundary; NuGet packages, assemblies, containers, source projects, manifests,
 SBOMs, and documentation are its concrete artifacts.
 
-## 7. Active batch: Identity, relationships, and implementation selection
+## 7. Accepted batch: Identity, relationships, and implementation selection
 
-`FTR-B03` now resolves:
+`FTR-B03` resolved:
 
 - `FTR-008`: the authority and uniqueness scope of feature identity;
 - `FTR-009`: the boundary between a feature revision and an implementation
@@ -287,17 +288,18 @@ SBOMs, and documentation are its concrete artifacts.
 - `FTR-012`: deterministic implementation selection without ambient discovery
   or implicit best-match behavior.
 
-No `FTR-B03` answer is implied by accepting `DEC-021`.
+The human accepted all five answers below; they are governed by `DEC-022`.
 
-## 8. Draft recommendations for human review
+## 8. Accepted answers
 
-These recommendations are recorded but remain **unaccepted** until the human
-confirms or revises them. They establish identity and resolution mechanics; they
-do not prescribe consumer architecture.
+These answers are now authoritative product design unless explicitly reopened
+or superseded. They establish identity and resolution mechanics without
+prescribing consumer architecture.
 
 ### FTR-008 — Authority-scoped identity, globally unambiguous references
 
-**Recommendation:** Every governed object has a canonical identity that is
+**Status:** `accepted`
+**Accepted answer:** Every governed object has a canonical identity that is
 globally unambiguous by construction, but Program Kit does not operate a global
 name registry. Identity is allocated inside an explicit authority-owned
 namespace, such as a verified DNS- or URI-backed authority, and includes the
@@ -321,7 +323,8 @@ uniqueness semantics, not its punctuation.
 
 ### FTR-009 — Semantic feature revision versus implementation revision
 
-**Recommendation:** A feature identity has immutable semantic revisions, while
+**Status:** `accepted`
+**Accepted answer:** A feature identity has immutable semantic revisions, while
 its code and produced artifacts have separately identified implementation
 revisions. An admitted implementation revision declares and proves which exact
 feature revision it realizes.
@@ -343,7 +346,8 @@ silently replace another under the same version and digest identity.
 
 ### FTR-010 — Explicit, contract-typed relations
 
-**Recommendation:** Nesting, composition, specialization, inheritance,
+**Status:** `accepted`
+**Accepted answer:** Nesting, composition, specialization, inheritance,
 dependency, replacement, and other relations are neither universally allowed
 nor universally forbidden. Program Kit core stores an explicit directed
 relation whose record names the source revision, target identity or revision
@@ -364,7 +368,8 @@ they become enforceable only when selected and pinned.
 
 ### FTR-011 — Alternative contract implementations are first-class
 
-**Recommendation:** Yes, multiple components may contain features that satisfy
+**Status:** `accepted`
+**Accepted answer:** Yes, multiple components may contain features that satisfy
 the same interface and contract revision. This is required for provider
 adapters such as Keycloak and Entra ID implementing a shared canonical OpenID
 Connect contract.
@@ -382,7 +387,8 @@ impact evidence against the consuming graph.
 
 ### FTR-012 — Explicit request, deterministic resolution, immutable lock
 
-**Recommendation:** Construction-time implementation selection uses two
+**Status:** `accepted`
+**Accepted answer:** Construction-time implementation selection uses two
 separate records:
 
 1. A human-approved selection request names the required interface or contract,
@@ -406,7 +412,19 @@ only enumerates candidates. Runtime implementation switching, if desired, is a
 separate consumer-owned runtime contract; it does not weaken construction-time
 resolution or the immutable lock.
 
-## 9. Revision record
+## 9. Active batch: Minimum records and contract evaluation
+
+`FTR-B04`, the final currently known Feature Model batch, now resolves:
+
+- `FTR-013`: the smallest mandatory feature definition that preserves identity,
+  meaning, traceability, evaluation, and actionable diagnostics without
+  duplicating linked artifacts; and
+- `FTR-014`: the explicit multidimensional contract set against which a bounded
+  component is evaluated without requiring every dimension for every component.
+
+No `FTR-B04` answer is implied by accepting `DEC-022`.
+
+## 10. Revision record
 
 - The human rejected the generic contract/implementation/component ontology,
   built-in cross-domain bridge policy, and built-in interface-role taxonomy.
@@ -417,5 +435,7 @@ resolution or the immutable lock.
   now replaces the earlier candidate with the exact thin target-specific model.
 - The human accepted all four `FTR-B02` recommendations. `DEC-021` governs the
   exact initial CShells profile and component vocabulary; `FTR-B03` is active.
+- The human accepted all five `FTR-B03` recommendations. `DEC-022` governs
+  identity, revision, relation, alternative implementation, and resolution mechanics.
 - Git history preserves rejected and superseded candidates; they are not current
   design.

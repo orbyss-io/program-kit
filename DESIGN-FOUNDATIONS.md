@@ -131,6 +131,14 @@ respective categories converge.
    migration. Features may expose multiple capability-owned interfaces.
    Components carry governed composition and delivery identity independently
    from their concrete package, project, assembly, container, or other artifacts.
+   Governed identities are authority-scoped and globally unambiguous without a
+   central registry; construction resolves exact immutable revisions. Semantic
+   feature revisions and implementation revisions are distinct. Feature
+   relations are explicit and contract-typed rather than inferred from source
+   mechanics. Multiple components may satisfy the same contract while retaining
+   distinct identities. Construction uses a human-approved request and an exact
+   resolution lock; unavailable or ambiguous selection fails with actionable
+   diagnostics.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
    should be explicit, typed, versioned, and canonical.
 5. Extension discovery and selection should be explicit and pinned rather than
