@@ -1,0 +1,1008 @@
+{
+  "$schema": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.3/architecture-design.schema.json",
+  "title": "Program Kit operation exposure and application capabilities",
+  "intent": "Let application owners publish exact host-neutral operations and optional outcome capabilities so fresh Codex and Claude Code sessions can invoke registered operations directly or follow application-owned guidance, while Program Kit owns only deterministic projection, conformance, lifecycle, and evidence.",
+  "scope": [
+    "Host-neutral operation catalog and exact Console/OpenAPI exposure bindings.",
+    "Reserved generated Console structured introspection for the complete catalog or one exact operation.",
+    "One provider-neutral dual-era MCP stdio bridge and deterministic operation-to-tool projection.",
+    "Explicit project-scoped Codex and Claude Code tool-registration proposals, ownership locks, status, update, and removal.",
+    "Optional application-authored consumer outcome capability bundles with exact operation bindings and finite knowledge closure.",
+    "Explicit public/anonymous bundle acquisition, content-addressed storage, verification, initialization, refresh, update, status, removal, preflight, reads, and pruning.",
+    "Thin provider-native capability projections, one derived flat workspace catalog, and one on-demand discover-capabilities capability.",
+    "Program Kit package-only dogfood and provider-neutral, provider-configuration, genuine-provider, and governance acceptance."
+  ],
+  "nonGoals": [
+    "Runtime, CLI, schema, package, host, MCP, provider, capability, lock, catalog, or acceptance implementation under design authority.",
+    "Application operation, workflow, result, diagnostic, trigger, intake, remediation, stop, or completion semantics authored or approved by Program Kit.",
+    "One capability per command, a universal application result, availableActions, next-action envelope, workflow state machine, or Program Kit confidence router.",
+    "Automatic registration, capability initialization, provider start, trust, permission, invocation, retry, handoff, nested tool call, or autonomous model/tool loop.",
+    "Remote MCP, MCP Apps or optional extensions, HTTP invocation adapter implementation, private/authenticated bundle acquisition, package-feed publication, release, deployment, infrastructure, production data, secrets, or external repository changes."
+  ],
+  "assumptions": [
+    "Application owners can assert exact semantic equivalence when multiple host bindings represent one operation revision.",
+    "Open Console and OpenAPI remain independently versioned exposure contracts while binding one operation catalog.",
+    "Codex and Claude Code continue to support project-scoped local stdio MCP and provider-native project skills under the cited current official contracts; every affected work unit rechecks them.",
+    "Program Kit package distribution can carry inert capability content beside runtime packages without runtime references to agent-session content.",
+    "The existing private Program Kit C# gate remains compatible with Program Kit-owned implementation source.",
+    "Genuine Claude Code acceptance can be run by the human from the exact reviewed artifacts and returned as provider-labelled evidence."
+  ],
+  "unresolvedDecisions": [],
+  "sourceTruthAuthorities": [
+    {
+      "identity": "pkid:source-authority:program-kit:development-tools-intent",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "source": {
+        "identity": "pkid:intent:program-kit:development-tools",
+        "version": "3.0.0",
+        "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
+      },
+      "sourcePath": "extensions/development-tools/design-intent.md",
+      "governs": "The human outcome, ownership, exact technical shape, authority transitions, knowledge closure, acceptance, and exclusions."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:development-tools-convergence",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "source": {
+        "identity": "pkid:decision-log:program-kit:development-tools-convergence",
+        "version": "2.0.0",
+        "digest": "sha256:391da26e7070a4bbcc6f5f275fb0716efaf08e6b7482495bf9b525a556a4a51e"
+      },
+      "sourcePath": "extensions/development-tools/convergence-notes.md",
+      "governs": "The completed section-by-section alignments, committed health-task reconciliation, catalog integrity clarification, and exact static-conformance decision."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:operation-contract-catalog-schema",
+      "ownerId": "pkid:domain:program-kit:operation-contracts",
+      "source": {
+        "identity": "pkid:schema:program-kit:operation-contract-catalog",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:192932b6aa41c7c6bd2b0a91e1a8c520a54a7950e0727a5f8398870bca0426f6"
+      },
+      "sourcePath": "schemas/operations/operation-contract-catalog-0.1.0-alpha.1.schema.json",
+      "governs": "The current implemented operation-revision, request/result/diagnostic, authority/effect, cancellation, idempotency, compatibility, deprecation, and related-operation vocabulary to extend compatibly."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:open-console-schema",
+      "ownerId": "pkid:domain:program-kit:generated-host-projection",
+      "source": {
+        "identity": "pkid:schema:program-kit:open-console",
+        "version": "1.0.0",
+        "digest": "sha256:72392d78970462ca3e7344b3b1949bb2dadd0bcdcfb33c802755fb943c0afc15"
+      },
+      "sourcePath": "schemas/open-console/open-console-1.0.0.schema.json",
+      "governs": "Current Console exposure syntax and help/completion source truth; it does not own cross-host operation semantics."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-consumer-capability-catalog",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "source": {
+        "identity": "pkid:catalog:program-kit:consumer-capabilities",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:8a0ee1681d66e8b5503dd1bc5bb1c96d70e32b9cd6c6f19e59df09f31ceccbc6"
+      },
+      "sourcePath": ".agent-capabilities/supporting-resources/catalogs/consumer-capability-catalog-0.1.0-alpha.1.json",
+      "governs": "Current implemented Program Kit consumer closure and availability basis to generalize and dogfood."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-consumer-cold-proof",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "source": {
+        "identity": "pkid:source:program-kit:consumer-cli-cold-proof",
+        "version": "1.0.0",
+        "digest": "sha256:4e4d08179d6d80a0c105edc437a8a7324782c9ee59928e74c5b31d847527cf92"
+      },
+      "sourcePath": "build/Invoke-ConsumerCliColdProof.ps1",
+      "governs": "The completed package-only alpha-3 consumer proof to preserve and generalize for application-capability dogfood rather than duplicate."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-consumer-feed-handoff",
+      "ownerId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "source": {
+        "identity": "pkid:source:program-kit:consumer-feed-handoff",
+        "version": "1.0.0",
+        "digest": "sha256:87618965ad3d396c517b8d166e126437fba620e5310a09f72f7fc4ea611af74f"
+      },
+      "sourcePath": "build/New-ConsumerFeedHandoff.ps1",
+      "governs": "The completed deterministic package/feed handoff closure to reuse where inert capability carriers are distributed beside runtime packages."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-capability-verifier",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "source": {
+        "identity": "pkid:source:program-kit:capability-bundle-verifier",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:7984ec95d896ea9d72df93944295c801623eb3efd2d8c31ac4037df705581d5f"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Bundles/CapabilityBundleVerifier.cs",
+      "governs": "Current embedded bundle byte verification and provider-wrapper conformance mechanics to preserve and generalize."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:current-knowledge-closure",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "source": {
+        "identity": "pkid:source:program-kit:capability-knowledge-closure",
+        "version": "0.1.0-alpha.1",
+        "digest": "sha256:7f7a0ffb0487d7c133e65e4daeaa4e979bb1443411416736cee185b74ed22e3f"
+      },
+      "sourcePath": "src/Orbyss.ProgramKit.CommandLine/Operations/Capabilities/Payload/CapabilityKnowledgeClosure.cs",
+      "governs": "Current command/resource/schema/human/external-input closure seed to extend into application outcome closure."
+    },
+    {
+      "identity": "pkid:source-authority:program-kit:provider-contract-evidence",
+      "ownerId": "pkid:domain:program-kit:provider-projection",
+      "source": {
+        "identity": "pkid:evidence:program-kit:development-tools-provider-contract",
+        "version": "3.0.0",
+        "digest": "sha256:195b54d8f623dfafb6d27c59f6e1c5943eb6dc9707aab68e5cc4f7022d697c0f"
+      },
+      "sourcePath": "extensions/development-tools/provider-contract-evidence.json",
+      "governs": "Current official modern/legacy MCP, Codex, and Claude Code execution, selection, configuration, trust, and permission assumptions."
+    }
+  ],
+  "domains": [
+    {
+      "identity": "pkid:domain:program-kit:operation-contracts",
+      "purpose": "Own host-neutral operation identity and exact application-authored request, result, diagnostic, authority, effect, compatibility, and related-operation contracts.",
+      "vocabulary": [
+        {
+          "term": "Operation contract catalog",
+          "meaning": "The application-owned host-neutral catalog of exact operation revisions and semantic contract references.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Exposure binding",
+          "meaning": "A host-owned exact binding from Console or HTTP syntax to one operation revision without becoming the operation semantic owner.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:generated-host-projection",
+      "purpose": "Own mechanical Console and OpenAPI exposure projections plus generated Console structured introspection.",
+      "vocabulary": [
+        {
+          "term": "Structured host introspection",
+          "meaning": "The reserved generated Console JSON projection of the complete operation catalog or one exact operation, with transitive schema closure and no application composition.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:operation-exposure",
+      "purpose": "Own Development Tool selection, MCP projection, invocation-adapter binding, explicit registration, execution policy, and evidence.",
+      "vocabulary": [
+        {
+          "term": "Tool-ready",
+          "meaning": "Working readiness label for an exact operation that can be safely projected and registered through the selected MCP profile.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Invocation binding",
+          "meaning": "The one selected exact adapter by which a registered MCP tool invokes an operation revision.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:application-capability-bundles",
+      "purpose": "Own generic capability-bundle structure, operation binding, finite knowledge closure, publisher/conformance distinction, compatibility, and acquisition.",
+      "vocabulary": [
+        {
+          "term": "Outcome capability",
+          "meaning": "Application-authored guidance for a meaningful outcome, using one or more exact operations and adding outcome-specific intake, interpretation, remediation, or safety.",
+          "acceptedAliases": [
+            "application capability"
+          ]
+        },
+        {
+          "term": "Knowledge closure",
+          "meaning": "The finite typed digest-bound graph of every operation description, schema, example, diagnostic, interpretation, migration, package, and materializer needed by a cold consumer.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Agent-guided",
+          "meaning": "Working readiness label for one exact outcome capability whose installed closure, provider projection, and required operation bindings preflight successfully.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "purpose": "Own content-addressed bundle storage, explicit initialization/refresh/update/removal, per-bundle/provider locks, derived flat catalog, preflight, and reads.",
+      "vocabulary": [
+        {
+          "term": "Refresh",
+          "meaning": "An accepted deterministic replacement of derived workspace catalog/provider bytes from the same verified authoritative bundle and valid ownership lock.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Update",
+          "meaning": "An accepted deterministic transition to a new authoritative bundle version or content digest.",
+          "acceptedAliases": []
+        },
+        {
+          "term": "Flat workspace capability catalog",
+          "meaning": "One non-authoritative derived catalog grouped by publisher and application, projected only from accepted exact locks and unusable when its bytes drift.",
+          "acceptedAliases": []
+        }
+      ]
+    },
+    {
+      "identity": "pkid:domain:program-kit:provider-projection",
+      "purpose": "Own thin Codex and Claude Code tool/capability projections and provider-labelled evidence without owning trust, permission, or provider-native selection.",
+      "vocabulary": [
+        {
+          "term": "Provider adapter",
+          "meaning": "A thin deterministic provider-native wrapper over one canonical capability procedure and installed knowledge closure.",
+          "acceptedAliases": [
+            "skill wrapper"
+          ]
+        },
+        {
+          "term": "Provider-native selection",
+          "meaning": "The provider's own description/tool-search mechanism for choosing guidance or executable tools, without Program Kit scoring.",
+          "acceptedAliases": []
+        }
+      ]
+    }
+  ],
+  "contracts": [],
+  "semanticModels": [
+    {
+      "identity": "pkid:model:program-kit:operation-contract-and-exposures",
+      "ownerDomainId": "pkid:domain:program-kit:operation-contracts",
+      "meaning": "One exact application-owned operation revision with zero or more host-owned syntax bindings and one normalized MCP projection.",
+      "termContractIds": [],
+      "invariants": "Semantic identity is application-owned; host bindings cannot invent equivalence; syntax can change independently; all projections bind exact operation and schema revisions."
+    },
+    {
+      "identity": "pkid:model:program-kit:generated-console-introspection",
+      "ownerDomainId": "pkid:domain:program-kit:generated-host-projection",
+      "meaning": "One generated embedded JSON document shape exposed through reserved full and selected Console options.",
+      "termContractIds": [],
+      "invariants": "Introspection precedes dispatch, composes no application services, reads no secrets/network/configuration, and returns exact generated catalog/schema bytes only."
+    },
+    {
+      "identity": "pkid:model:program-kit:mcp-operation-projection",
+      "ownerDomainId": "pkid:domain:program-kit:operation-exposure",
+      "meaning": "A deterministic dual-era MCP tool projection from one exact normalized operation and one selected invocation binding.",
+      "termContractIds": [],
+      "invariants": "Modern and legacy negotiation occurs on the wire; tool naming is deterministic; one registration has one binding per operation; application outputs remain application-owned; no retry or result envelope is added."
+    },
+    {
+      "identity": "pkid:model:program-kit:application-outcome-capability",
+      "ownerDomainId": "pkid:domain:program-kit:application-capability-bundles",
+      "meaning": "One application-authored outcome procedure with stable local operation-binding names and an exact finite consumer knowledge closure.",
+      "termContractIds": [],
+      "invariants": "No one-to-one command rule, no host/provider syntax in the canonical procedure, no inferred workflow semantics, no universal state/result envelope, and no authority transfer through activation or handoff."
+    },
+    {
+      "identity": "pkid:model:program-kit:capability-bundle-content",
+      "ownerDomainId": "pkid:domain:program-kit:application-capability-bundles",
+      "meaning": "An inert publisher bundle whose logical identity, carrier format, source, normalized content identity, procedures, resources, and adapters are separately represented.",
+      "termContractIds": [],
+      "invariants": "Every content node is typed and digested; source is never re-resolved after acquisition; Program Kit conformance never becomes domain-semantic approval."
+    },
+    {
+      "identity": "pkid:model:program-kit:workspace-capability-projection",
+      "ownerDomainId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "meaning": "Accepted per-bundle/provider locks projected atomically into exact provider adapters and one flat derived workspace catalog.",
+      "termContractIds": [],
+      "invariants": "Manual edits are drift; refresh repairs only derived bytes from unchanged source; update alone accepts new authoritative bytes; tampered locks are not adopted."
+    },
+    {
+      "identity": "pkid:model:program-kit:separate-authority-transitions",
+      "ownerDomainId": "pkid:domain:program-kit:provider-projection",
+      "meaning": "Tool registration, capability initialization, provider trust/permission, provider-native selection, and invocation are separate observable transitions.",
+      "termContractIds": [],
+      "invariants": "Every Program Kit mutation requires one exact accepted proposal; installation/acquisition activate nothing; the application runtime edits no AI workspace or provider state."
+    }
+  ],
+  "operations": [],
+  "components": [
+    {
+      "identity": "pkid:component:program-kit:operation-contract-catalog",
+      "ownerId": "pkid:domain:program-kit:operation-contracts",
+      "kind": "domain-core",
+      "purpose": "Extend current operation contracts with complete host-neutral descriptions, schema closure references, examples, constraints, and exact exposure-binding identities.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Exact operation identity/revision and application-authored semantic facts."
+    },
+    {
+      "identity": "pkid:component:program-kit:generated-console-introspection",
+      "ownerId": "pkid:domain:program-kit:generated-host-projection",
+      "kind": "design-time-source",
+      "purpose": "Generate and embed the reserved full/selected Console introspection document and collision checks.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Reserved option grammar, precedence, JSON shape, operation projection, schema closure, stdout/stderr behavior, and no-composition guarantee."
+    },
+    {
+      "identity": "pkid:component:program-kit:development-tools-mcp-bridge",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "kind": "bridge",
+      "purpose": "Implement the one modern/legacy MCP stdio bridge over exact normalized operation projections and selected Console invocation bindings.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "2026-07-28 and 2025-11-25 wire negotiation, tools/list/call, naming, schemas/results, bytes, process, timeout, cancellation, concurrency, idempotency, and failures."
+    },
+    {
+      "identity": "pkid:component:program-kit:development-tools-registration-lifecycle",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "kind": "feature",
+      "purpose": "Create deterministic tool-registration proposals and exact provider ownership/status/update/removal transitions.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "One exact provider/project/operation set, selected invocation bindings, owned configuration entry, lock, proposal digest, and evidence."
+    },
+    {
+      "identity": "pkid:component:program-kit:application-capability-bundle-contracts",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "kind": "domain-core",
+      "purpose": "Generalize current Program Kit capability payload verification into publisher-neutral bundle, descriptor, procedure, binding, closure, handoff, compatibility, and evidence contracts.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Application-authored semantics versus Program Kit integrity, completeness, compatibility, and publisher-authority conformance."
+    },
+    {
+      "identity": "pkid:component:program-kit:capability-bundle-acquisition",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "kind": "feature",
+      "purpose": "Acquire exact public local, NuGet, HTTPS, and GitHub-release carriers into one content-addressed normalized workspace store.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Source grammar, carrier, bundle kind, logical/content identity, digest, normalized layout, public/anonymous boundary, and offline later use."
+    },
+    {
+      "identity": "pkid:component:program-kit:workspace-capability-lifecycle",
+      "ownerId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "kind": "feature",
+      "purpose": "Initialize, refresh, update, status, remove, preflight, read, and read resources for one exact bundle/provider with separate locks.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": true,
+      "compatibilityBoundary": "Accepted proposal, required operation bindings, provider projections, ownership lock, update/refresh distinction, and fail-closed reads."
+    },
+    {
+      "identity": "pkid:component:program-kit:flat-workspace-capability-catalog",
+      "ownerId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "kind": "evaluated-artifact",
+      "purpose": "Project one atomic flat workspace catalog from accepted locks and expose it through exact reads and discover-capabilities.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Deterministic ordering/grouping, exact identities/digests/readiness, drift detection, atomic replacement, and no scoring."
+    },
+    {
+      "identity": "pkid:component:program-kit:provider-capability-renderers",
+      "ownerId": "pkid:domain:program-kit:provider-projection",
+      "kind": "provider",
+      "purpose": "Render thin Codex and Claude Code project capability wrappers and preserve provider-native triggering without granting execution authority.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Current provider path/frontmatter/description rules, exact canonical procedure and closure references, collision, ownership, and refresh."
+    },
+    {
+      "identity": "pkid:component:program-kit:application-capability-authoring-safeguard",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "kind": "design-time-source",
+      "purpose": "Provide a human-started tool-only versus agent-guided design procedure, deterministic scaffolding, validation, materialization, and non-cardinality coverage.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Human trigger, application semantic ownership, required deterministic structure, closure completeness, and prohibition on inferred domain content."
+    },
+    {
+      "identity": "pkid:component:program-kit:consumer-capability-dogfood",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "kind": "evaluated-artifact",
+      "purpose": "Repackage Program Kit's supported consumer outcome capabilities as the reference generic application bundle with exact package-only closure.",
+      "providesContractIds": [],
+      "consumesContractIds": [],
+      "isActivatable": false,
+      "compatibilityBoundary": "Same generic contracts, verifier, locks, provider rendering, catalog, readiness, reads, refresh/update, and cold-session proof; embedded delivery only is special."
+    }
+  ],
+  "projects": [
+    {
+      "identity": "pkid:project:program-kit:development",
+      "ownerId": "pkid:domain:program-kit:operation-contracts",
+      "projectPath": "src/Orbyss.ProgramKit.Development/Orbyss.ProgramKit.Development.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:operation-contract-catalog"
+      ],
+      "projectReferenceIds": [],
+      "packageId": "pkid:package:program-kit:development"
+    },
+    {
+      "identity": "pkid:project:program-kit:dotnet",
+      "ownerId": "pkid:domain:program-kit:generated-host-projection",
+      "projectPath": "src/Orbyss.ProgramKit.DotNet/Orbyss.ProgramKit.DotNet.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:generated-console-introspection"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:development"
+      ],
+      "packageId": "pkid:package:program-kit:dotnet"
+    },
+    {
+      "identity": "pkid:project:program-kit:development-tools-mcp",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "projectPath": "src/Orbyss.ProgramKit.DevelopmentTools.Mcp/Orbyss.ProgramKit.DevelopmentTools.Mcp.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:development-tools-mcp-bridge"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:development"
+      ],
+      "packageId": "pkid:package:program-kit:development-tools-mcp"
+    },
+    {
+      "identity": "pkid:project:program-kit:capability-bundle",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "projectPath": "src/Orbyss.ProgramKit.CapabilityBundle/Orbyss.ProgramKit.CapabilityBundle.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:application-capability-bundle-contracts",
+        "pkid:component:program-kit:consumer-capability-dogfood"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:development"
+      ],
+      "packageId": "pkid:package:program-kit:capability-bundle"
+    },
+    {
+      "identity": "pkid:project:program-kit:workbench",
+      "ownerId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "projectPath": "src/Orbyss.ProgramKit.Workbench/Orbyss.ProgramKit.Workbench.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:capability-bundle-acquisition",
+        "pkid:component:program-kit:workspace-capability-lifecycle",
+        "pkid:component:program-kit:flat-workspace-capability-catalog"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:development",
+        "pkid:project:program-kit:capability-bundle"
+      ],
+      "packageId": null
+    },
+    {
+      "identity": "pkid:project:program-kit:command-line",
+      "ownerId": "pkid:domain:program-kit:provider-projection",
+      "projectPath": "src/Orbyss.ProgramKit.CommandLine/Orbyss.ProgramKit.CommandLine.csproj",
+      "componentIds": [
+        "pkid:component:program-kit:development-tools-registration-lifecycle",
+        "pkid:component:program-kit:provider-capability-renderers",
+        "pkid:component:program-kit:application-capability-authoring-safeguard"
+      ],
+      "projectReferenceIds": [
+        "pkid:project:program-kit:development",
+        "pkid:project:program-kit:capability-bundle",
+        "pkid:project:program-kit:workbench"
+      ],
+      "packageId": null
+    }
+  ],
+  "packages": [
+    {
+      "identity": "pkid:package:program-kit:development",
+      "ownerId": "pkid:domain:program-kit:operation-contracts",
+      "version": "0.1.0-alpha.1",
+      "projectIds": [
+        "pkid:project:program-kit:development"
+      ],
+      "packageDependencyIds": [],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Host-neutral operation, exposure-binding, Development Tool registration, projection, lock, and evidence contracts."
+    },
+    {
+      "identity": "pkid:package:program-kit:dotnet",
+      "ownerId": "pkid:domain:program-kit:generated-host-projection",
+      "version": "0.1.0-alpha.1",
+      "projectIds": [
+        "pkid:project:program-kit:dotnet"
+      ],
+      "packageDependencyIds": [
+        "pkid:package:program-kit:development"
+      ],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Generated Console and API exposure plus reserved Console introspection generation."
+    },
+    {
+      "identity": "pkid:package:program-kit:development-tools-mcp",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "version": "0.1.0-alpha.1",
+      "projectIds": [
+        "pkid:project:program-kit:development-tools-mcp"
+      ],
+      "packageDependencyIds": [
+        "pkid:package:program-kit:development"
+      ],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Exact dual-era stdio bridge executable and Console-process invocation adapter."
+    },
+    {
+      "identity": "pkid:package:program-kit:capability-bundle",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "version": "0.1.0-alpha.1",
+      "projectIds": [
+        "pkid:project:program-kit:capability-bundle"
+      ],
+      "packageDependencyIds": [
+        "pkid:package:program-kit:development"
+      ],
+      "publicContractIds": [],
+      "compatibilityBoundary": "Inert generic application-capability bundle, current Program Kit reference payload, exact resources, and no runtime activation."
+    }
+  ],
+  "referenceRules": [
+    {
+      "identity": "pkid:reference-rule:program-kit:operation-semantics-host-neutral",
+      "ownerId": "pkid:domain:program-kit:operation-contracts",
+      "disposition": "allowed",
+      "referencingScope": "Open Console, OpenAPI, MCP, capability operation bindings, introspection, and evidence",
+      "referencedScope": "Exact application-owned operation catalog identities and revisions",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "3.0.0",
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
+        },
+        "path": "design-intent.md#host-neutral-operation-catalog"
+      },
+      "rationale": "All host and provider projections bind application semantics without owning or inventing them."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:runtime-capability-content-isolation",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "disposition": "forbidden",
+      "referencingScope": "Application runtime assemblies and generated host runtime composition",
+      "referencedScope": "Provider skill wrappers, workspace capability catalogs, capability ownership locks, agent-session procedures, or provider configuration",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "3.0.0",
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
+        },
+        "path": "design-intent.md#optional-application-capability-bundle"
+      },
+      "rationale": "Inert distribution may sit beside runtime bytes, but runtime packages and application processes do not own agent-session activation."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:consumer-knowledge-source-free",
+      "ownerId": "pkid:domain:program-kit:application-capability-bundles",
+      "disposition": "forbidden",
+      "referencingScope": "Consumer capability preflight, procedure execution, diagnostics, remediation, and artifact interpretation",
+      "referencedScope": "Program Kit or application source checkout, source grep, assembly inspection, undeclared fixtures, network retrieval, or remembered internal knowledge",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "3.0.0",
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
+        },
+        "path": "design-intent.md#capability-knowledge-closure"
+      },
+      "rationale": "Agent-guided readiness means the installed closure is sufficient by itself."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:provider-authority-separated",
+      "ownerId": "pkid:domain:program-kit:provider-projection",
+      "disposition": "forbidden",
+      "referencingScope": "Program Kit CLI, bridge, application runtime, capabilities, wrappers, locks, catalogs, fixtures, and documentation",
+      "referencedScope": "Provider trust grant, server approval, automatic permission, provider start, provider-native selection replacement, or invocation authority",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:evidence:program-kit:development-tools-provider-contract",
+          "version": "3.0.0",
+          "digest": "sha256:195b54d8f623dfafb6d27c59f6e1c5943eb6dc9707aab68e5cc4f7022d697c0f"
+        },
+        "path": "provider-contract-evidence.json"
+      },
+      "rationale": "Program Kit may mutate only accepted owned projections; providers and humans retain trust, selection, permission, and invocation."
+    },
+    {
+      "identity": "pkid:reference-rule:program-kit:no-autonomous-loop",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "disposition": "forbidden",
+      "referencingScope": "Every operation, bridge, registration, capability, lifecycle, provider adapter, catalog, fixture, and evidence surface",
+      "referencedScope": "Self-registration, self-initialization, provider start, automatic retry, automatic handoff, AI/provider call, nested tool call, or model/tool loop",
+      "ownerInput": {
+        "artifact": {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "3.0.0",
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
+        },
+        "path": "design-intent.md#registration-authority"
+      },
+      "rationale": "Every mutation and invocation remains bounded by a new human/provider transition."
+    }
+  ],
+  "extensions": [],
+  "configuration": [],
+  "featureActivations": [],
+  "artifactDecisions": [
+    {
+      "identity": "pkid:design:program-kit:development-tools",
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "requestedOutcome": "Represent host-neutral operations, generated host introspection, dual-era MCP, explicit tool registration, optional application outcome capabilities, exact knowledge closure, deterministic workspace lifecycle, provider-native guidance, and package-only dogfood as one validated review candidate with an adjacent digest-bound human-readable implementation-plan projection.",
+      "artifactKind": "schema-instance",
+      "executableBehavior": {
+        "isRequired": false,
+        "rationale": "The design performs and authorizes no implementation, acquisition, registration, capability initialization, provider start, permission, invocation, or acceptance execution."
+      },
+      "valueLifecycle": {
+        "uses": [
+          "validated",
+          "compared",
+          "digested"
+        ],
+        "rationale": "Canonical bytes are schema/semantic validated, bound by the plan and review manifest, and rechecked before exact approval."
+      },
+      "agentRetrieval": {
+        "isRequired": false,
+        "retrievalBoundary": "",
+        "rationale": "The review artifact is explicit repository input; it does not create or activate a capability."
+      },
+      "agentProcedure": {
+        "isRequired": false,
+        "humanStartBoundary": "",
+        "procedureBoundary": "",
+        "rationale": "The design describes prospective product capabilities but is not itself an executable provider procedure."
+      },
+      "humanCommunication": {
+        "isRequired": true,
+        "audience": "The human Program Kit reviewer, later bounded implementer, application publishers, provider acceptance operators, and conformance reviewers.",
+        "decisionAuthorityBoundary": "Only separate explicit human approval of the exact canonical design and implementation-plan digests authorizes bounded implementation.",
+        "rationale": "Canonical JSON, the adjacent non-authoritative digest-bound human-readable implementation plan, provider evidence, compatibility, fixtures, validation, and manifest expose the complete decision and proof boundary."
+      },
+      "generatedNavigation": {
+        "isRequired": false,
+        "sourceIds": [],
+        "generationRule": "",
+        "rationale": "The review README is sufficient navigation."
+      },
+      "representation": {
+        "role": "canonical",
+        "canonicalArtifactId": null,
+        "projectionRule": "",
+        "lossPolicy": ""
+      },
+      "governance": {
+        "artifactIdentity": "pkid:design:program-kit:development-tools",
+        "ownerId": "pkid:domain:program-kit:operation-exposure",
+        "schema": {
+          "identity": "pkid:schema:program-kit:architecture-design",
+          "version": "2.0.0",
+          "digest": "sha256:2698ce65a29cb0d5007b2ab1773d7e387385df7c8b72495804b292b6af696198"
+        },
+        "provenancePolicy": "Exact human intent and convergence are bound to committed Program Kit main f555745e77ebce234f7e54665869a32cc555ba45; completed health-patching and package-only consumer work is reconciled but not modified.",
+        "digestPolicy": "Any byte change requires revalidation, new digests, and renewed exact approval.",
+        "consumerIds": [
+          "pkid:component:program-kit:operation-contract-catalog",
+          "pkid:component:program-kit:generated-console-introspection",
+          "pkid:component:program-kit:development-tools-mcp-bridge",
+          "pkid:component:program-kit:development-tools-registration-lifecycle",
+          "pkid:component:program-kit:application-capability-bundle-contracts",
+          "pkid:component:program-kit:capability-bundle-acquisition",
+          "pkid:component:program-kit:workspace-capability-lifecycle",
+          "pkid:component:program-kit:flat-workspace-capability-catalog",
+          "pkid:component:program-kit:provider-capability-renderers",
+          "pkid:component:program-kit:consumer-capability-dogfood"
+        ],
+        "compatibilityPolicy": "Operation, exposure, introspection, MCP, package, bundle, procedure, closure, provider, lock, catalog, proposal, and evidence identities/version/digests are explicit.",
+        "migrationPolicy": "Tool registration and capability initialization update independently; refresh reconstructs only same-source derived bytes; incompatible change requires reviewed migration or exact removal/fresh transition."
+      },
+      "dataHandling": {
+        "containsSensitiveData": false,
+        "redactionPolicy": "Artifacts contain public identities, versions, digests, relative paths, normalized configuration shapes, and expected outcomes only; secret values, invocation inputs/results, provider credentials, and environment values are excluded.",
+        "externalizationPolicy": "Canonical operation/capability semantics remain application-owned; Program Kit contracts and conformance remain Program Kit-owned; provider files are exact separately locked projections.",
+        "containsEphemeralData": false,
+        "ephemeralDataPolicy": "Provider sessions, process state, selection, prompts, permissions, invocation values, and transient proposal previews are evidence observations, not durable design content."
+      },
+      "rationale": "One schema-governed design preserves the semantic, transport, guidance, conformance, lifecycle, provider, and human-authority boundaries without implementing them."
+    }
+  ],
+  "representationRelationships": [
+    {
+      "projectionId": "pkid:ai-artifact:program-kit:development-tools-plan-markdown",
+      "canonicalId": "pkid:plan:program-kit:development-tools",
+      "projectionRule": "The canonical plan materializer emits adjacent implementation-plan.md from the same in-memory plan, including every dependency, work unit, allowed edit, verification outcome, stop condition, requirement trace, authority boundary, and exact canonical plan digest.",
+      "lossPolicy": "The Markdown is explicitly non-authoritative and optimized for human review; canonical implementation-plan.json governs every disagreement.",
+      "isRegenerable": true
+    }
+  ],
+  "boundaries": {
+    "security": {
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "policy": "Deny undeclared filesystem, network, secret, and authority access; verify every exact catalog, package, executable, schema, bundle, resource, adapter, lock, and projection byte before use.",
+      "guarantees": [
+        "Exact resource and side-effect declarations gate operation projection and invocation.",
+        "Knowledge closure contains no undeclared source or network dependency.",
+        "Tamper, collision, incompatibility, path escape, missing closure, and unowned state fail before execution or mutation."
+      ],
+      "exclusions": [
+        "No secret values, source recovery, configuration adoption, permission grant, sandbox escape, or semantic inference."
+      ]
+    },
+    "authority": {
+      "ownerId": "pkid:domain:program-kit:provider-projection",
+      "policy": "Acquisition, tool registration, capability initialization, refresh/update, provider trust/permission, provider-native selection, handoff, and invocation are separate transitions.",
+      "guarantees": [
+        "Every Program Kit mutation previews and requires one exact accepted proposal digest.",
+        "Provider/human trust and permission remain inaccessible Program Kit state.",
+        "Capability activation and handoff grant no execution authority."
+      ],
+      "exclusions": [
+        "No installation activation, self-registration, self-initialization, permission mutation, provider start, automatic handoff, or autonomous loop."
+      ]
+    },
+    "secrets": {
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "policy": "Secrets are denied by default and may appear only as provider-owned reference identities in positively declared application policy.",
+      "guarantees": [
+        "Secret values never enter operation catalogs, bundles, locks, catalog projections, command arguments, diagnostics, or evidence."
+      ],
+      "exclusions": [
+        "No credential acquisition design, query-string secret, secret persistence, or guessed redaction."
+      ]
+    },
+    "persistence": {
+      "ownerId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "policy": "Persist exact content-addressed source bytes, separate tool and capability locks, owned provider entries/wrappers, and one derived flat catalog.",
+      "guarantees": [
+        "Derived projections are deterministic and atomically replaced.",
+        "Manual projection edits are detectable drift and never authoritative.",
+        "Refresh uses unchanged verified source and a valid lock; update alone accepts changed source."
+      ],
+      "exclusions": [
+        "No original-source re-resolution after acquisition, lock adoption after tamper, unrelated provider-file mutation, or runtime-owned AI workspace edit."
+      ]
+    },
+    "failure": {
+      "ownerId": "pkid:domain:program-kit:workspace-capability-lifecycle",
+      "policy": "Fail closed with stable classifications when identity, schema, closure, compatibility, provider, ownership, proposal, or byte evidence is absent or changed.",
+      "guarantees": [
+        "Tool-ready and agent-guided failures remain independent and identify exact blockers.",
+        "Incomplete knowledge closure blocks before guided execution.",
+        "Application diagnostics, bridge execution failures, protocol failures, and Program Kit conformance failures remain distinct."
+      ],
+      "exclusions": [
+        "No silent omission, guessed remediation, fallback source, retry, partial mutation, inferred success, or Program Kit application-result envelope."
+      ]
+    },
+    "concurrency": {
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "policy": "Operation concurrency is exact application-owned policy and lifecycle mutation uses atomic one-bundle/provider ownership.",
+      "guarantees": [
+        "The bridge enforces selected operation limits and starts one bounded consumer execution per accepted call.",
+        "Catalog projection is deterministic under a serialized accepted mutation."
+      ],
+      "exclusions": [
+        "No unbounded queue, shared application process, implicit parallelism, concurrent lock adoption, or automatic retry."
+      ]
+    },
+    "cancellation": {
+      "ownerId": "pkid:domain:program-kit:operation-exposure",
+      "policy": "Advertise and translate cancellation only when exact operation and adapter contracts support it; enforce bounded timeout separately.",
+      "guarantees": [
+        "Cancellation races and timeouts have explicit evidence classifications.",
+        "Capability procedure stop conditions remain guidance and do not alter executable cancellation contracts."
+      ],
+      "exclusions": [
+        "No rollback, idempotency, or side-effect reversal claim from cancellation or timeout."
+      ]
+    },
+    "observability": {
+      "ownerId": "pkid:domain:program-kit:provider-projection",
+      "policy": "Record exact identities, versions, digests, proposal/lock transitions, provider versions, trust/permission observations, readiness, process boundaries, and canonical result digests without secret or reasoning content.",
+      "guarantees": [
+        "Publisher-official and Program Kit-conformant claims remain separate.",
+        "Provider-neutral and provider-labelled evidence remain separate.",
+        "Genuine provider closure stays open when exact cold-session evidence is absent."
+      ],
+      "exclusions": [
+        "No provider reasoning equivalence, prompt equivalence, raw secret/input/result capture, inferred trust, or fabricated external evidence."
+      ]
+    },
+    "compatibility": {
+      "ownerId": "pkid:domain:program-kit:operation-contracts",
+      "policy": "Pin exact semantic versions and digests and require reviewed explicit transitions for every operation, tool, bundle, provider, or projection change.",
+      "guarantees": [
+        "Modern 2026-07-28 and legacy 2025-11-25 MCP profiles are explicit.",
+        "Compatible additions never silently enter an existing registration or initialized capability set.",
+        "Provider contract drift blocks the affected transition."
+      ],
+      "exclusions": [
+        "No latest selector, floating version, inferred cross-host equivalence, auto-upgrade, silent refresh-to-new-source, or unreviewed migration."
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "identity": "pkid:scenario:program-kit:project-host-neutral-operation",
+      "actor": "Application owner",
+      "intent": "Publish one operation through generated Console and API hosts and project it as one MCP tool.",
+      "preconditions": [
+        "The application owns one exact operation revision and all referenced contracts.",
+        "Open Console and OpenAPI bind that operation with application-owner semantic equivalence.",
+        "One invocation binding is explicitly selected for registration."
+      ],
+      "steps": [
+        "Validate the operation catalog and exposure bindings.",
+        "Generate Console introspection and OpenAPI/Open Console projections.",
+        "Normalize the selected operation for MCP and derive the deterministic tool name/schema/metadata.",
+        "Preview and explicitly accept one provider registration proposal."
+      ],
+      "outcomes": [
+        "Console, API, and MCP evidence share exact operation and contract identities while preserving different syntax.",
+        "Direct MCP invocation works without a capability."
+      ],
+      "failureOutcomes": [
+        "Missing semantic equivalence, projection ambiguity, collision, unsupported schema, changed bytes, or missing policy blocks without mutation."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:inspect-generated-console",
+      "actor": "Direct CLI consumer",
+      "intent": "Inspect the complete operation catalog or one exact operation without starting the application.",
+      "preconditions": [
+        "The generated host contains exact embedded introspection bytes."
+      ],
+      "steps": [
+        "Invoke the reserved full or selected option using the exact grammar.",
+        "Return one structured document and schema closure without application composition."
+      ],
+      "outcomes": [
+        "Direct CLI introspection binds the same normalized operation identities used by MCP."
+      ],
+      "failureOutcomes": [
+        "Reserved collision, mixed arguments, unknown operation, or invalid embedded bytes returns a structured host failure before dispatch."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:publish-application-capability-bundle",
+      "actor": "Application owner",
+      "intent": "Publish optional official outcome guidance beside an application tool package.",
+      "preconditions": [
+        "The human explicitly chose agent-guided rather than tool-only product readiness.",
+        "The application owns the trigger, outcome, procedure, authority, completion, interpretation, and referenced operation identities."
+      ],
+      "steps": [
+        "Use the human-started design safeguard and deterministic scaffold.",
+        "Author machine descriptors and canonical procedures.",
+        "Bind stable local names to exact operation/schema revisions.",
+        "Materialize and validate complete knowledge closure and provider-neutral compatibility."
+      ],
+      "outcomes": [
+        "The inert bundle is publisher-official and Program Kit-conformant as separate claims.",
+        "Capabilities represent outcomes without one-per-command cardinality."
+      ],
+      "failureOutcomes": [
+        "Missing closure, inferred semantics, host/provider syntax coupling, cyclic handoffs, or invalid publisher/package identity blocks."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:acquire-and-initialize-capabilities",
+      "actor": "Human workspace owner",
+      "intent": "Acquire exact capability bytes and initialize selected outcome guidance in one provider workspace.",
+      "preconditions": [
+        "An exact public source and carrier grammar is supplied.",
+        "Required registered operation bindings exist unambiguously."
+      ],
+      "steps": [
+        "Acquire and normalize bytes into the content-addressed store.",
+        "Verify integrity, publisher authority, compatibility, and closure without semantic endorsement.",
+        "Preview provider wrappers, per-bundle lock, and flat catalog delta.",
+        "Accept the exact initialization proposal digest."
+      ],
+      "outcomes": [
+        "Owned provider wrappers and one flat catalog are atomically projected.",
+        "Installation/acquisition alone activated nothing."
+      ],
+      "failureOutcomes": [
+        "Ambiguous source, missing digest, private credential need, incomplete closure, tool-binding ambiguity, collision, stale proposal, or unowned state blocks."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:refresh-or-update-capability-projection",
+      "actor": "Human workspace owner",
+      "intent": "Repair derived capability state or accept new authoritative capability content.",
+      "preconditions": [
+        "Status classifies exact source, locks, wrappers, catalog, and provider state."
+      ],
+      "steps": [
+        "Use refresh only when authoritative bundle identity/digest is unchanged and the lock is valid.",
+        "Use update when bundle version or content digest changed.",
+        "Review and accept the exact proposal.",
+        "Atomically replace only owned derived state."
+      ],
+      "outcomes": [
+        "Manual catalog/wrapper drift is repaired without being adopted.",
+        "New source bytes enter only through update."
+      ],
+      "failureOutcomes": [
+        "Tampered lock, changed source during refresh, stale proposal, collision, or unrelated provider drift blocks."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:cold-jtest-outcome",
+      "actor": "Human AI-session operator",
+      "intent": "Ask a semantic JTest question and let provider-native selection use official outcome guidance and registered exact operations.",
+      "preconditions": [
+        "Tool registration and capability initialization were separately accepted.",
+        "The workspace contains packages, locks, wrappers, and installed closure but no Program Kit/JTest source or prior syntax knowledge."
+      ],
+      "steps": [
+        "Start a genuinely cold Codex or Claude Code session.",
+        "Supply semantic intent only.",
+        "Let the provider select the capability and MCP tool through native mechanisms.",
+        "Require missing human decisions, invoke exact bound operations subject to provider permission, interpret application-owned outputs, and report completion/blockers."
+      ],
+      "outcomes": [
+        "The exact capability and registered operations cooperate without Console, HTTP, or MCP syntax embedded in guidance.",
+        "Provider-labelled evidence records the bounded observed result."
+      ],
+      "failureOutcomes": [
+        "Missing closure, missing operation, denied permission, changed bytes, or missing human decision produces an exact blocker without autonomous recovery."
+      ]
+    },
+    {
+      "identity": "pkid:scenario:program-kit:package-only-dogfood",
+      "actor": "Program Kit consumer",
+      "intent": "Use Program Kit's own supported consumer operations and outcomes from package-owned closure without a source checkout.",
+      "preconditions": [
+        "Exact Program Kit packages and embedded reference bundle are installed in a clean workspace."
+      ],
+      "steps": [
+        "Discover direct operations and outcome capabilities.",
+        "Preflight and read exact closure.",
+        "Complete a representative outcome and exercise negative closure/update cases."
+      ],
+      "outcomes": [
+        "Every supported consumer operation has source-free description/schema parity.",
+        "Every genuine multi-operation consumer outcome has complete source-free guidance."
+      ],
+      "failureOutcomes": [
+        "Any requirement for Program Kit source, assembly inspection, grep, undeclared fixture, or remembered internal knowledge blocks release closure."
+      ]
+    }
+  ],
+  "statusClaims": [
+    {
+      "subjectId": "pkid:design:program-kit:development-tools",
+      "status": "scaffolded",
+      "evidence": [
+        {
+          "identity": "pkid:intent:program-kit:development-tools",
+          "version": "3.0.0",
+          "digest": "sha256:a91a8c68009a0ae3f7283026f86126dc1cdef5eb5412191a1546f925ac17c472"
+        },
+        {
+          "identity": "pkid:decision-log:program-kit:development-tools-convergence",
+          "version": "2.0.0",
+          "digest": "sha256:391da26e7070a4bbcc6f5f275fb0716efaf08e6b7482495bf9b525a556a4a51e"
+        },
+        {
+          "identity": "pkid:evidence:program-kit:development-tools-provider-contract",
+          "version": "3.0.0",
+          "digest": "sha256:195b54d8f623dfafb6d27c59f6e1c5943eb6dc9707aab68e5cc4f7022d697c0f"
+        }
+      ],
+      "claim": "The canonical review design exists from explicit converged human intent and current committed source truth; no product, runtime, provider, capability, registration, permission, or acceptance implementation is claimed."
+    }
+  ],
+  "staticConformanceDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
+    "version": "0.1.0-alpha.2",
+    "digest": "sha256:bb7f82782ce173494a3f32b3e7e23b5f792028bed41989ddb7b83020aac677d2"
+  }
+}

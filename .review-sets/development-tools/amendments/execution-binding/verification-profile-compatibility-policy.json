@@ -1,0 +1,32 @@
+{
+  "identity": "pkid:compatibility-policy:program-kit:development-tools-private-gate-verification-profile",
+  "version": "0.1.0-alpha.1",
+  "sourceCommit": "01a9a820d422d92da7f2df977db66c4d4f888924",
+  "approvedIdentity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+  "acceptedVersions": "[1.0.0,1.1.0)",
+  "approvedBaseline": {
+    "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+    "version": "1.0.0",
+    "digest": "sha256:80978c4209e5119c8df468f47f972ea8dc622bbeb907681e48721d5d8f12738d"
+  },
+  "currentCompatibleSelection": {
+    "identity": "pkid:profile:program-kit:private-csharp-gate-exhaustive",
+    "version": "1.0.1",
+    "digest": "sha256:2e383f220030e2933dca3e7af27543e73a28451506c183538d6d84aba689791f"
+  },
+  "compatibilityCriteria": [
+    "The selected artifact retains the exact private-csharp-gate-exhaustive identity.",
+    "The selected version is inside the finite 1.0.x range and the exact selected digest is recorded in execution evidence.",
+    "The profile continues to run the approved complete private Program Kit gate categories and refuses zero-test selection.",
+    "Changes may adapt invocation mechanics, including explicit Microsoft.Testing.Platform selectors, without widening source scope, authority, required outcomes, allowed edits, stop conditions, package selection, or product semantics."
+  ],
+  "materialDrift": [
+    "A different profile identity or a version outside the accepted range.",
+    "Removal, weakening, or semantic reinterpretation of an approved verification category or failure condition.",
+    "Any change to Development Tools scope, authority, required outcomes, allowed edits, stop conditions, package selection, product semantics, or the compatibility policy itself."
+  ],
+  "receiptRequirements": [
+    "Record the approved binding, exact selected identity, version and digest, and this exact compatibility-policy artifact.",
+    "Block before implementation when the selected artifact or compatibility evidence is missing, stale, outside range, or materially incompatible."
+  ]
+}

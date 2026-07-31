@@ -1,0 +1,89 @@
+{
+  "$schema": "https://schemas.orbyss.io/program-kit/architecture/0.1.0-alpha.2/static-conformance-disposition.schema.json",
+  "softwareDesign": {
+    "identity": "pkid:design:program-kit:development-tools-execution-binding-static-basis",
+    "version": "0.1.0-alpha.3",
+    "digest": "sha256:2a6c444b237d4f382b939d132273289a3606ebb64677b8b957017b6742e27c8d"
+  },
+  "invariantAllocations": [
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-repository-source-conformance",
+      "invariant": "Program Kit-owned implementation C# satisfies the current private repository source-quality policy.",
+      "layer": "roslyn-compiler",
+      "rationale": "The existing private PKCS analyzer and build spine already enforce Program Kit repository source structure and behavioral rules."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-project-package-direction",
+      "invariant": "Operation, host projection, bridge, capability, CLI, and provider projects preserve approved reference direction and package topology.",
+      "layer": "project-package",
+      "rationale": "The existing build spine, explicit solution graph, locked restore, and architecture conformance tests own static dependency enforcement."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-runtime-capability-isolation",
+      "invariant": "Runtime packages do not embed or reference agent-session capability content except through exact inert distribution manifests.",
+      "layer": "project-package",
+      "rationale": "Project/package reference conformance and package-layout tests can prove the static isolation boundary; provider activation cannot."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-package-only-consumer",
+      "invariant": "Application and Program Kit consumer proofs use exact packages and installed closure without repository/source/build-output coupling.",
+      "layer": "executable-test",
+      "rationale": "Package provenance, source mapping, generated hosts, bundle materialization, and absence of source knowledge require isolated filesystem and process conformance."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-operation-projection-integrity",
+      "invariant": "Operation catalogs, exposure bindings, Console introspection, MCP tools, schemas, results, and failures preserve exact identity and contract semantics.",
+      "layer": "executable-test",
+      "rationale": "Cross-artifact bytes, protocol behavior, generated-host execution, and application outputs cannot be proven by a C# analyzer."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-capability-integrity",
+      "invariant": "Bundles, operation bindings, knowledge closure, content-addressed storage, provider adapters, ownership locks, flat catalogs, refresh, update, and cold-session guidance conform to exact contracts.",
+      "layer": "executable-test",
+      "rationale": "Byte graphs, provider discovery, application-authored semantics, and cross-session behavior require schema, integration, and genuine provider evidence."
+    },
+    {
+      "identity": "pkid:invariant:program-kit:development-tools-authority-separation",
+      "invariant": "Tool registration, capability initialization, provider trust/permission, and invocation remain separate and no autonomous loop exists.",
+      "layer": "executable-test",
+      "rationale": "Configuration mutation, process start, provider prompts, and absence of automatic behavior are observable process properties rather than compiler properties."
+    }
+  ],
+  "disposition": "reuse-existing",
+  "gateSelections": [
+    {
+      "gate": {
+        "identity": "pkid:policy:program-kit:csharp-source-quality-gate",
+        "version": "1.10.0",
+        "digest": "sha256:e8bc64e36bc98dbc47938daf6e6c56afbb23425774c4d4d3bdf6e28414eee2a1"
+      },
+      "activationMatrix": {
+        "identity": "pkid:activation-matrix:program-kit:private-csharp-gate-build-spine",
+        "version": "1.0.0",
+        "digest": "sha256:9603f5e67d256b381df4e69dce99fd9aafeaded20c947cfe699adb9dec7ecd8b"
+      }
+    }
+  ],
+  "linkedGateDesigns": [],
+  "rationale": "The existing private Program Kit C# gate remains exactly compatible with Program Kit-owned implementation. Current committed main additionally verifies reusable gate package manifests against Git-normalized index bytes. No new analyzer, gate extension, generated-source attachment, or consumer attachment is justified; protocol, package-only, capability, provider, and cold-session behavior remain executable proof.",
+  "residualRisks": [
+    "The private Program Kit gate remains a repository-specific source-policy monolith with an MSBuild trust boundary.",
+    "Static analysis cannot prove package-only construction, exact runtime bytes, protocol negotiation, provider trust or permissions, capability triggering, knowledge closure use, cold-session isolation, or genuine external provider evidence.",
+    "Application semantic correctness remains publisher-owned and outside Program Kit static proof."
+  ],
+  "nonStaticClaims": [
+    "Schema projection, generated Console introspection, OpenAPI binding, MCP modern/legacy negotiation, tools/list/call, canonical results, timeout, cancellation, concurrency, registration, capability lifecycle, catalog regeneration, and removal require dedicated executable tests.",
+    "Genuine Codex and Claude Code cold-session evidence and human review remain authoritative for provider-native capability/tool selection, trust, permission, and non-autonomous behavior.",
+    "Publisher attestation, not Program Kit conformance, remains authoritative for application workflow semantics."
+  ],
+  "decisionSource": {
+    "source": {
+      "identity": "pkid:decision-source:program-kit:development-tools-static-conformance",
+      "version": "2.0.0",
+      "digest": "sha256:75bdf49ff8dac419b165e3c0941756433281939a019e32251e56f5c7abe7071c"
+    },
+    "jsonPointer": "/decision"
+  },
+  "emptySelectionAcceptance": null,
+  "blockers": []
+}

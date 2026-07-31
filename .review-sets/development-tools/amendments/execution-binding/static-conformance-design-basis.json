@@ -1,0 +1,22 @@
+{
+  "identity": "pkid:design:program-kit:development-tools-execution-binding-static-basis",
+  "version": "0.1.0-alpha.3",
+  "sourceCommit": "01a9a820d422d92da7f2df977db66c4d4f888924",
+  "frozenApproval": {
+    "identity": "pkid:approval:program-kit:development-tools-review-set",
+    "version": "3.0.0",
+    "digest": "sha256:8b8eec00e88e94a0fb544973ff7b7f1d95a9eff6aacd462b45e28e73d6111ceb"
+  },
+  "frozenDesign": {
+    "identity": "pkid:design:program-kit:development-tools",
+    "version": "3.0.0",
+    "digest": "sha256:a44f13b3a34fb01b6c336ba2069cef9278f3f4bc27d9e128f5df05cf30c66592"
+  },
+  "frozenDisposition": {
+    "identity": "pkid:static-conformance-disposition:program-kit:development-tools",
+    "version": "2.0.0",
+    "digest": "sha256:e956991542cd36a5869f6e214fb8168250d3739383f33b1c80b103fe00062e81"
+  },
+  "purpose": "Provide a non-circular current design-flow basis for the already approved reuse-existing disposition while changing no Development Tools product invariant.",
+  "preservationRule": "The current writer migration changes schema and artifact bindings only; the frozen design, disposition, requirements, work units, authority boundaries, and product semantics remain governing."
+}
