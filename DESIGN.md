@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: extensions-and-composition
-active-batch: EXT-B01
+active-batch: EXT-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -73,10 +73,10 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Feature model | `FTR` | `closed` | 17 | All four batches are accepted by `DEC-013` and `DEC-021`–`DEC-023`. |
 | Semantic language and bounded contexts | `SEM` | `closed` | 14 | All batches are accepted by `DEC-016`, `DEC-019`, and `DEC-024`–`DEC-026`. |
 | Consumer planning and delivery | `PLN` | `closed` | 4 | Native planning withdrawn; Spec Kit-to-factory boundary accepted by `DEC-029`. |
-| Extensions and composition | `EXT` | `active` | 13 | Spec Kit handoff boundary is fixed; `EXT-B01` defines the minimum extension roles. |
+| Extensions and composition | `EXT` | `active` | 13 | `EXT-B01` is accepted by `DEC-031`; `EXT-B02` defines deterministic composition. |
 | Determinism and generated artifacts | `DET` | `queued` | 10 | `DET-010` is accepted; remaining deterministic-generation questions are queued. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
-| Dependencies, impact, and migration | `MIG` | `queued` | 12 | Graph truth, compatibility, closure, and evidence. |
+| Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
 | First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
 
@@ -102,7 +102,7 @@ Program Kit owns independently callable factory-operation contracts.
 
 Extensions and Composition is active in
 [`DESIGN-EXTENSIONS.md`](DESIGN-EXTENSIONS.md). Batch `EXT-B01` defines the
-minimum extension roles and vocabulary boundary.
+accepted operation roles; `EXT-B02` now defines deterministic composition.
 
 ## 8. Queued question catalog
 
@@ -112,7 +112,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-029`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-031`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Consumer Planning and Delivery is closed; Extensions and Composition is active.
 
@@ -147,6 +147,8 @@ Consumer Planning and Delivery is closed; Extensions and Composition is active.
 | `DEC-027` | `PID-008`, `PLN-004`, `GOV-001` | `superseded` | The consumer-facing native planning surface was replaced by the external Spec Kit orchestration boundary in `DEC-029`; the non-self-hosting constraint remains accepted. | — |
 | `DEC-028` | `PID-020`, `DET-010`, `SEM-014` | `accepted` | Program Kit is a human-governed software factory that turns approved intent into contract-bounded software. Deterministic construction is claimed only inside an exact supported semantic and capability envelope. Custom implementation remains bounded and evaluated without claiming deterministic derivation; unresolved or unsupported intent remains visible and actionable. Semantic coverage, construction method, and conformance are independent. Provider discovery informs users but never replaces exact accepted selection and a pinned resolution lock. | 2026-07-31 |
 | `DEC-029` | `PID-008`, `PID-009`, `PLN-001`–`PLN-004`, `EXT-012`–`EXT-013` | `accepted` | Spec Kit owns the recommended guided discovery, specification, planning, and task workflow. Program Kit v1 owns no native planning system and remains independently callable through exact public factory-operation contracts. A separately installed external adapter, implemented after the Program Kit CLI is stable, maps approved Spec Kit work into Program Kit requests and returns structured results without internal coupling or authority escalation. Other orchestrators may use the same contracts. | 2026-07-31 |
+| `DEC-030` | `SEM-007`, `SEM-008`, `MIG-001`–`MIG-012` | `accepted` | Program Kit v1 is exclusively a development- and construction-time factory. It may generate and development-time evaluate ordinary software that runs, but provides no Program Kit runtime, runtime plugin host, deployment controller, operational-state manager, or runtime semantic interpreter. Automated migration design is deferred until an independently usable CLI and real consumer version evolution expose a concrete problem. V1 preserves exact versions and admission artifacts, detects drift or unsupported changes, and returns actionable diagnostics without claiming automatic migration. | 2026-07-31 |
+| `DEC-031` | `EXT-001`–`EXT-003` | `accepted` | Normative terminology separates extension bundles, factory operation contracts, executable operation providers, AI-facing session capabilities, declarative vocabulary packages, and provider profiles. V1 kernel invocation has three initial roles: intake mapping, construction, and evaluation. The role set is closed per protocol version but may grow through an explicit revision. Resolution and admission remain kernel mechanics; migration is not a primitive role. Extensions may carry exact vocabularies but cannot invent canonical meaning during execution. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -415,3 +417,25 @@ answer or tension that created them.
   report as factory protocol artifacts rather than planning artifacts.
 - Activated Extensions and Composition without starting Spec Kit adapter design;
   that implementation still waits for a stable Program Kit CLI.
+
+### 2026-07-31 — Runtime and migration deferred
+
+- Accepted `DEC-030` to keep v1 exclusively development- and
+  construction-time.
+- Program Kit may generate and evaluate software that runs, but owns no runtime
+  host, runtime plugin system, deployment state, or operational control plane.
+- Deferred the entire migration design until real use of an independently
+  working CLI exposes a concrete consumer version-evolution problem.
+- V1 still pins exact versions, preserves admissions, detects incompatible
+  change and drift, and emits actionable diagnostics.
+
+### 2026-07-31 — Initial factory operation roles accepted
+
+- The human explicitly accepted the factory/session distinction and the three
+  initial factory operation roles.
+- Accepted `DEC-031` for the normative extension taxonomy, declarative
+  vocabulary boundary, and protocol-versioned role set.
+- Recorded that additional roles may be introduced deliberately through a later
+  protocol revision as real needs emerge.
+- Completed `EXT-B01` and activated `EXT-B02` for deterministic contribution,
+  ownership, conflict, ordering, and exact-version rules.

@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 19 are accepted decisions governed by the
+Items 1 through 3 and 6 through 21 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -209,8 +209,9 @@ respective categories converge.
     executable derivation belongs to explicit pinned capabilities.
     Semantic authority is primarily a development- and construction-time
     concern. Generated products have no implicit Program Kit runtime dependency.
-    A product may explicitly select a separately governed, purpose-bound runtime
-    semantic projection and interpreter.
+    A purpose-bound runtime semantic projection and interpreter remains a
+    possible future product selection, but `DEC-030` explicitly defers it
+    beyond v1.
     The semantic layer retains its broader purpose of making admitted software
     legible and governable through human-approved meaning. For the first CLI,
     only mechanics required by concrete, end-to-end testable workflows are
@@ -257,3 +258,29 @@ respective categories converge.
     know what is installed, but discovery never authorizes ambient selection.
     Construction uses an exact accepted selection and records it in the
     resolution lock.
+20. Program Kit v1 is exclusively a development- and construction-time factory.
+    It may generate and development-time evaluate ordinary software that runs,
+    but it provides no Program Kit runtime, runtime plugin host, deployment
+    controller, operational-state manager, or runtime semantic interpreter.
+    Automated semantic, implementation, deployment, and runtime-data migration
+    are also outside current scope. V1 preserves exact versions and admission
+    artifacts, detects changed, drifted, or unsupported contracts, and returns
+    actionable diagnostics without claiming an automatic migration.
+    Revisit runtime support or migration design only after an independently
+    usable CLI and real consumer version evolution expose a concrete problem.
+21. Normative extension terminology distinguishes an extension bundle
+    (distribution), factory operation contract (kernel invocation seam),
+    operation provider (executable implementation), session capability
+    (human-led AI guidance), vocabulary package (declarative meaning), and
+    provider profile (selectable provider binding). Installation grants neither
+    activation nor authority.
+    V1 has three kernel-invokable factory operation roles: intake mapping,
+    construction, and evaluation. Resolution and admission remain kernel
+    operations. Migration is neither a primitive role nor current scope.
+    Provider, adapter, generator, projector, validator, analyzer, gate, and host
+    projection are specializations or compositions rather than independent
+    plugin mechanisms.
+    The role set is closed for each protocol version, not forever. A genuinely
+    new role may be added through an explicit protocol and kernel revision.
+    Operation providers and session capabilities remain separately identified,
+    activated, trusted, and authorized.

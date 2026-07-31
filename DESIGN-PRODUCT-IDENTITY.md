@@ -704,3 +704,14 @@ Kit's public CLI is stable, a thin external adapter maps approved Spec Kit work
 to Program Kit requests and returns artifacts, evidence, and diagnostics.
 `DEC-029` supersedes the planning commitments in `DEC-001` and `DEC-027` and
 the prior deferral in `DEC-011`; the historical reasoning remains recorded.
+
+### Accepted runtime and migration scope
+
+Under `DEC-030`, the initial Program Kit CLI is exclusively a development- and
+construction-time factory. It may generate and evaluate ordinary software that
+runs, but Program Kit provides no runtime, runtime plugin host, deployment
+controller, operational-state manager, or runtime semantic interpreter in v1.
+
+Automated migration is also deferred. Exact version mismatches and drift remain
+visible and actionable, but migration is designed only after real CLI use
+exposes a concrete consumer contract or version-evolution problem.

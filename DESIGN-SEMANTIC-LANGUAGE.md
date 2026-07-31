@@ -433,3 +433,6 @@ delegation system, multi-party negotiation workflow, or lifecycle orchestrator.
 - Accepted `SEM-B03` under `DEC-026` for separately owned relationships,
   explicit reconciliation, finite operation-scoped graph closure, and the
   bounded implementation context; closed the Semantic Language category.
+- Post-closure refinement `DEC-030` defers every Program Kit runtime semantic
+  interpreter and projection beyond v1. The representation boundary remains
+  valid; optional runtime semantics are a future possibility, not current scope.
