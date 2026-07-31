@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 30 are accepted decisions governed by the
+Items 1 through 3 and 6 through 31 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -455,3 +455,31 @@ respective categories converge.
     terminated, suffers unrecoverable runtime/OS or resource failure, or cannot
     write the selected output channel. These are explicit availability limits;
     no catch-all may conceal them or claim workspace safety.
+31. The Program Kit kernel and CLI retain a permanent independent bootstrap:
+    repository source builds, tests, repairs, and releases through the standard
+    .NET toolchain and Spec Kit workflow without executing Program Kit against
+    itself or trusting self-generated governance input. A published CLI may
+    later dogfood isolated downstream examples or extensions only after the
+    independent build and only as removable verification. Dogfooding cannot
+    define or block repair of the constitution, kernel protocols, diagnostics,
+    gates, build graph, source, or release authority. A changed rule cannot
+    generate or approve its own validity evidence.
+    Dogfooding requires a stable independently published CLI, clean independent
+    build and recovery proof, reproducibility/drift/publication/diagnostic
+    fixtures, non-authoritative subject isolation, and explicit human acceptance
+    of exact scope and purpose.
+    Humans establish or change product and semantic identity, kernel invariants,
+    provider/profile/version/dependency/trust selection, governance and
+    exceptions, ownership, destructive or widened effects, external
+    publication, releases, and future third-party execution. Approved exact
+    grants may pre-authorize bounded deterministic work without repetitive
+    confirmation; AI prepares evidence but does not make identity-forming
+    decisions.
+    Kernel authority is an exact canonical scoped grant from a configured
+    provider with identity, issuer assertion, subjects, operations, effects,
+    request/lock bindings, conditions, validity, revocation, and provenance.
+    Requesters cannot grant or broaden their own authority; every use revalidates
+    scope, digest, freshness, and revocation. V1's repository-local provider
+    proves reviewable record presence and provenance assertion, not a person's
+    cryptographic identity. Stronger authority providers can implement the same
+    contract later.

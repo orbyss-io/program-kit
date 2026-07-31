@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
 active-category: governance-enforcement-and-self-hosting
-active-batch: GOV-B01
+active-batch: GOV-B02
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -77,7 +77,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Determinism and generated artifacts | `DET` | `closed` | 10 | All batches are accepted by `DEC-018`, `DEC-028`, and `DEC-034`–`DEC-036`. |
 | Diagnostics and AI guidance | `DIA` | `closed` | 16 | All four batches are accepted by `DEC-037`–`DEC-040`. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
-| Governance, enforcement, and self-hosting | `GOV` | `active` | 12 | `GOV-B01` defines bootstrap independence and human authority. |
+| Governance, enforcement, and self-hosting | `GOV` | `active` | 12 | `GOV-B01` is accepted by `DEC-041`; `GOV-B02` defines gates, waivers, and enforcement modes. |
 | First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
 
 Counts are a live snapshot, not a quota. New questions are expected.
@@ -110,8 +110,8 @@ Diagnostics and AI Guidance is closed in
 [`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). All four batches are complete.
 
 Governance, Enforcement, and Self-Hosting is active in
-[`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). `GOV-B01` defines independent
-bootstrap, optional dogfooding, and human authority grants.
+[`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). `GOV-B01` is accepted;
+`GOV-B02` now defines gates, waivers, enforcement modes, and warning policy.
 
 ## 8. Queued question catalog
 
@@ -121,7 +121,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-040`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-041`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting is active.
 
@@ -169,6 +169,7 @@ Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting
 | `DEC-039` | `DIA-009`–`DIA-012` | `accepted` | An authority-qualified diagnostic ID's trigger and invariant meaning are permanent and never reused; exact diagnostic catalogs remain independently versioned and digested. Automation consumes IDs and typed fields, never rendered prose. Wording may evolve under exact catalog revision, while material semantic changes require a new ID. V1 ships invariant structured data and English rendering; localization remains exact and pluggable later. Operations retain a complete canonically ordered diagnostic collection with exact duplicate grouping. Any bounded view declares omission counts and a content-bound reference to the full immutable collection without hiding outcome, effect, or disposition causes. | 2026-08-01 |
 ## 10. Emergent-question register
 | `DEC-040` | `DIA-013`–`DIA-014` | `accepted` | Diagnostic disclosure is schema-classified and fail-closed under a non-bypassable kernel floor. Secrets, secret-derived hashes, protected paths, raw external output, exceptions, and stack traces never enter ordinary results; redaction is structured, paths are safe or logical, and sensitive evidence requires separate authority. Every recoverable command-path failure uses a minimal independent fallback to return the most specific safe faulted result with honest effect state. No envelope is promised before process startup, after forced or unrecoverable termination/resource failure, or when the selected output channel cannot be written. | 2026-08-01 |
+| `DEC-041` | `GOV-001`–`GOV-004` | `accepted` | Program Kit permanently retains an independent standard .NET and Spec Kit bootstrap without executing itself or trusting self-generated governance. A published CLI may later perform removable, downstream, non-authoritative dogfooding only after explicit recovery, reproducibility, diagnostics, isolation, and human-scope evidence. Humans retain identity, trust, policy, ownership, widened-effect, external-publication, and release decisions while exact grants may pre-authorize bounded deterministic work. Kernel authority comes only from exact scoped grants issued by configured providers and revalidated on use; requesters cannot authorize themselves. The v1 repository-local provider proves record presence and asserted provenance, not cryptographic human identity. | 2026-08-01 |
 
 New items receive the next stable ID within the relevant category and cite the
 answer or tension that created them.
@@ -562,3 +563,17 @@ answer or tension that created them.
 - Closed Diagnostics and AI Guidance with all sixteen questions resolved.
 - Left Dependencies, Impact, and Migration deferred under `DEC-030` and
   activated Governance, Enforcement, and Self-Hosting batch `GOV-B01`.
+
+### 2026-08-01 — Bootstrap and authority boundary accepted
+
+- The human explicitly accepted all `GOV-B01` recommendations.
+- Accepted `DEC-041` for permanent independent bootstrap and only optional,
+  downstream, non-authoritative Program Kit dogfooding after explicit evidence.
+- Kept identity, trust, policy, ownership, widened effects, publication, and
+  release under human authority while allowing exact grants to pre-authorize
+  bounded deterministic work.
+- Defined kernel authority through exact scoped grants from configured providers
+  and recorded the honest identity limitation of the v1 repository-local
+  provider.
+- Completed `GOV-B01` and activated `GOV-B02` for gates, exact waivers,
+  enforcement modes, human review, and warnings.
