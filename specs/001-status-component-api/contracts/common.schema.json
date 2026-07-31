@@ -1,0 +1,425 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/common.schema.json",
+  "title": "Program Kit Protocol v1 Common Types",
+  "$defs": {
+    "canonicalProfile": {
+      "type": "string",
+      "const": "program-kit.canonical-json/v1"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "authority": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+      "maxLength": 100
+    },
+    "logicalPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "governedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "kind",
+        "name",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "authority": {
+          "$ref": "#/$defs/authority"
+        },
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "maxLength": 80
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "mediaType",
+        "logicalPath",
+        "digest",
+        "ownership"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 150
+        },
+        "logicalPath": {
+          "$ref": "#/$defs/logicalPath"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "ownership": {
+          "type": "string",
+          "enum": [
+            "generated-owned",
+            "seeded-handoff",
+            "consumer-owned"
+          ]
+        }
+      }
+    },
+    "traceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "pointer",
+        "claimKind"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "pointer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "claimKind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        }
+      }
+    },
+    "exactSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "selected",
+        "selectionAuthority",
+        "trace"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "selected": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "selectionAuthority": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "trace": {
+          "$ref": "#/$defs/traceReference"
+        }
+      }
+    },
+    "typedSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "identity"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "identity": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "logicalPath": {
+          "$ref": "#/$defs/logicalPath"
+        },
+        "pointer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "safeValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "valueKind"
+      ],
+      "properties": {
+        "classification": {
+          "type": "string",
+          "enum": [
+            "public",
+            "repository-relative",
+            "withheld"
+          ]
+        },
+        "valueKind": {
+          "type": "string",
+          "enum": [
+            "string",
+            "integer",
+            "boolean",
+            "identity",
+            "digest",
+            "logical-path",
+            "redacted"
+          ]
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "redactionReason": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "policyReference": {
+          "$ref": "#/$defs/governedIdentity"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "classification": {
+                "const": "withheld"
+              }
+            },
+            "required": [
+              "classification"
+            ]
+          },
+          "then": {
+            "required": [
+              "redactionReason",
+              "policyReference"
+            ],
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "value"
+            ]
+          }
+        }
+      ]
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "subject",
+        "profile",
+        "artifact",
+        "freshness"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "subject": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "profile": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "artifact": {
+          "$ref": "#/$defs/artifactReference"
+        },
+        "freshness": {
+          "type": "string",
+          "enum": [
+            "current",
+            "stale",
+            "expired",
+            "unavailable"
+          ]
+        }
+      }
+    },
+    "waiverReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "authority",
+        "rule",
+        "subjects",
+        "risk",
+        "controls",
+        "expiresAt",
+        "revocationReference"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "authority": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "rule": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/typedSubject"
+          }
+        },
+        "risk": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "expiresAt": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "revocationReference": {
+          "$ref": "#/$defs/artifactReference"
+        }
+      }
+    },
+    "gateResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "mode",
+        "status",
+        "subjects",
+        "evidence",
+        "diagnosticIds"
+      ],
+      "properties": {
+        "gate": {
+          "$ref": "#/$defs/governedIdentity"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "executable-invariant",
+            "evidence-backed",
+            "human-review"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "not-applicable",
+            "waived",
+            "not-evaluated"
+          ]
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typedSubject"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceReference"
+          }
+        },
+        "waiver": {
+          "$ref": "#/$defs/waiverReference"
+        },
+        "diagnosticIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "waived"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "waiver"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "waiver"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

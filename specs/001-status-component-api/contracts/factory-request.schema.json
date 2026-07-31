@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/factory-request.schema.json",
+  "title": "Program Kit Factory Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "canonicalProfile",
+    "operation",
+    "rootBundle",
+    "workspaceIdentity",
+    "requestedEffect",
+    "selections"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "program-kit.factory-request/v1"
+    },
+    "canonicalProfile": {
+      "$ref": "common.schema.json#/$defs/canonicalProfile"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "explain",
+        "construct",
+        "evaluate"
+      ]
+    },
+    "constructionMode": {
+      "type": "string",
+      "enum": [
+        "new",
+        "repair"
+      ]
+    },
+    "rootBundle": {
+      "$ref": "common.schema.json#/$defs/artifactReference"
+    },
+    "workspaceIdentity": {
+      "$ref": "common.schema.json#/$defs/governedIdentity"
+    },
+    "requestedEffect": {
+      "type": "string",
+      "enum": [
+        "none",
+        "candidate-only",
+        "committed"
+      ]
+    },
+    "selections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/exactSelection"
+      }
+    },
+    "authorityGrant": {
+      "$ref": "common.schema.json#/$defs/artifactReference"
+    },
+    "expectedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "closureDigest",
+        "liveStateDigest"
+      ],
+      "properties": {
+        "closureDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "liveStateDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        }
+      }
+    },
+    "continuation": {
+      "$ref": "common.schema.json#/$defs/artifactReference"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "construct"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "constructionMode"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "constructionMode"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "requestedEffect": {
+            "enum": [
+              "candidate-only",
+              "committed"
+            ]
+          }
+        },
+        "required": [
+          "requestedEffect"
+        ]
+      },
+      "then": {
+        "required": [
+          "authorityGrant",
+          "expectedState"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "explain",
+              "evaluate"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "requestedEffect": {
+            "const": "none"
+          }
+        }
+      }
+    }
+  ]
+}

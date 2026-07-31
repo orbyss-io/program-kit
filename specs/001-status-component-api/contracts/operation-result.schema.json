@@ -1,0 +1,770 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/operation-result.schema.json",
+  "title": "Program Kit Operation, Diagnostic, and Continuation Contracts v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/operationResult"
+    },
+    {
+      "$ref": "#/$defs/continuation"
+    },
+    {
+      "$ref": "#/$defs/diagnosticCatalog"
+    }
+  ],
+  "$defs": {
+    "phase": {
+      "type": "string",
+      "enum": [
+        "request",
+        "intake",
+        "validation",
+        "resolution",
+        "explanation",
+        "construction",
+        "evaluation",
+        "publication",
+        "admission",
+        "completion"
+      ]
+    },
+    "operationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "operationContract",
+        "outcome",
+        "furthestPhase",
+        "effectState",
+        "primaryDisposition",
+        "changes",
+        "artifacts",
+        "receipts",
+        "evidence",
+        "diagnostics"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.operation-result/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "operationContract": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "requestIdentity": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "constructionIdentity": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "succeeded",
+            "needs-input",
+            "blocked",
+            "cancelled",
+            "faulted"
+          ]
+        },
+        "furthestPhase": {
+          "$ref": "#/$defs/phase"
+        },
+        "effectState": {
+          "type": "string",
+          "enum": [
+            "none",
+            "candidate-only",
+            "committed",
+            "indeterminate"
+          ]
+        },
+        "primaryDisposition": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "retry",
+            "provide-input",
+            "request-approval",
+            "repair",
+            "revise",
+            "stop"
+          ]
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/change"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifactReference"
+          }
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifactReference"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceReference"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnosticView"
+        },
+        "continuation": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "succeeded"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "primaryDisposition": {
+                "const": "complete"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "needs-input"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "continuation"
+            ],
+            "properties": {
+              "primaryDisposition": {
+                "enum": [
+                  "provide-input",
+                  "request-approval"
+                ]
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "continuation"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "subject",
+        "effect"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "created",
+            "replaced",
+            "unchanged",
+            "removed-from-candidate",
+            "interrupted"
+          ]
+        },
+        "subject": {
+          "$ref": "common.schema.json#/$defs/typedSubject"
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "candidate-only",
+            "committed",
+            "indeterminate"
+          ]
+        }
+      }
+    },
+    "diagnosticView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "returned",
+        "omitted",
+        "grouping",
+        "fullCollectionDigest",
+        "fullCollectionArtifact",
+        "items"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "returned": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "omitted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "grouping": {
+          "type": "string",
+          "const": "program-kit.diagnostic-grouping/v1"
+        },
+        "fullCollectionDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "fullCollectionArtifact": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "cursor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "collectionDigest",
+            "offset"
+          ],
+          "properties": {
+            "collectionDigest": {
+              "$ref": "common.schema.json#/$defs/digest"
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnostic"
+          }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "catalog",
+        "severity",
+        "category",
+        "phase",
+        "occurrenceKey",
+        "occurrenceCount",
+        "subjects",
+        "rule",
+        "messageKey",
+        "parameters",
+        "cause",
+        "consequence",
+        "remediations",
+        "evidence",
+        "documentation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]+/[A-Z][A-Z0-9-]*[0-9]{4}$",
+          "maxLength": 200
+        },
+        "catalog": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warning",
+            "error",
+            "fatal"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "request",
+            "semantic",
+            "resolution",
+            "policy",
+            "conformance",
+            "workspace",
+            "external",
+            "internal"
+          ]
+        },
+        "phase": {
+          "$ref": "#/$defs/phase"
+        },
+        "occurrenceKey": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "occurrenceCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/typedSubject"
+          }
+        },
+        "rule": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "messageKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]*$",
+          "maxLength": 200
+        },
+        "parameters": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "$ref": "common.schema.json#/$defs/safeValue"
+          }
+        },
+        "cause": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "details"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "details": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/safeValue"
+              }
+            }
+          }
+        },
+        "consequence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "affectedClaims"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "affectedClaims": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              }
+            }
+          }
+        },
+        "expected": {
+          "$ref": "common.schema.json#/$defs/safeValue"
+        },
+        "observed": {
+          "$ref": "common.schema.json#/$defs/safeValue"
+        },
+        "remediations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/remediation"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceReference"
+          }
+        },
+        "documentation": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/artifactReference"
+          }
+        }
+      }
+    },
+    "remediation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "targets",
+        "preconditions",
+        "effectClass",
+        "authorityRequired",
+        "request",
+        "postconditions",
+        "retryPhase"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "provide-input",
+            "select-exact",
+            "request-approval",
+            "retry",
+            "repair",
+            "revise",
+            "stop"
+          ]
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/typedSubject"
+          }
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeValue"
+          }
+        },
+        "effectClass": {
+          "type": "string",
+          "enum": [
+            "none",
+            "candidate-only",
+            "committed"
+          ]
+        },
+        "authorityRequired": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "artifact"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "factory-request",
+                "argument-array",
+                "digested-patch"
+              ]
+            },
+            "artifact": {
+              "$ref": "common.schema.json#/$defs/artifactReference"
+            }
+          }
+        },
+        "postconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeValue"
+          }
+        },
+        "retryPhase": {
+          "$ref": "#/$defs/phase"
+        }
+      }
+    },
+    "continuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "requestDigest",
+        "completedWork",
+        "missingInputs",
+        "choices",
+        "authorityRequirements",
+        "freshnessBindings",
+        "digest"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.continuation/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "requestDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "completedWork": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceReference"
+          }
+        },
+        "missingInputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/missingInput"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/choice"
+          }
+        },
+        "authorityRequirements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "freshnessBindings": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "workspaceDigest",
+            "evidenceDigest"
+          ],
+          "properties": {
+            "lockDigest": {
+              "$ref": "common.schema.json#/$defs/digest"
+            },
+            "workspaceDigest": {
+              "$ref": "common.schema.json#/$defs/digest"
+            },
+            "evidenceDigest": {
+              "$ref": "common.schema.json#/$defs/digest"
+            }
+          }
+        },
+        "digest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        }
+      }
+    },
+    "missingInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "valueKind",
+        "requiredAuthority",
+        "rule"
+      ],
+      "properties": {
+        "identity": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]*$"
+        },
+        "valueKind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "requiredAuthority": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "rule": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        }
+      }
+    },
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputIdentity",
+        "value",
+        "consequence"
+      ],
+      "properties": {
+        "inputIdentity": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]*$"
+        },
+        "value": {
+          "$ref": "common.schema.json#/$defs/safeValue"
+        },
+        "consequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "diagnosticCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "identity",
+        "protocolRevision",
+        "entries"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.diagnostic-catalog/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "identity": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "protocolRevision": {
+          "$ref": "common.schema.json#/$defs/revision"
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/catalogEntry"
+          }
+        }
+      }
+    },
+    "catalogEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "trigger",
+        "violatedInvariant",
+        "category",
+        "defaultSeverity",
+        "messageKey",
+        "parameterDisclosure",
+        "remediationKinds",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]+/[A-Z][A-Z0-9-]*[0-9]{4}$"
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "violatedInvariant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "request",
+            "semantic",
+            "resolution",
+            "policy",
+            "conformance",
+            "workspace",
+            "external",
+            "internal"
+          ]
+        },
+        "defaultSeverity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warning",
+            "error",
+            "fatal"
+          ]
+        },
+        "messageKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]*$"
+        },
+        "parameterDisclosure": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "public",
+              "repository-relative",
+              "withheld"
+            ]
+          }
+        },
+        "remediationKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "deprecated",
+            "retired"
+          ]
+        },
+        "replacementId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]+/[A-Z][A-Z0-9-]*[0-9]{4}$"
+        }
+      }
+    }
+  }
+}
