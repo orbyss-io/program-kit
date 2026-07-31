@@ -510,7 +510,7 @@ Every dimension result records:
 - the component and evaluation-profile revisions;
 - the exact dimension-contract revision and applicability decision;
 - one truthful outcome: `conformant`, `nonconformant`, `incomplete`,
-  `unsupported`, `unavailable`, or `not-applicable`;
+  `unsupported`, `unavailable`, `unknown`, or `not-applicable`;
 - evaluated input digests, toolchain and capability revisions, and evidence;
 - diagnostics containing expected and actual meaning, cause, affected
   identities, impact, and actionable remediation or migration references; and
