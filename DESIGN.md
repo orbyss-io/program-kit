@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
-active-category: product-identity
-active-batch: PID-B05
+active-category: feature-model
+active-batch: FTR-B01
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -69,12 +69,12 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
-| Product identity | `PID` | `active` | 19 | Batch `PID-B05` now distinguishes development-time AI neutrality, deterministic software outputs, canonical platform contracts, and honest compatibility guarantees. |
-| Feature model | `FTR` | `paused` | 17 | Batch `FTR-B01` resumes after Product Identity defines the portable unit and future target-adapter promise. |
-| Semantic language and bounded contexts | `SEM` | `queued` | 14 | Includes provider-native intake normalization and evidence-backed semantic legibility. |
+| Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
+| Feature model | `FTR` | `active` | 17 | Batch `FTR-B01` resumes against the accepted portable-definition, capability, contract, and admissibility boundaries. |
+| Semantic language and bounded contexts | `SEM` | `queued` | 14 | `SEM-013` and `SEM-014` are accepted; remaining questions are queued. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
-| Determinism and generated artifacts | `DET` | `queued` | 10 | Includes the boundary of semi-deterministic behavior. |
+| Determinism and generated artifacts | `DET` | `queued` | 10 | `DET-010` is accepted; remaining deterministic-generation questions are queued. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
 | Dependencies, impact, and migration | `MIG` | `queued` | 12 | Graph truth, compatibility, closure, and evidence. |
 | Governance, enforcement, and self-hosting | `GOV` | `queued` | 12 | Human authority and executable integrity. |
@@ -84,14 +84,13 @@ Counts are a live snapshot, not a quota. New questions are expected.
 
 ## 7. Category progression
 
-Product Identity has been reopened and is recorded in
-[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). Batch `PID-B05` is
-active; previously accepted decisions remain in force unless explicitly
-superseded.
+Product Identity is closed and recorded in
+[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). The human accepted
+all six consolidated recommendations and the qualified product expression.
 
-Feature Model is paused at its corrected thin .NET/CShells boundary in
-[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` resumes
-after the portability and target-adapter identity questions converge.
+Feature Model is active at its corrected thin .NET/CShells boundary in
+[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` now resumes
+under the accepted Product Identity decisions.
 
 ## 8. Queued question catalog
 
@@ -101,15 +100,15 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-`DEC-001` through `DEC-011` remain accepted, but Product Identity is reopened
-for `PID-B05`. `DEC-012` is superseded, and Feature Model candidate `DEC-013`
-remains unresolved.
+Product Identity decisions `DEC-001`–`DEC-011` and `DEC-014`–`DEC-020` are
+accepted. `DEC-012` is superseded. Feature Model candidate `DEC-013` remains
+unresolved as Feature Model convergence resumes.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
 | `DEC-001` | `PID-008` | `accepted` | A Program Kit installation exposes an integrated consumer design, planning, and implementation-plan experience without requiring a separate Spec Kit CLI installation. | 2026-07-31 |
 | `DEC-002` | `PID-008`, `GOV-001` | `accepted` | Program Kit itself is developed with Spec Kit and does not consume its own planning facilities during this redesign. | 2026-07-31 |
-| `DEC-003` | `PID-001` | `accepted` | Program Kit is a human-led, AI-assisted modular software-development tool that translates human intent into bounded, contract-evaluated, semi-deterministic software components; the human contributor retains final authority. | 2026-07-31 |
+| `DEC-003` | `PID-001` | `accepted` | Program Kit is a human-led, AI-assisted modular software-development tool that translates human intent into bounded, contract-evaluated software components; the human contributor retains final authority. The deterministic construction boundary is refined by `DEC-018`. | 2026-07-31 |
 | `DEC-004` | `PID-002`, `PID-011` | `accepted` | Program Kit's non-negotiable promise is governed integration resolution between Program Kit-built products: direct composition, an explicit adapter or migration, or a precise contract-backed incompatibility result; ambiguity is failure. | 2026-07-31 |
 | `DEC-005` | `PID-003`, `PID-010` | `accepted` | Humans, domain experts, developers, and AI may collaborate; the human owns intent and identity-forming approval, while admitted outputs must satisfy currently accepted contracts until explicitly revised and reaccepted. | 2026-07-31 |
 | `DEC-006` | `PID-004` | `accepted` | Program Kit v1 implements .NET projections while keeping semantic contracts free of unnecessary .NET-specific meaning; multi-ecosystem implementation is out of scope. | 2026-07-31 |
@@ -120,6 +119,13 @@ remains unresolved.
 | `DEC-011` | `EXT-013` | `accepted` | The Spec Kit-to-Program Kit adapter is outside the current design; reconsider it only after Program Kit CLI is implemented, independently usable, and published, as a separate optional adapter. | 2026-07-31 |
 | `DEC-012` | `FTR-001`, `FTR-002` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as Program Kit's intended .NET feature mechanism. | — |
 | `DEC-013` | `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `candidate-decision` | Program Kit v1 uses a thin .NET/CShells feature model: features carry concrete implementation identity; interfaces are governed semantic boundaries; immutable kernel mechanics remain Program Kit-owned; and consumers own composition and architecture policies. | — |
+| `DEC-014` | `PID-013` | `accepted` | Applications retain thin declarative intent, selection, profile, policy, migration, and provenance truth; reusable mechanics and generic AI guidance live in versioned Program Kit capabilities; governed local guidance cannot override kernel invariants. | 2026-07-31 |
+| `DEC-015` | `PID-014` | `accepted` | The portable unit is a versioned software-definition bundle with a canonical root manifest and separately governed linked design, implementation, deployment, and evidence artifacts; source code is a governed artifact rather than the canonical portable semantic unit. | 2026-07-31 |
+| `DEC-016` | `PID-015`, `SEM-013` | `accepted` | Explicit capability contracts support canonical-first and provider-first intake, public-contract-only composition, support-bounded mapping, traceable normalization, provider binding until explicit migration, and fail-closed handling of incomplete or unrepresentable meaning. | 2026-07-31 |
+| `DEC-017` | `PID-018` | `accepted` | Core owns contract-system mechanics; separately versioned packages own platform semantics; Program Kit ships a small first-party catalog and permits governed third-party families; canonical scope is always a named family, version, and profile. | 2026-07-31 |
+| `DEC-018` | `PID-019`, `DET-010` | `accepted` | Program Kit guarantees deterministic construction from complete accepted pinned inputs and evidence-backed contract-conformant integration within declared profiles, while runtime availability, deterministic business behavior, and external systems remain outside the guarantee. | 2026-07-31 |
+| `DEC-019` | `SEM-014` | `accepted` | Implementations are admitted only when governance-relevant meaning is human-approved, traceable, and supported by applicable evidence; unknown or unverified behavior may not be presented as semantically understood. | 2026-07-31 |
+| `DEC-020` | `PID-012`, `PID-016`, `PID-017` | `accepted` | Program Kit is an AI-provider-neutral development tool producing ordinary deterministically constructed software with no required AI or Program Kit runtime unless selected. Accepted expression: **AI builds it. Human intent governs it.** | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -132,23 +138,23 @@ answer or tension that created them.
 | `EXT-012` | Program Kit may internally reuse selected Spec Kit techniques | `open` | Define a governed, explicit, pinned, replaceable, non-circular internal composition model. |
 | `EXT-013` | Existing Spec Kit users may benefit from invoking Program Kit at explicit handoff points | `deferred` | Outside current design; revisit only after Program Kit CLI is independently usable and published, then require measurable value and no core coupling. |
 | `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `accepted` | Program Kit owns independent public contracts; optional interoperability uses those contracts. |
-| `DET-010` | Human now describes generated applications as fully deterministic | `follow-up` | Separate repeatable construction from human or AI design judgment and environment-driven runtime behavior. |
+| `DET-010` | Human described generated applications as fully deterministic | `accepted` | Governed by `DEC-018`: deterministic construction and contract-conformant integration are distinct from runtime behavior and availability. |
 | `PLN-001` | Archived planning domain retains serious product value | `open` | Define the canonical planning concepts and lifecycle relations. |
 | `PLN-002` | Archived planning implementation is prior art rather than source truth | `open` | Decide which concepts to retain, re-specify, or discard. |
 | `PLN-003` | Plans integrate with validations, components, and files | `open` | Define stable links and drift behavior. |
 | `PLN-004` | Program Kit enables consumers to design and implement components | `open` | Define the boundary between planning artifacts, orchestration, and execution. |
 | `PID-010` | Human contributor named as governing identity in `PID-001` | `accepted` | Human governs intent; currently accepted contracts govern admitted outputs until explicitly revised and reaccepted. |
 | `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `accepted` | Precise irreconcilability is a resolution; universal composability is not promised. |
-| `PID-012` | Per-application AI instructions create inconsistent development methods and contribution friction | `answered` | Program Kit is an AI-provider-neutral development tool; consolidated identity wording awaits convergence of the remaining batch. |
-| `PID-013` | Reusable AI foundations should not be copied into every application | `follow-up` | Delimit Program Kit-owned reusable guidance from thin, reviewable application-local source truth. |
-| `PID-014` | NuGet analogy and cross-technology composition introduce a portability promise | `follow-up` | Define the canonical portable software definition consumed by target capabilities. |
-| `PID-015` | Target projection accepted as a deterministic development-capability mapping | `follow-up` | Define the mandatory input, output, support-envelope, evidence, diagnostics, composition, and migration contract. |
-| `PID-016` | The common development method should work whatever the AI model | `answered` | Public workflow contracts are provider-neutral; generated products have no required AI or Program Kit runtime dependency. |
-| `PID-017` | Program Kit familiarity should transfer across otherwise unfamiliar applications | `answered` | Common platform contracts and development mechanics provide fluency while consumer domain and architecture remain consumer-owned. |
-| `PID-018` | Canonical contracts should glue recurring platform concerns across provider implementations | `follow-up` | Define ecosystem-global scope, core-versus-package ownership, contract families, profiles, and first-party catalog responsibility. |
-| `PID-019` | Compatible middleware and token exchanges should be stable, predictable, and always working | `follow-up` | Define the evidence-backed support envelope without promising immunity from external runtime failure. |
-| `SEM-013` | Provider capabilities expose familiar consumer contracts before mapping to canonical contracts | `follow-up` | Define provider-first and canonical-first intake, required-field completion, traceable normalization, extension facets, and migration behavior. |
-| `SEM-014` | Human governance should understand admitted implementation meaning through the semantic layer | `follow-up` | Define minimum semantic coverage, admissibility evidence, drift behavior, and which decisions need no routine source inspection. |
+| `PID-012` | Per-application AI instructions create inconsistent development methods and contribution friction | `accepted` | Governed by `DEC-020`: Program Kit is an AI-provider-neutral development tool producing ordinary deterministically constructed software. |
+| `PID-013` | Reusable AI foundations should not be copied into every application | `accepted` | Governed by `DEC-014`: applications retain thin declarative truth; reusable guidance remains in versioned capabilities. |
+| `PID-014` | NuGet analogy and cross-technology composition introduce a portability promise | `accepted` | Governed by `DEC-015`: the portable unit is a versioned software-definition bundle with a canonical root manifest. |
+| `PID-015` | Target projection accepted as a deterministic development-capability mapping | `accepted` | Governed by `DEC-016`: capability mappings are explicit, public, support-bounded, traceable, and fail closed. |
+| `PID-016` | The common development method should work whatever the AI model | `accepted` | Governed by `DEC-020`: public workflow contracts are provider-neutral and generated products need no AI runtime. |
+| `PID-017` | Program Kit familiarity should transfer across otherwise unfamiliar applications | `accepted` | Governed by `DEC-020`: common platform contracts and development mechanics provide cross-application fluency. |
+| `PID-018` | Canonical contracts should glue recurring platform concerns across provider implementations | `accepted` | Governed by `DEC-017`: core owns contract mechanics; versioned packages own platform semantics. |
+| `PID-019` | Compatible middleware and token exchanges should be stable, predictable, and always working | `accepted` | Governed by `DEC-018`: no ambiguous mismatch inside the declared support envelope; external runtime failure remains possible. |
+| `SEM-013` | Provider capabilities expose familiar consumer contracts before mapping to canonical contracts | `accepted` | Governed by `DEC-016`: canonical-first and provider-first intake preserve traceable meaning and migration boundaries. |
+| `SEM-014` | Human governance should understand admitted implementation meaning through the semantic layer | `accepted` | Governed by `DEC-019`: admission requires human-approved, traceable, applicable evidence. |
 | `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
 | `FTR-015` | The generic contract/implementation/component cardinality model was rejected | `follow-up` | Separate concrete feature identity from interface identity and decide whether consumer policy alone governs cardinality. |
 | `FTR-016` | Consumers own architecture rules without control over Program Kit's immutable mechanics | `follow-up` | Delimit kernel invariants, consumer policies, and explicit adoption of default profiles. |
@@ -263,3 +269,18 @@ answer or tension that created them.
 - Added `SEM-014` for semantic coverage, admissibility, and the boundary of
   governance without routine source inspection.
 - No new product decision was marked accepted.
+
+### 2026-07-31 — Reopened Product Identity recommendations accepted
+
+- The human explicitly accepted all six consolidated recommendations.
+- Accepted `DEC-014` through `DEC-019` for application-local truth, the
+  portable software-definition bundle, deterministic capability and intake
+  mappings, canonical platform-contract ownership, deterministic construction
+  and compatibility guarantees, and semantic admissibility.
+- Accepted `DEC-020` for the refined AI-provider-neutral development-tool
+  identity and the expression **AI builds it. Human intent governs it.**
+- Closed `PID-B05`; all nineteen Product Identity questions are now closed.
+- Marked linked `DET-010`, `SEM-013`, and `SEM-014` accepted so later
+  category work must preserve their already-set boundaries.
+- Resumed Feature Model batch `FTR-B01`; candidate `DEC-013` remains
+  unaccepted and requires explicit convergence.

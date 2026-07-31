@@ -106,13 +106,14 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1, 2, and 8 are accepted Product Identity decisions governed by the
-decision register in `DESIGN.md`. Items 3 through 7 remain provisional until
-their respective categories converge.
+Items 1, 2, and 6 through 15 are accepted decisions governed by the decision
+register in `DESIGN.md`. Items 3 through 5 remain provisional until their
+respective categories converge.
 
 1. Program Kit is a human-led, AI-assisted modular software-development tool
-   that translates human intent into bounded, contract-evaluated,
-   semi-deterministic software components.
+   that translates human intent into bounded, contract-evaluated software.
+   Construction becomes deterministic after the required intent is accepted and
+   all construction inputs are complete and pinned.
 2. Its non-negotiable promise is governed integration resolution between
    Program Kit-built products: direct compatibility, an explicit adapter or
    migration, or a precise contract-backed incompatibility result.
@@ -139,3 +140,33 @@ their respective categories converge.
    uses Spec Kit directly and remains non-self-hosted. An optional external
    Spec Kit bridge may use only Program Kit's public contracts. Exact integration
    packaging remains an Extensions decision.
+9. Applications retain a thin declarative source of truth for human intent,
+   domain semantics, selections, profiles, policies, approvals, exceptions,
+   migrations, and effective-capability provenance. Reusable mechanics and
+   generic AI guidance remain in versioned Program Kit capabilities. Local
+   guidance is governed and cannot override kernel invariants.
+10. The portable unit is a versioned software-definition bundle with a canonical
+    root manifest and separately governed linked design, implementation,
+    deployment, and evidence artifacts. Source code is governed but is not the
+    canonical portable semantic unit.
+11. Capabilities expose explicit, versioned, support-bounded public contracts.
+    Canonical-first and provider-first intake are both supported; provider-first
+    selection binds until explicit migration. Every normalization is traceable
+    and fails closed rather than silently losing meaning.
+12. Program Kit core owns contract-system mechanics. Separately versioned
+    packages own platform semantics. Program Kit ships a small first-party
+    platform-contract catalog and permits governed third-party families.
+    Canonical scope always names a contract family, version, and profile.
+13. Complete, accepted, pinned inputs deterministically construct software and
+    produce evidence-backed contract-conformant integration inside declared
+    support profiles. Runtime availability, deterministic business behavior, and
+    external systems are outside that guarantee.
+14. An implementation is admitted only when its governance-relevant meaning is
+    human-approved, traceable to artifacts, and supported by applicable
+    evidence. Unknown, undeclared, inferred-only, unverified, stale, or drifted
+    behavior may not be presented as understood.
+15. Program Kit is AI-provider-neutral and produces ordinary software with no
+    required AI or Program Kit runtime unless selected. Its accepted expression
+    is **AI builds it. Human intent governs it.** Every admitted implementation
+    is legible through human-approved semantic contracts, traceability, and
+    verifiable evidence.

@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: product-identity
-status: active
+status: closed
 last-updated: 2026-07-31
-active-batch: PID-B05
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -29,7 +29,7 @@ target adapters.
 | `PID-B02` | `PID-003`–`PID-005` | `completed` | Authorship, ecosystem scope, and first-hour proof accepted. |
 | `PID-B03` | `PID-006`–`PID-007` | `completed` | Deliberate refusals and toolchain identity accepted. |
 | `PID-B04` | `PID-009`–`PID-011` | `completed` | Public contract, authority precedence, and integration resolution accepted. |
-| `PID-B05` | `PID-012`–`PID-019` | `active` | Provider-neutral development, instruction ownership, portable software definitions, deterministic capability mappings, canonical platform contracts, and honest compatibility guarantees. |
+| `PID-B05` | `PID-012`–`PID-019` | `completed` | Provider-neutral development, instruction ownership, portable software definitions, deterministic capability mappings, canonical platform contracts, and honest compatibility guarantees accepted. |
 
 ### 7.3 Product identity questions and decision records
 
@@ -278,7 +278,7 @@ the category was closed.
 
 #### PID-012 — Uniform AI-development protocol as product identity
 
-- **Status:** `answered`
+- **Status:** `accepted`
 - **Origin:** The human identified inconsistent, application-local AI
   instructions and development foundations as perhaps the largest problem
   Program Kit should solve.
@@ -298,12 +298,12 @@ the category was closed.
   the result is judged. For now, "common language" means this explicit protocol
   and semantic toolchain, not a claim that Program Kit already has the formal
   programming language required by `DEC-009`.
-- **Resolution:** Answered by the clarification in section 7.5; consolidated
-  identity wording remains unaccepted until the current batch converges.
+- **Accepted decision:** `DEC-020`; the consolidated identity wording is
+  recorded in section 7.5.
 
 #### PID-013 — Repository-local versus Program Kit-owned AI guidance
 
-- **Status:** `follow-up`
+- **Status:** `accepted`
 - **Origin:** The human wants AI-instruction clutter and duplicated development
   foundations to stop living independently inside every application.
 - **Question:** Which information must remain with an application as its
@@ -321,12 +321,12 @@ the category was closed.
   with hidden global state and make historical builds difficult to reproduce.
   Keeping generated copies of all generic instructions would preserve the
   duplication problem.
-- **Decision needed:** Confirm the thin-local-manifest boundary or state what
-  application-specific AI instruction, if any, may exist outside it.
+- **Accepted decision:** `DEC-014`; the precise application-local source-truth
+  and governed local-guidance boundary is recorded in section 7.5.
 
 #### PID-014 — The portable unit behind the NuGet analogy
 
-- **Status:** `follow-up`
+- **Status:** `accepted`
 - **Origin:** The human compared the desired ecosystem to NuGet and described
   complex products as containers composed from many applications, APIs, and
   technologies.
@@ -340,12 +340,12 @@ the category was closed.
   Target-specific source and runtime artifacts are portable only where an
   explicit adapter declares and validates a mapping. Do not imply that arbitrary
   .NET code can be mechanically converted into an arbitrary ecosystem.
-- **Decision needed:** Select the canonical portable unit before Feature Model
-  identity, package format, or adapter contracts are finalized.
+- **Accepted decision:** `DEC-015`; the portable unit is a versioned bundle with
+  a canonical root manifest and separately governed linked artifacts.
 
 #### PID-015 — Reusable target-adapter promise
 
-- **Status:** `follow-up`
+- **Status:** `accepted`
 - **Origin:** A WordPress adapter was offered as an example of target knowledge
   implemented once and reused by anyone exporting Program Kit features as
   plugins.
@@ -362,12 +362,12 @@ the category was closed.
   stress tests. This does not require changing the accepted .NET-only
   implementation scope of Program Kit v1, but it may impose portability
   requirements on contracts and manifests designed in v1.
-- **Decision needed:** Confirm the capability-profile boundary and whether
-  future target portability must constrain v1 contracts.
+- **Accepted decision:** `DEC-016`; deterministic capability mappings are
+  explicit, versioned, support-bounded, traceable, and fail closed.
 
 #### PID-016 — AI model and provider neutrality
 
-- **Status:** `answered`
+- **Status:** `accepted`
 - **Origin:** The intended development method should work "whatever the model."
 - **Question:** Must Program Kit's canonical workflow remain usable through any
   conforming AI provider and also through humans or automation without an AI
@@ -378,12 +378,12 @@ the category was closed.
   while model, provider, adapter, and version are recorded as execution
   provenance. The deterministic kernel remains operable without a model; AI is a
   collaborating client, not hidden semantic authority.
-- **Resolution:** Provider neutrality and non-AI operability were explicitly
-  confirmed and are synthesized in section 7.5.
+- **Accepted decision:** `DEC-020`; provider neutrality and non-AI operability
+  are synthesized in section 7.5.
 
 #### PID-017 — What contributors may assume across applications
 
-- **Status:** `answered`
+- **Status:** `accepted`
 - **Origin:** Developers should contribute more easily to unfamiliar
   Program Kit-built applications because they understand the tool used to
   develop them.
@@ -395,8 +395,8 @@ the category was closed.
   evidence, and integration outcomes. Do not standardize domain vocabulary,
   application architecture, framework choices, or composition policies unless
   the consumer explicitly adopts a profile.
-- **Resolution:** The intent is answered. Canonical contract ownership and the
-  precise guarantee are now tracked by `PID-018`, `PID-019`, and `SEM-013`.
+- **Accepted decision:** `DEC-020`; its contract and guarantee consequences are
+  governed by `DEC-016` through `DEC-019`.
 
 ### 7.5 Current refinement: deterministic software and canonical platform contracts
 
@@ -426,24 +426,24 @@ clarification without erasing the initial questions in section 7.4.
   contract so compatible UIs, APIs, middleware, and token flows share stable
   meaning.
 - The same philosophy is intended for platform concerns such as APIs,
-  middleware, OpenTelemetry, secrets, and configuration. The exact contract
-  families and ownership model remain unresolved.
+  middleware, OpenTelemetry, secrets, and configuration. The contract-system
+  ownership model is accepted below; exact catalog contents remain later work.
 
-`PID-012`, `PID-016`, and the intent of `PID-017` are now
-`answered`, not accepted decisions. The current proposed identity wording is:
+`PID-012`, `PID-016`, and `PID-017` are accepted. The accepted identity
+refinement is:
 
 > Program Kit is an AI-provider-neutral software-development tool that turns
-> human-approved software definitions into deterministic, contract-evaluated
-> applications and supporting artifacts through explicit, versioned
-> capabilities. Generated products are ordinary software and require neither AI
-> nor Program Kit at runtime unless explicitly selected. Canonical platform
-> contracts and target mappings provide governed integration across supported
-> implementations.
+> human-approved software definitions into deterministically constructed,
+> contract-evaluated applications and supporting artifacts through explicit,
+> versioned capabilities. Generated products are ordinary software and require
+> neither AI nor Program Kit at runtime unless explicitly selected. Canonical
+> platform contracts and target mappings provide governed integration across
+> supported implementations.
 
-This wording remains a synthesis for human confirmation after the questions
-below converge.
+This wording and the product expression in section 7.6 are governed by
+`DEC-020`.
 
-#### Revised unanswered question 1 — Application-local source truth (`PID-013`)
+#### Accepted recommendation 1 — Application-local source truth (`PID-013`)
 
 - **Question:** What is the smallest durable Program Kit record that must live
   with an application, and may teams add provider-specific AI instructions
@@ -455,11 +455,11 @@ below converge.
   generators, validators, and provider bindings in versioned Program Kit
   distributions. Record a reproducible effective-capability manifest rather than
   copying their full instruction text into every repository.
-- **Decision needed:** Confirm this boundary and whether local AI guidance is
-  permitted, discouraged, or prohibited outside explicit Program Kit extension
-  points.
+- **Accepted decision:** `DEC-014`. Local AI guidance is permitted only as an
+  identified, scoped, versioned consumer extension and cannot override Program
+  Kit kernel invariants.
 
-#### Revised unanswered question 2 — Canonical portable software definition (`PID-014`)
+#### Accepted recommendation 2 — Canonical portable software definition (`PID-014`)
 
 - **Question:** What exact authored object may one deterministic capability hand
   to another: a design and contract graph, a feature-selection manifest, an
@@ -475,11 +475,11 @@ below converge.
   compile a .NET API using a selected Keycloak implementation of an OpenID
   Connect contract. A future WordPress capability consumes a supported software
   definition and emits a governed plugin.
-- **Decision needed:** Confirm whether this software definition is the portable
-  unit or whether design, implementation, and deployment definitions must remain
-  separate linked artifacts.
+- **Accepted decision:** `DEC-015`. The portable unit is a versioned bundle with
+  a canonical root manifest and separately governed linked design,
+  implementation, deployment, and evidence artifacts.
 
-#### Revised unanswered question 3 — Deterministic capability-mapping contract (`PID-015`)
+#### Accepted recommendation 3 — Deterministic capability-mapping contract (`PID-015`)
 
 - **Question:** What must every development capability declare so humans and AI
   sessions can invoke it safely and Program Kit can compose it deterministically?
@@ -489,13 +489,13 @@ below converge.
   stages; preconditions and postconditions; validation and conformance evidence;
   diagnostic codes with corrective guidance; provenance; compatibility and
   migration rules; and an explicit unsupported result.
-- **Decision needed:** Confirm this minimum mapping contract and whether
-  capabilities may invoke other capabilities only through the same public
-  contract.
+- **Accepted decision:** `DEC-016`. Every capability declares this mapping
+  contract and may invoke other capabilities only through the same public
+  contract; hidden capability coupling is prohibited.
 
-#### PID-018 — Ownership and shape of canonical platform contracts
+#### Accepted recommendation 4 — Canonical platform contracts (`PID-018`)
 
-- **Status:** `follow-up`
+- **Status:** `accepted`
 - **Origin:** The human wants provider implementations for OpenID Connect and
   other recurring platform concerns to map to global canonical contracts that
   form the glue between software components.
@@ -517,13 +517,13 @@ below converge.
   categories that may require several composable contracts rather than one
   universal contract each. External standards should be referenced rather than
   silently redefined.
-- **Decision needed:** Confirm the core-versus-contract-package ownership model,
-  and decide whether Program Kit ships an initial first-party platform-contract
-  catalog.
+- **Accepted decision:** `DEC-017`. Core owns the contract system; separately
+  versioned packages own platform semantics; Program Kit ships a small
+  first-party catalog and permits governed third-party families.
 
 #### SEM-013 — Provider-native intake and canonical normalization
 
-- **Status:** `follow-up`
+- **Status:** `accepted`
 - **Origin:** The human clarified that a provider such as Keycloak exposes a
   consumer-facing contract because every development capability starts from an
   intake and users may describe intent using provider concepts they already
@@ -545,13 +545,13 @@ below converge.
 - **Migration consequence:** Provider-native intent should remain linked to the
   normalized contract so Program Kit can calculate which meaning is portable
   when changing from Keycloak to Entra ID or another implementation.
-- **Decision needed:** Confirm the dual-contract model, both intake paths, and
-  whether provider-first intake intentionally fixes the provider until an
-  explicit migration is performed.
+- **Accepted decision:** `DEC-016`. Both intake paths are supported;
+  provider-first intake binds its provider until explicit migration while all
+  portable and provider-specific meaning remains traceable.
 
-#### PID-019 — Meaning of stable, predictable, and always working
+#### Accepted recommendation 5A — Compatibility guarantee (`PID-019`)
 
-- **Status:** `follow-up`
+- **Status:** `accepted`
 - **Origin:** The human requires middleware and token exchanges across compatible
   APIs and UIs to remain stable, predictable, and working regardless of whether
   Entra ID, Keycloak, or another provider implements the canonical contract.
@@ -566,11 +566,11 @@ below converge.
   promise uninterrupted runtime availability or undocumented provider behavior;
   instead generate explicit health, telemetry, and operational diagnostics where
   the selected contracts require them.
-- **Decision needed:** Confirm that "always working" means no known or ambiguous
-  contract mismatch inside the declared support envelope, not immunity from
-  external runtime failure.
+- **Accepted decision:** `DEC-018`. "Always working" means no known or ambiguous
+  contract mismatch inside the declared support envelope; it does not promise
+  immunity from external runtime failure.
 
-#### Revised unanswered question 6 — Determinism boundary (`DET-010`)
+#### Accepted recommendation 5B — Determinism boundary (`DET-010`)
 
 - **Question:** Does "fully deterministic applications" mean that accepted,
   complete, and pinned software definitions produce repeatable graphs, source,
@@ -581,10 +581,10 @@ below converge.
   declared parameters, not hidden inputs. Never describe an application's
   business or runtime behavior as deterministic merely because its construction
   was deterministic.
-- **Decision needed:** Confirm or refine the distinction between deterministic
-  construction, contract-conformant integration, and runtime behavior.
+- **Accepted decision:** `DEC-018`; deterministic construction,
+  contract-conformant integration, and runtime assurance are distinct claims.
 
-### 7.6 Candidate product expression: human-governed semantic legibility
+### 7.6 Accepted product expression: human-governed semantic legibility
 
 - **Human input:** "Program Kit enables AI to build software that can truly be
   governed by intent by humans, so that any code implementation can be
@@ -596,16 +596,16 @@ below converge.
   evidence. Semantic legibility supports ordinary design, integration, impact,
   migration, and operational decisions; it does not make debugging, security
   review, performance analysis, or source inspection permanently unnecessary.
-- **Candidate slogan:** **AI builds it. Human intent governs it.**
-- **Candidate supporting promise:** Every admitted implementation is legible
+- **Accepted product expression:** **AI builds it. Human intent governs it.**
+- **Accepted supporting promise:** Every admitted implementation is legible
   through human-approved semantic contracts, traceability, and verifiable
   evidence.
-- **Status:** Candidate language only; not an accepted decision.
+- **Status:** Accepted by `DEC-020`.
 
-#### SEM-014 — Semantic legibility and coverage
+#### Accepted recommendation 6 — Semantic legibility and coverage (`SEM-014`)
 
-- **Status:** `follow-up`
-- **Origin:** The candidate product expression requires humans to understand and
+- **Status:** `accepted`
+- **Origin:** The accepted product expression requires humans to understand and
   govern implementation meaning through a semantic layer without routinely
   reading source code.
 - **Question:** Which implementation facts must the semantic layer expose for a
@@ -622,6 +622,22 @@ below converge.
 - **Authority rule:** Semantics may be proposed from code, but inferred meaning
   does not become governing intent until a human approves it. Code conformance
   is then evaluated against the accepted semantic contract.
-- **Decision needed:** Define the minimum semantic coverage, the admissibility
-  threshold, and the decisions humans should be able to make without source
-  inspection.
+- **Accepted decision:** `DEC-019`. The semantic layer covers governance-relevant
+  meaning and admission requires human-approved, traceable, applicable evidence;
+  unknown or unverified behavior may not be presented as understood.
+
+### 7.7 Accepted decisions from `PID-B05`
+
+The human explicitly accepted all six consolidated recommendations on
+2026-07-31. The preferred product expression and its qualified supporting
+promise were accepted with them.
+
+| Decision | Sources | Accepted decision |
+|---|---|---|
+| `DEC-014` | `PID-013` | Applications retain a thin declarative source of truth for intent, domain semantics, selected contracts, capabilities, implementations, targets, exact versions, configuration and infrastructure profiles, policies, approvals, exceptions, migrations, and effective-capability provenance. Reusable workflows, generators, validators, diagnostics, and generic AI guidance live in versioned Program Kit capabilities. Local guidance is allowed only as an identified, scoped, versioned consumer extension and cannot override kernel invariants. |
+| `DEC-015` | `PID-014` | The portable unit is a versioned software-definition bundle with a canonical root manifest and separately governed linked design, implementation, deployment, and evidence artifacts. Source code is a governed artifact, not the canonical portable semantic unit; capabilities consume explicit views of the bundle. |
+| `DEC-016` | `PID-015`, `SEM-013` | Capabilities expose explicit, versioned, support-bounded mapping contracts and compose only through public contracts. Canonical-first and provider-first intake are supported. Provider-first intake binds the provider until explicit migration; normalization preserves a trace of supplied, defaulted, derived, transformed, provider-specific, and unmapped meaning and fails closed rather than discarding meaning. |
+| `DEC-017` | `PID-018` | Program Kit core owns contract identity, versioning, registration, selection, profiles, compatibility, conformance, evidence, diagnostics, and migration mechanics. Separately versioned packages own platform semantics. Program Kit ships a small first-party platform-contract catalog and permits governed third-party families. Canonical scope is a named family, version, and profile, never an implicit universal lowest common denominator. |
+| `DEC-018` | `PID-019`, `DET-010` | Program Kit guarantees deterministic construction from complete, accepted, pinned inputs and evidence-backed contract-conformant integration within declared support profiles. Human or AI judgment precedes acceptance; missing inputs are not guessed; secrets and environment values are declared late-bound parameters. Runtime health and diagnostics are governed where selected, but uninterrupted availability, deterministic business behavior, and external systems are not guaranteed. |
+| `DEC-019` | `SEM-014` | An implementation is admitted only when its governance-relevant meaning is human-approved, traceable to its artifacts, and supported by all applicable evidence. Unknown, undeclared, inferred-only, unverified, stale, or drifted behavior may not be presented as semantically understood. Semantic legibility supports governance without making source inspection unnecessary for debugging, security, or performance work. |
+| `DEC-020` | `PID-012`, `PID-016`, `PID-017` | Program Kit is an AI-provider-neutral development tool whose generated products are ordinary, deterministically constructed software with no required AI or Program Kit runtime unless selected. Its accepted expression is **AI builds it. Human intent governs it.** Its supporting promise is: **Every admitted implementation is legible through human-approved semantic contracts, traceability, and verifiable evidence.** |

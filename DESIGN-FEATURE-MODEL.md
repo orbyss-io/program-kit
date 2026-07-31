@@ -1,7 +1,7 @@
 ---
 artifact-kind: program-kit-design-category
 category: feature-model
-status: paused
+status: active
 last-updated: 2026-07-31
 active-batch: FTR-B01
 parent-ledger: DESIGN.md
@@ -36,9 +36,10 @@ The current boundary is:
 - React or other targets may later reuse this philosophy through specialized
   target support, but they do not make the current model universal.
 
-Discovery is paused at this boundary while Product Identity batch `PID-B05`
-defines the portable unit, model-neutral development protocol, and future target
-adapter promise. `DEC-013` remains a candidate and is not implicitly accepted.
+Discovery resumes after Product Identity batch `PID-B05` accepted the portable
+software-definition bundle, capability mappings, canonical contract ownership,
+determinism boundary, and semantic admissibility rules. `DEC-013` remains a
+candidate and is not implicitly accepted.
 
 Clarification recorded while paused: CShells is a target-specific .NET mechanism
 used by generated components and hosts for DI participation. Other targets use
