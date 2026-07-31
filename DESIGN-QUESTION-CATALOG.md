@@ -81,6 +81,14 @@ record the revision or supersession rather than silently deleting it.
 - **SEM-012:** What precisely bounds a bounded implementation context: feature
   closure, file, package, dependency boundary, authority boundary, or a defined
   combination?
+- **SEM-013:** How do provider-native consumer intake contracts normalize into
+  canonical platform contracts without losing meaning, and must Program Kit
+  support both provider-first intent and provider-neutral intent with later
+  implementation selection?
+- **SEM-014:** Which implementation facts must the semantic layer expose for
+  human governance without routine source inspection, and what admissibility
+  evidence proves relevant code behavior is represented rather than unknown,
+  inferred-only, omitted, stale, or drifted?
 
 ### 8.3 Extensions and composition
 
@@ -134,9 +142,10 @@ record the revision or supersession rather than silently deleting it.
   generation manifest be sufficient evidence?
 - **DET-009:** Are deterministic claims always byte-level, or may an explicitly
   named semantic-equivalence claim be made?
-- **DET-010:** What does "semi-deterministic" mean operationally: which stages
-  may use human or AI judgment, and after which acceptance boundary must
-  Program Kit guarantee repeatable mechanics, outputs, validation, and evidence?
+- **DET-010:** What does "fully deterministic applications" mean operationally:
+  after which acceptance boundary must complete, pinned software definitions
+  produce repeatable graphs, source, artifacts, builds, validation, and evidence,
+  and which human or AI design decisions and runtime behavior remain outside?
 
 
 ### 8.5 Diagnostics and AI guidance

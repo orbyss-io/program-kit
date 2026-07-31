@@ -79,6 +79,30 @@ design.
   technologies, while reusable target adapters encode integration knowledge
   once. A future WordPress adapter that projects supported Program Kit features
   into governed plugins is an illustrative stress test, not a v1 commitment.
+- Program Kit's AI-provider-neutral workflow is a development-time concern.
+  Generated products are ordinary software and need no AI agent, MCP surface, or
+  Program Kit runtime unless explicitly selected.
+- Target composition mechanics are capability-owned: CShells and DI
+  participation for .NET are one mechanism; module loading or other native
+  patterns apply to other targets.
+- Canonical platform contracts are intended to normalize recurring technical
+  concerns across implementations. Entra ID, Keycloak, and other providers
+  should map to a versioned OpenID Connect contract so compatible UIs, APIs,
+  middleware, and token flows share governed meaning.
+- APIs, middleware, OpenTelemetry, secrets, and configuration are additional
+  platform-contract candidates. Their exact contract families, ownership,
+  conformance profiles, and guarantee envelopes remain unresolved.
+- Provider capabilities may expose provider-native consumer intake contracts so
+  users can express intent through familiar concepts. Required input is collected
+  and validated before a traceable mapping into the canonical platform contract.
+  Provider-first and canonical-first intent paths, lossless normalization,
+  provider-specific extension facets, and migration behavior still need
+  convergence.
+- The preferred product expression is "AI builds it. Human intent governs it."
+  Its supporting promise is that every admitted implementation is legible through
+  human-approved semantic contracts, traceability, and verifiable evidence.
+  "Admitted" is essential: the semantic layer does not claim complete knowledge
+  of arbitrary, undeclared, unverified, inferred-only, stale, or drifted code.
 
 ## 5. Accepted foundations and provisional synthesis
 

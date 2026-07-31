@@ -40,6 +40,12 @@ Discovery is paused at this boundary while Product Identity batch `PID-B05`
 defines the portable unit, model-neutral development protocol, and future target
 adapter promise. `DEC-013` remains a candidate and is not implicitly accepted.
 
+Clarification recorded while paused: CShells is a target-specific .NET mechanism
+used by generated components and hosts for DI participation. Other targets use
+their native mechanics, such as module loading. Those mechanics belong to
+deterministic target capabilities and do not make CShells—or any target's
+composition model—the universal feature abstraction.
+
 ## 2. Batch register
 
 | Batch | Items | Status | Purpose |
