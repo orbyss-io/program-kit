@@ -424,7 +424,110 @@ resolution or the immutable lock.
 
 No `FTR-B04` answer is implied by accepting `DEC-022`.
 
-## 10. Revision record
+## 10. Draft recommendations for human review
+
+These recommendations are recorded but remain **unaccepted** until the human
+confirms or revises them. They keep the canonical feature definition thin while
+making contract evaluation explicit, multidimensional, and useful to humans and
+AI sessions.
+
+### FTR-013 — Thin mandatory feature definition
+
+**Recommendation:** The canonical feature definition is a small immutable
+manifest of identity and exact references. It does not duplicate design
+documents, contracts, source code, artifact metadata, evidence, diagnostics, or
+migration procedures that have their own governed records.
+
+Its mandatory fields are:
+
+| Field | Minimum rule |
+|---|---|
+| `schemaRevision` | Exact identity, version, and digest of the feature-definition schema. |
+| `featureRevision` | Canonical feature identity, human-facing version, and content digest. |
+| `authorityRevision` | Exact issuing authority or ownership record. Current stewardship may change only through separately governed transfer evidence. |
+| `purpose` | Concise human-approved statement of the capability's governed purpose, plus an exact accepted-intent reference when fuller intent exists. |
+| `targetProfileRevision` | Exact target construction profile, such as the accepted .NET 10 and CShells profile. |
+| `provides` | Explicit array of provided interface and contract revision references; an empty array is valid. |
+| `requires` | Explicit array of required interface or contract constraints; construction resolves them exactly in the resolution lock. |
+| `relations` | Explicit references to contract-typed relation records; an empty array is valid. |
+| `implementation` | Explicit disposition and zero or more implementation-binding references. The disposition preserves planned, unavailable, unsupported, or otherwise unresolved states without inventing artifacts. |
+| `supportEnvelopeRevisions` | Exact compatibility and support-envelope references applicable to this feature revision. |
+| `evaluationProfileRevisions` | Exact profiles that declare the contract dimensions and policy gates required for evaluation. |
+| `governance` | Exact approval, provenance, exception, and mandatory policy references needed to establish authority and traceability. |
+
+Every field is structurally present. Empty, unknown, unavailable,
+not-applicable, and unresolved are distinct dispositions where the field schema
+permits them; omission never silently means one of those states. A construction
+or admission stage fails closed when its required disposition is unresolved.
+
+Artifacts, components, packages, evidence, diagnostics, and migrations remain
+reachable through the implementation binding, evaluation result, typed
+relations, and provenance records. This preserves the accepted minimum meaning
+from `FTR-003` without copying those records into the feature definition.
+Component membership is owned by the component composition record, preventing
+two mutable sources of truth.
+
+Mutable workflow or admission status is not stored inside an immutable feature
+revision. Planning records describe intended work; evaluation and admission
+records describe what has actually been proven.
+
+### FTR-014 — Named multidimensional component evaluation profile
+
+**Recommendation:** A bounded component does not evaluate against one vague
+monolithic contract or against every conceivable contract dimension. It
+evaluates against one exact, named, versioned **evaluation profile** containing
+the applicable contract dimensions and policy gates for that component kind,
+target, interfaces, bindings, and support envelope.
+
+Program Kit kernel always enforces a non-removable admission baseline:
+
+- identity, revision, and digest integrity;
+- resolvable reference and dependency closure or explicit unresolved state;
+- exact selection, package, capability, toolchain, and input provenance;
+- complete applicability accounting for required dimensions;
+- fresh, applicable evidence bound to the evaluated revisions; and
+- truthful structured diagnostics and overall admission status.
+
+The selected evaluation profile then names exact dimension-contract revisions.
+First-party profiles may use conventional dimensions such as semantic meaning,
+interface or behavior, compatibility, dependencies and composition,
+integration, target and artifact construction, security or other policy,
+deployment and operations, and migration. These are not a closed kernel enum.
+Contract packages and consumer profiles own their schemas, rules, applicability,
+and extension dimensions.
+
+A component's evaluation set is derived deterministically from its explicit
+component kind, contained feature revisions, provided and required interfaces,
+bindings, target profile, support envelopes, and adopted policies. A dimension
+may be omitted only when the selected profile proves it is outside the declared
+support envelope. `not-applicable` requires a profile-authorized rationale; it
+is not equivalent to untested or unknown. Consumer policy may add stricter
+dimensions but cannot remove the kernel baseline or obligations introduced by
+selected contracts.
+
+Every dimension result records:
+
+- the component and evaluation-profile revisions;
+- the exact dimension-contract revision and applicability decision;
+- one truthful outcome: `conformant`, `nonconformant`, `incomplete`,
+  `unsupported`, `unavailable`, or `not-applicable`;
+- evaluated input digests, toolchain and capability revisions, and evidence;
+- diagnostics containing expected and actual meaning, cause, affected
+  identities, impact, and actionable remediation or migration references; and
+- freshness and invalidation data so changed inputs cannot reuse stale proof.
+
+The aggregate result is not a Boolean. A component is admitted only when all
+kernel gates and mandatory applicable dimensions are conformant and no required
+evidence is incomplete, unavailable, unsupported, unknown, or stale. Otherwise
+Program Kit returns the exact dimension results and next actions. This
+evaluation report is the meaningful response consumed by humans, automation,
+and AI sessions; an exception or generic failure message is never sufficient.
+
+The semantic layer therefore describes only what the selected contracts and
+fresh evidence admit. Undeclared or unverified implementation behavior remains
+explicitly outside Program Kit's claimed understanding.
+
+## 11. Revision record
 
 - The human rejected the generic contract/implementation/component ontology,
   built-in cross-domain bridge policy, and built-in interface-role taxonomy.
