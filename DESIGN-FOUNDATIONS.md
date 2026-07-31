@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 32 are accepted decisions governed by the
+Items 1 through 3 and 6 through 33 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -512,3 +512,37 @@ respective categories converge.
     profiles may strengthen policy and define policy applicability/waivability
     but cannot downgrade kernel gates or disclosure; profile change is
     identity-forming and authorized.
+33. V1's local-first security floor forbids secrets in source, canonical
+    artifacts, locks, diagnostics, provenance, SBOMs, fixtures, and logs; and
+    permits no telemetry, source upload, or network access by default. External
+    processes, network, credentials, and filesystem effects are declared,
+    bounded, authorized, and evidenced. Direct/transitive dependencies, package
+    sources, toolchain, templates, and inputs are exact, locked, attributable,
+    and fail on drift or unapproved sources.
+    Release evidence identifies source, SDK/tools, construction identity,
+    dependency locks, provider/catalog digests, tests/gates, and released
+    artifact digests. Vulnerability/license evidence identifies scanner and
+    database revision; unavailable or stale scans are never clean. Program Kit
+    CLI and first-party executable-provider releases include deterministic SBOMs
+    under an exact selected standard. Consumer SBOMs follow selected target
+    profiles. V1 claims no package signing; digests and unsigned/externally
+    attested posture remain explicit until identity and key custody exist.
+    Kernel, CLI, first-party .NET providers, and initial generated .NET profile
+    target `net10.0` and stable C# with no preview features. One exact supported
+    SDK patch is pinned without ambient roll-forward and updated only through a
+    reviewed evidence-regenerating change. Support end triggers a new human
+    decision; consumer products are never silently retargeted.
+    The .NET 10 SDK/BCL/C# implement kernel and CLI. `System.Text.Json` parses
+    and serializes under Program Kit-owned canonicalization. JSON Schema exposes
+    structural public boundaries without replacing typed semantics or
+    invariants. NuGet delivers exact Program Kit, CShells, and provider code
+    through central locked versions and declared sources. SDK-style MSBuild and
+    `dotnet` build/test/pack and return external-tool evidence; custom tasks are
+    not extension mechanisms.
+    Roslyn belongs only in exact first-party .NET providers needing source
+    evidence, not portable semantics or the kernel by default. Source
+    generators, custom MSBuild tasks, runtime weaving, reflection discovery, and
+    hidden compile-time generation are outside the first CLI. Convenience alone
+    makes no framework constitutional; implementation planning selects the
+    smallest package satisfying a contract with provenance, determinism,
+    diagnostics, update policy, and exit path.

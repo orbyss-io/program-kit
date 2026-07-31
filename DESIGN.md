@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-08-01
-active-category: governance-enforcement-and-self-hosting
-active-batch: GOV-B03
+active-category: first-vertical-slice
+active-batch: VSL-B01
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -77,8 +77,8 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Determinism and generated artifacts | `DET` | `closed` | 10 | All batches are accepted by `DEC-018`, `DEC-028`, and `DEC-034`–`DEC-036`. |
 | Diagnostics and AI guidance | `DIA` | `closed` | 16 | All four batches are accepted by `DEC-037`–`DEC-040`. |
 | Dependencies, impact, and migration | `MIG` | `deferred` | 12 | Migration design waits for real consumer version evolution after the CLI is independently usable (`DEC-030`). |
-| Governance, enforcement, and self-hosting | `GOV` | `active` | 12 | `GOV-B02` is accepted by `DEC-042`; final batch `GOV-B03` defines security and technology foundations. |
-| First vertical slice | `VSL` | `queued` | 8 | Must prove the accepted product identity honestly. |
+| Governance, enforcement, and self-hosting | `GOV` | `closed` | 12 | All three batches are accepted by `DEC-041`–`DEC-043`. |
+| First vertical slice | `VSL` | `active` | 8 | `VSL-B01` selects the reference consumer, proof flow, host, and first seam. |
 
 Counts are a live snapshot, not a quota. New questions are expected.
 
@@ -109,9 +109,12 @@ Determinism and Generated Artifacts is closed in
 Diagnostics and AI Guidance is closed in
 [`DESIGN-DIAGNOSTICS.md`](DESIGN-DIAGNOSTICS.md). All four batches are complete.
 
-Governance, Enforcement, and Self-Hosting is active in
-[`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). `GOV-B01` and `GOV-B02` are
-accepted; final batch `GOV-B03` now defines security and technology foundations.
+Governance, Enforcement, and Self-Hosting is closed in
+[`DESIGN-GOVERNANCE.md`](DESIGN-GOVERNANCE.md). All three batches are complete.
+
+First Vertical Slice is active in
+[`DESIGN-VERTICAL-SLICE.md`](DESIGN-VERTICAL-SLICE.md). `VSL-B01` selects the
+two-bundle reference consumer, exact proof flow, ASP.NET host, and first seam.
 
 ## 8. Queued question catalog
 
@@ -121,7 +124,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-042`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-043`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting is active.
 
@@ -172,6 +175,7 @@ Diagnostics and AI Guidance is closed; Governance, Enforcement, and Self-Hosting
 | `DEC-041` | `GOV-001`–`GOV-004` | `accepted` | Program Kit permanently retains an independent standard .NET and Spec Kit bootstrap without executing itself or trusting self-generated governance. A published CLI may later perform removable, downstream, non-authoritative dogfooding only after explicit recovery, reproducibility, diagnostics, isolation, and human-scope evidence. Humans retain identity, trust, policy, ownership, widened-effect, external-publication, and release decisions while exact grants may pre-authorize bounded deterministic work. Kernel authority comes only from exact scoped grants issued by configured providers and revalidated on use; requesters cannot authorize themselves. The v1 repository-local provider proves record presence and asserted provenance, not cryptographic human identity. | 2026-08-01 |
 | `DEC-042` | `GOV-005`–`GOV-009` | `accepted` | Kernel integrity gates are never waivable. Policy exceptions use exact scoped, finite, authority-backed waiver artifacts that remain visibly waived and identity-forming; there is no global suppression or force bypass. Every principle declares executable-invariant, evidence-backed, human-review, or aspirational enforcement and cannot claim more evidence than that mode provides. Human review owns fitness and accepted risk but cannot override kernel invariants. Warnings are permitted only for non-blocking observations or visible approved waivers under an exact locked governance profile; mandatory failed or unevaluated gates block, and profiles cannot downgrade kernel gates or disclosure. | 2026-08-01 |
 
+| `DEC-043` | `GOV-010`–`GOV-012` | `accepted` | V1 is local-first with no secrets in governed outputs, no telemetry/source upload/network by default, exact locked dependencies and sources, complete release provenance, freshness-bound vulnerability/license evidence, and deterministic SBOMs for Program Kit and executable-provider releases. Signing is explicitly deferred. Kernel, CLI, first-party .NET providers, and the initial generated profile target `net10.0` with stable C# and an exact deliberately updated SDK patch. System.Text.Json, JSON Schema, NuGet, SDK-style MSBuild/dotnet, and provider-scoped Roslyn have bounded roles. Source generators, custom build tasks, weaving, reflection discovery, and hidden generation are outside the first CLI. | 2026-08-01 |
 New items receive the next stable ID within the relevant category and cite the
 answer or tension that created them.
 
@@ -591,3 +595,18 @@ answer or tension that created them.
   evidence it can honestly provide.
 - Completed `GOV-B02` and activated final Governance batch `GOV-B03` for
   security, privacy, supply chain, .NET target, and bounded technology roles.
+
+### 2026-08-01 — Governance and technology foundation closed
+
+- The human explicitly accepted all `GOV-B03` recommendations.
+- Accepted `DEC-043` for the local-first security and supply-chain floor,
+  freshness-bound security evidence, release provenance and SBOMs, and an
+  explicit no-signing claim in v1.
+- Selected .NET 10 LTS with exact reviewed SDK patch updates and no preview
+  features.
+- Gave System.Text.Json, JSON Schema, NuGet, MSBuild/dotnet, and provider-scoped
+  Roslyn bounded roles while excluding hidden generation and convenience-driven
+  constitutional dependencies.
+- Closed Governance, Enforcement, and Self-Hosting with all twelve questions
+  resolved.
+- Activated First Vertical Slice batch `VSL-B01`.

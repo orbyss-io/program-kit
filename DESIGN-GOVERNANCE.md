@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: governance-enforcement-and-self-hosting
-status: active
+status: closed
 last-updated: 2026-08-01
-active-batch: GOV-B03
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -34,7 +34,7 @@ The category preserves these accepted boundaries:
 |---|---|---|---|
 | `GOV-B01` | `GOV-001`–`GOV-004` | `completed` | Define the self-hosting boundary, human-required decisions, authority providers, and approval records. |
 | `GOV-B02` | `GOV-005`–`GOV-009` | `completed` | Define gate suppression, executable versus review-only principles, and warning/error profiles. |
-| `GOV-B03` | `GOV-010`–`GOV-012` | `active` | Define initial security and supply-chain obligations, target framework, and justified foundational technologies. |
+| `GOV-B03` | `GOV-010`–`GOV-012` | `completed` | Define initial security and supply-chain obligations, target framework, and justified foundational technologies. |
 
 ## 3. Accepted batch: Bootstrap independence and human authority
 
@@ -259,7 +259,7 @@ mismatch, unknown applicability, and profile downgrade refusal.
 V1 does not need a general policy language, remote policy engine, waiver
 dashboard, or automatic risk scoring.
 
-## 5. Active batch: Security floor and technology foundations
+## 5. Accepted batch: Security floor and technology foundations
 
 `GOV-B03` resolves:
 
@@ -269,8 +269,8 @@ dashboard, or automatic risk scoring.
 - `GOV-012`: which technologies are justified foundations and which remain
   target-provider or future-slice choices.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all three recommendations. They are governed by
+`DEC-043`.
 
 ### GOV-010 — V1 has a concrete local-first security and supply-chain floor
 
@@ -399,3 +399,10 @@ tasks, source generators, or a blanket dependency framework.
   subordinate to exact locked profiles that cannot downgrade kernel gates.
 - Completed `GOV-B02` and activated final Governance batch `GOV-B03` for the
   security, supply-chain, framework, and technology floor.
+- The human accepted `GOV-B03` under `DEC-043`.
+- Established the local-first security and supply-chain floor, selected .NET 10
+  LTS with explicit SDK patch updates, and gave JSON Schema, NuGet, MSBuild, and
+  Roslyn bounded roles without adopting hidden generation or package signing.
+- Closed Governance, Enforcement, and Self-Hosting with all twelve questions
+  resolved.
+- Activated the First Vertical Slice category.
