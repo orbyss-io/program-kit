@@ -6,7 +6,7 @@ implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
 active-category: feature-model
-active-batch: FTR-B02
+active-batch: FTR-B03
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -70,7 +70,7 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
 | Product identity | `PID` | `closed` | 19 | All five batches and accepted decisions `DEC-001`–`DEC-011`, `DEC-014`–`DEC-020` are closed. |
-| Feature model | `FTR` | `active` | 17 | `FTR-B01` is accepted by `DEC-013`; `FTR-B02` now resolves CShells support and component vocabulary. |
+| Feature model | `FTR` | `active` | 17 | `FTR-B01` and `FTR-B02` are accepted by `DEC-013` and `DEC-021`; `FTR-B03` now resolves identity, relations, and implementation selection. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 14 | `SEM-013` and `SEM-014` are accepted; remaining questions are queued. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
 | Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
@@ -89,8 +89,8 @@ Product Identity is closed and recorded in
 all six consolidated recommendations and the qualified product expression.
 
 Feature Model is active at its accepted thin target-specific boundary in
-[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batch `FTR-B01` is complete
-and `FTR-B02` is active.
+[`DESIGN-FEATURE-MODEL.md`](DESIGN-FEATURE-MODEL.md). Batches `FTR-B01` and
+`FTR-B02` are complete and `FTR-B03` is active.
 
 ## 8. Queued question catalog
 
@@ -100,9 +100,9 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-020` are accepted. `DEC-012`
-is superseded. Feature Model convergence continues with the exact CShells
-support and component-vocabulary batch.
+Decisions `DEC-001`–`DEC-011` and `DEC-013`–`DEC-021` are accepted. `DEC-012`
+is superseded. Feature Model convergence continues with identity, relations,
+and implementation selection.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
@@ -126,6 +126,7 @@ support and component-vocabulary batch.
 | `DEC-018` | `PID-019`, `DET-010` | `accepted` | Program Kit guarantees deterministic construction from complete accepted pinned inputs and evidence-backed contract-conformant integration within declared profiles, while runtime availability, deterministic business behavior, and external systems remain outside the guarantee. | 2026-07-31 |
 | `DEC-019` | `SEM-014` | `accepted` | Implementations are admitted only when governance-relevant meaning is human-approved, traceable, and supported by applicable evidence; unknown or unverified behavior may not be presented as semantically understood. | 2026-07-31 |
 | `DEC-020` | `PID-012`, `PID-016`, `PID-017` | `accepted` | Program Kit is an AI-provider-neutral development tool producing ordinary deterministically constructed software with no required AI or Program Kit runtime unless selected. Accepted expression: **AI builds it. Human intent governs it.** | 2026-07-31 |
+| `DEC-021` | `FTR-002`, `FTR-005`–`FTR-007` | `accepted` | Program Kit v1 begins with one exact `.NET 10 + CShells 0.0.28` construction profile with role-specific dependencies, explicit activation, conformance evidence, structured diagnostics, and explicit migration. Features may provide or require multiple capability-owned interfaces. Core terms remain non-synonymous, and components carry governed identity distinct from concrete artifacts without duplicating domain contracts. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -297,3 +298,13 @@ answer or tension that created them.
   those remain in `FTR-002`.
 - Activated `FTR-B02` for the CShells support matrix, exposed-surface
   representation, minimal terminology, and component boundary.
+
+### 2026-07-31 — CShells and component boundary accepted
+
+- The human explicitly accepted all four `FTR-B02` recommendations.
+- Accepted `DEC-021` for the exact initial `.NET 10 + CShells 0.0.28` profile,
+  explicit activation and migration, capability-owned multiple interfaces,
+  non-synonymous core terminology, and separately governed component identity.
+- Completed `FTR-B02` and activated `FTR-B03` for identity scope, semantic and
+  implementation revisioning, typed relationships, alternative
+  implementations, and deterministic selection.

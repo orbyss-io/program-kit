@@ -3,7 +3,7 @@ artifact-kind: program-kit-design-category
 category: feature-model
 status: active
 last-updated: 2026-07-31
-active-batch: FTR-B02
+active-batch: FTR-B03
 parent-ledger: DESIGN.md
 ---
 
@@ -42,8 +42,8 @@ The accepted boundary is:
 | Batch | Items | Status | Purpose |
 |---|---|---|---|
 | `FTR-B01` | `FTR-001`, `FTR-003`, `FTR-004`, `FTR-015`–`FTR-017` | `completed` | Thin target-specific feature identity, semantic boundaries, cardinality, kernel ownership, and portability accepted by `DEC-013`. |
-| `FTR-B02` | `FTR-002`, `FTR-005`–`FTR-007` | `active` | Resolve the exact CShells support matrix, exposed-surface representation, terminology, and component boundary. |
-| `FTR-B03` | `FTR-008`–`FTR-012` | `queued` | Resolve identity scope, versioning, relationships, and implementation selection without imposing architecture. |
+| `FTR-B02` | `FTR-002`, `FTR-005`–`FTR-007` | `completed` | Exact initial CShells profile, multiple-interface representation, minimal vocabulary, and component identity accepted by `DEC-021`. |
+| `FTR-B03` | `FTR-008`–`FTR-012` | `active` | Resolve identity scope, versioning, relationships, and implementation selection without imposing architecture. |
 | `FTR-B04` | `FTR-013`–`FTR-014` | `queued` | Define the minimum records and how consumer-defined contracts and rules are referenced. |
 
 ## 3. Accepted batch: Thin feature boundary
@@ -152,11 +152,12 @@ The accepted boundary is:
 |---|---|---|
 | `DEC-012` | `superseded` | The optional-projection framing overgeneralized the feature model and understated CShells as the intended .NET mechanism. |
 | `DEC-013` | `accepted` | Program Kit uses a thin target-specific feature model: the portable software-definition bundle is distinct from implemented features; CShells supplies selected .NET host mechanics; interfaces, contracts, intake, and bindings are distinct; feature/interface relationships are many-to-many; the kernel owns integrity while consumers own architecture; and cross-target reuse occurs through software definitions, contracts, and explicit capabilities rather than a universal runtime model. |
+| `DEC-021` | `accepted` | Program Kit v1 begins with an exact .NET 10 and CShells 0.0.28 target profile; features may expose multiple capability-owned interfaces; feature, operation, component, application, package, module, service, and extension are not synonyms; and components have governed identity distinct from their artifacts without duplicating domain contracts. |
 
-## 5. Active batch: CShells support and component vocabulary
+## 5. Accepted batch: CShells support and component vocabulary
 
-`FTR-B02` now resolves the implementation-facing details that `FTR-B01`
-deliberately did not decide:
+`FTR-B02` resolved the implementation-facing details that `FTR-B01`
+deliberately left open:
 
 - `FTR-002`: the exact supported CShells packages, generators, versions,
   dependency placement, conformance suite, diagnostics, and migrations;
@@ -167,16 +168,17 @@ deliberately did not decide:
 - `FTR-007`: whether a component is only an artifact or packaging boundary, or
   may also carry separately governed semantic identity.
 
-No `FTR-B02` answer is implied by accepting `DEC-013`.
+The human accepted all four answers below; they are governed by `DEC-021`.
 
-## 6. Draft recommendations for human review
+## 6. Accepted answers
 
-These recommendations are recorded but remain **unaccepted** until the human
-confirms or revises them.
+These answers are now authoritative product design unless explicitly reopened
+or superseded.
 
 ### FTR-002 — One evidence-backed CShells target profile
 
-**Recommendation:** Program Kit v1 initially supports one exact construction
+**Status:** `accepted`
+**Accepted answer:** Program Kit v1 initially supports one exact construction
 profile: `.NET 10 + CShells 0.0.28`. The profile is a versioned Program Kit
 contract and pins package bytes, target framework, compiler/generator inputs,
 ABI symbols, emitted syntax, and conformance expectations. A newer CShells
@@ -225,7 +227,8 @@ the initial pin but does not make the archived architecture authoritative.
 
 ### FTR-005 — Multiple interfaces without a core surface taxonomy
 
-**Recommendation:** Yes, one feature may provide or require any number of
+**Status:** `accepted`
+**Accepted answer:** Yes, one feature may provide or require any number of
 interfaces simultaneously. API, CLI, worker, configuration, event, and internal
 are examples owned by target or contract capabilities, not values in a closed
 Program Kit enum. Core records only explicit `provides` and `requires`
@@ -239,7 +242,8 @@ does not infer that rule from the number or kinds of interfaces.
 
 ### FTR-006 — Minimal, non-synonymous vocabulary
 
-**Recommendation:** Use the following minimum distinctions and do not infer
+**Status:** `accepted`
+**Accepted answer:** Use the following minimum distinctions and do not infer
 equivalence from names:
 
 | Term | Minimum Program Kit meaning |
@@ -255,7 +259,8 @@ equivalence from names:
 
 ### FTR-007 — Component identity without duplicated domain semantics
 
-**Recommendation:** A component is more than an artifact boundary and carries
+**Status:** `accepted`
+**Accepted answer:** A component is more than an artifact boundary and carries
 its own stable, versioned identity, purpose, composition, target, lifecycle, and
 evidence. That identity is necessary for dependency maps, release boundaries,
 impact analysis, diagnostics, replacement, and migration.
@@ -268,7 +273,23 @@ project layout remain consumer-owned. The component descriptor is the governed
 boundary; NuGet packages, assemblies, containers, source projects, manifests,
 SBOMs, and documentation are its concrete artifacts.
 
-## 7. Revision record
+## 7. Active batch: Identity, relationships, and implementation selection
+
+`FTR-B03` now resolves:
+
+- `FTR-008`: the authority and uniqueness scope of feature identity;
+- `FTR-009`: the boundary between a feature revision and an implementation
+  revision;
+- `FTR-010`: how nesting, composition, specialization, inheritance, and other
+  feature relations are represented and validated;
+- `FTR-011`: how multiple components may satisfy the same contract without
+  conflating component, feature, interface, and contract identity; and
+- `FTR-012`: deterministic implementation selection without ambient discovery
+  or implicit best-match behavior.
+
+No `FTR-B03` answer is implied by accepting `DEC-021`.
+
+## 8. Revision record
 
 - The human rejected the generic contract/implementation/component ontology,
   built-in cross-domain bridge policy, and built-in interface-role taxonomy.
@@ -277,5 +298,7 @@ SBOMs, and documentation are its concrete artifacts.
   deterministic construction, and semantic admissibility boundaries.
 - The human accepted all six consolidated `FTR-B01` recommendations. `DEC-013`
   now replaces the earlier candidate with the exact thin target-specific model.
+- The human accepted all four `FTR-B02` recommendations. `DEC-021` governs the
+  exact initial CShells profile and component vocabulary; `FTR-B03` is active.
 - Git history preserves rejected and superseded candidates; they are not current
   design.

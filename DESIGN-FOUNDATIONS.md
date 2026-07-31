@@ -125,6 +125,12 @@ respective categories converge.
    owns identity, provenance, mapping, evidence, unknown-state, diagnostic, and
    admission integrity. Consumers own architecture and may impose stricter
    composition and cardinality policies.
+   Program Kit v1 begins with one exact `.NET 10 + CShells 0.0.28` construction
+   profile with role-specific feature and host dependencies, explicit
+   activation, conformance evidence, structured diagnostics, and explicit
+   migration. Features may expose multiple capability-owned interfaces.
+   Components carry governed composition and delivery identity independently
+   from their concrete package, project, assembly, container, or other artifacts.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
    should be explicit, typed, versioned, and canonical.
 5. Extension discovery and selection should be explicit and pinned rather than
