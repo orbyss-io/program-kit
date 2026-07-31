@@ -106,7 +106,7 @@ design.
 
 ## 5. Accepted foundations and provisional synthesis
 
-Items 1 through 3 and 6 through 17 are accepted decisions governed by the
+Items 1 through 3 and 6 through 18 are accepted decisions governed by the
 decision register in `DESIGN.md`. Items 4 and 5 remain provisional until their
 respective categories converge.
 
@@ -164,7 +164,11 @@ respective categories converge.
    Program Kit owns a cohesive consumer-facing design, planning, implementation,
    public artifact, diagnostics, and compatibility surface. It may internally
    reuse or extend pinned Spec Kit techniques while Program Kit's own repository
-   uses Spec Kit directly and remains non-self-hosted. An optional external
+   uses Spec Kit directly and remains non-self-hosted.
+   Program Kit planning contracts, CLI workflows, and capabilities are offered
+   to consumers; they do not govern Program Kit's own development. Isolated
+   product fixtures may exercise them without becoming repository source truth.
+   An optional external
    Spec Kit bridge may use only Program Kit's public contracts. Exact integration
    packaging remains an Extensions decision.
 9. Applications retain a thin declarative source of truth for human intent,
@@ -225,3 +229,15 @@ respective categories converge.
     meaning or bypass kernel gates. New vocabularies using supported primitives
     require no kernel change; genuinely new primitives require an explicit
     protocol and kernel revision.
+18. Cross-boundary relationships are separately owned immutable assertions and
+    cannot rewrite endpoint meaning. Conflicting content for the same identity
+    and revision fails integrity; differing valid semantics require an explicit,
+    pinned mapping, adapter, or migration with any loss made visible.
+    Program Kit does not maintain a global semantic graph as source truth. The
+    kernel resolves a finite exact graph for one operation and records its lock.
+    A bounded implementation context is that operation's exact closure across
+    semantic references, implementation artifacts, dependencies, policies,
+    approvals, mappings, capabilities, evidence, diagnostics, and assertion
+    authorities. It produces a canonical context descriptor and separate
+    evaluation report. It is not a runtime container, DDD framework, security
+    sandbox, global graph service, or lifecycle engine.

@@ -1,9 +1,9 @@
 ---
 artifact-kind: program-kit-design-category
 category: semantic-language-and-bounded-contexts
-status: active
+status: closed
 last-updated: 2026-07-31
-active-batch: SEM-B03
+active-batch: none
 parent-ledger: DESIGN.md
 ---
 
@@ -38,7 +38,7 @@ The active work must preserve these accepted constraints:
 | `SEM-B00` | `SEM-013`–`SEM-014` | `completed` | Provider/canonical intake and semantic admissibility accepted by `DEC-016` and `DEC-019`. |
 | `SEM-B01` | `SEM-001`–`SEM-004`, `SEM-007`–`SEM-008` | `completed` | Resolve the semantic model, authored projections, canonical representation, declarative boundary, and build/runtime presence. |
 | `SEM-B02` | `SEM-005`–`SEM-006` | `completed` | Define consumer-owned vocabulary extension without core changes. |
-| `SEM-B03` | `SEM-009`–`SEM-012` | `active` | Define graph federation, cross-authority ownership, disagreement resolution, and the bounded implementation context. |
+| `SEM-B03` | `SEM-009`–`SEM-012` | `completed` | Define graph federation, cross-authority ownership, disagreement resolution, and the bounded implementation context. |
 
 ## 3. Accepted prior decisions
 
@@ -315,7 +315,7 @@ first-party vocabulary and one independently identified consumer vocabulary
 fixture. That proof should exercise the same kernel path without pretending the
 initial vocabulary surface is a complete semantic engine.
 
-## 8. Active batch: Relationships and bounded implementation context
+## 8. Accepted batch: Relationships and bounded implementation context
 
 `SEM-B03` resolves:
 
@@ -324,8 +324,7 @@ initial vocabulary surface is a complete semantic engine.
 - `SEM-011`: global graph versus bounded graph federation; and
 - `SEM-012`: the exact boundary of a bounded implementation context.
 
-The following recommendations remain **unaccepted** until the human confirms or
-revises them.
+The human accepted all four recommendations. They are governed by `DEC-026`.
 
 ### SEM-009 — Cross-boundary relationships are separately owned assertions
 
@@ -431,3 +430,6 @@ delegation system, multi-party negotiation workflow, or lifecycle orchestrator.
 - Activated `SEM-B03` with operational recommendations for relationship
   ownership, reconciliation, resolved graph closure, and the bounded
   implementation context; none is yet accepted.
+- Accepted `SEM-B03` under `DEC-026` for separately owned relationships,
+  explicit reconciliation, finite operation-scoped graph closure, and the
+  bounded implementation context; closed the Semantic Language category.
