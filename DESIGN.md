@@ -5,8 +5,8 @@ authority: human-led
 implementation-authority: none
 created: 2026-07-31
 last-updated: 2026-07-31
-active-category: product-identity
-active-batch: PID-B01
+active-category: none
+active-batch: none
 constitution-proposal: .specify/memory/constitution.md
 ---
 
@@ -69,11 +69,11 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 | Category | ID prefix | Status | Known items | Notes |
 |---|---:|---|---:|---|
-| Product identity | `PID` | `active` | 11 | Current category; batch `PID-B01` is active. |
+| Product identity | `PID` | `closed` | 11 | All Product Identity decisions accepted on 2026-07-31. |
 | Feature model | `FTR` | `queued` | 14 | Includes the multidimensional contract used to evaluate bounded components. |
 | Semantic language and bounded contexts | `SEM` | `queued` | 12 | May be reshaped by identity and feature answers. |
 | Consumer planning and delivery | `PLN` | `queued` | 4 | Product-owned planning surface; exact concepts and execution boundary unresolved. |
-| Extensions and composition | `EXT` | `queued` | 12 | Includes the deferred question of governed Spec Kit composition. |
+| Extensions and composition | `EXT` | `queued` | 13 | Includes internal Spec Kit reuse and an optional Spec Kit-to-Program Kit bridge. |
 | Determinism and generated artifacts | `DET` | `queued` | 10 | Includes the boundary of semi-deterministic behavior. |
 | Diagnostics and AI guidance | `DIA` | `queued` | 16 | Founding concern; may gain questions from every category. |
 | Dependencies, impact, and migration | `MIG` | `queued` | 12 | Graph truth, compatibility, closure, and evidence. |
@@ -82,11 +82,11 @@ recorded in [`DESIGN-FOUNDATIONS.md`](DESIGN-FOUNDATIONS.md).
 
 Counts are a live snapshot, not a quota. New questions are expected.
 
-## 7. Active category: Product identity
+## 7. Completed category: Product identity
 
-Product Identity is recorded by batch in
-[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). Batch `PID-B01`
-is active.
+Product Identity is closed and recorded in
+[`DESIGN-PRODUCT-IDENTITY.md`](DESIGN-PRODUCT-IDENTITY.md). No new category is
+active until the human selects or confirms the next category.
 
 ## 8. Queued question catalog
 
@@ -96,14 +96,20 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-No product-design decisions have been accepted yet.
+Product Identity decisions are accepted; all other categories remain unresolved.
 
 | Decision ID | Source questions | Status | Decision | Accepted on |
 |---|---|---|---|---|
-| `DEC-001` | `PID-008` | `candidate-decision` | A Program Kit installation exposes an integrated consumer design, planning, and implementation-plan experience without requiring a separate Spec Kit CLI installation. | — |
-| `DEC-002` | `PID-008`, `GOV-001` | `candidate-decision` | Program Kit itself is developed with Spec Kit and does not consume its own planning facilities during this redesign. | — |
-| `DEC-003` | `PID-001` | `candidate-decision` | Program Kit is a human-led, AI-assisted modular software-development tool that translates human intent into bounded, contract-evaluated, semi-deterministic software components; the human contributor retains final authority. | — |
-| `DEC-004` | `PID-002`, `PID-011` | `candidate-decision` | Program Kit's non-negotiable promise is governed integration resolution between Program Kit-built products: direct composition, an explicit adapter or migration, or a precise contract-backed incompatibility result; ambiguity is failure. | — |
+| `DEC-001` | `PID-008` | `accepted` | A Program Kit installation exposes an integrated consumer design, planning, and implementation-plan experience without requiring a separate Spec Kit CLI installation. | 2026-07-31 |
+| `DEC-002` | `PID-008`, `GOV-001` | `accepted` | Program Kit itself is developed with Spec Kit and does not consume its own planning facilities during this redesign. | 2026-07-31 |
+| `DEC-003` | `PID-001` | `accepted` | Program Kit is a human-led, AI-assisted modular software-development tool that translates human intent into bounded, contract-evaluated, semi-deterministic software components; the human contributor retains final authority. | 2026-07-31 |
+| `DEC-004` | `PID-002`, `PID-011` | `accepted` | Program Kit's non-negotiable promise is governed integration resolution between Program Kit-built products: direct composition, an explicit adapter or migration, or a precise contract-backed incompatibility result; ambiguity is failure. | 2026-07-31 |
+| `DEC-005` | `PID-003`, `PID-010` | `accepted` | Humans, domain experts, developers, and AI may collaborate; the human owns intent and identity-forming approval, while admitted outputs must satisfy currently accepted contracts until explicitly revised and reaccepted. | 2026-07-31 |
+| `DEC-006` | `PID-004` | `accepted` | Program Kit v1 implements .NET projections while keeping semantic contracts free of unnecessary .NET-specific meaning; multi-ecosystem implementation is out of scope. | 2026-07-31 |
+| `DEC-007` | `PID-005`, `VSL-001` | `accepted` | The first-hour proof links intent, design, work, plan, contract, a real .NET component, actionable diagnostics, governed integration resolution, and repeatability evidence. | 2026-07-31 |
+| `DEC-008` | `PID-006` | `accepted` | Program Kit v1 refuses autonomous semantic authority, forced universal composability, ambiguous integration, ambient or unpinned selection, built-in business-domain meaning, multi-ecosystem implementation, runtime dependence on development tooling, and self-hosting during the redesign. | 2026-07-31 |
+| `DEC-009` | `PID-007` | `accepted` | Program Kit v1 is a semantic development toolchain, not a new programming language; a language claim requires a formal grammar, type system, compiler semantics, and compatibility model. | 2026-07-31 |
+| `DEC-010` | `PID-009`, `EXT-012`, `EXT-013` | `accepted` | Program Kit owns independent public commands, artifacts, diagnostics, and compatibility promises; internal Spec Kit reuse is replaceable, and optional Spec Kit integration may invoke only Program Kit's public contract. | 2026-07-31 |
 
 ## 10. Emergent-question register
 
@@ -112,16 +118,17 @@ answer or tension that created them.
 
 | Question ID | Origin | Status | Question |
 |---|---|---|---|
-| `PID-008` | Human separated Program Kit's consumer capabilities from the workflow used to build Program Kit itself | `candidate-decision` | Confirm `DEC-001` and `DEC-002`; internal Spec Kit composition is tracked separately. |
-| `EXT-012` | Possible future exported capabilities combining Spec Kit techniques and Program Kit mechanics | `deferred` | Define a governed, explicit, non-circular composition model after product identity converges. |
-| `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `follow-up` | Decide whether Program Kit owns independent public planning contracts or promises Spec Kit compatibility. |
+| `PID-008` | Human separated Program Kit's consumer capabilities from the workflow used to build Program Kit itself | `accepted` | Governed by `DEC-001` and `DEC-002`; internal Spec Kit composition is separate. |
+| `EXT-012` | Program Kit may internally reuse selected Spec Kit techniques | `open` | Define a governed, explicit, pinned, replaceable, non-circular internal composition model. |
+| `EXT-013` | Existing Spec Kit users may benefit from invoking Program Kit at explicit handoff points | `deferred` | Evaluate an optional Spec Kit-to-Program Kit bridge only after standalone Program Kit is proven; require measurable value and no core coupling. |
+| `PID-009` | Consumers must not install a second CLI while Program Kit may reuse Spec Kit internally | `accepted` | Program Kit owns independent public contracts; optional interoperability uses those contracts. |
 | `DET-010` | Consumer outcome described as semi-deterministic software components | `follow-up` | Define the exact judgment-to-determinism acceptance boundary. |
 | `PLN-001` | Archived planning domain retains serious product value | `open` | Define the canonical planning concepts and lifecycle relations. |
 | `PLN-002` | Archived planning implementation is prior art rather than source truth | `open` | Decide which concepts to retain, re-specify, or discard. |
 | `PLN-003` | Plans integrate with validations, components, and files | `open` | Define stable links and drift behavior. |
 | `PLN-004` | Program Kit enables consumers to design and implement components | `open` | Define the boundary between planning artifacts, orchestration, and execution. |
-| `PID-010` | Human contributor named as governing identity in `PID-001` | `follow-up` | Define precedence between human authority, accepted contracts, product promise, workflow, and technical surfaces. |
-| `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `follow-up` | Decide whether precise irreconcilability is resolution or every pair must ultimately compose. |
+| `PID-010` | Human contributor named as governing identity in `PID-001` | `accepted` | Human governs intent; currently accepted contracts govern admitted outputs until explicitly revised and reaccepted. |
+| `PID-011` | Resolvable integration named as the non-negotiable promise in `PID-002` | `accepted` | Precise irreconcilability is a resolution; universal composability is not promised. |
 | `FTR-014` | Bounded components evaluate against a contract | `open` | Define the required contract dimensions. |
 
 ## 11. Session log
@@ -156,3 +163,15 @@ answer or tension that created them.
 - Revised `PID-008`; it no longer carries the entire internal Spec Kit seam.
 - Added `PID-010`, `PID-011`, and `FTR-014` for the remaining ambiguities.
 - No candidate decision was marked accepted.
+
+### 2026-07-31 — Product identity closed
+
+- The human explicitly accepted all eight consolidated recommendations.
+- Accepted `DEC-001` through `DEC-010`; all eleven Product Identity questions
+  are closed.
+- Left no active category until the human selects the next discovery category.
+- Added `EXT-013` for a possible optional Spec Kit-to-Program Kit bridge.
+- Deferred that bridge until standalone Program Kit value is proven; it must
+  use only public Program Kit contracts, remain non-circular, and justify its
+  cost with measurable workflow value.
+- The constitution remains an unratified proposal pending further convergence.

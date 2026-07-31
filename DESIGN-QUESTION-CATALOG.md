@@ -92,11 +92,15 @@ record the revision or supersession rather than silently deleting it.
   or neither?
 - **EXT-011:** Must every extension ship schemas, diagnostics, compatibility and
   migration rules, and conformance fixtures?
-- **EXT-012:** If Program Kit later exports capabilities that compose selected
-  Spec Kit techniques with Program Kit CLI mechanics, what are the explicit
-  dependency direction, artifact handoff, authority boundary, versioning,
-  diagnostics, and non-circularity rules? This item is deferred until product
-  identity and the Spec Kit responsibility boundary converge.
+- **EXT-012:** If Program Kit internally reuses or extends selected Spec Kit
+  techniques, what are the explicit dependency direction, artifact handoff,
+  authority boundary, version pinning, diagnostics, and non-circularity rules
+  while Program Kit retains independent public contracts?
+- **EXT-013:** Should an optional Spec Kit integration invoke Program Kit's
+  public, non-interactive CLI at explicit workflow handoff points while keeping
+  both products independently usable and preventing callback cycles? What
+  measurable value must the bridge prove—such as reduced duplicate planning,
+  reliable artifact handoff, and preserved diagnostics—to justify its cost?
 
 ### 8.4 Determinism and generated artifacts
 

@@ -67,19 +67,18 @@ design.
   combine them with Program Kit CLI extensions or other Program Kit mechanics.
   This is an exploration candidate, not an accepted responsibility or design.
 
-## 5. Provisional synthesis to test
+## 5. Accepted foundations and provisional synthesis
 
-The following is the current agent synthesis. Every statement remains
-non-authoritative until resolved through identified questions and accepted as a
-decision:
+Items 1, 2, and 8 are accepted Product Identity decisions governed by the
+decision register in `DESIGN.md`. Items 3 through 7 remain provisional until
+their respective categories converge.
 
-1. Program Kit may be best understood as a human-led, AI-assisted modular
-   software-development tool that translates human intent into bounded,
-   contract-evaluated, semi-deterministic software components.
-2. Its non-negotiable promise may be governed integration resolution between
+1. Program Kit is a human-led, AI-assisted modular software-development tool
+   that translates human intent into bounded, contract-evaluated,
+   semi-deterministic software components.
+2. Its non-negotiable promise is governed integration resolution between
    Program Kit-built products: direct compatibility, an explicit adapter or
-   migration, or a precise contract-backed incompatibility result. Whether the
-   last outcome counts as resolution still requires human confirmation.
+   migration, or a precise contract-backed incompatibility result.
 3. A feature may need to mean a governed semantic contract that can project to
    several technical interfaces, rather than only a literal CLR interface.
 4. Deterministic mechanisms should be executable code; consumer-owned semantics
@@ -92,8 +91,9 @@ decision:
 7. Generated runtime outputs should remain independent of Program Kit's
    development-session capabilities.
 8. Product capability ownership and development method are separate boundaries.
-   Program Kit may own a cohesive consumer-facing design, planning, and
-   implementation experience while internally reusing or extending Spec Kit
-   techniques. Program Kit's own repository can still use Spec Kit directly and
-   remain non-self-hosted. The public artifact, dependency, and authority seams
-   remain unresolved and must be defined before the constitution is ratified.
+   Program Kit owns a cohesive consumer-facing design, planning, implementation,
+   public artifact, diagnostics, and compatibility surface. It may internally
+   reuse or extend pinned Spec Kit techniques while Program Kit's own repository
+   uses Spec Kit directly and remains non-self-hosted. An optional external
+   Spec Kit bridge may use only Program Kit's public contracts. Exact integration
+   packaging remains an Extensions decision.
