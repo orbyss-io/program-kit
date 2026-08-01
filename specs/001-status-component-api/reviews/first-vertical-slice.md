@@ -30,8 +30,8 @@ commit `c84335ee9eea4666fc69af5c2e49cbce821b8fbb` adds a repository-wide LF guar
 to local and CI verification. Its corrected distribution-manifest digest is
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
 Protected PR run `30720316337` passed the complete vertical-slice workflow on
-Ubuntu and Windows. The prior acceptance does not extend to this corrected
-candidate; a fresh T095 decision remains pending.
+Ubuntu and Windows. `joey-orbyss` subsequently accepted this exact corrected
+candidate and manifest binding under refreshed T095.
 
 The first final-readiness audit of prior HEAD
 `4d15000c7d45062d9376c3b3f2966e57fa5348ff` remained NOT READY because opaque
@@ -136,11 +136,21 @@ independent READY verdict.
 
 ## Refreshed human approval gate
 
-**PENDING.**
+**ACCEPTED.**
 
-Do not infer acceptance of corrected candidate
-`c84335ee9eea4666fc69af5c2e49cbce821b8fbb` or manifest digest
-`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`
-from the successful local/CI gates or prior T095 decision. Protected Windows
-and Ubuntu verification has passed; the fresh named-human accept/reject
-decision is the sole remaining approval gate before merge.
+- Reviewer: `joey-orbyss`, product owner and requirements author.
+- Decision: **ACCEPT**.
+- Reviewed candidate: `c84335ee9eea4666fc69af5c2e49cbce821b8fbb`.
+- Evidence binding:
+  `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+- Accepted scope: the corrected bounded .NET 10 + CShells 0.0.28 `explain`,
+  `construct`, and `evaluate` product foundation demonstrated by Feature 001.
+- Accepted limitations: all previously documented limitations in this review.
+- Deliberately excluded: general release, multi-provider completeness,
+  migration readiness, and product completeness.
+- Reviewer independence disclosure: the reviewer is the product owner and
+  participated in defining the requirements.
+- Date: 2026-08-01.
+
+This refreshed acceptance is the named-human T095 decision. It is not inferred
+from the 91 tests, generated evidence, protected CI, or the prior acceptance.

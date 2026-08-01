@@ -61,9 +61,12 @@ and CI gate. Protected pull-request run `30720316337` passed the complete
 vertical-slice workflow on Ubuntu and Windows. The corrected exact candidate's
 distribution-manifest digest is
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
-The prior T095 acceptance remains valid only for its exact historical binding;
-automation does not extend it. T095 is reopened for this corrected candidate
-and requires a fresh named-human decision before merge.
+The prior T095 acceptance remains valid only for its exact historical binding.
+On 2026-08-01, `joey-orbyss` explicitly accepted corrected candidate
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to the corrected manifest
+digest above, under refreshed T095. This decision accepts the documented
+bounded scope and limitations; it does not declare Program Kit generally
+released, multi-provider, migration-ready, or complete.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
@@ -176,9 +179,9 @@ correctly classified as verified-equivalent rather than canonical across
 environments. Mirror integrity, package claims, canonical snapshots,
 repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
 local-safety, and relocated-runtime evidence now pass. The evidence ledger is
-reconciled. The previously bounded candidate remains accepted for its exact
-binding; the corrected cross-platform merge candidate passed protected
-Windows/Ubuntu verification and is pending refreshed T095 acceptance. The
+reconciled. The corrected cross-platform merge candidate passed protected
+Windows/Ubuntu verification and received refreshed T095 acceptance for its
+exact binding. The
 evidence and decision status are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and

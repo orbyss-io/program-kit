@@ -5,8 +5,8 @@ Date: 2026-08-01
 ## Current status
 
 **The corrected exact candidate passed the complete protected Windows/Ubuntu
-vertical-slice workflow. T095 remains pending a fresh named-human decision on
-the corrected exact binding.**
+vertical-slice workflow and received an explicit named-human T095 ACCEPT
+decision on the corrected exact binding.**
 
 The exact pushed review candidate is commit
 `c84335ee9eea4666fc69af5c2e49cbce821b8fbb`. It contains provenance correction
@@ -41,7 +41,8 @@ those gaps. The human then explicitly
 authorized the current `80 satisfied, 5 superseded, 0 missing` ledger treatment;
 that authorization concerns evidence accounting only. Product acceptance for
 the prior exact binding was recorded separately under T095 after the final
-readiness verdict and is now reopened only for the corrected merge candidate.
+readiness verdict. The refreshed decision below separately accepts the corrected
+merge candidate.
 
 ## Passing repository gate
 
@@ -114,15 +115,20 @@ migration-ready, or complete.
 
 ## Corrected merge candidate decision
 
-**PENDING REFRESHED T095 HUMAN REVIEW.**
+**ACCEPTED.**
 
-Protected PR run `30720316337` verified exact candidate
-`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to manifest digest
+On 2026-08-01, `joey-orbyss`, acting as product owner and requirements author,
+explicitly **ACCEPTED** corrected candidate
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to distribution-manifest
+digest
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
-The Ubuntu job passed in 3m26s and the Windows job passed in 4m41s, each running
-the complete vertical-slice workflow. Automation is execution evidence only; a
-fresh named-human accept/reject decision must complete before this corrected
-candidate may merge.
+The reviewer accepted the previously documented bounded scope and limitations.
+This accepts the corrected .NET 10 + CShells 0.0.28 `explain`, `construct`, and
+`evaluate` foundation; it does not declare Program Kit generally released,
+multi-provider, migration-ready, or complete. The reviewer disclosed being the
+product owner and participating in defining the requirements. This named-human
+decision is not inferred from the 91 tests, generated evidence, protected CI,
+ledger reconciliation, or any prior acceptance.
 
 ## Deliberately not claimed
 

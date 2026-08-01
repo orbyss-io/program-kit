@@ -336,7 +336,7 @@ product decision possible without inferring acceptance from green automation.
 - [X] T092 Project the workspace snapshot only from authoritative closure, identity, relationship, seam, artifact, provenance, gate, review, waiver, evidence, receipt, support, retention, and diagnostic records, and recompute freshness without mutation, per FR-026 through FR-028 and US4 (remediated)
 - [X] T093 Complete the declared invalid, repair, publication-fault, path/culture/order, package-claim, provenance/SBOM, performance, hostile-filesystem, local-safety, no-self-host, and relocated-runtime proof matrix, per FR-018, FR-029, FR-031, FR-032, FR-034, and SC-004 through SC-010 (reclosed: the executable SC-005 diagnostic and invalid-input matrix is directly proven)
 - [X] T094 Reconcile every original T001-T085 checkbox against its named artifact and direct proof, retain unchecked status wherever proof is absent, and update README plus verification with only current evidence, per the Spec Kit workflow and Constitution IX (complete: 80 satisfied, 5 superseded, 0 missing)
-- [ ] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (the 2026-08-01 ACCEPT decision remains valid only for commit `16c6c627dfc9cd2211993580019f43d084dc718d` and manifest digest `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`; a fresh decision is requested for candidate `c84335ee9eea4666fc69af5c2e49cbce821b8fbb` and manifest digest `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`)
+- [X] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (complete: on 2026-08-01, `joey-orbyss`, product owner and requirements author, explicitly ACCEPTED corrected candidate `c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to manifest digest `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`, with the documented bounded scope, limitations, and reviewer-participation disclosure)
 
 ---
 
@@ -393,4 +393,4 @@ protection or silently extending the prior exact T095 acceptance binding.
 `c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to corrected manifest digest
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
 Protected PR run `30720316337` passed on Ubuntu (3m26s) and Windows (4m41s).
-Only the fresh named-human T095 product decision remains before merge.
+The fresh named-human T095 decision accepted this exact bounded candidate.
