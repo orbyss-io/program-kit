@@ -42,6 +42,12 @@ public sealed class InvalidInputAcceptanceTests
                 .ToArray();
             CollectionAssert.Contains(diagnostics, fixture["expectedDiagnostic"]!.GetValue<string>(), fixtureName);
             Assert.AreEqual("none", result["effectState"]!.GetValue<string>());
+            if (fixture["expectedOutcome"] is not null)
+            {
+                Assert.AreEqual(fixture["expectedOutcome"]!.GetValue<string>(), result["outcome"]!.GetValue<string>(), fixtureName);
+                Assert.AreEqual(fixture["expectedEffectState"]!.GetValue<string>(), result["effectState"]!.GetValue<string>(), fixtureName);
+                Assert.AreEqual(fixture["expectedDisposition"]!.GetValue<string>(), result["primaryDisposition"]!.GetValue<string>(), fixtureName);
+            }
             Assert.AreEqual(before, TestRepository.DigestTree(workspace), fixtureName);
             Assert.IsFalse(execution.StandardOutput.Contains("hunter2", StringComparison.OrdinalIgnoreCase));
             Assert.IsFalse(execution.StandardOutput.Contains("password=", StringComparison.OrdinalIgnoreCase));

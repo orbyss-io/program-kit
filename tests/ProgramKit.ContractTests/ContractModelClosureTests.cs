@@ -19,7 +19,7 @@ public sealed class ContractModelClosureTests
         GovernedIdentity identity = Identity("subject");
         ArtifactReference policy = new(identity, "application/json", "policy/waiver.json", identity.Digest, ArtifactOwnership.ConsumerOwned);
         SafeValue visible = new(SafeValueClassification.Public, SafeValueKind.Text, "safe");
-        SafeValue withheld = new(SafeValueClassification.Withheld, SafeValueKind.Redacted, null, "secret", policy);
+        SafeValue withheld = new(SafeValueClassification.Withheld, SafeValueKind.Redacted, null, "secret", identity);
 
         Assert.AreEqual("safe", visible.Value);
         Assert.IsNull(withheld.Value);

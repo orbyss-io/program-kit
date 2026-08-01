@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.kernel/PKWSP0004","expectedDisposition":"retry","expectedEffectState":"none","expectedOutcome":"blocked","schema":"program-kit.invalid-fixture/v1","scenario":"stale-precondition","trigger":"program-kit evaluate"}

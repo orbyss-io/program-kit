@@ -1,1 +1,1 @@
-{"expectedDiagnostic":"program-kit.kernel/PKREQ0002","mutation":"inject-secret-marker","schema":"program-kit.invalid-fixture/v1"}
+{"expectedDiagnostic":"program-kit.kernel/PKREQ0002","expectedDisposition":"revise","expectedEffectState":"none","expectedOutcome":"blocked","mutation":"inject-secret-marker","schema":"program-kit.invalid-fixture/v1","scenario":"unsafe-disclosure","trigger":"program-kit explain"}

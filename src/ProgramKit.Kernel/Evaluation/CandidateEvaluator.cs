@@ -31,6 +31,9 @@ public sealed class CandidateEvaluator
         ProviderEvaluationResult providerEvaluation)
     {
         candidates.Rehash(candidate);
+        JsonArray waivers = resolved.Lock.CanonicalDocument["policies"]?["waivers"] as JsonArray
+            ?? new JsonArray();
+        WaiverPolicy.EnsureFirstSliceContainsNoWaivers(waivers);
         ArtifactManifestEntry evidenceEntry = candidate.Artifacts.SingleOrDefault(static item =>
             string.Equals(item.LogicalPath, ".program-kit/provider-evidence.json", StringComparison.Ordinal))
             ?? throw new InvalidOperationException("The sealed candidate has no exact provider-evidence artifact.");

@@ -58,7 +58,7 @@ public sealed class TypedContractBinder
             .ToArray();
         if (selections.Select(static item => item.Role).Distinct(StringComparer.Ordinal).Count() != selections.Length)
         {
-            throw new ProgramKitDiagnosticException(DiagnosticIds.AmbiguousSelection, OperationPhase.Validation, PrimaryDisposition.Revise, "Every selection role must occur exactly once.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.AmbiguousSelection, OperationPhase.Validation, PrimaryDisposition.ProvideInput, "Every selection role must occur exactly once.");
         }
 
         ArtifactReference? authority = document["authorityGrant"] is JsonObject authorityObject

@@ -19,25 +19,30 @@ public static class DiagnosticFactory
         string subject,
         string cause,
         string consequence,
-        IReadOnlyDictionary<string, string>? parameters = null,
-        IReadOnlyList<Remediation>? remediations = null)
+        IReadOnlyDictionary<string, SafeValue>? parameters = null,
+        IReadOnlyList<Remediation>? remediations = null,
+        SafeValue? expected = null,
+        SafeValue? observed = null,
+        IReadOnlyList<EvidenceReference>? evidence = null)
     {
         DiagnosticDefinition definition = DiagnosticCatalog.Entries[id];
         string safeSubject = DisclosureFilter.SafeLogicalValue(subject);
-        string safeCause = DisclosureFilter.SafeText(cause);
-        IReadOnlyDictionary<string, SafeValue> safeParameters = (parameters ?? new Dictionary<string, string>(StringComparer.Ordinal))
+        SafeValue safeCause = DisclosureFilter.Classify(cause);
+        SafeValue safeConsequence = DisclosureFilter.Classify(consequence);
+        IReadOnlyDictionary<string, SafeValue> safeParameters = (parameters ?? new Dictionary<string, SafeValue>(StringComparer.Ordinal))
             .OrderBy(static item => item.Key, StringComparer.Ordinal)
-            .ToDictionary(
-                static item => item.Key,
-                static item => new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, DisclosureFilter.SafeText(item.Value)),
-                StringComparer.Ordinal);
+            .ToDictionary(static item => item.Key, static item => item.Value, StringComparer.Ordinal);
+        SafeValue safeExpected = expected ?? new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, definition.Expected);
+        SafeValue safeObserved = observed ?? new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, definition.Observed);
         JsonObject occurrenceMaterial = new()
         {
             ["id"] = id,
             ["subject"] = safeSubject,
             ["rule"] = definition.MessageKey,
-            ["parameters"] = new JsonObject(safeParameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, JsonValue.Create(item.Value.Value)))),
-            ["cause"] = safeCause,
+            ["parameters"] = new JsonObject(safeParameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, SafeMaterial(item.Value)))),
+            ["cause"] = SafeMaterial(safeCause),
+            ["expected"] = SafeMaterial(safeExpected),
+            ["observed"] = SafeMaterial(safeObserved),
         };
         string occurrence = CanonicalJson.Digest(occurrenceMaterial);
         string catalogAuthority = id.StartsWith("program-kit.provider.dotnet/", StringComparison.Ordinal)
@@ -50,16 +55,25 @@ public static class DiagnosticFactory
             definition.Severity,
             definition.Category,
             phase,
+            definition.Disposition,
             occurrence,
             1,
             new[] { safeSubject },
             ProtocolIdentities.Rule(definition.MessageKey),
             definition.MessageKey,
             safeParameters,
-            new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, safeCause),
-            new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, DisclosureFilter.SafeText(consequence)),
-            remediations ?? Array.Empty<Remediation>(),
-            Array.Empty<EvidenceReference>());
+            safeCause,
+            safeConsequence,
+            safeExpected,
+            safeObserved,
+            remediations is { Count: > 0 } ? remediations : new[] { DefaultRemediation(definition.Disposition, phase, safeSubject) },
+            evidence ?? Array.Empty<EvidenceReference>());
+    }
+
+    public static PrimaryDisposition PrimaryDispositionFor(IEnumerable<Diagnostic> diagnostics)
+    {
+        PrimaryDisposition[] values = diagnostics.Select(static item => item.Disposition).Distinct().ToArray();
+        return values.Length == 1 ? values[0] : PrimaryDisposition.Stop;
     }
 
     public static DiagnosticView View(IEnumerable<Diagnostic> diagnostics)
@@ -83,4 +97,32 @@ public static class DiagnosticFactory
         Diagnostic[] returned = complete.Take(MaximumInlineDiagnostics).ToArray();
         return new DiagnosticView(complete.Length, returned.Length, complete.Length - returned.Length, "program-kit.diagnostic-grouping/v1", digest, returned);
     }
+
+    private static Remediation DefaultRemediation(PrimaryDisposition disposition, OperationPhase phase, string subject) => new(
+        disposition switch
+        {
+            PrimaryDisposition.ProvideInput => "provide-input",
+            PrimaryDisposition.RequestApproval => "request-approval",
+            PrimaryDisposition.Retry => "retry",
+            PrimaryDisposition.Repair => "repair",
+            PrimaryDisposition.Revise => "revise",
+            _ => "stop",
+        },
+        new[] { subject },
+        new[] { "diagnostic-is-current" },
+        RequestedEffect.None,
+        disposition == PrimaryDisposition.RequestApproval ? new[] { "human-approval" } : Array.Empty<string>(),
+        null,
+        null,
+        new[] { disposition == PrimaryDisposition.Stop ? "operation-remains-stopped" : "violated-invariant-is-re-evaluated" },
+        phase);
+
+    private static JsonObject SafeMaterial(SafeValue value) => new()
+    {
+        ["classification"] = value.Classification.ToString(),
+        ["valueKind"] = value.ValueKind.ToString(),
+        ["value"] = value.Value,
+        ["redactionReason"] = value.RedactionReason,
+        ["policy"] = value.PolicyReference?.Digest,
+    };
 }

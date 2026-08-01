@@ -102,6 +102,7 @@ public static class OperationResultProjector
         ["severity"] = Kebab(diagnostic.Severity),
         ["category"] = Kebab(diagnostic.Category),
         ["phase"] = Kebab(diagnostic.Phase),
+        ["disposition"] = Kebab(diagnostic.Disposition),
         ["occurrenceKey"] = diagnostic.OccurrenceKey,
         ["occurrenceCount"] = diagnostic.OccurrenceCount,
         ["subjects"] = new JsonArray(diagnostic.Subjects.Select(Subject).ToArray()),
@@ -118,6 +119,8 @@ public static class OperationResultProjector
             ["kind"] = "bounded",
             ["affectedClaims"] = new JsonArray("operation-trust"),
         },
+        ["expected"] = SafeValue(diagnostic.Expected),
+        ["observed"] = SafeValue(diagnostic.Observed),
         ["remediations"] = new JsonArray(diagnostic.Remediations.Select(Remediation).ToArray()),
         ["evidence"] = new JsonArray(diagnostic.Evidence.Select(ContractJson.Evidence).ToArray()),
         ["documentation"] = new JsonArray(),
@@ -219,7 +222,7 @@ public static class OperationResultProjector
         if (value.Classification == SafeValueClassification.Withheld)
         {
             document["redactionReason"] = value.RedactionReason;
-            document["policyReference"] = ContractJson.Artifact(value.PolicyReference!);
+            document["policyReference"] = ContractJson.Identity(value.PolicyReference!);
         }
         else
         {

@@ -44,7 +44,7 @@ public sealed record SafeValue
         SafeValueKind valueKind,
         string? value,
         string? redactionReason = null,
-        ArtifactReference? policyReference = null)
+        GovernedIdentity? policyReference = null)
     {
         bool withheld = classification == SafeValueClassification.Withheld;
         if (withheld != (value is null)
@@ -74,7 +74,7 @@ public sealed record SafeValue
 
     public string? RedactionReason { get; }
 
-    public ArtifactReference? PolicyReference { get; }
+    public GovernedIdentity? PolicyReference { get; }
 }
 
 public sealed record ArtifactReference(

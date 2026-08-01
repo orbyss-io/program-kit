@@ -64,25 +64,38 @@ JsonObject support = new()
 };
 string supportDigest = Write("provider-support.json", support);
 
-JsonArray catalogEntries = new(DiagnosticCatalog.Entries.Values
-    .OrderBy(static definition => definition.Id, StringComparer.Ordinal)
-    .Select(definition => new JsonObject
-    {
-        ["id"] = definition.Id,
-        ["category"] = Kebab(definition.Category.ToString()),
-        ["severity"] = Kebab(definition.Severity.ToString()),
-        ["messageKey"] = definition.MessageKey,
-        ["disposition"] = definition.Disposition,
-    }).ToArray());
-JsonObject catalog = new()
+JsonObject Catalog(GovernedIdentity identity, string idPrefix)
 {
-    ["schema"] = "program-kit.diagnostic-catalog/v1",
-    ["canonicalProfile"] = CanonicalJson.Profile,
-    ["kernelIdentity"] = Identity(ProtocolIdentities.Catalog("orbyss.program-kit", "kernel")),
-    ["providerIdentity"] = Identity(ProtocolIdentities.Catalog("orbyss.program-kit.dotnet", "provider")),
-    ["entries"] = catalogEntries,
-};
-string catalogDigest = Write("diagnostic-catalog.json", catalog);
+    JsonArray entries = new(DiagnosticCatalog.Entries.Values
+        .Where(definition => definition.Id.StartsWith(idPrefix, StringComparison.Ordinal))
+        .OrderBy(static definition => definition.Id, StringComparer.Ordinal)
+        .Select(definition => new JsonObject
+        {
+            ["id"] = definition.Id,
+            ["trigger"] = definition.Observed,
+            ["violatedInvariant"] = definition.Expected,
+            ["category"] = Kebab(definition.Category.ToString()),
+            ["defaultSeverity"] = Kebab(definition.Severity.ToString()),
+            ["messageKey"] = definition.MessageKey,
+            ["primaryDisposition"] = Kebab(definition.Disposition.ToString()),
+            ["parameterDisclosure"] = new JsonObject(),
+            ["remediationKinds"] = new JsonArray(Kebab(definition.Disposition.ToString())),
+            ["status"] = "active",
+        }).ToArray());
+    return new JsonObject
+    {
+        ["schema"] = "program-kit.diagnostic-catalog/v1",
+        ["canonicalProfile"] = CanonicalJson.Profile,
+        ["identity"] = Identity(identity),
+        ["protocolRevision"] = "1.0.0",
+        ["entries"] = entries,
+    };
+}
+
+string kernelCatalogDigest = Write("kernel-diagnostic-catalog.json", Catalog(
+    ProtocolIdentities.Catalog("orbyss.program-kit", "kernel"), "program-kit.kernel/"));
+string providerCatalogDigest = Write("dotnet-diagnostic-catalog.json", Catalog(
+    ProtocolIdentities.Catalog("orbyss.program-kit.dotnet", "provider"), "program-kit.provider.dotnet/"));
 
 List<JsonObject> dependencies = new();
 foreach (string lockPath in Directory.EnumerateFiles(root, "packages.lock.json", SearchOption.AllDirectories)
@@ -156,7 +169,8 @@ JsonObject distribution = new()
     ["provider"] = Identity(provider.Identity),
     ["artifacts"] = new JsonArray(
         Evidence("dependency-sbom.cdx.json", "application/vnd.cyclonedx+json", sbomDigest),
-        Evidence("diagnostic-catalog.json", "application/json", catalogDigest),
+        Evidence("dotnet-diagnostic-catalog.json", "application/json", providerCatalogDigest),
+        Evidence("kernel-diagnostic-catalog.json", "application/json", kernelCatalogDigest),
         Evidence("provider-support.json", "application/json", supportDigest),
         Evidence("source-package-provenance.json", "application/json", provenanceDigest)),
 };

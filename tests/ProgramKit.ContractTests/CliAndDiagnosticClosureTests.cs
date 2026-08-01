@@ -84,17 +84,21 @@ public sealed class CliAndDiagnosticClosureTests
                 "fixture-subject",
                 "bounded cause",
                 "bounded consequence",
-                new Dictionary<string, string>(StringComparer.Ordinal) { ["value"] = "bounded" });
+                new Dictionary<string, SafeValue>(StringComparer.Ordinal) { ["value"] = new(SafeValueClassification.Public, SafeValueKind.Text, "bounded") });
             OperationResult result = OperationResultFactory.Failure(
                 PublicCommand.Explain,
                 OperationOutcome.Blocked,
                 OperationPhase.Validation,
                 EffectState.None,
-                PrimaryDisposition.Stop,
+                diagnostic.Disposition,
                 new[] { diagnostic });
             JsonObject projected = OperationResultProjector.ToJson(result);
             ContractAssertions.AssertValid(ContractAssertions.OperationResult, projected);
             Assert.AreEqual(id, projected["diagnostics"]!["items"]![0]!["id"]!.GetValue<string>());
+            Assert.AreEqual(Disposition(diagnostic.Disposition), projected["diagnostics"]!["items"]![0]!["disposition"]!.GetValue<string>());
+            Assert.IsNotNull(projected["diagnostics"]!["items"]![0]!["expected"]);
+            Assert.IsNotNull(projected["diagnostics"]!["items"]![0]!["observed"]);
+            Assert.IsTrue(projected["diagnostics"]!["items"]![0]!["remediations"]!.AsArray().Count > 0);
             Assert.AreEqual(id, diagnostic.Id);
             Assert.IsTrue(diagnostic.OccurrenceKey.StartsWith("sha256:", StringComparison.Ordinal));
         }
@@ -122,13 +126,13 @@ public sealed class CliAndDiagnosticClosureTests
                 unsafeValue,
                 unsafeValue,
                 unsafeValue,
-                new Dictionary<string, string>(StringComparer.Ordinal) { ["observed"] = unsafeValue });
+                new Dictionary<string, SafeValue>(StringComparer.Ordinal) { ["observed"] = DisclosureFilter.Classify(unsafeValue) });
             JsonObject projected = OperationResultProjector.ToJson(OperationResultFactory.Failure(
                 PublicCommand.Construct,
                 OperationOutcome.Blocked,
                 OperationPhase.Validation,
                 EffectState.None,
-                PrimaryDisposition.Stop,
+                diagnostic.Disposition,
                 new[] { diagnostic }));
             string json = projected.ToJsonString();
             Assert.IsFalse(json.Contains(unsafeValue, StringComparison.Ordinal));
@@ -159,4 +163,15 @@ public sealed class CliAndDiagnosticClosureTests
             TestRepository.DeleteWorkspace(workspace);
         }
     }
+
+    private static string Disposition(PrimaryDisposition value) => value switch
+    {
+        PrimaryDisposition.ProvideInput => "provide-input",
+        PrimaryDisposition.RequestApproval => "request-approval",
+        PrimaryDisposition.Retry => "retry",
+        PrimaryDisposition.Repair => "repair",
+        PrimaryDisposition.Revise => "revise",
+        PrimaryDisposition.Stop => "stop",
+        _ => throw new ArgumentOutOfRangeException(nameof(value)),
+    };
 }

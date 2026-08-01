@@ -117,7 +117,11 @@ public sealed class RuntimeAndDriftAcceptanceTests
             JsonNode result = JsonNode.Parse(evaluate.StandardOutput)!;
             string[] ids = result["diagnostics"]!["items"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()).ToArray();
             ContractAssertions.AssertValid(ContractAssertions.OperationResult, result.AsObject());
-            CollectionAssert.Contains(ids, "program-kit.kernel/PKWSP0001");
+            JsonObject fixture = JsonNode.Parse(File.ReadAllBytes(TestRepository.Fixture("Invalid/GeneratedDrift/fixture.json")))!.AsObject();
+            CollectionAssert.Contains(ids, fixture["expectedDiagnostic"]!.GetValue<string>());
+            Assert.AreEqual(fixture["expectedOutcome"]!.GetValue<string>(), result["outcome"]!.GetValue<string>());
+            Assert.AreEqual(fixture["expectedEffectState"]!.GetValue<string>(), result["effectState"]!.GetValue<string>());
+            Assert.AreEqual(fixture["expectedDisposition"]!.GetValue<string>(), result["primaryDisposition"]!.GetValue<string>());
         }
         finally
         {

@@ -316,6 +316,7 @@
         "severity",
         "category",
         "phase",
+        "disposition",
         "occurrenceKey",
         "occurrenceCount",
         "subjects",
@@ -324,6 +325,8 @@
         "parameters",
         "cause",
         "consequence",
+        "expected",
+        "observed",
         "remediations",
         "evidence",
         "documentation"
@@ -361,6 +364,17 @@
         },
         "phase": {
           "$ref": "#/$defs/phase"
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "retry",
+            "provide-input",
+            "request-approval",
+            "repair",
+            "revise",
+            "stop"
+          ]
         },
         "occurrenceKey": {
           "$ref": "common.schema.json#/$defs/digest"
@@ -443,6 +457,7 @@
         },
         "remediations": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "$ref": "#/$defs/remediation"
           }
@@ -717,6 +732,7 @@
         "category",
         "defaultSeverity",
         "messageKey",
+        "primaryDisposition",
         "parameterDisclosure",
         "remediationKinds",
         "status"
@@ -761,6 +777,17 @@
         "messageKey": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9.-]*$"
+        },
+        "primaryDisposition": {
+          "type": "string",
+          "enum": [
+            "retry",
+            "provide-input",
+            "request-approval",
+            "repair",
+            "revise",
+            "stop"
+          ]
         },
         "parameterDisclosure": {
           "type": "object",

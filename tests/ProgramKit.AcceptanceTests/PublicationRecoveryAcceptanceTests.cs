@@ -29,9 +29,13 @@ public sealed class PublicationRecoveryAcceptanceTests
                 resolution,
                 publisher: new RecoverablePublisher(new ThrowAtFirstLiveWrite()));
             OperationResult interrupted = interruptedConstruction.Execute(workspace, Path.Combine(workspace, "requests", "construct.json"));
-            Assert.AreEqual(OperationOutcome.Blocked, interrupted.Outcome);
-            Assert.AreEqual(EffectState.Indeterminate, interrupted.EffectState);
-            Assert.AreEqual(PrimaryDisposition.Repair, interrupted.PrimaryDisposition);
+            JsonObject fixture = JsonNode.Parse(File.ReadAllBytes(TestRepository.Fixture("Invalid/InterruptedPublication/fixture.json")))!.AsObject();
+            JsonObject projected = OperationResultProjector.ToJson(interrupted);
+            Assert.AreEqual(fixture["expectedOutcome"]!.GetValue<string>(), projected["outcome"]!.GetValue<string>());
+            Assert.AreEqual(fixture["expectedEffectState"]!.GetValue<string>(), projected["effectState"]!.GetValue<string>());
+            Assert.AreEqual(fixture["expectedDisposition"]!.GetValue<string>(), projected["primaryDisposition"]!.GetValue<string>());
+            string[] interruptedIds = projected["diagnostics"]!["items"]!.AsArray().Select(static item => item!["id"]!.GetValue<string>()).ToArray();
+            CollectionAssert.Contains(interruptedIds, fixture["expectedDiagnostic"]!.GetValue<string>());
             Assert.IsFalse(File.Exists(Path.Combine(workspace, ".program-kit", "construction-receipt.json")));
 
             var evaluated = TestRepository.RunCli(

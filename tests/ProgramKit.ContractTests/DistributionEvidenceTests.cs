@@ -33,10 +33,19 @@ public sealed class DistributionEvidenceTests
         CollectionAssert.AreEqual(provider.InputKinds.OrderBy(static item => item, StringComparer.Ordinal).ToArray(), Values(support, "inputKinds"));
         CollectionAssert.AreEqual(provider.OutputKinds.OrderBy(static item => item, StringComparer.Ordinal).ToArray(), Values(support, "outputKinds"));
 
-        JsonObject catalog = Read(Path.Combine(evidenceRoot, "diagnostic-catalog.json"));
+        JsonObject kernelCatalog = Read(Path.Combine(evidenceRoot, "kernel-diagnostic-catalog.json"));
+        JsonObject providerCatalog = Read(Path.Combine(evidenceRoot, "dotnet-diagnostic-catalog.json"));
+        ContractAssertions.AssertValid(ContractAssertions.OperationResult, kernelCatalog);
+        ContractAssertions.AssertValid(ContractAssertions.OperationResult, providerCatalog);
         string[] expectedIds = DiagnosticCatalog.Entries.Keys.OrderBy(static item => item, StringComparer.Ordinal).ToArray();
-        string[] actualIds = catalog["entries"]!.AsArray().Select(static item => item!["id"]!.GetValue<string>()).ToArray();
+        string[] actualIds = kernelCatalog["entries"]!.AsArray()
+            .Concat(providerCatalog["entries"]!.AsArray())
+            .Select(static item => item!["id"]!.GetValue<string>())
+            .OrderBy(static item => item, StringComparer.Ordinal)
+            .ToArray();
         CollectionAssert.AreEqual(expectedIds, actualIds);
+        Assert.IsTrue(kernelCatalog["entries"]!.AsArray().All(static item => item!["primaryDisposition"] is not null));
+        Assert.IsTrue(providerCatalog["entries"]!.AsArray().All(static item => item!["primaryDisposition"] is not null));
 
         JsonObject sbom = Read(Path.Combine(evidenceRoot, "dependency-sbom.cdx.json"));
         Assert.IsTrue(sbom["components"]!.AsArray().Count > 0);

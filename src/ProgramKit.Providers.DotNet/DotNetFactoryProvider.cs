@@ -12,6 +12,8 @@ using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Providers.DotNet.Composition.HttpEndpoints;
 using Orbyss.ProgramKit.Providers.DotNet.Construction;
+using Orbyss.ProgramKit.Providers.DotNet.Diagnostics;
+using Orbyss.ProgramKit.Providers.DotNet.Evaluation;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
 using Orbyss.ProgramKit.Providers.DotNet.Templates;
 
@@ -147,6 +149,12 @@ internal sealed class DotNetFactoryProvider
                 return Failure(DiagnosticIds.CShellsConformance, applicationBuild);
             }
 
+            string depsPath = Path.Combine(applicationRoot, "bin", "Release", "net10.0", $"{applicationName}.deps.json");
+            RuntimeDependencyValidator.EnsureAllowed(
+                ReadRuntimeLibraries(depsPath),
+                new[] { applicationName, packageId, "CShells", "CShells.Abstractions", "CShells.AspNetCore",
+                    "CShells.AspNetCore.Abstractions", "JetBrains.Annotations", "Microsoft.Extensions.DependencyModel" });
+
             RemoveTransientDirectories(context.CandidateRoot);
             ProviderArtifact[] artifacts = Directory.EnumerateFiles(context.CandidateRoot, "*", SearchOption.AllDirectories)
                 .Where(path => !Path.GetRelativePath(context.CandidateRoot, path).Replace('\\', '/')
@@ -177,9 +185,9 @@ internal sealed class DotNetFactoryProvider
             };
             return new ProviderConstructionResult(artifacts, new[] { evidence }, Array.Empty<string>(), true);
         }
-        catch (InvalidOperationException exception) when (exception.Message.StartsWith("Duplicate route", StringComparison.Ordinal))
+        catch (ProviderDiagnosticException exception)
         {
-            return new ProviderConstructionResult(Array.Empty<ProviderArtifact>(), Array.Empty<JsonObject>(), new[] { DiagnosticIds.DuplicateRoute }, false);
+            return new ProviderConstructionResult(Array.Empty<ProviderArtifact>(), Array.Empty<JsonObject>(), new[] { exception.DiagnosticId }, false);
         }
         catch (Exception)
         {
@@ -299,6 +307,26 @@ internal sealed class DotNetFactoryProvider
     private sealed record MirrorArtifact(string FileName, string Digest);
 
     private sealed record ValidatedMirror(string LockDigest, IReadOnlyList<MirrorArtifact> Artifacts);
+
+    private static IReadOnlyList<string> ReadRuntimeLibraries(string depsPath)
+    {
+        if (!File.Exists(depsPath))
+        {
+            throw new ProviderDiagnosticException(
+                DiagnosticIds.CShellsConformance,
+                PrimaryDisposition.Stop,
+                "The generated application dependency graph is unavailable.");
+        }
+
+        using JsonDocument parsed = JsonDocument.Parse(File.ReadAllBytes(depsPath));
+        JsonObject document = JsonNode.Parse(parsed.RootElement.GetRawText()) as JsonObject
+            ?? throw new ProviderDiagnosticException(DiagnosticIds.CShellsConformance, PrimaryDisposition.Stop, "The dependency graph is invalid.");
+        return (document["libraries"] as JsonObject ?? throw new ProviderDiagnosticException(
+                DiagnosticIds.CShellsConformance,
+                PrimaryDisposition.Stop,
+                "The dependency graph has no library closure."))
+            .Select(static item => item.Key).ToArray();
+    }
 
     private static void RemoveTransientDirectories(string root)
     {

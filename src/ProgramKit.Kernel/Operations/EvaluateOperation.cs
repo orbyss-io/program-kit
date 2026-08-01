@@ -75,12 +75,12 @@ public sealed class EvaluateOperation
             phase = OperationPhase.Resolution;
             OperationExecutionTracker.Advance(phase, EffectState.None);
             ResolvedFactoryInput resolved = resolution.Resolve(input);
-            ProviderEvaluationResult providerEvaluation = resolved.EvaluationProvider.EvaluateAsync(new ProviderEvaluationContext(
+            ProviderEvaluationResult providerEvaluation = ProviderInvocation.Invoke(() => resolved.EvaluationProvider.EvaluateAsync(new ProviderEvaluationContext(
                 workspaceRoot,
                 input.Definition,
                 resolved.Lock.ClosureDigest,
                 null,
-                System.Threading.CancellationToken.None)).GetAwaiter().GetResult();
+                System.Threading.CancellationToken.None)), phase);
             if (!providerEvaluation.Succeeded)
             {
                 Diagnostic unsupported = DiagnosticFactory.Create(
@@ -225,12 +225,24 @@ public sealed class EvaluateOperation
                 OperationOutcome.Blocked,
                 OperationPhase.Evaluation,
                 EffectState.None,
-                repairable ? PrimaryDisposition.Repair : PrimaryDisposition.Revise,
+                DiagnosticFactory.PrimaryDispositionFor(diagnostics),
                 diagnostics,
                 requestIdentity,
                 constructionIdentity,
                 receipts: new[] { receiptReference },
                 evidence: evidence);
+        }
+        catch (ProgramKitDiagnosticException exception)
+        {
+            Diagnostic diagnostic = DiagnosticFactory.Create(
+                exception.DiagnosticId,
+                exception.Phase,
+                "factory-operation",
+                exception.Message,
+                "Evaluation made no changes and reports only the proven bounded failure.");
+            return OperationResultFactory.Failure(
+                PublicCommand.Evaluate, OperationOutcome.Blocked, exception.Phase, EffectState.None,
+                exception.Disposition, new[] { diagnostic }, requestIdentity);
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException or InvalidOperationException or KeyNotFoundException or System.Text.Json.JsonException or YamlDotNet.Core.YamlException)
         {

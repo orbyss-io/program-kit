@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
@@ -73,6 +74,13 @@ public static class OperationResultFactory
         IReadOnlyList<EvidenceReference>? evidence = null,
         IReadOnlyList<OperationChange>? changes = null)
     {
+        Diagnostic[] materializedDiagnostics = diagnostics.ToArray();
+        if (materializedDiagnostics.Length == 0
+            || DiagnosticFactory.PrimaryDispositionFor(materializedDiagnostics) != disposition)
+        {
+            throw new InvalidOperationException("A failure result requires diagnostics whose typed disposition determines the primary disposition.");
+        }
+
         if (outcome == OperationOutcome.Succeeded || disposition == PrimaryDisposition.Complete)
         {
             throw new InvalidOperationException("A failure result cannot claim success or completion.");
@@ -98,7 +106,7 @@ public static class OperationResultFactory
             artifacts ?? Array.Empty<ArtifactReference>(),
             receipts ?? Array.Empty<ArtifactReference>(),
             evidence ?? Array.Empty<EvidenceReference>(),
-            DiagnosticFactory.View(diagnostics),
+            DiagnosticFactory.View(materializedDiagnostics),
             continuation);
         OperationExecutionTracker.Complete(result);
         return result;

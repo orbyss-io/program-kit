@@ -144,13 +144,13 @@ public sealed class ConstructOperation
             string mirrorLogicalPath = input.Definition["dependencyMirror"]?.GetValue<string>()
                 ?? throw new InvalidDataException("definition.dependencyMirror is required.");
             string dependencyMirror = LogicalPaths.ResolveInside(workspaceRoot, mirrorLogicalPath);
-            ProviderConstructionResult providerResult = resolved.ConstructionProvider.ConstructAsync(new ProviderConstructionContext(
+            ProviderConstructionResult providerResult = ProviderInvocation.Invoke(() => resolved.ConstructionProvider.ConstructAsync(new ProviderConstructionContext(
                 workspaceRoot,
                 candidateRoot,
                 dependencyMirror,
                 input.Definition,
                 constructionIdentity,
-                System.Threading.CancellationToken.None)).GetAwaiter().GetResult();
+                System.Threading.CancellationToken.None)), phase);
             if (!providerResult.Succeeded)
             {
                 return ProviderFailure(resolved, providerResult.Diagnostics, requestIdentity, constructionIdentity, phase, effect);
@@ -158,12 +158,12 @@ public sealed class ConstructOperation
 
             phase = OperationPhase.Evaluation;
             OperationExecutionTracker.Advance(phase, effect);
-            ProviderEvaluationResult providerEvaluation = resolved.EvaluationProvider.EvaluateAsync(new ProviderEvaluationContext(
+            ProviderEvaluationResult providerEvaluation = ProviderInvocation.Invoke(() => resolved.EvaluationProvider.EvaluateAsync(new ProviderEvaluationContext(
                 workspaceRoot,
                 input.Definition,
                 resolved.Lock.ClosureDigest,
                 constructionIdentity,
-                System.Threading.CancellationToken.None)).GetAwaiter().GetResult();
+                System.Threading.CancellationToken.None)), phase);
             if (!providerEvaluation.Succeeded)
             {
                 return ProviderFailure(resolved, providerEvaluation.Diagnostics, requestIdentity, constructionIdentity, phase, effect);
@@ -206,6 +206,7 @@ public sealed class ConstructOperation
                 constructionIdentity,
                 candidateRoot,
                 providerResult.Artifacts.Concat(kernelArtifacts).ToArray());
+            DeterminismGuard.EnsureCompatibleWithAdmittedCanonicalBytes(workspaceRoot, candidate);
             CandidateEvaluation evaluation = candidateEvaluator.Evaluate(candidate, resolved, providerResult, providerEvaluation);
             if (!evaluation.Passed)
             {
@@ -301,6 +302,18 @@ public sealed class ConstructOperation
                 evidence: new[] { resultEvidence },
                 changes: publication.Changes.Append(new OperationChange("created", snapshotReference.LogicalPath, EffectState.Committed)).ToArray());
         }
+        catch (ProgramKitDiagnosticException exception)
+        {
+            Diagnostic diagnostic = DiagnosticFactory.Create(
+                exception.DiagnosticId,
+                exception.Phase,
+                "factory-operation",
+                exception.Message,
+                "No trusted completion is claimed; follow the typed remediation and disposition.");
+            return OperationResultFactory.Failure(
+                PublicCommand.Construct, OperationOutcome.Blocked, exception.Phase, effect,
+                exception.Disposition, new[] { diagnostic }, requestIdentity, constructionIdentity);
+        }
         catch (PublicationInterruptedException exception)
         {
             Diagnostic diagnostic = DiagnosticFactory.Create(
@@ -365,7 +378,7 @@ public sealed class ConstructOperation
             resolved.ConstructionProvider.Manifest.Identity.StableKey,
             "The exact provider reported a bounded failure.",
             "No candidate was admitted or published.")).ToArray();
-        return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, PrimaryDisposition.Revise, diagnostics, requestIdentity, constructionIdentity);
+        return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, DiagnosticFactory.PrimaryDispositionFor(diagnostics), diagnostics, requestIdentity, constructionIdentity);
     }
 
     private static OperationResult InterruptedResult(string requestIdentity, string constructionIdentity, EffectState effect)

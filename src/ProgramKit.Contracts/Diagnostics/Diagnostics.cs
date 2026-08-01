@@ -42,6 +42,7 @@ public sealed record Diagnostic(
     DiagnosticSeverity Severity,
     DiagnosticCategory Category,
     OperationPhase Phase,
+    PrimaryDisposition Disposition,
     string OccurrenceKey,
     int OccurrenceCount,
     IReadOnlyList<string> Subjects,
@@ -50,6 +51,8 @@ public sealed record Diagnostic(
     IReadOnlyDictionary<string, SafeValue> Parameters,
     SafeValue Cause,
     SafeValue Consequence,
+    SafeValue Expected,
+    SafeValue Observed,
     IReadOnlyList<Remediation> Remediations,
     IReadOnlyList<EvidenceReference> Evidence);
 
