@@ -286,3 +286,36 @@ T100 is satisfied by the bounded Windows/Linux matrix evidence in
   removal, preserved consumer bytes, and a callable CLI after removal.
 - Platform-specific projections were deterministic within their declared
   profiles: Ubuntu `sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10`;
+  Windows `sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21`.
+- Bounded evidence scans found zero source-root paths, temporary consumer roots,
+  prompts, responses, transcripts, credential-like values, or raw provider
+  output. T100 is complete.
+
+## Live Codex session review — 2026-08-01
+
+T101 was executed with explicit authorization and recorded as bounded evidence
+in `reviews/codex-session-review.json`:
+
+- provider `codex`, exact CLI version `0.137.0`, observed version output
+  `codex-cli 0.137.0`, and explicitly pinned bundled model `gpt-5.5`;
+- reviewer identity `joey-orbyss`, 10 fresh isolated trials, 8 complete passing
+  attestations, and final status `findings-present`;
+- trial 3 did not ask for missing input within two interaction turns; trial 9
+  neither completed evaluation nor asked for missing input within two turns;
+- normalized-LF evidence SHA-256
+  `sha256:e7d6b00c53b0473e9e2a0de98bf8a2c783a50d21447d66f96ef5f5e72ea6f91d`;
+- the bounded record contains no prompt, response, transcript, conversation,
+  credential, raw-output, source-root, consumer-root, or workspace-path field;
+  absolute-path and credential-pattern scans returned zero findings.
+
+The human-observed bounded finding was that the construct authority grant
+declared consumer-owned `requests/revocations.json` and
+`requests/review.json` artifacts that were absent, while construction was
+still admitted. The repository authority loader currently does not close those
+declared revocation and provenance references. This is an upstream Feature 001
+first-vertical-slice authority-closure finding and was deliberately not
+remediated inside Feature 002.
+
+T101 execution is complete, but SC-003 and SC-005 are not passed by this run.
+T102 remains pending for an independent human approval or rejection decision;
+T105 remains pending until that decision is recorded without self-approval.
