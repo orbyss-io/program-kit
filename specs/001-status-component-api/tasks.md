@@ -26,14 +26,14 @@ limited to Setup and Foundational phases; consumer Status meaning remains under
 **Purpose**: Establish the exact, independently buildable .NET repository and
 its four production and three proof boundaries.
 
-- [ ] T001 Pin SDK `10.0.302`, C# `14.0`, `net10.0`, nullable, deterministic compilation, warnings-as-errors, code style, and LF/UTF-8 policy in `global.json`, `Directory.Build.props`, and `.editorconfig`
-- [ ] T002 Define exact centrally managed package versions, locked-source policy, and deterministic governed dependency-mirror bootstrap/manifest in `Directory.Packages.props`, `NuGet.Config`, `eng/Bootstrap-DependencyMirror.ps1`, and `eng/dependency-mirror.manifest.json`
-- [ ] T003 Create the four production projects, three MSTest projects, fixed project-reference directions, and repository solution in `src/*/*.csproj`, `tests/ProgramKit.*Tests/*.csproj`, and `ProgramKit.slnx`
+- [X] T001 Pin SDK `10.0.302`, C# `14.0`, `net10.0`, nullable, deterministic compilation, warnings-as-errors, code style, and LF/UTF-8 policy in `global.json`, `Directory.Build.props`, and `.editorconfig`
+- [X] T002 Define exact centrally managed package versions, locked-source policy, and deterministic governed dependency-mirror bootstrap/manifest in `Directory.Packages.props`, `NuGet.Config`, `eng/Bootstrap-DependencyMirror.ps1`, and `eng/dependency-mirror.manifest.json`
+- [X] T003 Create the four production projects, three MSTest projects, fixed project-reference directions, and repository solution in `src/*/*.csproj`, `tests/ProgramKit.*Tests/*.csproj`, and `ProgramKit.slnx`
 - [ ] T004 [P] Add repository build targets that reject floating package versions, forbidden production namespaces, and Program Kit/Spec Kit/AI references from generated consumers in `Directory.Build.targets`
 - [ ] T005 [P] Add linked shared test sources for isolated workspaces, culture switching, deterministic environment setup, process capture, and exact-path cleanup without creating another project boundary in `tests/Shared/`
-- [ ] T006 Copy the accepted Draft 2020-12 contract schemas into embedded public resources without semantic edits in `src/ProgramKit.Contracts/Schemas/`
+- [X] T006 Copy the accepted Draft 2020-12 contract schemas into embedded public resources without semantic edits in `src/ProgramKit.Contracts/Schemas/`
 - [ ] T007 Create the reference fixture directory structure and ownership marker files in `tests/Fixtures/Reference.Status/Valid/`, `tests/Fixtures/Reference.Status/Invalid/`, and `tests/Fixtures/Reference.Status/Golden/`
-- [ ] T008 Restore every executable and test root, commit the resulting exact `packages.lock.json` files, and prove a second `dotnet restore ProgramKit.slnx --locked-mode` is clean
+- [X] T008 Restore every executable and test root, commit the resulting exact `packages.lock.json` files, and prove a second `dotnet restore ProgramKit.slnx --locked-mode` is clean
 
 ---
 
@@ -50,7 +50,7 @@ contract and architecture checks.
 - [ ] T011 [P] Implement immutable provider manifest/SPI, exact selection, resolution lock, explanation, seam, and coverage contracts in `src/ProgramKit.Contracts/Providers/` and `src/ProgramKit.Contracts/Resolution/`
 - [ ] T012 [P] Implement immutable candidate, publication journal, receipt, artifact-state, and workspace snapshot contracts in `src/ProgramKit.Contracts/Workspace/`
 - [ ] T013 Implement the offline exact `$id`/digest schema registry and bounded `JsonSchema.Net` structural adapter in `src/ProgramKit.Kernel/Validation/SchemaRegistry.cs` and `src/ProgramKit.Kernel/Validation/StructuralSchemaValidator.cs`
-- [ ] T014 Implement strict duplicate-rejecting JSON parsing and `program-kit.canonical-json/v1` encoding, including unsigned UTF-16 key order, safe integers, string validation, and no BOM/whitespace/newline in `src/ProgramKit.Kernel/Canonicalization/`
+- [X] T014 Implement strict duplicate-rejecting JSON parsing and `program-kit.canonical-json/v1` encoding, including unsigned UTF-16 key order, safe integers, string validation, and no BOM/whitespace/newline in `src/ProgramKit.Kernel/Canonicalization/`
 - [ ] T015 [P] Implement SHA-256 qualified digests, typed collection identities, canonical logical-path normalization, and traversal/symlink/case/reserved-name collision checks in `src/ProgramKit.Kernel/Canonicalization/Digests.cs` and `src/ProgramKit.Kernel/Artifacts/LogicalPaths.cs`
 - [ ] T016 Implement the exact kernel and .NET provider diagnostic catalogs, deterministic ordering/grouping/truncation, and disclosure classification in `src/ProgramKit.Contracts/Diagnostics/Catalogs/` and `src/ProgramKit.Kernel/Diagnostics/`
 - [ ] T017 Implement the command-aware operation-result factory, command-specific inline payload invariants, optional bounded diagnostic artifact rules, outcome/effect/disposition invariants, canonical serialization, and dependency-minimal `PKINT0001` fallback serializer in `src/ProgramKit.Kernel/Operations/`
@@ -217,8 +217,8 @@ prove fresh-consumer usability, and document only what is actually true.
 - [ ] T080 [P] Generate deterministic distribution manifest, dependency inventory/SBOM, source/package provenance, diagnostic catalog digests, and exact provider support metadata in `eng/Generate-DistributionEvidence.ps1` and `artifacts/evidence/`
 - [ ] T081 Add performance assertions for the two-bundle finite closure and sub-two-second local `explain` path in `tests/ProgramKit.AcceptanceTests/VerticalSlice/PerformanceAcceptanceTests.cs`
 - [ ] T082 Automate the documented valid/invalid/repeatability/drift/repair walkthrough without ambient setup in `eng/Invoke-VerticalSliceQuickstart.ps1` and reconcile `specs/001-status-component-api/quickstart.md` with the executable flow
-- [ ] T083 Prepare the fresh-contributor one-hour product-review record with automated timing evidence, the seven architecture questions, every honest limitation, and an explicit pending human-approval gate that must not be reported as passed without an independent reviewer in `specs/001-status-component-api/reviews/first-vertical-slice.md`
-- [ ] T084 Reconcile `README.md` with the accepted constitution, implemented CLI behavior, archived-history boundary, current branch/main state, known limitations, and exact contributor entry points
+- [X] T083 Prepare the fresh-contributor one-hour product-review record with automated timing evidence, the seven architecture questions, every honest limitation, and an explicit pending human-approval gate that must not be reported as passed without an independent reviewer in `specs/001-status-component-api/reviews/first-vertical-slice.md`
+- [X] T084 Reconcile `README.md` with the accepted constitution, implemented CLI behavior, archived-history boundary, current branch/main state, known limitations, and exact contributor entry points
 - [ ] T085 Run locked restore, release build, all tests, schema validation, generated-consumer runtime isolation, quickstart automation, formatting, and clean-worktree checks; record the exact verification commands and results in `specs/001-status-component-api/verification.md`
 
 ---
@@ -318,3 +318,22 @@ remains the independent contributor-orientation proof.
 - If implementation exposes material ambiguity, changed authority, unsupported
   determinism, broadened effects, or a constitutional conflict, stop and return
   to specification/planning rather than silently widening this list.
+
+---
+
+## Phase 8: Convergence
+
+**Purpose**: Reconcile the implemented reference slice with its original
+contract, close constitutional trust gaps, and make the independent human
+product decision possible without inferring acceptance from green automation.
+
+- [ ] T086 CRITICAL Replace Boolean/window authority with an exact grant bound to request, operation closure, requested effect, evaluation context, freshness, review, and revocation state, with fail-closed adversarial tests, per FR-003, FR-004, FR-017, and Constitution I (partial)
+- [ ] T087 CRITICAL Route public operations through the versioned factory-request contract, complete offline Draft 2020-12 structural and typed semantic validation, remove provider-specific intake ownership from the kernel, and aggregate independently known missing input per FR-001 through FR-003, FR-008, and Constitution III (partial)
+- [ ] T088 CRITICAL Add callable intake-mapping, construction, and evaluation provider SPI surfaces plus exact role/support admission so a provider cannot advertise an unimplemented role, per FR-008, FR-030, the plan three-role decision, and Constitution VI (contradicts)
+- [ ] T089 CRITICAL Complete candidate gate closure, exact support/provenance/evidence evaluation, live-precondition rechecks, publication fault recovery, and receipt-last admission so partial or interrupted state cannot be trusted, per FR-014, FR-015, FR-018, and Constitutions IV and V (partial)
+- [ ] T090 Complete read-only exact, missing, modified, stale, colliding, interrupted, unsupported, and unavailable evaluation plus separately authorized ownership-safe repair and publication recovery, per FR-016, FR-017, and US3 (partial)
+- [ ] T091 CRITICAL Make fallback effect reporting depend on the furthest proven lifecycle state and complete result, diagnostic-trigger, disclosure, truncation, continuation, and remediation contract tests, per FR-019 through FR-025 and Constitution VII (contradicts)
+- [ ] T092 Project the workspace snapshot only from authoritative closure, identity, relationship, seam, artifact, provenance, gate, review, waiver, evidence, receipt, support, retention, and diagnostic records, and recompute freshness without mutation, per FR-026 through FR-028 and US4 (partial)
+- [ ] T093 Complete the declared invalid, repair, publication-fault, path/culture/order, package-claim, provenance/SBOM, performance, hostile-filesystem, local-safety, no-self-host, and relocated-runtime proof matrix, per FR-018, FR-029, FR-031, FR-032, FR-034, and SC-004 through SC-010 (partial)
+- [X] T094 Reconcile every original T001-T085 checkbox against its named artifact and direct proof, retain unchecked status wherever proof is absent, and update README plus verification with only current evidence, per the Spec Kit workflow and Constitution IX (partial)
+- [ ] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (missing)

@@ -29,6 +29,16 @@ is intentionally small so developers and architects can review the product
 boundaries before more providers, capability mappings, or authoring experiences
 are added.
 
+Feature 001 is **not product-accepted**. A bounded closure audit on
+2026-08-01 reran its 23-test proof successfully but found that only 8 of its
+original 85 implementation tasks had both the named artifact and sufficient
+direct evidence. Authority closure, the public provider-role seam, complete
+admission/recovery, diagnostic effect honesty, workspace currentness, and the
+declared product-proof matrix remain open. Treat the current slice as a
+useful executable prototype, not as an accepted foundation.
+The exact per-task audit is available in
+[`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
+
 ## What is the Program Kit CLI?
 
 Program Kit is a development-time semantic toolchain and software factory. It

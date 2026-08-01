@@ -2,6 +2,29 @@
 
 Date: 2026-08-01
 
+## Closure-audit status
+
+**Automated prototype evidence: passed. Product closure: blocked. Human
+decision: pending.**
+
+The 2026-08-01 closure audit reran the official quickstart successfully in
+37.4 seconds: the Release build completed with 0 warnings and 0 errors, all
+23 tests passed, and formatting verification passed. The eight embedded
+contract schemas remain byte-identical to their accepted design copies.
+
+That execution evidence does not satisfy the complete specification. The
+task reconciliation found 8 of the original 85 tasks proven complete and 77
+still unproven or incomplete. Spec Kit convergence appended `T086`-`T095`
+for ten material closure findings: 1 missing, 7 partial, and 2 contradicting
+the specified intent; 6 are critical, 3 high, and 1 medium severity.
+
+The audit recommends rejection pending remediation. It does not itself make
+the independent human product decision.
+
+The status and evidence reason for every original task, plus the mapping from
+the convergence tasks back to original work, are recorded in
+[`reviews/task-closure-audit.md`](reviews/task-closure-audit.md).
+
 ## Passing local evidence
 
 ```powershell

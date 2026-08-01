@@ -9,6 +9,48 @@ CShells 0.0.28 component and host compilation, receipt-last publication,
 read-only exact/drift evaluation, clean generated-consumer restore/build, an
 ordinary host process, and an HTTP `/status` response.
 
+## Closure audit (2026-08-01)
+
+The repository-owned quickstart was rerun from the Feature 001 baseline:
+
+- elapsed wall time: 37.4 seconds;
+- Release build: 0 warnings and 0 errors;
+- tests: 15 unit, 4 contract, and 4 acceptance; 23 passed, 0 failed;
+- formatting verification: passed.
+
+Spec Kit convergence then checked all 34 functional requirements, 10 success
+criteria, 15 acceptance scenarios, the 15 plan/constitution gate decisions,
+and all 9 constitutional principles against the implementation. Only 8 of
+the original 85 task entries have both their named artifact and sufficient
+direct proof. Ten convergence tasks (`T086`-`T095`) record the remaining
+closure work.
+
+The most important blockers are incomplete authority closure, a public
+factory-request seam that is bypassed by provider-specific intake, three
+advertised provider roles with only a construction SPI, incomplete
+admission/publication recovery, fallback effect-state ambiguity, a largely
+placeholder workspace snapshot, and an incomplete negative/repeatability/
+repair/product-proof matrix.
+
+**Audit recommendation: do not accept Feature 001 in its current state.**
+
+The per-task evidence and convergence mapping are recorded in
+[`task-closure-audit.md`](task-closure-audit.md).
+
+## Reviewer independence
+
+For this feature, an independent reviewer is a named human making a current
+decision independently of automation and of the AI sessions that implemented
+or audited the feature. The repository product owner may serve as reviewer,
+including when they contributed requirements, provided the decision is made
+after inspecting this closure audit and explicitly records that relationship.
+
+An AI agent, automated check, anonymous identity, inferred approval, decision
+predating this audit, or reviewer without product-decision authority is
+ineligible. Material implementation authorship is a disclosed conflict but
+does not invalidate the product owner's semantic authority; it does require
+the review record to state that a separate release review may still be needed.
+
 ## Questions for an independent reviewer
 
 1. Does the public operation/result boundary make human authority visible?
