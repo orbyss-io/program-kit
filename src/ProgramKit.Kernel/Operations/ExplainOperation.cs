@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
-using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
@@ -24,12 +21,13 @@ public sealed class ExplainOperation
         this.resolution = resolution;
     }
 
-    public OperationResult Execute(string requestPath)
+    public OperationResult Execute(string workspaceRoot, string requestPath)
     {
         System.Text.Json.Nodes.JsonObject document;
         try
         {
             document = intake.Load(requestPath);
+            OperationExecutionTracker.Advance(OperationPhase.Intake, EffectState.None);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or YamlDotNet.Core.YamlException)
         {
@@ -46,21 +44,7 @@ public sealed class ExplainOperation
         if (missing.Count > 0)
         {
             string requestDigest = CanonicalJson.Digest(document);
-            MissingInput[] needs = missing
-                .OrderBy(static value => value, StringComparer.Ordinal)
-                .Select(static value => new MissingInput(value.Replace('.', '-'), "string-or-object", "human", ProtocolIdentities.Rule("request.required-input")))
-                .ToArray();
-            string continuationDigest = Digests.Sha256(Encoding.UTF8.GetBytes($"{requestDigest}\n{string.Join('\n', missing)}"));
-            Continuation continuation = new(
-                "program-kit.continuation/v1",
-                CanonicalJson.Profile,
-                requestDigest,
-                needs,
-                new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal),
-                Array.Empty<string>(),
-                Digests.Sha256(Array.Empty<byte>()),
-                Digests.Sha256(Array.Empty<byte>()),
-                continuationDigest);
+            OperationExecutionTracker.Advance(OperationPhase.Validation, EffectState.None);
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.MissingSelection,
                 OperationPhase.Validation,
@@ -75,13 +59,14 @@ public sealed class ExplainOperation
                 PrimaryDisposition.ProvideInput,
                 new[] { diagnostic },
                 requestDigest,
-                continuation: continuation);
+                continuation: ContinuationBuilder.ForMissing(requestDigest, missing));
         }
 
         try
         {
-            FactoryInput input = intake.Bind(document);
-            if (input.Operation != FactoryOperation.Explain || input.RequestedEffect != RequestedEffect.None)
+            FactoryInput input = intake.AdmitAndMap(workspaceRoot, document);
+            OperationExecutionTracker.Advance(OperationPhase.Validation, EffectState.None);
+            if (input.Request.Operation != FactoryOperation.Explain || input.Request.RequestedEffect != RequestedEffect.None)
             {
                 Diagnostic conflict = DiagnosticFactory.Create(
                     DiagnosticIds.ConflictingInput,
@@ -93,6 +78,7 @@ public sealed class ExplainOperation
             }
 
             ResolvedFactoryInput resolved = resolution.Resolve(input);
+            OperationExecutionTracker.Advance(OperationPhase.Explanation, EffectState.None);
             return OperationResultFactory.Success(
                 PublicCommand.Explain,
                 OperationPhase.Explanation,
@@ -109,7 +95,17 @@ public sealed class ExplainOperation
                 "selections.provider",
                 exception.Message,
                 "No exact provider or profile was selected; no integration result was issued.");
-            return OperationResultFactory.Failure(PublicCommand.Explain, OperationOutcome.NeedsInput, OperationPhase.Resolution, EffectState.None, PrimaryDisposition.ProvideInput, new[] { diagnostic }, CanonicalJson.Digest(document));
+            string requestDigest = CanonicalJson.Digest(document);
+            OperationExecutionTracker.Advance(OperationPhase.Resolution, EffectState.None);
+            return OperationResultFactory.Failure(
+                PublicCommand.Explain,
+                OperationOutcome.NeedsInput,
+                OperationPhase.Resolution,
+                EffectState.None,
+                PrimaryDisposition.ProvideInput,
+                new[] { diagnostic },
+                requestDigest,
+                continuation: ContinuationBuilder.ForMissing(requestDigest, new[] { "selections.provider" }));
         }
         catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or FormatException)
         {

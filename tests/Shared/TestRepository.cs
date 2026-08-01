@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,8 @@ internal static class TestRepository
     {
         string root = Path.Combine(Path.GetTempPath(), "program-kit-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
+        CopyDirectory(Fixture("Valid/authority"), Path.Combine(root, "authority"));
+        CopyDirectory(Fixture("Valid/definitions"), Path.Combine(root, "definitions"));
         CopyDirectory(Fixture("Valid/implementation"), Path.Combine(root, "implementation"));
         CopyDirectory(Fixture("Valid/requests"), Path.Combine(root, "requests"));
         if (includeMirror)
@@ -33,13 +36,23 @@ internal static class TestRepository
         .OrderBy(path => Path.GetRelativePath(root, path), StringComparer.Ordinal)
         .Select(path => $"{Path.GetRelativePath(root, path).Replace('\\', '/')}:{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)))}"));
 
-    public static (int ExitCode, string StandardOutput, string StandardError) RunCli(params string[] arguments)
+    public static (int ExitCode, string StandardOutput, string StandardError) RunCli(params string[] arguments) =>
+        RunCliWithEnvironment(new Dictionary<string, string>(StringComparer.Ordinal), arguments);
+
+    public static (int ExitCode, string StandardOutput, string StandardError) RunCliWithEnvironment(
+        IReadOnlyDictionary<string, string> environment,
+        params string[] arguments)
     {
         DirectoryInfo testOutput = new(AppContext.BaseDirectory);
         string configuration = testOutput.Parent?.Name ?? throw new InvalidOperationException("Test build configuration not found.");
         string targetFramework = testOutput.Name;
         string cli = Path.Combine(Root, "src", "ProgramKit.Cli", "bin", configuration, targetFramework, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
         ProcessStartInfo start = new(cli) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+        foreach ((string key, string value) in environment)
+        {
+            start.Environment[key] = value;
+        }
+
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
         using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start Program Kit CLI.");
         string stdout = process.StandardOutput.ReadToEnd();

@@ -45,7 +45,7 @@ public sealed class CommandDispatcher
 
         return invocation.Command switch
         {
-            PublicCommand.Explain => kernel.Explain(request),
+            PublicCommand.Explain => kernel.Explain(workspace, request),
             PublicCommand.Construct => kernel.Construct(workspace, request),
             PublicCommand.Evaluate => kernel.Evaluate(workspace, request),
             _ => Invalid(invocation.Command, "Unsupported public command."),

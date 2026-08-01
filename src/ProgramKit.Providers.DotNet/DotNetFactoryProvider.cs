@@ -15,7 +15,7 @@ using Orbyss.ProgramKit.Providers.DotNet.Templates;
 
 namespace Orbyss.ProgramKit.Providers.DotNet;
 
-public sealed class DotNetFactoryProvider : IFactoryProvider
+internal sealed class DotNetFactoryProvider
 {
     private readonly DotNetToolRunner tools = new();
 
@@ -143,11 +143,16 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
 
             RemoveTransientDirectories(context.CandidateRoot);
             ProviderArtifact[] artifacts = Directory.EnumerateFiles(context.CandidateRoot, "*", SearchOption.AllDirectories)
+                .Where(path => !Path.GetRelativePath(context.CandidateRoot, path).Replace('\\', '/')
+                    .StartsWith(".program-kit/", StringComparison.Ordinal))
                 .Select(path => new ProviderArtifact(
                     Path.GetRelativePath(context.CandidateRoot, path).Replace('\\', '/'),
                     path.EndsWith(Path.GetFileName(sourcePath), StringComparison.Ordinal) ? ArtifactOwnership.SeededHandoff : ArtifactOwnership.GeneratedOwned,
                     MediaType(path),
-                    path.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase) ? ClaimClass.VerifiedEquivalent : path.EndsWith(Path.GetFileName(sourcePath), StringComparison.Ordinal) ? ClaimClass.CustomBounded : ClaimClass.CanonicalByte,
+                    path.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase)
+                        || path.EndsWith("packages.lock.json", StringComparison.Ordinal)
+                        || path.EndsWith("program-kit.package-binding.json", StringComparison.Ordinal)
+                            ? ClaimClass.VerifiedEquivalent : path.EndsWith(Path.GetFileName(sourcePath), StringComparison.Ordinal) ? ClaimClass.CustomBounded : ClaimClass.CanonicalByte,
                     Manifest.Identity.StableKey))
                 .OrderBy(static item => item.LogicalPath, StringComparer.Ordinal)
                 .ToArray();

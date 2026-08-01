@@ -61,11 +61,11 @@ public sealed class RuntimeAndDriftAcceptanceTests
         {
             File.AppendAllText(Path.Combine(workspace, "products", "Reference.Status.Api", "appsettings.json"), " ");
             string drifted = TestRepository.DigestTree(workspace);
-            var evaluate = TestRepository.RunCli("evaluate", "--workspace", workspace, "--request", Path.Combine(workspace, "requests", "evaluate.yaml"), "--format", "json");
+            var evaluate = TestRepository.RunCli("evaluate", "--workspace", workspace, "--request", Path.Combine(workspace, "requests", "evaluate.json"), "--format", "json");
             Assert.AreNotEqual(0, evaluate.ExitCode);
             Assert.AreEqual(drifted, TestRepository.DigestTree(workspace));
-            JsonNode result = JsonNode.Parse(evaluate.StandardOutput)!;
-            string[] ids = result["diagnostics"]!["items"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()).ToArray();
+            JsonNode result = JsonNode.Parse(evaluate.StandardOutput)!; string[] ids = result["diagnostics"]!["items"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()).ToArray();
+            ContractAssertions.AssertValid(ContractAssertions.OperationResult, result.AsObject());
             CollectionAssert.Contains(ids, "program-kit.kernel/PKWSP0001");
         }
         finally { TestRepository.DeleteWorkspace(workspace); }
@@ -74,7 +74,7 @@ public sealed class RuntimeAndDriftAcceptanceTests
     private static string ConstructWorkspace()
     {
         string workspace = TestRepository.CreateWorkspace(includeMirror: true);
-        var construct = TestRepository.RunCli("construct", "--workspace", workspace, "--request", Path.Combine(workspace, "requests", "construct.yaml"), "--format", "json");
+        var construct = TestRepository.RunCli("construct", "--workspace", workspace, "--request", Path.Combine(workspace, "requests", "construct.json"), "--format", "json");
         if (construct.ExitCode != 0) { TestRepository.DeleteWorkspace(workspace); Assert.Fail(construct.StandardOutput + construct.StandardError); }
         return workspace;
     }

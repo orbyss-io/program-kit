@@ -18,6 +18,7 @@ public static class Program
         CliParseResult parsed = parser.Parse(args);
         OutputFormat format = DetectFormat(args);
         PublicCommand command = DetectCommand(args);
+        OperationExecutionTracker.Start(command);
         OperationResult result;
         try
         {
@@ -40,14 +41,26 @@ public static class Program
         }
         catch (OperationCanceledException)
         {
-            result = OperationResultFactory.Failure(command, OperationOutcome.Cancelled, OperationPhase.Request, EffectState.None, PrimaryDisposition.Stop, Array.Empty<Diagnostic>());
+            OperationExecutionSnapshot state = OperationExecutionTracker.Snapshot(command);
+            result = OperationResultFactory.Failure(command, OperationOutcome.Cancelled, state.Phase, state.Effect, PrimaryDisposition.Stop, Array.Empty<Diagnostic>());
         }
         catch (Exception)
         {
-            result = OperationResultFactory.Fallback(command, EffectState.None);
+            OperationExecutionSnapshot state = OperationExecutionTracker.Snapshot(command);
+            result = OperationResultFactory.Fallback(command, state.Phase, state.Effect);
         }
 
-        ResultRenderer.Write(result, format, Console.OpenStandardOutput());
+        try
+        {
+            ResultRenderer.Write(result, format, Console.OpenStandardOutput());
+        }
+        catch (Exception)
+        {
+            OperationExecutionSnapshot state = OperationExecutionTracker.Snapshot(command);
+            FallbackResultWriter.Write(command, state.Phase, state.Effect, Console.OpenStandardOutput());
+            return 1;
+        }
+
         return result.Outcome switch
         {
             OperationOutcome.Succeeded => 0,

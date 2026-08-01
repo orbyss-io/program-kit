@@ -16,14 +16,14 @@ public sealed class ProgramKitKernel
     public ProgramKitKernel(IEnumerable<IFactoryProvider> providers)
     {
         ProviderRegistry registry = new(providers);
-        IntakePipeline intake = new();
+        IntakePipeline intake = new(registry);
         ResolutionEngine resolution = new(registry);
         explain = new ExplainOperation(intake, resolution);
         construct = new ConstructOperation(intake, resolution);
         evaluate = new EvaluateOperation(intake, resolution);
     }
 
-    public OperationResult Explain(string requestPath) => explain.Execute(requestPath);
+    public OperationResult Explain(string workspaceRoot, string requestPath) => explain.Execute(workspaceRoot, requestPath);
 
     public OperationResult Construct(string workspaceRoot, string requestPath) => construct.Execute(workspaceRoot, requestPath);
 

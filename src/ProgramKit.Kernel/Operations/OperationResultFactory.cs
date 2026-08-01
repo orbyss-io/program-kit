@@ -21,7 +21,21 @@ public static class OperationResultFactory
         JsonObject? utility = null,
         IReadOnlyList<ArtifactReference>? artifacts = null,
         IReadOnlyList<ArtifactReference>? receipts = null,
-        IReadOnlyList<OperationChange>? changes = null) => new(
+        IReadOnlyList<EvidenceReference>? evidence = null,
+        IReadOnlyList<OperationChange>? changes = null)
+    {
+        if (phase == OperationPhase.Completion && effect == EffectState.Indeterminate)
+        {
+            throw new InvalidOperationException("A successful completion cannot have indeterminate effect.");
+        }
+
+        if (command == PublicCommand.Explain && explanation is null
+            || command is PublicCommand.Help or PublicCommand.Version && utility is null)
+        {
+            throw new InvalidOperationException("The successful command-specific inline result is required.");
+        }
+
+        OperationResult result = new(
             "program-kit.operation-result/v1",
             CanonicalJson.Profile,
             command,
@@ -35,11 +49,14 @@ public static class OperationResultFactory
             changes ?? Array.Empty<OperationChange>(),
             artifacts ?? Array.Empty<ArtifactReference>(),
             receipts ?? Array.Empty<ArtifactReference>(),
-            Array.Empty<EvidenceReference>(),
+            evidence ?? Array.Empty<EvidenceReference>(),
             DiagnosticFactory.View(Array.Empty<Diagnostic>()),
             null,
             explanation,
             utility);
+        OperationExecutionTracker.Complete(result);
+        return result;
+    }
 
     public static OperationResult Failure(
         PublicCommand command,
@@ -50,7 +67,23 @@ public static class OperationResultFactory
         IEnumerable<Diagnostic> diagnostics,
         string? requestIdentity = null,
         string? constructionIdentity = null,
-        Continuation? continuation = null) => new(
+        Continuation? continuation = null,
+        IReadOnlyList<ArtifactReference>? artifacts = null,
+        IReadOnlyList<ArtifactReference>? receipts = null,
+        IReadOnlyList<EvidenceReference>? evidence = null,
+        IReadOnlyList<OperationChange>? changes = null)
+    {
+        if (outcome == OperationOutcome.Succeeded || disposition == PrimaryDisposition.Complete)
+        {
+            throw new InvalidOperationException("A failure result cannot claim success or completion.");
+        }
+
+        if (outcome == OperationOutcome.NeedsInput && continuation is null)
+        {
+            throw new InvalidOperationException("A needs-input result requires a stateless continuation.");
+        }
+
+        OperationResult result = new(
             "program-kit.operation-result/v1",
             CanonicalJson.Profile,
             command,
@@ -61,24 +94,27 @@ public static class OperationResultFactory
             phase,
             effect,
             disposition,
-            Array.Empty<OperationChange>(),
-            Array.Empty<ArtifactReference>(),
-            Array.Empty<ArtifactReference>(),
-            Array.Empty<EvidenceReference>(),
+            changes ?? Array.Empty<OperationChange>(),
+            artifacts ?? Array.Empty<ArtifactReference>(),
+            receipts ?? Array.Empty<ArtifactReference>(),
+            evidence ?? Array.Empty<EvidenceReference>(),
             DiagnosticFactory.View(diagnostics),
             continuation);
+        OperationExecutionTracker.Complete(result);
+        return result;
+    }
 
-    public static OperationResult Fallback(PublicCommand command, EffectState effect) => Failure(
+    public static OperationResult Fallback(PublicCommand command, OperationPhase phase, EffectState effect) => Failure(
         command,
         OperationOutcome.Faulted,
-        OperationPhase.Request,
+        phase,
         effect,
         PrimaryDisposition.Stop,
         new[]
         {
             DiagnosticFactory.Create(
                 DiagnosticIds.InternalFailure,
-                OperationPhase.Request,
+                phase,
                 "public-command",
                 "The normal result pipeline could not complete.",
                 "No further claim is made; use the safest bounded stop action."),
