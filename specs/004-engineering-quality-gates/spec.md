@@ -22,6 +22,7 @@ on an isolated branch for implementation after the currently active work."
 - Q: How should the repository handle a genuinely infeasible first-party line or branch after reasonable refactoring and test-design attempts have been exhausted? → A: Allow an exact finite line or branch exception with attempted alternatives, rationale, broader proof, owner, review date, expiry, and visible raw coverage.
 - Q: Should contract, integration, and acceptance tests each have a distinct repository-level test project, while only unit-test projects are paired one-to-one with production projects? → A: Use distinct repository-level contract, integration, and acceptance test projects; specialized suites may remain separate when their boundary requires it.
 - Q: Should every governed proof claim have exactly one primary proof layer, even when one executable test supports several claims or provides secondary evidence elsewhere? → A: Give each claim exactly one primary proof layer and allow any number of explicitly mapped supporting proofs.
+- Q: When should long-running contract, integration, acceptance, conformance, and specialized tests run? → A: Always run all unit and structural gates; impact-filter long-running suites; run broadly on uncertain or global changes; run the full portfolio on schedule and before release.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -147,36 +148,52 @@ clean repository emits none.
 
 ### User Story 4 - Get Fast, Honest Contributor Feedback (Priority: P4)
 
-A contributor can run a documented fast verification path while developing and
-a complete path before merge. The fast path covers unit, topology, namespace,
-and diagnostic gates; the complete path additionally runs every applicable
-contract, integration, acceptance, conformance, and specialized suite without
-silently skipping unavailable evidence.
+A contributor receives one always-run verification lane on every change. That
+lane builds its required targets and runs every paired unit-test project plus
+coverage, topology, namespace, and diagnostic gates. Tests classified as long-
+running use a machine-generated filter derived from the actual change set,
+project dependencies, proof claims, and test metadata, so unrelated complex
+proofs do not run merely because they share a solution.
 
-**Why this priority**: Strict gates are sustainable only when ordinary changes
-receive quick local feedback and slower boundary proofs remain explicit rather
-than being bypassed.
+**Why this priority**: Strict gates are sustainable only when quick local proof
+always runs and expensive boundary proof is selected precisely without allowing
+manual scope claims or incomplete mappings to hide regressions.
 
-**Independent Test**: On a clean supported environment, run both documented
-paths, compare the executed proof inventory with the declared portfolio, and
-verify that unavailable mandatory evidence is reported as not evaluated and
-blocks completion.
+**Independent Test**: Exercise documentation-only, project-local, shared-
+contract, test-infrastructure, global-build, and ambiguous changes. Confirm that
+all unit and structural gates always run, every impacted long-running proof is
+selected, every unrelated exclusion is explained, and uncertain impact widens
+rather than narrows execution.
 
 **Acceptance Scenarios**:
 
-1. **Given** a clean checkout with prerequisites available, **When** the fast
-   path runs, **Then** it builds every required target, runs all paired unit
-   projects and structural gates, and does not rely on stale binaries.
-2. **Given** a clean checkout, **When** the complete path runs, **Then** every
-   declared automated proof layer is executed or is reported explicitly as a
-   blocking missing prerequisite rather than silently skipped.
-3. **Given** an acceptance test that invokes the Program Kit CLI, **When** tests
-   run without a prior manual build, **Then** the exact CLI under test is built
-   as a declared dependency before execution.
-4. **Given** an environment where a specialized proof is intentionally
-   observational or human-reviewed, **When** automated verification completes,
-   **Then** its state remains distinct from passed and cannot be inferred from
-   unit or integration coverage.
+1. **Given** any repository change with prerequisites available, **When** normal
+   verification runs, **Then** it builds every required target, runs all paired
+   unit-test projects and structural gates, and does not rely on stale binaries.
+2. **Given** a localized production or contract change, **When** impact
+   selection runs, **Then** its generated filter includes every long-running
+   proof mapped to the changed subject, affected dependents, and governed claims.
+3. **Given** a long-running proof unrelated to the actual change, **When** it is
+   excluded, **Then** the selection manifest reports it as not-applicable with
+   its exact exclusion reason and never reports it as passed.
+4. **Given** missing, stale, conflicting, or ambiguous impact metadata, **When**
+   safe selection cannot be proven, **Then** execution expands to a safe broader
+   suite or blocks rather than silently excluding a possibly relevant proof.
+5. **Given** a global build, dependency, shared-contract, or shared-test-
+   infrastructure change, **When** impact is calculated, **Then** all potentially
+   affected long-running suites run.
+6. **Given** a manually declared task scope or requested filter, **When** it is
+   narrower than the actual change impact, **Then** mandatory verification
+   ignores the narrowing; manual input may only widen execution.
+7. **Given** the scheduled verification or a release candidate, **When** the
+   full path runs, **Then** the complete automated portfolio executes regardless
+   of change filters.
+8. **Given** an acceptance test that invokes the Program Kit CLI, **When** it is
+   selected without a prior manual build, **Then** the exact CLI under test is
+   built as a declared dependency before execution.
+9. **Given** a proof that is observational or human-reviewed, **When** automated
+   verification completes, **Then** its state remains distinct from passed and
+   cannot be inferred from automated coverage or a filtered run.
 
 ### Edge Cases
 
@@ -204,6 +221,15 @@ blocks completion.
   system.
 - A diagnostic is genuinely incorrect or inapplicable for one exact source
   location.
+- A documentation-only change has no affected long-running proof, but all unit
+  and structural gates still run.
+- A shared contract, dependency lock, build property, analyzer policy, or test
+  infrastructure change affects subjects beyond its containing directory.
+- A long-running test, fixture, harness, or filter declaration changes without
+  a corresponding production change.
+- The impact graph or requirement-to-proof map is missing, stale, cyclic, or
+  internally contradictory.
+- A developer-supplied filter omits a suite selected from the actual change set.
 
 ## Requirements *(mandatory)*
 
@@ -318,17 +344,21 @@ blocks completion.
 
 #### Verification and Migration Safety
 
-- **FR-031**: The repository MUST expose one documented fast verification path
-  for build, paired unit tests, coverage, topology, namespaces, and diagnostics,
-  and one documented complete path for all applicable automated proof layers.
-- **FR-032**: The fast path MUST build every artifact required by its tests and
-  MUST NOT pass because of a stale output from an earlier command.
-- **FR-033**: The complete path MUST execute every declared automated proof or
-  report a missing mandatory prerequisite as blocking and not evaluated; it MUST
-  NOT silently skip proof.
-- **FR-034**: Test execution, coverage collection, and gate evaluation MUST
-  produce a single unambiguous failing process result when any mandatory project
-  or proof layer fails.
+- **FR-031**: The repository MUST expose one documented always-run path for
+  build, every paired unit-test project, coverage, topology, namespaces, and
+  diagnostics; one impact-selected path for long-running automated proofs; and
+  one full path for the complete automated portfolio.
+- **FR-032**: The always-run path MUST execute for every normal repository
+  verification regardless of declared task scope, build every artifact required
+  by its tests, and MUST NOT pass because of a stale output from an earlier
+  command.
+- **FR-033**: The impact-selected path MUST derive its test filter from the
+  actual repository change set, exact project and artifact ownership, affected
+  dependents, the requirement-to-proof map, and test metadata; a task author's
+  stated scope alone MUST NOT narrow selection.
+- **FR-034**: Test execution, coverage collection, impact selection, and gate
+  evaluation MUST produce a single unambiguous failing process result when any
+  mandatory project, selected proof, prerequisite, or selection invariant fails.
 - **FR-035**: Each structural gate MUST be tested by seeding a representative
   violation and demonstrating an actionable failure for missing project pairing,
   folder mismatch, uncovered line, uncovered branch, namespace mismatch,
@@ -366,6 +396,36 @@ blocks completion.
 - **FR-044**: An expired exception or a material change to its source location,
   behavior, risk, or alternative proof MUST invalidate the exception and block
   completion until it is removed or reapproved from current evidence.
+- **FR-045**: Every executable test MUST have a stable identity and execution
+  classification. Every paired unit test and structural quality gate MUST be
+  classified as always-run; any test classified as long-running MUST identify
+  its proof layer, governed subjects, proof claims, prerequisites, and owner.
+- **FR-046**: The impact selector MUST map actual changed files and artifacts
+  through exact ownership, project dependencies, contract relationships, and
+  the requirement-to-proof map to generate the long-running test filter.
+- **FR-047**: A change to a long-running test, fixture, harness, selector rule,
+  or declared test metadata MUST select its owning suite. A change to shared
+  contracts, global build or analyzer policy, dependency resolution, or shared
+  test infrastructure MUST widen selection to every potentially affected suite.
+- **FR-048**: Every selected and excluded long-running proof MUST appear in a
+  machine-readable selection manifest. An exclusion MUST use not-applicable,
+  name its exact reason and mapping evidence, and MUST NOT be reported as passed.
+- **FR-049**: Missing, stale, contradictory, or ambiguous impact information
+  MUST expand execution to a proven safe superset. If no safe superset can be
+  established, verification MUST block rather than exclude the uncertain proof.
+- **FR-050**: Manual filters, task declarations, and contributor input MAY widen
+  the generated selection or request the full portfolio but MUST NOT narrow
+  mandatory selection derived from the actual change set.
+- **FR-051**: Long-running conformance proof MUST be selected when its canonical
+  contract, provider or adapter, projection, invocation or result transport,
+  diagnostic meaning, conformance corpus, harness, or prerequisite changes, and
+  MAY be excluded with an exact not-applicable reason for unrelated changes.
+- **FR-052**: The complete automated portfolio MUST run on an explicit schedule
+  and before release. Its result MUST remain distinct from an impact-selected
+  run and MUST NOT be inferred from prior filtered success.
+- **FR-053**: Selector tests MUST cover documentation-only, project-local,
+  dependency, shared-contract, test-only, global-policy, unknown-impact, manual-
+  narrowing, and full-run cases and prove that no relevant suite is omitted.
 
 ### Key Entities
 
@@ -394,6 +454,15 @@ blocks completion.
 - **Quality Gate**: A command-line check whose failure prevents merge and release
   when a required topology, coverage, diagnostic, namespace, dependency, or
   proof condition is unsatisfied.
+- **Test Execution Class**: The declared always-run or impact-selected status of
+  an executable test. Unit and structural gates are always-run; complex long-
+  running proofs are impact-selected and remain eligible for full execution.
+- **Change Impact Selection**: The deterministic mapping from the actual change
+  set through ownership, dependencies, governed claims, and test metadata to the
+  exact long-running filter.
+- **Selection Manifest**: The machine-readable inventory of included and
+  excluded long-running proofs, their stable identities, mapping evidence,
+  prerequisites, and selected or not-applicable status.
 - **Local Suppression Record**: The exact diagnostic identity, source scope, and
   adjacent rationale proving why one diagnostic is inapplicable or incorrect
   without weakening a governed floor.
@@ -418,22 +487,36 @@ blocks completion.
   exactly one primary proof layer with zero co-primary ambiguity, and every pre-
   remediation contract, integration, acceptance, conformance, and specialized
   claim retains equivalent or stronger evidence after migration.
-- **SC-006**: A clean checkout with prerequisites available can run the fast and
-  complete verification paths without a preparatory manual build or stale
-  binary, and every declared mandatory proof is executed or blocks as not
-  evaluated.
+- **SC-006**: A clean checkout can run the always-run, impact-selected, and full
+  verification paths without a preparatory manual build or stale binary; every
+  mandatory proof is executed, reported not-applicable with exact evidence, or
+  blocks as not evaluated.
 - **SC-007**: Each of the eight representative gate violations in FR-035 causes
   a deterministic nonzero result that identifies the violated rule and affected
   project, source path, diagnostic, or proof.
-- **SC-008**: On the repository's baseline automation environment, the fast
-  verification path completes within two minutes while the complete path retains
-  all broader suites regardless of their separately recorded duration.
+- **SC-008**: On the repository's baseline automation environment, the always-
+  run path completes within two minutes while impact-selected and full paths
+  retain all applicable broader suites regardless of their recorded duration.
 - **SC-009**: Generated consumer applications exhibit zero new Program Kit
   repository analyzer, test-framework, coverage, or runtime dependencies after
   remediation.
 - **SC-010**: The repository contains one distinct contract-test project, one
   distinct integration-test project, and one distinct acceptance-test project,
-  and each executes independently through the documented complete path.
+  and each executes independently through the impact-selected and full paths.
+- **SC-011**: For 100 percent of representative change classes, every paired unit
+  test and structural gate executes regardless of whether any long-running test
+  is selected.
+- **SC-012**: For every selector fixture with known impact, 100 percent of mapped
+  long-running proofs are selected and 100 percent of unrelated exclusions have
+  an exact not-applicable reason in the selection manifest.
+- **SC-013**: Every unknown, stale, ambiguous, shared-contract, dependency, and
+  global-policy selector fixture expands to the expected safe superset with zero
+  potentially affected proofs silently excluded.
+- **SC-014**: The scheduled and pre-release paths execute 100 percent of the
+  declared automated portfolio independent of impact filters.
+- **SC-015**: A manual filter can increase selected tests or request the full
+  portfolio in every fixture and can reduce mandatory generated selection in
+  zero fixtures.
 
 ## Assumptions
 
@@ -455,10 +538,15 @@ blocks completion.
 - Exact local suppressions for demonstrably inapplicable or incorrect
   diagnostics are permitted; suppressions for convenience, inherited
   suppressions, and suppressions that lower a governed floor are not.
-- Existing platform and local-first constraints remain authoritative; a complex
-  integration or acceptance proof may take longer than the fast path and may use
-  declared local processes, filesystems, packages, or tools when its claim
-  requires them.
+- All paired unit tests and structural quality gates are fast enough to run on
+  every normal verification, including documentation-only changes.
+- Existing platform and local-first constraints remain authoritative; complex
+  long-running proofs may use declared local processes, filesystems, packages,
+  or tools when their claim requires them and are selected by actual impact.
+- A deterministic declared impact model is preferred over probabilistic or
+  history-based test selection; unknown impact widens execution.
+- The complete automated portfolio runs on schedule and before release even when
+  recent impact-selected runs excluded unrelated long-running proofs.
 
 ## Dependencies
 
@@ -477,6 +565,8 @@ blocks completion.
   accepted change to the feature that owns the behavior.
 - Removing complex tests merely to reduce duration, dependencies, setup, or
   maintenance cost.
+- Treating developer-supplied filters, task prose, historical pass rates, or
+  probabilistic predictions as authority to narrow mandatory impact selection.
 - Requiring generated consumer-owned projects to adopt Program Kit's repository
   test topology, analyzer policy, namespace root, or coverage thresholds.
 - Treating live-provider observations or human-review obligations as automated

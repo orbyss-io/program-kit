@@ -7,7 +7,8 @@ Sync Impact Report
   - X. Layered Verification and Enforced Code Quality
 - Removed principles: none
 - Modified sections:
-  - Spec Kit Development Workflow now requires an explicit layered proof map
+  - Spec Kit Development Workflow now requires an explicit layered proof and
+    impact-selection map
 - Template compatibility:
   - .specify/templates/plan-template.md already loads Constitution Check gates
   - No command or task template changes required
@@ -354,6 +355,18 @@ their claims require those boundaries. A broader proof MUST NOT be removed,
 weakened, relabeled as a unit test, or replaced merely because its production
 path is covered at unit scope.
 
+Every normal repository verification MUST run every paired unit-test project
+and every structural quality gate. A test classified as long-running MAY use an
+exact machine-generated impact filter derived from the actual change set,
+ownership, dependencies, the requirement-to-proof map, and test metadata.
+Included and excluded long-running proofs MUST be recorded in a selection
+manifest; an exclusion is not-applicable, never passed. Missing, stale,
+contradictory, or ambiguous impact information MUST widen execution to a safe
+superset or block verification. Manual scope declarations and filters MAY widen
+execution but MUST NOT narrow mandatory selection. The complete declared
+automated portfolio MUST run on a repository-defined schedule and before every
+release.
+
 Every Program Kit repository build MUST complete with zero compiler, analyzer,
 code-style, test-framework, package, restore, and build-system warnings. A
 required diagnostic MUST fail the build even when its upstream default severity
@@ -375,13 +388,16 @@ policy; each production-project owner owns its unit coverage, mirrored layout,
 and namespaces; contract and workflow owners own their broader proof suites.
 Per-project line and branch coverage reports, project-pairing and directory-
 mirror checks, command-line namespace analysis, warning-as-error builds, and a
-requirement-to-proof-layer map provide evidence. Missing coverage without a
-current exact finite exception, a missing paired unit-test project, namespace
-drift, an unexplained suppression, any build warning, or removal of a required
-broader proof MUST block merge and release. An exact coverage exception is the
-only permitted waiver of an individual coverage location; it cannot waive the
-100 percent default target, denominator honesty, raw reporting, exception
-constraints, project pairing, namespace, warning-free, or broader-proof floors.
+requirement-to-proof-layer map, impact-selection manifests, and selector
+fixtures provide evidence. Missing coverage without a current exact finite
+exception, a missing paired unit-test project, namespace drift, an unexplained
+suppression, any build warning, an unexplained long-running exclusion, omission
+of an affected long-running proof, or removal of a required broader proof MUST
+block merge and release. An exact coverage exception is the only permitted
+waiver of an individual coverage location; it cannot waive the 100 percent
+default target, denominator honesty, raw reporting, exception constraints,
+project pairing, namespace, warning-free, impact-selection, or broader-proof
+floors.
 
 ## V1 Product Boundary
 
@@ -468,7 +484,10 @@ Before implementation, every feature specification and plan MUST:
    obligations; and
 7. map each required claim to its unit, contract, integration, acceptance,
    conformance, specialized automated, or human-review proof layer without
-   substituting coverage for boundary-appropriate evidence.
+   substituting coverage for boundary-appropriate evidence; and
+8. identify expected always-run and impact-selected proof from the planned
+   subjects while preserving the actual implemented change as the authority for
+   final automated selection.
 
 Task generation MUST convert every applicable MUST and planned proof into an
 explicit dependency-ordered task. Analysis MUST expose contradictions, missing
