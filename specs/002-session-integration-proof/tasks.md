@@ -139,21 +139,21 @@
 
 ### Tests first
 
-- [ ] T064 [P] [US3] Add uniqueness, severity, location, retryability, remediation, ordering, truncation, and version tests for every `PKSES` and `PKCDX` diagnostic in `tests/ProgramKit.ContractTests/SessionDiagnosticCatalogContractTests.cs` (FR-039 through FR-043)
-- [ ] T065 [P] [US3] Add golden operation-result tests for every specified negative scenario in `tests/ProgramKit.ContractTests/SessionNegativeResultGoldenTests.cs` (FR-039 through FR-043, SC-004)
-- [ ] T066 [P] [US3] Add secret, path, stack-trace, tool-output, malformed-value, and size-limit disclosure tests in `tests/ProgramKit.UnitTests/SessionDisclosureTests.cs` (FR-041, FR-042, SC-009)
-- [ ] T067 [P] [US3] Add contract tests proving projected guidance classifies unavailable CLI, shell timeout, non-zero exit without a valid envelope, malformed JSON, and missing result as integration-layer transport failures without launching a provider or fabricating a Program Kit result in `tests/ProgramKit.ContractTests/InvocationTransportGuidanceContractTests.cs` (FR-038 through FR-040)
+- [X] T064 [P] [US3] Add uniqueness, severity, location, retryability, remediation, ordering, truncation, and version tests for every `PKSES` and `PKCDX` diagnostic in `tests/ProgramKit.ContractTests/SessionDiagnosticCatalogContractTests.cs` (FR-039 through FR-043)
+- [X] T065 [P] [US3] Add golden operation-result tests for every specified negative scenario in `tests/ProgramKit.ContractTests/SessionNegativeResultGoldenTests.cs` (FR-039 through FR-043, SC-004)
+- [X] T066 [P] [US3] Add secret, path, stack-trace, tool-output, malformed-value, and size-limit disclosure tests in `tests/ProgramKit.UnitTests/SessionDisclosureTests.cs` (FR-041, FR-042, SC-009)
+- [X] T067 [P] [US3] Add contract tests proving projected guidance classifies unavailable CLI, shell timeout, non-zero exit without a valid envelope, malformed JSON, and missing result as integration-layer transport failures without launching a provider or fabricating a Program Kit result in `tests/ProgramKit.ContractTests/InvocationTransportGuidanceContractTests.cs` (FR-038 through FR-040)
 
 ### Implementation
 
-- [ ] T068 [US3] Populate reserved identifiers `PKSES0001` through `PKSES0009` with scenario-specific subjects, expectations, consequences, safe observed/expected data, retryability, bounded remediation actions, and deterministic ordering in `src/ProgramKit.SessionIntegration/Diagnostics/SessionDiagnosticCatalog.cs` (FR-039 through FR-043)
-- [ ] T069 [US3] Define static provider-neutral guidance for classifying pre-result shell invocation failures without product code launching the provider or CLI in `src/ProgramKit.SessionIntegration/Definitions/InvocationTransportGuidance.cs` (FR-038 through FR-040)
-- [ ] T070 [US3] Implement canonical next-action projection that never asks an AI session to infer success or correction from prose in `src/ProgramKit.SessionIntegration/Diagnostics/SessionRemediationProjector.cs` (FR-040, FR-043)
-- [ ] T071 [US3] Extend allowlisted disclosure, stable redaction, bounded tool output, and safe fallback behavior in `src/ProgramKit.Kernel/Diagnostics/DisclosureFilter.cs` (FR-041, FR-042, SC-009)
-- [ ] T072 [P] [US3] Add malformed, ambiguous, missing-provider, incompatible-provider, denied-authority, interruption, secret, and transport fixtures under `tests/Fixtures/SessionIntegration/Invalid/Diagnostics/` and collision/drift fixtures under `tests/Fixtures/SessionIntegration/Colliding/` and `tests/Fixtures/SessionIntegration/Drifted/` (SC-004)
-- [ ] T073 [US3] Add end-to-end negative-path orchestration using only packaged CLI JSON results in `tests/ProgramKit.AcceptanceTests/SessionDiagnosticsAcceptanceTests.cs` (FR-039 through FR-043, SC-004, SC-005, SC-009)
-- [ ] T074 [US3] Implement a valid `operation-result/v1` fallback for unexpected internal failures and serialization failures in `src/ProgramKit.SessionIntegration/Diagnostics/SessionFailureBoundary.cs` (FR-039, FR-040)
-- [ ] T075 [US3] Run the US3 test filters and record golden-result hashes, disclosure audit results, and corrective-action outcomes in `specs/002-session-integration-proof/verification.md` (SC-004, SC-005, SC-009)
+- [X] T068 [US3] Populate reserved identifiers `PKSES0001` through `PKSES0009` with scenario-specific subjects, expectations, consequences, safe observed/expected data, retryability, bounded remediation actions, and deterministic ordering in `src/ProgramKit.SessionIntegration/Diagnostics/SessionDiagnosticCatalog.cs` (FR-039 through FR-043)
+- [X] T069 [US3] Define static provider-neutral guidance for classifying pre-result shell invocation failures without product code launching the provider or CLI in `src/ProgramKit.SessionIntegration/Definitions/InvocationTransportGuidance.cs` (FR-038 through FR-040)
+- [X] T070 [US3] Implement canonical next-action projection that never asks an AI session to infer success or correction from prose in `src/ProgramKit.SessionIntegration/Diagnostics/SessionRemediationProjector.cs` (FR-040, FR-043)
+- [X] T071 [US3] Extend allowlisted disclosure, stable redaction, bounded tool output, and safe fallback behavior in `src/ProgramKit.Kernel/Diagnostics/DisclosureFilter.cs` (FR-041, FR-042, SC-009)
+- [X] T072 [P] [US3] Add malformed, ambiguous, missing-provider, incompatible-provider, denied-authority, interruption, secret, and transport fixtures under `tests/Fixtures/SessionIntegration/Invalid/Diagnostics/` and collision/drift fixtures under `tests/Fixtures/SessionIntegration/Colliding/` and `tests/Fixtures/SessionIntegration/Drifted/` (SC-004)
+- [X] T073 [US3] Add end-to-end negative-path orchestration using only packaged CLI JSON results in `tests/ProgramKit.AcceptanceTests/SessionDiagnosticsAcceptanceTests.cs` (FR-039 through FR-043, SC-004, SC-005, SC-009)
+- [X] T074 [US3] Implement a valid `operation-result/v1` fallback for unexpected internal failures and serialization failures in `src/ProgramKit.SessionIntegration/Diagnostics/SessionFailureBoundary.cs` (FR-039, FR-040)
+- [X] T075 [US3] Run the US3 test filters and record golden-result hashes, disclosure audit results, and corrective-action outcomes in `specs/002-session-integration-proof/verification.md` (SC-004, SC-005, SC-009)
 
 **Checkpoint**: Expected and unexpected failures produce bounded, versioned, AI-usable results without exposing undeclared data.
 

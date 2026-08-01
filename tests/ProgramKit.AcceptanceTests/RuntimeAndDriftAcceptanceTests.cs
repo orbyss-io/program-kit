@@ -91,6 +91,12 @@ public sealed class RuntimeAndDriftAcceptanceTests
     {
         ProcessStartInfo start = new(executable) { WorkingDirectory = workingDirectory, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
+        string appData = Path.Combine(workingDirectory, ".test-appdata");
+        Directory.CreateDirectory(Path.Combine(appData, "NuGet"));
+        start.Environment["APPDATA"] = appData;
+        start.Environment["XDG_CONFIG_HOME"] = appData;
+        start.Environment["DOTNET_CLI_HOME"] = Path.Combine(workingDirectory, ".test-dotnet-home");
+        start.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
         return start;
     }
 

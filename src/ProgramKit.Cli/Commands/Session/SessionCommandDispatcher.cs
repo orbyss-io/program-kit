@@ -6,6 +6,7 @@ using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Operations;
 using Orbyss.ProgramKit.SessionIntegration.Publication;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 
 namespace Orbyss.ProgramKit.Cli.Commands.Session;
 
@@ -18,7 +19,10 @@ public sealed class SessionCommandDispatcher
         this.services = services;
     }
 
-    public OperationResult Execute(CliInvocation invocation, string workspace, string request)
+    public OperationResult Execute(CliInvocation invocation, string workspace, string request) =>
+        SessionFailureBoundary.Execute(invocation.Command, () => ExecuteCore(invocation, workspace, request));
+
+    private OperationResult ExecuteCore(CliInvocation invocation, string workspace, string request)
     {
         try
         {

@@ -11,6 +11,7 @@ using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.SessionIntegration.Providers;
 
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Artifacts;
 namespace Orbyss.ProgramKit.SessionIntegration.Publication;
 
@@ -72,7 +73,7 @@ public sealed class SessionIntegrationCandidateBuilder
 
         CliReleaseIdentity cli = ParseCli(document["cliRelease"] as JsonObject ?? throw new InvalidDataException("cliRelease is required."));
         if (!string.Equals(cli.PackageId, "Orbyss.ProgramKit.Cli", StringComparison.Ordinal) || !string.Equals(cli.PackageVersion, services.CliVersion, StringComparison.Ordinal) || !string.Equals(cli.ReportedVersion, services.CliVersion, StringComparison.Ordinal))
-            throw new InvalidDataException("The request CLI release does not match the invoked Program Kit package release.");
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(1), OperationPhase.Validation, EffectState.None, "The request CLI release does not match the invoked Program Kit package release.");
         _ = LogicalPaths.Normalize(cli.WorkspaceRelativeExecutable);
 
         JsonObject requestCore = (JsonObject)document.DeepClone();
@@ -91,7 +92,7 @@ public sealed class SessionIntegrationCandidateBuilder
         string liveState = store.CurrentStateDigest(artifacts.Select(static artifact => artifact.LogicalPath));
         if (effect != RequestedEffect.None && !string.Equals(request.ExpectedInstallationState, liveState, StringComparison.Ordinal))
             throw new InvalidDataException("The expected installation state is stale or does not match the exact live workspace state.");
-        PreflightOwnership(workspaceRoot, store, artifacts);
+        if (effect != RequestedEffect.None) PreflightOwnership(workspaceRoot, store, artifacts);
 
         string setDigest = Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', artifacts.Select(static artifact => $"{artifact.LogicalPath}:{Digests.Sha256(artifact.Content)}"))));
         string installationIdentity = Digests.Sha256(Encoding.UTF8.GetBytes($"{requestCoreIdentity}\n{services.Definition.Fingerprint}\n{provider.Manifest.AdapterIdentity.StableKey}\n{cli.PackageDigest}\n{setDigest}"));

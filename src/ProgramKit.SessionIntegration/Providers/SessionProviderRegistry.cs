@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
+using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 
 namespace Orbyss.ProgramKit.SessionIntegration.Providers;
 
@@ -27,11 +29,11 @@ public sealed class SessionProviderRegistry
     public ISessionProviderAdapter Resolve(string stableKey, string requiredRevision)
     {
         if (!providers.TryGetValue(stableKey, out ISessionProviderAdapter? provider))
-            throw new KeyNotFoundException($"The explicitly selected provider is not registered: {stableKey}");
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(2), OperationPhase.Resolution, EffectState.None, $"The explicitly selected provider is not registered: {stableKey}");
         if (provider.Manifest.SupportClaim != SessionProviderSupport.Supported)
-            throw new InvalidOperationException($"The explicitly selected provider is not supported: {stableKey}");
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(3), OperationPhase.Resolution, EffectState.None, $"The explicitly selected provider is not supported: {stableKey}");
         if (!string.Equals(provider.Manifest.Revision, requiredRevision, StringComparison.Ordinal))
-            throw new InvalidOperationException($"The provider revision is incompatible. Required {requiredRevision}; registered {provider.Manifest.Revision}.");
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(3), OperationPhase.Resolution, EffectState.None, $"The provider revision is incompatible. Required {requiredRevision}; registered {provider.Manifest.Revision}.");
         return provider;
     }
 }

@@ -1,8 +1,8 @@
-using System;
 using System.IO;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 using Orbyss.ProgramKit.SessionIntegration.Publication;
 
 namespace Orbyss.ProgramKit.Tests;
@@ -33,6 +33,7 @@ public sealed class SessionLifecycleTests
     {
         using SessionIntegrationTestWorkspace workspace = SessionIntegrationTestWorkspace.Create();
         workspace.Write(".program-kit-source.json", Encoding.UTF8.GetBytes("{}"));
-        Assert.ThrowsExactly<InvalidOperationException>(() => new ExplainSessionIntegrationOperation(SessionIntegrationFixture.Services()).Execute(workspace.Root, SessionIntegrationFixture.ExplainRequest(workspace.Root)));
+        SessionDiagnosticException exception = Assert.ThrowsExactly<SessionDiagnosticException>(() => new ExplainSessionIntegrationOperation(SessionIntegrationFixture.Services()).Execute(workspace.Root, SessionIntegrationFixture.ExplainRequest(workspace.Root)));
+        Assert.AreEqual(SessionDiagnosticCatalog.Id(6), exception.DiagnosticId);
     }
 }
