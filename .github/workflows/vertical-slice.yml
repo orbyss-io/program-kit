@@ -31,3 +31,27 @@ jobs:
         run: dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore
       - name: Verify formatting
         run: dotnet format ProgramKit.slnx --no-restore --verify-no-changes
+      - name: Pack workspace-local CLI
+        shell: pwsh
+        run: ./eng/Pack-ProgramKitTool.ps1 -OutputRoot (Join-Path $env:RUNNER_TEMP 'program-kit-tool-feed')
+      - name: Verify provider-neutral conformance
+        run: >-
+          dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj
+          --configuration Release --no-build --no-restore
+          --filter "CodexProviderConformanceAcceptanceTests|SessionProviderParityAcceptanceTests"
+      - name: Verify runtime isolation
+        run: >-
+          dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj
+          --configuration Release --no-build --no-restore
+          --filter "RuntimeAndDriftAcceptanceTests|SessionRuntimeIsolationAcceptanceTests"
+      - name: Verify bounded disclosure
+        run: >-
+          dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj
+          --configuration Release --no-build --no-restore
+          --filter SessionDisclosureTests
+      - name: Run ten-workspace session quickstart
+        shell: pwsh
+        run: >-
+          ./eng/Invoke-SessionIntegrationQuickstart.ps1
+          -SkipBootstrap
+          -EvidencePath (Join-Path $env:RUNNER_TEMP 'deterministic-session-review.json')

@@ -8,11 +8,10 @@ using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
-using Orbyss.ProgramKit.Kernel.Canonicalization;
-using Orbyss.ProgramKit.SessionIntegration.Providers;
-
-using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Artifacts;
+using Orbyss.ProgramKit.Kernel.Canonicalization;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
+using Orbyss.ProgramKit.SessionIntegration.Providers;
 namespace Orbyss.ProgramKit.SessionIntegration.Publication;
 
 public sealed record SessionIntegrationCandidate(

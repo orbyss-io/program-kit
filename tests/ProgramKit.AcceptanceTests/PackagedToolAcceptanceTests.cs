@@ -29,42 +29,49 @@ public sealed class PackagedToolAcceptanceTests
     {
         using SessionIntegrationTestWorkspace workspace = SessionIntegrationTestWorkspace.Create();
         string packageProject = Path.Combine(TestRepository.Root, "src", "ProgramKit.Cli", "ProgramKit.Cli.csproj");
-        (int packExit, _, string packError) = Run("dotnet", TestRepository.Root, "pack", packageProject, "-c", "Release", "--no-build", "--no-restore", "--output", workspace.Feed);
+        (int packExit, _, string packError) = Run("dotnet", TestRepository.Root, workspace.Root, "pack", packageProject, "-c", "Release", "--no-build", "--no-restore", "--output", workspace.Feed);
         Assert.AreEqual(0, packExit, packError);
 
         string config = Path.Combine(workspace.Root, "NuGet.Config");
         string feed = SecurityElement.Escape(workspace.Feed) ?? throw new InvalidOperationException("Local feed path could not be encoded.");
         File.WriteAllText(config, $"<?xml version=\"1.0\" encoding=\"utf-8\"?><configuration><packageSources><clear/><add key=\"local\" value=\"{feed}\"/></packageSources></configuration>");
         string toolPath = Path.Combine(workspace.Root, ".program-kit", "tools");
-        (int installExit, _, string installError) = Run("dotnet", workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.1", "--configfile", config, "--no-cache");
+        (int installExit, _, string installError) = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.1", "--configfile", config, "--no-cache");
         Assert.AreEqual(0, installExit, installError);
 
         string executable = Path.Combine(toolPath, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
-        (int versionExit, string versionOutput, string versionError) = Run(executable, workspace.Root, "version", "--format", "json");
+        (int versionExit, string versionOutput, string versionError) = Run(executable, workspace.Root, workspace.Root, "version", "--format", "json");
         Assert.AreEqual(0, versionExit, versionError);
         JsonNode result = JsonNode.Parse(versionOutput) ?? throw new InvalidDataException("The packaged tool did not return JSON.");
         Assert.AreEqual("1.0.0-alpha.1", result["utility"]!["cli"]!.GetValue<string>());
         Assert.AreEqual(0, Directory.EnumerateFiles(workspace.Root, "*.csproj", SearchOption.AllDirectories).Count());
     }
 
-    private static (int ExitCode, string Output, string Error) Run(string executable, string workingDirectory, params string[] arguments)
+    private static (int ExitCode, string Output, string Error) Run(string executable, string workingDirectory, string environmentRoot, params string[] arguments)
     {
         System.Diagnostics.ProcessStartInfo start = new(executable) { WorkingDirectory = workingDirectory, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
         start.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         start.Environment["http_proxy"] = "http://127.0.0.1:1";
         start.Environment["https_proxy"] = "http://127.0.0.1:1";
-        if (arguments.Length > 0 && string.Equals(arguments[0], "tool", StringComparison.Ordinal))
-        {
-            string appData = Path.Combine(workingDirectory, ".program-kit", "test-appdata");
-            Directory.CreateDirectory(Path.Combine(appData, "NuGet"));
-            start.Environment["APPDATA"] = appData;
-            start.Environment["NUGET_PACKAGES"] = Path.Combine(workingDirectory, ".program-kit", "test-packages");
-        }
+        string appData = Path.Combine(environmentRoot, ".program-kit", "test-appdata");
+        Directory.CreateDirectory(Path.Combine(appData, "NuGet"));
+        start.Environment["APPDATA"] = appData;
+        start.Environment["XDG_CONFIG_HOME"] = appData;
+        start.Environment["DOTNET_CLI_HOME"] = Path.Combine(environmentRoot, ".program-kit", "test-home");
+        start.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+        start.Environment["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0";
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
         using System.Diagnostics.Process process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("Could not start packaged-tool acceptance process.");
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
-        process.WaitForExit();
-        return (process.ExitCode, output, error);
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(60_000))
+        {
+            process.Kill();
+            _ = process.WaitForExit(5_000);
+            throw new TimeoutException($"Packaged-tool command exceeded 60 seconds: {executable} {string.Join(' ', arguments)}");
+        }
+        if (!System.Threading.Tasks.Task.WaitAll(new System.Threading.Tasks.Task[] { output, error }, 5_000))
+            throw new TimeoutException($"Packaged-tool command left redirected output open: {executable} {string.Join(' ', arguments)}");
+        return (process.ExitCode, output.GetAwaiter().GetResult(), error.GetAwaiter().GetResult());
     }
 }

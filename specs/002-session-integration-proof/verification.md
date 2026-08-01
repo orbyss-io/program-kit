@@ -143,3 +143,65 @@ US5 observations:
 - a committed receipt distinguishes an explicitly removed integration from one never installed, while verification reports no provider-session availability claim;
 - missing, partial, corrupt-record, and drifted installations fail closed without mutation; and
 - authority grants, unrelated `.agents` content, application files, provider/global state, and the independently installed workspace-local CLI remain outside removal ownership.
+
+## Cross-cutting completion evidence — 2026-08-01
+
+Environment and dependency closure:
+
+- .NET SDK: `10.0.302`.
+- `dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config`, with isolated `APPDATA`, `XDG_CONFIG_HOME`, `DOTNET_CLI_HOME`, and the repository-ignored package cache:
+  - succeeded; all projects were already current;
+  - no `packages.lock.json` changed.
+- A restore without the explicit repository `NuGet.Config` was rejected by the workspace sandbox because the .NET SDK attempted to read the inaccessible user-level NuGet configuration. No result from that rejected invocation is counted as restore evidence.
+- `dotnet format ProgramKit.slnx --no-restore --verify-no-changes`: passed.
+- `dotnet build ProgramKit.slnx -c Release --no-restore`: passed with 0 warnings and 0 errors.
+- Final full Release suites:
+  - contract: 24 passed, 0 failed;
+  - unit: 34 passed, 0 failed;
+  - acceptance: 19 passed, 0 failed.
+
+Package and isolated-workspace proof:
+
+- `eng/Invoke-SessionIntegrationQuickstart.ps1 -SkipBootstrap` completed on Windows in ten isolated workspaces outside the source repository.
+- Bounded evidence: `reviews/deterministic-session-review.json` using schema `program-kit.deterministic-session-review/v1`.
+- Evidence SHA-256: `sha256:bc8ffe0d1ae8cdd51bc2a03202cd019a7c82f07b7385d4573bbd9e47efa73846`.
+- Acquired package identity: `Orbyss.ProgramKit.Cli` `1.0.0-alpha.1`; observed package SHA-256: `sha256:d9fd462a847045b4fd4887e1fd14967bdac5cc67893bbbd5b3fa03b0be2c7907`.
+- Trials: 10 passed, 0 failed. Workspace-local tool installation took 316 ms minimum, 323.5 ms median, and 335 ms maximum.
+- The ten workspace-bound installation records and removal receipts each had ten distinct exact digests; every generated skill had the same projection SHA-256 `sha256:8ddcb2a195a09bc56c060a97398491607b2191e053c951b88f84519e80a4b4fb`.
+- Every trial proved missing-authority `program-kit.kernel/PKPOL0001`, drift `program-kit.session/PKSES0004`, exact removal, preserved consumer bytes, and a still-callable independently installed CLI.
+- The evidence asserts denied network after package acquisition, disabled telemetry, no source upload, and no provider-global registration.
+- A separate final pack inspection produced `Orbyss.ProgramKit.Cli.1.0.0-alpha.1.nupkg`, SHA-256 `sha256:0643fee471958f0acdba4aec31664f724d8deb392e8bf112c22d9c61b4bbc6cc`, 908,816 bytes, with 31 expected entries and no external NuGet dependencies in its manifest. NuGet archive hashes are recorded per acquisition and are not claimed to be equal across separate pack invocations.
+
+Focused conformance, disclosure, and runtime evidence:
+
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-build --no-restore --filter SessionDisclosureTests`: 6 passed.
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-build --no-restore --filter "SessionProviderConformanceContractTests|ProviderNeutralityArchitectureTests"`: 3 passed.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --no-restore --filter "CodexProviderConformanceAcceptanceTests|SessionProviderParityAcceptanceTests|RuntimeAndDriftAcceptanceTests|SessionRuntimeIsolationAcceptanceTests"`: 6 passed.
+- The runtime test now installs and removes the session projection before restoring, building, starting, and calling the generated reference application's accepted `/status` behavior. Its dependency closure contains no Program Kit, Spec Kit, session-integration, or Codex provider assembly.
+- Static scans of product session/CLI sources found zero network clients, telemetry mechanisms, provider launches, source-upload mechanisms, credential literals, or user-global registration mechanisms.
+- Static scans of bounded review evidence found zero source-root paths, temporary consumer roots, prompts, responses, transcripts, or credential-like values.
+- Inspection of every extracted package entry found zero source-root paths, temporary consumer roots, or credential-like values. The intentional synthetic disclosure-test fixture `password=withheld` is test data and is not a product or evidence finding.
+
+## Requirement reconciliation and pending gates — 2026-08-01
+
+| Requirement area | Disposition |
+|---|---|
+| FR-001, FR-003 through FR-006 | Passing Windows automated package/isolation, direct-CLI, source-separation, and runtime evidence. Linux execution remains pending the shared matrix run. |
+| FR-002, FR-020, SC-007 | Partial: the selected exact release/version and admitted identities are recorded and observed, but a cryptographic binding from the acquired package through the callable executable is not yet enforced. This is a recorded first-vertical-slice convergence gap, not a Feature 002 success claim. |
+| FR-007 through FR-014 | Canonical session contracts and provider-neutral projections pass their contract tests. Provider-role admission and vocabulary/support-envelope fail-closed enforcement remain recorded follow-up gaps. |
+| FR-015 through FR-023 | Automated explain, preflight, exact authority, staged publication, verification, failure, and structured-result behavior passes, subject to the exact artifact-binding gap above. |
+| FR-024 through FR-032, SC-003, SC-005 | Guidance and deterministic workflow mechanics pass automated tests. Fresh live Codex behavior and the two-turn human interaction outcome remain pending T101 and T102. |
+| FR-033 through FR-038, SC-006 | The public session adapter conformance and parity suites pass. The separate factory SPI/public factory-request seam is not remediated by this feature. |
+| FR-039 through FR-046, SC-004, SC-008 through SC-010 | Passing diagnostics, disclosure, local-first, exact-removal, preservation, and post-removal runtime evidence. |
+| SC-001, SC-002 | Ten Windows workspaces pass. Linux and the documented fresh-provider-session portion remain pending shared CI/live review. |
+
+Final disposition: the Feature 002 implementation and deterministic Windows evidence are ready for review, but the feature is not semantically approved, release-ready, or fully converged. T100 remains open for Linux execution, T101 remains open because no live Codex launch was authorized, T102 remains open for an independent human product decision, and T105 remains open because the known artifact-binding and factory/VSL enforcement gaps are engineering gaps rather than human gates.
+
+The separate read-only review identified these out-of-scope follow-ups; none were implemented in Feature 002:
+
+1. `ProviderRole` declares construction, evaluation, and projection roles while `IFactoryProvider` exposes only construction, and role admission is not enforced.
+2. Runtime intake uses the provider-specific .NET intake instead of the public factory-request seam.
+3. Exact digest equality and observed CLI/package/executable binding need convergence wherever Feature 002 claims exactness.
+4. Vocabulary and support-envelope behavior is not yet fully fail-closed.
+
+Agreed follow-up order: close and converge Feature 002 with the pending evidence visible; reconcile and implement the existing pushed Feature 003 Claude adapter; reconcile and implement the existing pushed Feature 004 engineering-quality/constitution gates; then create Feature 005 for first-vertical-slice convergence. No later feature branch was created or executed during this work.

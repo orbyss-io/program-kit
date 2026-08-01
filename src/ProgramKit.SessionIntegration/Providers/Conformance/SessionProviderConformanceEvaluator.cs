@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 
 namespace Orbyss.ProgramKit.SessionIntegration.Providers.Conformance;

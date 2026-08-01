@@ -1,8 +1,8 @@
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.Contracts.Operations;
-using Orbyss.ProgramKit.Kernel.Operations;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
+using Orbyss.ProgramKit.Kernel.Operations;
 
 namespace Orbyss.ProgramKit.Tests;
 

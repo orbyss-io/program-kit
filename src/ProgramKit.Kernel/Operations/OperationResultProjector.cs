@@ -63,7 +63,9 @@ public static class OperationResultProjector
         {
             document["disclosure"] = new JsonArray(result.Disclosure.Select(static item => new JsonObject
             {
-                ["field"] = item.Field, ["classification"] = Kebab(item.Classification), ["action"] = item.Action,
+                ["field"] = item.Field,
+                ["classification"] = Kebab(item.Classification),
+                ["action"] = item.Action,
             }).ToArray());
         }
 
