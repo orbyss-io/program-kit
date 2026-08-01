@@ -87,6 +87,24 @@ public sealed class ExplainOperation
                 resolved.Lock.ConstructionIdentity,
                 resolved.Explanation.CanonicalDocument);
         }
+        catch (ProgramKitDiagnosticException exception)
+        {
+            Diagnostic diagnostic = DiagnosticFactory.Create(
+                exception.DiagnosticId,
+                exception.Phase,
+                "factory-request",
+                exception.Message,
+                "The exact request was refused without live writes.");
+            OperationExecutionTracker.Advance(exception.Phase, EffectState.None);
+            return OperationResultFactory.Failure(
+                PublicCommand.Explain,
+                OperationOutcome.Blocked,
+                exception.Phase,
+                EffectState.None,
+                exception.Disposition,
+                new[] { diagnostic },
+                CanonicalJson.Digest(document));
+        }
         catch (KeyNotFoundException exception)
         {
             Diagnostic diagnostic = DiagnosticFactory.Create(

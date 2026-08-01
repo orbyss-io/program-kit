@@ -3,8 +3,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Kernel.Diagnostics;
 
 namespace Orbyss.ProgramKit.Kernel.Validation;
 
@@ -56,7 +58,7 @@ public sealed class TypedContractBinder
             .ToArray();
         if (selections.Select(static item => item.Role).Distinct(StringComparer.Ordinal).Count() != selections.Length)
         {
-            throw new InvalidDataException("Every selection role must occur exactly once.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.AmbiguousSelection, OperationPhase.Validation, PrimaryDisposition.Revise, "Every selection role must occur exactly once.");
         }
 
         ArtifactReference? authority = document["authorityGrant"] is JsonObject authorityObject

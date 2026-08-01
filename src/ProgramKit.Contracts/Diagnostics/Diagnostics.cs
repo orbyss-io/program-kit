@@ -47,9 +47,9 @@ public sealed record Diagnostic(
     IReadOnlyList<string> Subjects,
     GovernedIdentity Rule,
     string MessageKey,
-    IReadOnlyDictionary<string, string> Parameters,
-    string Cause,
-    string Consequence,
+    IReadOnlyDictionary<string, SafeValue> Parameters,
+    SafeValue Cause,
+    SafeValue Consequence,
     IReadOnlyList<Remediation> Remediations,
     IReadOnlyList<EvidenceReference> Evidence);
 

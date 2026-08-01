@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.kernel/PKREQ0002","mutation":"inject-secret-marker","schema":"program-kit.invalid-fixture/v1"}

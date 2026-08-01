@@ -132,3 +132,103 @@ proven. The authoritative checkboxes remain in `../tasks.md`.
 | T093 | T076-T082, T085 |
 | T094 | T001-T085 task reconciliation and truth-in-documentation audit |
 | T095 | T083 plus the independent human product-decision gate |
+
+## Current semantic reconciliation (T096)
+
+This table is the current authoritative classification. `satisfied` means the
+accepted outcome and direct proof exist now. `superseded` means the same
+accepted outcome is implemented and proven through a consolidated boundary, so
+recreating the historical file split would add no product evidence. `missing`
+means a current requirement is still unproven and names its Phase 9 owner.
+
+| Task | Classification | Current evidence or exact owner |
+|---|---|---|
+| T001 | satisfied | Pinned SDK/build/editor policy in `global.json`, `Directory.Build.props`, and `.editorconfig`; release build is a T102 gate. |
+| T002 | satisfied | Exact central versions, NuGet source mapping, mirror manifest/lock, bootstrap, and locked restore exist in `Directory.Packages.props`, `NuGet.Config`, and `eng/`. |
+| T003 | satisfied | Four production and three test projects are present in `ProgramKit.slnx`; `LocalSafetyTests.Repository_graph_is_pinned_and_respects_architecture_boundaries` proves direction. |
+| T004 | superseded | The invariant is split between `Directory.Build.targets`, `LocalSafetyTests`, and `PublicContractTests.Generated_projects_have_no_program_kit_spec_kit_or_ai_runtime_reference`; no custom generated-runtime MSBuild task is needed. |
+| T005 | satisfied | `tests/Shared/TestRepository.cs` owns isolated workspaces/environment/process capture/cleanup; `ProductProofAcceptanceTests` exercises culture and deterministic environment variants. |
+| T006 | satisfied | Embedded schemas are byte-bound to design contracts by `SchemaClosureTests.Embedded_public_schemas_are_byte_identical_to_the_design_contracts`. |
+| T007 | superseded | Fixture ownership is expressed by exact request artifact ownership and generated candidate manifests; executable invalid/golden fixture gaps remain explicitly under T099/T100. |
+| T008 | satisfied | All project lock files are committed; locked restore is a T102 gate. |
+| T009 | missing | Safe diagnostic values and finite waiver primitives are incomplete; T097 owns closure. |
+| T010 | satisfied | Immutable result/diagnostic/remediation/continuation contracts and schema closure are proven by `SchemaClosureTests` and `ConvergenceMechanicsTests.Diagnostic_grouping_truncation_and_disclosure_are_deterministic`. |
+| T011 | satisfied | Provider manifest, three callable SPI roles, exact selection, lock, explanation, and coverage records are present; role closure is proven by `Provider_role_manifest_must_equal_callable_SPI_surface`. |
+| T012 | missing | Typed receipt, artifact-state, and workspace-snapshot surfaces are incomplete; T097 owns closure. |
+| T013 | satisfied | `SchemaRegistry` and `StructuralSchemaValidator` enforce the offline Draft 2020-12 profile through intake; `SchemaClosureTests` proves conditionals and closed objects. |
+| T014 | satisfied | Canonical JSON and adversarial value behavior are directly proven in `KernelMechanicsTests`. |
+| T015 | satisfied | Qualified digests and logical path/case/reserved/traversal checks are implemented; candidate collision and reparse-point proofs cover filesystem closure. |
+| T016 | missing | Catalog uniqueness/grouping/truncation/disclosure exist, but every-ID trigger and adversarial projection proof remains under T099. |
+| T017 | satisfied | `OperationResultFactory`, `OperationResultProjector`, tracker, and independent fallback enforce lifecycle-derived result/effect invariants; `SchemaClosureTests.Independent_fallback_reports_the_proven_phase_and_effect_and_validates` proves it. |
+| T018 | missing | The finite parser exists; complete black-box grammar coverage remains under T099. |
+| T019 | missing | Renderers/utility envelopes exist; complete stdout/stderr/text/exit-code proof remains under T099. |
+| T020 | satisfied | The immutable registry resolves exact roles/support and the CLI composition root registers only the first-party provider; `ConvergenceMechanicsTests` proves role admission. |
+| T021 | satisfied | `LocalSafetyTests` and `PublicContractTests` prove project edges, role closure, absence of Status semantics, and generated-runtime isolation. |
+| T022 | missing | Canonical/path/schema/fallback coverage exists; complete diagnostic-trigger/disclosure matrix remains under T099. |
+| T023 | missing | Complete public-executable grammar/result/exit coverage remains under T099. |
+| T024 | satisfied | The valid fixture contains exact public request, bundle, definition, authority/review/revocation, custom source, selections, and evaluation context. |
+| T025 | missing | Several invalid fixture folders are non-executable notes; T099 owns the executable matrix. |
+| T026 | missing | Equivalence/rejection and aggregate input tests exist; source-span/resource/adversarial closure remains under T097/T099. |
+| T027 | satisfied | Authority closure, exact selection digest, role closure, resolution, and no-fallback behavior are proven by authority, convergence, and vertical acceptance suites. |
+| T028 | missing | Schema-valid canonical golden explanation/trace fixture proof remains under T099. |
+| T029 | missing | Valid repeatable/read-only explain is proven; complete invalid black-box matrix remains under T099. |
+| T030 | missing | Restricted YAML is bounded and rejects unsupported events, but safe source spans are not preserved; T097 owns closure. |
+| T031 | satisfied | `IntakePipeline` performs extension-selected loading, neutral projection, structural validation, typed binding, and provider mapping from the public request. |
+| T032 | superseded | Semantic validation is deliberately consolidated into `TypedContractBinder`, intake integrity checks, and `ResolutionEngine`; authority/resolution/schema tests prove the governed outcome. |
+| T033 | satisfied | `RepositoryAuthorityProvider` binds exact request/closure/effect/evaluation/review/revocation state; `AuthorityClosureAcceptanceTests` covers every dimension. |
+| T034 | satisfied | The exact three-role .NET manifest includes distribution/support/provenance; distribution evidence and role-closure tests bind it. |
+| T035 | satisfied | `ResolutionEngine` and `ProviderRegistry` fail closed on selection, support, relationship, seam, and closure mismatch; convergence and authority tests prove it. |
+| T036 | superseded | The trace-complete deterministic explanation projector remains inside `ResolutionEngine`; acceptance and schema validation prove the public result without requiring a separate class. |
+| T037 | satisfied | `ExplainOperation` is public and read-only; `Explain_is_repeatable_canonical_and_read_only` proves zero effect. |
+| T038 | missing | CLI wiring exists; accepted canonical golden explanation/diagnostic fixtures remain under T099. |
+| T039 | satisfied | Candidate lifecycle, undeclared/case collision, and publication-boundary closure are proven in `ConvergenceMechanicsTests`. |
+| T040 | satisfied | `EndpointAssembler` rejects duplicate routes and canonicalizes meaningful order; `KernelMechanicsTests.Endpoint_assembly_is_order_independent_and_rejects_duplicates` proves it. |
+| T041 | satisfied | `PublicContractTests.Dotnet_provider_is_exact_and_generated_host_uses_verified_cshells_abi` proves CShells 0.0.28, explicit `WithAssemblies`, `MapShells`, and no ambient discovery. |
+| T042 | missing | Exact package/content-hash and governed mirror validation proof remains under T098. |
+| T043 | satisfied | `VerticalSliceAcceptanceTests.Construct_then_evaluate_proves_admission_and_read_only_evaluation` proves the real complete admitted construction. |
+| T044 | satisfied | The single exact assembler owns route composition and rejects duplicate identities; endpoint tests prove deterministic behavior. |
+| T045 | satisfied | `DotNetTemplates` renders deterministic whole files and the provider copies consumer source as seeded handoff; repeatable construction/repair proofs preserve it. |
+| T046 | superseded | Version-specific CShells and ASP.NET projections are consolidated in `DotNetTemplates`/`DotNetFactoryProvider`; ABI and relocated-runtime tests prove the required behavior. |
+| T047 | satisfied | `DotNetToolRunner` uses argument lists, bounded timeouts, explicit deterministic environment, output digests, and no raw-output carriage. |
+| T048 | missing | Package SHA exists but NuGet content hash is not recorded/verified; T098 owns closure. |
+| T049 | missing | Two-source feed/locked cache exists but exact mirror-lock validation before use is incomplete; T098 owns closure. |
+| T050 | satisfied | `CandidateArtifactSetBuilder` validates logical paths/ownership, rejects undeclared/case-colliding bytes, seals, rehashes, and identities the set; convergence tests prove it. |
+| T051 | satisfied | `CandidateEvaluator` closes mandatory contract/build/package/ownership/support/provenance/claim gates; receipt tests require all passed. |
+| T052 | satisfied | `RecoverablePublisher` owns same-volume locking, durable journals, ordered writes/backups, preconditions, and post-write verification; every boundary is fault-tested. |
+| T053 | satisfied | `AdmissionService` enforces receipt-last admission and rejects incomplete/interrupted/unverified state; recovery tests prove the boundary. |
+| T054 | satisfied | `ConstructOperation` orchestrates intake through admission over public SPIs, evaluated candidates, recoverable publication, and exact results. |
+| T055 | satisfied | The CLI dispatches construct and the valid fixture contains exact request/authority/review/revocation/mirror bindings. |
+| T056 | satisfied | Vertical and runtime acceptance tests prove locked restore/build/publish/start and `/status` through the exact local component package with no factory runtime. |
+| T057 | missing | Complete executable invalid fixture coverage remains under T099. |
+| T058 | missing | Every-diagnostic trigger contract remains under T099. |
+| T059 | missing | Full adversarial disclosure/fallback matrix remains under T099. |
+| T060 | satisfied | `WorkspaceEvaluator` plus drift, repair, interruption, support, collision, and freshness tests cover exact/missing/modified/stale/colliding/interrupted/unsupported/unavailable states. |
+| T061 | satisfied | `Every_publication_boundary_is_untrusted_and_rollback_safe` covers each mutation boundary; `PublicationRecoveryAcceptanceTests` proves real-filesystem recovery. |
+| T062 | satisfied | `RepairAcceptanceTests` proves no-mutation diagnosis, fresh authority, bounded repair, and consumer-source preservation. |
+| T063 | satisfied | `ContinuationBuilder` aggregates typed missing input into a stateless digest-bound continuation; schema closure proves the public shape. |
+| T064 | satisfied | `WorkspaceEvaluator` checks locks, receipts, evidence, ownership/support, journals, and live bytes read-only; acceptance tests prove no mutation. |
+| T065 | satisfied | `RepairProposalBuilder` and `PublicationRepairGuidance` materialize bounded fresh-authority requests without granting authority or mutating. |
+| T066 | satisfied | `PublicationRecovery` and recoverable publisher implement exact rollback/complete recovery with precondition enforcement. |
+| T067 | satisfied | `DisclosureFilter`, result projection, tracker, and `FallbackResultWriter` sanitize failures and report only proven lifecycle state. |
+| T068 | satisfied | Evaluate and repair-mode construct are publicly dispatched and derive exit/disposition/effect from structured results. |
+| T069 | missing | Snapshot schema/golden/trace/order/no-inference contract proof remains under T100. |
+| T070 | missing | Every snapshot freshness state needs direct proof under T100. |
+| T071 | missing | Fresh-session orientation using only snapshot references remains under T100. |
+| T072 | satisfied | `WorkspaceSnapshotBuilder` projects the accepted authoritative closure, identities, coverage, bindings, relationships, seams, artifacts, provenance, gates, reviews, waivers, evidence, receipts, support, retention, and diagnostics. |
+| T073 | satisfied | Construct publishes `.program-kit/workspace.snapshot.json` before receipt-last admission and returns the admitted artifacts. |
+| T074 | satisfied | Evaluate recomputes closure/evidence/live/support/receipt/journal freshness without rewriting the snapshot. |
+| T075 | missing | Canonical golden snapshot and offline source-navigation proof remain under T100. |
+| T076 | missing | The accepted repeatability matrix is narrower than path/culture/input/order scope; T101 owns closure. |
+| T077 | missing | Independent external-package verified-equivalence/byte-identity claim proof remains under T101. |
+| T078 | missing | Relocation works, but assets/deps/PE allowlisting and complete clean-cache independence remain under T101. |
+| T079 | satisfied | `LocalSafetyTests` and the Windows/Ubuntu workflow prove local-only operation, telemetry/source-upload exclusion, secret/no-self-host scans, pinned sources, locks, and architecture. |
+| T080 | satisfied | `Generate-DistributionEvidence.ps1` deterministically produces the manifest, SBOM, provenance, diagnostic catalog, and provider support evidence; `DistributionEvidenceTests` verifies it. |
+| T081 | satisfied | `Explain_is_sub_two_seconds_and_invariant_to_supported_culture_and_selection_order` enforces the performance bound. |
+| T082 | satisfied | `Invoke-VerticalSliceQuickstart.ps1` automates valid/invalid/repeatability/drift/repair/publication/runtime/evidence gates without ambient setup. |
+| T083 | satisfied | The review record contains timing, seven architecture questions, honest limits, and a distinct pending human decision. |
+| T084 | satisfied | README records the constitution, archive boundary, actual CLI, limitations, entry points, and non-accepted state. |
+| T085 | missing | Final post-T097–T101 verification and clean-worktree record remains under T102. |
+
+Counts: 53 satisfied, 5 superseded, 27 missing. T094 is reset to pending until
+T097-T102 close the 16 missing rows and this matrix is reconciled to their
+recorded evidence. T095 remains a separate human product decision.

@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -38,6 +40,14 @@ public sealed class VerticalSliceAcceptanceTests
             Assert.AreEqual(0, construct.ExitCode, construct.StandardOutput + construct.StandardError);
             ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, construct.StandardOutput);
             Assert.IsTrue(File.Exists(Path.Combine(workspace, ".program-kit", "construction-receipt.json"))); Assert.IsTrue(File.Exists(Path.Combine(workspace, "feeds", "component", "Reference.Status.1.0.0.nupkg")));
+            string packagePath = Path.Combine(workspace, "feeds", "component", "Reference.Status.1.0.0.nupkg");
+            byte[] packageBytes = File.ReadAllBytes(packagePath);
+            JsonObject binding = JsonNode.Parse(File.ReadAllBytes(Path.Combine(workspace, "products", "Reference.Status.Api", "program-kit.package-binding.json")))!.AsObject();
+            Assert.AreEqual(
+                $"sha256:{Convert.ToHexString(SHA256.HashData(packageBytes)).ToLowerInvariant()}",
+                binding["digest"]!.GetValue<string>());
+            Assert.AreEqual(Convert.ToBase64String(SHA512.HashData(packageBytes)), binding["nugetContentHash"]!.GetValue<string>());
+
             ContractAssertions.ReadAndValidate(ContractAssertions.ConstructionReceipt, Path.Combine(workspace, ".program-kit", "construction-receipt.json"));
             ContractAssertions.ReadAndValidate(ContractAssertions.WorkspaceSnapshot, Path.Combine(workspace, ".program-kit", "workspace.snapshot.json"));
             ContractAssertions.ReadAndValidate(ContractAssertions.Resolution, Path.Combine(workspace, ".program-kit", "resolution.lock.json"));

@@ -2,8 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 
@@ -52,14 +57,35 @@ public sealed class ProductProofAcceptanceTests
     }
 
     [TestMethod]
-    public void Equal_construction_identities_have_equal_canonical_bytes_and_exact_package_claims()
+    public void Equal_construction_identities_close_path_culture_input_order_and_external_package_claims()
     {
         string firstWorkspace = TestRepository.CreateWorkspace(includeMirror: true);
         string secondWorkspace = TestRepository.CreateWorkspace(includeMirror: true);
+        string unicodeWorkspace = Path.Combine(
+            Path.GetDirectoryName(secondWorkspace)!,
+            $"variant-naive-路径-{Guid.NewGuid():N}");
+        Directory.Move(secondWorkspace, unicodeWorkspace);
+        secondWorkspace = unicodeWorkspace;
         try
         {
-            JsonObject firstResult = Construct(firstWorkspace, "en_US.UTF-8");
-            JsonObject secondResult = Construct(secondWorkspace, "nl_NL.UTF-8");
+            string secondJsonRequest = Path.Combine(secondWorkspace, "requests", "construct.json");
+            JsonObject request = CanonicalJson.Parse(File.ReadAllBytes(secondJsonRequest)).AsObject();
+            JsonArray selections = request["selections"]!.AsArray();
+            request["selections"] = new JsonArray(selections.Reverse().Select(static item => item!.DeepClone()).ToArray());
+            JsonObject reversePropertyOrder = new();
+            foreach ((string name, JsonNode? value) in request.Reverse())
+            {
+                reversePropertyOrder.Add(name, value?.DeepClone());
+            }
+
+            string yamlRequest = Path.Combine(secondWorkspace, "requests", "construct.yaml");
+            File.WriteAllText(
+                yamlRequest,
+                reversePropertyOrder.ToJsonString(new JsonSerializerOptions { WriteIndented = true }),
+                new UTF8Encoding(false));
+
+            JsonObject firstResult = Construct(firstWorkspace, Path.Combine(firstWorkspace, "requests", "construct.json"), "en_US.UTF-8");
+            JsonObject secondResult = Construct(secondWorkspace, yamlRequest, "tr_TR.UTF-8");
             Assert.AreEqual(firstResult["constructionIdentity"]!.GetValue<string>(), secondResult["constructionIdentity"]!.GetValue<string>());
 
             JsonObject firstReceipt = ContractAssertions.ReadAndValidate(ContractAssertions.ConstructionReceipt, Path.Combine(firstWorkspace, ".program-kit", "construction-receipt.json"));
@@ -67,22 +93,19 @@ public sealed class ProductProofAcceptanceTests
             Dictionary<string, string> firstCanonical = CanonicalClaims(firstReceipt);
             Dictionary<string, string> secondCanonical = CanonicalClaims(secondReceipt);
             CollectionAssert.AreEqual(firstCanonical.Keys.OrderBy(static item => item, StringComparer.Ordinal).ToArray(), secondCanonical.Keys.OrderBy(static item => item, StringComparer.Ordinal).ToArray());
-            string[] differences = firstCanonical.Keys
-                .Where(logicalPath => !string.Equals(firstCanonical[logicalPath], secondCanonical[logicalPath], StringComparison.Ordinal))
-                .OrderBy(static logicalPath => logicalPath, StringComparer.Ordinal)
-                .Select(logicalPath => $"{logicalPath}: {firstCanonical[logicalPath]} != {secondCanonical[logicalPath]}").ToArray();
-            Assert.AreEqual(0, differences.Length, string.Join(Environment.NewLine, differences));
+            foreach (string logicalPath in firstCanonical.Keys.OrderBy(static item => item, StringComparer.Ordinal))
+            {
+                Assert.AreEqual(firstCanonical[logicalPath], secondCanonical[logicalPath], logicalPath);
+                CollectionAssert.AreEqual(
+                    File.ReadAllBytes(Resolve(firstWorkspace, logicalPath)),
+                    File.ReadAllBytes(Resolve(secondWorkspace, logicalPath)),
+                    logicalPath);
+            }
 
-            JsonObject package = firstReceipt["artifacts"]!.AsArray().Select(static item => item!.AsObject())
-                .Single(static item => item["claimClass"]!.GetValue<string>() == "verified-equivalent"
-                    && item["artifact"]!["logicalPath"]!.GetValue<string>() == "feeds/component/Reference.Status.1.0.0.nupkg");
-            string packageDigest = package["artifact"]!["digest"]!.GetValue<string>();
-            JsonObject binding = CanonicalJson.Parse(File.ReadAllBytes(Path.Combine(firstWorkspace, "products", "Reference.Status.Api", "program-kit.package-binding.json"))).AsObject();
-            Assert.AreEqual(packageDigest, binding["digest"]!.GetValue<string>());
-            Assert.AreEqual(firstResult["constructionIdentity"]!.GetValue<string>(), binding["producerConstructionIdentity"]!.GetValue<string>());
-            string project = File.ReadAllText(Path.Combine(firstWorkspace, "products", "Reference.Status.Api", "Reference.Status.Api.csproj"));
-            StringAssert.Contains(project, "PackageReference Include=\"Reference.Status\" Version=\"[1.0.0]\"");
+            VerifyExternalPackageClaim(firstWorkspace, firstReceipt, firstResult["constructionIdentity"]!.GetValue<string>());
+            VerifyExternalPackageClaim(secondWorkspace, secondReceipt, secondResult["constructionIdentity"]!.GetValue<string>());
             Assert.IsTrue(firstReceipt["gateResults"]!.AsArray().All(static item => item!["status"]!.GetValue<string>() == "passed"));
+            Assert.IsTrue(secondReceipt["gateResults"]!.AsArray().All(static item => item!["status"]!.GetValue<string>() == "passed"));
         }
         finally
         {
@@ -113,14 +136,43 @@ public sealed class ProductProofAcceptanceTests
         }
     }
 
-    private static JsonObject Construct(string workspace, string culture)
+    private static JsonObject Construct(string workspace, string request, string culture)
     {
         var execution = TestRepository.RunCliWithEnvironment(
             Culture(culture),
             "construct", "--workspace", workspace,
-            "--request", Path.Combine(workspace, "requests", "construct.json"), "--format", "json");
+            "--request", request, "--format", "json");
         Assert.AreEqual(0, execution.ExitCode, execution.StandardOutput + execution.StandardError);
         return ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, execution.StandardOutput);
+    }
+
+    private static void VerifyExternalPackageClaim(string workspace, JsonObject receipt, string constructionIdentity)
+    {
+        const string logicalPath = "feeds/component/Reference.Status.1.0.0.nupkg";
+        JsonObject package = receipt["artifacts"]!.AsArray().Select(static item => item!.AsObject())
+            .Single(static item => item["artifact"]!["logicalPath"]!.GetValue<string>() == logicalPath);
+        Assert.AreEqual("verified-equivalent", package["claimClass"]!.GetValue<string>());
+        byte[] packageBytes = File.ReadAllBytes(Resolve(workspace, logicalPath));
+        string sha256 = $"sha256:{Convert.ToHexString(SHA256.HashData(packageBytes)).ToLowerInvariant()}";
+        string nugetContentHash = Convert.ToBase64String(SHA512.HashData(packageBytes));
+        Assert.AreEqual(package["artifact"]!["digest"]!.GetValue<string>(), sha256);
+
+        JsonObject binding = CanonicalJson.Parse(File.ReadAllBytes(Path.Combine(workspace, "products", "Reference.Status.Api", "program-kit.package-binding.json"))).AsObject();
+        Assert.AreEqual("Reference.Status", binding["packageId"]!.GetValue<string>());
+        Assert.AreEqual("1.0.0", binding["version"]!.GetValue<string>());
+        Assert.AreEqual(sha256, binding["digest"]!.GetValue<string>());
+        Assert.AreEqual(nugetContentHash, binding["nugetContentHash"]!.GetValue<string>());
+        Assert.AreEqual(constructionIdentity, binding["producerConstructionIdentity"]!.GetValue<string>());
+
+        using ZipArchive archive = new(new MemoryStream(packageBytes), ZipArchiveMode.Read, leaveOpen: false);
+        ZipArchiveEntry specification = archive.Entries.Single(static entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase));
+        using Stream specificationStream = specification.Open();
+        XDocument nuspec = XDocument.Load(specificationStream);
+        Assert.AreEqual("Reference.Status", nuspec.Descendants().Single(static element => element.Name.LocalName == "id").Value);
+        Assert.AreEqual("1.0.0", nuspec.Descendants().Single(static element => element.Name.LocalName == "version").Value);
+
+        string project = File.ReadAllText(Path.Combine(workspace, "products", "Reference.Status.Api", "Reference.Status.Api.csproj"));
+        StringAssert.Contains(project, "PackageReference Include=\"Reference.Status\" Version=\"[1.0.0]\"");
     }
 
     private static Dictionary<string, string> CanonicalClaims(JsonObject receipt) => receipt["artifacts"]!.AsArray()
@@ -131,10 +183,15 @@ public sealed class ProductProofAcceptanceTests
             static item => item["artifact"]!["digest"]!.GetValue<string>(),
             StringComparer.Ordinal);
 
+    private static string Resolve(string workspace, string logicalPath) =>
+        Path.GetFullPath(Path.Combine(workspace, logicalPath.Replace('/', Path.DirectorySeparatorChar)));
+
     private static IReadOnlyDictionary<string, string> Culture(string value) => new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["LANG"] = value,
         ["LC_ALL"] = value,
-        ["DOTNET_CLI_UI_LANGUAGE"] = value.StartsWith("nl", StringComparison.Ordinal) ? "nl-NL" : "en-US",
+        ["DOTNET_CLI_UI_LANGUAGE"] = value.StartsWith("nl", StringComparison.Ordinal)
+            ? "nl-NL"
+            : value.StartsWith("tr", StringComparison.Ordinal) ? "tr-TR" : "en-US",
     };
 }

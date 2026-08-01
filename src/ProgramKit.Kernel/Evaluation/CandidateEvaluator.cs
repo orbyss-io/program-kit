@@ -146,7 +146,10 @@ public sealed class CandidateEvaluator
 
         JsonObject binding = CanonicalJson.Parse(File.ReadAllBytes(LogicalPaths.ResolveInside(candidate.CandidateRoot, bindings[0].LogicalPath))) as JsonObject
             ?? throw new InvalidDataException("The package binding must be a JSON object.");
+        byte[] packageBytes = File.ReadAllBytes(LogicalPaths.ResolveInside(candidate.CandidateRoot, packages[0].LogicalPath));
+        string contentHash = Convert.ToBase64String(System.Security.Cryptography.SHA512.HashData(packageBytes));
         return string.Equals(binding["digest"]?.GetValue<string>(), packages[0].Digest, StringComparison.Ordinal)
+            && string.Equals(binding["nugetContentHash"]?.GetValue<string>(), contentHash, StringComparison.Ordinal)
             && string.Equals(binding["producerConstructionIdentity"]?.GetValue<string>(), candidate.ConstructionIdentity, StringComparison.Ordinal);
     }
 

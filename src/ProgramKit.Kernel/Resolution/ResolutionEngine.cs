@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Contracts.Resolution;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
+using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Intake;
 using Orbyss.ProgramKit.Kernel.Operations;
 
@@ -39,7 +41,7 @@ public sealed class ResolutionEngine
         if (!constructionProvider.Manifest.Profiles.Contains(profile, StringComparer.Ordinal)
             || !evaluationProvider.Manifest.Profiles.Contains(profile, StringComparer.Ordinal))
         {
-            throw new KeyNotFoundException($"The selected providers do not support exact profile {profile}.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.Incompatible, OperationPhase.Resolution, PrimaryDisposition.Revise, $"The selected providers do not support exact profile {profile}.");
         }
 
         JsonObject component = RequireObject(input.Definition, "component");

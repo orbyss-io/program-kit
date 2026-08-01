@@ -25,15 +25,18 @@ public static class DiagnosticFactory
         DiagnosticDefinition definition = DiagnosticCatalog.Entries[id];
         string safeSubject = DisclosureFilter.SafeLogicalValue(subject);
         string safeCause = DisclosureFilter.SafeText(cause);
-        IReadOnlyDictionary<string, string> safeParameters = (parameters ?? new Dictionary<string, string>(StringComparer.Ordinal))
+        IReadOnlyDictionary<string, SafeValue> safeParameters = (parameters ?? new Dictionary<string, string>(StringComparer.Ordinal))
             .OrderBy(static item => item.Key, StringComparer.Ordinal)
-            .ToDictionary(static item => item.Key, static item => DisclosureFilter.SafeText(item.Value), StringComparer.Ordinal);
+            .ToDictionary(
+                static item => item.Key,
+                static item => new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, DisclosureFilter.SafeText(item.Value)),
+                StringComparer.Ordinal);
         JsonObject occurrenceMaterial = new()
         {
             ["id"] = id,
             ["subject"] = safeSubject,
             ["rule"] = definition.MessageKey,
-            ["parameters"] = new JsonObject(safeParameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, JsonValue.Create(item.Value)))),
+            ["parameters"] = new JsonObject(safeParameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, JsonValue.Create(item.Value.Value)))),
             ["cause"] = safeCause,
         };
         string occurrence = CanonicalJson.Digest(occurrenceMaterial);
@@ -53,8 +56,8 @@ public static class DiagnosticFactory
             ProtocolIdentities.Rule(definition.MessageKey),
             definition.MessageKey,
             safeParameters,
-            safeCause,
-            DisclosureFilter.SafeText(consequence),
+            new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, safeCause),
+            new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, DisclosureFilter.SafeText(consequence)),
             remediations ?? Array.Empty<Remediation>(),
             Array.Empty<EvidenceReference>());
     }

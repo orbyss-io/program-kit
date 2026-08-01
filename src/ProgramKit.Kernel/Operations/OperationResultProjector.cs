@@ -107,11 +107,11 @@ public static class OperationResultProjector
         ["subjects"] = new JsonArray(diagnostic.Subjects.Select(Subject).ToArray()),
         ["rule"] = ContractJson.Identity(diagnostic.Rule),
         ["messageKey"] = diagnostic.MessageKey,
-        ["parameters"] = new JsonObject(diagnostic.Parameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, SafeValue(item.Value, false)))),
+        ["parameters"] = new JsonObject(diagnostic.Parameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, SafeValue(item.Value)))),
         ["cause"] = new JsonObject
         {
             ["kind"] = "bounded",
-            ["details"] = new JsonArray(SafeValue(diagnostic.Cause, false)),
+            ["details"] = new JsonArray(SafeValue(diagnostic.Cause)),
         },
         ["consequence"] = new JsonObject
         {
@@ -194,6 +194,11 @@ public static class OperationResultProjector
             normalized = Slug(value);
         }
 
+        if (!logical)
+        {
+            normalized = Slug(normalized, allowDots: true);
+        }
+
         GovernedIdentity identity = ContractJson.StableIdentity("orbyss.program-kit", "diagnostic-subject", normalized, "1", value);
         JsonObject subject = ContractJson.Subject(logical ? "logical-path" : "governed-subject", identity);
         if (logical)
@@ -204,16 +209,38 @@ public static class OperationResultProjector
         return subject;
     }
 
-    private static JsonObject SafeValue(string value, bool logicalPath)
+    private static JsonObject SafeValue(SafeValue value)
     {
-        string safe = value.Length <= 500 ? value : value[..500];
-        return new JsonObject
+        JsonObject document = new()
         {
-            ["classification"] = logicalPath ? "repository-relative" : "public",
-            ["valueKind"] = logicalPath ? "logical-path" : "string",
-            ["value"] = safe,
+            ["classification"] = Kebab(value.Classification),
+            ["valueKind"] = ProjectSafeValueKind(value.ValueKind),
         };
+        if (value.Classification == SafeValueClassification.Withheld)
+        {
+            document["redactionReason"] = value.RedactionReason;
+            document["policyReference"] = ContractJson.Artifact(value.PolicyReference!);
+        }
+        else
+        {
+            document["value"] = value.Value;
+        }
+
+        return document;
     }
+
+    private static string ProjectSafeValueKind(SafeValueKind value) => value switch
+    {
+        SafeValueKind.Text => "string",
+        SafeValueKind.WholeNumber => "integer",
+        SafeValueKind.Flag => "boolean",
+        _ => Kebab(value),
+    };
+
+    private static JsonObject SafeValue(string value, bool logicalPath) => SafeValue(new SafeValue(
+        logicalPath ? SafeValueClassification.RepositoryRelative : SafeValueClassification.Public,
+        logicalPath ? SafeValueKind.LogicalPath : SafeValueKind.Text,
+        value));
 
     private static string Slug(string value, bool allowDots = false)
     {
@@ -237,7 +264,7 @@ public static class OperationResultProjector
             result = $"value-{result}";
         }
 
-        return result;
+        return result.Length <= 200 ? result : result[..200];
     }
 
     private static string Kebab<T>(T value)

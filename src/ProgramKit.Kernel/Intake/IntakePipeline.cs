@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Kernel.Artifacts;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
+using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Operations;
 using Orbyss.ProgramKit.Kernel.Validation;
 
@@ -45,7 +47,7 @@ public sealed class IntakePipeline
         IReadOnlyList<string> structuralFailures = structural.Validate(FactoryRequestSchemaId, document);
         if (structuralFailures.Count > 0)
         {
-            throw new InvalidDataException(string.Join(" ", structuralFailures));
+            throw new ProgramKitDiagnosticException(DiagnosticIds.InvalidInput, OperationPhase.Validation, PrimaryDisposition.Revise, string.Join(" ", structuralFailures));
         }
 
         FactoryRequest request = binder.BindFactoryRequest(document);
@@ -53,7 +55,7 @@ public sealed class IntakePipeline
         IReadOnlyList<string> bundleFailures = structural.Validate(BundleSchemaId, bundle);
         if (bundleFailures.Count > 0)
         {
-            throw new InvalidDataException(string.Join(" ", bundleFailures));
+            throw new ProgramKitDiagnosticException(DiagnosticIds.InvalidInput, OperationPhase.Validation, PrimaryDisposition.Revise, string.Join(" ", bundleFailures));
         }
 
         JsonObject bundleIdentity = bundle["identity"] as JsonObject
@@ -61,7 +63,7 @@ public sealed class IntakePipeline
         if (!string.Equals(bundleIdentity["digest"]?.GetValue<string>(), request.RootBundle.Identity.Digest, StringComparison.Ordinal)
             || !string.Equals(DocumentIdentityDigest(bundle), request.RootBundle.Identity.Digest, StringComparison.Ordinal))
         {
-            throw new InvalidDataException("The root bundle identity digest is not exact.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.ConflictingIdentity, OperationPhase.Validation, PrimaryDisposition.Revise, "The root bundle identity digest is not exact.");
         }
 
         JsonObject authorityBindingDocument = NormalizeRequest(document);
@@ -155,13 +157,13 @@ public sealed class IntakePipeline
         string path = LogicalPaths.ResolveInside(workspaceRoot, artifact.LogicalPath);
         if (!File.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
         {
-            throw new InvalidDataException($"The exact referenced artifact is unavailable: {artifact.LogicalPath}");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.ExternalUnavailable, OperationPhase.Intake, PrimaryDisposition.Stop, $"The exact referenced artifact is unavailable: {artifact.LogicalPath}");
         }
 
         byte[] bytes = File.ReadAllBytes(path);
         if (!string.Equals(Digests.Sha256(bytes), artifact.Digest, StringComparison.Ordinal))
         {
-            throw new InvalidDataException($"The referenced artifact digest is not exact: {artifact.LogicalPath}");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.ConflictingIdentity, OperationPhase.Validation, PrimaryDisposition.Revise, $"The referenced artifact digest is not exact: {artifact.LogicalPath}");
         }
 
         JsonNode node = Path.GetExtension(path).ToLowerInvariant() switch

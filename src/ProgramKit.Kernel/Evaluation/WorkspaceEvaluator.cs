@@ -102,18 +102,29 @@ public sealed class WorkspaceEvaluator
             string logicalPath = Required(verificationArtifact, "logicalPath");
             string path = LogicalPaths.ResolveInside(workspaceRoot, logicalPath);
             string expected = Required(verificationArtifact, "digest");
-            if (!File.Exists(path) || !string.Equals(Digests.Sha256(File.ReadAllBytes(path)), expected, StringComparison.Ordinal))
+            if (!File.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
             {
-                throw new InvalidDataException("Candidate evaluation evidence is unavailable or changed.");
+                digests.Add($"unavailable:{logicalPath}:{expected}");
             }
-
-            JsonObject evidence = CanonicalJson.Parse(File.ReadAllBytes(path)) as JsonObject
-                ?? throw new InvalidDataException("Candidate evaluation evidence is invalid.");
-            foreach (string section in new[] { "construction", "evaluation" })
+            else
             {
-                if (evidence[section] is JsonArray records)
+                byte[] evidenceBytes = File.ReadAllBytes(path);
+                string observed = Digests.Sha256(evidenceBytes);
+                if (!string.Equals(observed, expected, StringComparison.Ordinal))
                 {
-                    digests.AddRange(records.OfType<JsonObject>().Select(CanonicalJson.Digest));
+                    digests.Add($"changed:{logicalPath}:{observed}");
+                }
+                else
+                {
+                    JsonObject evidence = CanonicalJson.Parse(evidenceBytes) as JsonObject
+                        ?? throw new InvalidDataException("Candidate evaluation evidence is invalid.");
+                    foreach (string section in new[] { "construction", "evaluation" })
+                    {
+                        if (evidence[section] is JsonArray records)
+                        {
+                            digests.AddRange(records.OfType<JsonObject>().Select(CanonicalJson.Digest));
+                        }
+                    }
                 }
             }
         }
