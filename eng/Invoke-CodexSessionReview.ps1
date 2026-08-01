@@ -45,7 +45,18 @@ $requiredConsumerFiles = @(
 )
 foreach ($required in $requiredConsumerFiles) { if (-not (Test-Path -LiteralPath (Join-Path $consumer $required) -PathType Leaf)) { throw "The live review seed is missing '$required'." } }
 
-$codex = Get-Command codex -CommandType Application -ErrorAction Stop
+$codexCandidates = @(Get-Command codex -CommandType Application -All -ErrorAction Stop)
+$codex = if ($IsWindows) {
+    $codexCandidates |
+        Where-Object { $_.Path.EndsWith('.exe', [StringComparison]::OrdinalIgnoreCase) } |
+        Select-Object -First 1
+}
+else {
+    $codexCandidates | Select-Object -First 1
+}
+if ($null -eq $codex) {
+    throw 'Could not resolve one platform-appropriate Codex executable.'
+}
 $versionOutput = (& $codex.Source --version 2>&1 | Out-String).Trim()
 $expectedVersionPattern = '(?<!\d)' + [regex]::Escape($ExpectedCodexVersion) + '(?!\d)'
 if ($LASTEXITCODE -ne 0 -or $versionOutput -notmatch $expectedVersionPattern) {
