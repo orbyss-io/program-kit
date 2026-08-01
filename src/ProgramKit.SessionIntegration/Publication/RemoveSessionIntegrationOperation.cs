@@ -31,7 +31,7 @@ public sealed class RemoveSessionIntegrationOperation
         SessionIntegrationCandidate candidate = new SessionIntegrationCandidateBuilder(services).Build(workspaceRoot, requestPath, SessionLifecycleOperation.Remove);
         string providerName = candidate.Provider.Manifest.ProviderIdentity.Name;
         SessionInstallationStore store = new(workspaceRoot, providerName);
-        SessionInstallationInspection inspection = store.Inspect();
+        SessionInstallationInspection inspection = store.Inspect(candidate);
         if (inspection.State == SessionIntegrationState.Removed)
             return OperationResultFactory.Success(PublicCommand.SessionRemove, OperationPhase.Completion, EffectState.None, candidate.RequestIdentity, session: State(candidate, "removed", "not-evaluated"), disclosure: SessionPayload.Disclosure);
         if (inspection.State == SessionIntegrationState.Absent || inspection.Record is null)

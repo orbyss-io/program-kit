@@ -17,3 +17,10 @@ public sealed class SessionDiagnosticException : Exception
     public OperationPhase Phase { get; }
     public EffectState EffectState { get; }
 }
+public sealed class AmbiguousSessionSelectionException : Exception
+{
+    public AmbiguousSessionSelectionException(string message)
+        : base(message)
+    {
+    }
+}

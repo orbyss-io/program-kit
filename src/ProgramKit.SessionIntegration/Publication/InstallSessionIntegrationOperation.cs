@@ -27,8 +27,8 @@ public sealed class InstallSessionIntegrationOperation
         services.SourceGuard.DemandConsumerWorkspace(workspaceRoot);
         SessionIntegrationCandidate candidate = new SessionIntegrationCandidateBuilder(services).Build(workspaceRoot, requestPath, SessionLifecycleOperation.Install);
         SessionInstallationStore store = new(workspaceRoot, candidate.Provider.Manifest.ProviderIdentity.Name);
-        SessionInstallationInspection existing = store.Inspect();
-        if (existing.State == SessionIntegrationState.Exact && string.Equals(existing.Record?.RequestCoreIdentity, candidate.RequestCoreIdentity, StringComparison.Ordinal))
+        SessionInstallationInspection existing = store.Inspect(candidate);
+        if (existing.State == SessionIntegrationState.Exact && string.Equals(existing.Record?.InstallationIdentity.Digest, candidate.InstallationIdentity, StringComparison.Ordinal))
             return OperationResultFactory.Success(PublicCommand.SessionInstall, OperationPhase.Completion, EffectState.Committed, candidate.RequestIdentity, session: SessionPayload.Candidate(candidate, "exact", Kebab(existing.SessionAvailability)), disclosure: SessionPayload.Disclosure);
 
         RequestBoundAuthorityGrant grant = LoadGrant(workspaceRoot, candidate, store);

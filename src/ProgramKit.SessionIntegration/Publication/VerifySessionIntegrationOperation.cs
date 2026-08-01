@@ -22,7 +22,7 @@ public sealed class VerifySessionIntegrationOperation
     {
         services.SourceGuard.DemandConsumerWorkspace(workspaceRoot);
         SessionIntegrationCandidate candidate = new SessionIntegrationCandidateBuilder(services).Build(workspaceRoot, requestPath, SessionLifecycleOperation.Verify);
-        SessionInstallationInspection inspection = new SessionInstallationStore(workspaceRoot, candidate.Provider.Manifest.ProviderIdentity.Name).Inspect();
+        SessionInstallationInspection inspection = new SessionInstallationStore(workspaceRoot, candidate.Provider.Manifest.ProviderIdentity.Name).Inspect(candidate);
         JsonObject session = SessionPayload.Candidate(candidate, Kebab(inspection.State), Kebab(inspection.SessionAvailability));
         session["observations"] = new JsonArray(inspection.Observations.Select(static observation => new JsonObject { ["logicalPath"] = observation.LogicalPath, ["expectedDigest"] = observation.ExpectedDigest, ["observedDigest"] = observation.ObservedDigest, ["state"] = observation.State }).ToArray());
         if (inspection.State == SessionIntegrationState.Exact)
@@ -44,10 +44,16 @@ public sealed class VerifySessionIntegrationOperation
             return OperationResultFactory.Failure(PublicCommand.SessionVerify, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.ProvideInput, new[] { missing }, candidate.RequestIdentity) with { Session = session, Disclosure = SessionPayload.Disclosure };
         }
 
-        string diagnosticId = inspection.State == SessionIntegrationState.Drifted ? SessionDiagnosticCatalog.Id(4) : SessionDiagnosticCatalog.Id(5);
+        string diagnosticId = inspection.State switch
+        {
+            SessionIntegrationState.Incompatible => SessionDiagnosticCatalog.Id(3),
+            SessionIntegrationState.Drifted or SessionIntegrationState.Stale => SessionDiagnosticCatalog.Id(4),
+            _ => SessionDiagnosticCatalog.Id(5),
+        };
+        PrimaryDisposition disposition = inspection.State == SessionIntegrationState.Incompatible ? PrimaryDisposition.Revise : PrimaryDisposition.Repair;
         Diagnostic diagnostic = SessionDiagnosticFactory.Create(
-            diagnosticId, OperationPhase.Evaluation, "session-projection", "The admitted session integration does not match current live bytes.");
-        return OperationResultFactory.Failure(PublicCommand.SessionVerify, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.Repair, new[] { diagnostic }, candidate.RequestIdentity) with { Session = session, Disclosure = SessionPayload.Disclosure };
+            diagnosticId, OperationPhase.Evaluation, "session-installation", $"The admitted session integration is {Kebab(inspection.State)} relative to current exact bindings.");
+        return OperationResultFactory.Failure(PublicCommand.SessionVerify, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, disposition, new[] { diagnostic }, candidate.RequestIdentity) with { Session = session, Disclosure = SessionPayload.Disclosure };
     }
 
     private static string Kebab<T>(T value) where T : struct, Enum => string.Concat(value.ToString().Select((character, index) => index > 0 && char.IsUpper(character) ? $"-{char.ToLowerInvariant(character)}" : char.ToLowerInvariant(character).ToString()));

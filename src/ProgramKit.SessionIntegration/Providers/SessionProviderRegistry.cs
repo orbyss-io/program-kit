@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
@@ -24,16 +25,17 @@ public sealed class SessionProviderRegistry
         this.providers = explicitProviders;
     }
 
-    public IReadOnlyList<SessionProviderManifest> Catalog() => providers.Values.Select(static provider => provider.Manifest).OrderBy(static manifest => manifest.ProviderIdentity.StableKey, StringComparer.Ordinal).ToArray();
+    public IReadOnlyList<SessionProviderManifest> Catalog() =>
+        providers.Values.Select(static provider => provider.Manifest).OrderBy(static manifest => manifest.ProviderIdentity.StableKey, StringComparer.Ordinal).ToArray();
 
-    public ISessionProviderAdapter Resolve(string stableKey, string requiredRevision)
+    public ISessionProviderAdapter Resolve(GovernedIdentity selected)
     {
-        if (!providers.TryGetValue(stableKey, out ISessionProviderAdapter? provider))
-            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(2), OperationPhase.Resolution, EffectState.None, $"The explicitly selected provider is not registered: {stableKey}");
+        if (!providers.TryGetValue(selected.StableKey, out ISessionProviderAdapter? provider))
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(2), OperationPhase.Resolution, EffectState.None, $"The explicitly selected provider is not registered: {selected.StableKey}");
+        if (provider.Manifest.ProviderIdentity != selected)
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(2), OperationPhase.Resolution, EffectState.None, "The explicitly selected provider content identity is unavailable.");
         if (provider.Manifest.SupportClaim != SessionProviderSupport.Supported)
-            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(3), OperationPhase.Resolution, EffectState.None, $"The explicitly selected provider is not supported: {stableKey}");
-        if (!string.Equals(provider.Manifest.Revision, requiredRevision, StringComparison.Ordinal))
-            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(3), OperationPhase.Resolution, EffectState.None, $"The provider revision is incompatible. Required {requiredRevision}; registered {provider.Manifest.Revision}.");
+            throw new SessionDiagnosticException(SessionDiagnosticCatalog.Id(3), OperationPhase.Resolution, EffectState.None, $"The explicitly selected provider is not supported: {selected.StableKey}");
         return provider;
     }
 }

@@ -13,10 +13,14 @@ public sealed class SessionIntegrationServices
     {
         Providers = providers;
         CliVersion = cliVersion;
+        CliRelease = SessionCliReleaseContract.Current(cliVersion);
+        CliVerifier = new SessionCliReleaseVerifier(CliRelease);
     }
 
     public SessionProviderRegistry Providers { get; }
     public string CliVersion { get; }
+    public SessionCliReleaseContract CliRelease { get; }
+    public SessionCliReleaseVerifier CliVerifier { get; }
     public CanonicalSessionIntegrationDefinition Definition => CanonicalSessionGuidance.Definition;
     public SourceAuthoringGuard SourceGuard { get; } = new();
     public RequestBoundAuthorityValidator Authority { get; } = new();

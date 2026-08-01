@@ -1,0 +1,86 @@
+{
+  "schema": "program-kit.session-integration-definition/v1",
+  "canonicalProfile": "program-kit.canonical-json/v1",
+  "identity": {
+    "authority": "orbyss.program-kit",
+    "kind": "session-integration-definition",
+    "name": "human-led-software-factory",
+    "revision": "1.0.0",
+    "digest": "sha256:32deb790b8127e3d5950d871df152781ecc34bebefe39577794e8b2653cc091b"
+  },
+  "operationContracts": [
+    {
+      "name": "explain",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "explain", "revision": "1.0.0", "digest": "sha256:5d6d90615a7eed75cd3efa15a5b215a6677bbcc1a2eec7bda510d61eddb33716" },
+      "effect": "none"
+    },
+    {
+      "name": "construct",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "construct", "revision": "1.0.0", "digest": "sha256:c0dc98754df50ddb3c6402a5c277ca4811b9c14cd0ec83035f166d39c8ff2f07" },
+      "effect": "committed"
+    },
+    {
+      "name": "evaluate",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "evaluate", "revision": "1.0.0", "digest": "sha256:53532974507a7a3c78d54e701ea77d43932490744f38d4c20bb6712d171a7ff9" },
+      "effect": "none"
+    }
+  ],
+  "sessionLifecycleContracts": [
+    {
+      "name": "session-explain",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "session-explain", "revision": "1.0.0", "digest": "sha256:6fdfd4e8c3060d7d15cc3948ed0db361df41b0a2466f9cc919adca495593201c" },
+      "effect": "none"
+    },
+    {
+      "name": "session-install",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "session-install", "revision": "1.0.0", "digest": "sha256:fd783f711757ca4ff489e129f67d0db25c85d08bdcb437bec8cddc69e0dea356" },
+      "effect": "committed"
+    },
+    {
+      "name": "session-verify",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "session-verify", "revision": "1.0.0", "digest": "sha256:341993350fcf9f8f20bba381e242921d50733950e8acb9e5bc04461734cf2e13" },
+      "effect": "none"
+    },
+    {
+      "name": "session-remove",
+      "contract": { "authority": "orbyss.program-kit", "kind": "operation-contract", "name": "session-remove", "revision": "1.0.0", "digest": "sha256:1af5b0aa91ce9472f233d1e3383de6f6adef9747eaa18cc2d1b6007493cddefb" },
+      "effect": "committed"
+    }
+  ],
+  "authorityRules": {
+    "humanApprovalRequiredFor": [ "construct", "session-install", "session-remove" ],
+    "requestBindingRequired": true,
+    "ambientAuthorityForbidden": true,
+    "grantReuseForbidden": true
+  },
+  "effectClasses": {
+    "readOnly": [ "explain", "evaluate", "session-explain", "session-verify" ],
+    "effectBearing": [ "construct", "session-install", "session-remove" ]
+  },
+  "resultRules": {
+    "schema": { "authority": "orbyss.program-kit", "kind": "schema", "name": "operation-result", "revision": "1.0.0", "digest": "sha256:f8c2fcdf8569a9ed9bef1033c725232336318a13645b29b43e44eebf19c927a8" },
+    "authoritativeChannel": "json-stdout",
+    "requiredFields": [ "outcome", "furthestPhase", "effectState", "primaryDisposition", "artifacts", "evidence", "receipts", "diagnostics" ],
+    "renderedProseAuthoritative": false,
+    "diagnosticIdentityRequired": true
+  },
+  "guidanceArtifact": {
+    "identity": { "authority": "orbyss.program-kit", "kind": "session-guidance", "name": "human-led-software-factory", "revision": "1.0.0", "digest": "sha256:79508c93cca342aeb78c56c56ab9b625c1e360a04088cd7f26836634e0810733" },
+    "mediaType": "text/markdown",
+    "logicalPath": "canonical/session-guidance.md",
+    "digest": "sha256:79508c93cca342aeb78c56c56ab9b625c1e360a04088cd7f26836634e0810733",
+    "ownership": "generated-owned"
+  },
+  "projectionRequirements": {
+    "scope": "workspace",
+    "workingDirectory": "workspace-root",
+    "cleanStructuredOutput": true,
+    "reloadStateReported": true,
+    "providerFieldsCanonical": false,
+    "domainSemanticsAllowed": false
+  },
+  "diagnosticCatalogs": [
+    { "authority": "orbyss.program-kit", "kind": "diagnostic-catalog", "name": "kernel", "revision": "1.0.0", "digest": "sha256:5c0008fec6ddb481f2f9c497d1b5264ad00ba73e73fb359175b88957c0a58080" },
+    { "authority": "orbyss.program-kit.session", "kind": "diagnostic-catalog", "name": "session", "revision": "1.0.0", "digest": "sha256:ee659ca1aff279df42edd3326683f782a6ef09f39ae55036c944e009b5c83242" }
+  ]
+}

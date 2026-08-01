@@ -35,7 +35,15 @@ public sealed class SessionCommandDispatcher
                 _ => Invalid(invocation.Command, "The session lifecycle operation is not implemented."),
             };
         }
+        catch (AmbiguousSessionSelectionException exception)
+        {
+            return Failure(invocation.Command, DiagnosticIds.AmbiguousSelection, OperationPhase.Resolution, PrimaryDisposition.ProvideInput, exception.Message, EffectState.None, OperationOutcome.NeedsInput);
+        }
         catch (UnauthorizedAccessException exception) { return Failure(invocation.Command, DiagnosticIds.MissingAuthority, OperationPhase.Validation, PrimaryDisposition.RequestApproval, exception.Message); }
+        catch (InvalidOperationException exception) when (exception.Message.Contains("Stale publication staging", StringComparison.Ordinal))
+        {
+            return Failure(invocation.Command, DiagnosticIds.InterruptedPublication, OperationPhase.Publication, PrimaryDisposition.Repair, exception.Message, EffectState.Indeterminate);
+        }
         catch (IOException exception) { return Failure(invocation.Command, DiagnosticIds.Collision, OperationPhase.Publication, PrimaryDisposition.Repair, exception.Message); }
         catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or FormatException or System.Text.Json.JsonException)
         {
@@ -45,9 +53,9 @@ public sealed class SessionCommandDispatcher
 
     private static OperationResult Invalid(PublicCommand command, string message) => Failure(command, DiagnosticIds.InvalidInput, OperationPhase.Request, PrimaryDisposition.Revise, message);
 
-    private static OperationResult Failure(PublicCommand command, string id, OperationPhase phase, PrimaryDisposition disposition, string message)
+    private static OperationResult Failure(PublicCommand command, string id, OperationPhase phase, PrimaryDisposition disposition, string message, EffectState effectState = EffectState.None, OperationOutcome outcome = OperationOutcome.Blocked)
     {
         Diagnostic diagnostic = DiagnosticFactory.Create(id, phase, "session-integration", message, "No session integration effect was admitted.");
-        return OperationResultFactory.Failure(command, OperationOutcome.Blocked, phase, EffectState.None, disposition, new[] { diagnostic });
+        return OperationResultFactory.Failure(command, outcome, phase, effectState, disposition, new[] { diagnostic });
     }
 }

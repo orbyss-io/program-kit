@@ -205,3 +205,55 @@ The separate read-only review identified these out-of-scope follow-ups; none wer
 4. Vocabulary and support-envelope behavior is not yet fully fail-closed.
 
 Agreed follow-up order: close and converge Feature 002 with the pending evidence visible; reconcile and implement the existing pushed Feature 003 Claude adapter; reconcile and implement the existing pushed Feature 004 engineering-quality/constitution gates; then create Feature 005 for first-vertical-slice convergence. No later feature branch was created or executed during this work.
+## Phase 9 convergence evidence — 2026-08-01
+
+The following evidence supersedes the earlier partial dispositions for the canonical definition, provider manifest, CLI artifact binding, production provider admission, and installation-record trust chain. It does not change the pending Linux, live Codex, or independent-human gates.
+
+- `dotnet format ProgramKit.slnx --no-restore --verify-no-changes`: passed.
+- `dotnet build ProgramKit.slnx -c Release --no-restore`: passed with 0 warnings and 0 errors.
+- Full Release suites after convergence:
+  - contract: 28 passed, 0 failed;
+  - unit: 34 passed, 0 failed;
+  - acceptance: 27 passed, 0 failed.
+- The acceptance suite includes the ten fresh packaged/offline Windows workspaces and the packaged negative matrix.
+
+T106 — canonical session definition:
+
+- one embedded `session-integration-definition.json` is now the runtime source for the full authority, effect, result, guidance, projection, diagnostic, factory-operation, and lifecycle contract;
+- its identity digest is recomputed from normalized canonical content, the guidance reference is verified against the embedded Markdown bytes, and placeholder or drifted identities are rejected;
+- round-trip, definition-drift, guidance-drift, and definition/provider-binding tests pass.
+
+T107 — Codex manifest:
+
+- the embedded `codex-provider-manifest.json` is now the only runtime source for provider, adapter, definition, conformance, provider-surface, tested-version, diagnostic, support, operation, scope, and projection declarations;
+- provider and adapter identities bind the normalized manifest content, the diagnostic identity binds the executable Codex diagnostic catalog, and the manifest must bind the exact executable definition and conformance profile;
+- placeholder and divergent manifest identities fail closed.
+
+T108 — selected CLI release:
+
+- candidate admission resolves the declared workspace-local executable, hashes its current bytes, resolves the exact installed `.store` NuGet package, hashes its current bytes, and compares schema, canonical profile, package ID/version/digest evidence, command, executable path/digest, reported version, runtime profile, package-source evidence identity, and claim class;
+- the mismatch table covers every governed CLI field plus missing executable and missing installed-package evidence, always returning `PKSES0001` with `effectState: none`.
+
+T109 — production provider admission:
+
+- exact provider, adapter, definition, and conformance-profile content identities are resolved before projection;
+- the declared conformance evaluator now runs in production before effects and rejects support, scope, operation, binding, ownership, definition, diagnostic, deterministic projection, structured-result, authority, disclosure, normalization, and fresh-session-classification loss;
+- ambient provider selection is rejected as typed ambiguity `PKRES0002`; unavailable exact selection remains `PKSES0002`; incompatible admitted behavior remains `PKSES0003`.
+
+T110 — installation trust and verification:
+
+- the installation-record schema now matches the emitted exact record, including canonical profile, workspace root binding, provider/adapter/definition/conformance identities, full CLI release, projection set, publication evidence, admission receipt, and record digest;
+- inspection recomputes the record digest, installation identity, projection-set live-state digest, journal digest, admission receipt, installed package/executable evidence, and current workspace/provider/CLI/projection bindings without mutation;
+- tests prove exact idempotence, reload-required/fresh-session separation, corrupt and missing-journal `partial`, current CLI `stale`, provider-profile `incompatible`, and projection `drifted` states.
+
+T111 — packaged negative matrix:
+
+- the locally packed and workspace-installed CLI proves malformed input `PKREQ0002`, ambient ambiguity `PKRES0002`, incomplete/unsupported exact selection `PKRES0001` or `PKSES0002`, unavailable executable/package `PKSES0001`, collision `PKWSP0002`, interrupted prior publication `PKWSP0003`, stale/drifted binding `PKSES0004`, and missing authority `PKPOL0001`; the production-admission corpus separately injects incompatible providers and proves `PKSES0003`;
+- every case asserts the primary disposition and effect state; collision, interruption, drift, missing authority, and all request failures preserve consumer-owned or pre-existing bytes.
+
+Convergence disposition:
+
+- the earlier FR-002/FR-020/SC-007 cryptographic package-to-callable-executable gap is closed for the tested workspace-local .NET tool layout;
+- the earlier FR-007 through FR-014 placeholder-definition/manifest and test-only session-provider admission gaps are closed;
+- the factory SPI/public factory-request/vocabulary findings remain deliberately deferred to Feature 005 and were not implemented here;
+- T100 remains pending for Linux execution, T101 remains pending because no live Codex launch was authorized, T102 remains pending for an independent human product decision, and T105 remains pending until those authorized final gates can be truthfully consolidated.

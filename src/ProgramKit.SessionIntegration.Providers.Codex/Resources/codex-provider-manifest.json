@@ -6,29 +6,33 @@
     "kind": "session-provider",
     "name": "codex",
     "revision": "1.0.0",
-    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    "digest": "sha256:966fe2188382b2964039354bdb6dcfcb673519e084fed5d889530168f4bd053f"
   },
   "adapterIdentity": {
     "authority": "orbyss.program-kit",
     "kind": "session-provider-adapter",
     "name": "codex-repository-skill",
     "revision": "1.0.0",
-    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    "digest": "sha256:966fe2188382b2964039354bdb6dcfcb673519e084fed5d889530168f4bd053f"
   },
   "definitionBinding": {
     "authority": "orbyss.program-kit",
     "kind": "session-integration-definition",
     "name": "human-led-software-factory",
     "revision": "1.0.0",
-    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    "digest": "sha256:32deb790b8127e3d5950d871df152781ecc34bebefe39577794e8b2653cc091b"
   },
   "bindingKind": "shell-cli",
-  "supportedScopes": ["workspace"],
+  "supportedScopes": [
+    "workspace"
+  ],
   "providerSurface": {
     "providerName": "Codex",
     "surfaceName": "repository-skill",
     "surfaceRevision": "1.0.0",
-    "testedVersions": ["0.137.0"],
+    "testedVersions": [
+      "0.137.0"
+    ],
     "discovery": "repository-skill",
     "reloadBehavior": "automatic-or-fresh-session",
     "structuredResultTransport": "json-stdout"
@@ -43,20 +47,28 @@
       "removalPolicy": "exact-admitted-digest-only"
     }
   ],
-  "requiredOperations": ["explain", "construct", "evaluate", "session-explain", "session-install", "session-verify", "session-remove"],
+  "requiredOperations": [
+    "explain",
+    "construct",
+    "evaluate",
+    "session-explain",
+    "session-install",
+    "session-verify",
+    "session-remove"
+  ],
   "diagnosticCatalog": {
     "authority": "orbyss.program-kit.codex",
     "kind": "diagnostic-catalog",
     "name": "session-provider",
     "revision": "1.0.0",
-    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    "digest": "sha256:3ee3c4ec3a535ce1572cab0a23bf35af3450624266b93f3f71112c12a501acea"
   },
   "conformanceProfile": {
     "authority": "orbyss.program-kit",
     "kind": "session-provider-conformance",
     "name": "repository-skill-v1",
     "revision": "1.0.0",
-    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    "digest": "sha256:4f09e1f5b6aebc4992c1755f295af4a78625de351f6676f893b732b164f9a237"
   },
   "supportClaim": "supported"
 }

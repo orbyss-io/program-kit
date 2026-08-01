@@ -14,220 +14,94 @@
     "scope",
     "definition",
     "provider",
-    "adapter",
     "cliRelease",
     "projectionSet",
     "publication",
     "state",
     "sessionAvailability",
-    "admissionReceipt"
+    "admissionReceipt",
+    "recordDigest"
   ],
   "properties": {
-    "schema": {
-      "type": "string",
-      "const": "program-kit.session-installation-record/v1"
-    },
-    "canonicalProfile": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
-    },
-    "installationIdentity": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-    },
-    "requestIdentity": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-    },
-    "requestCoreIdentity": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-    },
+    "schema": { "type": "string", "const": "program-kit.session-installation-record/v1" },
+    "canonicalProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile" },
+    "installationIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+    "requestIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+    "requestCoreIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
     "workspaceIdentity": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-    },
-    "scope": {
-      "type": "string",
-      "const": "workspace"
-    },
-    "definition": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-    },
-    "provider": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-    },
-    "adapter": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-    },
-    "cliRelease": {
-      "$ref": "#/$defs/cliObservation"
-    },
-    "projectionSet": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "setDigest",
-        "artifacts"
-      ],
+      "required": [ "identity", "rootBinding" ],
       "properties": {
-        "setDigest": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-        },
-        "artifacts": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/installedArtifact"
-          }
+        "identity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "rootBinding": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" }
+      }
+    },
+    "scope": { "type": "string", "const": "workspace" },
+    "definition": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "provider", "adapter", "definition", "conformanceProfile" ],
+      "properties": {
+        "provider": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "adapter": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "definition": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "conformanceProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" }
+      }
+    },
+    "cliRelease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "schema", "canonicalProfile", "packageId", "packageVersion", "packageSource", "packageDigest", "commandName", "workspaceRelativeExecutable", "executableDigest", "reportedVersion", "runtimeProfile", "claimClass" ],
+      "properties": {
+        "schema": { "type": "string", "const": "program-kit.cli-release-identity/v1" },
+        "canonicalProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile" },
+        "packageId": { "type": "string", "const": "Orbyss.ProgramKit.Cli" },
+        "packageVersion": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision" },
+        "packageSource": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "packageDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "commandName": { "type": "string", "const": "program-kit" },
+        "workspaceRelativeExecutable": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath" },
+        "executableDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "reportedVersion": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision" },
+        "runtimeProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "claimClass": { "type": "string", "const": "verified-equivalent" }
+      }
+    },
+    "projectionSet": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [ "logicalPath", "mediaType", "ownership", "producerIdentity", "definitionBinding", "contentDigest", "claimClass", "removalPolicy" ],
+        "properties": {
+          "logicalPath": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath" },
+          "mediaType": { "type": "string", "minLength": 3 },
+          "ownership": { "type": "string", "const": "generated-owned" },
+          "producerIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+          "definitionBinding": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+          "contentDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+          "claimClass": { "type": "string", "const": "canonical-byte" },
+          "removalPolicy": { "type": "string", "const": "exact-admitted-digest-only" }
         }
       }
     },
     "publication": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "journal",
-        "expectedLiveState",
-        "observedLiveState",
-        "publicationState"
-      ],
+      "required": [ "journalLogicalPath", "journalDigest", "liveStateDigest", "state" ],
       "properties": {
-        "journal": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
-        },
-        "expectedLiveState": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-        },
-        "observedLiveState": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-        },
-        "publicationState": {
-          "type": "string",
-          "const": "committed"
-        }
+        "journalLogicalPath": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath" },
+        "journalDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "liveStateDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "state": { "type": "string", "const": "committed" }
       }
     },
-    "state": {
-      "type": "string",
-      "enum": [
-        "admitted",
-        "drifted",
-        "stale",
-        "incompatible",
-        "partial",
-        "removed"
-      ]
-    },
-    "sessionAvailability": {
-      "type": "string",
-      "enum": [
-        "not-evaluated",
-        "reload-required",
-        "available",
-        "unavailable"
-      ]
-    },
-    "admissionReceipt": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
-    },
-    "removalReceipt": {
-      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
-    }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "state": {
-            "const": "removed"
-          }
-        },
-        "required": [
-          "state"
-        ]
-      },
-      "then": {
-        "required": [
-          "removalReceipt"
-        ]
-      }
-    }
-  ],
-  "$defs": {
-    "cliObservation": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "packageId",
-        "packageVersion",
-        "packageDigest",
-        "executableDigest",
-        "reportedVersion",
-        "claimClass"
-      ],
-      "properties": {
-        "packageId": {
-          "type": "string",
-          "const": "Orbyss.ProgramKit.Cli"
-        },
-        "packageVersion": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision"
-        },
-        "packageDigest": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-        },
-        "executableDigest": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-        },
-        "reportedVersion": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision"
-        },
-        "claimClass": {
-          "type": "string",
-          "const": "verified-equivalent"
-        }
-      }
-    },
-    "installedArtifact": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "identity",
-        "logicalPath",
-        "mediaType",
-        "digest",
-        "ownership",
-        "producer",
-        "definitionBinding",
-        "claimClass"
-      ],
-      "properties": {
-        "identity": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-        },
-        "logicalPath": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath"
-        },
-        "mediaType": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 150
-        },
-        "digest": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
-        },
-        "ownership": {
-          "type": "string",
-          "const": "generated-owned"
-        },
-        "producer": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-        },
-        "definitionBinding": {
-          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
-        },
-        "claimClass": {
-          "type": "string",
-          "const": "canonical-byte"
-        }
-      }
-    }
+    "state": { "type": "string", "const": "admitted" },
+    "sessionAvailability": { "type": "string", "enum": [ "not-evaluated", "reload-required", "available", "unavailable" ] },
+    "admissionReceipt": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+    "recordDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" }
   }
 }
-

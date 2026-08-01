@@ -7,4 +7,6 @@
     <ProjectReference Include="../ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
     <ProjectReference Include="../ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
   </ItemGroup>
-</Project>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/*.*" />
+  </ItemGroup></Project>

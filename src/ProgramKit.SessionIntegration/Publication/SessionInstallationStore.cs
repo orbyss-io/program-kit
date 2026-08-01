@@ -6,9 +6,12 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.Schemas;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Artifacts;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
+using Orbyss.ProgramKit.Kernel.Validation;
+using Orbyss.ProgramKit.SessionIntegration.Providers;
 
 namespace Orbyss.ProgramKit.SessionIntegration.Publication;
 
@@ -38,17 +41,56 @@ public sealed class SessionInstallationStore
     public string RecordLogicalPath => LogicalPaths.Normalize(Path.GetRelativePath(workspaceRoot, recordPath).Replace('\\', '/'));
 
     public string RemovalReceiptLogicalPath => LogicalPaths.Normalize(Path.GetRelativePath(workspaceRoot, removalReceiptPath).Replace('\\', '/'));
-    public SessionInstallationInspection Inspect()
+    public SessionInstallationInspection Inspect(SessionIntegrationCandidate? expected = null)
     {
-        if (!File.Exists(recordPath)) return new(File.Exists(removalReceiptPath) ? SessionIntegrationState.Removed : SessionIntegrationState.Absent, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>());
+        if (!File.Exists(recordPath))
+            return new(File.Exists(removalReceiptPath) ? SessionIntegrationState.Removed : SessionIntegrationState.Absent, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>());
+
         SessionInstallationRecord record;
-        try { record = Parse(CanonicalJson.Parse(File.ReadAllBytes(recordPath)).AsObject()); }
-        catch { return new(SessionIntegrationState.Partial, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>()); }
+        try
+        {
+            JsonObject document = CanonicalJson.Parse(File.ReadAllBytes(recordPath)).AsObject();
+            ValidateRecordDocument(document);
+            record = Parse(document);
+            DemandRecordIntegrity(record);
+        }
+        catch
+        {
+            return new(SessionIntegrationState.Partial, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>());
+        }
+
+        try
+        {
+            new SessionCliReleaseVerifier(SessionCliReleaseContract.Current(record.CliRelease.PackageVersion)).DemandExact(workspaceRoot, record.CliRelease);
+        }
+        catch
+        {
+            return new(SessionIntegrationState.Stale, record.SessionAvailability, record, Array.Empty<SessionProjectionObservation>());
+        }
+
+        string observedRootBinding = Digests.Sha256(Encoding.UTF8.GetBytes(workspaceRoot));
+        if (!string.Equals(record.WorkspaceIdentity.RootBindingDigest, observedRootBinding, StringComparison.Ordinal))
+            return new(SessionIntegrationState.Stale, record.SessionAvailability, record, Array.Empty<SessionProjectionObservation>());
+
+        if (expected is not null)
+        {
+            if (record.Provider.ConformanceProfile != expected.Provider.Manifest.ConformanceProfile)
+                return new(SessionIntegrationState.Incompatible, record.SessionAvailability, record, Array.Empty<SessionProjectionObservation>());
+            if (record.WorkspaceIdentity != expected.Request.Workspace ||
+                !string.Equals(record.Scope, expected.Request.Scope, StringComparison.Ordinal) ||
+                record.Definition != expected.Request.ProviderSelection.Definition ||
+                record.Provider.Provider != expected.Request.ProviderSelection.Provider ||
+                record.Provider.Adapter != expected.Request.ProviderSelection.Adapter ||
+                record.CliRelease != expected.Request.CliRelease)
+                return new(SessionIntegrationState.Stale, record.SessionAvailability, record, Array.Empty<SessionProjectionObservation>());
+            if (!ProjectionBindingMatches(record.ProjectionSet, expected))
+                return new(SessionIntegrationState.Incompatible, record.SessionAvailability, record, Array.Empty<SessionProjectionObservation>());
+        }
 
         List<SessionProjectionObservation> observations = new();
         bool missing = false;
         bool drift = false;
-        foreach (SessionProjectionArtifact artifact in record.ProjectionSet)
+        foreach (SessionProjectionArtifact artifact in record.ProjectionSet.OrderBy(static item => item.LogicalPath, StringComparer.Ordinal))
         {
             string path = LogicalPaths.ResolveInside(workspaceRoot, artifact.LogicalPath);
             string? observed = File.Exists(path) ? Digests.Sha256(File.ReadAllBytes(path)) : null;
@@ -61,6 +103,89 @@ public sealed class SessionInstallationStore
         SessionIntegrationState integrationState = drift ? SessionIntegrationState.Drifted : missing ? SessionIntegrationState.Partial : SessionIntegrationState.Exact;
         return new(integrationState, record.SessionAvailability, record, observations);
     }
+
+    private void ValidateRecordDocument(JsonObject document)
+    {
+        string[] expectedProperties = { "schema", "canonicalProfile", "installationIdentity", "requestIdentity", "requestCoreIdentity", "workspaceIdentity", "scope", "definition", "provider", "cliRelease", "projectionSet", "publication", "state", "sessionAvailability", "admissionReceipt", "recordDigest" };
+        if (!document.Select(static item => item.Key).OrderBy(static item => item, StringComparer.Ordinal).SequenceEqual(expectedProperties.OrderBy(static item => item, StringComparer.Ordinal), StringComparer.Ordinal))
+            throw new InvalidDataException("The installation-record properties do not match the governed contract.");
+        string[] failures = new StructuralSchemaValidator(new SchemaRegistry()).ValidateRequiredShape(ContractSchemaResources.SessionInstallationRecordId, document).ToArray();
+        if (failures.Length > 0) throw new InvalidDataException(string.Join("; ", failures));
+        if (!string.Equals(document["schema"]?.GetValue<string>(), "program-kit.session-installation-record/v1", StringComparison.Ordinal) ||
+            !string.Equals(document["canonicalProfile"]?.GetValue<string>(), CanonicalJson.Profile, StringComparison.Ordinal))
+            throw new InvalidDataException("The installation-record schema or canonical profile is unsupported.");
+
+        string storedDigest = document["recordDigest"]?.GetValue<string>() ?? throw new InvalidDataException("recordDigest is required.");
+        JsonObject normalized = (JsonObject)document.DeepClone();
+        normalized.Remove("recordDigest");
+        if (!string.Equals(storedDigest, CanonicalJson.Digest(normalized), StringComparison.Ordinal))
+            throw new InvalidDataException("The installation-record digest does not match its canonical content.");
+    }
+
+    private void DemandRecordIntegrity(SessionInstallationRecord record)
+    {
+        if (record.State != SessionIntegrationState.Admitted ||
+            record.ProjectionSet.Count == 0 ||
+            record.ProjectionSet.Select(static item => item.LogicalPath).Distinct(StringComparer.Ordinal).Count() != record.ProjectionSet.Count ||
+            record.Definition != record.Provider.Definition ||
+            record.ProjectionSet.Any(item => item.ProducerIdentity != record.Provider.Adapter || item.DefinitionBinding != record.Definition))
+            throw new InvalidDataException("The installation record contains an incompatible binding.");
+
+        string setDigest = ProjectionSetDigest(record.ProjectionSet);
+        if (!string.Equals(record.Publication.LiveStateDigest, setDigest, StringComparison.Ordinal) ||
+            !string.Equals(record.Publication.State, "committed", StringComparison.Ordinal))
+            throw new InvalidDataException("The publication live-state evidence is not exact.");
+
+        string journalPath = LogicalPaths.ResolveInside(workspaceRoot, record.Publication.JournalLogicalPath);
+        if (!File.Exists(journalPath) ||
+            !string.Equals(Digests.Sha256(File.ReadAllBytes(journalPath)), record.Publication.JournalDigest, StringComparison.Ordinal))
+            throw new InvalidDataException("The publication journal evidence is unavailable or drifted.");
+
+        string receipt = Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', new[] { record.InstallationIdentity.Digest, record.RequestIdentity, record.Publication.LiveStateDigest })));
+        if (!string.Equals(receipt, record.AdmissionReceipt, StringComparison.Ordinal))
+            throw new InvalidDataException("The admission receipt does not bind the installation, request, and publication.");
+
+        string installation = Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', new[]
+        {
+            record.RequestCoreIdentity,
+            record.Definition.Digest,
+            record.Provider.Provider.Digest,
+            record.Provider.Adapter.Digest,
+            record.Provider.ConformanceProfile.Digest,
+            record.CliRelease.PackageDigest,
+            record.CliRelease.ExecutableDigest,
+            record.CliRelease.RuntimeProfile.Digest,
+            setDigest,
+        })));
+        if (!string.Equals(installation, record.InstallationIdentity.Digest, StringComparison.Ordinal))
+            throw new InvalidDataException("The installation identity does not match the admitted exact bindings.");
+    }
+
+    private static bool ProjectionBindingMatches(IReadOnlyList<SessionProjectionArtifact> recorded, SessionIntegrationCandidate expected)
+    {
+        SessionProjectionArtifact[] orderedRecord = recorded.OrderBy(static item => item.LogicalPath, StringComparer.Ordinal).ToArray();
+        ProjectedSessionArtifact[] orderedExpected = expected.Artifacts.OrderBy(static item => item.LogicalPath, StringComparer.Ordinal).ToArray();
+        if (orderedRecord.Length != orderedExpected.Length) return false;
+        for (int index = 0; index < orderedRecord.Length; index++)
+        {
+            SessionProjectionArtifact record = orderedRecord[index];
+            ProjectedSessionArtifact artifact = orderedExpected[index];
+            if (!string.Equals(record.LogicalPath, artifact.LogicalPath, StringComparison.Ordinal) ||
+                !string.Equals(record.MediaType, artifact.MediaType, StringComparison.Ordinal) ||
+                !string.Equals(record.ContentDigest, Digests.Sha256(artifact.Content), StringComparison.Ordinal) ||
+                record.ProducerIdentity != expected.Provider.Manifest.AdapterIdentity ||
+                record.DefinitionBinding != expected.Provider.Manifest.DefinitionBinding ||
+                record.Ownership != ArtifactOwnership.GeneratedOwned ||
+                record.ClaimClass != ClaimClass.CanonicalByte ||
+                !string.Equals(record.RemovalPolicy, "exact-admitted-digest-only", StringComparison.Ordinal))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static string ProjectionSetDigest(IEnumerable<SessionProjectionArtifact> artifacts) =>
+        Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', artifacts.OrderBy(static item => item.LogicalPath, StringComparer.Ordinal).Select(static artifact => $"{artifact.LogicalPath}:{artifact.ContentDigest}"))));
 
     public string CurrentStateDigest(IEnumerable<string> projectionPaths)
     {
@@ -117,6 +242,7 @@ public sealed class SessionInstallationStore
     private static JsonObject Project(SessionInstallationRecord record) => new()
     {
         ["schema"] = record.Schema,
+        ["canonicalProfile"] = CanonicalJson.Profile,
         ["installationIdentity"] = Identity(record.InstallationIdentity),
         ["requestIdentity"] = record.RequestIdentity,
         ["requestCoreIdentity"] = record.RequestCoreIdentity,

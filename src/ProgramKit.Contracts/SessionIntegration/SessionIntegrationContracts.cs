@@ -30,13 +30,43 @@ public sealed record CliReleaseIdentity(
 
 public sealed record SessionOperationBinding(string Name, GovernedIdentity Contract, EffectState Effect);
 
+public sealed record SessionAuthorityRules(
+    IReadOnlyList<string> HumanApprovalRequiredFor,
+    bool RequestBindingRequired,
+    bool AmbientAuthorityForbidden,
+    bool GrantReuseForbidden);
+
+public sealed record SessionEffectClasses(
+    IReadOnlyList<string> ReadOnly,
+    IReadOnlyList<string> EffectBearing);
+
+public sealed record SessionResultRules(
+    GovernedIdentity Schema,
+    string AuthoritativeChannel,
+    IReadOnlyList<string> RequiredFields,
+    bool RenderedProseAuthoritative,
+    bool DiagnosticIdentityRequired);
+
+public sealed record SessionProjectionRequirements(
+    string Scope,
+    string WorkingDirectory,
+    bool CleanStructuredOutput,
+    bool ReloadStateReported,
+    bool ProviderFieldsCanonical,
+    bool DomainSemanticsAllowed);
+
 public sealed record CanonicalSessionIntegrationDefinition(
     string Schema,
     string CanonicalProfile,
     GovernedIdentity Identity,
     IReadOnlyList<SessionOperationBinding> OperationContracts,
     IReadOnlyList<SessionOperationBinding> SessionLifecycleContracts,
+    SessionAuthorityRules AuthorityRules,
+    SessionEffectClasses EffectClasses,
+    SessionResultRules ResultRules,
     ArtifactReference GuidanceArtifact,
+    SessionProjectionRequirements ProjectionRequirements,
+    IReadOnlyList<GovernedIdentity> DiagnosticCatalogs,
     string Fingerprint,
     string Revision);
 
@@ -48,13 +78,24 @@ public sealed record SessionProjectionDescriptor(
     ClaimClass ClaimClass,
     string RemovalPolicy);
 
+public sealed record SessionProviderSurface(
+    string ProviderName,
+    string SurfaceName,
+    string SurfaceRevision,
+    IReadOnlyList<string> TestedVersions,
+    string Discovery,
+    string ReloadBehavior,
+    string StructuredResultTransport);
+
 public sealed record SessionProviderManifest(
     string Schema,
+    string CanonicalProfile,
     GovernedIdentity ProviderIdentity,
     GovernedIdentity AdapterIdentity,
     GovernedIdentity DefinitionBinding,
     SessionBindingKind BindingKind,
     IReadOnlyList<string> SupportedScopes,
+    SessionProviderSurface ProviderSurface,
     IReadOnlyList<SessionProjectionDescriptor> ProjectionDescriptors,
     IReadOnlyList<string> RequiredCliOperations,
     GovernedIdentity DiagnosticCatalog,

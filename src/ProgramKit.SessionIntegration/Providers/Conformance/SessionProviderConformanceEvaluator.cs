@@ -22,14 +22,20 @@ public sealed class SessionProviderConformanceEvaluator
         List<SessionProviderConformanceFailure> failures = new();
         SessionProviderManifest manifest = adapter.Manifest;
         Check(manifest.SupportClaim == SessionProviderSupport.Supported, "support", manifest.ProviderIdentity.StableKey, "supported", Kebab(manifest.SupportClaim), failures);
+        Check(string.Equals(manifest.CanonicalProfile, CanonicalJson.Profile, StringComparison.Ordinal), "normalization", manifest.ProviderIdentity.StableKey, CanonicalJson.Profile, manifest.CanonicalProfile, failures);
+        Check(manifest.BindingKind == SessionBindingKind.ShellCli, "binding", manifest.ProviderIdentity.StableKey, "shell-cli", Kebab(manifest.BindingKind), failures);
         Check(profile.RequiredScopes.All(scope => manifest.SupportedScopes.Contains(scope, StringComparer.Ordinal)), "scope", manifest.ProviderIdentity.StableKey, string.Join(',', profile.RequiredScopes), string.Join(',', manifest.SupportedScopes), failures);
         Check(profile.RequiredOperations.All(operation => manifest.RequiredCliOperations.Contains(operation, StringComparer.Ordinal)), "operation", manifest.ProviderIdentity.StableKey, string.Join(',', profile.RequiredOperations), string.Join(',', manifest.RequiredCliOperations), failures);
         Check(string.Equals(manifest.ConformanceProfile.Kind, "session-provider-conformance", StringComparison.Ordinal), "profile", manifest.ConformanceProfile.StableKey, "session-provider-conformance", manifest.ConformanceProfile.Kind, failures);
+        Check(manifest.ConformanceProfile == profile.Identity, "profile-identity", manifest.ConformanceProfile.StableKey, profile.Identity.Digest, manifest.ConformanceProfile.Digest, failures);
+        Check(manifest.ProviderSurface.TestedVersions.Count > 0, "tested-version", manifest.ProviderIdentity.StableKey, "at least one tested version", "none", failures);
+        Check(string.Equals(manifest.ProviderSurface.StructuredResultTransport, "json-stdout", StringComparison.Ordinal), "structured-result", manifest.ProviderIdentity.StableKey, "json-stdout", manifest.ProviderSurface.StructuredResultTransport, failures);
+        Check(string.Equals(manifest.ProviderSurface.ReloadBehavior, "automatic-or-fresh-session", StringComparison.Ordinal), "fresh-session", manifest.ProviderIdentity.StableKey, "automatic-or-fresh-session", manifest.ProviderSurface.ReloadBehavior, failures);
         Check(string.Equals(manifest.DiagnosticCatalog.Kind, "diagnostic-catalog", StringComparison.Ordinal), "diagnostic", manifest.DiagnosticCatalog.StableKey, "diagnostic-catalog", manifest.DiagnosticCatalog.Kind, failures);
-        Check(!profile.RequireGeneratedOwnership || manifest.ProjectionDescriptors.All(static item => item.Ownership == ArtifactOwnership.GeneratedOwned), "ownership", manifest.ProviderIdentity.StableKey, "generated-owned", "non-generated-owned", failures);
+        Check(!profile.RequireGeneratedOwnership || manifest.ProjectionDescriptors.All(static item => item.Ownership == ArtifactOwnership.GeneratedOwned && item.ClaimClass == ClaimClass.CanonicalByte && string.Equals(item.RemovalPolicy, "exact-admitted-digest-only", StringComparison.Ordinal)), "ownership", manifest.ProviderIdentity.StableKey, "generated-owned canonical-byte exact-admitted-digest-only", "weakened projection contract", failures);
 
         IReadOnlyList<ProjectedSessionArtifact> first;
-        Check(string.Equals(manifest.DefinitionBinding.StableKey, context.Definition.Identity.StableKey, StringComparison.Ordinal), "definition-binding", manifest.DefinitionBinding.StableKey, context.Definition.Identity.StableKey, manifest.DefinitionBinding.StableKey, failures);
+        Check(manifest.DefinitionBinding == context.Definition.Identity, "definition-binding", manifest.DefinitionBinding.StableKey, context.Definition.Identity.Digest, manifest.DefinitionBinding.Digest, failures);
         IReadOnlyList<ProjectedSessionArtifact> second;
         try
         {
@@ -53,6 +59,13 @@ public sealed class SessionProviderConformanceEvaluator
             Check(string.Equals(descriptor.MediaType, artifact.MediaType, StringComparison.Ordinal), "media-type", descriptor.LogicalPath, descriptor.MediaType, artifact.MediaType, failures);
             Check(artifact.Content.Length > 0, "content", descriptor.LogicalPath, "non-empty", "empty", failures);
         }
+
+        string projectedGuidance = string.Join('\n', first.Select(static artifact => Encoding.UTF8.GetString(artifact.Content)));
+        Check(!profile.RequireCleanStructuredResult || projectedGuidance.Contains(profile.ResultSchema, StringComparison.Ordinal), "structured-result-contract", manifest.ProviderIdentity.StableKey, profile.ResultSchema, "missing", failures);
+        Check(!profile.RequireAuthorityPreservation || projectedGuidance.Contains("authority=request-bound", StringComparison.Ordinal), "authority", manifest.ProviderIdentity.StableKey, "authority=request-bound", "missing", failures);
+        Check(!profile.RequireDisclosurePreservation || projectedGuidance.Contains("disclosure=classified", StringComparison.Ordinal), "disclosure", manifest.ProviderIdentity.StableKey, "disclosure=classified", "missing", failures);
+        Check(projectedGuidance.Contains("normalization=canonical-json", StringComparison.Ordinal), "normalization-guidance", manifest.ProviderIdentity.StableKey, "normalization=canonical-json", "missing", failures);
+        Check(!profile.RequireFreshSessionClassification || projectedGuidance.Contains("fresh-session=separately-classified", StringComparison.Ordinal), "fresh-session-guidance", manifest.ProviderIdentity.StableKey, "fresh-session=separately-classified", "missing", failures);
 
         return Report(context, manifest, first, failures);
     }
@@ -86,7 +99,7 @@ public sealed class SessionProviderConformanceEvaluator
 
     private SessionProviderConformanceReport Report(SessionProjectionContext context, SessionProviderManifest manifest, IReadOnlyList<ProjectedSessionArtifact> artifacts, List<SessionProviderConformanceFailure> failures)
     {
-        string input = $"{context.Definition.Identity.StableKey}\n{context.Request.RequestCoreIdentity}\n{manifest.ProviderIdentity.StableKey}\n{manifest.AdapterIdentity.StableKey}";
+        string input = $"{context.Definition.Identity.StableKey}:{context.Definition.Identity.Digest}\n{context.Request.RequestCoreIdentity}\n{manifest.ProviderIdentity.StableKey}:{manifest.ProviderIdentity.Digest}\n{manifest.AdapterIdentity.StableKey}:{manifest.AdapterIdentity.Digest}\n{manifest.ConformanceProfile.StableKey}:{manifest.ConformanceProfile.Digest}";
         string observation = string.Join('\n', artifacts.OrderBy(static item => item.LogicalPath, StringComparer.Ordinal).Select(static item => $"{item.LogicalPath}:{item.MediaType}:{Digests.Sha256(item.Content)}"));
         return new(failures.Count == 0, profile.Identity.StableKey, Digests.Sha256(Encoding.UTF8.GetBytes(input)), Digests.Sha256(Encoding.UTF8.GetBytes(observation)), failures.OrderBy(static item => item.Code, StringComparer.Ordinal).ThenBy(static item => item.Subject, StringComparer.Ordinal).ToArray());
     }
