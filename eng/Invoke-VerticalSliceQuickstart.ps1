@@ -5,6 +5,8 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repositoryRoot
 try {
+    & (Join-Path $PSScriptRoot 'Assert-CanonicalText.ps1')
+    if ($LASTEXITCODE -ne 0) { throw 'Canonical text verification failed.' }
     & (Join-Path $PSScriptRoot 'Bootstrap-DependencyMirror.ps1')
     if ($LASTEXITCODE -ne 0) { throw 'Dependency mirror bootstrap failed.' }
     dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config

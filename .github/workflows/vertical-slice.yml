@@ -20,6 +20,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.302
+      - name: Verify canonical tracked text
+        shell: pwsh
+        run: ./eng/Assert-CanonicalText.ps1
       - name: Bootstrap exact dependency mirror
         shell: pwsh
         run: ./eng/Bootstrap-DependencyMirror.ps1
