@@ -37,32 +37,32 @@
 
 ### Tests first
 
-- [ ] T010 [P] Add schema-validation and canonical round-trip tests for all four session contracts in `tests/ProgramKit.ContractTests/SessionIntegrationSchemaContractTests.cs` (FR-007 through FR-010, FR-015, FR-019)
-- [ ] T011 [P] Add compatibility tests proving session operations extend `operation-result/v1` rather than introducing another envelope in `tests/ProgramKit.ContractTests/SessionOperationResultContractTests.cs` (FR-039, FR-040)
-- [ ] T012 [P] Add denial, mismatch, expiration, reuse, and exact-operation/path tests for request-bound authority grants in `tests/ProgramKit.UnitTests/SessionAuthorityGrantTests.cs` (FR-020, FR-026, FR-027)
-- [ ] T013 [P] Add collision, interruption, rollback, stale-staging, and byte-preservation tests for namespaced atomic publication in `tests/ProgramKit.UnitTests/NamespacedArtifactSetPublisherTests.cs` (FR-021, FR-022, FR-043)
-- [ ] T014 [P] Add architectural tests prohibiting provider symbols in canonical contracts, runtime dependencies on session projects, dynamic provider discovery, production provider-process launching, telemetry/source-upload clients, provider-global registration, and source self-integration in `tests/ProgramKit.ContractTests/SessionIntegrationBoundaryTests.cs` (FR-006, FR-011 through FR-014, FR-033, FR-043, SC-009, SC-010)
+- [X] T010 [P] Add schema-validation and canonical round-trip tests for all four session contracts in `tests/ProgramKit.ContractTests/SessionIntegrationSchemaContractTests.cs` (FR-007 through FR-010, FR-015, FR-019)
+- [X] T011 [P] Add compatibility tests proving session operations extend `operation-result/v1` rather than introducing another envelope in `tests/ProgramKit.ContractTests/SessionOperationResultContractTests.cs` (FR-039, FR-040)
+- [X] T012 [P] Add denial, mismatch, expiration, reuse, and exact-operation/path tests for request-bound authority grants in `tests/ProgramKit.UnitTests/SessionAuthorityGrantTests.cs` (FR-020, FR-026, FR-027)
+- [X] T013 [P] Add collision, interruption, rollback, stale-staging, and byte-preservation tests for namespaced atomic publication in `tests/ProgramKit.UnitTests/NamespacedArtifactSetPublisherTests.cs` (FR-021, FR-022, FR-043)
+- [X] T014 [P] Add architectural tests prohibiting provider symbols in canonical contracts, runtime dependencies on session projects, dynamic provider discovery, production provider-process launching, telemetry/source-upload clients, provider-global registration, and source self-integration in `tests/ProgramKit.ContractTests/SessionIntegrationBoundaryTests.cs` (FR-006, FR-011 through FR-014, FR-033, FR-043, SC-009, SC-010)
 
 ### Canonical contracts and kernel mechanics
 
-- [ ] T015 Define immutable records, enums, identity fields, lifecycle states, ownership entries, disclosure entries, and version fields in `src/ProgramKit.Contracts/SessionIntegration/SessionIntegrationContracts.cs` (FR-007 through FR-010, FR-015, FR-019)
-- [ ] T016 Define stable session operation identifiers and typed lifecycle request/result payloads in `src/ProgramKit.Contracts/SessionIntegration/SessionOperationContracts.cs` (FR-016, FR-039, FR-040)
-- [ ] T017 [P] Add the canonical integration-definition JSON Schema in `src/ProgramKit.Contracts/Schemas/session-integration-definition.schema.json` (FR-007, FR-011)
-- [ ] T018 [P] Add the provider-manifest JSON Schema, including compatibility and projection ownership declarations, in `src/ProgramKit.Contracts/Schemas/session-provider-manifest.schema.json` (FR-008, FR-012, FR-034)
-- [ ] T019 [P] Add the lifecycle-request JSON Schema with explicit provider, workspace, operation, and authority binding in `src/ProgramKit.Contracts/Schemas/session-integration-request.schema.json` (FR-010, FR-016, FR-020)
-- [ ] T020 [P] Add the installation-record JSON Schema with canonical/provider versions, owned artifacts, fingerprints, state, and journal metadata in `src/ProgramKit.Contracts/Schemas/session-installation-record.schema.json` (FR-009, FR-019, FR-045)
-- [ ] T021 Register the four schemas through stable resource identifiers in `src/ProgramKit.Contracts/Schemas/ContractSchemaResources.cs`
-- [ ] T022 Extend the existing envelope schema and typed result projection with session payloads and disclosure metadata in `src/ProgramKit.Contracts/Schemas/operation-result.schema.json`, `src/ProgramKit.Contracts/Operations/OperationResult.cs`, `src/ProgramKit.Kernel/Operations/OperationResultProjector.cs`, and `src/ProgramKit.Kernel/Operations/OperationResultFactory.cs` (FR-039 through FR-042)
-- [ ] T023 Implement exact request-bound grant validation and extend the authority schema/provider without ambient approval in `src/ProgramKit.Contracts/Schemas/authority-grant.schema.json`, `src/ProgramKit.Kernel/Authority/RequestBoundAuthorityValidator.cs`, and `src/ProgramKit.Kernel/Authority/RepositoryAuthorityProvider.cs` (FR-020, FR-026, FR-027)
-- [ ] T024 Implement reusable namespace ownership, collision checks, staging, verification, atomic commit, and recoverable rollback in `src/ProgramKit.Kernel/Artifacts/NamespacedArtifactSetPublisher.cs` (FR-021, FR-022, FR-043)
-- [ ] T025 Preserve Feature 001 behavior by adapting its publication path to the namespaced publisher in `src/ProgramKit.Kernel/Publication/RecoverablePublisher.cs`
-- [ ] T026 Define the explicit provider adapter interface and provider-owned projection boundary in `src/ProgramKit.SessionIntegration/Providers/ISessionProviderAdapter.cs` (FR-012, FR-013, FR-033)
-- [ ] T027 Implement explicit in-process provider registration with duplicate, missing, and incompatible-provider diagnostics in `src/ProgramKit.SessionIntegration/Providers/SessionProviderRegistry.cs` (FR-012, FR-034, FR-038)
-- [ ] T028 Implement canonical-definition loading, schema validation, fingerprinting, and version compatibility in `src/ProgramKit.SessionIntegration/Definitions/SessionIntegrationDefinitionLoader.cs` (FR-007, FR-014, FR-035)
-- [ ] T029 Define the provider-neutral diagnostic catalog version, reserve identifiers `PKSES0001` through `PKSES0009`, and implement the stable metadata shape and lookup invariants in `src/ProgramKit.SessionIntegration/Diagnostics/SessionDiagnosticCatalog.cs` (FR-039, FR-040)
-- [ ] T030 Implement fail-closed source-marker detection shared by explain, install, verify, catalog, preflight, read, and remove paths in `src/ProgramKit.SessionIntegration/Policy/SourceAuthoringGuard.cs` (FR-006)
-- [ ] T031 Add isolated repository, package-feed, denied-network, interruption, fingerprint, process-observation, and byte-comparison helpers in `tests/Shared/SessionIntegrationTestWorkspace.cs` (FR-003, FR-043)
-- [ ] T032 Run the foundational contract and unit filters and record passing command/output evidence in `specs/002-session-integration-proof/verification.md`
+- [X] T015 Define immutable records, enums, identity fields, lifecycle states, ownership entries, disclosure entries, and version fields in `src/ProgramKit.Contracts/SessionIntegration/SessionIntegrationContracts.cs` (FR-007 through FR-010, FR-015, FR-019)
+- [X] T016 Define stable session operation identifiers and typed lifecycle request/result payloads in `src/ProgramKit.Contracts/SessionIntegration/SessionOperationContracts.cs` (FR-016, FR-039, FR-040)
+- [X] T017 [P] Add the canonical integration-definition JSON Schema in `src/ProgramKit.Contracts/Schemas/session-integration-definition.schema.json` (FR-007, FR-011)
+- [X] T018 [P] Add the provider-manifest JSON Schema, including compatibility and projection ownership declarations, in `src/ProgramKit.Contracts/Schemas/session-provider-manifest.schema.json` (FR-008, FR-012, FR-034)
+- [X] T019 [P] Add the lifecycle-request JSON Schema with explicit provider, workspace, operation, and authority binding in `src/ProgramKit.Contracts/Schemas/session-integration-request.schema.json` (FR-010, FR-016, FR-020)
+- [X] T020 [P] Add the installation-record JSON Schema with canonical/provider versions, owned artifacts, fingerprints, state, and journal metadata in `src/ProgramKit.Contracts/Schemas/session-installation-record.schema.json` (FR-009, FR-019, FR-045)
+- [X] T021 Register the four schemas through stable resource identifiers in `src/ProgramKit.Contracts/Schemas/ContractSchemaResources.cs`
+- [X] T022 Extend the existing envelope schema and typed result projection with session payloads and disclosure metadata in `src/ProgramKit.Contracts/Schemas/operation-result.schema.json`, `src/ProgramKit.Contracts/Operations/OperationResult.cs`, `src/ProgramKit.Kernel/Operations/OperationResultProjector.cs`, and `src/ProgramKit.Kernel/Operations/OperationResultFactory.cs` (FR-039 through FR-042)
+- [X] T023 Implement exact request-bound grant validation and extend the authority schema/provider without ambient approval in `src/ProgramKit.Contracts/Schemas/authority-grant.schema.json`, `src/ProgramKit.Kernel/Authority/RequestBoundAuthorityValidator.cs`, and `src/ProgramKit.Kernel/Authority/RepositoryAuthorityProvider.cs` (FR-020, FR-026, FR-027)
+- [X] T024 Implement reusable namespace ownership, collision checks, staging, verification, atomic commit, and recoverable rollback in `src/ProgramKit.Kernel/Artifacts/NamespacedArtifactSetPublisher.cs` (FR-021, FR-022, FR-043)
+- [X] T025 Preserve Feature 001 behavior by adapting its publication path to the namespaced publisher in `src/ProgramKit.Kernel/Publication/RecoverablePublisher.cs`
+- [X] T026 Define the explicit provider adapter interface and provider-owned projection boundary in `src/ProgramKit.SessionIntegration/Providers/ISessionProviderAdapter.cs` (FR-012, FR-013, FR-033)
+- [X] T027 Implement explicit in-process provider registration with duplicate, missing, and incompatible-provider diagnostics in `src/ProgramKit.SessionIntegration/Providers/SessionProviderRegistry.cs` (FR-012, FR-034, FR-038)
+- [X] T028 Implement canonical-definition loading, schema validation, fingerprinting, and version compatibility in `src/ProgramKit.SessionIntegration/Definitions/SessionIntegrationDefinitionLoader.cs` (FR-007, FR-014, FR-035)
+- [X] T029 Define the provider-neutral diagnostic catalog version, reserve identifiers `PKSES0001` through `PKSES0009`, and implement the stable metadata shape and lookup invariants in `src/ProgramKit.SessionIntegration/Diagnostics/SessionDiagnosticCatalog.cs` (FR-039, FR-040)
+- [X] T030 Implement fail-closed source-marker detection shared by explain, install, verify, catalog, preflight, read, and remove paths in `src/ProgramKit.SessionIntegration/Policy/SourceAuthoringGuard.cs` (FR-006)
+- [X] T031 Add isolated repository, package-feed, denied-network, interruption, fingerprint, process-observation, and byte-comparison helpers in `tests/Shared/SessionIntegrationTestWorkspace.cs` (FR-003, FR-043)
+- [X] T032 Run the foundational contract and unit filters and record passing command/output evidence in `specs/002-session-integration-proof/verification.md`
 
 **Checkpoint**: Canonical types and schemas round-trip, authority is request-bound, publication is recoverable, source self-integration fails closed, and provider code cannot leak into the canonical layer.
 

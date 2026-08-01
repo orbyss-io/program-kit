@@ -29,6 +29,13 @@ internal static class TestRepository
         return root;
     }
 
+    public static string CreateEmptyWorkspace()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "program-kit-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        return root;
+    }
+
     public static string DigestTree(string root) => string.Join('\n', Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
         .OrderBy(path => Path.GetRelativePath(root, path), StringComparer.Ordinal)
         .Select(path => $"{Path.GetRelativePath(root, path).Replace('\\', '/')}:{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)))}"));

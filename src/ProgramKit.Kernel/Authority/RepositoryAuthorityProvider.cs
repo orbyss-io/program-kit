@@ -1,11 +1,19 @@
 using System;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Intake;
 
 namespace Orbyss.ProgramKit.Kernel.Authority;
 
 public sealed class RepositoryAuthorityProvider
 {
+    private readonly RequestBoundAuthorityValidator requestBound = new();
+
+    public void Demand(AuthorityDemand demand, RequestBoundAuthorityGrant? grant)
+    {
+        requestBound.Demand(demand, grant);
+    }
+
     public void Demand(FactoryInput input)
     {
         if (input.RequestedEffect == RequestedEffect.None)

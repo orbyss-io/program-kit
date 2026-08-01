@@ -3,11 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Nodes;
 
 namespace Orbyss.ProgramKit.Contracts.Schemas;
 
 public static class ContractSchemaResources
 {
+    public const string SessionIntegrationDefinitionId = "https://schemas.program-kit.dev/v1/session-integration-definition.schema.json";
+    public const string SessionProviderManifestId = "https://schemas.program-kit.dev/v1/session-provider-manifest.schema.json";
+    public const string SessionIntegrationRequestId = "https://schemas.program-kit.dev/v1/session-integration-request.schema.json";
+    public const string SessionInstallationRecordId = "https://schemas.program-kit.dev/v1/session-installation-record.schema.json";
+
+    public static string ReadById(string id) => ReadAll().Values.Single(content => string.Equals(JsonNode.Parse(content)?["$id"]?.GetValue<string>(), id, StringComparison.Ordinal));
+
     public static IReadOnlyDictionary<string, string> ReadAll()
     {
         Assembly assembly = typeof(ContractSchemaResources).Assembly;

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/session-integration-request.schema.json",
+  "title": "Program Kit Session Integration Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "canonicalProfile",
+    "operation",
+    "evaluationContext",
+    "workspace",
+    "scope",
+    "providerSelection",
+    "cliRelease",
+    "requestedEffect"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "program-kit.session-integration-request/v1"
+    },
+    "canonicalProfile": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "explain",
+        "install",
+        "verify",
+        "remove"
+      ]
+    },
+    "evaluationContext": {
+      "$ref": "#/$defs/evaluationContext"
+    },
+    "workspace": {
+      "$ref": "#/$defs/workspaceBinding"
+    },
+    "scope": {
+      "type": "string",
+      "const": "workspace"
+    },
+    "providerSelection": {
+      "$ref": "#/$defs/providerSelection"
+    },
+    "cliRelease": {
+      "$ref": "#/$defs/cliRelease"
+    },
+    "requestedEffect": {
+      "type": "string",
+      "enum": [
+        "none",
+        "committed"
+      ]
+    },
+    "expectedInstallationState": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+    },
+    "authorityGrant": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "explain",
+              "verify"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "requestedEffect": {
+            "const": "none"
+          }
+        },
+        "not": {
+          "required": [
+            "authorityGrant"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "install",
+              "remove"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "expectedInstallationState",
+          "authorityGrant"
+        ],
+        "properties": {
+          "requestedEffect": {
+            "const": "committed"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "evaluationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instant",
+        "source",
+        "assurance"
+      ],
+      "properties": {
+        "instant": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "source": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "assurance": {
+          "type": "string",
+          "enum": [
+            "approved-declared-instant"
+          ]
+        }
+      }
+    },
+    "workspaceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "rootBinding"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "rootBinding": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+        }
+      }
+    },
+    "providerSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "adapter",
+        "definition",
+        "conformanceProfile"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/exactSelection"
+        },
+        "adapter": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/exactSelection"
+        },
+        "definition": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/exactSelection"
+        },
+        "conformanceProfile": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        }
+      }
+    },
+    "cliRelease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "packageId",
+        "packageVersion",
+        "packageSource",
+        "packageDigest",
+        "commandName",
+        "workspaceRelativeExecutable",
+        "executableDigest",
+        "reportedVersion",
+        "runtimeProfile",
+        "claimClass"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.cli-release-identity/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
+        },
+        "packageId": {
+          "type": "string",
+          "const": "Orbyss.ProgramKit.Cli"
+        },
+        "packageVersion": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision"
+        },
+        "packageSource": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "packageDigest": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+        },
+        "commandName": {
+          "type": "string",
+          "const": "program-kit"
+        },
+        "workspaceRelativeExecutable": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath"
+        },
+        "executableDigest": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+        },
+        "reportedVersion": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision"
+        },
+        "runtimeProfile": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "claimClass": {
+          "type": "string",
+          "const": "verified-equivalent"
+        }
+      }
+    }
+  }
+}
+

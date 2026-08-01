@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
+using Orbyss.ProgramKit.Contracts.SessionIntegration;
 
 namespace Orbyss.ProgramKit.Contracts.Operations;
 
@@ -10,6 +11,10 @@ public enum PublicCommand
     Explain,
     Construct,
     Evaluate,
+    SessionExplain,
+    SessionInstall,
+    SessionVerify,
+    SessionRemove,
     Help,
     Version,
 }
@@ -89,4 +94,6 @@ public sealed record OperationResult(
     DiagnosticView Diagnostics,
     Continuation? Continuation = null,
     JsonObject? Explanation = null,
-    JsonObject? Utility = null);
+    JsonObject? Utility = null,
+    JsonObject? Session = null,
+    IReadOnlyList<DisclosureEntry>? Disclosure = null);
