@@ -151,12 +151,17 @@ public sealed class RuntimeAndDriftAcceptanceTests
             StringComparer.OrdinalIgnoreCase);
 
         string[] sources = assets["project"]!["restore"]!["sources"]!.AsObject().Select(static item => item.Key).ToArray();
-        string[] expectedSources =
+        List<string> expectedSources = new()
         {
             Path.GetFullPath(Path.Combine(relocated, "feeds", "component")),
             Path.GetFullPath(Path.Combine(relocated, "feeds", "dependencies")),
-            DotNetLibraryPacksRoot(),
         };
+        string libraryPacks = DotNetLibraryPacksRoot();
+        if (Directory.Exists(libraryPacks))
+        {
+            expectedSources.Add(libraryPacks);
+        }
+
         CollectionAssert.AreEquivalent(
             expectedSources.Select(static path => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)).ToArray(),
             sources.Select(static path => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)).ToArray(),
