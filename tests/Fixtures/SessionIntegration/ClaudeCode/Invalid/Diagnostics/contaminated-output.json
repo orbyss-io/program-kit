@@ -1,0 +1,4 @@
+{
+  "structuredTransport": "contaminated",
+  "expectedDiagnostic": "program-kit.session.claude-code/PKCLD0004"
+}

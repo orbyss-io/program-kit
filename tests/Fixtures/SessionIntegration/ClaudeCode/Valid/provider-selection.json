@@ -1,0 +1,6 @@
+{
+  "provider": "anthropic:session-provider:claude-code@2.1.220",
+  "adapter": "orbyss.program-kit:session-provider-adapter:claude-code-project-skill@1.0.0",
+  "scope": "workspace",
+  "supportClaim": "not-evaluated"
+}

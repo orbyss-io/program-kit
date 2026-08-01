@@ -22,6 +22,9 @@ public sealed class ProviderNeutralityArchitectureTests
             string content = File.ReadAllText(file);
             Assert.IsFalse(content.Contains("Codex", StringComparison.OrdinalIgnoreCase), file);
             Assert.IsFalse(content.Contains(".agents/", StringComparison.OrdinalIgnoreCase), file);
+            Assert.IsFalse(content.Contains("Claude", StringComparison.OrdinalIgnoreCase), file);
+            Assert.IsFalse(content.Contains(".claude/", StringComparison.OrdinalIgnoreCase), file);
+            Assert.IsFalse(content.Contains("PKCLD", StringComparison.Ordinal), file);
             Assert.IsFalse(content.Contains("openai.yaml", StringComparison.OrdinalIgnoreCase), file);
         }
     }

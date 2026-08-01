@@ -49,6 +49,28 @@ jobs:
           dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj
           --configuration Release --no-build --no-restore
           --filter SessionDisclosureTests
+      - name: Verify fail-closed Claude adapter conformance
+        run: >-
+          dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj
+          --configuration Release --no-build --no-restore
+          --filter "ClaudeProviderParityAcceptanceTests|ClaudeConformanceNegativeAcceptanceTests|ClaudeReviewKitAcceptanceTests|ClaudeRuntimeIsolationAcceptanceTests"
+      - name: Export and verify sealed Claude review kit
+        shell: pwsh
+        run: |
+          $pkClaudeKit = Join-Path $env:RUNNER_TEMP 'program-kit-claude-review'
+          $pkClaudeConsumer = Join-Path $env:RUNNER_TEMP 'program-kit-claude-consumer'
+          ./eng/Export-ClaudeCodeReviewKit.ps1 -Configuration Release -OutputPath $pkClaudeKit
+          & (Join-Path $pkClaudeKit 'scripts/Initialize-ConsumerWorkspace.ps1') -ReviewKit $pkClaudeKit -ConsumerRoot $pkClaudeConsumer
+          & (Join-Path $pkClaudeKit 'scripts/Invoke-DeterministicConsumerProof.ps1') -ReviewKit $pkClaudeKit -ConsumerRoot $pkClaudeConsumer
+      - name: Retain fail-closed Claude deterministic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-claude-review-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/program-kit-claude-review/manifest.json
+            ${{ runner.temp }}/program-kit-claude-consumer/environment.json
+            ${{ runner.temp }}/program-kit-claude-consumer/.program-kit/evidence/claude-deterministic-proof.json
+          if-no-files-found: error
       - name: Run ten-workspace session quickstart
         shell: pwsh
         run: >-

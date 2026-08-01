@@ -1,0 +1,5 @@
+{
+  "liveEvidenceComplete": false,
+  "expectedDiagnostic": "program-kit.session.claude-code/PKCLD0006",
+  "expectedStatus": "not-evaluated"
+}

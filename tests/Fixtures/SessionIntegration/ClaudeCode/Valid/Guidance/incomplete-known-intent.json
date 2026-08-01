@@ -1,0 +1,5 @@
+{
+  "intentState": "incomplete-known",
+  "expectedAction": "provide-input",
+  "effect": "none"
+}

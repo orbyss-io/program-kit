@@ -1,17 +1,31 @@
 # Quickstart: Claude Code Adapter on an Isolated Consumer Machine
 
-This is the required post-implementation validation path. It proves Feature 003
+This documents the required post-implementation validation path for Feature 003
 using a sealed release/review kit on a clean machine without Program Kit source,
 Spec Kit, Codex adapter state, or prior Program Kit session integration state.
 
 Commands are PowerShell 7 examples. Provider installation and authentication
 are explicit external prerequisites, not Program Kit effects.
 
+## Current status: deterministic mechanics only
+
+Feature 002 product acceptance is rejected, so the sealed Feature 003 manifest
+is `not-evaluated` and binds `canonicalDependencyStatus: rejected`. The current
+CLI must block Claude lifecycle resolution before any workspace effect. Green
+adapter tests, a sealed package, or installed Claude Code cannot upgrade this
+status. Live Claude trials and an `accepted` human review are forbidden until a
+newly sealed kit binds an accepted canonical dependency and supported adapter.
+
+The current executable proof covers source build/tests, sealed-kit export,
+clean consumer initialization, exact local CLI installation, and ten repeatable
+no-effect trials. The later lifecycle and live-provider steps are conditional
+acceptance procedures, not current product instructions.
+
 ## 1. Source-machine prerequisites
 
 - Clean Program Kit checkout at the Feature 003 implementation commit.
 - Exact SDK from `global.json` (`10.0.302` for this feature).
-- Completed Feature 002 implementation and tests.
+- Feature 002 implementation is present, but its product acceptance is rejected.
 - No live Claude Code credentials are required for deterministic build/export.
 
 Run the complete deterministic suite:
@@ -130,6 +144,28 @@ On Linux, use the corresponding `program-kit` executable without `.exe`.
 Expected result: the reported version, executable digest, package digest, and
 package identity match the sealed review manifest. The session adapter records
 the CLI but does not own or remove it.
+
+## Current fail-closed consumer proof
+
+After steps 2 through 5, run:
+
+```powershell
+pwsh ../program-kit-claude-review/scripts/Invoke-DeterministicConsumerProof.ps1 `
+  -ReviewKit ../program-kit-claude-review `
+  -ConsumerRoot $consumerRoot
+```
+
+Expected result: ten exact CLI installations report Claude support
+`not-evaluated`, `effectState: none`, and no
+`.claude/skills/program-kit/SKILL.md`. This is the complete current consumer
+proof; it is not adapter installation or live-provider acceptance.
+
+## Conditional accepted-support procedure
+
+Steps 6 through 13 apply only after a new manifest binds an accepted Feature
+002 dependency and `supportClaim: supported`. With the current kit, the first
+lifecycle resolution must block with `program-kit.session/PKSES0003` and no
+effect. Do not bypass that result or continue into live trials.
 
 ## 6. Explain the Claude integration
 

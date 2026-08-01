@@ -1,0 +1,6 @@
+{
+  "steps": ["explain", "construct", "evaluate"],
+  "authority": "request-bound",
+  "evaluationEffect": "none",
+  "resultSchema": "program-kit.operation-result/v1"
+}

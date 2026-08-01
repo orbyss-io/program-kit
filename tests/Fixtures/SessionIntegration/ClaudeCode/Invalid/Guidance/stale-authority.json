@@ -1,0 +1,5 @@
+{
+  "grantState": "stale",
+  "expectedAction": "request-approval",
+  "effect": "none"
+}

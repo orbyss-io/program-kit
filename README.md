@@ -150,6 +150,31 @@ session experience and semantic product approval remain explicit review gates.
 Current evidence and pending gates are recorded in
 [`specs/002-session-integration-proof/verification.md`](specs/002-session-integration-proof/verification.md).
 
+Feature 002 is **not product-accepted**. Its independent review rejected the
+authority-closure behavior and related session guidance, so its implementation
+and green tests must not be read as an accepted provider-neutral product
+contract. That defect is intentionally not repaired inside the Claude adapter;
+it remains a prerequisite for later first-vertical-slice convergence.
+
+Feature 003 adds an exact first-party Claude Code `2.1.220` project-skill
+adapter at `.claude/skills/program-kit/SKILL.md`. Claude-specific paths,
+invocation syntax, observations, and `PKCLD` diagnostics stay in the adapter;
+the CLI exposes the adapter explicitly without adding settings, `CLAUDE.md`,
+plugins, MCP, hooks, global configuration, credentials, or runtime coupling.
+
+The adapter mechanics are deterministic and testable, but its current manifest
+correctly declares `supportClaim: not-evaluated`. Because Feature 002 is
+rejected, the neutral registry blocks Claude lifecycle resolution before any
+workspace effect. A sealed review kit can prove package identity, clean-machine
+boundaries, stable candidate bytes, and ten repeatable no-effect trials. Its
+live Claude launcher refuses before starting the provider until a newly sealed
+kit binds an accepted canonical dependency, supported adapter, and explicit
+current human authority. No live-provider or product-acceptance claim currently
+exists.
+
+Feature 003 evidence and exact blockers are recorded in
+[`specs/003-claude-code-adapter/verification.md`](specs/003-claude-code-adapter/verification.md).
+
 ## What can be exercised now
 
 The repository pins .NET SDK `10.0.302`, restores from exact package versions,

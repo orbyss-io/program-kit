@@ -1,0 +1,5 @@
+{
+  "provider": "anthropic:session-provider:claude-code@2.1.220",
+  "status": "not-evaluated",
+  "diagnostic": "program-kit.session.claude-code/PKCLD0006"
+}

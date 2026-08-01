@@ -1,0 +1,5 @@
+{
+  "operation": "session-install",
+  "authority": "missing",
+  "expectedEffect": "none"
+}

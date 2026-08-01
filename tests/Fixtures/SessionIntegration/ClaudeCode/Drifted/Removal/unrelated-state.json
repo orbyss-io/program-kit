@@ -1,0 +1,4 @@
+{
+  "paths": [".claude/settings.json", ".claude/skills/other/SKILL.md", ".program-kit/tools/program-kit"],
+  "expectedAction": "preserve"
+}

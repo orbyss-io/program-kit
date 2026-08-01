@@ -1,0 +1,6 @@
+{
+  "providerClaim": "succeeded",
+  "programKitOutcome": "blocked",
+  "status": "failed",
+  "diagnostic": "program-kit.session.claude-code/PKCLD0007"
+}

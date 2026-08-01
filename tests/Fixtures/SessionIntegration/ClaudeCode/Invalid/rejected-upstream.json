@@ -1,0 +1,6 @@
+{
+  "dependencyStatus": "rejected",
+  "expectedSupport": "not-evaluated",
+  "expectedEffect": "none",
+  "expectedDiagnostic": "program-kit.session/PKSES0003"
+}

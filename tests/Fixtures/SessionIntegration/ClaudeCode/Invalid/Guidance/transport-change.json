@@ -1,0 +1,5 @@
+{
+  "transportState": "changed-arguments",
+  "expectedDiagnostic": "program-kit.session.claude-code/PKCLD0004",
+  "effect": "none"
+}

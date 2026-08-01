@@ -14,7 +14,14 @@ public static class HelpCommand
         ["sessionGrammar"] = "program-kit session <explain|install|verify|remove> --workspace <path> --request <path> [--format text|json]",
         ["effectBearing"] = new JsonArray("construct", "session install", "session remove"),
         ["sessionProtocol"] = "program-kit.session-integration-definition/v1",
-        ["installedSessionAdapters"] = new JsonArray("orbyss.program-kit:session-provider:codex@1.0.0"),
+        ["installedSessionAdapters"] = new JsonArray(
+            "orbyss.program-kit:session-provider:codex@1.0.0",
+            "anthropic:session-provider:claude-code@2.1.220"),
+        ["sessionAdapterSupport"] = new JsonObject
+        {
+            ["orbyss.program-kit:session-provider:codex@1.0.0"] = "supported",
+            ["anthropic:session-provider:claude-code@2.1.220"] = "not-evaluated",
+        },
     });
 
     public static OperationResult Version() => OperationResultFactory.Success(PublicCommand.Version, OperationPhase.Completion, EffectState.None, utility: new JsonObject
