@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/session-integration-definition.schema.json",
+  "title": "Program Kit Session Integration Definition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "canonicalProfile",
+    "identity",
+    "operationContracts",
+    "sessionLifecycleContracts",
+    "authorityRules",
+    "effectClasses",
+    "resultRules",
+    "guidanceArtifact",
+    "projectionRequirements",
+    "diagnosticCatalogs"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "program-kit.session-integration-definition/v1"
+    },
+    "canonicalProfile": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
+    },
+    "identity": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+    },
+    "operationContracts": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/operationBinding"
+      }
+    },
+    "sessionLifecycleContracts": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/operationBinding"
+      }
+    },
+    "authorityRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "humanApprovalRequiredFor",
+        "requestBindingRequired",
+        "ambientAuthorityForbidden",
+        "grantReuseForbidden"
+      ],
+      "properties": {
+        "humanApprovalRequiredFor": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "construct",
+              "session-install",
+              "session-remove"
+            ]
+          }
+        },
+        "requestBindingRequired": {
+          "type": "boolean",
+          "const": true
+        },
+        "ambientAuthorityForbidden": {
+          "type": "boolean",
+          "const": true
+        },
+        "grantReuseForbidden": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "effectClasses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnly",
+        "effectBearing"
+      ],
+      "properties": {
+        "readOnly": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "explain",
+              "evaluate",
+              "session-explain",
+              "session-verify"
+            ]
+          }
+        },
+        "effectBearing": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "construct",
+              "session-install",
+              "session-remove"
+            ]
+          }
+        }
+      }
+    },
+    "resultRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "authoritativeChannel",
+        "requiredFields",
+        "renderedProseAuthoritative",
+        "diagnosticIdentityRequired"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "authoritativeChannel": {
+          "type": "string",
+          "const": "json-stdout"
+        },
+        "requiredFields": {
+          "type": "array",
+          "minItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "outcome",
+              "furthestPhase",
+              "effectState",
+              "primaryDisposition",
+              "artifacts",
+              "evidence",
+              "receipts",
+              "diagnostics"
+            ]
+          }
+        },
+        "renderedProseAuthoritative": {
+          "type": "boolean",
+          "const": false
+        },
+        "diagnosticIdentityRequired": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "guidanceArtifact": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+    },
+    "projectionRequirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "workingDirectory",
+        "cleanStructuredOutput",
+        "reloadStateReported",
+        "providerFieldsCanonical",
+        "domainSemanticsAllowed"
+      ],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "workspace"
+        },
+        "workingDirectory": {
+          "type": "string",
+          "const": "workspace-root"
+        },
+        "cleanStructuredOutput": {
+          "type": "boolean",
+          "const": true
+        },
+        "reloadStateReported": {
+          "type": "boolean",
+          "const": true
+        },
+        "providerFieldsCanonical": {
+          "type": "boolean",
+          "const": false
+        },
+        "domainSemanticsAllowed": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "diagnosticCatalogs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+      }
+    }
+  },
+  "$defs": {
+    "operationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "contract",
+        "effect"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "explain",
+            "construct",
+            "evaluate",
+            "session-explain",
+            "session-install",
+            "session-verify",
+            "session-remove"
+          ]
+        },
+        "contract": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "none",
+            "committed"
+          ]
+        }
+      }
+    }
+  }
+}
