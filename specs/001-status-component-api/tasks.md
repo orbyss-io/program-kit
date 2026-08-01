@@ -336,7 +336,7 @@ product decision possible without inferring acceptance from green automation.
 - [X] T092 Project the workspace snapshot only from authoritative closure, identity, relationship, seam, artifact, provenance, gate, review, waiver, evidence, receipt, support, retention, and diagnostic records, and recompute freshness without mutation, per FR-026 through FR-028 and US4 (remediated)
 - [X] T093 Complete the declared invalid, repair, publication-fault, path/culture/order, package-claim, provenance/SBOM, performance, hostile-filesystem, local-safety, no-self-host, and relocated-runtime proof matrix, per FR-018, FR-029, FR-031, FR-032, FR-034, and SC-004 through SC-010 (reclosed: the executable SC-005 diagnostic and invalid-input matrix is directly proven)
 - [X] T094 Reconcile every original T001-T085 checkbox against its named artifact and direct proof, retain unchecked status wherever proof is absent, and update README plus verification with only current evidence, per the Spec Kit workflow and Constitution IX (complete: 80 satisfied, 5 superseded, 0 missing)
-- [ ] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (pending human decision)
+- [X] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (accepted by `joey-orbyss` on 2026-08-01 for the bounded .NET 10 + CShells 0.0.28 foundation at commit `16c6c627dfc9cd2211993580019f43d084dc718d`, bound to manifest digest `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`; general release, multi-provider completeness, migration readiness, and product completeness remain excluded)
 
 ---
 
@@ -354,8 +354,9 @@ human decision depend on exact current evidence rather than historical paths.
 - [X] T101 Complete the accepted repeatability and independent-runtime proof matrix, including supported path/culture/input/order variants, external-package claim verification, clean-cache relocation, and assets/deps/PE dependency allowlisting in `tests/ProgramKit.AcceptanceTests/ProductProofAcceptanceTests.cs` and `tests/ProgramKit.AcceptanceTests/RuntimeAndDriftAcceptanceTests.cs`
 - [X] T102 CRITICAL Run locked restore, release build, all contract/unit/acceptance tests, schema and generated-consumer checks, quickstart, distribution-evidence regeneration/check, formatting, diff, and clean-worktree gates; then reconcile T001-T094 plus README/review/verification claims only to the evidence actually recorded in `specs/001-status-component-api/tasks.md`, `specs/001-status-component-api/reviews/task-closure-audit.md`, `specs/001-status-component-api/reviews/first-vertical-slice.md`, `specs/001-status-component-api/verification.md`, and `README.md` (complete: final 91-test gate passed and the exact candidate binding is reconciled in verification.md)
 
-**Checkpoint**: T095 remains pending until T096-T102 are complete and a fresh
-independent reviewer evaluates the exact pushed commit and bound evidence.
+**Checkpoint**: T095 remained pending until T096-T102 were complete and a fresh
+independent reviewer evaluated the exact pushed commit and bound evidence. Those
+conditions were met before the separate named-human ACCEPT decision.
 
 ---
 
@@ -364,14 +365,15 @@ independent reviewer evaluates the exact pushed commit and bound evidence.
 **Purpose**: Close only the four existing-MUST diagnostic findings from the
 independent pre-T095 audit. These findings reopen the T058, T091, T094, and
 T102 readiness claims until all four tasks, the complete T102 gate, and the
-evidence ledger reconciliation pass again. T095 remains pending.
+evidence ledger reconciliation pass again. T095 was held pending until then.
 
 - [X] T103 CRITICAL Require every normal and independent-fallback diagnostic to carry at least one exact evidence reference and at least one typed bounded remediation with an existing request artifact or complete inline request/argument-array/digested-patch payload; reject empty or kind-only projections in the public schema and direct contract tests, per FR-021, FR-022, and Constitution VII (complete: non-empty catalog evidence and executable request payloads are schema-enforced for normal and fallback diagnostics)
 - [X] T104 CRITICAL Replace public-by-default heuristic diagnostic string classification with explicit schema-classified safe values that fail closed for unclassified subject/cause/consequence inputs; pass secret-derived fingerprints through the real classifier/factory and prove ordinary, provider, rendering, verbose/progress, and fallback paths cannot disclose them, per FR-024 and Constitution VII (complete: raw command, positional, and option tokens are excluded from bounded parse prose and black-box opaque-token disclosure proof passes)
 - [X] T105 CRITICAL Bind each diagnostic catalog identity to its canonical catalog bytes, add exact diagnostic-catalog and conformance-evidence identities to `ProviderManifest`, carry those bindings through the first-party manifest/runtime registry and generated distribution evidence, and prove identity/artifact digest agreement plus exact provider resolution, per Constitutions III and VI, the accepted `ProviderManifest` data model, T011, and T034 (complete: canonical catalog bytes, provider manifest, registry, and distribution evidence share exact digest bindings)
 - [X] T106 CRITICAL Add direct production-boundary trigger-and-ID assertions for `MissingInput`, `ConflictingInput`, `IncompleteMeaning`, `GateFailed`, `CShellsConformance`, and `PackageMismatch`, while retaining the all-ID schema/catalog projection test only as catalog coverage, per T058, T091, SC-005, and Constitution IX (complete: all six IDs are asserted at their callable production boundaries)
 
-**Checkpoint**: After T103-T106 pass, rerun the complete repository-owned T102
-gate, reconcile the original-task ledger and review documents only to the new
-evidence, commit and push a clean exact candidate, and obtain one final
-independent read-only readiness verdict before T095.
+**Checkpoint**: T103-T106 and the complete repository-owned T102 gate passed;
+the original-task ledger and review documents were reconciled to the new
+evidence; a clean exact candidate was committed and pushed; and the final
+independent read-only readiness verdict returned READY before the named-human
+T095 ACCEPT decision.

@@ -29,20 +29,24 @@ is intentionally small so developers and architects can review the product
 boundaries before more providers, capability mappings, or authoring experiences
 are added.
 
-Feature 001 is **not product-accepted**. A bounded closure audit on
+Feature 001 is **accepted as the bounded first product foundation**. A bounded
+closure audit on
 2026-08-01 rejected the earlier prototype for material authority, provider,
 admission/recovery, diagnostic, snapshot, and product-proof gaps. The current
 candidate addresses those gaps, and the repository-owned gate passes 91 tests
 plus deterministic evidence, formatting, and whitespace verification. The
-exact product candidate is commit
-`2f7151b25022d7e380d3b09e662f6debe9d787f3`; its distribution-manifest digest
-is `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
+exact accepted review candidate is commit
+`16c6c627dfc9cd2211993580019f43d084dc718d`; its implementation/evidence
+ancestor is `2f7151b25022d7e380d3b09e662f6debe9d787f3`, and its
+distribution-manifest digest is
+`sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
 The human-authorized evidence ledger now records 80 satisfied, 5 explicitly
-superseded, and 0 missing outcomes. That reconciliation does not reverse the
-old decision or product-accept Feature 001 automatically. A fresh named human
-must accept or reject the reconciled post-remediation evidence under T095.
-Until that decision is recorded, treat this as a review candidate, not an
-accepted foundation.
+superseded, and 0 missing outcomes. On 2026-08-01, product owner and requirements
+author `joey-orbyss` separately accepted that exact bounded candidate under
+T095 after a final independent readiness audit returned READY. This accepts the
+`explain`, `construct`, and `evaluate` foundation demonstrated by Feature 001;
+it does not declare Program Kit generally released, multi-provider,
+migration-ready, or complete.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
@@ -154,9 +158,9 @@ coverage; recovery is intentionally limited; and external NuGet packages remain
 correctly classified as verified-equivalent rather than canonical across
 environments. Mirror integrity, package claims, canonical snapshots,
 repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
-local-safety, and relocated-runtime evidence now pass. The evidence ledger
-is reconciled; only independent human product review remains pending. The
-current automated evidence and pending human-review gate are recorded in
+local-safety, and relocated-runtime evidence now pass. The evidence ledger is
+reconciled, and the bounded Feature 001 product review is accepted. The
+automated evidence and exact human decision are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and
 [`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).

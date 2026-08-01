@@ -28,8 +28,8 @@ The repository quickstart passes 91 tests plus evidence, formatting, and
 whitespace gates. `verification.md` is the current execution record. The
 human explicitly confirmed that this recorded post-remediation evidence closes
 T086-T093, so those rows are now marked `remediated`. That confirmation closes
-the implementation findings but does not product-accept Feature 001. T095
-remains pending a separate fresh human accept/reject decision.
+the implementation findings but did not itself product-accept Feature 001. The
+separate T095 decision later accepted the exact bounded candidate.
 
 This ledger records whether each original Feature 001 task has both its named
 artifact and sufficient direct proof. `complete` does not imply product
@@ -230,11 +230,12 @@ recreating the historical file split would add no product evidence. `missing` wo
 | T080 | satisfied | `Generate-DistributionEvidence.ps1` deterministically produces the manifest, SBOM, provenance, exact kernel/.NET diagnostic catalogs, and provider support evidence; `DistributionEvidenceTests` schema-validates and verifies it. |
 | T081 | satisfied | `Explain_is_sub_two_seconds_and_invariant_to_supported_culture_and_selection_order` enforces the performance bound. |
 | T082 | satisfied | `Invoke-VerticalSliceQuickstart.ps1` automates valid/invalid/repeatability/drift/repair/publication/runtime/evidence gates without ambient setup. |
-| T083 | satisfied | The review record contains timing, seven architecture questions, honest limits, and a distinct pending human decision. |
-| T084 | satisfied | README records the constitution, archive boundary, actual CLI, limitations, entry points, and non-accepted state. |
+| T083 | satisfied | The review record contains timing, seven architecture questions, honest limits, and the distinct named-human ACCEPT decision. |
+| T084 | satisfied | README records the constitution, archive boundary, actual CLI, limitations, entry points, and bounded accepted state. |
 | T085 | satisfied | The repository-owned T102 quickstart passed locked restore, Release build, 91 tests, schema/generated-consumer/runtime/evidence/format/diff gates; the exact binding is recorded in `verification.md`. |
 
 The historical T096 classification was 53 satisfied, 5 superseded, and 27
 missing. After the bounded T097-T106 proof closure, the current classification
-is **80 satisfied, 5 superseded, and 0 missing**. T094 is complete. T095 remains
-a separate named-human product decision and is not inferred from this ledger.
+is **80 satisfied, 5 superseded, and 0 missing**. T094 is complete. T095 was a
+separate named-human product decision, was not inferred from this ledger, and
+accepted the exact bounded candidate on 2026-08-01.
