@@ -7,7 +7,7 @@ public static class DisclosureFilter
 {
     public static string SafeLogicalValue(string value)
     {
-        if (Path.IsPathRooted(value) || value.Contains("..", StringComparison.Ordinal))
+        if (IsAbsolutePath(value) || value.Contains("..", StringComparison.Ordinal))
         {
             return "withheld";
         }
@@ -41,4 +41,12 @@ public static class DisclosureFilter
     }
 
     public static string SafeToolOutput(string value) => "withheld";
+
+    private static bool IsAbsolutePath(string value) =>
+        Path.IsPathRooted(value) ||
+        value.StartsWith("\\\\", StringComparison.Ordinal) ||
+        (value.Length >= 3 &&
+         char.IsAsciiLetter(value[0]) &&
+         value[1] == ':' &&
+         (value[2] == '\\' || value[2] == '/'));
 }
