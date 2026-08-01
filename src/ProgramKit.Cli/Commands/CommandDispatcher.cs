@@ -1,32 +1,36 @@
 using System;
 using System.IO;
 using Orbyss.ProgramKit.Cli.Parsing;
+using Orbyss.ProgramKit.Cli.Commands.Session;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Operations;
 
+using Orbyss.ProgramKit.SessionIntegration.Publication;
 namespace Orbyss.ProgramKit.Cli.Commands;
 
 public sealed class CommandDispatcher
 {
     private readonly ProgramKitKernel kernel;
+    private readonly SessionCommandDispatcher sessions;
 
-    public CommandDispatcher(ProgramKitKernel kernel)
+    public CommandDispatcher(ProgramKitKernel kernel, SessionIntegrationServices sessionServices)
     {
         this.kernel = kernel;
+        sessions = new SessionCommandDispatcher(sessionServices);
     }
 
     public OperationResult Execute(CliInvocation invocation)
     {
         if (invocation.Command is PublicCommand.Help)
         {
-            return ProgramKitKernel.Help();
+            return HelpCommand.Help();
         }
 
         if (invocation.Command is PublicCommand.Version)
         {
-            return ProgramKitKernel.Version();
+            return HelpCommand.Version();
         }
 
         string workspace = Path.GetFullPath(invocation.Workspace!);
@@ -48,6 +52,10 @@ public sealed class CommandDispatcher
             PublicCommand.Explain => kernel.Explain(request),
             PublicCommand.Construct => kernel.Construct(workspace, request),
             PublicCommand.Evaluate => kernel.Evaluate(workspace, request),
+            PublicCommand.SessionExplain => sessions.Execute(invocation, workspace, request),
+            PublicCommand.SessionInstall => sessions.Execute(invocation, workspace, request),
+            PublicCommand.SessionVerify => sessions.Execute(invocation, workspace, request),
+            PublicCommand.SessionRemove => sessions.Execute(invocation, workspace, request),
             _ => Invalid(invocation.Command, "Unsupported public command."),
         };
     }

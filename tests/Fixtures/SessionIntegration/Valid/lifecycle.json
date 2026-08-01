@@ -1,0 +1,8 @@
+{
+  "schema": "program-kit.test-session-scenario/v1",
+  "name": "codex-explain-install-verify",
+  "provider": "orbyss.program-kit:session-provider:codex@1.0.0",
+  "operations": ["explain", "install", "verify"],
+  "expectedState": "exact",
+  "expectedSessionAvailability": "reload-required"
+}

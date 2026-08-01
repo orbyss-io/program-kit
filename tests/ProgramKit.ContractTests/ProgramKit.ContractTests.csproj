@@ -10,6 +10,7 @@
     <PackageReference Include="MSTest.TestFramework" />
     <PackageReference Include="JsonSchema.Net" />
     <ProjectReference Include="../../src/ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
+    <ProjectReference Include="../../src/ProgramKit.Cli/ProgramKit.Cli.csproj" />
     <ProjectReference Include="../../src/ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
     <ProjectReference Include="../../src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
     <ProjectReference Include="../../src/ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj" />

@@ -129,6 +129,16 @@
         "resolved": "4.3.3",
         "contentHash": "cTcdSPIZ8WvchbC5DFmfHxrvVNZCtops+2W94le+Q+mx110Y9L9mqNVVc9flF35lFeL5GsY+rxGBylsjDk4+zg=="
       },
+      "Orbyss.ProgramKit.Cli": {
+        "type": "Project",
+        "dependencies": {
+          "ProgramKit.Contracts": "[1.0.0, )",
+          "ProgramKit.Kernel": "[1.0.0, )",
+          "ProgramKit.Providers.DotNet": "[1.0.0, )",
+          "ProgramKit.SessionIntegration": "[1.0.0, )",
+          "ProgramKit.SessionIntegration.Providers.Codex": "[1.0.0, )"
+        }
+      },
       "programkit.contracts": {
         "type": "Project"
       },

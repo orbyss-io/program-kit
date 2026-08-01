@@ -24,3 +24,28 @@ Foundation observations:
 - source-authoring workspaces fail closed;
 - canonical and provider-neutral assemblies contain no provider-local projection symbols; and
 - runtime projects do not acquire development-session dependencies.
+
+## US1 — workspace-local CLI and Codex projection — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-build --filter "FullyQualifiedName~SessionCliContractTests|FullyQualifiedName~CodexProjectionContractTests"`
+  - Passed: 6; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-build --filter "FullyQualifiedName~SessionLifecycleTests"`
+  - Passed: 2; failed: 0.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --filter "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests"`
+  - Passed: 3; failed: 0.
+  - The package was produced without rebuilding, installed through an isolated local-only NuGet configuration, and invoked only through the workspace-local `program-kit` app host while network proxies were denied.
+  - Ten fresh workspaces completed explain/install/verify with equal generated skill fingerprints.
+  - Each installation classified the live projection as `exact`, while provider-session availability remained separately `reload-required`.
+- `eng/Pack-ProgramKitTool.ps1 -OutputRoot C:\tmp\program-kit-us1-pack`
+  - Package: `Orbyss.ProgramKit.Cli.1.0.0-alpha.1.nupkg`.
+  - SHA-256: `2B1D70BF84A738D248B4E7C85158ED2EA3105BD773CB2E83AA9FEAF6D5B23D8B`.
+
+US1 observations:
+
+- explain returned no effect and the exact provider, adapter, definition, release, candidate-set, projection, expected-state, and authority-request bindings;
+- install consumed a separately stored grant bound to the exact request core, workspace, provider, scope, operation, and committed effect;
+- projection publication and its journal were namespaced under `.program-kit/session-integrations/codex/`, with the admission record written last;
+- verify compared admitted record and live bytes without mutation;
+- source-authoring workspaces were rejected before lifecycle inspection or projection;
+- the installed projection consisted only of `.agents/skills/program-kit/SKILL.md`; and
+- no source checkout, global registration, provider process, network client, telemetry client, or runtime dependency was introduced.

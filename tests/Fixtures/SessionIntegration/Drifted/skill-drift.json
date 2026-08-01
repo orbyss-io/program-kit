@@ -1,0 +1,8 @@
+{
+  "schema": "program-kit.test-session-scenario/v1",
+  "name": "admitted-skill-drift",
+  "logicalPath": ".agents/skills/program-kit/SKILL.md",
+  "expectedState": "drifted",
+  "expectedDisposition": "repair",
+  "mutationAllowed": false
+}
