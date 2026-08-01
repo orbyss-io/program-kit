@@ -221,10 +221,10 @@
 - [x] T099 Run formatting, locked restore, build, full tests, package inspection, and forbidden-dependency scans and record exact commands, versions, and outcomes in `specs/002-session-integration-proof/verification.md`
 - [X] T100 Execute the deterministic quickstart for ten fresh workspaces on supported platforms and record package hashes, elapsed installation times, records, diagnostics, removal proofs, and failures in `specs/002-session-integration-proof/reviews/deterministic-session-review.json` (SC-001, SC-002, SC-004, SC-007, SC-008)
 - [X] T101 Execute the pinned live Codex ten-session review when explicitly authorized and store raw bounded evidence in `specs/002-session-integration-proof/reviews/codex-session-review.json` (SC-003, SC-005)
-- [ ] T102 Obtain an independent human product-review decision over the fresh-session evidence and record approval, rejection, findings, reviewer identity, and timestamp in `specs/002-session-integration-proof/reviews/product-review.md` (SC-003)
+- [X] T102 Obtain an independent human product-review decision over the fresh-session evidence and record approval, rejection, findings, reviewer identity, and timestamp in `specs/002-session-integration-proof/reviews/product-review.md` (SC-003)
 - [x] T103 Perform a final disclosure, secret, telemetry, source-upload, undeclared-network, and provider-global-registration scan of packaged artifacts, projections, results, journals, and review evidence and record the zero-finding assertion in `specs/002-session-integration-proof/verification.md` (FR-043, SC-009)
 - [x] T104 Re-run generated-application restore, build, startup, accepted `/status` behavior, post-integration-removal behavior, and dependency closure, then record that no Program Kit, Spec Kit, session integration, or provider assembly is required at runtime in `specs/002-session-integration-proof/verification.md` (FR-005, SC-010)
-- [ ] T105 Reconcile every FR/SC below to passing automated evidence or an explicitly pending human gate, and record the final feature disposition without self-approving semantics in `specs/002-session-integration-proof/verification.md`
+- [X] T105 Reconcile every FR/SC below to passing automated evidence or an explicitly pending human gate, and record the final feature disposition without self-approving semantics in `specs/002-session-integration-proof/verification.md`
 
 ---
 

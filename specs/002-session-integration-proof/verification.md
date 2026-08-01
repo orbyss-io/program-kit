@@ -319,3 +319,40 @@ remediated inside Feature 002.
 T101 execution is complete, but SC-003 and SC-005 are not passed by this run.
 T102 remains pending for an independent human approval or rejection decision;
 T105 remains pending until that decision is recorded without self-approval.
+
+## Final T105 requirement reconciliation — 2026-08-01
+
+This section supersedes the earlier pending-gate dispositions while preserving
+their raw provenance. It records the final Feature 002 state after T100, T101,
+and the independent T102 decision.
+
+| Requirement | Final evidence disposition |
+|---|---|
+| FR-001 through FR-006 | **Automated pass.** Exact packaged acquisition, isolated consumer use, direct CLI operation, source-workspace separation, and generated-runtime independence pass supported-platform and runtime evidence. |
+| FR-007 through FR-014 | **Automated pass within Feature 002 scope.** Canonical session definition, provider-neutral projection, manifest/definition binding, production adapter admission, and fail-closed projection validation pass. The separately recorded factory SPI/public-request/vocabulary work remains deferred to Feature 005 and is not claimed here. |
+| FR-015 through FR-023 | **Automated pass.** Explicit selection, explain/preflight, staged publication, exact CLI/package/executable admission, verification state, and structured lifecycle results pass the convergence and negative matrices. |
+| FR-024 through FR-032 | **Not product-accepted.** Automated guidance/authority/result mechanics pass, but live trial 9 did not complete evaluation and trials 3 and 9 failed timely missing-input handling. The missing revocation/provenance closure means the exercised factory authority path was not a valid happy path. |
+| FR-033 through FR-038 | **Automated pass.** Codex remains one provider projection; neutral/direct/provider conformance and normalized semantic parity pass. |
+| FR-039 through FR-043 | **Automated pass.** Stable diagnostics, bounded next actions, disclosure filtering, local-first behavior, and zero credential/path/transcript evidence findings pass. |
+| FR-044 through FR-046 | **Automated pass.** Explicit authorized removal, unchanged-owned-byte deletion, consumer-byte preservation, and removed-state verification pass. |
+| SC-001 | **Pass.** Supported-platform deterministic evidence proves documented isolated acquisition, installation, and verification well within ten minutes. |
+| SC-002 | **Pass.** 20/20 supported-platform fresh-workspace trials admitted complete exact state or failed safely, with zero trusted partial-success reports. |
+| SC-003 | **Fail.** The authorized live review passed only 8/10 attestations; trial 9 did not complete evaluation. Independent reviewer `joey-orbyss` rejected product acceptance. |
+| SC-004 | **Pass.** The packaged negative and production-admission matrices return the expected typed next-action/effect classes without unauthorized mutation. |
+| SC-005 | **Fail.** Trials 3 and 9 did not ask for missing input within two interaction turns. |
+| SC-006 | **Pass.** Direct, neutral, and Codex adapter conformance preserve normalized outcome, effect, and disposition meaning. |
+| SC-007 | **Pass.** Exact CLI release, provider/adapter/definition/conformance identities, workspace binding, projection set, and verification state are recorded and revalidated. |
+| SC-008 | **Pass.** Exact removal preserves unrelated/consumer-owned bytes and refuses drifted or unproven targets. |
+| SC-009 | **Pass.** Source, package, projection, and bounded-evidence scans found zero secrets, protected paths, transcripts, source uploads, telemetry, or undeclared provider launching. |
+| SC-010 | **Pass.** The generated reference application restores, builds, starts, serves `/status`, and remains runtime-independent after session integration and Program Kit removal. |
+
+Independent review disposition: **REJECTED — NOT APPROVED**. The exact decision
+is recorded in `reviews/product-review.md` under reviewer identity
+`joey-orbyss` at `2026-08-01T13:28:07.307Z`.
+
+Feature 002 implementation evidence is complete enough to hand off, but the
+feature MUST NOT claim product acceptance, release readiness, or semantic
+approval. Reconsideration requires first-vertical-slice authority-closure
+remediation, correction of the resulting session-guidance failures, a new full
+ten-consecutive-fresh-session evidence set, and a new independent human
+decision. T105 is complete as a truthful reconciliation, not as an approval.
