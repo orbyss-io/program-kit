@@ -31,14 +31,17 @@ are added.
 
 Feature 001 is **not product-accepted**. A bounded closure audit on
 2026-08-01 rejected the earlier prototype for material authority, provider,
-admission/recovery, diagnostic, snapshot, and product-proof gaps. Those gaps
-have now been remediated and the repository-owned gate passes 57 tests plus
-deterministic evidence, formatting, and whitespace verification. This makes
-the branch eligible for a new review; it does not reverse the old decision or
-product-accept Feature 001 automatically.
-A fresh named human must now accept or reject the post-remediation evidence
-under T095. Until that decision is recorded, treat this as a review candidate,
-not an accepted foundation.
+admission/recovery, diagnostic, snapshot, and product-proof gaps. The current
+candidate addresses those gaps, and the repository-owned gate passes 76 tests
+plus deterministic evidence, formatting, and whitespace verification. The
+exact product candidate is commit
+`a5b9f04018a4e5a6ef7b046efc45fb902bfc638f`; its distribution-manifest digest
+is `sha256:b602af45b29e809ced96c89345bea6dcd725abc309372d4c5b00582e3a0b2345`.
+This makes the branch eligible for final task-ledger reconciliation and a new
+review; it does not reverse the old decision or product-accept Feature 001
+automatically. A fresh named human must accept or reject the reconciled
+post-remediation evidence under T095. Until that decision is recorded, treat
+this as a review candidate, not an accepted foundation.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
@@ -145,13 +148,14 @@ The public executable supports `explain`, `construct`, `evaluate`, `help`, and
 model, not a declaration that Status is kernel meaning.
 
 Known boundaries are explicit: only one first-party .NET profile is supported;
-the intake is still fixture-bounded; schema and diagnostic trigger coverage is
-not yet exhaustive; recovery is intentionally limited; and external NuGet
-packages remain correctly classified as verified-equivalent rather than
-canonical across environments. Deterministic provenance/SBOM, hostile-
-filesystem, local-safety, and relocated-runtime evidence now pass; independent
-human product review is still pending. The current automated
-evidence and pending human-review gate are recorded in
+the validated first slice does not promise future provider or consumer-domain
+coverage; recovery is intentionally limited; and external NuGet packages remain
+correctly classified as verified-equivalent rather than canonical across
+environments. Mirror integrity, package claims, canonical snapshots,
+repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
+local-safety, and relocated-runtime evidence now pass. Final task-ledger
+confirmation and independent human product review are still pending. The
+current automated evidence and pending human-review gate are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and
 [`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).
