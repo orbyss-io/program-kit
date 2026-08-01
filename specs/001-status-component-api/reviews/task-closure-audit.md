@@ -20,10 +20,10 @@ substance of T086-T093:
 
 The repository quickstart passes 57 tests plus evidence, formatting, and
 whitespace gates. `verification.md` is the current execution record. The
-T086-T093 checkboxes remain deliberately unaltered until a human explicitly
-confirms that this evidence closes rows whose historical annotations say
-`partial` or `contradicts`; automation must not silently convert those labels
-into semantic acceptance. T095 remains pending in every case.
+human explicitly confirmed that this recorded post-remediation evidence closes
+T086-T093, so those rows are now marked `remediated`. That confirmation closes
+the implementation findings but does not product-accept Feature 001. T095
+remains pending a separate fresh human accept/reject decision.
 
 This ledger records whether each original Feature 001 task has both its named
 artifact and sufficient direct proof. `complete` does not imply product
