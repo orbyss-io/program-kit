@@ -167,19 +167,19 @@
 
 ### Tests first
 
-- [ ] T076 [P] [US4] Add conformance-profile contract tests for required operations, compatibility, ownership, diagnostics, and semantic comparison fields in `tests/ProgramKit.ContractTests/SessionProviderConformanceContractTests.cs` (FR-033 through FR-038)
-- [ ] T077 [P] [US4] Add assembly and schema inspection tests proving canonical artifacts contain no Codex paths, command names, payloads, or types in `tests/ProgramKit.ContractTests/ProviderNeutralityArchitectureTests.cs` (FR-011, FR-013, FR-033)
-- [ ] T078 [P] [US4] Add repeated-run and semantically irrelevant input-permutation determinism tests in `tests/ProgramKit.UnitTests/SessionProjectionDeterminismTests.cs` (FR-036, FR-037)
+- [X] T076 [P] [US4] Add conformance-profile contract tests for required operations, compatibility, ownership, diagnostics, and semantic comparison fields in `tests/ProgramKit.ContractTests/SessionProviderConformanceContractTests.cs` (FR-033 through FR-038)
+- [X] T077 [P] [US4] Add assembly and schema inspection tests proving canonical artifacts contain no Codex paths, command names, payloads, or types in `tests/ProgramKit.ContractTests/ProviderNeutralityArchitectureTests.cs` (FR-011, FR-013, FR-033)
+- [X] T078 [P] [US4] Add repeated-run and semantically irrelevant input-permutation determinism tests in `tests/ProgramKit.UnitTests/SessionProjectionDeterminismTests.cs` (FR-036, FR-037)
 
 ### Implementation
 
-- [ ] T079 [US4] Define normalized conformance inputs, observations, semantic equivalence rules, and failure reports in `src/ProgramKit.SessionIntegration/Providers/Conformance/SessionProviderConformance.cs` (FR-033 through FR-038)
-- [ ] T080 [US4] Implement the provider-neutral conformance evaluator over the public adapter contract in `src/ProgramKit.SessionIntegration/Providers/Conformance/SessionProviderConformanceEvaluator.cs` (FR-033 through FR-038)
-- [ ] T081 [P] [US4] Implement a test-only neutral adapter and invocation harness without provider-local assumptions in `tests/Shared/NeutralSessionProviderHarness.cs` (FR-033, FR-036)
-- [ ] T082 [P] [US4] Add the provider-neutral canonical input, authority, result, diagnostic, and artifact golden corpus under `tests/Fixtures/SessionIntegration/Providers/Conformance/` (FR-035 through FR-038)
-- [ ] T083 [US4] Add Codex adapter conformance coverage for valid, stale, incompatible, and corrupted projection cases in `tests/ProgramKit.AcceptanceTests/CodexProviderConformanceAcceptanceTests.cs` (FR-034, FR-035, FR-038)
-- [ ] T084 [US4] Add direct-neutral-Codex semantic equivalence acceptance coverage with normalized provider-local differences in `tests/ProgramKit.AcceptanceTests/SessionProviderParityAcceptanceTests.cs` (FR-033 through FR-038, SC-006)
-- [ ] T085 [US4] Run all conformance modes and record corpus hashes, repeated-run hashes, permutation results, and semantic comparisons in `specs/002-session-integration-proof/verification.md` (SC-006)
+- [X] T079 [US4] Define normalized conformance inputs, observations, semantic equivalence rules, and failure reports in `src/ProgramKit.SessionIntegration/Providers/Conformance/SessionProviderConformance.cs` (FR-033 through FR-038)
+- [X] T080 [US4] Implement the provider-neutral conformance evaluator over the public adapter contract in `src/ProgramKit.SessionIntegration/Providers/Conformance/SessionProviderConformanceEvaluator.cs` (FR-033 through FR-038)
+- [X] T081 [P] [US4] Implement a test-only neutral adapter and invocation harness without provider-local assumptions in `tests/Shared/NeutralSessionProviderHarness.cs` (FR-033, FR-036)
+- [X] T082 [P] [US4] Add the provider-neutral canonical input, authority, result, diagnostic, and artifact golden corpus under `tests/Fixtures/SessionIntegration/Providers/Conformance/` (FR-035 through FR-038)
+- [X] T083 [US4] Add Codex adapter conformance coverage for valid, stale, incompatible, and corrupted projection cases in `tests/ProgramKit.AcceptanceTests/CodexProviderConformanceAcceptanceTests.cs` (FR-034, FR-035, FR-038)
+- [X] T084 [US4] Add direct-neutral-Codex semantic equivalence acceptance coverage with normalized provider-local differences in `tests/ProgramKit.AcceptanceTests/SessionProviderParityAcceptanceTests.cs` (FR-033 through FR-038, SC-006)
+- [X] T085 [US4] Run all conformance modes and record corpus hashes, repeated-run hashes, permutation results, and semantic comparisons in `specs/002-session-integration-proof/verification.md` (SC-006)
 
 **Checkpoint**: The canonical contract is demonstrably provider-neutral, and Codex is one explicit projection rather than hidden source truth.
 

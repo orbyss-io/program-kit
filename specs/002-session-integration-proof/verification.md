@@ -94,3 +94,23 @@ US3 observations:
 - unexpected internal exceptions return the existing safe `PKINT0001` fallback rather than being mislabeled as a session-availability warning;
 - remediation projection is typed, bounded, non-executable guidance; and
 - disclosure filtering returns stable withheld/truncated values without raw paths, provider output, credentials, prompts, transcripts, or exception details.
+
+## US4 — provider-neutral conformance — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --no-restore --filter "SessionProviderConformanceContractTests|ProviderNeutralityArchitectureTests"`
+  - Passed: 3; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --no-restore --filter SessionProjectionDeterminismTests`
+  - Passed: 1; failed: 0.
+  - Repeated and semantically irrelevant projection variants produced observation SHA-256 `sha256:26822f5b3c1d3f55bd25981f12605131bea313105d56a457e533e0fd00b0dd00`.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter "CodexProviderConformanceAcceptanceTests|SessionProviderParityAcceptanceTests"`
+  - Passed: 3; failed: 0.
+  - Valid, stale-definition, incompatible-support, and corrupted-content cases were classified exactly; direct CLI, neutral harness, and reference-provider observations preserved normalized outcome, effect, and disposition meaning.
+- Provider-neutral golden corpus aggregate SHA-256: `sha256:255f26e0db6e737dd016041525b05e828763fe2144e8af6652cf46d71a3eb562`.
+
+US4 observations:
+
+- conformance evaluates only the public adapter contract and canonical definition;
+- required operations, workspace scope, generated ownership, diagnostic/profile identities, structured-result expectations, authority, disclosure, and fresh-session classification are explicit profile fields;
+- repeated projection is byte-stable and provider-local paths are normalized out of semantic comparison;
+- canonical source and corpus inspection found no reference-provider paths, payloads, command names, or types; and
+- semantic weakening produces ordered exact failures instead of silently lowering the canonical boundary.
