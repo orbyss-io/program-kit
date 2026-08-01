@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 
@@ -21,7 +22,9 @@ public static class OperationResultFactory
         JsonObject? utility = null,
         IReadOnlyList<ArtifactReference>? artifacts = null,
         IReadOnlyList<ArtifactReference>? receipts = null,
-        IReadOnlyList<OperationChange>? changes = null) => new(
+        IReadOnlyList<OperationChange>? changes = null,
+        JsonObject? session = null,
+        IReadOnlyList<DisclosureEntry>? disclosure = null) => new(
             "program-kit.operation-result/v1",
             CanonicalJson.Profile,
             command,
@@ -39,7 +42,9 @@ public static class OperationResultFactory
             DiagnosticFactory.View(Array.Empty<Diagnostic>()),
             null,
             explanation,
-            utility);
+            utility,
+            session,
+            disclosure);
 
     public static OperationResult Failure(
         PublicCommand command,

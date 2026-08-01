@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-guidance-scenario/v1",
+  "availableProviders": ["provider-a", "provider-b"],
+  "selectedProvider": null,
+  "expectedDisposition": "provide-input",
+  "ambientSelectionAllowed": false
+}

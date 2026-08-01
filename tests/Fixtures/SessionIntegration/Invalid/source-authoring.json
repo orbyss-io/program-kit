@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-session-scenario/v1",
+  "name": "source-authoring-workspace",
+  "marker": ".program-kit-source.json",
+  "expectedDisposition": "stop",
+  "expectedEffect": "none"
+}

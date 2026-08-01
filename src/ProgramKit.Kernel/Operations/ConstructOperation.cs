@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Providers;
+using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Contracts.Workspace;
 using Orbyss.ProgramKit.Kernel.Artifacts;
 using Orbyss.ProgramKit.Kernel.Authority;
@@ -28,6 +29,7 @@ public sealed class ConstructOperation
     private readonly RecoverablePublisher publisher = new();
     private readonly AdmissionService admission = new();
 
+    private readonly RepositoryAuthorityGrantStore authorityGrants = new();
     public ConstructOperation(IntakePipeline intake, ResolutionEngine resolution)
     {
         this.intake = intake;
@@ -58,7 +60,10 @@ public sealed class ConstructOperation
                 throw new InvalidDataException("The request operation, effect, or construction mode conflicts with construct.");
             }
 
-            authority.Demand(input);
+            string grantLogicalPath = input.AuthorityGrantLogicalPath ?? throw new UnauthorizedAccessException("Construct requires an exact request-bound authority grant artifact.");
+            AuthorityDemand authorityDemand = new(input.WorkspaceIdentity, "construct", input.RequestedEffect, input.RequestCoreIdentity, input.ProviderSelection, "workspace", input.EvaluationInstant);
+            RequestBoundAuthorityGrant grant = authorityGrants.Load(workspaceRoot, grantLogicalPath, authorityDemand);
+            authority.Demand(authorityDemand, grant);
             ResolvedFactoryInput resolved = resolution.Resolve(input);
             string constructionIdentity = resolved.Lock.ConstructionIdentity
                 ?? throw new InvalidOperationException("Construction identity is unavailable.");
@@ -111,6 +116,7 @@ public sealed class ConstructOperation
             ArtifactReference[] artifactReferences = candidate.Artifacts.Select(artifact => Reference(artifact, constructionIdentity)).ToArray();
             if (input.RequestedEffect == RequestedEffect.CandidateOnly)
             {
+                authorityGrants.MarkConsumed(workspaceRoot, grant.GrantIdentity, input.RequestCoreIdentity);
                 return OperationResultFactory.Success(
                     PublicCommand.Construct,
                     OperationPhase.Evaluation,
@@ -130,6 +136,7 @@ public sealed class ConstructOperation
                 ".program-kit/construction-receipt.json",
                 receiptDigest,
                 ArtifactOwnership.GeneratedOwned);
+            authorityGrants.MarkConsumed(workspaceRoot, grant.GrantIdentity, input.RequestCoreIdentity);
             return OperationResultFactory.Success(
                 PublicCommand.Construct,
                 OperationPhase.Completion,

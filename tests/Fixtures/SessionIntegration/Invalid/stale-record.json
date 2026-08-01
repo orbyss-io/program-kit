@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-session-scenario/v1",
+  "name": "stale-installation-record",
+  "recordRevision": "0.9.0",
+  "supportedRevision": "1.0.0",
+  "expectedState": "stale"
+}

@@ -294,14 +294,17 @@ authorizes it explicitly:
 ./eng/Invoke-CodexSessionReview.ps1 `
   -ConsumerRoot $consumerRoot `
   -Trials 10 `
-  -ExpectedCodexVersion 0.137.0
+  -ExpectedCodexVersion 0.137.0 `
+  -ExpectedModel gpt-5.5 `
+  -ReviewerIdentity '<independent-reviewer-id>' `
+  -AuthorizeProviderLaunch
 ```
 
 The review launches fresh ephemeral Codex sessions in the isolated consumer
 repository and supplies the exact accepted scenario identities. The reviewer
 answers approval questions directly. The script records only:
 
-- tested provider and version;
+- tested provider, version, and explicitly pinned model;
 - installation identity and trial identity;
 - expected scenario identity;
 - observed Program Kit operation sequence;

@@ -20,6 +20,12 @@ public sealed class RuntimeAndDriftAcceptanceTests
         string workspace = ConstructWorkspace();
         try
         {
+            SessionRequestPaths sessionRequests = SessionIntegrationFixture.WriteLifecycleRequests(workspace);
+            Assert.AreEqual(0, TestRepository.RunCli("session", "install", "--workspace", workspace, "--request", sessionRequests.Install, "--format", "json").ExitCode);
+            string removalRequest = SessionIntegrationFixture.WriteRemoveRequest(workspace);
+            Assert.AreEqual(0, TestRepository.RunCli("session", "remove", "--workspace", workspace, "--request", removalRequest, "--format", "json").ExitCode);
+            Assert.IsFalse(File.Exists(Path.Combine(workspace, ".agents", "skills", "program-kit", "SKILL.md")));
+
             string app = Path.Combine(workspace, "products", "Reference.Status.Api");
             ProcessResult restore = Run("dotnet", app, "restore", "Reference.Status.Api.csproj", "--locked-mode", "--configfile", "NuGet.Config", "--packages", Path.Combine(workspace, ".runtime-packages"), "--no-cache");
             Assert.AreEqual(0, restore.ExitCode, restore.Output);
@@ -30,6 +36,9 @@ public sealed class RuntimeAndDriftAcceptanceTests
 
             int port = AvailablePort();
             ProcessStartInfo start = StartInfo("dotnet", app, Path.Combine(app, "bin", "Release", "net10.0", "Reference.Status.Api.dll"), "--urls", $"http://127.0.0.1:{port}");
+            Assert.IsFalse(dependencies.Contains("SpecKit", StringComparison.OrdinalIgnoreCase));
+            Assert.IsFalse(dependencies.Contains("SessionIntegration", StringComparison.OrdinalIgnoreCase));
+            Assert.IsFalse(dependencies.Contains("Codex", StringComparison.OrdinalIgnoreCase));
             using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start generated host.");
             try
             {
@@ -91,6 +100,12 @@ public sealed class RuntimeAndDriftAcceptanceTests
     {
         ProcessStartInfo start = new(executable) { WorkingDirectory = workingDirectory, RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
+        string appData = Path.Combine(workingDirectory, ".test-appdata");
+        Directory.CreateDirectory(Path.Combine(appData, "NuGet"));
+        start.Environment["APPDATA"] = appData;
+        start.Environment["XDG_CONFIG_HOME"] = appData;
+        start.Environment["DOTNET_CLI_HOME"] = Path.Combine(workingDirectory, ".test-dotnet-home");
+        start.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
         return start;
     }
 

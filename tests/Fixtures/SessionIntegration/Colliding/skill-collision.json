@@ -1,0 +1,8 @@
+{
+  "schema": "program-kit.test-session-scenario/v1",
+  "name": "consumer-owned-skill-collision",
+  "logicalPath": ".agents/skills/program-kit/SKILL.md",
+  "ownership": "consumer-owned",
+  "expectedDiagnostic": "program-kit.kernel/PKWSP0002",
+  "expectedEffect": "none"
+}

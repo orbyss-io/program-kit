@@ -207,7 +207,9 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
     {
         foreach (string path in Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)
             .Where(static path => string.Equals(Path.GetFileName(path), "bin", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(Path.GetFileName(path), "obj", StringComparison.OrdinalIgnoreCase))
+                || string.Equals(Path.GetFileName(path), "obj", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetFileName(path), ".program-kit-tool-appdata", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetFileName(path), ".program-kit-tool-home", StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(static path => path.Length))
         {
             if (Directory.Exists(path))

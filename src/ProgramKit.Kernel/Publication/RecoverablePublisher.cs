@@ -22,6 +22,36 @@ public sealed class RecoverablePublisher
         CandidateArtifactSet candidate,
         ConstructionMode mode)
     {
+        List<NamespacedArtifact> artifacts = new();
+        foreach (ArtifactManifestEntry artifact in candidate.Artifacts)
+        {
+            string source = LogicalPaths.ResolveInside(candidate.CandidateRoot, artifact.LogicalPath);
+            string target = LogicalPaths.ResolveInside(workspaceRoot, artifact.LogicalPath);
+            string? expected = null;
+            if (File.Exists(target))
+            {
+                string observed = Digests.Sha256(File.ReadAllBytes(target));
+                bool same = string.Equals(observed, artifact.Digest, StringComparison.Ordinal);
+                if (artifact.Ownership == ArtifactOwnership.GeneratedOwned)
+                {
+                    if (mode != ConstructionMode.Repair) throw new IOException($"Publication collision at {artifact.LogicalPath}.");
+                    expected = observed;
+                }
+                else if (!same) throw new IOException($"Publication collision at {artifact.LogicalPath}.");
+            }
+
+            artifacts.Add(new NamespacedArtifact(artifact.LogicalPath, File.ReadAllBytes(source), expected));
+        }
+
+        NamespacedPublicationResult result = new NamespacedArtifactSetPublisher().Publish(workspaceRoot, string.Empty, candidate.ConstructionIdentity, artifacts);
+        return new PublicationResult(result.Changes, result.CompletedPaths, result.LiveStateDigest);
+    }
+
+    public PublicationResult PublishLegacy(
+        string workspaceRoot,
+        CandidateArtifactSet candidate,
+        ConstructionMode mode)
+    {
         string stateRoot = Path.Combine(workspaceRoot, ".program-kit");
         Directory.CreateDirectory(stateRoot);
         string lockPath = Path.Combine(stateRoot, "workspace.lock");

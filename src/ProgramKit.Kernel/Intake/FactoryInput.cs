@@ -14,6 +14,8 @@ public sealed record FactoryInput(
     bool AuthorityApproved,
     DateTimeOffset AuthorityNotBefore,
     DateTimeOffset AuthorityNotAfter,
+    string? AuthorityGrantLogicalPath,
+    string RequestCoreIdentity,
     string ProviderSelection,
     string ProfileSelection,
     JsonObject Definition,

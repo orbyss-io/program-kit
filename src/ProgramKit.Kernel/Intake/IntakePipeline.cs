@@ -59,7 +59,12 @@ public sealed class IntakePipeline
             throw new InvalidDataException("Unsupported evaluation-context assurance.");
         }
 
-        JsonObject authority = RequiredObject(document, "authority");
+        JsonObject? legacyAuthority = document["authority"] as JsonObject;
+        JsonObject requestCore = (JsonObject)document.DeepClone();
+        requestCore.Remove("authorityGrant");
+        requestCore.Remove("authority");
+        string? authorityGrant = (document["authorityGrant"] as JsonObject)?["logicalPath"]?.GetValue<string>();
+        string requestCoreIdentity = CanonicalJson.Digest(requestCore);
         JsonObject selections = RequiredObject(document, "selections");
         JsonObject definition = RequiredObject(document, "definition");
 
@@ -70,9 +75,11 @@ public sealed class IntakePipeline
             RequiredString(document, "workspaceIdentity"),
             instant,
             RequiredString(evaluation, "source"),
-            RequiredBoolean(authority, "approved"),
-            ParseInstant(authority, "notBefore"),
-            ParseInstant(authority, "notAfter"),
+            legacyAuthority is not null && RequiredBoolean(legacyAuthority, "approved"),
+            legacyAuthority is null ? instant : ParseInstant(legacyAuthority, "notBefore"),
+            legacyAuthority is null ? instant : ParseInstant(legacyAuthority, "notAfter"),
+            authorityGrant,
+            requestCoreIdentity,
             RequiredString(selections, "provider"),
             RequiredString(selections, "profile"),
             (JsonObject)definition.DeepClone(),
@@ -85,7 +92,6 @@ public sealed class IntakePipeline
         {
             "schema", "operation", "workspaceIdentity", "requestedEffect",
             "evaluationContext.instant", "evaluationContext.source", "evaluationContext.assurance",
-            "authority.approved", "authority.notBefore", "authority.notAfter",
             "selections.provider", "selections.profile", "definition.component", "definition.application",
         };
         List<string> missing = new();
@@ -101,6 +107,12 @@ public sealed class IntakePipeline
             {
                 missing.Add(path);
             }
+        }
+
+        string? requestedEffect = document["requestedEffect"]?.GetValue<string>();
+        if (requestedEffect is "candidate-only" or "committed" && document["authorityGrant"] is null)
+        {
+            missing.Add("authorityGrant");
         }
 
         return missing;

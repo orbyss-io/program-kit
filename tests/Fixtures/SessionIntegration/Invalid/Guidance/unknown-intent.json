@@ -1,0 +1,6 @@
+{
+  "schema": "program-kit.test-guidance-scenario/v1",
+  "intentClass": "unknown",
+  "expectedDisposition": "revise",
+  "generatedMeaningAllowed": false
+}

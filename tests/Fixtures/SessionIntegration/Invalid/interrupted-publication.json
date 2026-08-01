@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-session-scenario/v1",
+  "name": "interrupted-publication",
+  "journalState": "incomplete",
+  "expectedDisposition": "repair",
+  "blindRetryAllowed": false
+}

@@ -11,6 +11,17 @@ internal static class TestRepository
 {
     public static string Root { get; } = FindRoot();
 
+    public static string CliExecutable
+    {
+        get
+        {
+            DirectoryInfo testOutput = new(AppContext.BaseDirectory);
+            string configuration = testOutput.Parent?.Name ?? throw new InvalidOperationException("Test build configuration not found.");
+            string targetFramework = testOutput.Name;
+            return Path.Combine(Root, "src", "ProgramKit.Cli", "bin", configuration, targetFramework, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
+        }
+    }
+
     public static string Fixture(string relative) => Path.Combine(Root, "tests", "Fixtures", "Reference.Status", relative.Replace('/', Path.DirectorySeparatorChar));
 
     public static string CreateWorkspace(bool includeMirror = false)
@@ -29,17 +40,20 @@ internal static class TestRepository
         return root;
     }
 
+    public static string CreateEmptyWorkspace()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "program-kit-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        return root;
+    }
+
     public static string DigestTree(string root) => string.Join('\n', Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
         .OrderBy(path => Path.GetRelativePath(root, path), StringComparer.Ordinal)
         .Select(path => $"{Path.GetRelativePath(root, path).Replace('\\', '/')}:{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)))}"));
 
     public static (int ExitCode, string StandardOutput, string StandardError) RunCli(params string[] arguments)
     {
-        DirectoryInfo testOutput = new(AppContext.BaseDirectory);
-        string configuration = testOutput.Parent?.Name ?? throw new InvalidOperationException("Test build configuration not found.");
-        string targetFramework = testOutput.Name;
-        string cli = Path.Combine(Root, "src", "ProgramKit.Cli", "bin", configuration, targetFramework, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
-        ProcessStartInfo start = new(cli) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+        ProcessStartInfo start = new(CliExecutable) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
         using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start Program Kit CLI.");
         string stdout = process.StandardOutput.ReadToEnd();

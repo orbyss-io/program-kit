@@ -1,0 +1,1 @@
+{"scenario":"protected-disclosure","input":"password=withheld","expected":"withheld"}
