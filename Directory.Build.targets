@@ -7,4 +7,18 @@
     <Error Condition="'@(_ProgramKitFloatingPackage)' != ''"
       Text="Floating or ranged direct PackageReference is prohibited: @(_ProgramKitFloatingPackage)" />
   </Target>
+
+  <Target Name="ProgramKitPinSealedSourceRevision"
+    AfterTargets="InitializeSourceControlInformation"
+    BeforeTargets="_GenerateSourceLinkFile"
+    Condition="'$(ProgramKitSealedSourceRevision)' != ''">
+    <Error
+      Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(ProgramKitSealedSourceRevision)', '^[0-9a-f]{40}$')) != 'True'"
+      Text="ProgramKitSealedSourceRevision must be one exact lowercase Git commit." />
+    <ItemGroup>
+      <SourceRoot Update="@(SourceRoot)">
+        <RevisionId>$(ProgramKitSealedSourceRevision)</RevisionId>
+      </SourceRoot>
+    </ItemGroup>
+  </Target>
 </Project>

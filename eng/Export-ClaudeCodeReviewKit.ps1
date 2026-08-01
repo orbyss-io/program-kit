@@ -63,6 +63,7 @@ $pkRepositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).P
 $pkRuntimeInputs = @(
     'src',
     'Directory.Build.props',
+    'Directory.Build.targets',
     'Directory.Packages.props',
     'global.json',
     'NuGet.Config',

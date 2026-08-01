@@ -36,6 +36,7 @@ try {
         if ($SourceRevisionId -notmatch '^[0-9a-f]{40}$') { throw 'SourceRevisionId must be one exact lowercase Git commit.' }
         $packArguments += "-p:SourceRevisionId=$SourceRevisionId"
         $packArguments += "-p:RepositoryCommit=$SourceRevisionId"
+        $packArguments += "-p:ProgramKitSealedSourceRevision=$SourceRevisionId"
     }
     dotnet @packArguments
     if ($LASTEXITCODE -ne 0) { throw 'Program Kit tool packaging failed.' }

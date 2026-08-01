@@ -17,6 +17,8 @@ public sealed class ClaudeReviewKitAcceptanceTests
         string deterministic = File.ReadAllText(Path.Combine(reviewRoot, "Invoke-DeterministicConsumerProof.ps1"));
         string live = File.ReadAllText(Path.Combine(reviewRoot, "Invoke-ClaudeCodeTrials.ps1"));
         string complete = File.ReadAllText(Path.Combine(reviewRoot, "Complete-HumanReview.ps1"));
+        string pack = File.ReadAllText(Path.Combine(TestRepository.Root, "eng", "Pack-ProgramKitTool.ps1"));
+        string buildTargets = File.ReadAllText(Path.Combine(TestRepository.Root, "Directory.Build.targets"));
 
         StringAssert.Contains(export, "Get-FileHash");
         StringAssert.Contains(export, "canonicalDependencyStatus = 'rejected'");
@@ -24,6 +26,9 @@ public sealed class ClaudeReviewKitAcceptanceTests
         StringAssert.Contains(export, "componentBindings");
         StringAssert.Contains(export, "runtime/build inputs must be committed");
         StringAssert.Contains(export, "SourceRevisionId");
+        StringAssert.Contains(pack, "ProgramKitSealedSourceRevision");
+        StringAssert.Contains(buildTargets, "ProgramKitPinSealedSourceRevision");
+        StringAssert.Contains(buildTargets, "<RevisionId>$(ProgramKitSealedSourceRevision)</RevisionId>");
         StringAssert.Contains(export, "conformanceCorpusDigest");
         StringAssert.Contains(initialize, "Review-kit digest mismatch");
         StringAssert.Contains(initialize, "aggregate review-kit identity");
