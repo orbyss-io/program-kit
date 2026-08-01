@@ -11,8 +11,12 @@ $pkManifest = Get-Content -Raw -LiteralPath (Join-Path $pkKit 'manifest.json') |
 if ($pkManifest.supportClaim -ne 'not-evaluated' -or $pkManifest.canonicalDependencyStatus -ne 'rejected') {
     throw 'This deterministic proof expects the current fail-closed Feature 003 support state.'
 }
+if ($pkManifest.componentBindings.conformanceCorpusDigest -ne 'sha256:12d964d52f2b1aa374c158643d0c497e9eb0e511ba828edcac69020eedc7320b') {
+    throw 'The sealed shared conformance corpus identity is not exact.'
+}
 $pkFeed = Join-Path $pkKit 'feed'
 $pkTrials = [Collections.Generic.List[object]]::new()
+$pkExecutableDigest = $null
 for ($pkOrdinal = 1; $pkOrdinal -le 10; $pkOrdinal++) {
     $pkTrialRoot = Join-Path $pkConsumer ('deterministic-' + $pkOrdinal.ToString('00'))
     $pkToolPath = Join-Path $pkTrialRoot '.program-kit/tools'
@@ -44,14 +48,19 @@ for ($pkOrdinal = 1; $pkOrdinal -le 10; $pkOrdinal++) {
         $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $pkPriorSkipFirstTime
     }
     $pkExecutable = Join-Path $pkToolPath $(if ($IsWindows) { 'program-kit.exe' } else { 'program-kit' })
+    $pkObservedExecutableDigest = 'sha256:' + (Get-FileHash -LiteralPath $pkExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($null -eq $pkExecutableDigest) { $pkExecutableDigest = $pkObservedExecutableDigest }
+    elseif ($pkObservedExecutableDigest -ne $pkExecutableDigest) { throw "CLI executable identity changed in deterministic trial $pkOrdinal." }
     $pkVersion = & $pkExecutable version --format json | ConvertFrom-Json -Depth 20
     $pkHelp = & $pkExecutable help --format json | ConvertFrom-Json -Depth 20
     if ($pkVersion.utility.cli -ne '1.0.0-alpha.1') { throw "CLI version mismatch in trial $pkOrdinal." }
     if ($pkHelp.utility.sessionAdapterSupport.'anthropic:session-provider:claude-code@2.1.220' -ne 'not-evaluated') { throw "Claude support was upgraded in trial $pkOrdinal." }
     if (Test-Path -LiteralPath (Join-Path $pkTrialRoot '.claude/skills/program-kit/SKILL.md')) { throw "Unauthorized projection effect in trial $pkOrdinal." }
+    if (Test-Path -LiteralPath (Join-Path $pkTrialRoot '.program-kit/session-integrations')) { throw "Unauthorized lifecycle state in trial $pkOrdinal." }
     $pkTrials.Add([ordered]@{
         ordinal = $pkOrdinal
         cliVersion = $pkVersion.utility.cli
+        cliExecutableDigest = $pkObservedExecutableDigest
         supportClaim = 'not-evaluated'
         effectState = 'none'
         projectionAbsent = $true
@@ -62,6 +71,8 @@ New-Item -ItemType Directory -Path $pkEvidenceRoot -Force | Out-Null
 $pkResult = [ordered]@{
     schema = 'program-kit.claude-code-deterministic-proof/v1'
     reviewKitDigest = $pkManifest.reviewKitDigest
+    cliPackageDigest = $pkManifest.componentBindings.cliPackageDigest
+    cliExecutableDigest = $pkExecutableDigest
     trials = $pkTrials
     passed = 10
     failed = 0

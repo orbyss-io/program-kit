@@ -90,6 +90,7 @@ Remove-Item -LiteralPath $pkScratchResolved -Recurse -Force
 
 
 Copy-Item -LiteralPath (Join-Path $pkRepositoryRoot 'tests/Fixtures/SessionIntegration/ClaudeCode') -Destination (Join-Path $pkFixtures 'ClaudeCode') -Recurse
+Copy-Item -LiteralPath (Join-Path $pkRepositoryRoot 'tests/Fixtures/SessionIntegration/Providers/Conformance') -Destination (Join-Path $pkFixtures 'SharedConformance') -Recurse
 Copy-Item -LiteralPath (Join-Path $pkRepositoryRoot 'src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Schemas/isolated-machine-review.schema.json') -Destination (Join-Path $pkSchemas 'isolated-machine-review.schema.json')
 Copy-Item -LiteralPath (Join-Path $pkRepositoryRoot 'src/ProgramKit.Contracts/Schemas/common.schema.json') -Destination (Join-Path $pkSchemas 'common.schema.json')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'ClaudeCodeReview/Initialize-ConsumerWorkspace.ps1') -Destination $pkScripts
@@ -106,7 +107,32 @@ $pkFiles = @(Get-ChildItem -LiteralPath $pkOutput -Recurse -File | Where-Object 
         length = $_.Length
     }
 } | Sort-Object { $_.logicalPath })
-$pkIdentityInput = ($pkFiles | ForEach-Object { $_.logicalPath + ':' + $_.digest + ':' + $_.length }) -join "`n"
+$pkCliPackageFiles = @($pkFiles | Where-Object logicalPath -Like 'feed/Orbyss.ProgramKit.Cli.*.nupkg')
+$pkReviewSchemaFiles = @($pkFiles | Where-Object logicalPath -EQ 'schemas/isolated-machine-review.schema.json')
+$pkCommonSchemaFiles = @($pkFiles | Where-Object logicalPath -EQ 'schemas/common.schema.json')
+$pkCorpusFiles = @($pkFiles | Where-Object logicalPath -Like 'fixtures/SharedConformance/*')
+if ($pkCliPackageFiles.Count -ne 1 -or $pkReviewSchemaFiles.Count -ne 1 -or $pkCommonSchemaFiles.Count -ne 1 -or $pkCorpusFiles.Count -eq 0) {
+    throw 'The sealed review-kit component closure is incomplete.'
+}
+$pkProviderManifest = Get-Content -Raw -LiteralPath (Join-Path $pkRepositoryRoot 'src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/claude-code-provider-manifest.json') | ConvertFrom-Json -Depth 20
+$pkCorpusIdentityInput = ($pkCorpusFiles | ForEach-Object { [IO.Path]::GetFileName($_.logicalPath) + ':' + $_.digest }) -join "`n"
+$pkCorpusIdentityBytes = [Text.Encoding]::UTF8.GetBytes($pkCorpusIdentityInput)
+$pkCorpusDigest = 'sha256:' + [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($pkCorpusIdentityBytes)).ToLowerInvariant()
+$pkComponentBindings = [ordered]@{
+    cliPackageDigest = $pkCliPackageFiles[0].digest
+    providerDigest = $pkProviderManifest.providerIdentity.digest
+    adapterDigest = $pkProviderManifest.adapterIdentity.digest
+    definitionDigest = $pkProviderManifest.definitionBinding.digest
+    diagnosticCatalogDigest = $pkProviderManifest.diagnosticCatalog.digest
+    conformanceProfileDigest = $pkProviderManifest.conformanceProfile.digest
+    conformanceCorpusDigest = $pkCorpusDigest
+    machineReviewSchemaDigest = $pkReviewSchemaFiles[0].digest
+    commonSchemaDigest = $pkCommonSchemaFiles[0].digest
+}
+$pkIdentityLines = [Collections.Generic.List[string]]::new()
+foreach ($pkFile in $pkFiles) { $pkIdentityLines.Add($pkFile.logicalPath + ':' + $pkFile.digest + ':' + $pkFile.length) }
+foreach ($pkBinding in $pkComponentBindings.GetEnumerator()) { $pkIdentityLines.Add('binding:' + $pkBinding.Key + ':' + $pkBinding.Value) }
+$pkIdentityInput = $pkIdentityLines -join "`n"
 $pkIdentityBytes = [Text.Encoding]::UTF8.GetBytes($pkIdentityInput)
 $pkHasher = [Security.Cryptography.SHA256]::Create()
 try { $pkKitDigest = 'sha256:' + [Convert]::ToHexString($pkHasher.ComputeHash($pkIdentityBytes)).ToLowerInvariant() }
@@ -122,6 +148,7 @@ $pkManifest = [ordered]@{
     adapter = 'orbyss.program-kit:session-provider-adapter:claude-code-project-skill@1.0.0'
     diagnosticCatalog = 'orbyss.program-kit.claude-code:diagnostic-catalog:session-provider@1.0.0'
     conformanceProfile = 'orbyss.program-kit:session-provider-conformance:repository-skill-v1@1.0.0'
+    componentBindings = $pkComponentBindings
     supportClaim = 'not-evaluated'
     canonicalDependencyStatus = 'rejected'
     limitations = @('feature-002-product-acceptance-rejected', 'live-claude-review-not-executed')

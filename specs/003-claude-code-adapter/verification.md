@@ -64,11 +64,16 @@ dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --no-restore 
 dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter "FullyQualifiedName~ClaudeAuthorityPreservationAcceptanceTests|FullyQualifiedName~ClaudeWorkflowAcceptanceTests|FullyQualifiedName~ClaudeRuntimeIsolationAcceptanceTests"
 ```
 
-Result: 6 passed, 0 failed. The projection preserves canonical workflow order,
+Result: 7 passed, 0 failed. The projection preserves canonical workflow order,
 requires explain-first handling and current human effect authority, and renders
 an executable plus argument array rather than shell text. The tests also prove
 that Claude process permission is not Program Kit effect authority and that
-runtime templates contain no Claude/session-provider dependency. They do not
+runtime templates contain no Claude/session-provider dependency. A generated
+application was copied with only its sealed feeds to a new runtime-only root;
+the construction workspace was deleted, then the application restored, built,
+ran `dotnet test`, started as a process, and served its status endpoint. Its
+runtime dependency graph contained no Program Kit, Spec Kit, session, Codex,
+or Claude dependency. These tests do not
 claim a successful installed lifecycle while the upstream definition is
 rejected.
 
@@ -81,9 +86,19 @@ dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --no-
 dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter "FullyQualifiedName~ClaudeProviderParityAcceptanceTests|FullyQualifiedName~ClaudeConformanceNegativeAcceptanceTests"
 ```
 
-Result: 4 passed, 0 failed. Direct, neutral-harness, Codex, and Claude channel
-observations preserve the same canonical result fields in the bounded model.
-Altered outcome meaning and a `not-evaluated` support claim fail conformance.
+Result: 9 passed, 0 failed. The five-file shared corpus identity is
+`sha256:12d964d52f2b1aa374c158643d0c497e9eb0e511ba828edcac69020eedc7320b`.
+Direct, neutral-harness, Codex, and Claude channel observations preserve its
+canonical operation, scope, effect, result, authority, diagnostic, and
+ownership meaning. Semantic loss, altered operation/scope, contaminated
+disclosure, contradictory success, an incompatible provider version, and a
+`not-evaluated` support claim produce bounded failures.
+
+The rejected Feature 002 neutral comparator still selects its semantic baseline
+lexically and validates preservation flags asymmetrically. Feature 003 does not
+modify or approve that upstream behavior; negative tests make the direct
+observation the explicit baseline. Full neutral conformance therefore remains
+part of later first-vertical-slice convergence.
 This is deterministic adapter-model evidence, not live Claude behavior.
 
 ## US4 diagnostics and disclosure evidence
@@ -122,15 +137,22 @@ installation-and-removal remains pending and is not claimed.
 
 Two exports from distinct clean output roots produced:
 
-- review-kit digest: `sha256:7d1d47c0908ea4bc799465fff31915404679d5ee2694ede220a64b9e1b40fffc`;
-- package digest: `sha256:24881aa60942e950f977ee64aebb4d26c798221558da20b01c2812668db11ad7`;
-- file count: 45 in each export;
+- review-kit digest: `sha256:5feebc70378e3ec5ddb50e33fe6b595c0b7b1050d4f9eda6d751d6d6acd92620`;
+- package digest: `sha256:fedf947a139a884c9b4ad23c690e338effbd6f55e962408cc0d4ccc4c3b838ef`;
+- shared-corpus digest: `sha256:12d964d52f2b1aa374c158643d0c497e9eb0e511ba828edcac69020eedc7320b`;
+- installed CLI executable digest: `sha256:47fb557b1983a3dc30278b45c9ea1b4debf0d5040b571fd09b610126cf1d93ac`;
+- component bindings: 9 exact digests;
+- file count: 50 including `manifest.json` in each export;
 - byte/hash differences: 0.
 
-The sealed kit was then initialized in a fresh external consumer root. Ten
-package-only CLI installations all reported CLI `1.0.0-alpha.1`, Claude support
-`not-evaluated`, `effectState: none`, and an absent Claude project skill. The
-bounded proof recorded 10 passed and 0 failed. No Claude process was launched.
+The sealed kit was then initialized in a fresh external consumer root on
+Windows x64 with exact .NET SDK `10.0.302`. Initialization verified every file,
+the aggregate kit identity, component bindings, selected provider, and absence
+of source, Spec Kit, Codex/Claude projections, and prior lifecycle state. Ten
+package-only CLI installations all produced the same executable digest,
+reported CLI `1.0.0-alpha.1`, Claude support `not-evaluated`,
+`effectState: none`, and no Claude project skill or lifecycle state. The bounded
+proof recorded 10 passed and 0 failed. No Claude process was launched.
 
 ## Complete deterministic repository gate
 
@@ -150,8 +172,8 @@ Environment and results:
 - build: succeeded with 0 warnings and 0 errors;
 - contract tests: 42 passed;
 - unit tests: 43 passed;
-- acceptance tests: 38 passed;
-- total: 123 passed, 0 failed, 0 skipped;
+- acceptance tests: 45 passed;
+- total: 130 passed, 0 failed, 0 skipped;
 - formatting: no changes required.
 
 ## Honest completion boundary

@@ -26,9 +26,13 @@ $pkSummaries = [Collections.Generic.List[object]]::new()
 for ($pkOrdinal = 1; $pkOrdinal -le $Trials; $pkOrdinal++) {
     $pkCase = 'claude-live-' + $pkOrdinal.ToString('00')
     $pkPrompt = "Use /program-kit for bounded case $pkCase. Treat Program Kit JSON and actual effects as authoritative. Return only the requested bounded classification."
-    $pkProviderResult = & claude -p $pkPrompt --output-format json --json-schema $pkSchema --allowedTools $pkProgramKit
-    if ($LASTEXITCODE -ne 0) { throw "PKCLD0006: live Claude trial $pkOrdinal did not complete." }
-    try { $pkBounded = $pkProviderResult | ConvertFrom-Json -Depth 10 }
+    $pkProviderResult = $null
+    $pkBounded = $null
+    try {
+        $pkProviderResult = & claude -p $pkPrompt --output-format json --json-schema $pkSchema --allowedTools $pkProgramKit
+        if ($LASTEXITCODE -ne 0) { throw "PKCLD0006: live Claude trial $pkOrdinal did not complete." }
+        $pkBounded = $pkProviderResult | ConvertFrom-Json -Depth 10
+    }
     finally { $pkProviderResult = $null }
     if ($pkBounded.caseIdentity -ne $pkCase) { throw "PKCLD0004: trial $pkOrdinal changed the case identity." }
     $pkSummaries.Add([ordered]@{

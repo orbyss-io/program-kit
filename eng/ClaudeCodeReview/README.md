@@ -14,6 +14,12 @@ ten repeatable no-effect consumer trials. `Invoke-ClaudeCodeTrials.ps1` refuses
 to launch Claude until a newly sealed kit binds both an accepted canonical
 dependency and a supported adapter, plus explicit current human authority.
 
+Initialization accepts only Windows or Linux with exact .NET SDK `10.0.302`,
+an absent or empty consumer root, and no Program Kit/Spec Kit/Codex/Claude
+projection or prior session lifecycle state. The manifest binds the CLI
+package, provider, adapter, canonical definition, diagnostics, schemas, and
+the exact shared conformance corpus in addition to every sealed file.
+
 Provider installation, authentication, workspace trust, network access, and
 process permission remain separately managed by the human. None of them grants
 Program Kit effect authority. Never edit the kit after export; a changed byte
