@@ -19,12 +19,12 @@
 
 **Purpose**: Add the isolated Claude provider project and test references without changing provider-neutral contracts.
 
-- [ ] T001 Create the locked-restore Claude provider class-library project with a one-way reference to SessionIntegration in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/ProgramKit.SessionIntegration.Providers.ClaudeCode.csproj`
-- [ ] T002 Add `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/ProgramKit.SessionIntegration.Providers.ClaudeCode.csproj` to `ProgramKit.slnx`
-- [ ] T003 Add the Claude provider reference to `src/ProgramKit.Cli/ProgramKit.Cli.csproj`
-- [ ] T004 Add Claude provider references required by contract, unit, and acceptance coverage to `tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj`, `tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj`, and `tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj`
-- [ ] T005 [P] Create the planned provider source folders under `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/`, `Projection/`, `Invocation/`, `Diagnostics/`, `Conformance/`, and `Schemas/`
-- [ ] T006 Restore in locked mode and commit `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/packages.lock.json` plus updated test and CLI lock files
+- [X] T001 Create the locked-restore Claude provider class-library project with a one-way reference to SessionIntegration in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/ProgramKit.SessionIntegration.Providers.ClaudeCode.csproj`
+- [X] T002 Add `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/ProgramKit.SessionIntegration.Providers.ClaudeCode.csproj` to `ProgramKit.slnx`
+- [X] T003 Add the Claude provider reference to `src/ProgramKit.Cli/ProgramKit.Cli.csproj`
+- [X] T004 Add Claude provider references required by contract, unit, and acceptance coverage to `tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj`, `tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj`, and `tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj`
+- [X] T005 [P] Create the planned provider source folders under `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/`, `Projection/`, `Invocation/`, `Diagnostics/`, `Conformance/`, and `Schemas/`
+- [X] T006 Restore in locked mode and commit `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/packages.lock.json` plus updated test and CLI lock files
 
 ---
 
@@ -36,21 +36,21 @@
 
 ### Tests first
 
-- [ ] T007 [P] Add architecture tests proving Claude paths, types, diagnostics, versions, and surface vocabulary occur only in the provider project, fixtures, review tooling, and provider documentation in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeProviderBoundaryContractTests.cs` (FR-003 through FR-005, FR-031)
-- [ ] T008 [P] Add manifest closure and canonical serialization tests for exact provider `2.1.220`, adapter, surface, definition, catalog, operation, projection, scope, and binding identities in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeProviderManifestContractTests.cs` (FR-001 through FR-004, FR-006, FR-007, FR-009, FR-022)
-- [ ] T009 [P] Add schema compilation, valid-record, malformed-record, and accepted-decision invariant tests for the isolated-machine review contract in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeMachineReviewSchemaContractTests.cs` (FR-024 through FR-026, FR-029)
-- [ ] T010 [P] Add uniqueness, stable metadata, trigger, safe-remediation, and generic-diagnostic reuse tests for `PKCLD0001` through `PKCLD0008` in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeDiagnosticCatalogContractTests.cs` (FR-027 through FR-029)
-- [ ] T011 Add fail-closed tests proving a rejected, missing, stale, or mismatched Feature 002 definition keeps the Claude support claim `not-evaluated` and blocks supported/admitted/release claims in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeSupportAdmissionContractTests.cs` (FR-001, FR-010, FR-022, FR-026)
+- [X] T007 [P] Add architecture tests proving Claude paths, types, diagnostics, versions, and surface vocabulary occur only in the provider project, fixtures, review tooling, and provider documentation in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeProviderBoundaryContractTests.cs` (FR-003 through FR-005, FR-031)
+- [X] T008 [P] Add manifest closure and canonical serialization tests for exact provider `2.1.220`, adapter, surface, definition, catalog, operation, projection, scope, and binding identities in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeProviderManifestContractTests.cs` (FR-001 through FR-004, FR-006, FR-007, FR-009, FR-022)
+- [X] T009 [P] Add schema compilation, valid-record, malformed-record, and accepted-decision invariant tests for the isolated-machine review contract in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeMachineReviewSchemaContractTests.cs` (FR-024 through FR-026, FR-029)
+- [X] T010 [P] Add uniqueness, stable metadata, trigger, safe-remediation, and generic-diagnostic reuse tests for `PKCLD0001` through `PKCLD0008` in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeDiagnosticCatalogContractTests.cs` (FR-027 through FR-029)
+- [X] T011 Add fail-closed tests proving a rejected, missing, stale, or mismatched Feature 002 definition keeps the Claude support claim `not-evaluated` and blocks supported/admitted/release claims in `tests/ProgramKit.ContractTests/SessionIntegration/ClaudeCode/ClaudeSupportAdmissionContractTests.cs` (FR-001, FR-010, FR-022, FR-026)
 
 ### Provider foundations
 
-- [ ] T012 [P] Define the exact Claude provider, project-skill surface, adapter, catalog, conformance profile, and supported-version identities in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/ClaudeProviderIdentities.cs` (FR-002, FR-006, FR-007)
-- [ ] T013 [P] Embed the provider-owned machine-review schema at `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Schemas/isolated-machine-review.schema.json` and register its stable resource identity in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Schemas/ClaudeSchemaResources.cs` (FR-024, FR-025)
-- [ ] T014 [P] Implement the complete provider diagnostic catalog and safe typed entries in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Diagnostics/ClaudeDiagnosticCatalog.cs` (FR-027 through FR-029)
-- [ ] T015 Define the immutable exact provider manifest resource in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/claude-code-provider-manifest.json` with support defaulted to `not-evaluated` (FR-001 through FR-004, FR-006, FR-007, FR-009, FR-022)
-- [ ] T016 Implement manifest loading, schema validation, canonical identity binding, and exact dependency status evaluation in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/ClaudeProviderManifestLoader.cs` (FR-001, FR-002, FR-006, FR-007, FR-022)
-- [ ] T017 Implement a provider support admission evaluator that cannot upgrade the rejected Feature 002 dependency or incomplete live evidence in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Conformance/ClaudeSupportAdmissionEvaluator.cs` (FR-001, FR-022 through FR-026)
-- [ ] T018 Run the foundational Claude contract filters and record the commands, exact identities, and fail-closed upstream status in `specs/003-claude-code-adapter/verification.md`
+- [X] T012 [P] Define the exact Claude provider, project-skill surface, adapter, catalog, conformance profile, and supported-version identities in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/ClaudeProviderIdentities.cs` (FR-002, FR-006, FR-007)
+- [X] T013 [P] Embed the provider-owned machine-review schema at `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Schemas/isolated-machine-review.schema.json` and register its stable resource identity in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Schemas/ClaudeSchemaResources.cs` (FR-024, FR-025)
+- [X] T014 [P] Implement the complete provider diagnostic catalog and safe typed entries in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Diagnostics/ClaudeDiagnosticCatalog.cs` (FR-027 through FR-029)
+- [X] T015 Define the immutable exact provider manifest resource in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/claude-code-provider-manifest.json` with support defaulted to `not-evaluated` (FR-001 through FR-004, FR-006, FR-007, FR-009, FR-022)
+- [X] T016 Implement manifest loading, schema validation, canonical identity binding, and exact dependency status evaluation in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Manifest/ClaudeProviderManifestLoader.cs` (FR-001, FR-002, FR-006, FR-007, FR-022)
+- [X] T017 Implement a provider support admission evaluator that cannot upgrade the rejected Feature 002 dependency or incomplete live evidence in `src/ProgramKit.SessionIntegration.Providers.ClaudeCode/Conformance/ClaudeSupportAdmissionEvaluator.cs` (FR-001, FR-022 through FR-026)
+- [X] T018 Run the foundational Claude contract filters and record the commands, exact identities, and fail-closed upstream status in `specs/003-claude-code-adapter/verification.md`
 
 **Checkpoint**: Claude-specific meaning is isolated, exact identities resolve once, schemas and diagnostics validate, and the rejected Feature 002 dependency makes support unavailable without changing upstream code.
 

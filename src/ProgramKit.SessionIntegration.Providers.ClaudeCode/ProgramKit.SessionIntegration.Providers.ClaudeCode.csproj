@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ProgramKit.SessionIntegration.Providers.ClaudeCode</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Manifest/*.json" />
+    <EmbeddedResource Include="Schemas/*.json" />
+  </ItemGroup>
+</Project>

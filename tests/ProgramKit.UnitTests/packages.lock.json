@@ -144,6 +144,12 @@
           "ProgramKit.Kernel": "[1.0.0, )"
         }
       },
+      "programkit.sessionintegration.providers.claudecode": {
+        "type": "Project",
+        "dependencies": {
+          "ProgramKit.SessionIntegration": "[1.0.0, )"
+        }
+      },
       "programkit.sessionintegration.providers.codex": {
         "type": "Project",
         "dependencies": {

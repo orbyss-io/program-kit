@@ -21,6 +21,7 @@
     <ProjectReference Include="../ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
     <ProjectReference Include="../ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
     <ProjectReference Include="../ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj" />
+    <ProjectReference Include="../ProgramKit.SessionIntegration.Providers.ClaudeCode/ProgramKit.SessionIntegration.Providers.ClaudeCode.csproj" />
     <ProjectReference Include="../ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj" />
   </ItemGroup>
   <ItemGroup>

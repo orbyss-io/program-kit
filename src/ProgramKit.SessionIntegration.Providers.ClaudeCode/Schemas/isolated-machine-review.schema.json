@@ -1,0 +1,358 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/claude-code-machine-review.schema.json",
+  "title": "Program Kit Claude Code Isolated-Machine Review v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "canonicalProfile",
+    "reviewIdentity",
+    "evaluationContext",
+    "reviewKit",
+    "environment",
+    "cliRelease",
+    "definition",
+    "adapter",
+    "provider",
+    "installation",
+    "conformanceSummary",
+    "liveTrials",
+    "runtimeIsolation",
+    "disclosureReview",
+    "humanDecision",
+    "limitations"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "program-kit.claude-code-machine-review/v1"
+    },
+    "canonicalProfile": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
+    },
+    "reviewIdentity": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+    },
+    "evaluationContext": {
+      "$ref": "#/$defs/evaluationContext"
+    },
+    "reviewKit": {
+      "$ref": "#/$defs/reviewKit"
+    },
+    "environment": {
+      "$ref": "#/$defs/environment"
+    },
+    "cliRelease": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+    },
+    "definition": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+    },
+    "adapter": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+    },
+    "provider": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+    },
+    "installation": {
+      "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+    },
+    "conformanceSummary": {
+      "$ref": "#/$defs/summary"
+    },
+    "liveTrials": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/liveTrial"
+      }
+    },
+    "runtimeIsolation": {
+      "$ref": "#/$defs/evidenceVerdict"
+    },
+    "disclosureReview": {
+      "$ref": "#/$defs/evidenceVerdict"
+    },
+    "humanDecision": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "rejected",
+        "pending"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+        "maxLength": 100
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "humanDecision": {
+            "const": "accepted"
+          }
+        },
+        "required": [
+          "humanDecision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "conformanceSummary": {
+            "properties": {
+              "failed": {
+                "const": 0
+              },
+              "incompatible": {
+                "const": 0
+              },
+              "notEvaluated": {
+                "const": 0
+              }
+            }
+          },
+          "runtimeIsolation": {
+            "properties": {
+              "verdict": {
+                "const": "passed"
+              }
+            }
+          },
+          "disclosureReview": {
+            "properties": {
+              "verdict": {
+                "const": "passed"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "evaluationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instant",
+        "source",
+        "assurance"
+      ],
+      "properties": {
+        "instant": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "source": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "assurance": {
+          "type": "string",
+          "const": "human-reviewed-external-observation"
+        }
+      }
+    },
+    "reviewKit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest",
+        "digest"
+      ],
+      "properties": {
+        "manifest": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+        },
+        "digest": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "osFamily",
+        "osArchitecture",
+        "runtimeProfile",
+        "workspaceIdentity",
+        "cleanBoundaryPassed"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "osFamily": {
+          "type": "string",
+          "enum": [
+            "windows",
+            "linux"
+          ]
+        },
+        "osArchitecture": {
+          "type": "string",
+          "enum": [
+            "x64",
+            "arm64"
+          ]
+        },
+        "runtimeProfile": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "workspaceIdentity": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "cleanBoundaryPassed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "corpus",
+        "passed",
+        "failed",
+        "incompatible",
+        "inconclusive",
+        "notEvaluated"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "corpus": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "incompatible": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inconclusive": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notEvaluated": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "liveTrial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "ordinal",
+        "mode",
+        "providerObservation",
+        "caseIdentity",
+        "programKitEvidence",
+        "effectObservation",
+        "authorityBehavior",
+        "diagnosticBehavior",
+        "status"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "explicit-skill",
+            "natural-discovery",
+            "interactive-review"
+          ]
+        },
+        "providerObservation": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+        },
+        "caseIdentity": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
+        },
+        "programKitEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+          }
+        },
+        "effectObservation": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
+        },
+        "authorityBehavior": {
+          "$ref": "#/$defs/behaviorVerdict"
+        },
+        "diagnosticBehavior": {
+          "$ref": "#/$defs/behaviorVerdict"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "incompatible",
+            "inconclusive",
+            "not-evaluated"
+          ]
+        }
+      }
+    },
+    "behaviorVerdict": {
+      "type": "string",
+      "enum": [
+        "preserved",
+        "violated",
+        "not-evaluated"
+      ]
+    },
+    "evidenceVerdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verdict",
+        "evidence"
+      ],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "not-evaluated"
+          ]
+        },
+        "evidence": {
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
+        }
+      }
+    }
+  }
+}

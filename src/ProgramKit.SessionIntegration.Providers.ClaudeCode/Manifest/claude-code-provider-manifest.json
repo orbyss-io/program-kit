@@ -1,0 +1,62 @@
+{
+  "schema": "program-kit.session-provider-manifest/v1",
+  "canonicalProfile": "program-kit.canonical-json/v1",
+  "providerIdentity": {
+    "authority": "anthropic",
+    "kind": "session-provider",
+    "name": "claude-code",
+    "revision": "2.1.220",
+    "digest": "sha256:24d4eb1b3e5703235109efabcb71a7b4dfdca2322245fa7b9bc1b8d905e42c5b"
+  },
+  "adapterIdentity": {
+    "authority": "orbyss.program-kit",
+    "kind": "session-provider-adapter",
+    "name": "claude-code-project-skill",
+    "revision": "1.0.0",
+    "digest": "sha256:24d4eb1b3e5703235109efabcb71a7b4dfdca2322245fa7b9bc1b8d905e42c5b"
+  },
+  "definitionBinding": {
+    "authority": "orbyss.program-kit",
+    "kind": "session-integration-definition",
+    "name": "human-led-software-factory",
+    "revision": "1.0.0",
+    "digest": "sha256:32deb790b8127e3d5950d871df152781ecc34bebefe39577794e8b2653cc091b"
+  },
+  "bindingKind": "shell-cli",
+  "supportedScopes": ["workspace"],
+  "providerSurface": {
+    "providerName": "Claude Code",
+    "surfaceName": "project-skill",
+    "surfaceRevision": "2.1.220",
+    "testedVersions": ["2.1.220"],
+    "discovery": "project-skill",
+    "reloadBehavior": "fresh-session",
+    "structuredResultTransport": "json-stdout"
+  },
+  "projectionDescriptors": [
+    {
+      "role": "session-capability",
+      "logicalPath": ".claude/skills/program-kit/SKILL.md",
+      "mediaType": "text/markdown",
+      "ownership": "generated-owned",
+      "claimClass": "canonical-byte",
+      "removalPolicy": "exact-admitted-digest-only"
+    }
+  ],
+  "requiredOperations": ["explain", "construct", "evaluate", "session-explain", "session-install", "session-verify", "session-remove"],
+  "diagnosticCatalog": {
+    "authority": "orbyss.program-kit.claude-code",
+    "kind": "diagnostic-catalog",
+    "name": "session-provider",
+    "revision": "1.0.0",
+    "digest": "sha256:01c390a82039bed04a5f6c38bb606eccfd2d623f84c5dd7c309a7cc5f0c7a6aa"
+  },
+  "conformanceProfile": {
+    "authority": "orbyss.program-kit",
+    "kind": "session-provider-conformance",
+    "name": "repository-skill-v1",
+    "revision": "1.0.0",
+    "digest": "sha256:4f09e1f5b6aebc4992c1755f295af4a78625de351f6676f893b732b164f9a237"
+  },
+  "supportClaim": "not-evaluated"
+}

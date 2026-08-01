@@ -136,6 +136,7 @@
           "ProgramKit.Kernel": "[1.0.0, )",
           "ProgramKit.Providers.DotNet": "[1.0.0, )",
           "ProgramKit.SessionIntegration": "[1.0.0, )",
+          "ProgramKit.SessionIntegration.Providers.ClaudeCode": "[1.0.0, )",
           "ProgramKit.SessionIntegration.Providers.Codex": "[1.0.0, )"
         }
       },
@@ -161,6 +162,12 @@
         "dependencies": {
           "ProgramKit.Contracts": "[1.0.0, )",
           "ProgramKit.Kernel": "[1.0.0, )"
+        }
+      },
+      "programkit.sessionintegration.providers.claudecode": {
+        "type": "Project",
+        "dependencies": {
+          "ProgramKit.SessionIntegration": "[1.0.0, )"
         }
       },
       "programkit.sessionintegration.providers.codex": {
