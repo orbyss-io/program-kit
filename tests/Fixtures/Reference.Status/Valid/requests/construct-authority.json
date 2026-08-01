@@ -1,0 +1,85 @@
+{
+  "schema": "program-kit.authority-grant/v1",
+  "canonicalProfile": "program-kit.canonical-json/v1",
+  "identity": {
+    "authority": "consumer.reference",
+    "kind": "authority-grant",
+    "name": "construct-reference-status",
+    "revision": "1.0.0",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "issuerAssertion": {
+    "provider": {
+      "authority": "consumer.reference",
+      "kind": "authority-provider",
+      "name": "repository-record",
+      "revision": "1.0.0",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "issuer": "reference-fixture-human-review-record",
+    "assurance": "repository-record-presence"
+  },
+  "subjects": [
+    {
+      "kind": "workspace",
+      "identity": {
+        "authority": "consumer.reference",
+        "kind": "workspace",
+        "name": "reference.status.workspace",
+        "revision": "1.0.0",
+        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  ],
+  "operations": ["construct"],
+  "effects": ["committed"],
+  "requestBinding": "sha256:53d049193f5cbb6aabb26339e349f7fb20a57679282f88a4119158b828c44f85",
+  "conditions": [
+    {
+      "kind": "provider",
+      "value": {
+        "classification": "public",
+        "valueKind": "string",
+        "value": "orbyss.program-kit.dotnet:factory-provider:dotnet-cshells@1.0.0"
+      }
+    },
+    {
+      "kind": "scope",
+      "value": {
+        "classification": "public",
+        "valueKind": "string",
+        "value": "workspace"
+      }
+    }
+  ],
+  "validity": {
+    "notBefore": "2026-01-01T00:00:00Z",
+    "notAfter": "2027-01-01T00:00:00Z"
+  },
+  "revocationReference": {
+    "identity": {
+      "authority": "consumer.reference",
+      "kind": "revocation-record",
+      "name": "construct-reference-status",
+      "revision": "1.0.0",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "mediaType": "application/json",
+    "logicalPath": "requests/revocations.json",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "ownership": "consumer-owned"
+  },
+  "provenance": {
+    "identity": {
+      "authority": "consumer.reference",
+      "kind": "human-review-record",
+      "name": "construct-reference-status",
+      "revision": "1.0.0",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "mediaType": "application/json",
+    "logicalPath": "requests/review.json",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "ownership": "consumer-owned"
+  }
+}

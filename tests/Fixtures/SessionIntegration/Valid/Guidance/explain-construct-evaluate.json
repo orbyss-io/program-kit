@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-guidance-scenario/v1",
+  "intentClass": "known",
+  "steps": ["explain", "request-exact-authority", "construct", "evaluate"],
+  "expectedEffectSequence": ["none", "committed", "none"],
+  "unknownImplementationIntentPreserved": true
+}

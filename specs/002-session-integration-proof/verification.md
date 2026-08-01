@@ -49,3 +49,28 @@ US1 observations:
 - source-authoring workspaces were rejected before lifecycle inspection or projection;
 - the installed projection consisted only of `.agents/skills/program-kit/SKILL.md`; and
 - no source checkout, global registration, provider process, network client, telemetry client, or runtime dependency was introduced.
+
+## US2 — human-led intent and exact construction authority — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-build --filter "FullyQualifiedName~SessionGuidanceContractTests"`
+  - Passed: 1; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-build --filter "FullyQualifiedName~ConstructAuthorityBindingTests"`
+  - Passed: 1; failed: 0.
+  - Changes to canonical input, operation, workspace target, or provider selection invalidated the original binding.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --filter "FullyQualifiedName~HumanLedSessionWorkflowAcceptanceTests|FullyQualifiedName~SessionRuntimeIsolationAcceptanceTests"`
+  - Passed: 2; failed: 0.
+  - Declined/missing authority produced `blocked / none / request-approval`; the exact separately granted request installed successfully; verify preserved the complete workspace digest.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --filter "FullyQualifiedName~Construct_then_evaluate_proves_admission"`
+  - Passed: 1; failed: 0 after migrating Feature 001's reference request from ambient approval to an exact repository grant.
+- `dotnet test ProgramKit.slnx -c Release --no-build`
+  - Contract: 17 passed.
+  - Unit: 22 passed.
+  - Acceptance: 9 passed.
+
+US2 observations:
+
+- the canonical workflow distinguishes known, incomplete-known, and unknown intent without inventing consumer semantics;
+- clarified input, target paths, provider resolution, operation, and grant identity participate in the invocation binding;
+- factory construction now loads and consumes a request-bound repository grant instead of trusting an ambient Boolean;
+- the existing public construct/evaluate slice remained compatible under the stricter authority mechanism;
+- the ten-workspace deterministic lifecycle suite retained equal projection fingerprints, exact request bindings, committed install outcomes, and read-only verification outcomes; and

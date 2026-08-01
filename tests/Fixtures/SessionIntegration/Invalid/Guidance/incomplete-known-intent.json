@@ -1,0 +1,6 @@
+{
+  "schema": "program-kit.test-guidance-scenario/v1",
+  "intentClass": "incomplete-known",
+  "expectedDisposition": "provide-input",
+  "constructionAllowed": false
+}

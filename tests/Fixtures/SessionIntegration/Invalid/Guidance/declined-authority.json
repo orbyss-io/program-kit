@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-guidance-scenario/v1",
+  "authorityDecision": "declined",
+  "expectedOutcome": "blocked",
+  "expectedEffect": "none",
+  "grantFabricationAllowed": false
+}
