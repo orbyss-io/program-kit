@@ -257,3 +257,32 @@ Convergence disposition:
 - the earlier FR-007 through FR-014 placeholder-definition/manifest and test-only session-provider admission gaps are closed;
 - the factory SPI/public factory-request/vocabulary findings remain deliberately deferred to Feature 005 and were not implemented here;
 - T100 remains pending for Linux execution, T101 remains pending because no live Codex launch was authorized, T102 remains pending for an independent human product decision, and T105 remains pending until those authorized final gates can be truthfully consolidated.
+
+## Supported-platform deterministic review — 2026-08-01
+
+T100 is satisfied by the bounded Windows/Linux matrix evidence in
+`reviews/deterministic-session-review.json`:
+
+- Draft PR `#7`, workflow run `30699217250`, head
+  `d19626a288d5b2de143b9709b2a3e15b48dd01af` passed both supported jobs:
+  Ubuntu job `91367117663` and Windows job `91367117669`.
+- Aggregate evidence schema:
+  `program-kit.deterministic-session-review-index/v1`; SHA-256
+  `sha256:c253d0b4cbf1eed212b57777244713debe7f8560412495b154da5bbcecfc0171`.
+- Ubuntu raw evidence SHA-256:
+  `sha256:e5bceb579558f271749810647d083d25052137f058bd3f34e92454207192ceee`;
+  Windows raw evidence SHA-256:
+  `sha256:2cc5c3583a115a991c29a73ca7890ba6817aa10b98473448c604cda6eddfdc9b`.
+- Both platforms used SDK `10.0.302` and package identity
+  `Orbyss.ProgramKit.Cli@1.0.0-alpha.1`. Observed package bytes are honestly
+  `verified-equivalent`, not claimed cross-platform canonical-byte: Ubuntu
+  `sha256:8414bfc5c919d048f4b4d378fdcbf476c1db727e1ce41177276d19e8f6152884`;
+  Windows `sha256:500c5d24250da816c2f4d338829d9cb7a93cac3102a78a23ca94f35cc82d42ce`.
+- Ten fresh workspaces passed per platform, twenty total, with zero failures.
+  Tool installation took 314–344 ms on Ubuntu and 518–2150 ms on Windows.
+- Each platform produced ten distinct installation-record digests and ten
+  distinct removal-receipt digests. Every trial proved missing-authority
+  `program-kit.kernel/PKPOL0001`, drift `program-kit.session/PKSES0004`, exact
+  removal, preserved consumer bytes, and a callable CLI after removal.
+- Platform-specific projections were deterministic within their declared
+  profiles: Ubuntu `sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10`;
