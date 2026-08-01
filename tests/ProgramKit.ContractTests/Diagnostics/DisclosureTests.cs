@@ -85,6 +85,26 @@ public sealed class DisclosureTests
     }
 
     [TestMethod]
+    public void Opaque_unknown_cli_tokens_are_never_echoed_by_parse_diagnostics()
+    {
+        const string opaque = "sha256:4b7bc5e7c31edc11d8a7d6f92d20d989cc86ec64b6f9a7e15338b18f7b6c0209";
+        string[][] invocations =
+        {
+            new[] { opaque, "--format", "json" },
+            new[] { "help", opaque, "--format", "json" },
+            new[] { "help", $"--{opaque}", "--format", "json" },
+        };
+
+        foreach (string[] invocation in invocations)
+        {
+            var execution = TestRepository.RunCli(invocation);
+            Assert.AreNotEqual(0, execution.ExitCode);
+            Assert.AreEqual(string.Empty, execution.StandardError);
+            Assert.IsFalse(execution.StandardOutput.Contains(opaque, StringComparison.Ordinal), execution.StandardOutput);
+            ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, execution.StandardOutput);
+        }
+    }
+    [TestMethod]
     public void Verbose_progress_and_unknown_cli_input_stay_on_the_safe_machine_channel()
     {
         string workspace = TestRepository.CreateWorkspace();

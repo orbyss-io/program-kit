@@ -20,7 +20,7 @@ public sealed class CliParser
 
         if (!TryCommand(arguments[0], out PublicCommand command))
         {
-            return new(null, $"Unknown command: {arguments[0]}");
+            return new(null, "Unknown command.");
         }
 
         Dictionary<string, string> options = new(StringComparer.Ordinal);
@@ -41,12 +41,12 @@ public sealed class CliParser
 
             if (!token.StartsWith("--", StringComparison.Ordinal) || endOfOptions)
             {
-                return new(null, $"Unexpected positional argument: {token}");
+                return new(null, "Unexpected positional argument.");
             }
 
             if (token is not ("--workspace" or "--request" or "--format"))
             {
-                return new(null, $"Unknown option: {token}");
+                return new(null, "Unknown option.");
             }
 
             if (options.ContainsKey(token))
