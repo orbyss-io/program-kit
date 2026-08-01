@@ -1,0 +1,44 @@
+id: "program-kit-delivery"
+extends: "speckit"
+priority: 5
+enabled: true
+edits:
+  - insert_after: specify
+    step:
+      id: clarify
+      command: speckit.clarify
+      integration: "{{ inputs.integration }}"
+      input:
+        args: "{{ inputs.spec }}"
+
+  - replace: review-spec
+    step:
+      id: review-spec
+      type: gate
+      message: "Review intent, authority, scope, negative paths, requirement classification, and unresolved meaning before planning."
+      options: [approve, reject]
+      on_reject: abort
+
+  - replace: review-plan
+    step:
+      id: review-plan
+      type: gate
+      message: "Review the architecture, Requirement and Proof Matrix, verification tiers, evidence reuse, and acceptance invalidation rules before task generation."
+      options: [approve, reject]
+      on_reject: abort
+
+  - insert_before: implement
+    step:
+      id: analyze
+      command: speckit.analyze
+      integration: "{{ inputs.integration }}"
+      input:
+        args: "{{ inputs.spec }}"
+
+  - insert_before: implement
+    step:
+      id: review-tasks
+      type: gate
+      message: "Approve implementation only when analyze reports no unresolved CRITICAL/HIGH contradiction, boundary, ownership, or proof-coverage gap."
+      options: [approve, reject]
+      on_reject: abort

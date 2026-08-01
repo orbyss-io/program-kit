@@ -1,28 +1,23 @@
 <!--
 Sync Impact Report
-- Version change: 0.1.0 proposal -> 1.0.0
-- Modified principles:
-  - Proposal I and II -> I. Human Authority and Semantic Honesty
-  - Proposal III through V -> III. Exact Contracts and Governed Resolution
-  - Proposal VI and X -> IV. Honest Determinism and Evidence
-  - Proposal VIII -> VI. Explicit Extensions and Composition
-  - Proposal XI -> VII. Diagnostics Are an AI-Usable Public Contract
-  - Proposal XII -> VIII. Consumer Ownership, Runtime Isolation, and Local Safety
-  - Proposal IX and XIII -> IX. Evidence-First Vertical Delivery
-- Added principles:
-  - II. The Public Product Is an Independent Software Factory
-  - V. Artifact Ownership and Atomic Trust
-- Removed principles:
-  - Native planning obligations; Spec Kit owns the guided development workflow
-  - Automated migration obligations; migration design is deferred
-  - A universal feature/domain architecture; consumers own architecture
-- Added sections:
-  - V1 Product Boundary
-  - Enforcement Contract
-  - Spec Kit Development Workflow
+- Version change: 1.0.0 -> 1.1.0
+- Modified sections:
+  - Enforcement Contract: proportional automation and evidence reuse
+  - Spec Kit Development Workflow: proof ownership, verification tiers,
+    acceptance invalidation, and upgrade-safe project customization
+- Added obligations:
+  - analyze before implementation and reject unowned MUST/proof rows
+  - keep fast local feedback distinct from authoritative final CI proof
+  - reuse equivalent evidence while its declared inputs remain unchanged
+  - separate semantic product acceptance from release provenance
+  - protect project workflow policy across Spec Kit upgrades
 - Template compatibility:
-  - .specify/templates/plan-template.md already loads Constitution Check gates
-  - No command or task template changes required
+  - project artifact shapes live in .specify/templates/overrides/
+  - lifecycle changes live in .specify/workflows/overlays/
+  - upstream manifest-managed templates, scripts, and skills remain unmodified
+- Upgrade compatibility:
+  - use manifest-aware integration upgrade without --force
+  - repository integrity checks fail on managed-core edits or lost project layers
 - Follow-up TODOs: none
 -->
 
@@ -370,7 +365,9 @@ Every normative rule MUST identify one honest enforcement mode:
 `executable-invariant`, `evidence-backed`, `human-review`, or
 `aspirational`. A rule MUST NOT claim a stronger mode than its evidence can
 support. Mechanizable invariants SHOULD be automated at the earliest reliable
-layer; subjective adequacy MUST remain visibly human-reviewed.
+and proportionate layer; subjective adequacy MUST remain visibly human-reviewed.
+Equivalent evidence MUST be reused while its declared input and invalidation set
+is unchanged. Mere elapsed time or an unrelated commit does not invalidate it.
 
 Kernel gates for integrity, identity, exact closure and resolution, authority,
 artifact ownership and publication safety, provenance, evidence truth,
@@ -406,11 +403,53 @@ Before implementation, every feature specification and plan MUST:
    obligations.
 
 Task generation MUST convert every applicable MUST and planned proof into an
-explicit dependency-ordered task. Analysis MUST expose contradictions, missing
-proof, boundary violations, or unjustified complexity before implementation.
-Implementation MUST stop and return to specification or planning when it
-discovers material ambiguity, changed authority, hidden dependency, broadened
-effects, unsupported determinism, or a violated constitutional boundary.
+explicit dependency-ordered task with requirement references, an observable
+outcome, proof owner, verification tier, and completion condition. A planned
+file path is not itself the required outcome unless an accepted architecture
+makes that boundary normative. Public contracts, negative paths, constitutional
+MUSTs, and evidence-backed claims MUST NOT have optional proof.
+
+Analysis MUST run after task generation and before implementation. It MUST
+expose contradictions, unowned requirements or proof, boundary violations, and
+unjustified complexity. Implementation MUST NOT begin with an unresolved
+CRITICAL or HIGH finding. It MUST stop and return to specification or planning
+when it discovers material ambiguity, changed authority, hidden dependency,
+broadened effects, unsupported determinism, or a violated constitutional
+boundary. Convergence is a recovery mechanism for discovered drift, not a
+routine substitute for pre-implementation analysis.
+
+Verification MUST distinguish these stages:
+
+1. edit feedback: affected build and focused unit proof;
+2. story proof: relevant unit, contract, and narrowly scoped acceptance proof;
+3. pre-PR integration: one isolated local build plus relevant unit/contract
+   and changed-file hygiene checks;
+4. protected CI: the authoritative complete acceptance, conformance,
+   deterministic-evidence, and required platform matrix; and
+5. human validation: subjective intent, fitness, limitations, and approval.
+
+A more expensive stage MUST NOT be repeatedly substituted for a cheaper stage
+that proves the changed boundary. A complete local gate is required only when
+the plan's declared invalidation set, release work, or CI diagnosis requires it;
+otherwise protected CI owns final cross-platform assurance. Post-merge waiting
+MUST NOT block feature completion when it only repeats proof already required
+for the exact protected merge candidate. Unique publication or deployment work
+MAY remain a post-merge gate.
+
+Plans MUST distinguish acceptance invalidation classes. Product, public API,
+security, authority, or runtime-semantic changes invalidate applicable human
+product acceptance. Proof-only changes require renewed executable evidence and
+human review only when the accepted claim or limitation changes. Documentation,
+formatting, or metadata changes do not invalidate product acceptance unless
+they alter accepted evidence bytes or claims. Exact release provenance MAY be
+rebound to a final commit without misrepresenting it as renewed product review.
+
+Spec Kit's manifest-managed integration files MUST remain upstream-owned.
+Program Kit policy MUST use the supported project layers—constitution, template
+overrides, presets, extensions, and workflow overlays—and MUST be guarded by an
+executable integrity check. Routine upgrades MUST use the manifest-aware path
+without force, preserve project layers, and fail visibly when an upstream change
+breaks their resolution or workflow anchors.
 
 ## Governance
 
@@ -438,4 +477,4 @@ authority, consumer-owned meaning, exact contracts, fail-closed integrity,
 actionable diagnostics, runtime isolation, and independent bootstrap prevails.
 If a material conflict remains, work MUST stop for human resolution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-01 | **Last Amended**: 2026-08-01
+**Version**: 1.1.0 | **Ratified**: 2026-08-01 | **Last Amended**: 2026-08-02
