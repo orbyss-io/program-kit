@@ -269,7 +269,7 @@ profile:
 - host package: `CShells.AspNetCore [0.0.28]`;
 - component feature implements the pinned
   `CShells.AspNetCore.Features.IWebShellFeature` surface;
-- host activation uses exact 0.0.28 `AddShells`, `FromAssemblies`, and
+- host activation uses exact 0.0.28 `AddShells`, `WithAssemblies`, and
   `MapShells` APIs with an explicitly selected feature assembly.
 
 Compile provider conformance fixtures against exact package bytes and source

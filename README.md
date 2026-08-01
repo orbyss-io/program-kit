@@ -3,26 +3,31 @@
 > **AI builds it. Human intent governs it.**
 
 Program Kit is being redesigned as a human-governed, AI-provider-neutral .NET
-software factory. Its CLI will turn approved intent into contract-bounded,
+software factory. Its CLI turns approved intent into contract-bounded,
 ordinary software through explicit construction and evaluation operations.
 
-## Project status: v1 redesign in progress
+## Project status: v1 redesign and first executable proof
 
 The previous implementation has not been deleted. It is preserved on the
 [`archive/pre-rebuild-2026-07-31`](https://github.com/orbyss-io/program-kit/tree/archive/pre-rebuild-2026-07-31)
 branch so its code, tests, documentation, and hard-won lessons remain available
 as prior art.
 
-Active v1 design work is taking place on
-[`codex/initialize-spec-kit`](https://github.com/orbyss-io/program-kit/tree/codex/initialize-spec-kit).
-This branch deliberately contains design records and specifications before a
-new implementation. The archived implementation is a historical reference,
-not the authority for v1 behavior, and its commands and package surfaces should
-not be read as promises for the redesigned product.
+The repository now contains both the converged v1 design records and the first
+executable vertical slice. That slice proves the public `explain`, `construct`,
+and `evaluate` operation model for one deliberately narrow .NET 10 + CShells
+0.0.28 Status component/API fixture. It generates an ordinary component NuGet
+package and ASP.NET Core application, admits published artifacts with a receipt,
+detects drift without mutating the workspace, and proves the generated API can
+restore, build, start, and serve `/status` without Program Kit at runtime.
 
-This pause is intentional. We want to design Program Kit v1 in the open, test
-its foundations before they become code, and give developers, architects, and
-other contributors a meaningful opportunity to shape the product.
+This is not yet a released or general-purpose Program Kit CLI. It is the first
+testable product proof after one more necessary redesign. The archived
+implementation remains historical prior art, not authority for v1 behavior;
+its commands and package surfaces are not promises. The current implementation
+is intentionally small so developers and architects can review the product
+boundaries before more providers, capability mappings, or authoring experiences
+are added.
 
 ## What is the Program Kit CLI?
 
@@ -83,8 +88,8 @@ For developers, Program Kit should provide:
 - consumer-owned output that continues to build, test, and run without Program
   Kit, Spec Kit, or an AI provider at runtime.
 
-The first implementation is intentionally .NET-first. It will prove the model
-with a pinned .NET 10 construction profile while keeping the semantic contracts
+The first implementation is intentionally .NET-first. It proves the first
+bounded model with a pinned .NET 10 construction profile while keeping contracts
 free of unnecessary .NET-specific meaning.
 
 ## How we envision it being used
@@ -110,6 +115,31 @@ independent factory: it does not embed a second planning system and does not
 depend on Spec Kit at runtime. A future thin adapter may hand an approved Spec
 Kit plan to Program Kit through the same public CLI contracts available to any
 other caller.
+
+## What can be exercised now
+
+The repository pins .NET SDK `10.0.302`, restores from exact package versions,
+and keeps the downloaded CShells dependency mirror outside version control.
+After bootstrapping that mirror, the local proof is:
+
+```powershell
+./eng/Invoke-VerticalSliceQuickstart.ps1
+```
+
+The public executable supports `explain`, `construct`, `evaluate`, `help`, and
+`version`. The accepted first request fixture lives under
+`tests/Fixtures/Reference.Status/Valid/`; it is evidence for the operation
+model, not a declaration that Status is kernel meaning.
+
+Known boundaries are explicit: only one first-party .NET profile is supported;
+the intake is still fixture-bounded; schema and diagnostic trigger coverage is
+not yet exhaustive; recovery is intentionally limited; and cross-environment
+package repeatability, provenance/SBOM generation, hostile-filesystem coverage,
+and independent human product review are still pending. The current automated
+evidence and pending human-review gate are recorded in
+[`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
+and
+[`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).
 
 ## Why the implementation is starting again
 

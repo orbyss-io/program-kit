@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>program-kit</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
+    <ProjectReference Include="../ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
+    <ProjectReference Include="../ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
+  </ItemGroup>
+</Project>

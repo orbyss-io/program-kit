@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
+    <Project Path="src/ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
+    <Project Path="src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
+    <Project Path="src/ProgramKit.Cli/ProgramKit.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj" />
+    <Project Path="tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj" />
+    <Project Path="tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,17 @@
+schema: program-kit.dotnet-factory-intake/v1
+operation: explain
+workspaceIdentity: "reference.status.invalid"
+requestedEffect: none
+evaluationContext:
+  instant: "2026-08-01T12:00:00Z"
+  source: "consumer.reference:approved-clock:test-fixture@1.0.0"
+  assurance: approved-declared-instant
+authority:
+  approved: false
+  notBefore: "2026-01-01T00:00:00Z"
+  notAfter: "2027-01-01T00:00:00Z"
+selections:
+  provider: "orbyss.program-kit.dotnet:factory-provider:dotnet-cshells@1.0.0"
+definition:
+  component: {}
+  application: {}

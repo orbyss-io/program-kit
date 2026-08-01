@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ProgramKit.Providers.DotNet</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
+  </ItemGroup>
+</Project>

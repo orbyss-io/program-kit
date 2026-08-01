@@ -1,0 +1,33 @@
+name: Vertical slice
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.302
+      - name: Bootstrap exact dependency mirror
+        shell: pwsh
+        run: ./eng/Bootstrap-DependencyMirror.ps1
+      - name: Restore locked repository graph
+        run: dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config
+      - name: Build release
+        run: dotnet build ProgramKit.slnx --configuration Release --no-restore
+      - name: Test vertical slice
+        run: dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore
+      - name: Verify formatting
+        run: dotnet format ProgramKit.slnx --no-restore --verify-no-changes

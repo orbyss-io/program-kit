@@ -1,0 +1,619 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/resolution.schema.json",
+  "title": "Program Kit Resolution Contracts v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/providerManifest"
+    },
+    {
+      "$ref": "#/$defs/resolutionLock"
+    },
+    {
+      "$ref": "#/$defs/integrationResolutionExplanation"
+    }
+  ],
+  "$defs": {
+    "providerManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "identity",
+        "distribution",
+        "roles",
+        "operationContracts",
+        "profiles",
+        "inputKinds",
+        "outputKinds",
+        "contributionSeams",
+        "diagnosticCatalog",
+        "conformanceEvidence",
+        "effects"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.provider-manifest/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "identity": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "distribution": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "intake-mapping",
+              "construction",
+              "evaluation"
+            ]
+          }
+        },
+        "operationContracts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/governedIdentity"
+          }
+        },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/governedIdentity"
+          }
+        },
+        "inputKinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "outputKinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "contributionSeams": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/seamContract"
+          }
+        },
+        "diagnosticCatalog": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "conformanceEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceReference"
+          }
+        },
+        "effects": {
+          "$ref": "#/$defs/providerEffects"
+        }
+      }
+    },
+    "seamContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "owner",
+        "contributionKind",
+        "cardinality",
+        "identityKey",
+        "conflictRule",
+        "orderingRule"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "owner": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "contributionKind": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "cardinality": {
+          "type": "string",
+          "enum": [
+            "exactly-one",
+            "zero-or-one",
+            "one-or-more",
+            "zero-or-more"
+          ]
+        },
+        "identityKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "conflictRule": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "orderingRule": {
+          "type": "string",
+          "enum": [
+            "identity-ordinal",
+            "explicit-semantic-order"
+          ]
+        }
+      }
+    },
+    "providerEffects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "processes",
+        "filesystem",
+        "network",
+        "credentials"
+      ],
+      "properties": {
+        "processes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "filesystem": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "read-workspace",
+              "write-candidate",
+              "publish-generated",
+              "write-local-package-source"
+            ]
+          }
+        },
+        "network": {
+          "type": "string",
+          "const": "none"
+        },
+        "credentials": {
+          "type": "string",
+          "const": "none"
+        }
+      }
+    },
+    "resolutionLock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "identity",
+        "requestDigest",
+        "rootBundle",
+        "resolvedItems",
+        "relationships",
+        "providers",
+        "profiles",
+        "toolchain",
+        "policies",
+        "closureDigest"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.resolution-lock/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "identity": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "requestDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "rootBundle": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "resolvedItems": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/resolvedItem"
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resolvedRelationship"
+          }
+        },
+        "providers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/exactSelection"
+          }
+        },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/governedIdentity"
+          }
+        },
+        "toolchain": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/toolchainItem"
+          }
+        },
+        "policies": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "governanceProfile",
+            "waivers"
+          ],
+          "properties": {
+            "governanceProfile": {
+              "$ref": "common.schema.json#/$defs/governedIdentity"
+            },
+            "waivers": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/waiverReference"
+              }
+            }
+          }
+        },
+        "closureDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "constructionIdentity": {
+          "$ref": "common.schema.json#/$defs/digest"
+        }
+      }
+    },
+    "resolvedItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "identity",
+        "artifact",
+        "availability"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "identity": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "artifact": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "availability": {
+          "type": "string",
+          "enum": [
+            "available",
+            "unavailable",
+            "expired"
+          ]
+        }
+      }
+    },
+    "resolvedRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion",
+        "status",
+        "contract",
+        "trace"
+      ],
+      "properties": {
+        "assertion": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "adapted",
+            "incompatible"
+          ]
+        },
+        "contract": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "mapping": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "trace": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/traceReference"
+          }
+        }
+      }
+    },
+    "toolchainItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "identity",
+        "artifact",
+        "declaredEnvironment"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "identity": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "artifact": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "declaredEnvironment": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "integrationResolutionExplanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "canonicalProfile",
+        "requestDigest",
+        "lockDigest",
+        "root",
+        "semanticCoverage",
+        "relationships",
+        "selections",
+        "seams",
+        "artifactPlan",
+        "gates",
+        "waivers",
+        "evidence",
+        "blockers",
+        "trace"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "program-kit.integration-resolution-explanation/v1"
+        },
+        "canonicalProfile": {
+          "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "requestDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "lockDigest": {
+          "$ref": "common.schema.json#/$defs/digest"
+        },
+        "root": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "semanticCoverage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/coverage"
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resolvedRelationship"
+          }
+        },
+        "selections": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/exactSelection"
+          }
+        },
+        "seams": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/seamDecision"
+          }
+        },
+        "artifactPlan": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/plannedArtifact"
+          }
+        },
+        "gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/gateResult"
+          }
+        },
+        "waivers": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/waiverReference"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceReference"
+          }
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/blocker"
+          }
+        },
+        "trace": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/traceReference"
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "state",
+        "trace"
+      ],
+      "properties": {
+        "subject": {
+          "$ref": "common.schema.json#/$defs/typedSubject"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "declared",
+            "custom-bounded",
+            "unsupported",
+            "unknown"
+          ]
+        },
+        "trace": {
+          "$ref": "common.schema.json#/$defs/traceReference"
+        }
+      }
+    },
+    "seamDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seam",
+        "owner",
+        "contributions",
+        "ordering",
+        "status"
+      ],
+      "properties": {
+        "seam": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "owner": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "contributions": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/governedIdentity"
+          }
+        },
+        "ordering": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/governedIdentity"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "resolved",
+            "blocked"
+          ]
+        }
+      }
+    },
+    "plannedArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logicalPath",
+        "ownership",
+        "producer",
+        "claimClass"
+      ],
+      "properties": {
+        "logicalPath": {
+          "$ref": "common.schema.json#/$defs/logicalPath"
+        },
+        "ownership": {
+          "type": "string",
+          "enum": [
+            "generated-owned",
+            "seeded-handoff",
+            "consumer-owned"
+          ]
+        },
+        "producer": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "claimClass": {
+          "type": "string",
+          "enum": [
+            "canonical-byte",
+            "verified-equivalent",
+            "custom-bounded"
+          ]
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "subjects",
+        "diagnosticId"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/typedSubject"
+          }
+        },
+        "diagnosticId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        }
+      }
+    }
+  }
+}

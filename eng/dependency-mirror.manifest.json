@@ -1,0 +1,10 @@
+{
+  "schema": "program-kit.dependency-mirror-manifest/v1",
+  "packages": [
+    { "id": "CShells", "version": "0.0.28" },
+    { "id": "CShells.Abstractions", "version": "0.0.28" },
+    { "id": "CShells.AspNetCore", "version": "0.0.28" },
+    { "id": "CShells.AspNetCore.Abstractions", "version": "0.0.28" },
+    { "id": "JetBrains.Annotations", "version": "2025.2.4" }
+  ]
+}

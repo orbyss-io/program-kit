@@ -1,3 +1,26 @@
 # Spec Kit installs provider-local agent skills here. The versioned project
 # infrastructure and integration manifests live under .specify/.
 /.agents/
+
+# .NET build and editor output
+bin/
+obj/
+packages/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+TestResults/
+coverage/
+
+# Local factory/bootstrap output
+artifacts/dependency-mirror/
+artifacts/work/
+.program-kit/
+
+# Operating-system and temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp

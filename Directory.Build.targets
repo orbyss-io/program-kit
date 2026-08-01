@@ -1,0 +1,10 @@
+<Project>
+  <Target Name="ProgramKitRejectFloatingDirectPackages" BeforeTargets="CollectPackageReferences">
+    <ItemGroup>
+      <_ProgramKitFloatingPackage Include="@(PackageReference)"
+        Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.Version)', '[*(),]'))" />
+    </ItemGroup>
+    <Error Condition="'@(_ProgramKitFloatingPackage)' != ''"
+      Text="Floating or ranged direct PackageReference is prohibited: @(_ProgramKitFloatingPackage)" />
+  </Target>
+</Project>

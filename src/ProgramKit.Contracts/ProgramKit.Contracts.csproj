@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ProgramKit.Contracts</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schemas/*.schema.json" />
+  </ItemGroup>
+</Project>

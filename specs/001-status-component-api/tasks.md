@@ -118,7 +118,7 @@ startup, and black-box Status behavior without this repository or Program Kit.
 
 - [ ] T039 [P] [US2] Add candidate lifecycle, immutable sealing, manifest ordering, ownership, mutation-after-seal, collision, and gate-closure tests in `tests/ProgramKit.UnitTests/Kernel/Artifacts/`
 - [ ] T040 [P] [US2] Add endpoint contribution cardinality, duplicate-route, meaningful-order, exact-assembler, and order-independence tests in `tests/ProgramKit.UnitTests/Providers/HttpEndpoints/`
-- [ ] T041 [P] [US2] Add exact CShells 0.0.28 generated-shape/ABI, explicit `FromAssemblies`, `MapShells`, and no-ambient-discovery conformance tests in `tests/ProgramKit.ContractTests/Providers/CShells028ConformanceTests.cs`
+- [ ] T041 [P] [US2] Add exact CShells 0.0.28 generated-shape/ABI, explicit `WithAssemblies`, `MapShells`, and no-ambient-discovery conformance tests in `tests/ProgramKit.ContractTests/Providers/CShells028ConformanceTests.cs`
 - [ ] T042 [P] [US2] Add local-feed/source-mapping, exact `[x.y.z]` binding, clean-cache locked restore, package/hash agreement, and external-output claim-class tests in `tests/ProgramKit.ContractTests/Providers/NuGetIntegrationContractTests.cs`
 - [ ] T043 [US2] Add real-workspace happy-path construct acceptance tests for two bundles, package-only integration, complete artifacts/evidence, publication receipt-last admission, and black-box Status behavior in `tests/ProgramKit.AcceptanceTests/VerticalSlice/ConstructAcceptanceTests.cs`
 

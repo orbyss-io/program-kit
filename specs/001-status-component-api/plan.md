@@ -116,7 +116,7 @@ gate below remains blocking.
 | VII. AI-Usable Diagnostics | Diagnostics subsystem and provider catalogs | Result/schema golden tests, stable catalog IDs, deterministic ordering/grouping, continuation/remediation, redaction and independent fallback tests | Public contract failure blocks release; disclosure not waivable | PASS | PASS |
 | VIII. Consumer Ownership, Runtime Isolation, Local Safety | Distribution/security maintainers plus kernel effect/disclosure checks | Locked sources/dependencies, offline tests, secret scan, provenance/SBOM tasks, relocated allowlisted runtime, PE reference inspection | Block admission/release; not waivable | PASS | PASS |
 | IX. Evidence-First Vertical Delivery | Maintainers plus human product review | Small two-bundle slice, negative/adversarial fixtures, public-contract-only flow, one-hour fresh-contributor walkthrough | Return to spec/plan or block completion; no kernel override | PASS | PASS |
-| V1 `.NET 10 + CShells 0.0.28` profile | Evidence-backed provider conformance | Exact SDK/packages/source commit, explicit `FromAssemblies`, compile/run fixture | Stop provider support claim | PASS | PASS |
+| V1 `.NET 10 + CShells 0.0.28` profile | Evidence-backed provider conformance | Exact SDK/packages/source commit, explicit `WithAssemblies`, compile/run fixture | Stop provider support claim | PASS | PASS |
 | Three provider roles only | Kernel protocol invariant | Intake-mapping, construction, evaluation manifests; resolution/admission remain kernel operations | Protocol revision required for a new role | PASS | PASS |
 | Typed model + restricted YAML + JSON automation/canonical bytes | Executable invariant and contract evidence | Low-level restricted YAML parser, shared JSON Schema path, typed binding, canonical encoder fixtures | Refuse invalid input | PASS | PASS |
 | First-party providers only | Kernel trust-admission invariant | Distribution allowlist and exact manifests; no scanning/dynamic loading | Refuse execution; not waivable | PASS | PASS |
@@ -137,7 +137,7 @@ gate below remains blocking.
   byte-reproducible.
 - Publication promises recoverability and receipt-gated atomic trust, not a
   physically atomic multi-file or power-loss-safe transaction.
-- Explicit CShells `FromAssemblies` is isolated inside the selected 0.0.28
+- Explicit CShells `WithAssemblies` is isolated inside the selected 0.0.28
   provider and covered by a conformance fixture; Program Kit itself performs no
   reflection-based provider discovery.
 - Operation results name the public command and exact operation contract. A
