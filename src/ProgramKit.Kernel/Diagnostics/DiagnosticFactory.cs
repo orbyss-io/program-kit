@@ -16,9 +16,9 @@ public static class DiagnosticFactory
     public static Diagnostic Create(
         string id,
         OperationPhase phase,
-        string subject,
-        string cause,
-        string consequence,
+        SafeValue subject,
+        SafeValue cause,
+        SafeValue consequence,
         IReadOnlyDictionary<string, SafeValue>? parameters = null,
         IReadOnlyList<Remediation>? remediations = null,
         SafeValue? expected = null,
@@ -26,18 +26,19 @@ public static class DiagnosticFactory
         IReadOnlyList<EvidenceReference>? evidence = null)
     {
         DiagnosticDefinition definition = DiagnosticCatalog.Entries[id];
-        string safeSubject = DisclosureFilter.SafeLogicalValue(subject);
-        SafeValue safeCause = DisclosureFilter.Classify(cause);
-        SafeValue safeConsequence = DisclosureFilter.Classify(consequence);
+        SafeValue safeSubjectValue = DisclosureFilter.Enforce(subject);
+        string safeSubject = safeSubjectValue.Value ?? "withheld";
+        SafeValue safeCause = DisclosureFilter.Enforce(cause);
+        SafeValue safeConsequence = DisclosureFilter.Enforce(consequence);
         IReadOnlyDictionary<string, SafeValue> safeParameters = (parameters ?? new Dictionary<string, SafeValue>(StringComparer.Ordinal))
             .OrderBy(static item => item.Key, StringComparer.Ordinal)
-            .ToDictionary(static item => item.Key, static item => item.Value, StringComparer.Ordinal);
-        SafeValue safeExpected = expected ?? new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, definition.Expected);
-        SafeValue safeObserved = observed ?? new SafeValue(SafeValueClassification.Public, SafeValueKind.Text, definition.Observed);
+            .ToDictionary(static item => item.Key, static item => DisclosureFilter.Enforce(item.Value), StringComparer.Ordinal);
+        SafeValue safeExpected = DisclosureFilter.Enforce(expected ?? DisclosureFilter.PublicText(definition.Expected));
+        SafeValue safeObserved = DisclosureFilter.Enforce(observed ?? DisclosureFilter.PublicText(definition.Observed));
         JsonObject occurrenceMaterial = new()
         {
             ["id"] = id,
-            ["subject"] = safeSubject,
+            ["subject"] = SafeMaterial(safeSubjectValue),
             ["rule"] = definition.MessageKey,
             ["parameters"] = new JsonObject(safeParameters.Select(static item => KeyValuePair.Create<string, JsonNode?>(item.Key, SafeMaterial(item.Value)))),
             ["cause"] = SafeMaterial(safeCause),
@@ -45,13 +46,24 @@ public static class DiagnosticFactory
             ["observed"] = SafeMaterial(safeObserved),
         };
         string occurrence = CanonicalJson.Digest(occurrenceMaterial);
-        string catalogAuthority = id.StartsWith("program-kit.provider.dotnet/", StringComparison.Ordinal)
-            ? "orbyss.program-kit.dotnet"
-            : "orbyss.program-kit";
+        IReadOnlyList<Remediation> exactRemediations = remediations is { Count: > 0 }
+            ? remediations
+            : new[] { DefaultRemediation(definition.Disposition, phase, safeSubject) };
+        if (exactRemediations.Any(static item =>
+            item.RequestDocument is null
+            && item.RequestArtifact is null
+            && item.RequestArguments is not { Count: > 0 }))
+        {
+            throw new ArgumentException("Every remediation requires an exact request artifact or a complete inline request payload.", nameof(remediations));
+        }
+
+        IReadOnlyList<EvidenceReference> exactEvidence = evidence is { Count: > 0 }
+            ? evidence
+            : new[] { DiagnosticCatalogArtifacts.EvidenceFor(id) };
 
         return new Diagnostic(
             id,
-            ProtocolIdentities.Catalog(catalogAuthority, catalogAuthority.EndsWith("dotnet", StringComparison.Ordinal) ? "provider" : "kernel"),
+            DiagnosticCatalogArtifacts.IdentityFor(id),
             definition.Severity,
             definition.Category,
             phase,
@@ -66,8 +78,8 @@ public static class DiagnosticFactory
             safeConsequence,
             safeExpected,
             safeObserved,
-            remediations is { Count: > 0 } ? remediations : new[] { DefaultRemediation(definition.Disposition, phase, safeSubject) },
-            evidence ?? Array.Empty<EvidenceReference>());
+            exactRemediations,
+            exactEvidence);
     }
 
     public static PrimaryDisposition PrimaryDispositionFor(IEnumerable<Diagnostic> diagnostics)
@@ -114,6 +126,7 @@ public static class DiagnosticFactory
         disposition == PrimaryDisposition.RequestApproval ? new[] { "human-approval" } : Array.Empty<string>(),
         null,
         null,
+        new[] { "help" },
         new[] { disposition == PrimaryDisposition.Stop ? "operation-remains-stopped" : "violated-invariant-is-re-evaluated" },
         phase);
 

@@ -2,10 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Contracts.Workspace;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
@@ -51,18 +53,22 @@ public sealed class DiagnosticBehaviorTests
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 definition.Id,
                 OperationPhase.Validation,
-                "catalog-trigger",
-                "The production invariant was exercised.",
-                "The operation remains bounded by the reported disposition.");
+                DisclosureFilter.PublicText("catalog-trigger"),
+                DisclosureFilter.PublicText("The production invariant was exercised."),
+                DisclosureFilter.PublicText("The operation remains bounded by the reported disposition."));
 
             Assert.AreEqual(definition.Disposition, diagnostic.Disposition, definition.Id);
             Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Expected.Value), definition.Id);
             Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Observed.Value), definition.Id);
+            Assert.IsTrue(diagnostic.Evidence.Count > 0, definition.Id);
             Assert.IsTrue(diagnostic.Remediations.Count > 0, definition.Id);
             Assert.IsTrue(diagnostic.Remediations.All(static remediation =>
                 remediation.Targets.Count > 0
                 && remediation.Preconditions.Count > 0
-                && remediation.Postconditions.Count > 0), definition.Id);
+                && remediation.Postconditions.Count > 0
+                && (remediation.RequestDocument is not null
+                    || remediation.RequestArtifact is not null
+                    || remediation.RequestArguments is { Count: > 0 })), definition.Id);
 
             OperationResult result = OperationResultFactory.Failure(
                 PublicCommand.Construct,
@@ -209,6 +215,60 @@ public sealed class DiagnosticBehaviorTests
         }
     }
 
+    [TestMethod]
+    public async Task Remaining_public_ids_are_asserted_at_their_real_production_boundaries()
+    {
+        string workspace = TestRepository.CreateWorkspace();
+        try
+        {
+            var missing = TestRepository.RunCli("construct", "--format", "json");
+            AssertResultDiagnostic(missing.StandardOutput, DiagnosticIds.MissingInput);
+
+            var conflict = TestRepository.RunCli(
+                "explain", "--workspace", workspace,
+                "--request", Path.Combine(workspace, "requests", "construct.json"),
+                "--format", "json");
+            AssertResultDiagnostic(conflict.StandardOutput, DiagnosticIds.ConflictingInput);
+
+            DotNetProvider provider = new();
+            ProviderIntakeResult intake = await provider.MapAsync(new ProviderIntakeContext(
+                workspace,
+                new JsonObject { ["semanticRecords"] = new JsonArray() },
+                $"sha256:{new string('1', 64)}",
+                CancellationToken.None));
+            CollectionAssert.Contains(intake.Diagnostics.ToArray(), DiagnosticIds.IncompleteMeaning);
+
+            ProviderEvaluationResult evaluation = await provider.EvaluateAsync(new ProviderEvaluationContext(
+                workspace,
+                new JsonObject(),
+                $"sha256:{new string('2', 64)}",
+                null,
+                CancellationToken.None));
+            CollectionAssert.Contains(evaluation.Diagnostics.ToArray(), DiagnosticIds.GateFailed);
+
+            AssertProviderDiagnostic(
+                DiagnosticIds.CShellsConformance,
+                PrimaryDisposition.Stop,
+                () => ProviderArtifactValidator.ReadRuntimeLibraries(Path.Combine(workspace, "missing.deps.json")));
+            AssertProviderDiagnostic(
+                DiagnosticIds.PackageMismatch,
+                PrimaryDisposition.Stop,
+                () => ProviderArtifactValidator.RequirePackage(Path.Combine(workspace, "missing.nupkg")));
+        }
+        finally
+        {
+            TestRepository.DeleteWorkspace(workspace);
+        }
+    }
+
+    private static void AssertResultDiagnostic(string json, string id)
+    {
+        JsonObject result = ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, json);
+        string[] ids = result["diagnostics"]!["items"]!.AsArray()
+            .Select(static item => item!["id"]!.GetValue<string>())
+            .ToArray();
+        CollectionAssert.Contains(ids, id);
+    }
     private static void AssertProviderDiagnostic(string id, PrimaryDisposition disposition, Action action)
     {
         ProviderDiagnosticException exception = Assert.ThrowsExactly<ProviderDiagnosticException>(action);

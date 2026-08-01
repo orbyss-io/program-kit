@@ -32,6 +32,12 @@
           "YamlDotNet": "[18.1.0, 18.1.0]"
         }
       },
+      "programkit.providers.dotnet": {
+        "type": "Project",
+        "dependencies": {
+          "ProgramKit.Contracts": "[1.0.0, )"
+        }
+      },
       "JsonSchema.Net": {
         "type": "CentralTransitive",
         "requested": "[9.4.0, 9.4.0]",

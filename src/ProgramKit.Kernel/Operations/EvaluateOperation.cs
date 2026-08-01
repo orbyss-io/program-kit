@@ -49,9 +49,9 @@ public sealed class EvaluateOperation
                 Diagnostic missingDiagnostic = DiagnosticFactory.Create(
                     DiagnosticIds.MissingInput,
                     OperationPhase.Validation,
-                    "factory-request",
-                    $"Missing required input fields: {string.Join(", ", missing)}",
-                    "Evaluation did not mutate the workspace.");
+                    DisclosureFilter.PublicText("factory-request"),
+                    DisclosureFilter.PublicText($"Missing required input fields: {string.Join(", ", missing)}"),
+                    DisclosureFilter.PublicText("Evaluation did not mutate the workspace."));
                 return OperationResultFactory.Failure(
                     PublicCommand.Evaluate,
                     OperationOutcome.NeedsInput,
@@ -86,9 +86,9 @@ public sealed class EvaluateOperation
                 Diagnostic unsupported = DiagnosticFactory.Create(
                     DiagnosticIds.Incompatible,
                     OperationPhase.Evaluation,
-                    resolved.EvaluationProvider.Manifest.Identity.StableKey,
-                    "The exact selected evaluation provider cannot evaluate the resolved input.",
-                    "Workspace support is unsupported; evaluation made no changes.");
+                    DisclosureFilter.PublicText(resolved.EvaluationProvider.Manifest.Identity.StableKey),
+                    DisclosureFilter.PublicText("The exact selected evaluation provider cannot evaluate the resolved input."),
+                    DisclosureFilter.PublicText("Workspace support is unsupported; evaluation made no changes."));
                 return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.Revise, new[] { unsupported }, requestIdentity);
             }
 
@@ -101,9 +101,9 @@ public sealed class EvaluateOperation
                 Diagnostic interrupted = DiagnosticFactory.Create(
                     DiagnosticIds.InterruptedPublication,
                     OperationPhase.Evaluation,
-                    ".program-kit/publication.journal.json",
-                    "The durable publication journal is incomplete.",
-                    "Evaluation is read-only; a fresh explicitly authorized repair must recover or roll back publication.",
+                    DisclosureFilter.RepositoryRelative(".program-kit/publication.journal.json"),
+                    DisclosureFilter.PublicText("The durable publication journal is incomplete."),
+                    DisclosureFilter.PublicText("Evaluation is read-only; a fresh explicitly authorized repair must recover or roll back publication."),
                     remediations: new[] { RecoveryRemediation(recoveryRequest) });
                 return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.Repair, new[] { interrupted }, requestIdentity, publicationState.ConstructionIdentity);
             }
@@ -114,9 +114,9 @@ public sealed class EvaluateOperation
                 Diagnostic unavailable = DiagnosticFactory.Create(
                     DiagnosticIds.ExternalUnavailable,
                     OperationPhase.Evaluation,
-                    ".program-kit/construction-receipt.json",
-                    "No admitted construction receipt is available.",
-                    "Current trusted workspace state cannot be proven.");
+                    DisclosureFilter.RepositoryRelative(".program-kit/construction-receipt.json"),
+                    DisclosureFilter.PublicText("No admitted construction receipt is available."),
+                    DisclosureFilter.PublicText("Current trusted workspace state cannot be proven."));
                 return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.Stop, new[] { unavailable }, requestIdentity);
             }
 
@@ -144,9 +144,9 @@ public sealed class EvaluateOperation
                 Diagnostic unavailable = DiagnosticFactory.Create(
                     DiagnosticIds.ExternalUnavailable,
                     OperationPhase.Evaluation,
-                    ".program-kit/workspace.snapshot.json",
-                    "The admitted workspace snapshot is unavailable.",
-                    "Orientation and freshness cannot be proven; evaluation made no changes.");
+                    DisclosureFilter.RepositoryRelative(".program-kit/workspace.snapshot.json"),
+                    DisclosureFilter.PublicText("The admitted workspace snapshot is unavailable."),
+                    DisclosureFilter.PublicText("Orientation and freshness cannot be proven; evaluation made no changes."));
                 return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.Stop, new[] { unavailable }, requestIdentity, constructionIdentity, receipts: new[] { receiptReference }, evidence: evidence);
             }
 
@@ -159,9 +159,9 @@ public sealed class EvaluateOperation
                 Diagnostic stale = DiagnosticFactory.Create(
                     DiagnosticIds.StaleSnapshot,
                     OperationPhase.Evaluation,
-                    ".program-kit/resolution.lock.json",
-                    "The authoritative resolution lock is unavailable or changed.",
-                    "The prior snapshot is stale and evaluation made no changes.");
+                    DisclosureFilter.RepositoryRelative(".program-kit/resolution.lock.json"),
+                    DisclosureFilter.PublicText("The authoritative resolution lock is unavailable or changed."),
+                    DisclosureFilter.PublicText("The prior snapshot is stale and evaluation made no changes."));
                 return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, PrimaryDisposition.Retry, new[] { stale }, requestIdentity, constructionIdentity, receipts: new[] { receiptReference }, evidence: evidence);
             }
 
@@ -197,9 +197,9 @@ public sealed class EvaluateOperation
                 Diagnostic diagnostic = DiagnosticFactory.Create(
                     id,
                     OperationPhase.Evaluation,
-                    ".program-kit/workspace.snapshot.json",
-                    $"Workspace snapshot freshness is {freshness}.",
-                    "The snapshot was not rewritten; currentness must be re-established from authoritative records.");
+                    DisclosureFilter.RepositoryRelative(".program-kit/workspace.snapshot.json"),
+                    DisclosureFilter.PublicText($"Workspace snapshot freshness is {freshness}."),
+                    DisclosureFilter.PublicText("The snapshot was not rewritten; currentness must be re-established from authoritative records."));
                 return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, OperationPhase.Evaluation, EffectState.None, disposition, new[] { diagnostic }, requestIdentity, constructionIdentity, receipts: new[] { receiptReference }, evidence: evidence);
             }
 
@@ -214,11 +214,11 @@ public sealed class EvaluateOperation
                     _ => DiagnosticIds.GeneratedDrift,
                 },
                 OperationPhase.Evaluation,
-                item.LogicalPath,
-                $"Expected {item.ExpectedDigest}; observed {item.ObservedDigest ?? item.State}.",
-                repairable
+                DisclosureFilter.RepositoryRelative(item.LogicalPath),
+                DisclosureFilter.PublicText($"Expected {item.ExpectedDigest}; observed {item.ObservedDigest ?? item.State}."),
+                DisclosureFilter.PublicText(repairable
                     ? "The admitted construction is no longer exact and requires a separately authorized repair."
-                    : "The state cannot be overwritten safely; revise consumer intent or restore authoritative evidence.",
+                    : "The state cannot be overwritten safely; revise consumer intent or restore authoritative evidence."),
                 remediations: repairRequest is null ? null : new[] { RepairRemediation(item.LogicalPath, repairRequest) })).ToArray();
             return OperationResultFactory.Failure(
                 PublicCommand.Evaluate,
@@ -237,9 +237,9 @@ public sealed class EvaluateOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 exception.DiagnosticId,
                 exception.Phase,
-                "factory-operation",
-                exception.Message,
-                "Evaluation made no changes and reports only the proven bounded failure.");
+                DisclosureFilter.PublicText("factory-operation"),
+                DisclosureFilter.Withhold(exception.Message, "diagnostic-exception-detail"),
+                DisclosureFilter.PublicText("Evaluation made no changes and reports only the proven bounded failure."));
             return OperationResultFactory.Failure(
                 PublicCommand.Evaluate, OperationOutcome.Blocked, exception.Phase, EffectState.None,
                 exception.Disposition, new[] { diagnostic }, requestIdentity);
@@ -249,9 +249,9 @@ public sealed class EvaluateOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.InvalidInput,
                 phase,
-                "factory-request",
-                exception.Message,
-                "Evaluation returned no mutation and no trusted exact-state claim.");
+                DisclosureFilter.PublicText("factory-request"),
+                DisclosureFilter.Withhold(exception.Message, "evaluation-failure-detail"),
+                DisclosureFilter.PublicText("Evaluation returned no mutation and no trusted exact-state claim."));
             return OperationResultFactory.Failure(PublicCommand.Evaluate, OperationOutcome.Blocked, phase, EffectState.None, PrimaryDisposition.Revise, new[] { diagnostic }, requestIdentity);
         }
     }
@@ -272,6 +272,7 @@ public sealed class EvaluateOperation
         RequestedEffect.Committed,
         new[] { "human-approved-repository-record" },
         repairRequest,
+        null,
         null,
         new[] { "generated-owned-artifacts-match-new-receipt", "consumer-owned-bytes-unchanged" },
         OperationPhase.Construction);

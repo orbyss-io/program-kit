@@ -128,15 +128,31 @@ public static class OperationResultProjector
 
     private static JsonObject Remediation(Remediation remediation)
     {
-        JsonObject request = new() { ["kind"] = "factory-request" };
-        if (remediation.RequestDocument is not null)
+        JsonObject request;
+        if (remediation.RequestDocument is not null || remediation.RequestArtifact is not null)
         {
-            request["document"] = remediation.RequestDocument.DeepClone();
-        }
+            request = new JsonObject { ["kind"] = "factory-request" };
+            if (remediation.RequestDocument is not null)
+            {
+                request["document"] = remediation.RequestDocument.DeepClone();
+            }
 
-        if (remediation.RequestArtifact is not null)
+            if (remediation.RequestArtifact is not null)
+            {
+                request["artifact"] = ContractJson.Artifact(remediation.RequestArtifact);
+            }
+        }
+        else if (remediation.RequestArguments is { Count: > 0 })
         {
-            request["artifact"] = ContractJson.Artifact(remediation.RequestArtifact);
+            request = new JsonObject
+            {
+                ["kind"] = "argument-array",
+                ["arguments"] = new JsonArray(remediation.RequestArguments.Select(static value => JsonValue.Create(value)).ToArray()),
+            };
+        }
+        else
+        {
+            throw new InvalidOperationException("A remediation cannot be projected without an exact request payload.");
         }
 
         return new JsonObject

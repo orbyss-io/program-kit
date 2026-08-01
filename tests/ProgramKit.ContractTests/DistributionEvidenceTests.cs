@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
@@ -35,6 +36,15 @@ public sealed class DistributionEvidenceTests
 
         JsonObject kernelCatalog = Read(Path.Combine(evidenceRoot, "kernel-diagnostic-catalog.json"));
         JsonObject providerCatalog = Read(Path.Combine(evidenceRoot, "dotnet-diagnostic-catalog.json"));
+        Assert.AreEqual(DiagnosticCatalogArtifacts.KernelIdentity.Digest, Digest(Path.Combine(evidenceRoot, "kernel-diagnostic-catalog.json")));
+        Assert.AreEqual(DiagnosticCatalogArtifacts.DotNetIdentity.Digest, Digest(Path.Combine(evidenceRoot, "dotnet-diagnostic-catalog.json")));
+        Assert.AreEqual(provider.DiagnosticCatalog.Identity.Digest, provider.DiagnosticCatalog.Digest);
+        Assert.AreEqual(provider.DiagnosticCatalog.Digest, Digest(Path.Combine(TestRepository.Root, provider.DiagnosticCatalog.LogicalPath.Replace('/', Path.DirectorySeparatorChar))));
+        Assert.IsTrue(provider.ConformanceEvidence.Count > 0);
+        Assert.IsTrue(provider.ConformanceEvidence.All(item => item.Artifact.Identity.Digest == item.Artifact.Digest));
+        Assert.IsTrue(provider.ConformanceEvidence.All(item => item.Artifact.Digest == Digest(Path.Combine(TestRepository.Root, item.Artifact.LogicalPath.Replace('/', Path.DirectorySeparatorChar)))));
+        Assert.AreEqual(provider.DiagnosticCatalog.Digest, manifest["diagnosticCatalog"]!["digest"]!.GetValue<string>());
+        Assert.AreEqual(provider.ConformanceEvidence[0].Artifact.Digest, manifest["conformanceEvidence"]![0]!["artifact"]!["digest"]!.GetValue<string>());
         ContractAssertions.AssertValid(ContractAssertions.OperationResult, kernelCatalog);
         ContractAssertions.AssertValid(ContractAssertions.OperationResult, providerCatalog);
         string[] expectedIds = DiagnosticCatalog.Entries.Keys.OrderBy(static item => item, StringComparer.Ordinal).ToArray();

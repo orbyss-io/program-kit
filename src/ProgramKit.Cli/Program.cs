@@ -27,9 +27,9 @@ public static class Program
                 Diagnostic diagnostic = DiagnosticFactory.Create(
                     DiagnosticIds.MissingInput,
                     OperationPhase.Request,
-                    "command-line",
-                    parsed.Error ?? "Invalid command line.",
-                    "Use the exact help contract and resubmit a complete command.");
+                    DisclosureFilter.PublicText("command-line"),
+                    DisclosureFilter.PublicText(parsed.Error ?? "Invalid command line."),
+                    DisclosureFilter.PublicText("Use the exact help contract and resubmit a complete command."));
                 result = OperationResultFactory.Failure(command, OperationOutcome.Blocked, OperationPhase.Request, EffectState.None, PrimaryDisposition.ProvideInput, new[] { diagnostic });
             }
             else

@@ -34,9 +34,9 @@ public sealed class ExplainOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.InvalidInput,
                 OperationPhase.Intake,
-                Path.GetFileName(requestPath),
-                exception.Message,
-                "The request could not be admitted for semantic validation.");
+                DisclosureFilter.RepositoryRelative(Path.GetFileName(requestPath)),
+                DisclosureFilter.Withhold(exception.Message, "request-intake-failure"),
+                DisclosureFilter.PublicText("The request could not be admitted for semantic validation."));
             return OperationResultFactory.Failure(PublicCommand.Explain, OperationOutcome.Blocked, OperationPhase.Intake, EffectState.None, PrimaryDisposition.Revise, new[] { diagnostic });
         }
 
@@ -48,9 +48,9 @@ public sealed class ExplainOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.MissingSelection,
                 OperationPhase.Validation,
-                "factory-request",
-                $"Missing required input fields: {string.Join(", ", missing)}",
-                "No exact integration resolution can be issued until the fields are supplied.");
+                DisclosureFilter.PublicText("factory-request"),
+                DisclosureFilter.PublicText($"Missing required input fields: {string.Join(", ", missing)}"),
+                DisclosureFilter.PublicText("No exact integration resolution can be issued until the fields are supplied."));
             return OperationResultFactory.Failure(
                 PublicCommand.Explain,
                 OperationOutcome.NeedsInput,
@@ -71,9 +71,9 @@ public sealed class ExplainOperation
                 Diagnostic conflict = DiagnosticFactory.Create(
                     DiagnosticIds.ConflictingInput,
                     OperationPhase.Validation,
-                    "factory-request.operation",
-                    "The request operation/effect does not agree with the explain command.",
-                    "The public command refuses the conflicting request without live writes.");
+                    DisclosureFilter.PublicText("factory-request.operation"),
+                    DisclosureFilter.PublicText("The request operation/effect does not agree with the explain command."),
+                    DisclosureFilter.PublicText("The public command refuses the conflicting request without live writes."));
                 return OperationResultFactory.Failure(PublicCommand.Explain, OperationOutcome.Blocked, OperationPhase.Validation, EffectState.None, PrimaryDisposition.Revise, new[] { conflict }, CanonicalJson.Digest(document));
             }
 
@@ -92,9 +92,9 @@ public sealed class ExplainOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 exception.DiagnosticId,
                 exception.Phase,
-                "factory-request",
-                exception.Message,
-                "The exact request was refused without live writes.");
+                DisclosureFilter.PublicText("factory-request"),
+                DisclosureFilter.Withhold(exception.Message, "diagnostic-exception-detail"),
+                DisclosureFilter.PublicText("The exact request was refused without live writes."));
             OperationExecutionTracker.Advance(exception.Phase, EffectState.None);
             return OperationResultFactory.Failure(
                 PublicCommand.Explain,
@@ -110,9 +110,9 @@ public sealed class ExplainOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.MissingSelection,
                 OperationPhase.Resolution,
-                "selections.provider",
-                exception.Message,
-                "No exact provider or profile was selected; no integration result was issued.");
+                DisclosureFilter.PublicText("selections.provider"),
+                DisclosureFilter.Withhold(exception.Message, "selection-detail"),
+                DisclosureFilter.PublicText("No exact provider or profile was selected; no integration result was issued."));
             string requestDigest = CanonicalJson.Digest(document);
             OperationExecutionTracker.Advance(OperationPhase.Resolution, EffectState.None);
             return OperationResultFactory.Failure(
@@ -130,9 +130,9 @@ public sealed class ExplainOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.IncompleteMeaning,
                 OperationPhase.Validation,
-                "factory-request",
-                exception.Message,
-                "The request must be revised before exact resolution.");
+                DisclosureFilter.PublicText("factory-request"),
+                DisclosureFilter.Withhold(exception.Message, "validation-detail"),
+                DisclosureFilter.PublicText("The request must be revised before exact resolution."));
             return OperationResultFactory.Failure(PublicCommand.Explain, OperationOutcome.Blocked, OperationPhase.Validation, EffectState.None, PrimaryDisposition.Revise, new[] { diagnostic }, CanonicalJson.Digest(document));
         }
     }

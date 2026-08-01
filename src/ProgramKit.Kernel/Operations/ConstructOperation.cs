@@ -69,9 +69,9 @@ public sealed class ConstructOperation
                 Diagnostic missingDiagnostic = DiagnosticFactory.Create(
                     DiagnosticIds.MissingInput,
                     OperationPhase.Validation,
-                    "factory-request",
-                    $"Missing required input fields: {string.Join(", ", missing)}",
-                    "No candidate was created.");
+                    DisclosureFilter.PublicText("factory-request"),
+                    DisclosureFilter.PublicText($"Missing required input fields: {string.Join(", ", missing)}"),
+                    DisclosureFilter.PublicText("No candidate was created."));
                 return OperationResultFactory.Failure(
                     PublicCommand.Construct,
                     OperationOutcome.NeedsInput,
@@ -213,9 +213,9 @@ public sealed class ConstructOperation
                 Diagnostic diagnostic = DiagnosticFactory.Create(
                     DiagnosticIds.GateFailed,
                     OperationPhase.Evaluation,
-                    "candidate-artifact-set",
-                    "One or more mandatory candidate gates did not pass.",
-                    "The candidate remains isolated and cannot be published or admitted.");
+                    DisclosureFilter.PublicText("candidate-artifact-set"),
+                    DisclosureFilter.PublicText("One or more mandatory candidate gates did not pass."),
+                    DisclosureFilter.PublicText("The candidate remains isolated and cannot be published or admitted."));
                 return OperationResultFactory.Failure(
                     PublicCommand.Construct,
                     OperationOutcome.Blocked,
@@ -307,9 +307,9 @@ public sealed class ConstructOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 exception.DiagnosticId,
                 exception.Phase,
-                "factory-operation",
-                exception.Message,
-                "No trusted completion is claimed; follow the typed remediation and disposition.");
+                DisclosureFilter.PublicText("factory-operation"),
+                DisclosureFilter.Withhold(exception.Message, "diagnostic-exception-detail"),
+                DisclosureFilter.PublicText("No trusted completion is claimed; follow the typed remediation and disposition."));
             return OperationResultFactory.Failure(
                 PublicCommand.Construct, OperationOutcome.Blocked, exception.Phase, effect,
                 exception.Disposition, new[] { diagnostic }, requestIdentity, constructionIdentity);
@@ -319,9 +319,9 @@ public sealed class ConstructOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.InterruptedPublication,
                 OperationPhase.Publication,
-                ".program-kit/publication.journal.json",
-                exception.Message,
-                "No admission receipt was issued; evaluation is read-only and a fresh authorized repair must recover the journal.");
+                DisclosureFilter.RepositoryRelative(".program-kit/publication.journal.json"),
+                DisclosureFilter.Withhold(exception.Message, "publication-interruption-detail"),
+                DisclosureFilter.PublicText("No admission receipt was issued; evaluation is read-only and a fresh authorized repair must recover the journal."));
             return OperationResultFactory.Failure(
                 PublicCommand.Construct,
                 OperationOutcome.Blocked,
@@ -337,9 +337,9 @@ public sealed class ConstructOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.MissingAuthority,
                 phase,
-                "authority",
-                exception.Message,
-                "The requested effect was not authorized; no candidate or live output is trusted.");
+                DisclosureFilter.PublicText("authority"),
+                DisclosureFilter.Withhold(exception.Message, "authority-failure-detail"),
+                DisclosureFilter.PublicText("The requested effect was not authorized; no candidate or live output is trusted."));
             return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, PrimaryDisposition.RequestApproval, new[] { diagnostic }, requestIdentity, constructionIdentity);
         }
         catch (IOException exception)
@@ -347,9 +347,9 @@ public sealed class ConstructOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.Collision,
                 phase,
-                "workspace",
-                exception.Message,
-                "Publication did not receive a trusted admission receipt.");
+                DisclosureFilter.PublicText("workspace"),
+                DisclosureFilter.Withhold(exception.Message, "workspace-io-detail"),
+                DisclosureFilter.PublicText("Publication did not receive a trusted admission receipt."));
             return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, PrimaryDisposition.Repair, new[] { diagnostic }, requestIdentity, constructionIdentity);
         }
         catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or FormatException or System.Text.Json.JsonException or YamlDotNet.Core.YamlException)
@@ -357,9 +357,9 @@ public sealed class ConstructOperation
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.InvalidInput,
                 phase,
-                "factory-request",
-                exception.Message,
-                "Construction was refused before trusted admission.");
+                DisclosureFilter.PublicText("factory-request"),
+                DisclosureFilter.Withhold(exception.Message, "construction-failure-detail"),
+                DisclosureFilter.PublicText("Construction was refused before trusted admission."));
             return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, PrimaryDisposition.Revise, new[] { diagnostic }, requestIdentity, constructionIdentity);
         }
     }
@@ -375,9 +375,9 @@ public sealed class ConstructOperation
         Diagnostic[] diagnostics = diagnosticIds.Select(id => DiagnosticFactory.Create(
             id,
             phase,
-            resolved.ConstructionProvider.Manifest.Identity.StableKey,
-            "The exact provider reported a bounded failure.",
-            "No candidate was admitted or published.")).ToArray();
+            DisclosureFilter.PublicText(resolved.ConstructionProvider.Manifest.Identity.StableKey),
+            DisclosureFilter.PublicText("The exact provider reported a bounded failure."),
+            DisclosureFilter.PublicText("No candidate was admitted or published."))).ToArray();
         return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, DiagnosticFactory.PrimaryDispositionFor(diagnostics), diagnostics, requestIdentity, constructionIdentity);
     }
 
@@ -386,9 +386,9 @@ public sealed class ConstructOperation
         Diagnostic interrupted = DiagnosticFactory.Create(
             DiagnosticIds.InterruptedPublication,
             OperationPhase.Publication,
-            ".program-kit/publication.journal.json",
-            "Unresolved candidate or publication state is present.",
-            "Blind retry is refused; evaluate and submit a fresh authorized repair request.");
+            DisclosureFilter.RepositoryRelative(".program-kit/publication.journal.json"),
+            DisclosureFilter.PublicText("Unresolved candidate or publication state is present."),
+            DisclosureFilter.PublicText("Blind retry is refused; evaluate and submit a fresh authorized repair request."));
         return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, OperationPhase.Publication, effect, PrimaryDisposition.Repair, new[] { interrupted }, requestIdentity, constructionIdentity);
     }
 

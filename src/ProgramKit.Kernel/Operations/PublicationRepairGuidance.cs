@@ -20,6 +20,7 @@ internal static class PublicationRepairGuidance
         new[] { "human-approved-repository-record" },
         repairRequest,
         null,
+        null,
         new[] { "publication-recovered-before-reconstruction", "no-state-trusted-without-final-receipt" },
         OperationPhase.Publication);
 

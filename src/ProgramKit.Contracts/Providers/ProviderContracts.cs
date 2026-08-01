@@ -22,7 +22,9 @@ public sealed record ProviderManifest(
     IReadOnlyList<string> InputKinds,
     IReadOnlyList<string> OutputKinds,
     IReadOnlyList<string> Processes,
-    IReadOnlyList<string> FilesystemEffects);
+    IReadOnlyList<string> FilesystemEffects,
+    ArtifactReference DiagnosticCatalog,
+    IReadOnlyList<EvidenceReference> ConformanceEvidence);
 
 public sealed record ProviderIntakeContext(
     string WorkspaceRoot,
@@ -57,6 +59,7 @@ public sealed record ProviderConstructionResult(
     IReadOnlyList<JsonObject> Evidence,
     IReadOnlyList<string> Diagnostics,
     bool Succeeded);
+
 public sealed record ProviderEvaluationContext(
     string WorkspaceRoot,
     JsonObject Definition,
@@ -68,7 +71,6 @@ public sealed record ProviderEvaluationResult(
     IReadOnlyList<JsonObject> Evidence,
     IReadOnlyList<string> Diagnostics,
     bool Succeeded);
-
 
 public interface IFactoryProvider
 {

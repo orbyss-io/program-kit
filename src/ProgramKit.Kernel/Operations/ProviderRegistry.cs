@@ -16,6 +16,7 @@ public sealed class ProviderRegistry
         foreach (IFactoryProvider provider in providers)
         {
             ValidateRoleClosure(provider);
+            ValidateEvidenceClosure(provider.Manifest);
             if (!exact.TryAdd(provider.Manifest.Identity.StableKey, provider))
             {
                 throw new InvalidOperationException($"Duplicate exact provider identity: {provider.Manifest.Identity.StableKey}");
@@ -55,6 +56,17 @@ public sealed class ProviderRegistry
         return typed;
     }
 
+    private static void ValidateEvidenceClosure(ProviderManifest manifest)
+    {
+        if (!string.Equals(manifest.DiagnosticCatalog.Identity.Kind, "diagnostic-catalog", StringComparison.Ordinal)
+            || !string.Equals(manifest.DiagnosticCatalog.Identity.Digest, manifest.DiagnosticCatalog.Digest, StringComparison.Ordinal)
+            || manifest.ConformanceEvidence.Count == 0
+            || manifest.ConformanceEvidence.Any(static evidence =>
+                !string.Equals(evidence.Artifact.Identity.Digest, evidence.Artifact.Digest, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"Provider {manifest.Identity.StableKey} has incomplete or non-content-bound catalog/conformance evidence.");
+        }
+    }
     private static void ValidateRoleClosure(IFactoryProvider provider)
     {
         ProviderRole[] implemented = new[]

@@ -132,9 +132,9 @@ public sealed class ConvergenceMechanicsTests
         Diagnostic duplicate = DiagnosticFactory.Create(
             DiagnosticIds.InvalidInput,
             OperationPhase.Validation,
-            "factory-request",
-            "invalid",
-            "revise");
+            DisclosureFilter.PublicText("factory-request"),
+            DisclosureFilter.PublicText("invalid"),
+            DisclosureFilter.PublicText("revise"));
         DiagnosticView grouped = DiagnosticFactory.View(new[] { duplicate, duplicate });
         Assert.AreEqual(1, grouped.Total);
         Assert.AreEqual(2, grouped.Items[0].OccurrenceCount);
@@ -142,18 +142,18 @@ public sealed class ConvergenceMechanicsTests
         Diagnostic[] many = Enumerable.Range(0, 101).Select(index => DiagnosticFactory.Create(
             DiagnosticIds.InvalidInput,
             OperationPhase.Validation,
-            $"subject-{index:D3}",
-            "invalid",
-            "revise")).ToArray();
+            DisclosureFilter.PublicText($"subject-{index:D3}"),
+            DisclosureFilter.PublicText("invalid"),
+            DisclosureFilter.PublicText("revise"))).ToArray();
         DiagnosticView truncated = DiagnosticFactory.View(many);
         Assert.AreEqual(101, truncated.Total);
         Assert.AreEqual(100, truncated.Returned);
         Assert.AreEqual(1, truncated.Omitted);
         Assert.AreEqual(truncated.FullCollectionDigest, DiagnosticFactory.View(many.Reverse()).FullCollectionDigest);
 
-        Assert.AreEqual("withheld", DisclosureFilter.SafeText("password=do-not-emit"));
-        Assert.AreEqual("withheld", DisclosureFilter.SafeText("C:\\Users\\person\\secret.txt"));
-        Assert.AreEqual("withheld", DisclosureFilter.SafeText("System.InvalidOperationException at A.B(C.cs:12)"));
+        Assert.AreEqual(SafeValueClassification.Withheld, DisclosureFilter.PublicText("password=do-not-emit").Classification);
+        Assert.AreEqual(SafeValueClassification.Withheld, DisclosureFilter.PublicText("C:\\Users\\person\\secret.txt").Classification);
+        Assert.AreEqual(SafeValueClassification.Withheld, DisclosureFilter.PublicText("System.InvalidOperationException at A.B(C.cs:12)").Classification);
         Assert.AreNotEqual(Digest(string.Empty), ProtocolIdentities.Operation("construct").Digest);
         Assert.IsFalse(ProtocolIdentities.Operation("construct").Digest.EndsWith(new string('0', 64), StringComparison.Ordinal));
     }
@@ -233,6 +233,6 @@ public sealed class ConvergenceMechanicsTests
     private static ProviderManifest ManifestFor(IReadOnlyList<ProviderRole> roles)
     {
         GovernedIdentity identity = Identity("factory-provider", "test");
-        return new ProviderManifest(identity, Identity("distribution", "test"), roles, new[] { "test" }, new[] { "test" }, new[] { "test" }, Array.Empty<string>(), Array.Empty<string>());
+        return new ProviderManifest(identity, Identity("distribution", "test"), roles, new[] { "test" }, new[] { "test" }, new[] { "test" }, Array.Empty<string>(), Array.Empty<string>(), DiagnosticCatalogArtifacts.KernelArtifact, new[] { DiagnosticCatalogArtifacts.EvidenceFor(DiagnosticIds.MissingInput) });
     }
 }

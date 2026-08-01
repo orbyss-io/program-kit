@@ -97,10 +97,7 @@ internal sealed class DotNetFactoryProvider
             }
 
             string packagePath = Path.Combine(componentFeed, $"{packageId}.{packageVersion}.nupkg");
-            if (!File.Exists(packagePath))
-            {
-                return new ProviderConstructionResult(Array.Empty<ProviderArtifact>(), Array.Empty<JsonObject>(), new[] { DiagnosticIds.PackageMismatch }, false);
-            }
+            ProviderArtifactValidator.RequirePackage(packagePath);
 
             byte[] packageBytes = File.ReadAllBytes(packagePath);
             string packageDigest = Digest(packageBytes);
@@ -151,7 +148,7 @@ internal sealed class DotNetFactoryProvider
 
             string depsPath = Path.Combine(applicationRoot, "bin", "Release", "net10.0", $"{applicationName}.deps.json");
             RuntimeDependencyValidator.EnsureAllowed(
-                ReadRuntimeLibraries(depsPath),
+                ProviderArtifactValidator.ReadRuntimeLibraries(depsPath),
                 new[] { applicationName, packageId, "CShells", "CShells.Abstractions", "CShells.AspNetCore",
                     "CShells.AspNetCore.Abstractions", "JetBrains.Annotations", "Microsoft.Extensions.DependencyModel" });
 
@@ -308,25 +305,6 @@ internal sealed class DotNetFactoryProvider
 
     private sealed record ValidatedMirror(string LockDigest, IReadOnlyList<MirrorArtifact> Artifacts);
 
-    private static IReadOnlyList<string> ReadRuntimeLibraries(string depsPath)
-    {
-        if (!File.Exists(depsPath))
-        {
-            throw new ProviderDiagnosticException(
-                DiagnosticIds.CShellsConformance,
-                PrimaryDisposition.Stop,
-                "The generated application dependency graph is unavailable.");
-        }
-
-        using JsonDocument parsed = JsonDocument.Parse(File.ReadAllBytes(depsPath));
-        JsonObject document = JsonNode.Parse(parsed.RootElement.GetRawText()) as JsonObject
-            ?? throw new ProviderDiagnosticException(DiagnosticIds.CShellsConformance, PrimaryDisposition.Stop, "The dependency graph is invalid.");
-        return (document["libraries"] as JsonObject ?? throw new ProviderDiagnosticException(
-                DiagnosticIds.CShellsConformance,
-                PrimaryDisposition.Stop,
-                "The dependency graph has no library closure."))
-            .Select(static item => item.Key).ToArray();
-    }
 
     private static void RemoveTransientDirectories(string root)
     {

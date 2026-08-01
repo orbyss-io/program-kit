@@ -123,9 +123,9 @@ public static class OperationResultFactory
             DiagnosticFactory.Create(
                 DiagnosticIds.InternalFailure,
                 phase,
-                "public-command",
-                "The normal result pipeline could not complete.",
-                "No further claim is made; use the safest bounded stop action."),
+                DisclosureFilter.PublicText("public-command"),
+                DisclosureFilter.PublicText("The normal result pipeline could not complete."),
+                DisclosureFilter.PublicText("No further claim is made; use the safest bounded stop action.")),
         });
 
     private static string Kebab(PublicCommand command) => command.ToString().ToLowerInvariant();

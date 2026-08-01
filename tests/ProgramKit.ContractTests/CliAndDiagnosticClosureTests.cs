@@ -81,9 +81,9 @@ public sealed class CliAndDiagnosticClosureTests
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 id,
                 OperationPhase.Validation,
-                "fixture-subject",
-                "bounded cause",
-                "bounded consequence",
+                DisclosureFilter.PublicText("fixture-subject"),
+                DisclosureFilter.PublicText("bounded cause"),
+                DisclosureFilter.PublicText("bounded consequence"),
                 new Dictionary<string, SafeValue>(StringComparer.Ordinal) { ["value"] = new(SafeValueClassification.Public, SafeValueKind.Text, "bounded") });
             OperationResult result = OperationResultFactory.Failure(
                 PublicCommand.Explain,
@@ -123,10 +123,10 @@ public sealed class CliAndDiagnosticClosureTests
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.ExternalFailure,
                 OperationPhase.Validation,
-                unsafeValue,
-                unsafeValue,
-                unsafeValue,
-                new Dictionary<string, SafeValue>(StringComparer.Ordinal) { ["observed"] = DisclosureFilter.Classify(unsafeValue) });
+                DisclosureFilter.Withhold(unsafeValue, "adversarial-value"),
+                DisclosureFilter.Withhold(unsafeValue, "adversarial-value"),
+                DisclosureFilter.Withhold(unsafeValue, "adversarial-value"),
+                new Dictionary<string, SafeValue>(StringComparer.Ordinal) { ["observed"] = DisclosureFilter.Withhold(unsafeValue, "adversarial-parameter") });
             JsonObject projected = OperationResultProjector.ToJson(OperationResultFactory.Failure(
                 PublicCommand.Construct,
                 OperationOutcome.Blocked,

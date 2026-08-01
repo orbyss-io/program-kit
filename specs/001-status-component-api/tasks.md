@@ -356,3 +356,22 @@ human decision depend on exact current evidence rather than historical paths.
 
 **Checkpoint**: T095 remains pending until T096-T102 are complete and a fresh
 independent reviewer evaluates the exact pushed commit and bound evidence.
+
+---
+
+## Phase 10: Diagnostic Contract Readiness Convergence
+
+**Purpose**: Close only the four existing-MUST diagnostic findings from the
+independent pre-T095 audit. These findings reopen the T058, T091, T094, and
+T102 readiness claims until all four tasks, the complete T102 gate, and the
+evidence ledger reconciliation pass again. T095 remains pending.
+
+- [X] T103 CRITICAL Require every normal and independent-fallback diagnostic to carry at least one exact evidence reference and at least one typed bounded remediation with an existing request artifact or complete inline request/argument-array/digested-patch payload; reject empty or kind-only projections in the public schema and direct contract tests, per FR-021, FR-022, and Constitution VII (complete: non-empty catalog evidence and executable request payloads are schema-enforced for normal and fallback diagnostics)
+- [X] T104 CRITICAL Replace public-by-default heuristic diagnostic string classification with explicit schema-classified safe values that fail closed for unclassified subject/cause/consequence inputs; pass secret-derived fingerprints through the real classifier/factory and prove ordinary, provider, rendering, verbose/progress, and fallback paths cannot disclose them, per FR-024 and Constitution VII (complete: typed caller classification is required and adversarial/secret-derived values fail closed)
+- [X] T105 CRITICAL Bind each diagnostic catalog identity to its canonical catalog bytes, add exact diagnostic-catalog and conformance-evidence identities to `ProviderManifest`, carry those bindings through the first-party manifest/runtime registry and generated distribution evidence, and prove identity/artifact digest agreement plus exact provider resolution, per Constitutions III and VI, the accepted `ProviderManifest` data model, T011, and T034 (complete: canonical catalog bytes, provider manifest, registry, and distribution evidence share exact digest bindings)
+- [X] T106 CRITICAL Add direct production-boundary trigger-and-ID assertions for `MissingInput`, `ConflictingInput`, `IncompleteMeaning`, `GateFailed`, `CShellsConformance`, and `PackageMismatch`, while retaining the all-ID schema/catalog projection test only as catalog coverage, per T058, T091, SC-005, and Constitution IX (complete: all six IDs are asserted at their callable production boundaries)
+
+**Checkpoint**: After T103-T106 pass, rerun the complete repository-owned T102
+gate, reconcile the original-task ledger and review documents only to the new
+evidence, commit and push a clean exact candidate, and obtain one final
+independent read-only readiness verdict before T095.

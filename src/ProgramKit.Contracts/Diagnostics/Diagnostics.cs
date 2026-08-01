@@ -33,6 +33,7 @@ public sealed record Remediation(
     IReadOnlyList<string> AuthorityRequired,
     JsonObject? RequestDocument,
     ArtifactReference? RequestArtifact,
+    IReadOnlyList<string>? RequestArguments,
     IReadOnlyList<string> Postconditions,
     OperationPhase RetryPhase);
 

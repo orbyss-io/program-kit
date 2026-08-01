@@ -10,12 +10,51 @@ public static partial class DisclosureFilter
 {
     private static readonly GovernedIdentity DisclosurePolicy = ProtocolIdentities.Rule("diagnostic-disclosure-floor");
 
-    public static string SafeLogicalValue(string value) => Classify(value, logicalPath: true).Value ?? "withheld";
+    public static SafeValue PublicText(string value) => Visible(
+        value,
+        SafeValueClassification.Public,
+        SafeValueKind.Text,
+        logicalPath: false);
 
-    public static string SafeText(string value) => Classify(value).Value ?? "withheld";
+    public static SafeValue RepositoryRelative(string value) => Visible(
+        value,
+        SafeValueClassification.RepositoryRelative,
+        SafeValueKind.LogicalPath,
+        logicalPath: true);
 
-    public static SafeValue Classify(string value, bool logicalPath = false)
+    public static SafeValue Withhold(string value, string reason)
     {
+        ArgumentNullException.ThrowIfNull(value);
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("A withheld diagnostic value requires a stable reason.", nameof(reason));
+        }
+
+        return Withheld(reason);
+    }
+
+    public static SafeValue Enforce(SafeValue value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (value.Classification == SafeValueClassification.Withheld)
+        {
+            return value;
+        }
+
+        return Visible(
+            value.Value ?? throw new ArgumentException("A visible diagnostic value requires content.", nameof(value)),
+            value.Classification,
+            value.ValueKind,
+            value.Classification == SafeValueClassification.RepositoryRelative);
+    }
+
+    private static SafeValue Visible(
+        string value,
+        SafeValueClassification classification,
+        SafeValueKind kind,
+        bool logicalPath)
+    {
+        ArgumentNullException.ThrowIfNull(value);
         if (MustWithhold(value, logicalPath))
         {
             return Withheld("disclosure-floor");
@@ -27,13 +66,10 @@ public static partial class DisclosureFilter
             singleLine = singleLine[..500];
         }
 
-        return new SafeValue(
-            logicalPath ? SafeValueClassification.RepositoryRelative : SafeValueClassification.Public,
-            logicalPath ? SafeValueKind.LogicalPath : SafeValueKind.Text,
-            singleLine);
+        return new SafeValue(classification, kind, singleLine);
     }
 
-    public static SafeValue Withheld(string reason) => new(
+    private static SafeValue Withheld(string reason) => new(
         SafeValueClassification.Withheld,
         SafeValueKind.Redacted,
         null,

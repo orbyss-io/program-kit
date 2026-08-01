@@ -78,9 +78,9 @@ public sealed class SchemaClosureTests
         Diagnostic[] diagnostics = Enumerable.Range(0, 101).Select(index => DiagnosticFactory.Create(
             DiagnosticIds.InvalidInput,
             OperationPhase.Validation,
-            $"subject-{index:D3}",
-            "invalid",
-            "revise")).ToArray();
+            DisclosureFilter.PublicText($"subject-{index:D3}"),
+            DisclosureFilter.PublicText("invalid"),
+            DisclosureFilter.PublicText("revise"))).ToArray();
         OperationResult result = OperationResultFactory.Failure(
             PublicCommand.Construct,
             OperationOutcome.Blocked,

@@ -57,9 +57,9 @@ public sealed class CommandDispatcher
         Diagnostic diagnostic = DiagnosticFactory.Create(
             DiagnosticIds.InvalidInput,
             OperationPhase.Request,
-            "command-line",
-            cause,
-            "The command was refused before any workspace effect.");
+            DisclosureFilter.PublicText("command-line"),
+            DisclosureFilter.PublicText(cause),
+            DisclosureFilter.PublicText("The command was refused before any workspace effect."));
         return OperationResultFactory.Failure(command, OperationOutcome.Blocked, OperationPhase.Request, EffectState.None, PrimaryDisposition.Revise, new[] { diagnostic });
     }
 }

@@ -30,7 +30,7 @@ public sealed class DisclosureTests
         };
         foreach (string unsafeValue in unsafeValues)
         {
-            SafeValue classified = DisclosureFilter.Classify(unsafeValue);
+            SafeValue classified = DisclosureFilter.PublicText(unsafeValue);
             Assert.AreEqual(SafeValueClassification.Withheld, classified.Classification, unsafeValue);
             Assert.AreEqual(SafeValueKind.Redacted, classified.ValueKind, unsafeValue);
             Assert.IsNull(classified.Value, unsafeValue);
@@ -39,9 +39,9 @@ public sealed class DisclosureTests
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 DiagnosticIds.ExternalFailure,
                 OperationPhase.Validation,
-                "external-provider",
-                unsafeValue,
-                "The external observation is withheld.",
+                DisclosureFilter.PublicText("external-provider"),
+                DisclosureFilter.Withhold(unsafeValue, "unsafe-observation"),
+                DisclosureFilter.PublicText("The external observation is withheld."),
                 new Dictionary<string, SafeValue>(StringComparer.Ordinal)
                 {
                     ["observed"] = classified,
@@ -64,13 +64,13 @@ public sealed class DisclosureTests
     public void Secret_derived_fingerprints_require_caller_classification_and_are_not_reversible()
     {
         const string derivedFingerprint = "sha256:4b7bc5e7c31edc11d8a7d6f92d20d989cc86ec64b6f9a7e15338b18f7b6c0209";
-        SafeValue withheld = DisclosureFilter.Withheld("secret-derived-fingerprint");
+        SafeValue withheld = DisclosureFilter.Withhold(derivedFingerprint, "secret-derived-fingerprint");
         Diagnostic diagnostic = DiagnosticFactory.Create(
             DiagnosticIds.InvalidInput,
             OperationPhase.Validation,
-            "request",
-            "A restricted value was supplied.",
-            "The restricted value is not echoed.",
+            DisclosureFilter.PublicText("request"),
+            DisclosureFilter.PublicText("A restricted value was supplied."),
+            DisclosureFilter.PublicText("The restricted value is not echoed."),
             new Dictionary<string, SafeValue>(StringComparer.Ordinal) { ["fingerprint"] = withheld });
         string json = OperationResultProjector.ToJson(OperationResultFactory.Failure(
             PublicCommand.Explain,

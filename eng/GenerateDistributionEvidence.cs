@@ -1,5 +1,7 @@
 #:project ../src/ProgramKit.Kernel/ProgramKit.Kernel.csproj
+#:project ../src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj
 #:property PublishAot=false
+#:property RestoreLockedMode=false
 
 using System;
 using System.Collections.Generic;
@@ -7,10 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
+using Orbyss.ProgramKit.Providers.DotNet.Manifests;
 
 string root = Directory.GetCurrentDirectory();
 if (!File.Exists(Path.Combine(root, "global.json")))
@@ -38,17 +42,7 @@ string Write(string name, JsonObject document)
     return ByteDigest(path);
 }
 
-const string providerMaterial = "dotnet10-cshells-0.0.28@29fe542835696131278fcacc6cdb9a6186fc0447";
-string providerDigest = $"sha256:{Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(providerMaterial))).ToLowerInvariant()}";
-ProviderManifest provider = new(
-    new GovernedIdentity("orbyss.program-kit.dotnet", "factory-provider", "dotnet-cshells", "1.0.0", providerDigest),
-    new GovernedIdentity("orbyss.program-kit.dotnet", "distribution", "dotnet10-cshells", "1.0.0", providerDigest),
-    new[] { ProviderRole.IntakeMapping, ProviderRole.Construction, ProviderRole.Evaluation },
-    new[] { "dotnet10-cshells-0.0.28" },
-    new[] { "program-kit.software-definition-bundle/v1", "program-kit.provider.dotnet.component-api-definition/v1" },
-    new[] { "dotnet-component-package", "aspnetcore-application" },
-    new[] { "dotnet restore", "dotnet build", "dotnet pack" },
-    new[] { "read-workspace", "write-candidate", "write-local-package-source" });
+ProviderManifest provider = DotNetProviderManifest.Create();
 JsonObject support = new()
 {
     ["schema"] = "program-kit.provider-support/v1",
@@ -63,8 +57,12 @@ JsonObject support = new()
     ["filesystemEffects"] = Strings(provider.FilesystemEffects),
 };
 string supportDigest = Write("provider-support.json", support);
+if (!string.Equals(supportDigest, provider.ConformanceEvidence.Single().Artifact.Digest, StringComparison.Ordinal))
+{
+    throw new InvalidOperationException("Provider support evidence does not match its exact runtime manifest binding.");
+}
 
-JsonObject Catalog(GovernedIdentity identity, string idPrefix)
+JsonObject Catalog(string idPrefix)
 {
     JsonArray entries = new(DiagnosticCatalog.Entries.Values
         .Where(definition => definition.Id.StartsWith(idPrefix, StringComparison.Ordinal))
@@ -86,16 +84,19 @@ JsonObject Catalog(GovernedIdentity identity, string idPrefix)
     {
         ["schema"] = "program-kit.diagnostic-catalog/v1",
         ["canonicalProfile"] = CanonicalJson.Profile,
-        ["identity"] = Identity(identity),
+
         ["protocolRevision"] = "1.0.0",
         ["entries"] = entries,
     };
 }
 
-string kernelCatalogDigest = Write("kernel-diagnostic-catalog.json", Catalog(
-    ProtocolIdentities.Catalog("orbyss.program-kit", "kernel"), "program-kit.kernel/"));
-string providerCatalogDigest = Write("dotnet-diagnostic-catalog.json", Catalog(
-    ProtocolIdentities.Catalog("orbyss.program-kit.dotnet", "provider"), "program-kit.provider.dotnet/"));
+string kernelCatalogDigest = Write("kernel-diagnostic-catalog.json", Catalog("program-kit.kernel/"));
+string providerCatalogDigest = Write("dotnet-diagnostic-catalog.json", Catalog("program-kit.provider.dotnet/"));
+if (!string.Equals(kernelCatalogDigest, DiagnosticCatalogArtifacts.KernelArtifact.Digest, StringComparison.Ordinal)
+    || !string.Equals(providerCatalogDigest, provider.DiagnosticCatalog.Digest, StringComparison.Ordinal))
+{
+    throw new InvalidOperationException("A diagnostic catalog changed without an exact content-bound identity update.");
+}
 
 List<JsonObject> dependencies = new();
 foreach (string lockPath in Directory.EnumerateFiles(root, "packages.lock.json", SearchOption.AllDirectories)
@@ -167,6 +168,8 @@ JsonObject distribution = new()
     ["canonicalProfile"] = CanonicalJson.Profile,
     ["distribution"] = Identity(provider.Distribution),
     ["provider"] = Identity(provider.Identity),
+    ["diagnosticCatalog"] = BoundArtifact(provider.DiagnosticCatalog),
+    ["conformanceEvidence"] = new JsonArray(provider.ConformanceEvidence.Select(item => BoundEvidence(item)).ToArray()),
     ["artifacts"] = new JsonArray(
         Evidence("dependency-sbom.cdx.json", "application/vnd.cyclonedx+json", sbomDigest),
         Evidence("dotnet-diagnostic-catalog.json", "application/json", providerCatalogDigest),
@@ -181,6 +184,24 @@ JsonObject Evidence(string logicalPath, string mediaType, string digest) => new(
     ["logicalPath"] = $"artifacts/evidence/{logicalPath}",
     ["mediaType"] = mediaType,
     ["digest"] = digest,
+};
+
+JsonObject BoundArtifact(Orbyss.ProgramKit.Contracts.Operations.ArtifactReference value) => new()
+{
+    ["identity"] = Identity(value.Identity),
+    ["mediaType"] = value.MediaType,
+    ["logicalPath"] = value.LogicalPath,
+    ["digest"] = value.Digest,
+    ["ownership"] = Kebab(value.Ownership.ToString()),
+};
+
+JsonObject BoundEvidence(Orbyss.ProgramKit.Contracts.Operations.EvidenceReference value) => new()
+{
+    ["identity"] = Identity(value.Identity),
+    ["subject"] = Identity(value.Subject),
+    ["profile"] = Identity(value.Profile),
+    ["artifact"] = BoundArtifact(value.Artifact),
+    ["freshness"] = value.Freshness,
 };
 
 string Kebab(string value)
