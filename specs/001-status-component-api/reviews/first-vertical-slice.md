@@ -8,10 +8,10 @@ general-purpose release. The prior 2026-08-01 decision rejected the earlier
 prototype and remains valid for that exact evidence binding.
 
 The exact implementation/evidence candidate is pushed commit
-`9aceead4d995811b34add4486c1906bac58d5dcb`. Its distribution-manifest byte
+`00ab520f692273e5d84329fe21034725431bafe5`. Its distribution-manifest byte
 digest is
-`sha256:a9e2e373fe7bdfdcdb74eae54dbc96d5c564c6e25f4089061910bc4a24e66718`.
-The repository-owned quickstart passed 89 tests: 25 unit, 33 contract, and 31
+`sha256:7905022b5a8e600ad96829fd9480d3e5655e1e95005f5e0b2dfc02c497b9c2ba`.
+The repository-owned quickstart passed 90 tests: 25 unit, 34 contract, and 31
 acceptance. Exact commands, results, and proof scope are in
 [`../verification.md`](../verification.md).
 
@@ -29,8 +29,10 @@ Material changes since the rejected candidate include:
   lifecycle fallback, actionable bounded diagnostics, and authoritative
   workspace snapshots;
 - all 26 public diagnostics bound to typed disposition, expected/observed,
-  remediation, production references, schema-valid evidence, and adversarial
-  disclosure proof;
+  non-empty evidence, executable remediation payloads, production triggers, and
+  adversarial disclosure proof;
+- content-bound diagnostic catalogs and exact provider-manifest conformance
+  evidence carried into runtime admission and distribution evidence;
 - nine executable SC-005 negative fixtures, including missing assembler,
   ambiguous order, determinism drift, live collision, stale precondition,
   interruption, and provider failure;
@@ -43,8 +45,7 @@ Material changes since the rejected candidate include:
 ## Task-ledger checkpoint before T095
 
 T096 recorded the historical `53 satisfied, 5 superseded, 27 missing` snapshot.
-After T097-T102 and the bounded diagnostic closure, the human explicitly
-authorized the current `80 satisfied, 5 superseded, 0 missing` classification.
+After T097-T106, the human explicitly authorized the current `80 satisfied, 5 superseded, 0 missing` classification.
 T004, T007, T032, T036, and T046 remain unchecked and visibly superseded because
 their accepted outcomes are proven through consolidated boundaries rather than
 their originally named file split. T094 and T102 are complete. This ledger
