@@ -79,6 +79,14 @@ the review record to state that a separate release review may still be needed.
 
 ## Human approval gate
 
-**PENDING — NOT PASSED.** No independent reviewer has approved the product
-meaning, developer experience, or architectural sufficiency of this slice.
-Green automation is execution evidence only.
+**REJECTED — REMEDIATION REQUIRED.** On 2026-08-01, the current human
+repository product owner explicitly accepted this audit's recommendation to
+reject the implementation pending remediation. The reviewer participated in
+the product requirements and authorized this decision in the active design
+task; no stable personal reviewer identifier was supplied, so this decision
+cannot satisfy the identity-bound post-remediation review required by `T095`.
+
+The rejection closes this audit round without accepting Feature 001. Green
+automation remains execution evidence only. `T086`-`T094` must be completed
+and evidenced before a fresh, named human accept/reject decision is requested
+under `T095`.

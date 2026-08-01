@@ -4,8 +4,8 @@ Date: 2026-08-01
 
 ## Closure-audit status
 
-**Automated prototype evidence: passed. Product closure: blocked. Human
-decision: pending.**
+**Automated prototype evidence: passed. Product closure: rejected pending
+remediation. Fresh post-remediation human decision: not yet eligible.**
 
 The 2026-08-01 closure audit reran the official quickstart successfully in
 37.4 seconds: the Release build completed with 0 warnings and 0 errors, all
@@ -18,8 +18,11 @@ still unproven or incomplete. Spec Kit convergence appended `T086`-`T095`
 for ten material closure findings: 1 missing, 7 partial, and 2 contradicting
 the specified intent; 6 are critical, 3 high, and 1 medium severity.
 
-The audit recommends rejection pending remediation. It does not itself make
-the independent human product decision.
+The current human repository product owner explicitly accepted the audit's
+rejection recommendation on 2026-08-01. That decision closes the audit round
+but does not accept Feature 001 and does not satisfy `T095`: the reviewer did
+not supply a stable personal identifier, and the required convergence work and
+deterministic gates have not yet passed.
 
 The status and evidence reason for every original task, plus the mapping from
 the convergence tasks back to original work, are recorded in

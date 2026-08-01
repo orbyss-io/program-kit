@@ -36,6 +36,9 @@ direct evidence. Authority closure, the public provider-role seam, complete
 admission/recovery, diagnostic effect honesty, workspace currentness, and the
 declared product-proof matrix remain open. Treat the current slice as a
 useful executable prototype, not as an accepted foundation.
+The repository product owner formally rejected that audited implementation
+pending bounded remediation. A fresh, named human decision will be requested
+only after the convergence tasks and applicable deterministic gates pass.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
