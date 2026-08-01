@@ -32,11 +32,11 @@ are added.
 Feature 001 is **not product-accepted**. A bounded closure audit on
 2026-08-01 rejected the earlier prototype for material authority, provider,
 admission/recovery, diagnostic, snapshot, and product-proof gaps. The current
-candidate addresses those gaps, and the repository-owned gate passes 90 tests
+candidate addresses those gaps, and the repository-owned gate passes 91 tests
 plus deterministic evidence, formatting, and whitespace verification. The
 exact product candidate is commit
-`00ab520f692273e5d84329fe21034725431bafe5`; its distribution-manifest digest
-is `sha256:7905022b5a8e600ad96829fd9480d3e5655e1e95005f5e0b2dfc02c497b9c2ba`.
+`2f7151b25022d7e380d3b09e662f6debe9d787f3`; its distribution-manifest digest
+is `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
 The human-authorized evidence ledger now records 80 satisfied, 5 explicitly
 superseded, and 0 missing outcomes. That reconciliation does not reverse the
 old decision or product-accept Feature 001 automatically. A fresh named human

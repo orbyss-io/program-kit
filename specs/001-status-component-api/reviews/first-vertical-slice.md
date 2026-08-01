@@ -8,12 +8,19 @@ general-purpose release. The prior 2026-08-01 decision rejected the earlier
 prototype and remains valid for that exact evidence binding.
 
 The exact implementation/evidence candidate is pushed commit
-`00ab520f692273e5d84329fe21034725431bafe5`. Its distribution-manifest byte
+`2f7151b25022d7e380d3b09e662f6debe9d787f3`. Its distribution-manifest byte
 digest is
-`sha256:7905022b5a8e600ad96829fd9480d3e5655e1e95005f5e0b2dfc02c497b9c2ba`.
-The repository-owned quickstart passed 90 tests: 25 unit, 34 contract, and 31
+`sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
+The repository-owned quickstart passed 91 tests: 25 unit, 35 contract, and 31
 acceptance. Exact commands, results, and proof scope are in
 [`../verification.md`](../verification.md).
+
+The first final-readiness audit of prior HEAD
+`4d15000c7d45062d9376c3b3f2966e57fa5348ff` remained NOT READY because opaque
+unknown CLI tokens were echoed and this review retained one obsolete 89-test
+sentence. The exact current candidate removes that disclosure path, adds
+black-box command/positional/option proof, and corrects the count; T095 still
+requires a fresh READY verdict.
 
 Material changes since the rejected candidate include:
 
@@ -30,7 +37,7 @@ Material changes since the rejected candidate include:
   workspace snapshots;
 - all 26 public diagnostics bound to typed disposition, expected/observed,
   non-empty evidence, executable remediation payloads, production triggers, and
-  adversarial disclosure proof;
+  adversarial disclosure proof, including opaque CLI parse tokens;
 - content-bound diagnostic catalogs and exact provider-manifest conformance
   evidence carried into runtime admission and distribution evidence;
 - nine executable SC-005 negative fixtures, including missing assembler,
@@ -45,7 +52,8 @@ Material changes since the rejected candidate include:
 ## Task-ledger checkpoint before T095
 
 T096 recorded the historical `53 satisfied, 5 superseded, 27 missing` snapshot.
-After T097-T106, the human explicitly authorized the current `80 satisfied, 5 superseded, 0 missing` classification.
+After T097-T106, the human explicitly authorized the current `80 satisfied, 5
+superseded, 0 missing` classification.
 T004, T007, T032, T036, and T046 remain unchecked and visibly superseded because
 their accepted outcomes are proven through consolidated boundaries rather than
 their originally named file split. T094 and T102 are complete. This ledger
@@ -86,7 +94,7 @@ disclosed; a later independent release review may still be required.
 
 **PENDING FRESH T095 HUMAN REVIEW.**
 
-Do not derive acceptance from the 89 passing tests, generated evidence, CI,
+Do not derive acceptance from the 91 passing tests, generated evidence, CI,
 ledger reconciliation, or this document. Record the T095 decision only after
 reviewing the exact candidate, with reviewer identity, scope/evidence binding,
 limitations, date, and an explicit accept or reject statement.

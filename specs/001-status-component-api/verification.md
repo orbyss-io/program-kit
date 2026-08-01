@@ -9,11 +9,19 @@ ledger reconciliation is complete. T095 product acceptance remains pending.**
 
 The exact implementation and generated-evidence candidate exercised by the
 successful gate is pushed commit
-`00ab520f692273e5d84329fe21034725431bafe5`. Its checked-in
+`2f7151b25022d7e380d3b09e662f6debe9d787f3`. Its checked-in
 `artifacts/evidence/distribution-manifest.json` has byte digest
-`sha256:7905022b5a8e600ad96829fd9480d3e5655e1e95005f5e0b2dfc02c497b9c2ba`.
+`sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
 The documentation-only reconciliation commit is a descendant of that candidate
 and does not alter its implementation or generated evidence.
+
+The independent audit of prior pushed HEAD
+`4d15000c7d45062d9376c3b3f2966e57fa5348ff` returned NOT READY only because
+raw unknown CLI tokens could enter parse-error prose and one review sentence
+retained the obsolete 89-test count. The current candidate removes those raw
+tokens, adds black-box opaque-token proof for command, positional, and option
+paths, corrects the count, and reruns the full gate. This remediation is not
+T095 acceptance.
 
 The rejected baseline remains recorded in
 [`reviews/task-closure-audit.md`](reviews/task-closure-audit.md). The later T096
@@ -38,9 +46,9 @@ formatting verification, and Git whitespace verification.
 
 - build: 0 warnings, 0 errors;
 - unit: 25 passed;
-- contract: 34 passed;
+- contract: 35 passed;
 - acceptance: 31 passed;
-- total: 90 passed, 0 failed, 0 skipped;
+- total: 91 passed, 0 failed, 0 skipped;
 - distribution evidence regeneration/stale check: passed;
 - formatting and `git diff --check`: passed;
 - implementation/evidence worktree after commit: clean and pushed.
@@ -59,8 +67,8 @@ The acceptance and contract evidence includes:
 - all 26 public diagnostic identities with schema-valid catalog projections and
   production references, including the six formerly untriggered boundaries;
 - typed disposition, expected/observed values, non-empty evidence, executable
-  remediation payloads, continuation grouping, and adversarial disclosure/fallback
-  behavior;
+  remediation payloads, continuation grouping, adversarial disclosure/fallback,
+  and opaque CLI parse-token behavior;
 - nine executable SC-005 fixtures covering duplicate route, missing assembler,
   ambiguous order, unsafe disclosure, generated drift, live collision, stale
   precondition, interrupted publication, and provider failure;

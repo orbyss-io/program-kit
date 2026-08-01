@@ -19,11 +19,12 @@ substance of T086-T093:
   runtime isolation.
 
 The final bounded T103-T106 repair additionally makes diagnostic evidence and
-remediation payloads non-empty, requires typed disclosure classification, binds
-catalog identities to canonical bytes through provider/distribution manifests,
+remediation payloads non-empty, requires typed disclosure classification,
+excludes raw unknown CLI tokens from parse prose, binds catalog identities to
+canonical bytes through provider/distribution manifests,
 and directly triggers the six previously synthetic-only public IDs.
 
-The repository quickstart passes 90 tests plus evidence, formatting, and
+The repository quickstart passes 91 tests plus evidence, formatting, and
 whitespace gates. `verification.md` is the current execution record. The
 human explicitly confirmed that this recorded post-remediation evidence closes
 T086-T093, so those rows are now marked `remediated`. That confirmation closes
@@ -231,7 +232,7 @@ recreating the historical file split would add no product evidence. `missing` wo
 | T082 | satisfied | `Invoke-VerticalSliceQuickstart.ps1` automates valid/invalid/repeatability/drift/repair/publication/runtime/evidence gates without ambient setup. |
 | T083 | satisfied | The review record contains timing, seven architecture questions, honest limits, and a distinct pending human decision. |
 | T084 | satisfied | README records the constitution, archive boundary, actual CLI, limitations, entry points, and non-accepted state. |
-| T085 | satisfied | The repository-owned T102 quickstart passed locked restore, Release build, 90 tests, schema/generated-consumer/runtime/evidence/format/diff gates; the exact binding is recorded in `verification.md`. |
+| T085 | satisfied | The repository-owned T102 quickstart passed locked restore, Release build, 91 tests, schema/generated-consumer/runtime/evidence/format/diff gates; the exact binding is recorded in `verification.md`. |
 
 The historical T096 classification was 53 satisfied, 5 superseded, and 27
 missing. After the bounded T097-T106 proof closure, the current classification
