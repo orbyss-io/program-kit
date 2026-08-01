@@ -12,8 +12,33 @@ if (-not $resolvedOutput.StartsWith($repositoryRoot + [IO.Path]::DirectorySepara
 
 $manifest = Get-Content -LiteralPath (Join-Path $PSScriptRoot "dependency-mirror.manifest.json") -Raw | ConvertFrom-Json
 $bootstrapRoot = Join-Path ([IO.Path]::GetTempPath()) ("program-kit-mirror-" + [guid]::NewGuid().ToString("N"))
+$priorEnvironment = @{
+    DOTNET_CLI_HOME = $env:DOTNET_CLI_HOME
+    DOTNET_CLI_TELEMETRY_OPTOUT = $env:DOTNET_CLI_TELEMETRY_OPTOUT
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+    DOTNET_NOLOGO = $env:DOTNET_NOLOGO
+    DOTNET_CLI_UI_LANGUAGE = $env:DOTNET_CLI_UI_LANGUAGE
+    NUGET_XMLDOC_MODE = $env:NUGET_XMLDOC_MODE
+    APPDATA = $env:APPDATA
+    XDG_CONFIG_HOME = $env:XDG_CONFIG_HOME
+}
 try {
     New-Item -ItemType Directory -Path $bootstrapRoot | Out-Null
+    $toolHome = Join-Path $bootstrapRoot 'tool-home'
+    [IO.Directory]::CreateDirectory($toolHome) | Out-Null
+    $env:DOTNET_CLI_HOME = $toolHome
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+    $env:DOTNET_NOLOGO = '1'
+    $env:DOTNET_CLI_UI_LANGUAGE = 'en-US'
+    $env:NUGET_XMLDOC_MODE = 'skip'
+    if ($IsWindows) {
+        $env:APPDATA = $toolHome
+    }
+    else {
+        $env:XDG_CONFIG_HOME = $toolHome
+    }
+
     $projectPath = Join-Path $bootstrapRoot "mirror.csproj"
     $packageItems = foreach ($package in $manifest.packages | Where-Object { $_.id -in @('CShells.AspNetCore', 'CShells.AspNetCore.Abstractions') }) {
         "    <PackageReference Include=`"$($package.id)`" Version=`"[$($package.version)]`" />"
@@ -51,6 +76,15 @@ try {
         ConvertTo-Json -Depth 10 |
         Set-Content -LiteralPath (Join-Path $resolvedOutput 'mirror.lock.json') -Encoding utf8
 } finally {
+    foreach ($entry in $priorEnvironment.GetEnumerator()) {
+        if ($null -eq $entry.Value) {
+            Remove-Item -LiteralPath "Env:$($entry.Key)" -ErrorAction SilentlyContinue
+        }
+        else {
+            Set-Item -LiteralPath "Env:$($entry.Key)" -Value $entry.Value
+        }
+    }
+
     $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
     $resolvedBootstrap = [IO.Path]::GetFullPath($bootstrapRoot)
     if ($resolvedBootstrap.StartsWith($tempRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $resolvedBootstrap)) {

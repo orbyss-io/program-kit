@@ -8,6 +8,7 @@ using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Resolution;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
+using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Intake;
 using Orbyss.ProgramKit.Kernel.Validation;
 
@@ -179,7 +180,7 @@ public sealed class RepositoryAuthorityProvider
         {
             return IntakePipeline.LoadExactArtifact(workspaceRoot, reference);
         }
-        catch (Exception exception) when (exception is IOException or InvalidDataException or System.Text.Json.JsonException)
+        catch (Exception exception) when (exception is IOException or InvalidDataException or System.Text.Json.JsonException or ProgramKitDiagnosticException)
         {
             throw new UnauthorizedAccessException($"The exact {kind} authority evidence is unavailable or changed.", exception);
         }
