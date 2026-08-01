@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ProgramKit.SessionIntegration</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
+    <ProjectReference Include="../ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
+  </ItemGroup>
+</Project>

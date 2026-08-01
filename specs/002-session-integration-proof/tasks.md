@@ -17,15 +17,15 @@
 
 **Purpose**: Add the project and packaging skeleton needed by every user story without implementing session behavior.
 
-- [ ] T001 [P] Create the provider-neutral class-library project with locked restore and references to Contracts and Kernel in `src/ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj`
-- [ ] T002 [P] Create the Codex provider class-library project with locked restore and a one-way reference to SessionIntegration in `src/ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj`
-- [ ] T003 Add both session-integration projects to `ProgramKit.slnx`
-- [ ] T004 Add SessionIntegration and Codex provider project references to `src/ProgramKit.Cli/ProgramKit.Cli.csproj`
-- [ ] T005 Add the new source-project references required for contract, unit, and acceptance coverage to `tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj`, `tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj`, and `tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj`
-- [ ] T006 Configure the CLI as package `Orbyss.ProgramKit.Cli` version `1.0.0-alpha.1` with tool command `program-kit`, symbols, source metadata, and package README in `src/ProgramKit.Cli/ProgramKit.Cli.csproj` (FR-001, FR-002)
-- [ ] T007 Add a deterministic local-pack entry point that accepts an explicit output directory and performs locked restore in `eng/Pack-ProgramKitTool.ps1` (FR-001, FR-003)
-- [ ] T008 Add the repository-owned source-authoring marker and schema version in `.program-kit-source.json` (FR-006)
-- [ ] T009 Restore the new projects in locked mode and commit their generated lock files in `src/ProgramKit.SessionIntegration/packages.lock.json` and `src/ProgramKit.SessionIntegration.Providers.Codex/packages.lock.json`
+- [X] T001 [P] Create the provider-neutral class-library project with locked restore and references to Contracts and Kernel in `src/ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj`
+- [X] T002 [P] Create the Codex provider class-library project with locked restore and a one-way reference to SessionIntegration in `src/ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj`
+- [X] T003 Add both session-integration projects to `ProgramKit.slnx`
+- [X] T004 Add SessionIntegration and Codex provider project references to `src/ProgramKit.Cli/ProgramKit.Cli.csproj`
+- [X] T005 Add the new source-project references required for contract, unit, and acceptance coverage to `tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj`, `tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj`, and `tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj`
+- [X] T006 Configure the CLI as package `Orbyss.ProgramKit.Cli` version `1.0.0-alpha.1` with tool command `program-kit`, symbols, source metadata, and package README in `src/ProgramKit.Cli/ProgramKit.Cli.csproj` (FR-001, FR-002)
+- [X] T007 Add a deterministic local-pack entry point that accepts an explicit output directory and performs locked restore in `eng/Pack-ProgramKitTool.ps1` (FR-001, FR-003)
+- [X] T008 Add the repository-owned source-authoring marker and schema version in `.program-kit-source.json` (FR-006)
+- [X] T009 Restore the new projects in locked mode and commit their generated lock files in `src/ProgramKit.SessionIntegration/packages.lock.json` and `src/ProgramKit.SessionIntegration.Providers.Codex/packages.lock.json`
 
 ---
 

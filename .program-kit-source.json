@@ -1,0 +1,5 @@
+{
+  "schema": "program-kit.source-authoring/v1",
+  "repository": "orbyss/program-kit",
+  "consumerSessionIntegration": "prohibited"
+}
