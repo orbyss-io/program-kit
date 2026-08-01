@@ -52,13 +52,18 @@ Merge verification subsequently found that the accepted manifest had hashed
 three NuGet lock files from a CRLF-projected authoring worktree even though the
 repository requires canonical UTF-8/LF source bytes. Correction commit
 `4d1c519fd5e788c36252437de03cb8c1ccb13c33` makes source provenance fail closed
-on BOM, invalid UTF-8, or CR bytes and records the canonical source closure. Its
-local repository gate passes all 91 tests, and its corrected
+on BOM, invalid UTF-8, or CR bytes and records the canonical source closure.
+Commit `bed501be2db48cbf0c8f6ea9880fac9367820c73` removes a Windows-only SDK
+restore-source assumption while preserving the exact governed-feed allowlist.
+Candidate commit `c84335ee9eea4666fc69af5c2e49cbce821b8fbb` pins this clone to
+LF-safe Git behavior and makes canonical index/worktree text a fail-fast local
+and CI gate. Protected pull-request run `30720316337` passed the complete
+vertical-slice workflow on Ubuntu and Windows. The corrected exact candidate's
 distribution-manifest digest is
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
 The prior T095 acceptance remains valid only for its exact historical binding;
-T095 is reopened for the corrected merge candidate pending Windows/Ubuntu CI
-and a fresh named-human decision.
+automation does not extend it. T095 is reopened for this corrected candidate
+and requires a fresh named-human decision before merge.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
@@ -172,8 +177,9 @@ environments. Mirror integrity, package claims, canonical snapshots,
 repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
 local-safety, and relocated-runtime evidence now pass. The evidence ledger is
 reconciled. The previously bounded candidate remains accepted for its exact
-binding; the corrected cross-platform merge candidate is pending refreshed
-T095 acceptance. The evidence and decision status are recorded in
+binding; the corrected cross-platform merge candidate passed protected
+Windows/Ubuntu verification and is pending refreshed T095 acceptance. The
+evidence and decision status are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and
 [`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).

@@ -22,12 +22,16 @@ acceptance. Exact commands, results, and proof scope are in
 Pull-request verification found that the prior manifest hashed three NuGet lock
 files from a CRLF-projected authoring worktree while the repository requires
 canonical UTF-8/LF source bytes. Correction commit
-`4d1c519fd5e788c36252437de03cb8c1ccb13c33` now fails closed before provenance
-hashing on BOM, invalid UTF-8, or CR bytes. The complete local gate passes 91
-tests, and the corrected distribution-manifest digest is
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` fails closed before provenance
+hashing on BOM, invalid UTF-8, or CR bytes. Commit
+`bed501be2db48cbf0c8f6ea9880fac9367820c73` makes the SDK-local package source
+platform-optional while retaining the exact required feed allowlist. Candidate
+commit `c84335ee9eea4666fc69af5c2e49cbce821b8fbb` adds a repository-wide LF guard
+to local and CI verification. Its corrected distribution-manifest digest is
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
-The prior acceptance does not extend to this corrected candidate; required
-Windows/Ubuntu CI and a fresh T095 decision remain pending.
+Protected PR run `30720316337` passed the complete vertical-slice workflow on
+Ubuntu and Windows. The prior acceptance does not extend to this corrected
+candidate; a fresh T095 decision remains pending.
 
 The first final-readiness audit of prior HEAD
 `4d15000c7d45062d9376c3b3f2966e57fa5348ff` remained NOT READY because opaque
@@ -104,8 +108,9 @@ review may still be required.
   references; it does not normalize dynamic external digests into a false
   timeless whole-snapshot claim.
 - Recovery covers this bounded publication model; migration remains deferred.
-- The local Windows gate passed; the workflow's Windows/Ubuntu result remains
-  execution evidence required before merge, not semantic approval.
+- The protected workflow passed on Windows and Ubuntu against the exact
+  corrected candidate. This is execution evidence required before merge, not
+  semantic approval.
 
 ## Previous human approval gate
 
@@ -133,8 +138,9 @@ independent READY verdict.
 
 **PENDING.**
 
-Do not infer acceptance of correction commit
-`4d1c519fd5e788c36252437de03cb8c1ccb13c33` or manifest digest
+Do not infer acceptance of corrected candidate
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb` or manifest digest
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`
-from the local gate or prior T095 decision. Required Windows/Ubuntu CI must pass
-before a fresh named-human accept/reject decision is requested.
+from the successful local/CI gates or prior T095 decision. Protected Windows
+and Ubuntu verification has passed; the fresh named-human accept/reject
+decision is the sole remaining approval gate before merge.

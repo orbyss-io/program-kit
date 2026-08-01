@@ -31,7 +31,8 @@ T086-T093, so those rows are now marked `remediated`. That confirmation closes
 the implementation findings but did not itself product-accept Feature 001. The
 separate T095 decision later accepted that exact bounded candidate. Pull-request
 verification subsequently reopened T095 only for the corrected cross-platform
-provenance binding recorded under T107-T108.
+provenance binding recorded under T107-T108. T108 now records passing protected
+Windows/Ubuntu verification; T095 remains pending a fresh human decision.
 
 This ledger records whether each original Feature 001 task has both its named
 artifact and sufficient direct proof. `complete` does not imply product
@@ -242,4 +243,5 @@ is **80 satisfied, 5 superseded, and 0 missing**. T094 is complete. T095 was a
 separate named-human product decision, was not inferred from this ledger, and
 accepted its exact bounded candidate on 2026-08-01. That historical decision
 remains valid for its original binding; T095 is pending again only for the
-corrected T107-T108 merge candidate.
+corrected candidate at `c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, whose T108
+cross-platform execution gate is complete.

@@ -4,16 +4,20 @@ Date: 2026-08-01
 
 ## Current status
 
-**The corrected cross-platform provenance candidate passed the complete local
-T102 gate. T095 is reopened pending required Windows/Ubuntu CI and a fresh
-named-human decision on the corrected exact binding.**
+**The corrected exact candidate passed the complete protected Windows/Ubuntu
+vertical-slice workflow. T095 remains pending a fresh named-human decision on
+the corrected exact binding.**
 
-The corrected implementation and generated-evidence candidate is commit
-`4d1c519fd5e788c36252437de03cb8c1ccb13c33`. Its checked-in
-`artifacts/evidence/distribution-manifest.json` has byte digest
+The exact pushed review candidate is commit
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`. It contains provenance correction
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33`, portable restore-source assertion
+`bed501be2db48cbf0c8f6ea9880fac9367820c73`, and the repository-wide LF guard at
+its tip. Its checked-in `artifacts/evidence/distribution-manifest.json` has byte
+digest
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
-It rejects BOM, invalid UTF-8, and CR bytes before source-provenance hashing and
-records the canonical LF source closure reproduced by fresh CI checkouts.
+The source boundary rejects BOM, invalid UTF-8, and CR bytes before hashing; the
+canonical-text guard rejects CRLF/mixed index or working-tree text before local
+or CI verification proceeds.
 
 The previous T095 acceptance remains valid only for review commit
 `16c6c627dfc9cd2211993580019f43d084dc718d`, implementation/evidence ancestor
@@ -112,11 +116,13 @@ migration-ready, or complete.
 
 **PENDING REFRESHED T095 HUMAN REVIEW.**
 
-The local gate passed against correction commit
-`4d1c519fd5e788c36252437de03cb8c1ccb13c33` and manifest digest
+Protected PR run `30720316337` verified exact candidate
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to manifest digest
 `sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
-Required Windows/Ubuntu CI and a fresh named-human accept/reject decision must
-complete before this corrected candidate may merge.
+The Ubuntu job passed in 3m26s and the Windows job passed in 4m41s, each running
+the complete vertical-slice workflow. Automation is execution evidence only; a
+fresh named-human accept/reject decision must complete before this corrected
+candidate may merge.
 
 ## Deliberately not claimed
 
