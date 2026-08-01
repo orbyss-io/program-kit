@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Disable Program Kit gate" Description="Negative C# gate fixture." ToolsVersion="15.0">
-  <Rules AnalyzerId="Orbyss.ProgramKit.CSharpGate" RuleNamespace="Orbyss.ProgramKit.CSharpGate">
-    <Rule Id="PKCS001" Action="None" />
-  </Rules>
-</RuleSet>

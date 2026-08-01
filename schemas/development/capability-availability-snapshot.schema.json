@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.orbyss.io/program-kit/development/capability-availability-snapshot/1.0.0/schema.json",
-  "x-program-kit-identity": "pkid:schema:program-kit:capability-availability-snapshot",
-  "x-program-kit-version": "1.0.0",
-  "$ref": "https://schemas.orbyss.io/program-kit/development/1.0.0/definitions.schema.json#/$defs/capabilityAvailabilitySnapshot"
-}

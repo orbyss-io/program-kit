@@ -1,8 +1,0 @@
-<Project>
-  <Target Name="RemoveOwnedSourceForInventoryProbe"
-          BeforeTargets="ValidateProgramKitOwnedSourceInventory">
-    <ItemGroup>
-      <Compile Remove="Envelopes\ArtifactStatus.cs" />
-    </ItemGroup>
-  </Target>
-</Project>

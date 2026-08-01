@@ -1,404 +1,214 @@
-# Orbyss Program Kit
+# Program Kit CLI
 
-Orbyss Program Kit is an open-source, domain-neutral toolkit for building
-software from explicit, typed definitions. It provides deterministic mechanics
-for contracts, validation, code generation, host composition, evidence, and
-repeatable development workflows without prescribing what an application's
-domain means.
+> **AI builds it. Human intent governs it.**
 
-The project currently targets .NET 10 and is in alpha. It can be used on its
-own, as a Git submodule, through its .NET packages, or through its command-line
-tooling.
+Program Kit is being redesigned as a human-governed, AI-provider-neutral .NET
+software factory. Its CLI turns approved intent into contract-bounded,
+ordinary software through explicit construction and evaluation operations.
 
-## Choose your path first: consumer or contributor
+## Project status: v1 redesign and first executable proof
 
-Program Kit is set up two different ways. Pick the right one before running
-anything:
+The previous implementation has not been deleted. It is preserved on the
+[`archive/pre-rebuild-2026-07-31`](https://github.com/orbyss-io/program-kit/tree/archive/pre-rebuild-2026-07-31)
+branch so its code, tests, documentation, and hard-won lessons remain available
+as prior art.
 
-- **Consumer** — you are building your own software *with* Program Kit (its
-  packages, CLI, or as a submodule). Continue with
-  [Install Program Kit CLI (consumer)](#install-program-kit-cli-consumer) below;
-  you install the CLI and run
-  `program-kit capabilities initialize --provider <claude|codex>`.
-- **Contributor** — you are working *on* Program Kit's own source in a clone of
-  this repository. Follow [CONTRIBUTING.md](CONTRIBUTING.md) instead. This is a
-  source **authoring workspace** (it carries
-  `.agent-capabilities/authoring-workspace.json`), so the consumer commands
-  `capabilities initialize`, `capabilities read`, `capabilities catalog`, and
-  `dotnet materialize-console-inputs` intentionally **fail closed** here. There
-  is no consumer CLI install or capability-reactivation step. At the start of
-  a fresh task, the repository-backed contributor refresh resolves the active
-  provider's registered local root and creates or updates full `SKILL.md`
-  projections containing the complete canonical definitions. An active task
-  never refreshes instructions it is already executing unless the human
-  explicitly requests it.
+The repository now contains both the converged v1 design records and the first
+executable vertical slice. That slice proves the public `explain`, `construct`,
+and `evaluate` operation model for one deliberately narrow .NET 10 + CShells
+0.0.28 Status component/API fixture. It generates an ordinary component NuGet
+package and ASP.NET Core application, admits published artifacts with a receipt,
+detects drift without mutating the workspace, and proves the generated API can
+restore, build, start, and serve `/status` without Program Kit at runtime.
 
-**AI agents setting up this workspace:** check for
-`.agent-capabilities/authoring-workspace.json`. If it exists you are in the
-contributor workspace — follow the fresh-task check in `AGENTS.md` and
-[CONTRIBUTING.md](CONTRIBUTING.md), and do not attempt consumer initialization.
-If it is absent, this is a consumer workspace.
+This is not yet a released or general-purpose Program Kit CLI. It is the first
+testable product proof after one more necessary redesign. The archived
+implementation remains historical prior art, not authority for v1 behavior;
+its commands and package surfaces are not promises. The current implementation
+is intentionally small so developers and architects can review the product
+boundaries before more providers, capability mappings, or authoring experiences
+are added.
 
-### Branch lifecycle for Program Kit-guided work
+## What is the Program Kit CLI?
 
-Both contributor and consumer repositories should enable their hosting
-platform's automatic merged-head-branch deletion setting (GitHub calls it
-`delete_branch_on_merge`). Program Kit treats every non-default branch as
-short-lived: after its tip is proven reachable from the updated default branch,
-delete the merged remote branch and its clean, inactive local branch/worktree.
+Program Kit is a development-time semantic toolchain and software factory. It
+accepts human-approved software definitions, resolves them against exact
+contracts and supported capabilities, and constructs the plumbing,
+projections, relationships, and integrations it can honestly guarantee.
+Custom business behavior remains clearly bounded, human- or AI-authored, and
+evaluated against its declared contract.
 
-Never delete a default or protected branch, an unmerged branch, a dirty branch,
-or a branch attached to active work. If repository settings or permissions
-cannot perform the cleanup, report the exact retained branch and its unique
-commits instead of forcing deletion.
+The CLI is the public, independently callable entrance to that factory. A human,
+an automation system, Spec Kit, or another orchestrator should be able to submit
+the same explicit operation request and receive the same kind of structured
+resolution, evidence, diagnostics, and result.
 
-### Shared integration for Program Kit contributors
+Program Kit is not a new programming language, an autonomous product owner, a
+universal source-code translator, or a runtime required by the software it
+creates. Generated applications are ordinary software: developers can inspect,
+build, test, run, and own them with the normal tools of their ecosystem.
 
-Contributor branches run directly affected checks locally, then rely on the
-stable `Program Kit integration` pull-request status for the current synthetic
-combined source. A still-mergeable branch does not repeatedly absorb `main`
-just to duplicate that result. Real source conflicts and failing focused checks
-remain local work; the same stable job runs again for the merge queue's
-`merge_group`.
+## The problem we want to solve
 
-A successful `main` run creates an attested canonical package artifact but
-does not publish it. Publication remains a separate protected,
-human-dispatched workflow that accepts one exact canonical-build run ID and
-rebuilds nothing. CI evidence does not approve, merge, change settings, or
-grant release authority. Contributor details are in
-[CONTRIBUTING.md](CONTRIBUTING.md); repository owners use the explicitly
-unapplied
-[administration handoff](.github/PROGRAM-KIT-ADMINISTRATION.md).
+AI-assisted software projects often carry their own disconnected instructions,
+terminology, generation rules, and assumptions. That makes contribution
+inconsistent, obscures architectural intent, and makes features difficult to
+reuse or integrate safely across products.
 
-## Install Program Kit CLI (consumer)
+Program Kit aims to provide a shared, model-neutral development protocol:
+versioned software definitions, canonical contracts, explicit capability
+selection, deterministic mechanics where determinism is supportable, and
+evidence-backed explanations everywhere else. The goal is not merely to
+generate code. The goal is to keep software legible to people and composable
+through governed contracts as it grows.
 
-Program Kit packages are published on
-[NuGet.org](https://www.nuget.org/packages?q=Orbyss.ProgramKit).
-The easiest consumer path is the
-[`Orbyss.ProgramKit.CommandLine`](https://www.nuget.org/packages/Orbyss.ProgramKit.CommandLine)
-.NET global tool. The coordinated `0.1.0-alpha.3` release requires the .NET 10
-SDK selected by [`global.json`](global.json). A consumer does not need a
-Program Kit checkout, submodule, local feed, or separate CapabilityBundle
-installation.
+## What it should offer
 
-Install the exact tool version directly from NuGet.org:
+For architects, Program Kit should provide:
 
-```powershell
-dotnet tool install --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.3
-```
+- a precise way to express software identity, capabilities, relationships,
+  dependencies, policies, ownership, and constraints;
+- an integration-resolution explanation before live artifacts are written;
+- traceability from approved intent to contracts, selected implementations,
+  generated artifacts, and evidence;
+- clear outcomes when components integrate directly, require an explicit
+  adapter or migration, or are provably incompatible; and
+- stable semantic views for reviewing a system without pretending that source
+  inspection, security review, debugging, or performance analysis is obsolete.
 
-From the human-led consumer workspace root, initialize the provider that is
-actually running the session:
+For developers, Program Kit should provide:
 
-```powershell
-program-kit capabilities initialize --provider codex --workspace-root .
-# Claude Code instead:
-program-kit capabilities initialize --provider claude --workspace-root .
-```
+- one consistent CLI contract for mapping approved input, constructing a
+  bounded result, and evaluating that result;
+- reproducible generation of supported project plumbing and integrations;
+- exact dependency, provider, tool, and contract selection instead of ambient
+  discovery or hidden best guesses;
+- actionable, machine-readable diagnostics that explain what failed, why it
+  matters, and what kind of next action is valid; and
+- consumer-owned output that continues to build, test, and run without Program
+  Kit, Spec Kit, or an AI provider at runtime.
 
-Tool installation alone does not initialize a provider, activate a capability,
-start work, or grant authority. Initialization installs only thin trigger
-wrappers and an exact ownership lock. The installed CLI retains the canonical
-read-only capability knowledge and verifies it before every read.
+The first implementation is intentionally .NET-first. It proves the first
+bounded model with a pinned .NET 10 construction profile while keeping contracts
+free of unnecessary .NET-specific meaning.
 
-Inspect an existing installation or replace it with the exact version—never an
-ambient `latest`:
+## How we envision it being used
 
-```powershell
-dotnet tool list --global
-dotnet tool update --global Orbyss.ProgramKit.CommandLine `
-  --version 0.1.0-alpha.3
-program-kit --help
-program-kit capabilities catalog --workspace-root . --format text
-```
+The intended workflow is collaborative and evidence-led:
 
-The remaining `Orbyss.ProgramKit.*` packages are available from the same
-NuGet.org feed for exact-version `PackageReference` use.
+1. People describe a software goal and the meaning that must be preserved.
+2. Architects, developers, domain experts, and AI assistants refine that intent
+   into reviewable definitions and contracts.
+3. A human explicitly approves the identity-forming choices.
+4. Program Kit resolves exact capabilities and explains the proposed
+   construction or integration before it changes live consumer artifacts.
+5. The CLI constructs only what falls inside its declared support envelope and
+   preserves custom implementation as separately owned work.
+6. Evaluation produces structured evidence and diagnostics, including honest
+   unknown, unsupported, drifted, or incompatible outcomes.
+7. The resulting application is built, tested, reviewed, and operated as
+   ordinary software.
 
-As a source-based alternative, download **Source code (zip)** for the matching
-tag from [GitHub Releases](https://github.com/orbyss-io/program-kit/releases),
-extract it, and follow
-[Build an isolated local feed from source](#build-an-isolated-local-feed-from-source)
-below. The release ZIP is useful for an offline or independently built local
-feed; ordinary consumers can install the global tool directly from NuGet.org.
+For teams that want a guided discovery, specification, planning, and task
+workflow, Spec Kit is the recommended orchestrator. Program Kit v1 remains an
+independent factory: it does not embed a second planning system and does not
+depend on Spec Kit at runtime. A future thin adapter may hand an approved Spec
+Kit plan to Program Kit through the same public CLI contracts available to any
+other caller.
 
-### Build an isolated local feed from source
+## What can be exercised now
 
-This is a contributor/test journey, not the ordinary consumer installation
-path above. From a Program Kit source checkout, create a new output directory
-containing the exact coordinated package closure with:
+The repository pins .NET SDK `10.0.302`, restores from exact package versions,
+and keeps the downloaded CShells dependency mirror outside version control.
+After bootstrapping that mirror, the local proof is:
 
 ```powershell
-.\build\Invoke-PackConsumerFeed.ps1 `
-  -OutputRoot C:\tmp\orbyss-program-kit-0.1.0-alpha.3
+./eng/Invoke-VerticalSliceQuickstart.ps1
 ```
 
-The script reads [`build/program-kit-release-packages.json`](build/program-kit-release-packages.json),
-performs one locked restore and one Release build, then performs one bounded
-parallel aggregate pack with restore and build disabled. It fails closed on
-package-selection, identity, version, dependency, or content drift and
-publishes nothing. On success, use the `feed` child directory as the local
-NuGet source; `package-manifest.json` and `SHA256SUMS` bind the exact output.
-`OutputRoot` must not already exist, so a failed or repeated invocation cannot
-silently replace prior package evidence.
+The public executable supports `explain`, `construct`, `evaluate`, `help`, and
+`version`. The accepted first request fixture lives under
+`tests/Fixtures/Reference.Status/Valid/`; it is evidence for the operation
+model, not a declaration that Status is kernel meaning.
 
-After the package-installed cold proof passes, create the deterministic
-downloadable ZIP, outer checksum, manifest, and JTest prompt from that exact
-feed:
+Known boundaries are explicit: only one first-party .NET profile is supported;
+the intake is still fixture-bounded; schema and diagnostic trigger coverage is
+not yet exhaustive; recovery is intentionally limited; and cross-environment
+package repeatability, provenance/SBOM generation, hostile-filesystem coverage,
+and independent human product review are still pending. The current automated
+evidence and pending human-review gate are recorded in
+[`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
+and
+[`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).
 
-```powershell
-.\build\New-ConsumerFeedHandoff.ps1 `
-  -ConsumerFeedRoot C:\tmp\orbyss-program-kit-0.1.0-alpha.3 `
-  -OutputRoot C:\tmp\orbyss-program-kit-0.1.0-alpha.3-handoff
-```
+## Why the implementation is starting again
 
-The archive retains `feed/` as its documented local NuGet source and includes
-the package manifest, internal checksums, and prompt. The handoff script
-rechecks every package byte and fails without output on any mismatch; it does
-not publish or modify a release.
+The archived Program Kit implementation was developed using Program Kit's own
+capabilities and governance model. That created a circular-authority defect: the
+product being evaluated was also acting as the authority that defined how it
+should be evaluated. Assumptions could reinforce themselves, and changing the
+tool risked changing the rules used to justify the same change.
 
-The manifest records each project's direct first-party source references.
-Ordinary library packages project those references as exact first-party nuspec
-dependencies. The self-contained .NET tool and build-integration packages
-carry their required implementation closure and must expose no first-party
-nuspec dependencies; analyzer and capability-bundle packages have no source
-dependency closure. The feed still carries all release-selected public Program
-Kit packages as one coordinated set.
+V1 removes that self-governing bootstrap loop. Program Kit itself is now
+specified, planned, implemented, and reviewed with Spec Kit and the standard
+.NET toolchain. Program Kit's own factory operations must never be a prerequisite
+or source of authority for building Program Kit. Historical code may inform a
+decision, but it cannot silently decide one.
 
-### Fresh clone of a consumer repository
+This boundary is also important for users: Spec Kit governs how this repository
+develops Program Kit, while Program Kit owns its eventual public factory
+contracts. Neither tool is allowed to grant human authority or reinterpret
+unknown intent on its own.
 
-A repository built with Program Kit owns whether its AI-provider bindings are
-absent, contributor-local, or committed. Its README should state one of the
-[`none`, `local-optional`, or `repository-managed` postures](.agent-capabilities/consumer-integration.md)
-and pin the exact Program Kit CLI acquisition path.
+## V1 goals and objectives
 
-After a fresh clone:
+Program Kit v1 is being designed to:
 
-1. Provide the exact pinned Program Kit packages: install the tool as above,
-   or restore the repository-local feed the consumer's `NuGet.Config` maps
-   `Orbyss.ProgramKit.*` to.
-2. Run `dotnet tool restore` when the repository pins the CLI in a
-   `dotnet-tools.json` manifest.
-3. For `local-optional`, explicitly run
-   `program-kit capabilities initialize --provider <codex|claude>
-   --workspace-root .`. For `repository-managed`, verify the committed
-   wrappers and lock with `capabilities preflight`; reinitialize only after an
-   explicit version change or exact migration. For `none`, do neither.
-4. Re-run any materialization the repository records (for example
-   `program-kit dotnet materialize-console-inputs <request> --workspace-root .
-   --output <directory> --build-consumer`) before regenerating or verifying a
-   generated host.
+- keep human approval authoritative for product meaning and identity-forming
+  decisions;
+- make governed integration resolution the central product promise—never leave
+  compatibility ambiguous or unsupported by actionable evidence;
+- construct deterministic outputs only inside exact, pinned, declared support
+  envelopes and make every weaker claim visible;
+- provide portable, versioned software definitions that link intent, contracts,
+  selections, dependencies, policies, artifacts, and evidence;
+- establish clear ownership for consumer-authored, seeded, generated, and
+  external artifacts;
+- fail closed on ambiguous identities, providers, authority, ownership, or
+  publication state;
+- make diagnostics a stable public contract usable by both people and AI
+  sessions; and
+- prove the smallest complete vertical slice—including invalid paths,
+  repeatability, drift, repair, integration explanation, and runtime
+  independence—before broadening the product.
 
-`program-kit capabilities preflight <capability> --workspace-root .` verifies
-that the selected repository-managed or local-optional state matches the exact
-installed CLI and recorded bytes. Program Kit does not edit `.gitignore`,
-stage files, commit files, or silently select a posture.
+V1 deliberately does not promise autonomous invention or approval of semantics,
+universal composability, arbitrary source-to-source conversion, hidden or
+best-effort integration, multi-ecosystem implementation, a native roadmap or
+task system, untrusted third-party execution, or self-hosting.
 
-## Why it exists
+## Design with us
 
-Software generation is most useful when the same accepted input produces the
-same reviewable output, failures are explicit, and generated code remains
-ordinary code that developers can inspect and own. Program Kit provides that
-shared foundation:
+The design process is part of the product work, not a private step before it.
+We want practitioners to challenge the vocabulary, authority boundaries,
+developer experience, architectural usefulness, diagnostics, and first
+vertical slice while those choices can still change.
 
-- typed, versioned contracts instead of loosely interpreted templates;
-- deterministic validation and generation with stable diagnostics;
-- explicit package, provider, protocol, and tool revisions;
-- generated evidence that records what was selected and produced;
-- domainless building blocks that other projects can specialize safely;
-- development capabilities whose authority remains with the human using them.
+Start with these current records:
 
-Program Kit deliberately separates mechanics from meaning. It can understand
-how to compose a .NET host, bind typed configuration, generate an OpenAPI
-client, or project an authentication protocol without inventing domain roles,
-business policies, deployment intent, or production secrets.
+- [Design convergence and decision ledger](DESIGN.md)
+- [Product identity](DESIGN-PRODUCT-IDENTITY.md)
+- [Program Kit Constitution](.specify/memory/constitution.md)
+- [Spec Kit and Program Kit planning boundary](DESIGN-PLANNING.md)
+- [First vertical slice](DESIGN-VERTICAL-SLICE.md)
+- [First feature specification](specs/001-status-component-api/spec.md)
 
-## What is included
+Questions, counterexamples, use cases, and pull requests are welcome. The most
+useful contributions explain the real outcome a developer or architect needs,
+the constraint Program Kit must preserve, and the evidence that would prove the
+design works. You can begin through
+[GitHub Issues](https://github.com/orbyss-io/program-kit/issues).
 
-The implemented baseline includes:
-
-- artifact, architecture, planning, quality, approval, and development
-  contracts;
-- modularity, model-first `System.Text.Json` serialization, tasks, in-process
-  execution, and scheduling;
-- deterministic Workbench operations and a command-line interface;
-- .NET API, console, worker, Aspire AppHost, FastEndpoints, Dev Container, and
-  OpenAPI client generation;
-- typed configuration, Options, secret-reference, telemetry, transport-failure,
-  authentication, authorization, and local Keycloak fixture mechanics;
-- local package preparation and application publishing;
-- a strict repository-owned C# source gate;
-- an Observatory Scheduling fixture that proves the domain-neutral baseline.
-
-Some host-tooling review sets are still being completed. Their artifacts and
-tests distinguish implemented, incomplete, and deferred behavior.
-
-## How it works
-
-Program Kit follows a small, predictable pipeline:
-
-1. A caller supplies a typed, versioned definition.
-2. Program Kit validates identity, compatibility, completeness, and policy.
-3. A selected operation deterministically produces source code, configuration,
-   manifests, or another bounded artifact.
-4. The operation records diagnostics and integrity evidence.
-5. The consumer builds, tests, reviews, and runs the generated result using the
-   normal tools for that ecosystem.
-
-Runtime libraries do not load AI instructions, capability prose, repository
-state, or ambient provider configuration.
-
-## Get started
-
-Prerequisites:
-
-- Git;
-- the exact .NET SDK selected by [`global.json`](global.json);
-- Docker only for explicitly selected container-backed integration proofs.
-
-Clone Program Kit directly:
-
-```powershell
-git clone https://github.com/orbyss-io/program-kit.git
-cd program-kit
-dotnet restore ProgramKit.sln --configfile NuGet.Config --locked-mode
-dotnet build ProgramKit.sln -c Release --no-restore
-dotnet test --solution ProgramKit.sln -c Release --no-build --no-restore --minimum-expected-tests 1
-```
-
-`global.json` selects Microsoft Testing Platform. Test commands that name an
-input must use `--solution`, `--project`, or `--test-modules`; a positional
-path is not the MTP contract. Do not pass the legacy `--maxcpucount` switch to
-`dotnet test`: it can build successfully and then discover zero tests. Run a
-serialized `dotnet build --maxcpucount:1` separately, followed by
-`dotnet test --no-build`, when serialized compilation is required.
-
-When Program Kit is embedded as a submodule, initialize it while cloning:
-
-```powershell
-git clone --recurse-submodules <consumer-repository-url>
-```
-
-For an existing clone or a checkout created without recursive submodules:
-
-```powershell
-git submodule sync --recursive
-git submodule update --init --recursive
-git -C program-kit rev-parse HEAD
-```
-
-The final command prints the exact Program Kit commit pinned by the consumer
-repository. Run `git submodule update --init --recursive` again after switching
-branches or pulling a parent commit that changes that pin. Do not independently
-pull the submodule when reproducibility matters.
-
-## Using the development capabilities
-
-The consumer CLI carries six available provider-neutral capabilities:
-`develop-software`, `design-software`, `design-csharp-build-gate`,
-`implement-software-plan`, `maintain-software`, and
-`publish-dotnet-application-locally`. Codex and Claude wrappers contain only
-trigger metadata plus exact `capabilities preflight` and `capabilities read`
-commands. Canonical procedures and supporting resources are not copied into
-the consumer workspace.
-
-Useful discovery commands are:
-
-```powershell
-program-kit capabilities catalog --workspace-root . --format text
-program-kit capabilities preflight design-software --workspace-root .
-program-kit capabilities read design-software --workspace-root .
-program-kit capabilities read-resource software-change-troubleshooting --workspace-root .
-program-kit schemas list --format text
-program-kit commands describe dotnet.generate-host --format text
-program-kit commands describe dotnet.materialize-console-inputs --format text
-program-kit diagnostics explain PKCG005 --format text
-program-kit csharp-gate describe-definition --format text
-```
-
-Reads fail closed on a missing/stale lock, wrong CLI version, incomplete
-knowledge closure, modified wrapper, unsupported provider, or Program Kit
-authoring marker. Re-run the explicit initializer to refresh owned wrappers;
-it preserves another reviewed provider and refuses human-modified or unowned
-files without partial writes.
-
-Consumer products choose and document `none`, `local-optional`, or
-`repository-managed`; Program Kit does not force setup. Exact removal is also
-human-started:
-
-```powershell
-program-kit capabilities uninitialize --provider codex --workspace-root .
-```
-
-Codex wrappers use `.agents/skills`; `.codex/skills` is exact legacy migration
-input only. See
-[consumer integration postures](.agent-capabilities/consumer-integration.md)
-for selective Git guidance and the complete authority boundary.
-
-### Package-only Console host journey
-
-A Console consumer first retrieves the complete installed guide and its
-compiling examples. A schema alone describes document structure; it does not
-carry the project topology, handler/validator seam, ownership rules, authority,
-or ordered commands:
-
-```powershell
-program-kit capabilities read-resource dotnet-console-input-materialization-guide --workspace-root .
-program-kit capabilities read-resource dotnet-console-integration-project-example --workspace-root .
-program-kit capabilities read-resource dotnet-console-integration-source-example --workspace-root .
-program-kit schemas read pkid:schema:program-kit:dotnet-console-input-materialization-request@0.1.0-alpha.1
-```
-
-The supported seam is one consumer-owned `net10.0` integration class library,
-separate from the generated host. It contains the public request types,
-`I<Command>Handler` interfaces, optional validator interfaces and validation
-result, public sealed implementations, one public sealed `IShellFeature`, and
-the exact unkeyed scoped registrations. A contracts-only/implementation split
-is not supported and must return to design.
-
-After restoring that exact project under the consumer repository's package
-policy, the installed CLI builds it without restore, evaluates its complete
-reference-assembly closure, validates the seam, and transactionally owns the
-materialized output:
-
-```powershell
-program-kit dotnet materialize-console-inputs console-input-request.json `
-  --workspace-root . `
-  --output .program-kit/console-inputs `
-  --build-consumer
-program-kit dotnet generate-host console `
-  --shell .program-kit/console-inputs/shell.json `
-  --host <EXACT_CONSOLE_HOST_ID> `
-  --artifact-manifest .program-kit/console-inputs/artifact-manifest.json `
-  --output generated/Example.Console
-program-kit dotnet verify-host --root generated/Example.Console
-```
-
-Agents may edit the consumer-owned integration source and semantic request
-under the active human authority. They must never edit Program Kit-owned
-materialized or generated bytes; change the source/request and rerun the
-backed operation instead.
-
-Program Kit contributors use ignored, full-definition active-provider projections
-refreshed from same-tree canonical guidance only at a fresh task boundary or
-on explicit human request. They never use CLI-returned consumer capabilities
-as authoring authority. Runtime packages never load capability prose or
-provider configuration.
-
-## Explore the repository
-
-- [Change review sets](.review-sets/README.md)
-- [Program Kit baseline evidence](.evidence/program-kit-baseline/README.md)
-- [Observatory Scheduling fixture](fixtures/observatory-scheduling/README.md)
-- [CLI commands](src/Orbyss.ProgramKit.CommandLine/README.md)
-- [.NET generation contracts](src/Orbyss.ProgramKit.DotNet/README.md)
-- [Dev Container generation](src/Orbyss.ProgramKit.DevContainers/README.md)
-- [Capability bundle](src/Orbyss.ProgramKit.CapabilityBundle/README.md)
-- [Historical bootstrap authority](bootstrap/README.md)
-
-## License
-
-Program Kit is available under the [MIT License](LICENSE). Vendored schemas,
-test vectors, and pinned third-party dependencies retain their own notices and
-licenses where applicable.
+The destination is ambitious but concrete: software that AI can help build,
+people can govern by intent, and teams can integrate without relying on hidden
+assumptions.

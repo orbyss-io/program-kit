@@ -1,0 +1,120 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.Providers;
+using Orbyss.ProgramKit.Contracts.Workspace;
+using Orbyss.ProgramKit.Kernel.Canonicalization;
+
+namespace Orbyss.ProgramKit.Kernel.Artifacts;
+
+public sealed class CandidateArtifactSetBuilder
+{
+    public CandidateArtifactSet Seal(string constructionIdentity, string candidateRoot, IReadOnlyList<ProviderArtifact> declaredArtifacts)
+    {
+        Dictionary<string, ProviderArtifact> declared = declaredArtifacts.ToDictionary(
+            static item => LogicalPaths.Normalize(item.LogicalPath),
+            StringComparer.Ordinal);
+        List<ArtifactManifestEntry> entries = new();
+        foreach (string file in Directory.EnumerateFiles(candidateRoot, "*", SearchOption.AllDirectories)
+            .OrderBy(static value => value, StringComparer.Ordinal))
+        {
+            string logicalPath = Path.GetRelativePath(candidateRoot, file).Replace('\\', '/');
+            if (string.Equals(logicalPath, ".program-kit/artifact-manifest.json", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (logicalPath.StartsWith(".packages/", StringComparison.Ordinal) || logicalPath.Contains("/bin/", StringComparison.Ordinal) || logicalPath.Contains("/obj/", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Transient build output entered the candidate: {logicalPath}");
+            }
+
+            ProviderArtifact metadata = declared.TryGetValue(logicalPath, out ProviderArtifact? item)
+                ? item
+                : new ProviderArtifact(logicalPath, ArtifactOwnership.GeneratedOwned, MediaType(file), ClaimClass.CanonicalByte, "orbyss.program-kit:kernel");
+            entries.Add(new ArtifactManifestEntry(
+                logicalPath,
+                metadata.Ownership,
+                metadata.MediaType,
+                Digests.Sha256(File.ReadAllBytes(file)),
+                metadata.ProducerIdentity,
+                metadata.ClaimClass));
+        }
+
+        JsonArray manifestEntries = new(entries.Select(static entry => new JsonObject
+        {
+            ["logicalPath"] = entry.LogicalPath,
+            ["ownership"] = Kebab(entry.Ownership),
+            ["mediaType"] = entry.MediaType,
+            ["digest"] = entry.Digest,
+            ["producer"] = entry.ProducerIdentity,
+            ["claimClass"] = Kebab(entry.ClaimClass),
+        }).ToArray());
+        JsonObject manifest = new()
+        {
+            ["schema"] = "program-kit.artifact-manifest/v1",
+            ["constructionIdentity"] = constructionIdentity,
+            ["artifacts"] = manifestEntries,
+        };
+        string setDigest = CanonicalJson.Digest(manifest);
+        manifest["setDigest"] = setDigest;
+        string manifestPath = Path.Combine(candidateRoot, ".program-kit", "artifact-manifest.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(manifestPath)!);
+        File.WriteAllBytes(manifestPath, CanonicalJson.Encode(manifest));
+        entries.Add(new ArtifactManifestEntry(
+            ".program-kit/artifact-manifest.json",
+            ArtifactOwnership.GeneratedOwned,
+            "application/json",
+            Digests.Sha256(File.ReadAllBytes(manifestPath)),
+            "orbyss.program-kit:kernel",
+            ClaimClass.CanonicalByte));
+        return new CandidateArtifactSet(
+            constructionIdentity,
+            candidateRoot,
+            entries.OrderBy(static item => item.LogicalPath, StringComparer.Ordinal).ToArray(),
+            setDigest,
+            CandidateState.Sealed);
+    }
+
+    public void Rehash(CandidateArtifactSet candidate)
+    {
+        foreach (ArtifactManifestEntry artifact in candidate.Artifacts)
+        {
+            string path = LogicalPaths.ResolveInside(candidate.CandidateRoot, artifact.LogicalPath);
+            if (!File.Exists(path) || !string.Equals(Digests.Sha256(File.ReadAllBytes(path)), artifact.Digest, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Sealed candidate changed: {artifact.LogicalPath}");
+            }
+        }
+    }
+
+    private static string MediaType(string path) => Path.GetExtension(path).ToLowerInvariant() switch
+    {
+        ".json" => "application/json",
+        ".nupkg" => "application/vnd.nuget.package",
+        ".cs" => "text/x-csharp",
+        ".csproj" or ".config" => "application/xml",
+        _ => "application/octet-stream",
+    };
+
+    private static string Kebab<T>(T value)
+        where T : struct, Enum
+    {
+        string name = value.ToString();
+        System.Text.StringBuilder builder = new();
+        for (int index = 0; index < name.Length; index++)
+        {
+            if (index > 0 && char.IsUpper(name[index]))
+            {
+                builder.Append('-');
+            }
+
+            builder.Append(char.ToLowerInvariant(name[index]));
+        }
+
+        return builder.ToString();
+    }
+}

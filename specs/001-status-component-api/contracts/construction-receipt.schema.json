@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/construction-receipt.schema.json",
+  "title": "Program Kit Construction Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "canonicalProfile",
+    "constructionIdentity",
+    "lockDigest",
+    "artifactSetDigest",
+    "artifacts",
+    "gateResults",
+    "publicationState",
+    "observedLiveState",
+    "support"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "program-kit.construction-receipt/v1"
+    },
+    "canonicalProfile": {
+      "$ref": "common.schema.json#/$defs/canonicalProfile"
+    },
+    "constructionIdentity": {
+      "$ref": "common.schema.json#/$defs/digest"
+    },
+    "lockDigest": {
+      "$ref": "common.schema.json#/$defs/digest"
+    },
+    "artifactSetDigest": {
+      "$ref": "common.schema.json#/$defs/digest"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/receiptArtifact"
+      }
+    },
+    "gateResults": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/gateResult"
+      }
+    },
+    "publicationState": {
+      "type": "string",
+      "const": "admitted"
+    },
+    "observedLiveState": {
+      "$ref": "common.schema.json#/$defs/digest"
+    },
+    "publicationJournal": {
+      "$ref": "common.schema.json#/$defs/artifactReference"
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "retentionPolicy",
+        "evidenceFreshness"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "retentionPolicy": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "evidenceFreshness": {
+          "type": "string",
+          "enum": [
+            "current",
+            "stale",
+            "expired",
+            "unavailable"
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "receiptArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact",
+        "producer",
+        "claimClass",
+        "verification"
+      ],
+      "properties": {
+        "artifact": {
+          "$ref": "common.schema.json#/$defs/artifactReference"
+        },
+        "producer": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "claimClass": {
+          "type": "string",
+          "enum": [
+            "canonical-byte",
+            "verified-equivalent",
+            "custom-bounded"
+          ]
+        },
+        "verification": {
+          "$ref": "common.schema.json#/$defs/evidenceReference"
+        }
+      }
+    }
+  }
+}

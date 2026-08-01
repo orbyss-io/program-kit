@@ -1,0 +1,95 @@
+{
+  "schema": "program-kit.dependency-mirror-lock/v1",
+  "packages": [
+    {
+      "id": "CShells",
+      "version": "0.0.28",
+      "sha256": "sha256:ac99877eea0132799e0a55c0b351480067dad34f9166fc835acb73cc77fe7ab0"
+    },
+    {
+      "id": "CShells.Abstractions",
+      "version": "0.0.28",
+      "sha256": "sha256:ae1a15e770445b9b9e912312e6ba3257b7ec3ea63559a5be71ac6065c0d2c7c4"
+    },
+    {
+      "id": "CShells.AspNetCore",
+      "version": "0.0.28",
+      "sha256": "sha256:3fd728566376da2a7cbf7ebd12a2a7fa9171e35c756ab261e45680c37131658e"
+    },
+    {
+      "id": "CShells.AspNetCore.Abstractions",
+      "version": "0.0.28",
+      "sha256": "sha256:2770a11cae2d9d6e1537ddae8d7757bd7b8af3aa548f3e2d94cc16feaf43d01d"
+    },
+    {
+      "id": "JetBrains.Annotations",
+      "version": "2025.2.4",
+      "sha256": "sha256:609a52efb507f6d4c44c2287af933e6d039ac7504b3c5a88aff8be28b37db442"
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration",
+      "version": "10.0.0",
+      "sha256": "sha256:32c2ec9153e9902be8bf9f835886802c2b75a9f4515f8bb6dbc787c6fa44d1d8"
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.Abstractions",
+      "version": "10.0.0",
+      "sha256": "sha256:19c82b9d302278257b0154f5df3c8e8dfc302fce9ef7d8a23bf32230ec4f186d"
+    },
+    {
+      "id": "Microsoft.Extensions.Configuration.Binder",
+      "version": "10.0.0",
+      "sha256": "sha256:612896a00dd5411db693af9b484014a9e1bb503cd99497c75834ee6d43b957c5"
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyInjection",
+      "version": "10.0.0",
+      "sha256": "sha256:2d89bd855968fd1f5cd9a00a1ec0d8279bd8f54d3edc9bdc9667b7a2edc1b6f4"
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyInjection.Abstractions",
+      "version": "10.0.0",
+      "sha256": "sha256:f62a1d5cfdfd62a831a269ce3cec5dfe6cdb1b425f3925f3168354de8993d8fb"
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyModel",
+      "version": "10.0.1",
+      "sha256": "sha256:5c88f68c45117b6e58038461052b82a90a6273460ff9365a3bf75b04f0a369df"
+    },
+    {
+      "id": "Microsoft.Extensions.Diagnostics.Abstractions",
+      "version": "10.0.0",
+      "sha256": "sha256:722c7b43143f837b23eab797bb78e7d1c46fd918a3cdc79a2cb91c844193b791"
+    },
+    {
+      "id": "Microsoft.Extensions.FileProviders.Abstractions",
+      "version": "10.0.0",
+      "sha256": "sha256:0870ecd8708df1071fb9842980d56ccd9e5d7d715ee324bd2b61a841779c736d"
+    },
+    {
+      "id": "Microsoft.Extensions.Hosting.Abstractions",
+      "version": "10.0.0",
+      "sha256": "sha256:4ae6f74e16b2ffe791f3870438393f9cf875a18218b5ac2f0d7eabd1db917aaa"
+    },
+    {
+      "id": "Microsoft.Extensions.Logging",
+      "version": "10.0.0",
+      "sha256": "sha256:3feccf01a74b2fade4fc6a8adf8fea0a1a908d8f5a211c597f1941f65aac4abb"
+    },
+    {
+      "id": "Microsoft.Extensions.Logging.Abstractions",
+      "version": "10.0.0",
+      "sha256": "sha256:067860199734d47c134b1a206afabb51eab857b88c037c0f9db7d1c10e118469"
+    },
+    {
+      "id": "Microsoft.Extensions.Options",
+      "version": "10.0.0",
+      "sha256": "sha256:8f930ea9948a794b71c739998f364c1b2d2f10b1ddbcfadaab04d0410355b180"
+    },
+    {
+      "id": "Microsoft.Extensions.Primitives",
+      "version": "10.0.0",
+      "sha256": "sha256:0eea74f0a729b4b8e59e9379b79ffffa9e27f0551381102ae27ff0d6ceaeb3e2"
+    }
+  ]
+}

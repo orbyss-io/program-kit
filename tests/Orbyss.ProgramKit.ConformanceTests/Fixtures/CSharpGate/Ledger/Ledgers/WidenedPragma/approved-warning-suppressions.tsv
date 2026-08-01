@@ -1,1 +1,0 @@
-CS0168	DirectAnalyzerProbe	Configuration/WidenedPragma/WidenedPragmaProbe.cs	PragmaWarningDisable	lines:7-9	human-approval:csharp-gate-conformance	2026-07-23	Conformance-only deliberately stale pragma range fixture.

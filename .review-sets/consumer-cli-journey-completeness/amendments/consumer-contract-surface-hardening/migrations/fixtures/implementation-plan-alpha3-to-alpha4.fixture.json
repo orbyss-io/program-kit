@@ -1,8 +1,0 @@
-{
-  "sourceVersion": "0.1.0-alpha.3",
-  "targetVersion": "0.1.0-alpha.4",
-  "targetSchema": "https://schemas.orbyss.io/program-kit/planning/implementation-plan/0.1.0-alpha.4/schema.json",
-  "suppliedDesignVersion": "0.1.0-alpha.3",
-  "suppliedStaticConformanceDispositionVersion": "0.1.0-alpha.2",
-  "preservationRule": "Every Implementation Plan alpha.3 execution field is preserved; the exact $schema and caller-supplied current design-flow references are the only replacements."
-}

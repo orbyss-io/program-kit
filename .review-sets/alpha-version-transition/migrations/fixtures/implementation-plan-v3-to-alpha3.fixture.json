@@ -1,7 +1,0 @@
-{
-  "sourceVersion": "3.0.0",
-  "targetVersion": "0.1.0-alpha.3",
-  "suppliedArchitectureDesignVersion": "0.1.0-alpha.2",
-  "suppliedStaticConformanceDispositionVersion": "0.1.0-alpha.1",
-  "preservationRule": "Every Planning 3.0 execution and admission field is preserved; only the exact migrated design and static-conformance disposition references are supplied for the alpha target."
-}

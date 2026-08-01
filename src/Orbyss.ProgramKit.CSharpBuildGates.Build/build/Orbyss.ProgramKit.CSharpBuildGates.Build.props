@@ -1,8 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <ProgramKitCSharpGateMechanicsVersion>1.0.0</ProgramKitCSharpGateMechanicsVersion>
-    <ProgramKitCSharpGateEnabled Condition="'$(ProgramKitCSharpGateEnabled)' == ''">false</ProgramKitCSharpGateEnabled>
-    <ProgramKitCSharpGateReceiptBase Condition="'$(ProgramKitCSharpGateReceiptBase)' == ''">$(IntermediateOutputPath)program-kit-csharp-gate\$(TargetFramework)\$(Configuration)\</ProgramKitCSharpGateReceiptBase>
-    <ProgramKitCSharpGateTaskAssembly Condition="'$(ProgramKitCSharpGateTaskAssembly)' == ''">$(MSBuildThisFileDirectory)..\tools\net10.0\Orbyss.ProgramKit.CSharpBuildGates.Build.dll</ProgramKitCSharpGateTaskAssembly>
-  </PropertyGroup>
-</Project>
