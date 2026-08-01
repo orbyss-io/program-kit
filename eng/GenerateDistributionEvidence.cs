@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
@@ -26,6 +27,32 @@ string output = Path.Combine(root, "artifacts", "evidence");
 Directory.CreateDirectory(output);
 
 string ByteDigest(string path) => $"sha256:{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant()}";
+byte[] CanonicalSourceBytes(string path)
+{
+    byte[] bytes = File.ReadAllBytes(path);
+    string logicalPath = Path.GetRelativePath(root, path).Replace('\\', '/');
+    if (bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble))
+    {
+        throw new InvalidOperationException($"Source artifact '{logicalPath}' must use UTF-8 without a byte-order mark.");
+    }
+
+    if (bytes.AsSpan().Contains((byte)'\r'))
+    {
+        throw new InvalidOperationException($"Source artifact '{logicalPath}' must use canonical LF line endings.");
+    }
+
+    try
+    {
+        _ = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetString(bytes);
+    }
+    catch (DecoderFallbackException exception)
+    {
+        throw new InvalidOperationException($"Source artifact '{logicalPath}' must contain valid UTF-8.", exception);
+    }
+
+    return bytes;
+}
+string SourceDigest(string path) => $"sha256:{Convert.ToHexString(SHA256.HashData(CanonicalSourceBytes(path))).ToLowerInvariant()}";
 JsonObject Identity(GovernedIdentity identity) => new()
 {
     ["authority"] = identity.Authority,
@@ -149,7 +176,7 @@ JsonArray sources = new(Directory.EnumerateFiles(Path.Combine(root, "src"), "*",
     .Select(path => new JsonObject
     {
         ["logicalPath"] = Path.GetRelativePath(root, path).Replace('\\', '/'),
-        ["digest"] = ByteDigest(path),
+        ["digest"] = SourceDigest(path),
     }).ToArray());
 JsonObject provenance = new()
 {

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
@@ -63,6 +64,16 @@ public sealed class DistributionEvidenceTests
         JsonObject provenance = Read(Path.Combine(evidenceRoot, "source-package-provenance.json"));
         Assert.AreEqual(CanonicalJson.Digest(provenance["sourceArtifacts"]!), provenance["sourceClosureDigest"]!.GetValue<string>());
         Assert.AreEqual(CanonicalJson.Digest(provenance["packageArtifacts"]!), provenance["packageClosureDigest"]!.GetValue<string>());
+        foreach (JsonObject source in provenance["sourceArtifacts"]!.AsArray().Select(static node => node!.AsObject()))
+        {
+            string logicalPath = source["logicalPath"]!.GetValue<string>();
+            string path = Path.Combine(TestRepository.Root, logicalPath.Replace('/', Path.DirectorySeparatorChar));
+            byte[] bytes = File.ReadAllBytes(path);
+            Assert.IsFalse(bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble), logicalPath);
+            Assert.IsFalse(bytes.AsSpan().Contains((byte)'\r'), logicalPath);
+            _ = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetString(bytes);
+            Assert.AreEqual(source["digest"]!.GetValue<string>(), Digest(path), logicalPath);
+        }
     }
 
     private static JsonObject Read(string path) => CanonicalJson.Parse(File.ReadAllBytes(path)).AsObject();
