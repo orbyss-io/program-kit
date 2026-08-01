@@ -32,16 +32,17 @@ are added.
 Feature 001 is **not product-accepted**. A bounded closure audit on
 2026-08-01 rejected the earlier prototype for material authority, provider,
 admission/recovery, diagnostic, snapshot, and product-proof gaps. The current
-candidate addresses those gaps, and the repository-owned gate passes 76 tests
+candidate addresses those gaps, and the repository-owned gate passes 89 tests
 plus deterministic evidence, formatting, and whitespace verification. The
 exact product candidate is commit
-`a5b9f04018a4e5a6ef7b046efc45fb902bfc638f`; its distribution-manifest digest
-is `sha256:b602af45b29e809ced96c89345bea6dcd725abc309372d4c5b00582e3a0b2345`.
-This makes the branch eligible for final task-ledger reconciliation and a new
-review; it does not reverse the old decision or product-accept Feature 001
-automatically. A fresh named human must accept or reject the reconciled
-post-remediation evidence under T095. Until that decision is recorded, treat
-this as a review candidate, not an accepted foundation.
+`9aceead4d995811b34add4486c1906bac58d5dcb`; its distribution-manifest digest
+is `sha256:a9e2e373fe7bdfdcdb74eae54dbc96d5c564c6e25f4089061910bc4a24e66718`.
+The human-authorized evidence ledger now records 80 satisfied, 5 explicitly
+superseded, and 0 missing outcomes. That reconciliation does not reverse the
+old decision or product-accept Feature 001 automatically. A fresh named human
+must accept or reject the reconciled post-remediation evidence under T095.
+Until that decision is recorded, treat this as a review candidate, not an
+accepted foundation.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
@@ -153,8 +154,8 @@ coverage; recovery is intentionally limited; and external NuGet packages remain
 correctly classified as verified-equivalent rather than canonical across
 environments. Mirror integrity, package claims, canonical snapshots,
 repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
-local-safety, and relocated-runtime evidence now pass. Final task-ledger
-confirmation and independent human product review are still pending. The
+local-safety, and relocated-runtime evidence now pass. The evidence ledger
+is reconciled; only independent human product review remains pending. The
 current automated evidence and pending human-review gate are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and

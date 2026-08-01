@@ -4,43 +4,48 @@ Date: 2026-08-01
 
 ## Current status
 
-**All T102 deterministic execution gates passed. Final task-ledger closure and
-the separate T095 human product decision remain pending.**
+**All T102 deterministic execution gates passed, and the human-authorized task
+ledger reconciliation is complete. T095 product acceptance remains pending.**
 
-The exact implementation/evidence candidate exercised by the successful gate
-is pushed commit
-`a5b9f04018a4e5a6ef7b046efc45fb902bfc638f`. Its checked-in
+The exact implementation and generated-evidence candidate exercised by the
+successful gate is pushed commit
+`9aceead4d995811b34add4486c1906bac58d5dcb`. Its checked-in
 `artifacts/evidence/distribution-manifest.json` has byte digest
-`sha256:b602af45b29e809ced96c89345bea6dcd725abc309372d4c5b00582e3a0b2345`.
+`sha256:a9e2e373fe7bdfdcdb74eae54dbc96d5c564c6e25f4089061910bc4a24e66718`.
+The documentation-only reconciliation commit is a descendant of that candidate
+and does not alter its implementation or generated evidence.
 
 The rejected baseline remains recorded in
-[`reviews/task-closure-audit.md`](reviews/task-closure-audit.md). Phase 8 closed
-the implementation findings at a coarse level. The later T096 audit correctly
-identified finer proof gaps; T097-T101 implemented and locally proved those
-typed-contract, package, CLI/diagnostic, snapshot, repeatability, and runtime
-obligations. That later evidence does not erase or falsify the earlier history.
+[`reviews/task-closure-audit.md`](reviews/task-closure-audit.md). The later T096
+audit identified 27 proof gaps without erasing that history. T097-T101 and the
+bounded diagnostic repair closed those gaps. The human then explicitly
+authorized the current `80 satisfied, 5 superseded, 0 missing` ledger treatment;
+that authorization concerns evidence accounting only and is not T095 product
+acceptance.
 
 ## Passing repository gate
 
-The repository-owned command passed from the exact candidate:
+The repository-owned command passed against the exact implementation/evidence
+candidate:
 
 ```powershell
 ./eng/Invoke-VerticalSliceQuickstart.ps1
 ```
 
-It performed the exact dependency-mirror bootstrap, locked restore, Release
-build, deterministic distribution-evidence regeneration and stale check, all
-tests, formatting verification, and Git whitespace verification.
+It performed dependency-mirror bootstrap, locked restore, Release build,
+deterministic distribution-evidence regeneration and stale checking, all tests,
+formatting verification, and Git whitespace verification.
 
 - build: 0 warnings, 0 errors;
 - unit: 25 passed;
-- contract: 23 passed;
-- acceptance: 28 passed;
-- total: 76 passed, 0 failed, 0 skipped;
+- contract: 33 passed;
+- acceptance: 31 passed;
+- total: 89 passed, 0 failed, 0 skipped;
+- distribution evidence regeneration/stale check: passed;
 - formatting and `git diff --check`: passed;
-- post-gate tracked worktree: clean.
+- implementation/evidence worktree after commit: clean and pushed.
 
-The acceptance and contract evidence now includes:
+The acceptance and contract evidence includes:
 
 - exact request/closure/effect/freshness/review/revocation authority;
 - strict public schema and three-role provider admission;
@@ -49,8 +54,16 @@ The acceptance and contract evidence now includes:
 - read-only drift detection and fresh-authority repair;
 - typed safe values, finite waivers, safe restricted-YAML source spans, and
   canonical snapshot orientation/freshness proof;
-- black-box CLI grammar, stable catalog projection, executable invalid inputs,
-  canonical explanation fixtures, and adversarial disclosure refusal;
+- black-box CLI grammar, canonical explanations, executable invalid inputs, and
+  result-derived stream/exit behavior;
+- all 26 public diagnostic identities with schema-valid catalog projections and
+  production references, including the six formerly untriggered boundaries;
+- typed disposition, expected/observed values, bounded remediation, continuation
+  grouping, and adversarial disclosure/fallback behavior;
+- nine executable SC-005 fixtures covering duplicate route, missing assembler,
+  ambiguous order, unsafe disclosure, generated drift, live collision, stale
+  precondition, interrupted publication, and provider failure;
+- separate schema-valid kernel and .NET diagnostic evidence catalogs;
 - dependency-mirror tamper refusal plus exact package SHA-256 and NuGet content
   hash verification;
 - Unicode-path, culture, JSON/YAML, and ordering repeatability with direct
@@ -64,14 +77,11 @@ evidence set on Windows and Ubuntu and uploads only that set for 14 days.
 
 ## Deliberately not claimed
 
-Automation does not product-accept Feature 001. T095 remains unchecked until a
-fresh named human reviews the exact pushed candidate and records accept or
-reject, scope, evidence binding, limitations, and date. The task-ledger change
-from the historical T096 `53 satisfied, 5 superseded, 27 missing` snapshot to a
-proposed final `80 satisfied, 5 superseded, 0 missing` classification is also a
-human semantic decision and is not inferred from green automation.
+Automation and ledger reconciliation do not product-accept Feature 001. T095
+remains unchecked until a fresh named human reviews the exact pushed candidate
+and records accept or reject, scope, evidence binding, limitations, and date.
 
 The disabled historical Program Kit self-host integration check remains outside
-this redesign gate. After T102, no further convergence work should be added
-unless it maps to an existing unmet FR, SC, or constitutional MUST; desirable
-improvements belong in a later feature.
+this redesign gate. No further Feature 001 convergence work should be added
+unless an independent readiness audit maps it to an existing unmet FR, SC, or
+constitutional MUST; desirable improvements belong in a later feature.

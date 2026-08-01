@@ -7,11 +7,11 @@ public `explain`, `construct`, and `evaluate` factory operations. It is not a
 general-purpose release. The prior 2026-08-01 decision rejected the earlier
 prototype and remains valid for that exact evidence binding.
 
-The current implementation/evidence candidate is pushed commit
-`a5b9f04018a4e5a6ef7b046efc45fb902bfc638f`. Its distribution manifest byte
+The exact implementation/evidence candidate is pushed commit
+`9aceead4d995811b34add4486c1906bac58d5dcb`. Its distribution-manifest byte
 digest is
-`sha256:b602af45b29e809ced96c89345bea6dcd725abc309372d4c5b00582e3a0b2345`.
-The repository-owned quickstart passed 76 tests: 25 unit, 23 contract, and 28
+`sha256:a9e2e373fe7bdfdcdb74eae54dbc96d5c564c6e25f4089061910bc4a24e66718`.
+The repository-owned quickstart passed 89 tests: 25 unit, 33 contract, and 31
 acceptance. Exact commands, results, and proof scope are in
 [`../verification.md`](../verification.md).
 
@@ -28,8 +28,12 @@ Material changes since the rejected candidate include:
 - read-only evaluation, fresh-authority repair, publication recovery, honest
   lifecycle fallback, actionable bounded diagnostics, and authoritative
   workspace snapshots;
-- complete black-box CLI/invalid-input/golden explanation and adversarial
-  diagnostic proof;
+- all 26 public diagnostics bound to typed disposition, expected/observed,
+  remediation, production references, schema-valid evidence, and adversarial
+  disclosure proof;
+- nine executable SC-005 negative fixtures, including missing assembler,
+  ambiguous order, determinism drift, live collision, stale precondition,
+  interruption, and provider failure;
 - governed mirror tamper refusal, exact package SHA-256/NuGet content-hash
   verification, and honest verified-equivalent package claims; and
 - path/culture/JSON-YAML/order canonical-byte repeatability plus clean relocated
@@ -38,12 +42,13 @@ Material changes since the rejected candidate include:
 
 ## Task-ledger checkpoint before T095
 
-T096 recorded a historical `53 satisfied, 5 superseded, 27 missing` snapshot.
-T097-T100 are locally proven, T101 is complete, and the T102 deterministic gate
-passes. Converting the historical 27 rows into a final proposed
-`80 satisfied, 5 superseded, 0 missing` classification remains an explicit
-human semantic reconciliation; automation must not silently make that claim.
-T095 starts only after that ledger decision is recorded.
+T096 recorded the historical `53 satisfied, 5 superseded, 27 missing` snapshot.
+After T097-T102 and the bounded diagnostic closure, the human explicitly
+authorized the current `80 satisfied, 5 superseded, 0 missing` classification.
+T004, T007, T032, T036, and T046 remain unchecked and visibly superseded because
+their accepted outcomes are proven through consolidated boundaries rather than
+their originally named file split. T094 and T102 are complete. This ledger
+decision is evidence accounting only and is not product acceptance.
 
 ## Reviewer independence
 
@@ -78,10 +83,9 @@ disclosed; a later independent release review may still be required.
 
 ## Human approval gate
 
-**PENDING TASK-LEDGER CONFIRMATION AND FRESH T095 HUMAN REVIEW.**
+**PENDING FRESH T095 HUMAN REVIEW.**
 
-Do not derive acceptance from the 76 passing tests, generated evidence, CI, or
-this document. After the task ledger is explicitly reconciled, record the T095
-decision only after reviewing the exact candidate, with reviewer identity,
-scope/evidence binding, limitations, date, and an explicit accept or reject
-statement.
+Do not derive acceptance from the 89 passing tests, generated evidence, CI,
+ledger reconciliation, or this document. Record the T095 decision only after
+reviewing the exact candidate, with reviewer identity, scope/evidence binding,
+limitations, date, and an explicit accept or reject statement.
