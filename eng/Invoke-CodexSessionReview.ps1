@@ -7,6 +7,9 @@ param(
     [int] $Trials = 10,
 
     [string] $ExpectedCodexVersion = '0.137.0',
+    [ValidateNotNullOrEmpty()]
+    [string] $ExpectedModel = 'gpt-5.5',
+
 
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
@@ -61,6 +64,20 @@ $versionOutput = (& $codex.Source --version 2>&1 | Out-String).Trim()
 $expectedVersionPattern = '(?<!\d)' + [regex]::Escape($ExpectedCodexVersion) + '(?!\d)'
 if ($LASTEXITCODE -ne 0 -or $versionOutput -notmatch $expectedVersionPattern) {
     throw "Expected Codex $ExpectedCodexVersion but observed '$versionOutput'."
+}
+
+$bundledModelCatalogOutput = (& $codex.Source debug models --bundled 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not read the bundled model catalog from Codex $ExpectedCodexVersion."
+}
+try {
+    $bundledModelCatalog = $bundledModelCatalogOutput | ConvertFrom-Json -ErrorAction Stop
+}
+catch {
+    throw "Codex $ExpectedCodexVersion returned an invalid bundled model catalog."
+}
+if (@($bundledModelCatalog.models.slug) -notcontains $ExpectedModel) {
+    throw "Expected review model '$ExpectedModel' is not bundled with Codex $ExpectedCodexVersion."
 }
 
 $evidence = if ([IO.Path]::IsPathRooted($EvidencePath)) {
@@ -118,7 +135,7 @@ Start by explaining the exact proposed operation. If an effect requires current 
 "@
 
     try {
-        & $codex.Source -C $trialWorkspace --sandbox workspace-write $prompt
+        & $codex.Source -C $trialWorkspace --sandbox workspace-write --model $ExpectedModel $prompt
         $providerExitCode = $LASTEXITCODE
 
         $explainedFirst = Read-ReviewDecision 'Did the session select Program Kit explanation before construction?'
@@ -163,6 +180,7 @@ $record = [ordered]@{
     provider = 'codex'
     providerVersion = $ExpectedCodexVersion
     observedVersionOutput = $versionOutput
+    model = $ExpectedModel
     reviewerIdentity = $ReviewerIdentity
     consumerWorkspaceIdentity = 'withheld-local-isolated-workspace'
     scenarioIdentity = $scenarioIdentity
