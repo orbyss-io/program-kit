@@ -7,4 +7,18 @@
     <Error Condition="'@(_ProgramKitFloatingPackage)' != ''"
       Text="Floating or ranged direct PackageReference is prohibited: @(_ProgramKitFloatingPackage)" />
   </Target>
+
+  <Target Name="ProgramKitEnforceSourceArchitecture" BeforeTargets="ResolveProjectReferences"
+    Condition="$([System.String]::Copy('$(MSBuildProjectDirectory)').Contains('$([System.IO.Path]::DirectorySeparatorChar)src$([System.IO.Path]::DirectorySeparatorChar)'))">
+    <ItemGroup>
+      <_ProgramKitForbiddenReference Include="@(ProjectReference)"
+        Condition="'$(MSBuildProjectName)' == 'ProgramKit.Contracts'" />
+      <_ProgramKitForbiddenReference Include="@(ProjectReference)"
+        Condition="'$(MSBuildProjectName)' == 'ProgramKit.Kernel' and '%(ProjectReference.Filename)' != 'ProgramKit.Contracts'" />
+      <_ProgramKitForbiddenReference Include="@(ProjectReference)"
+        Condition="'$(MSBuildProjectName)' == 'ProgramKit.Providers.DotNet' and '%(ProjectReference.Filename)' != 'ProgramKit.Contracts'" />
+    </ItemGroup>
+    <Error Condition="'@(_ProgramKitForbiddenReference)' != ''"
+      Text="Program Kit source architecture boundary violation in $(MSBuildProjectName): @(_ProgramKitForbiddenReference)" />
+  </Target>
 </Project>

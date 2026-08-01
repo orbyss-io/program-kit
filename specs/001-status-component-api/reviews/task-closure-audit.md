@@ -2,6 +2,29 @@
 
 Date: 2026-08-01
 
+## Post-remediation addendum
+
+The table below is the immutable rejected-baseline audit: it explains why the
+earlier candidate was rejected and must not be read as the current code state.
+The post-remediation branch now has direct executable evidence for the
+substance of T086-T093:
+
+- exact authority and adversarial refusal;
+- public request/schema/provider-role closure;
+- candidate gates, recoverable publication, receipt-last admission, evaluation,
+  repair, and authoritative snapshots;
+- lifecycle-honest diagnostics and fallback;
+- repeatability, package binding, performance, hostile filesystem, local
+  safety, deterministic SBOM/provenance/support/catalog evidence, and relocated
+  runtime isolation.
+
+The repository quickstart passes 57 tests plus evidence, formatting, and
+whitespace gates. `verification.md` is the current execution record. The
+T086-T093 checkboxes remain deliberately unaltered until a human explicitly
+confirms that this evidence closes rows whose historical annotations say
+`partial` or `contradicts`; automation must not silently convert those labels
+into semantic acceptance. T095 remains pending in every case.
+
 This ledger records whether each original Feature 001 task has both its named
 artifact and sufficient direct proof. `complete` does not imply product
 acceptance; `open` means absent, partial, contradictory, or insufficiently

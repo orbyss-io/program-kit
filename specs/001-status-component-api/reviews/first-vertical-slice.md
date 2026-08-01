@@ -1,92 +1,63 @@
 # First Vertical Slice Review
 
-## Automated evidence
+## Candidate presented for fresh review
 
-The repository now contains an executable .NET 10 proof of `explain`,
-`construct`, and `evaluate` for the bounded Status component/API fixture. Local
-verification on 2026-08-01 proved canonical repeatable explanation, exact
-CShells 0.0.28 component and host compilation, receipt-last publication,
-read-only exact/drift evaluation, clean generated-consumer restore/build, an
-ordinary host process, and an HTTP `/status` response.
+Feature 001 remains a narrow .NET 10 + CShells 0.0.28 vertical slice of the
+public `explain`, `construct`, and `evaluate` factory operations. It is not a
+general-purpose release. The prior 2026-08-01 decision rejected the earlier
+prototype and remains valid for that exact evidence binding.
 
-## Closure audit (2026-08-01)
+The bounded remediation has now passed the repository-owned quickstart with
+57 tests: 25 unit, 13 contract, and 19 acceptance. The exact results and proof
+scope are in [`../verification.md`](../verification.md). Material changes since
+the rejected candidate include:
 
-The repository-owned quickstart was rerun from the Feature 001 baseline:
-
-- elapsed wall time: 37.4 seconds;
-- Release build: 0 warnings and 0 errors;
-- tests: 15 unit, 4 contract, and 4 acceptance; 23 passed, 0 failed;
-- formatting verification: passed.
-
-Spec Kit convergence then checked all 34 functional requirements, 10 success
-criteria, 15 acceptance scenarios, the 15 plan/constitution gate decisions,
-and all 9 constitutional principles against the implementation. Only 8 of
-the original 85 task entries have both their named artifact and sufficient
-direct proof. Ten convergence tasks (`T086`-`T095`) record the remaining
-closure work.
-
-The most important blockers are incomplete authority closure, a public
-factory-request seam that is bypassed by provider-specific intake, three
-advertised provider roles with only a construction SPI, incomplete
-admission/publication recovery, fallback effect-state ambiguity, a largely
-placeholder workspace snapshot, and an incomplete negative/repeatability/
-repair/product-proof matrix.
-
-**Audit recommendation: do not accept Feature 001 in its current state.**
-
-The per-task evidence and convergence mapping are recorded in
-[`task-closure-audit.md`](task-closure-audit.md).
+- exact authority bound to request, closure, effect, live state, evaluation
+  instant, review, and revocation state;
+- a public factory-request seam and strict offline structural/typed validation;
+- executable intake, construction, and evaluation provider roles with exact
+  role/support admission;
+- mandatory candidate gates, recoverable journaled publication, exact live
+  preconditions, and receipt-last admission;
+- read-only evaluation, fresh-authority repair, publication recovery, honest
+  lifecycle fallback, actionable bounded diagnostics, and authoritative
+  workspace snapshots;
+- deterministic distribution/SBOM/provenance/catalog/support evidence, local
+  safety checks, repeatability proof, and relocated ordinary runtime proof.
 
 ## Reviewer independence
 
-For this feature, an independent reviewer is a named human making a current
-decision independently of automation and of the AI sessions that implemented
-or audited the feature. The repository product owner may serve as reviewer,
-including when they contributed requirements, provided the decision is made
-after inspecting this closure audit and explicitly records that relationship.
+T095 requires a named human making a current decision independently of
+automation and the AI sessions that implemented or audited the feature. The
+repository product owner may review it if their requirements authorship is
+disclosed; a later independent release review may still be required.
 
-An AI agent, automated check, anonymous identity, inferred approval, decision
-predating this audit, or reviewer without product-decision authority is
-ineligible. Material implementation authorship is a disclosed conflict but
-does not invalidate the product owner's semantic authority; it does require
-the review record to state that a separate release review may still be needed.
-
-## Questions for an independent reviewer
+## Review questions
 
 1. Does the public operation/result boundary make human authority visible?
-2. Is the distinction between deterministic plumbing and custom behavior clear?
-3. Can a contributor locate the consumer-owned implementation without kernel
-   knowledge?
+2. Is deterministic plumbing clearly separated from custom behavior?
+3. Can a contributor locate and preserve consumer-owned implementation?
 4. Are provider/profile selection and unsupported cases fail-closed?
-5. Are diagnostics safe and actionable enough for a human-led AI session?
+5. Are diagnostics safe and actionable for a human-led AI session?
 6. Do generated projects remain ordinary independently usable software?
-7. Is this vertical slice small enough to challenge before broader capability
-   design begins?
+7. Is this slice bounded enough to extend without turning Program Kit into a
+   planner, runtime, or domain-semantics owner?
 
 ## Honest limitations
 
-- This is an early reference slice, not a released or general-purpose CLI.
-- Only the exact .NET 10/CShells 0.0.28 first-party profile is implemented.
-- The intake shape is deliberately fixture-bounded and is not yet a general
-  software-definition authoring experience.
-- Publication recovery and repair exist only at the first bounded level; the
-  larger recovery and migration designs remain deferred.
-- The contract schemas and diagnostics are public design commitments, but the
-  current automated conformance suite is not yet exhaustive for every schema
-  branch and diagnostic trigger.
-- Performance, provenance/SBOM generation, package byte-repeatability across
-  environments, and hostile-filesystem testing require further proof.
+- Only the exact first-party .NET 10/CShells 0.0.28 profile is implemented.
+- Authoring remains fixture-bounded; it is not the final user experience.
+- The public schema and catalog suites are strong but not exhaustive for every
+  future provider or diagnostic trigger.
+- Recovery covers this bounded publication model; migration remains deferred.
+- External NuGet output is correctly `verified-equivalent`, not falsely claimed
+  as canonical bytes across environments.
 
 ## Human approval gate
 
-**REJECTED — REMEDIATION REQUIRED.** On 2026-08-01, the current human
-repository product owner explicitly accepted this audit's recommendation to
-reject the implementation pending remediation. The reviewer participated in
-the product requirements and authorized this decision in the active design
-task; no stable personal reviewer identifier was supplied, so this decision
-cannot satisfy the identity-bound post-remediation review required by `T095`.
+**PENDING FRESH HUMAN REVIEW — T095 IS NOT COMPLETE.**
 
-The rejection closes this audit round without accepting Feature 001. Green
-automation remains execution evidence only. `T086`-`T094` must be completed
-and evidenced before a fresh, named human accept/reject decision is requested
-under `T095`.
+Do not derive acceptance from the 57 passing tests, generated evidence, CI, or
+this document. Record the new decision only after reviewing the post-remediation
+candidate, with reviewer identity, exact scope/evidence binding, limitations,
+date, and an explicit accept or reject statement.

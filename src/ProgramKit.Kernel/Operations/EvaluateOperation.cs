@@ -1,4 +1,3 @@
-using static Orbyss.ProgramKit.Kernel.Operations.PublicationRepairGuidance;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +15,7 @@ using Orbyss.ProgramKit.Kernel.Intake;
 using Orbyss.ProgramKit.Kernel.Publication;
 using Orbyss.ProgramKit.Kernel.Resolution;
 using Orbyss.ProgramKit.Kernel.Validation;
+using static Orbyss.ProgramKit.Kernel.Operations.PublicationRepairGuidance;
 
 namespace Orbyss.ProgramKit.Kernel.Operations;
 

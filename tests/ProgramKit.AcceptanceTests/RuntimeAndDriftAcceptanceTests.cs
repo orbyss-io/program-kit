@@ -18,18 +18,29 @@ public sealed class RuntimeAndDriftAcceptanceTests
     public void GeneratedHostRunsWithoutProgramKitAndServesStatus()
     {
         string workspace = ConstructWorkspace();
+        string relocated = Path.Combine(Path.GetTempPath(), "program-kit-tests", Guid.NewGuid().ToString("N"));
         try
         {
-            string app = Path.Combine(workspace, "products", "Reference.Status.Api");
-            ProcessResult restore = Run("dotnet", app, "restore", "Reference.Status.Api.csproj", "--locked-mode", "--configfile", "NuGet.Config", "--packages", Path.Combine(workspace, ".runtime-packages"), "--no-cache");
+            CopyDirectory(Path.Combine(workspace, "products"), Path.Combine(relocated, "products"));
+            CopyDirectory(Path.Combine(workspace, "feeds"), Path.Combine(relocated, "feeds"));
+            Assert.IsFalse(Directory.Exists(Path.Combine(relocated, ".program-kit")));
+            Assert.IsFalse(Directory.Exists(Path.Combine(relocated, "requests")));
+
+            string app = Path.Combine(relocated, "products", "Reference.Status.Api");
+            ProcessResult restore = Run("dotnet", app, "restore", "Reference.Status.Api.csproj", "--locked-mode", "--configfile", "NuGet.Config", "--packages", Path.Combine(relocated, ".runtime-packages"), "--no-cache");
             Assert.AreEqual(0, restore.ExitCode, restore.Output);
             ProcessResult build = Run("dotnet", app, "build", "Reference.Status.Api.csproj", "--configuration", "Release", "--no-restore");
             Assert.AreEqual(0, build.ExitCode, build.Output);
-            string dependencies = File.ReadAllText(Path.Combine(app, "bin", "Release", "net10.0", "Reference.Status.Api.deps.json"));
+            string publish = Path.Combine(relocated, "publish");
+            ProcessResult publication = Run("dotnet", app, "publish", "Reference.Status.Api.csproj", "--configuration", "Release", "--no-restore", "--output", publish);
+            Assert.AreEqual(0, publication.ExitCode, publication.Output);
+            string dependencies = File.ReadAllText(Path.Combine(publish, "Reference.Status.Api.deps.json"));
             Assert.IsFalse(dependencies.Contains("ProgramKit", StringComparison.OrdinalIgnoreCase));
+            Assert.IsFalse(dependencies.Contains("SpecKit", StringComparison.OrdinalIgnoreCase));
+            Assert.IsFalse(dependencies.Contains("OpenAI", StringComparison.OrdinalIgnoreCase));
 
             int port = AvailablePort();
-            ProcessStartInfo start = StartInfo("dotnet", app, Path.Combine(app, "bin", "Release", "net10.0", "Reference.Status.Api.dll"), "--urls", $"http://127.0.0.1:{port}");
+            ProcessStartInfo start = StartInfo("dotnet", publish, Path.Combine(publish, "Reference.Status.Api.dll"), "--urls", $"http://127.0.0.1:{port}");
             using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start generated host.");
             try
             {
@@ -50,7 +61,11 @@ public sealed class RuntimeAndDriftAcceptanceTests
                 process.WaitForExit();
             }
         }
-        finally { TestRepository.DeleteWorkspace(workspace); }
+        finally
+        {
+            TestRepository.DeleteWorkspace(workspace);
+            TestRepository.DeleteWorkspace(relocated);
+        }
     }
 
     [TestMethod]
@@ -101,6 +116,13 @@ public sealed class RuntimeAndDriftAcceptanceTests
         int port = ((IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
         return port;
+    }
+
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (string file in Directory.EnumerateFiles(source)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
+        foreach (string directory in Directory.EnumerateDirectories(source)) CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
     }
 
     private sealed record ProcessResult(int ExitCode, string Output);
