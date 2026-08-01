@@ -1,28 +1,20 @@
 <!--
 Sync Impact Report
-- Version change: 0.1.0 proposal -> 1.0.0
+- Version change: 1.0.0 -> 1.1.0
 - Modified principles:
-  - Proposal I and II -> I. Human Authority and Semantic Honesty
-  - Proposal III through V -> III. Exact Contracts and Governed Resolution
-  - Proposal VI and X -> IV. Honest Determinism and Evidence
-  - Proposal VIII -> VI. Explicit Extensions and Composition
-  - Proposal XI -> VII. Diagnostics Are an AI-Usable Public Contract
-  - Proposal XII -> VIII. Consumer Ownership, Runtime Isolation, and Local Safety
-  - Proposal IX and XIII -> IX. Evidence-First Vertical Delivery
+  - None
 - Added principles:
-  - II. The Public Product Is an Independent Software Factory
-  - V. Artifact Ownership and Atomic Trust
-- Removed principles:
-  - Native planning obligations; Spec Kit owns the guided development workflow
-  - Automated migration obligations; migration design is deferred
-  - A universal feature/domain architecture; consumers own architecture
-- Added sections:
-  - V1 Product Boundary
-  - Enforcement Contract
-  - Spec Kit Development Workflow
+  - X. Layered Verification and Enforced Code Quality
+- Removed principles: none
+- Modified sections:
+  - Spec Kit Development Workflow now requires an explicit layered proof map
 - Template compatibility:
   - .specify/templates/plan-template.md already loads Constitution Check gates
   - No command or task template changes required
+- Deferred implementation:
+  - A separate remediation feature must introduce the required test topology,
+    coverage, diagnostic, warning, and namespace enforcement without weakening
+    existing contract, integration, acceptance, or conformance proof
 - Follow-up TODOs: none
 -->
 
@@ -321,6 +313,76 @@ bypass, or missing product proof MUST stop planning or block completion. A
 policy exception may be considered only through the finite waiver mechanism;
 it cannot override any kernel gate.
 
+### X. Layered Verification and Enforced Code Quality
+
+Every first-party production project in the Program Kit repository MUST have
+one corresponding unit-test project. Its test directories MUST mirror the
+production project's directory structure so that ownership and missing proof
+remain visible. Unit tests MUST target and report 100 percent of executable
+first-party production lines and branches, measured separately for each
+production project. Test projects, external dependencies, compiler-generated
+code without a first-party source location, and materialized consumer artifacts
+are outside that unit-coverage denominator; compiler-generated behavior mapped
+to an executable first-party source location remains in scope. Program Kit
+behavior that produces or governs excluded artifacts remains subject to its
+applicable contract, integration, acceptance, conformance, and evidence
+obligations.
+
+The default unit gate MUST require 100 percent raw line and branch coverage. A
+finite coverage exception MAY allow only exact named source lines or branches to
+remain uncovered after reasonable attempts to exercise them through observable
+behavior, introduce a bounded test seam, refactor without changing accepted
+behavior, and use deterministic test techniques have been documented. Private
+visibility, inconvenience, test duration, or a complex arrange phase alone MUST
+NOT justify an exception. Each exception MUST bind its production project,
+exact location or branch, attempted alternatives, bounded reason, residual risk,
+alternative boundary-appropriate proof, approving owner, review date, and finite
+expiry. Raw coverage and the exception MUST remain visible; the exception MUST
+NOT remove its location from the denominator or present it as covered. Global
+threshold reductions, rounding allowances, wildcards, and unreviewed tolerances
+are invalid.
+
+Unit coverage is a floor, not a substitute for broader evidence. Unit tests
+MUST prove isolated decisions and local failure paths. Contract tests MUST
+prove stable public schemas, APIs, diagnostics, serialization, compatibility,
+and forbidden dependency boundaries. Integration tests MUST prove collaboration
+across real component, filesystem, process, package, or tool boundaries.
+Acceptance tests MUST prove public CLI workflows and independently observable
+consumer outcomes. Conformance, repeatability, runtime-isolation,
+fault-injection, security, and human-review evidence MUST remain separate when
+their claims require those boundaries. A broader proof MUST NOT be removed,
+weakened, relabeled as a unit test, or replaced merely because its production
+path is covered at unit scope.
+
+Every Program Kit repository build MUST complete with zero compiler, analyzer,
+code-style, test-framework, package, restore, and build-system warnings. A
+required diagnostic MUST fail the build even when its upstream default severity
+is informational. Blanket or unexplained suppressions are prohibited. An exact
+local suppression MAY exist only when the diagnostic is demonstrably
+inapplicable or incorrect, and MUST record its bounded rationale beside the
+suppression. Namespace declarations MUST equal the project's exact root
+namespace plus the containing directory path and MUST be enforced in command-
+line builds.
+
+**Rationale**: Complete local branch proof catches implementation defects at
+their smallest boundary, while distinct higher-level proofs catch contract,
+composition, environment, and consumer failures that unit tests cannot.
+Warning-free, structurally aligned code keeps that evidence discoverable and
+prevents diagnostic debt from becoming accepted design.
+
+**Enforcement**: Maintainers own the repository test topology and zero-warning
+policy; each production-project owner owns its unit coverage, mirrored layout,
+and namespaces; contract and workflow owners own their broader proof suites.
+Per-project line and branch coverage reports, project-pairing and directory-
+mirror checks, command-line namespace analysis, warning-as-error builds, and a
+requirement-to-proof-layer map provide evidence. Missing coverage without a
+current exact finite exception, a missing paired unit-test project, namespace
+drift, an unexplained suppression, any build warning, or removal of a required
+broader proof MUST block merge and release. An exact coverage exception is the
+only permitted waiver of an individual coverage location; it cannot waive the
+100 percent default target, denominator honesty, raw reporting, exception
+constraints, project pairing, namespace, warning-free, or broader-proof floors.
+
 ## V1 Product Boundary
 
 Program Kit v1 is a human-governed, AI-provider-neutral .NET software factory.
@@ -403,7 +465,10 @@ Before implementation, every feature specification and plan MUST:
 5. define actionable result/diagnostic behavior for invalid, ambiguous,
    unavailable, drifted, and faulted paths; and
 6. define the smallest vertical proof, including negative paths and human-review
-   obligations.
+   obligations; and
+7. map each required claim to its unit, contract, integration, acceptance,
+   conformance, specialized automated, or human-review proof layer without
+   substituting coverage for boundary-appropriate evidence.
 
 Task generation MUST convert every applicable MUST and planned proof into an
 explicit dependency-ordered task. Analysis MUST expose contradictions, missing
@@ -438,4 +503,4 @@ authority, consumer-owned meaning, exact contracts, fail-closed integrity,
 actionable diagnostics, runtime isolation, and independent bootstrap prevails.
 If a material conflict remains, work MUST stop for human resolution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-01 | **Last Amended**: 2026-08-01
+**Version**: 1.1.0 | **Ratified**: 2026-08-01 | **Last Amended**: 2026-08-01
