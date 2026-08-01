@@ -33,6 +33,7 @@ public sealed record Remediation(
     IReadOnlyList<string> AuthorityRequired,
     JsonObject? RequestDocument,
     ArtifactReference? RequestArtifact,
+    IReadOnlyList<string>? RequestArguments,
     IReadOnlyList<string> Postconditions,
     OperationPhase RetryPhase);
 
@@ -42,14 +43,17 @@ public sealed record Diagnostic(
     DiagnosticSeverity Severity,
     DiagnosticCategory Category,
     OperationPhase Phase,
+    PrimaryDisposition Disposition,
     string OccurrenceKey,
     int OccurrenceCount,
     IReadOnlyList<string> Subjects,
     GovernedIdentity Rule,
     string MessageKey,
-    IReadOnlyDictionary<string, string> Parameters,
-    string Cause,
-    string Consequence,
+    IReadOnlyDictionary<string, SafeValue> Parameters,
+    SafeValue Cause,
+    SafeValue Consequence,
+    SafeValue Expected,
+    SafeValue Observed,
     IReadOnlyList<Remediation> Remediations,
     IReadOnlyList<EvidenceReference> Evidence);
 

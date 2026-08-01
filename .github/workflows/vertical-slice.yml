@@ -20,6 +20,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.302
+      - name: Verify canonical tracked text
+        shell: pwsh
+        run: ./eng/Assert-CanonicalText.ps1
       - name: Bootstrap exact dependency mirror
         shell: pwsh
         run: ./eng/Bootstrap-DependencyMirror.ps1
@@ -27,7 +30,19 @@ jobs:
         run: dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config
       - name: Build release
         run: dotnet build ProgramKit.slnx --configuration Release --no-restore
+      - name: Regenerate deterministic distribution evidence
+        shell: pwsh
+        run: ./eng/Generate-DistributionEvidence.ps1
+      - name: Verify checked-in distribution evidence
+        run: git diff --exit-code -- artifacts/evidence
       - name: Test vertical slice
         run: dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore
       - name: Verify formatting
         run: dotnet format ProgramKit.slnx --no-restore --verify-no-changes
+      - name: Upload bounded product evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: program-kit-evidence-${{ matrix.os }}
+          path: artifacts/evidence
+          if-no-files-found: error
+          retention-days: 14

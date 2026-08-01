@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.kernel/PKEXT0001","expectedDisposition":"retry","expectedEffectState":"candidate-only","expectedOutcome":"blocked","schema":"program-kit.invalid-fixture/v1","scenario":"provider-failure","trigger":"ConstructOperation.Execute"}

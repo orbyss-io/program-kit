@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.kernel/PKRES0002","mutation":"duplicate-selection:evaluation","schema":"program-kit.invalid-fixture/v1"}

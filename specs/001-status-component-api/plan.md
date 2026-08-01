@@ -1,6 +1,7 @@
 # Implementation Plan: Status Component and API Vertical Slice
 
-**Branch**: `codex/initialize-spec-kit` | **Date**: 2026-08-01 |
+**Feature Identity**: `001-status-component-api` | **Date**: 2026-08-01 |
+**Origin Branch**: `codex/initialize-spec-kit` (historical creation context) |
 **Spec**: [spec.md](spec.md)
 
 **Spec Kit Feature**: `001-status-component-api`
@@ -102,10 +103,16 @@ this slice.
 
 *GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
 
+The `PASS` values below record design-time artifact alignment only. They do
+not claim implemented enforcement, execution evidence, product acceptance, or
+current closure. Those states are recorded in `verification.md` and
+`reviews/first-vertical-slice.md`.
+
+
 No constitutional exception or waiver is planned. Every non-waivable kernel
 gate below remains blocking.
 
-| Principle / boundary | Enforcement mode and owner | Planned evidence | Failure disposition / waiver | Pre-research | Post-design |
+| Principle / boundary | Enforcement mode and owner | Planned evidence | Failure disposition / waiver | Design-time pre-research | Design-time post-design |
 |---|---|---|---|---|---|
 | I. Human Authority and Semantic Honesty | Human review owns Status intent/fitness; kernel executable invariants own grant, trace, unknown-state, and admission | Accepted spec/design, local grant fixtures, semantic trace tests, no-Status-in-production scan, human review record | Stop for input/approval/revision; kernel checks not waivable | PASS | PASS |
 | II. Independent Public Software Factory | Evidence-backed; CLI/kernel maintainers | Public CLI contract/golden tests, clean standard build, forbidden Program Kit self-use/dependency tests, package-only consumer proof | Block release; not waivable | PASS | PASS |

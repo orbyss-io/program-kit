@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
+using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Providers.DotNet.Diagnostics;
 
 namespace Orbyss.ProgramKit.Providers.DotNet.Composition.HttpEndpoints;
 
@@ -9,16 +12,28 @@ public sealed record EndpointContribution(
     string Method,
     string Route,
     string FeatureClass,
-    int? SemanticOrder);
+    int? SemanticOrder,
+    string? AssemblerIdentity = "orbyss.program-kit.dotnet:aspnet-core-endpoint-assembler@1.0.0");
 
 public static class EndpointAssembler
 {
     public static IReadOnlyList<EndpointContribution> Resolve(IEnumerable<EndpointContribution> contributions)
     {
         EndpointContribution[] items = contributions.ToArray();
-        if (items.Length == 0)
+        if (items.Length == 0 || items.Any(static item => string.IsNullOrWhiteSpace(item.AssemblerIdentity)))
         {
-            throw new InvalidOperationException("At least one endpoint contribution is required.");
+            throw new ProviderDiagnosticException(
+                DiagnosticIds.MissingAssembler,
+                PrimaryDisposition.ProvideInput,
+                "Every endpoint contribution requires one exact owning assembler.");
+        }
+
+        if (items.Select(static item => item.AssemblerIdentity).Distinct(StringComparer.Ordinal).Count() != 1)
+        {
+            throw new ProviderDiagnosticException(
+                DiagnosticIds.MissingAssembler,
+                PrimaryDisposition.ProvideInput,
+                "Endpoint contributions do not resolve to one exact owning assembler.");
         }
 
         IGrouping<string, EndpointContribution>? duplicate = items
@@ -26,13 +41,19 @@ public static class EndpointAssembler
             .FirstOrDefault(static group => group.Count() > 1);
         if (duplicate is not null)
         {
-            throw new InvalidOperationException($"Duplicate route identity: {duplicate.Key}");
+            throw new ProviderDiagnosticException(
+                DiagnosticIds.DuplicateRoute,
+                PrimaryDisposition.Revise,
+                "Two endpoint contributions resolve to the same route identity.");
         }
 
         bool hasSemanticOrder = items.Any(static item => item.SemanticOrder is not null);
         if (hasSemanticOrder && items.Any(static item => item.SemanticOrder is null))
         {
-            throw new InvalidOperationException("Meaningful endpoint order is ambiguous.");
+            throw new ProviderDiagnosticException(
+                DiagnosticIds.AmbiguousOrder,
+                PrimaryDisposition.ProvideInput,
+                "Meaningful endpoint order remains ambiguous.");
         }
 
         return hasSemanticOrder

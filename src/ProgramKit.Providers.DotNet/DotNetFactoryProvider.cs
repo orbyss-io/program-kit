@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
@@ -10,12 +12,14 @@ using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Providers.DotNet.Composition.HttpEndpoints;
 using Orbyss.ProgramKit.Providers.DotNet.Construction;
+using Orbyss.ProgramKit.Providers.DotNet.Diagnostics;
+using Orbyss.ProgramKit.Providers.DotNet.Evaluation;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
 using Orbyss.ProgramKit.Providers.DotNet.Templates;
 
 namespace Orbyss.ProgramKit.Providers.DotNet;
 
-public sealed class DotNetFactoryProvider : IFactoryProvider
+internal sealed class DotNetFactoryProvider
 {
     private readonly DotNetToolRunner tools = new();
 
@@ -39,6 +43,7 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
                 new EndpointContribution($"{applicationName}:{method}:{route}", method, route, Required(component, "featureClass"), null),
             });
 
+            ValidatedMirror mirror = ValidateDependencyMirror(context.DependencyMirrorRoot);
             string componentRoot = Path.Combine(context.CandidateRoot, "products", componentName);
             string applicationRoot = Path.Combine(context.CandidateRoot, "products", applicationName);
             string componentFeed = Path.Combine(context.CandidateRoot, "feeds", "component");
@@ -47,7 +52,7 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
             Directory.CreateDirectory(componentRoot);
             Directory.CreateDirectory(applicationRoot);
             Directory.CreateDirectory(componentFeed);
-            CopyDirectory(context.DependencyMirrorRoot, dependencyFeed);
+            CopyValidatedMirror(context.DependencyMirrorRoot, dependencyFeed, mirror);
 
             WriteUtf8(Path.Combine(componentRoot, $"{componentName}.csproj"), DotNetTemplates.ComponentProject(component));
             string sourcePath = ResolveConsumerSource(context.WorkspaceRoot, implementationSource);
@@ -92,12 +97,11 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
             }
 
             string packagePath = Path.Combine(componentFeed, $"{packageId}.{packageVersion}.nupkg");
-            if (!File.Exists(packagePath))
-            {
-                return new ProviderConstructionResult(Array.Empty<ProviderArtifact>(), Array.Empty<JsonObject>(), new[] { DiagnosticIds.PackageMismatch }, false);
-            }
+            ProviderArtifactValidator.RequirePackage(packagePath);
 
-            string packageDigest = Digest(File.ReadAllBytes(packagePath));
+            byte[] packageBytes = File.ReadAllBytes(packagePath);
+            string packageDigest = Digest(packageBytes);
+            string nugetContentHash = Convert.ToBase64String(SHA512.HashData(packageBytes));
             WriteUtf8(Path.Combine(applicationRoot, $"{applicationName}.csproj"), DotNetTemplates.ApplicationProject(application, component));
             WriteUtf8(Path.Combine(applicationRoot, "Program.cs"), DotNetTemplates.ProgramSource(component));
             WriteUtf8(Path.Combine(applicationRoot, "appsettings.json"), DotNetTemplates.AppSettings(component));
@@ -106,6 +110,7 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
 
             JsonObject packageLock = new()
             {
+                ["nugetContentHash"] = nugetContentHash,
                 ["digest"] = packageDigest,
                 ["packageId"] = packageId,
                 ["producerConstructionIdentity"] = context.ConstructionIdentity,
@@ -141,13 +146,24 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
                 return Failure(DiagnosticIds.CShellsConformance, applicationBuild);
             }
 
+            string depsPath = Path.Combine(applicationRoot, "bin", "Release", "net10.0", $"{applicationName}.deps.json");
+            RuntimeDependencyValidator.EnsureAllowed(
+                ProviderArtifactValidator.ReadRuntimeLibraries(depsPath),
+                new[] { applicationName, packageId, "CShells", "CShells.Abstractions", "CShells.AspNetCore",
+                    "CShells.AspNetCore.Abstractions", "JetBrains.Annotations", "Microsoft.Extensions.DependencyModel" });
+
             RemoveTransientDirectories(context.CandidateRoot);
             ProviderArtifact[] artifacts = Directory.EnumerateFiles(context.CandidateRoot, "*", SearchOption.AllDirectories)
+                .Where(path => !Path.GetRelativePath(context.CandidateRoot, path).Replace('\\', '/')
+                    .StartsWith(".program-kit/", StringComparison.Ordinal))
                 .Select(path => new ProviderArtifact(
                     Path.GetRelativePath(context.CandidateRoot, path).Replace('\\', '/'),
                     path.EndsWith(Path.GetFileName(sourcePath), StringComparison.Ordinal) ? ArtifactOwnership.SeededHandoff : ArtifactOwnership.GeneratedOwned,
                     MediaType(path),
-                    path.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase) ? ClaimClass.VerifiedEquivalent : path.EndsWith(Path.GetFileName(sourcePath), StringComparison.Ordinal) ? ClaimClass.CustomBounded : ClaimClass.CanonicalByte,
+                    path.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase)
+                        || path.EndsWith("packages.lock.json", StringComparison.Ordinal)
+                        || path.EndsWith("program-kit.package-binding.json", StringComparison.Ordinal)
+                            ? ClaimClass.VerifiedEquivalent : path.EndsWith(Path.GetFileName(sourcePath), StringComparison.Ordinal) ? ClaimClass.CustomBounded : ClaimClass.CanonicalByte,
                     Manifest.Identity.StableKey))
                 .OrderBy(static item => item.LogicalPath, StringComparer.Ordinal)
                 .ToArray();
@@ -155,6 +171,8 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
             {
                 ["provider"] = Manifest.Identity.StableKey,
                 ["profile"] = DotNetProviderManifest.Profile,
+                ["nugetContentHash"] = nugetContentHash,
+                ["mirrorLockDigest"] = mirror.LockDigest,
                 ["packageDigest"] = packageDigest,
                 ["componentRestore"] = componentRestore.OutputDigest,
                 ["componentBuild"] = componentBuild.OutputDigest,
@@ -164,9 +182,9 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
             };
             return new ProviderConstructionResult(artifacts, new[] { evidence }, Array.Empty<string>(), true);
         }
-        catch (InvalidOperationException exception) when (exception.Message.StartsWith("Duplicate route", StringComparison.Ordinal))
+        catch (ProviderDiagnosticException exception)
         {
-            return new ProviderConstructionResult(Array.Empty<ProviderArtifact>(), Array.Empty<JsonObject>(), new[] { DiagnosticIds.DuplicateRoute }, false);
+            return new ProviderConstructionResult(Array.Empty<ProviderArtifact>(), Array.Empty<JsonObject>(), new[] { exception.DiagnosticId }, false);
         }
         catch (Exception)
         {
@@ -175,7 +193,17 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
     }
 
     private static ProviderConstructionResult Failure(string diagnosticId, ToolObservation observation) =>
-        new(Array.Empty<ProviderArtifact>(), new[] { new JsonObject { ["tool"] = observation.Tool, ["observationDigest"] = observation.OutputDigest } }, new[] { diagnosticId }, false);
+        new(Array.Empty<ProviderArtifact>(), new[]
+        {
+            new JsonObject
+            {
+                ["tool"] = observation.Tool,
+                ["arguments"] = new JsonArray(observation.Arguments.Select(static value => JsonValue.Create(value)).ToArray()),
+                ["observationDigest"] = observation.OutputDigest,
+                ["diagnosticCodes"] = new JsonArray(observation.DiagnosticCodes.Select(static value => JsonValue.Create(value)).ToArray()),
+                ["exitCode"] = observation.ExitCode,
+            },
+        }, new[] { diagnosticId }, false);
 
     private static string ResolveConsumerSource(string workspaceRoot, string logicalPath)
     {
@@ -189,19 +217,94 @@ public sealed class DotNetFactoryProvider : IFactoryProvider
         return path;
     }
 
-    private static void CopyDirectory(string source, string destination)
+    private static ValidatedMirror ValidateDependencyMirror(string source)
     {
-        if (!Directory.Exists(source))
+        if (!Directory.Exists(source) || (File.GetAttributes(source) & FileAttributes.ReparsePoint) != 0
+            || Directory.EnumerateDirectories(source).Any())
         {
-            throw new InvalidOperationException("The governed dependency mirror is unavailable.");
+            throw new InvalidOperationException("The governed dependency mirror is unavailable or not a closed directory.");
         }
 
-        Directory.CreateDirectory(destination);
-        foreach (string file in Directory.EnumerateFiles(source).OrderBy(static value => value, StringComparer.Ordinal))
+        string lockPath = Path.Combine(source, "mirror.lock.json");
+        if (!File.Exists(lockPath) || (File.GetAttributes(lockPath) & FileAttributes.ReparsePoint) != 0)
         {
-            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: false);
+            throw new InvalidOperationException("The governed dependency mirror lock is unavailable.");
+        }
+
+        byte[] lockBytes = File.ReadAllBytes(lockPath);
+        using JsonDocument parsed = JsonDocument.Parse(lockBytes, new JsonDocumentOptions
+        {
+            AllowDuplicateProperties = false,
+            AllowTrailingCommas = false,
+            CommentHandling = JsonCommentHandling.Disallow,
+            MaxDepth = 32,
+        });
+        JsonObject document = JsonNode.Parse(parsed.RootElement.GetRawText()) as JsonObject
+            ?? throw new InvalidOperationException("The governed dependency mirror lock must be an object.");
+        if (!string.Equals(document["schema"]?.GetValue<string>(), "program-kit.dependency-mirror-lock/v1", StringComparison.Ordinal)
+            || document["packages"] is not JsonArray packages
+            || packages.Count == 0)
+        {
+            throw new InvalidOperationException("The governed dependency mirror lock has an unsupported contract.");
+        }
+
+        List<MirrorArtifact> expected = new();
+        foreach (JsonObject package in packages.OfType<JsonObject>())
+        {
+            string id = Required(package, "id");
+            string version = Required(package, "version");
+            string digest = Required(package, "sha256");
+            string fileName = $"{id.ToLowerInvariant()}.{version}.nupkg";
+            string path = Path.Combine(source, fileName);
+            if (!File.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0
+                || !string.Equals(Digest(File.ReadAllBytes(path)), digest, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Dependency mirror artifact is missing or changed: {fileName}");
+            }
+
+            expected.Add(new MirrorArtifact(fileName, digest));
+        }
+
+        if (expected.Select(static item => item.FileName).Distinct(StringComparer.OrdinalIgnoreCase).Count() != expected.Count)
+        {
+            throw new InvalidOperationException("The governed dependency mirror lock contains duplicate package identities.");
+        }
+
+        string[] expectedFiles = expected.Select(static item => item.FileName).Append("mirror.lock.json").OrderBy(static item => item, StringComparer.Ordinal).ToArray();
+        string[] actualFiles = Directory.EnumerateFiles(source).Select(Path.GetFileName).OrderBy(static item => item, StringComparer.Ordinal).ToArray()!;
+        if (!expectedFiles.SequenceEqual(actualFiles, StringComparer.Ordinal))
+        {
+            throw new InvalidOperationException("The governed dependency mirror contains undeclared, missing, or case-colliding artifacts.");
+        }
+
+        expected.Add(new MirrorArtifact("mirror.lock.json", Digest(lockBytes)));
+        return new ValidatedMirror(Digest(lockBytes), expected.OrderBy(static item => item.FileName, StringComparer.Ordinal).ToArray());
+    }
+
+    private static void CopyValidatedMirror(string source, string destination, ValidatedMirror mirror)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (MirrorArtifact artifact in mirror.Artifacts)
+        {
+            byte[] bytes = File.ReadAllBytes(Path.Combine(source, artifact.FileName));
+            if (!string.Equals(Digest(bytes), artifact.Digest, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Dependency mirror artifact changed during construction: {artifact.FileName}");
+            }
+
+            string target = Path.Combine(destination, artifact.FileName);
+            File.WriteAllBytes(target, bytes);
+            if (!string.Equals(Digest(File.ReadAllBytes(target)), artifact.Digest, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Dependency mirror artifact copy verification failed: {artifact.FileName}");
+            }
         }
     }
+
+    private sealed record MirrorArtifact(string FileName, string Digest);
+
+    private sealed record ValidatedMirror(string LockDigest, IReadOnlyList<MirrorArtifact> Artifacts);
+
 
     private static void RemoveTransientDirectories(string root)
     {

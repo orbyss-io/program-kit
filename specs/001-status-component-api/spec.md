@@ -1,6 +1,9 @@
 # Feature Specification: Status Component and API Vertical Slice
 
-**Feature Branch**: `codex/initialize-spec-kit`
+**Feature Identity**: `001-status-component-api`
+
+**Origin Branch**: `codex/initialize-spec-kit` (historical creation context;
+not the current implementation or closure status)
 
 **Created**: 2026-08-01
 

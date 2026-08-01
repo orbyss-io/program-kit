@@ -29,6 +29,47 @@ is intentionally small so developers and architects can review the product
 boundaries before more providers, capability mappings, or authoring experiences
 are added.
 
+Feature 001 was **accepted as the bounded first product foundation**. A bounded
+closure audit on
+2026-08-01 rejected the earlier prototype for material authority, provider,
+admission/recovery, diagnostic, snapshot, and product-proof gaps. The current
+candidate addresses those gaps, and the repository-owned gate passes 91 tests
+plus deterministic evidence, formatting, and whitespace verification. The
+exact accepted review candidate is commit
+`16c6c627dfc9cd2211993580019f43d084dc718d`; its implementation/evidence
+ancestor is `2f7151b25022d7e380d3b09e662f6debe9d787f3`, and its
+distribution-manifest digest is
+`sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
+The human-authorized evidence ledger now records 80 satisfied, 5 explicitly
+superseded, and 0 missing outcomes. On 2026-08-01, product owner and requirements
+author `joey-orbyss` separately accepted that exact bounded candidate under
+T095 after a final independent readiness audit returned READY. This accepts the
+`explain`, `construct`, and `evaluate` foundation demonstrated by Feature 001;
+it does not declare Program Kit generally released, multi-provider,
+migration-ready, or complete.
+
+Merge verification subsequently found that the accepted manifest had hashed
+three NuGet lock files from a CRLF-projected authoring worktree even though the
+repository requires canonical UTF-8/LF source bytes. Correction commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` makes source provenance fail closed
+on BOM, invalid UTF-8, or CR bytes and records the canonical source closure.
+Commit `bed501be2db48cbf0c8f6ea9880fac9367820c73` removes a Windows-only SDK
+restore-source assumption while preserving the exact governed-feed allowlist.
+Candidate commit `c84335ee9eea4666fc69af5c2e49cbce821b8fbb` pins this clone to
+LF-safe Git behavior and makes canonical index/worktree text a fail-fast local
+and CI gate. Protected pull-request run `30720316337` passed the complete
+vertical-slice workflow on Ubuntu and Windows. The corrected exact candidate's
+distribution-manifest digest is
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+The prior T095 acceptance remains valid only for its exact historical binding.
+On 2026-08-01, `joey-orbyss` explicitly accepted corrected candidate
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to the corrected manifest
+digest above, under refreshed T095. This decision accepts the documented
+bounded scope and limitations; it does not declare Program Kit generally
+released, multi-provider, migration-ready, or complete.
+The exact per-task audit is available in
+[`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
+
 ## What is the Program Kit CLI?
 
 Program Kit is a development-time semantic toolchain and software factory. It
@@ -132,11 +173,16 @@ The public executable supports `explain`, `construct`, `evaluate`, `help`, and
 model, not a declaration that Status is kernel meaning.
 
 Known boundaries are explicit: only one first-party .NET profile is supported;
-the intake is still fixture-bounded; schema and diagnostic trigger coverage is
-not yet exhaustive; recovery is intentionally limited; and cross-environment
-package repeatability, provenance/SBOM generation, hostile-filesystem coverage,
-and independent human product review are still pending. The current automated
-evidence and pending human-review gate are recorded in
+the validated first slice does not promise future provider or consumer-domain
+coverage; recovery is intentionally limited; and external NuGet packages remain
+correctly classified as verified-equivalent rather than canonical across
+environments. Mirror integrity, package claims, canonical snapshots,
+repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
+local-safety, and relocated-runtime evidence now pass. The evidence ledger is
+reconciled. The corrected cross-platform merge candidate passed protected
+Windows/Ubuntu verification and received refreshed T095 acceptance for its
+exact binding. The
+evidence and decision status are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and
 [`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).

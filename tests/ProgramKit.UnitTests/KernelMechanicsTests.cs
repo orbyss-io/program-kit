@@ -56,7 +56,9 @@ public sealed class KernelMechanicsTests
         EndpointContribution a = new("a", "GET", "/a", "A", null);
         EndpointContribution b = new("b", "GET", "/b", "B", null);
         CollectionAssert.AreEqual(new[] { a, b }, EndpointAssembler.Resolve(new[] { b, a }).ToArray());
-        Assert.ThrowsExactly<InvalidOperationException>(() => EndpointAssembler.Resolve(new[] { a, a with { Identity = "other", Route = "a/" } }));
+        Orbyss.ProgramKit.Providers.DotNet.Diagnostics.ProviderDiagnosticException duplicate = Assert.ThrowsExactly<Orbyss.ProgramKit.Providers.DotNet.Diagnostics.ProviderDiagnosticException>(() =>
+            EndpointAssembler.Resolve(new[] { a, a with { Identity = "other", Route = "a/" } }));
+        Assert.AreEqual(Orbyss.ProgramKit.Contracts.Diagnostics.DiagnosticIds.DuplicateRoute, duplicate.DiagnosticId);
     }
 
     [TestMethod]

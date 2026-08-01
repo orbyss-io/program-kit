@@ -9,6 +9,8 @@ public sealed record ResolvedItem(string Role, GovernedIdentity Identity, Artifa
 
 public sealed record ResolvedRelationship(
     GovernedIdentity Assertion,
+    GovernedIdentity From,
+    GovernedIdentity To,
     string Status,
     GovernedIdentity Contract,
     GovernedIdentity? Mapping,

@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.provider.dotnet/PKDOT0001","expectedDisposition":"revise","expectedEffectState":"none","expectedOutcome":"blocked","schema":"program-kit.invalid-fixture/v1","scenario":"duplicate-route","trigger":"EndpointAssembler.Resolve"}

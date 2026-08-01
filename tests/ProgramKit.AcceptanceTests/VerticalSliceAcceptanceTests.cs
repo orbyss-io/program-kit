@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,16 +16,15 @@ public sealed class VerticalSliceAcceptanceTests
         try
         {
             string before = TestRepository.DigestTree(workspace);
-            string request = Path.Combine(workspace, "requests", "explain.yaml");
+            string request = Path.Combine(workspace, "requests", "explain.json");
             var first = TestRepository.RunCli("explain", "--workspace", workspace, "--request", request, "--format", "json");
             var second = TestRepository.RunCli("explain", "--workspace", workspace, "--request", request, "--format", "json");
-            Assert.AreEqual(0, first.ExitCode);
-            Assert.AreEqual(string.Empty, first.StandardError);
+            Assert.AreEqual(0, first.ExitCode); Assert.AreEqual(string.Empty, first.StandardError);
             Assert.AreEqual(first.StandardOutput, second.StandardOutput);
             Assert.AreEqual(before, TestRepository.DigestTree(workspace));
             JsonNode result = JsonNode.Parse(first.StandardOutput)!;
-            Assert.AreEqual("succeeded", result["outcome"]!.GetValue<string>());
-            Assert.AreEqual("none", result["effectState"]!.GetValue<string>());
+            ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, first.StandardOutput);
+            Assert.AreEqual("succeeded", result["outcome"]!.GetValue<string>()); Assert.AreEqual("none", result["effectState"]!.GetValue<string>());
         }
         finally { TestRepository.DeleteWorkspace(workspace); }
     }
@@ -34,15 +35,26 @@ public sealed class VerticalSliceAcceptanceTests
         string workspace = TestRepository.CreateWorkspace(includeMirror: true);
         try
         {
-            string constructRequest = Path.Combine(workspace, "requests", "construct.yaml");
+            string constructRequest = Path.Combine(workspace, "requests", "construct.json");
             var construct = TestRepository.RunCli("construct", "--workspace", workspace, "--request", constructRequest, "--format", "json");
             Assert.AreEqual(0, construct.ExitCode, construct.StandardOutput + construct.StandardError);
-            Assert.IsTrue(File.Exists(Path.Combine(workspace, ".program-kit", "construction-receipt.json")));
-            Assert.IsTrue(File.Exists(Path.Combine(workspace, "feeds", "component", "Reference.Status.1.0.0.nupkg")));
-            string before = TestRepository.DigestTree(workspace);
-            string evaluateRequest = Path.Combine(workspace, "requests", "evaluate.yaml");
+            ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, construct.StandardOutput);
+            Assert.IsTrue(File.Exists(Path.Combine(workspace, ".program-kit", "construction-receipt.json"))); Assert.IsTrue(File.Exists(Path.Combine(workspace, "feeds", "component", "Reference.Status.1.0.0.nupkg")));
+            string packagePath = Path.Combine(workspace, "feeds", "component", "Reference.Status.1.0.0.nupkg");
+            byte[] packageBytes = File.ReadAllBytes(packagePath);
+            JsonObject binding = JsonNode.Parse(File.ReadAllBytes(Path.Combine(workspace, "products", "Reference.Status.Api", "program-kit.package-binding.json")))!.AsObject();
+            Assert.AreEqual(
+                $"sha256:{Convert.ToHexString(SHA256.HashData(packageBytes)).ToLowerInvariant()}",
+                binding["digest"]!.GetValue<string>());
+            Assert.AreEqual(Convert.ToBase64String(SHA512.HashData(packageBytes)), binding["nugetContentHash"]!.GetValue<string>());
+
+            ContractAssertions.ReadAndValidate(ContractAssertions.ConstructionReceipt, Path.Combine(workspace, ".program-kit", "construction-receipt.json"));
+            ContractAssertions.ReadAndValidate(ContractAssertions.WorkspaceSnapshot, Path.Combine(workspace, ".program-kit", "workspace.snapshot.json"));
+            ContractAssertions.ReadAndValidate(ContractAssertions.Resolution, Path.Combine(workspace, ".program-kit", "resolution.lock.json"));
+            string before = TestRepository.DigestTree(workspace); string evaluateRequest = Path.Combine(workspace, "requests", "evaluate.json");
             var evaluate = TestRepository.RunCli("evaluate", "--workspace", workspace, "--request", evaluateRequest, "--format", "json");
             Assert.AreEqual(0, evaluate.ExitCode, evaluate.StandardOutput + evaluate.StandardError);
+            ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, evaluate.StandardOutput);
             Assert.AreEqual(before, TestRepository.DigestTree(workspace));
         }
         finally { TestRepository.DeleteWorkspace(workspace); }

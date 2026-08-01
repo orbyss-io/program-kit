@@ -14,27 +14,52 @@ public sealed class CandidateArtifactSetBuilder
 {
     public CandidateArtifactSet Seal(string constructionIdentity, string candidateRoot, IReadOnlyList<ProviderArtifact> declaredArtifacts)
     {
-        Dictionary<string, ProviderArtifact> declared = declaredArtifacts.ToDictionary(
-            static item => LogicalPaths.Normalize(item.LogicalPath),
-            StringComparer.Ordinal);
+        RejectReparsePoints(candidateRoot);
+        ProviderArtifact[] normalizedDeclarations = declaredArtifacts.Select(item => item with
+        {
+            LogicalPath = LogicalPaths.Normalize(item.LogicalPath),
+        }).ToArray();
+        string[] declarationCollisions = normalizedDeclarations
+            .GroupBy(static item => item.LogicalPath, StringComparer.OrdinalIgnoreCase)
+            .Where(static group => group.Count() > 1)
+            .Select(static group => group.Key)
+            .OrderBy(static item => item, StringComparer.Ordinal)
+            .ToArray();
+        if (declarationCollisions.Length > 0)
+        {
+            throw new InvalidOperationException($"Candidate declarations contain duplicate or case-colliding logical paths: {string.Join(", ", declarationCollisions)}");
+        }
+
+        Dictionary<string, ProviderArtifact> declared = normalizedDeclarations.ToDictionary(static item => item.LogicalPath, StringComparer.Ordinal);
+        HashSet<string> observed = new(StringComparer.Ordinal);
         List<ArtifactManifestEntry> entries = new();
         foreach (string file in Directory.EnumerateFiles(candidateRoot, "*", SearchOption.AllDirectories)
             .OrderBy(static value => value, StringComparer.Ordinal))
         {
-            string logicalPath = Path.GetRelativePath(candidateRoot, file).Replace('\\', '/');
+            if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0)
+            {
+                throw new InvalidOperationException("Candidate artifacts cannot be filesystem reparse points.");
+            }
+
+            string logicalPath = LogicalPaths.Normalize(Path.GetRelativePath(candidateRoot, file).Replace('\\', '/'));
             if (string.Equals(logicalPath, ".program-kit/artifact-manifest.json", StringComparison.Ordinal))
             {
                 continue;
             }
 
-            if (logicalPath.StartsWith(".packages/", StringComparison.Ordinal) || logicalPath.Contains("/bin/", StringComparison.Ordinal) || logicalPath.Contains("/obj/", StringComparison.Ordinal))
+            if (logicalPath.StartsWith(".packages/", StringComparison.Ordinal)
+                || logicalPath.Contains("/bin/", StringComparison.Ordinal)
+                || logicalPath.Contains("/obj/", StringComparison.Ordinal))
             {
                 throw new InvalidOperationException($"Transient build output entered the candidate: {logicalPath}");
             }
 
-            ProviderArtifact metadata = declared.TryGetValue(logicalPath, out ProviderArtifact? item)
-                ? item
-                : new ProviderArtifact(logicalPath, ArtifactOwnership.GeneratedOwned, MediaType(file), ClaimClass.CanonicalByte, "orbyss.program-kit:kernel");
+            if (!declared.TryGetValue(logicalPath, out ProviderArtifact? metadata))
+            {
+                throw new InvalidOperationException($"The candidate contains an undeclared artifact: {logicalPath}");
+            }
+
+            observed.Add(logicalPath);
             entries.Add(new ArtifactManifestEntry(
                 logicalPath,
                 metadata.Ownership,
@@ -42,6 +67,12 @@ public sealed class CandidateArtifactSetBuilder
                 Digests.Sha256(File.ReadAllBytes(file)),
                 metadata.ProducerIdentity,
                 metadata.ClaimClass));
+        }
+
+        string[] missingDeclarations = declared.Keys.Except(observed, StringComparer.Ordinal).OrderBy(static item => item, StringComparer.Ordinal).ToArray();
+        if (missingDeclarations.Length > 0)
+        {
+            throw new InvalidOperationException($"Declared candidate artifacts are missing: {string.Join(", ", missingDeclarations)}");
         }
 
         JsonArray manifestEntries = new(entries.Select(static entry => new JsonObject
@@ -70,7 +101,7 @@ public sealed class CandidateArtifactSetBuilder
             "application/json",
             Digests.Sha256(File.ReadAllBytes(manifestPath)),
             "orbyss.program-kit:kernel",
-            ClaimClass.CanonicalByte));
+            ClaimClass.VerifiedEquivalent));
         return new CandidateArtifactSet(
             constructionIdentity,
             candidateRoot,
@@ -81,24 +112,32 @@ public sealed class CandidateArtifactSetBuilder
 
     public void Rehash(CandidateArtifactSet candidate)
     {
+        RejectReparsePoints(candidate.CandidateRoot);
         foreach (ArtifactManifestEntry artifact in candidate.Artifacts)
         {
             string path = LogicalPaths.ResolveInside(candidate.CandidateRoot, artifact.LogicalPath);
-            if (!File.Exists(path) || !string.Equals(Digests.Sha256(File.ReadAllBytes(path)), artifact.Digest, StringComparison.Ordinal))
+            if (!File.Exists(path)
+                || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0
+                || !string.Equals(Digests.Sha256(File.ReadAllBytes(path)), artifact.Digest, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException($"Sealed candidate changed: {artifact.LogicalPath}");
             }
         }
     }
 
-    private static string MediaType(string path) => Path.GetExtension(path).ToLowerInvariant() switch
+    private static void RejectReparsePoints(string root)
     {
-        ".json" => "application/json",
-        ".nupkg" => "application/vnd.nuget.package",
-        ".cs" => "text/x-csharp",
-        ".csproj" or ".config" => "application/xml",
-        _ => "application/octet-stream",
-    };
+        if (!Directory.Exists(root) || (File.GetAttributes(root) & FileAttributes.ReparsePoint) != 0)
+        {
+            throw new InvalidOperationException("The candidate root is unavailable or is a filesystem reparse point.");
+        }
+
+        if (Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)
+            .Any(static path => (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0))
+        {
+            throw new InvalidOperationException("Candidate directories cannot be filesystem reparse points.");
+        }
+    }
 
     private static string Kebab<T>(T value)
         where T : struct, Enum

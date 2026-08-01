@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.kernel/PKREQ0002","mutation":"duplicate-json-operation-key","schema":"program-kit.invalid-fixture/v1"}

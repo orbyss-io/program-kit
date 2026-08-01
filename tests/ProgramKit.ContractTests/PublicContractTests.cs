@@ -32,6 +32,8 @@ public sealed class PublicContractTests
     {
         var manifest = DotNetProviderManifest.Create();
         CollectionAssert.Contains(manifest.Profiles.ToArray(), "dotnet10-cshells-0.0.28");
+        Assert.AreEqual(manifest.DiagnosticCatalog.Identity.Digest, manifest.DiagnosticCatalog.Digest);
+        Assert.IsTrue(manifest.ConformanceEvidence.Count > 0);
         JsonObject component = new() { ["namespace"] = "Consumer.Feature", ["featureClass"] = "Feature" };
         string source = DotNetTemplates.ProgramSource(component);
         StringAssert.Contains(source, "WithAssemblies(typeof(Feature).Assembly)");

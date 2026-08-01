@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.provider.dotnet/PKDOT0002","expectedDisposition":"provide-input","expectedEffectState":"none","expectedOutcome":"blocked","schema":"program-kit.invalid-fixture/v1","scenario":"missing-assembler","trigger":"EndpointAssembler.Resolve"}
