@@ -55,3 +55,9 @@ jobs:
           ./eng/Invoke-SessionIntegrationQuickstart.ps1
           -SkipBootstrap
           -EvidencePath (Join-Path $env:RUNNER_TEMP 'deterministic-session-review.json')
+      - name: Retain deterministic session review evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-session-review-${{ matrix.os }}
+          path: ${{ runner.temp }}/deterministic-session-review.json
+          if-no-files-found: error
