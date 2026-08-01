@@ -29,7 +29,7 @@ is intentionally small so developers and architects can review the product
 boundaries before more providers, capability mappings, or authoring experiences
 are added.
 
-Feature 001 is **accepted as the bounded first product foundation**. A bounded
+Feature 001 was **accepted as the bounded first product foundation**. A bounded
 closure audit on
 2026-08-01 rejected the earlier prototype for material authority, provider,
 admission/recovery, diagnostic, snapshot, and product-proof gaps. The current
@@ -47,6 +47,18 @@ T095 after a final independent readiness audit returned READY. This accepts the
 `explain`, `construct`, and `evaluate` foundation demonstrated by Feature 001;
 it does not declare Program Kit generally released, multi-provider,
 migration-ready, or complete.
+
+Merge verification subsequently found that the accepted manifest had hashed
+three NuGet lock files from a CRLF-projected authoring worktree even though the
+repository requires canonical UTF-8/LF source bytes. Correction commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` makes source provenance fail closed
+on BOM, invalid UTF-8, or CR bytes and records the canonical source closure. Its
+local repository gate passes all 91 tests, and its corrected
+distribution-manifest digest is
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+The prior T095 acceptance remains valid only for its exact historical binding;
+T095 is reopened for the corrected merge candidate pending Windows/Ubuntu CI
+and a fresh named-human decision.
 The exact per-task audit is available in
 [`specs/001-status-component-api/reviews/task-closure-audit.md`](specs/001-status-component-api/reviews/task-closure-audit.md).
 
@@ -159,8 +171,9 @@ correctly classified as verified-equivalent rather than canonical across
 environments. Mirror integrity, package claims, canonical snapshots,
 repeatability, deterministic provenance/SBOM, hostile-filesystem safety,
 local-safety, and relocated-runtime evidence now pass. The evidence ledger is
-reconciled, and the bounded Feature 001 product review is accepted. The
-automated evidence and exact human decision are recorded in
+reconciled. The previously bounded candidate remains accepted for its exact
+binding; the corrected cross-platform merge candidate is pending refreshed
+T095 acceptance. The evidence and decision status are recorded in
 [`specs/001-status-component-api/verification.md`](specs/001-status-component-api/verification.md)
 and
 [`specs/001-status-component-api/reviews/first-vertical-slice.md`](specs/001-status-component-api/reviews/first-vertical-slice.md).

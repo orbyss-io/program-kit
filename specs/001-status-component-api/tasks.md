@@ -336,7 +336,7 @@ product decision possible without inferring acceptance from green automation.
 - [X] T092 Project the workspace snapshot only from authoritative closure, identity, relationship, seam, artifact, provenance, gate, review, waiver, evidence, receipt, support, retention, and diagnostic records, and recompute freshness without mutation, per FR-026 through FR-028 and US4 (remediated)
 - [X] T093 Complete the declared invalid, repair, publication-fault, path/culture/order, package-claim, provenance/SBOM, performance, hostile-filesystem, local-safety, no-self-host, and relocated-runtime proof matrix, per FR-018, FR-029, FR-031, FR-032, FR-034, and SC-004 through SC-010 (reclosed: the executable SC-005 diagnostic and invalid-input matrix is directly proven)
 - [X] T094 Reconcile every original T001-T085 checkbox against its named artifact and direct proof, retain unchecked status wherever proof is absent, and update README plus verification with only current evidence, per the Spec Kit workflow and Constitution IX (complete: 80 satisfied, 5 superseded, 0 missing)
-- [X] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (accepted by `joey-orbyss` on 2026-08-01 for the bounded .NET 10 + CShells 0.0.28 foundation at commit `16c6c627dfc9cd2211993580019f43d084dc718d`, bound to manifest digest `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`; general release, multi-provider completeness, migration readiness, and product completeness remain excluded)
+- [ ] T095 CRITICAL After T086-T094 and all applicable deterministic gates pass, obtain an independent human product accept/reject decision and record its exact scope, reviewer identity, evidence binding, limitations, and date without deriving acceptance from automation, per Constitutions I and IX (the 2026-08-01 ACCEPT decision remains valid only for commit `16c6c627dfc9cd2211993580019f43d084dc718d` and manifest digest `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`; reopened for the corrected cross-platform provenance candidate)
 
 ---
 
@@ -377,3 +377,18 @@ the original-task ledger and review documents were reconciled to the new
 evidence; a clean exact candidate was committed and pushed; and the final
 independent read-only readiness verdict returned READY before the named-human
 T095 ACCEPT decision.
+
+---
+
+## Phase 11: Cross-Platform Provenance Merge Closure
+
+**Purpose**: Close the T080/SC-006 deterministic provenance defect discovered
+by fresh Windows and Ubuntu pull-request checkouts without weakening merge
+protection or silently extending the prior exact T095 acceptance binding.
+
+- [X] T107 CRITICAL Reject BOM, invalid UTF-8, and CR bytes before source-provenance hashing; prove every recorded source digest against canonical UTF-8/LF bytes; regenerate the exact source provenance and distribution manifest; and rerun the complete local T102 gate, per T001, T080, SC-006, and Constitutions III and IX (complete in `4d1c519fd5e788c36252437de03cb8c1ccb13c33`; 91 tests passed)
+- [ ] T108 CRITICAL Push the corrected exact candidate, require both Windows and Ubuntu vertical-slice checks to reproduce its evidence, reconcile the final reviewed commit and manifest binding, and only then request a fresh named-human T095 decision before merge, per Constitutions III and IX
+
+**Checkpoint**: The local gate passes against correction commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` and corrected manifest digest
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`;

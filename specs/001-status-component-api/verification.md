@@ -4,24 +4,26 @@ Date: 2026-08-01
 
 ## Current status
 
-**All T102 deterministic execution gates passed, the human-authorized task
-ledger reconciliation is complete, and T095 accepted the exact bounded Feature
-001 candidate.**
+**The corrected cross-platform provenance candidate passed the complete local
+T102 gate. T095 is reopened pending required Windows/Ubuntu CI and a fresh
+named-human decision on the corrected exact binding.**
 
-The exact implementation and generated-evidence candidate exercised by the
-successful gate is pushed commit
-`2f7151b25022d7e380d3b09e662f6debe9d787f3`. Its checked-in
+The corrected implementation and generated-evidence candidate is commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33`. Its checked-in
 `artifacts/evidence/distribution-manifest.json` has byte digest
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+It rejects BOM, invalid UTF-8, and CR bytes before source-provenance hashing and
+records the canonical LF source closure reproduced by fresh CI checkouts.
+
+The previous T095 acceptance remains valid only for review commit
+`16c6c627dfc9cd2211993580019f43d084dc718d`, implementation/evidence ancestor
+`2f7151b25022d7e380d3b09e662f6debe9d787f3`, and manifest digest
 `sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
-The accepted review commit is
-`16c6c627dfc9cd2211993580019f43d084dc718d`. It is a documentation-only
-descendant of the implementation/evidence candidate and does not alter its
-implementation or generated evidence.
 
 The independent audit of prior pushed HEAD
 `4d15000c7d45062d9376c3b3f2966e57fa5348ff` returned NOT READY only because
 raw unknown CLI tokens could enter parse-error prose and one review sentence
-retained the obsolete 89-test count. The current candidate removes those raw
+retained the obsolete 89-test count. That previously accepted candidate removes those raw
 tokens, adds black-box opaque-token proof for command, positional, and option
 paths, corrects the count, and reruns the full gate. A subsequent independent
 read-only audit returned READY against the exact accepted review commit and
@@ -33,8 +35,9 @@ The rejected baseline remains recorded in
 audit identified 27 proof gaps without erasing that history. T097-T106 closed
 those gaps. The human then explicitly
 authorized the current `80 satisfied, 5 superseded, 0 missing` ledger treatment;
-that authorization concerns evidence accounting only. Product acceptance was
-recorded separately under T095 after the final readiness verdict.
+that authorization concerns evidence accounting only. Product acceptance for
+the prior exact binding was recorded separately under T095 after the final
+readiness verdict and is now reopened only for the corrected merge candidate.
 
 ## Passing repository gate
 
@@ -90,7 +93,7 @@ The evidence generator and dependency bootstrap use isolated tool homes and do
 not consult machine-local user NuGet configuration. CI regenerates the bounded
 evidence set on Windows and Ubuntu and uploads only that set for 14 days.
 
-## Human product decision
+## Previous human product decision
 
 On 2026-08-01, `joey-orbyss`, acting as product owner and requirements author,
 reviewed commit `16c6c627dfc9cd2211993580019f43d084dc718d`, bound to
@@ -104,6 +107,16 @@ This decision accepts the bounded .NET 10 + CShells 0.0.28 `explain`,
 `construct`, and `evaluate` product foundation demonstrated by Feature 001. It
 does not declare Program Kit generally released, multi-provider,
 migration-ready, or complete.
+
+## Corrected merge candidate decision
+
+**PENDING REFRESHED T095 HUMAN REVIEW.**
+
+The local gate passed against correction commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` and manifest digest
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+Required Windows/Ubuntu CI and a fresh named-human accept/reject decision must
+complete before this corrected candidate may merge.
 
 ## Deliberately not claimed
 

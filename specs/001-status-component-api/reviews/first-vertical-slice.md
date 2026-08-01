@@ -1,6 +1,6 @@
 # First Vertical Slice Review
 
-## Accepted candidate
+## Previously accepted candidate
 
 Feature 001 remains a narrow .NET 10 + CShells 0.0.28 vertical slice of the
 public `explain`, `construct`, and `evaluate` factory operations. It is not a
@@ -17,10 +17,22 @@ The repository-owned quickstart passed 91 tests: 25 unit, 35 contract, and 31
 acceptance. Exact commands, results, and proof scope are in
 [`../verification.md`](../verification.md).
 
+## Corrected merge candidate
+
+Pull-request verification found that the prior manifest hashed three NuGet lock
+files from a CRLF-projected authoring worktree while the repository requires
+canonical UTF-8/LF source bytes. Correction commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` now fails closed before provenance
+hashing on BOM, invalid UTF-8, or CR bytes. The complete local gate passes 91
+tests, and the corrected distribution-manifest digest is
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+The prior acceptance does not extend to this corrected candidate; required
+Windows/Ubuntu CI and a fresh T095 decision remain pending.
+
 The first final-readiness audit of prior HEAD
 `4d15000c7d45062d9376c3b3f2966e57fa5348ff` remained NOT READY because opaque
 unknown CLI tokens were echoed and this review retained one obsolete 89-test
-sentence. The exact current candidate removes that disclosure path, adds
+sentence. The previously accepted candidate removes that disclosure path, adds
 black-box command/positional/option proof, and corrects the count. A renewed
 independent read-only audit returned READY against the exact review commit and
 manifest digest before the human T095 decision was requested.
@@ -95,7 +107,7 @@ review may still be required.
 - The local Windows gate passed; the workflow's Windows/Ubuntu result remains
   execution evidence required before merge, not semantic approval.
 
-## Human approval gate
+## Previous human approval gate
 
 **ACCEPTED.**
 
@@ -116,3 +128,13 @@ review may still be required.
 This acceptance is the named-human T095 decision. It is not inferred from the
 91 passing tests, generated evidence, CI, ledger reconciliation, or the prior
 independent READY verdict.
+
+## Refreshed human approval gate
+
+**PENDING.**
+
+Do not infer acceptance of correction commit
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33` or manifest digest
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`
+from the local gate or prior T095 decision. Required Windows/Ubuntu CI must pass
+before a fresh named-human accept/reject decision is requested.
