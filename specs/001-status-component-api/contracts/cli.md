@@ -97,6 +97,9 @@ for semantic identity, diagnostics, and output bytes.
 - The request's `operation` must agree with the command.
 - A `construct` request with `constructionMode: repair` requires exact observed
   state and authority bindings.
+- Every factory request carries an approved request-bound evaluation instant,
+  governed source identity, and local assurance; validity decisions never read
+  the ambient process clock as semantic authority.
 - No command reads semantic selections, provider choices, policy, credentials,
   or authority from environment variables.
 
@@ -108,6 +111,10 @@ for semantic identity, diagnostics, and output bytes.
   `operation-result.schema.json`.
 - No banner, help prose, progress, log line, or terminal escape sequence may
   appear on `stdout`.
+- The envelope names the public command and exact operation-contract identity;
+  successful explanations and needs-input continuations are inline.
+- Read-only evaluation may return an inline exact repair request proposal for a
+  caller to materialize separately; it never writes that request itself.
 - Canonical result data excludes random identifiers, timestamps, durations,
   physical paths, process IDs, machine names, and locale-dependent values.
 - Recoverable result-pipeline failure uses the independent minimal fallback

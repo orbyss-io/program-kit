@@ -426,6 +426,42 @@ filesystem recovery, runtime independence, or contributor comprehension.
 - Container-only quickstart: too heavy for the required one-hour local path,
   though it may become additional CI evidence.
 
+## Decision 13: Read-only result carriage and declared validity context
+
+**Decision**: Every operation result names both the public command and its exact
+operation-contract identity. Successful `explain` output and needs-input
+continuations are carried inline in the single result document. A remediation
+may identify an existing artifact or carry an inline structured factory request;
+the caller may materialize the returned request bytes as a separate authorized
+input, but read-only evaluation never writes it. A diagnostic collection artifact
+is optional when the complete collection is already inline and mandatory only
+under typed kernel rules when a bounded view omits entries.
+
+Every factory request also supplies an exact `evaluationContext` containing an
+approved UTC instant, a governed source identity, and the local assurance
+`approved-declared-instant`. The repository-record authority provider evaluates
+grant validity against that request-bound value, never `DateTime.Now` or another
+ambient clock. Because the grant binds the exact request digest, changing the
+instant requires a newly accepted grant for effectful operations.
+
+**Rationale**: The previous structural draft could not carry the product's main
+explanation without a write, and artifact-only continuation/remediation values
+contradicted the no-write guarantee. An undeclared current clock would also let
+equal canonical requests change outcome outside their construction identity.
+Inline typed results and an approved declared instant make the public contract
+implementable without broadening effect authority or overstating identity
+assurance.
+
+**Alternatives considered**:
+
+- Write temporary explanation/continuation/repair files: rejected because
+  `explain` and `evaluate` have maximum live effect `none`.
+- Add hidden server/session state: rejected because continuations are stateless
+  and the CLI is independently callable.
+- Read the process clock implicitly: rejected as ambient semantic authority.
+- Claim the declared instant proves current human identity: rejected; the v1
+  provider proves only exact repository-record presence and request binding.
+
 ## Resolved clarification summary
 
 All planning unknowns are resolved:
@@ -438,4 +474,7 @@ All planning unknowns are resolved:
 - publication promises atomic trust and recovery without overstating
   filesystem guarantees; and
 - package and generated-artifact reproducibility claims remain separately
-  classified and evidence-backed.
+  classified and evidence-backed;
+- read-only commands return inline command-specific values without hidden writes;
+- authority validity uses an exact approved request-bound instant; and
+- dependency-mirror and Windows/Linux evidence have explicit execution paths.

@@ -78,6 +78,8 @@ evidence, not included in canonical semantics.
 - exact SDK/package/source/lock selection and locked restore;
 - UTF-8/LF Program Kit text; canonical JSON profile
   `program-kit.canonical-json/v1`;
+- validity decisions use the exact approved evaluation instant/source in the
+  request and never the ambient process clock as semantic authority;
 - local-first and offline after the governed dependency mirror is available;
 - no secrets in governed records, diagnostics, fixtures, logs, or outputs;
 - no ambient current-directory selection, provider discovery, source order,
@@ -138,6 +140,14 @@ gate below remains blocking.
 - Explicit CShells `FromAssemblies` is isolated inside the selected 0.0.28
   provider and covered by a conformance fixture; Program Kit itself performs no
   reflection-based provider discovery.
+- Operation results name the public command and exact operation contract. A
+  successful explanation, needs-input continuation, or proposed repair request
+  is carried inline so a read-only operation never needs to invent an artifact
+  write; structural schemas permit the shape and typed kernel validation owns
+  the command-specific semantic conditions.
+- The governed dependency mirror has an exact manifest and deterministic
+  bootstrap path. Windows/Linux evidence runs through an explicit matrix; it is
+  not inferred from one platform's result.
 
 ## Project Structure
 
@@ -236,6 +246,7 @@ tests/
 │   ├── Repeatability/
 │   ├── RuntimeIsolation/
 │   └── VerticalSlice/
+├── Shared/                           # linked test sources, not another project boundary
 └── Fixtures/
     └── Reference.Status/
         ├── Valid/

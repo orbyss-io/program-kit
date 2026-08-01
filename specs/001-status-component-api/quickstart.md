@@ -249,14 +249,18 @@ diagnostic: program-kit.kernel/PKWSP0001
 ```
 
 Hash the drifted file again and verify evaluation did not change it. Obtain the
-exact proposed repair request artifact from the typed remediation; do not write
-or infer a replacement request manually.
+exact inline proposed repair request from the typed remediation; do not infer or
+alter its fields. Materializing that returned value is a caller-owned action,
+not an effect of `evaluate`.
 
 ```powershell
-$repairRequest = $evaluate.diagnostics.items[0].remediations[0].request.artifact.logicalPath
+$repairDocument = $evaluate.diagnostics.items[0].remediations[0].request.document
+$repairRequest = Join-Path $referenceWorkspace 'requests/repair.generated.json'
+$repairDocument | ConvertTo-Json -Depth 100 -Compress |
+  Set-Content -LiteralPath $repairRequest -NoNewline -Encoding utf8
 $repairJson = dotnet run --project $cliProject --no-build -- construct `
   --workspace $referenceWorkspace `
-  --request (Join-Path $referenceWorkspace $repairRequest) `
+  --request $repairRequest `
   --format json
 $repair = $repairJson | ConvertFrom-Json
 ```

@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-01
 
-**Status**: Draft
+**Status**: Approved for implementation
 
 **Input**: User description: "Specify the first Program Kit vertical slice that
 proves a contract-governed Status component and API integration, deterministic
@@ -203,8 +203,9 @@ and safe next action, while stale or drifted information is visibly marked.
   identity integrity, authority, ownership, and applicability before any live
   consumer artifact is written.
 - **FR-004**: The feature MUST resolve every identity-forming input to one exact
-  accepted revision and record the complete finite operation closure in a
-  resolution lock.
+  accepted revision, including an explicitly approved evaluation context for
+  any validity decision, and record the complete finite operation closure in a
+  resolution lock without using the ambient clock as semantic authority.
 - **FR-005**: Discovery MAY report available support, but the feature MUST
   require an explicit accepted selection and MUST refuse zero, multiple,
   floating, ambient, or implicit best-match results.
@@ -252,10 +253,10 @@ and safe next action, while stale or drifted information is visibly marked.
   reproducibility profile MUST produce byte-identical Program Kit-owned
   canonical outputs across repeated clean executions within the profile.
 - **FR-019**: Every running public command path, including pre-admission refusal,
-  MUST return one versioned machine-readable operation result with operation,
-  available request/construction identities, outcome, furthest phase, proven
-  effect state, primary disposition, artifacts, receipts, evidence,
-  diagnostics, and any continuation.
+  MUST return one versioned machine-readable operation result with command,
+  exact operation contract, available request/construction identities, outcome,
+  furthest phase, proven effect state, primary disposition, artifacts, receipts,
+  evidence, diagnostics, and any command-specific inline result.
 - **FR-020**: Human-readable output MUST faithfully project the authoritative
   machine result, and machine-output mode MUST contain one clean document with
   logs and progress kept separate.
@@ -267,7 +268,8 @@ and safe next action, while stale or drifted information is visibly marked.
   non-authorizing; identity, selection, ownership, policy, dependency, widened
   effect, and publication changes MUST require applicable independent approval.
 - **FR-023**: A needs-input result MUST return a stateless continuation that
-  groups independently known missing inputs and is fully revalidated on resume.
+  groups independently known missing inputs inline without requiring a live
+  write and is fully revalidated on resume.
 - **FR-024**: Diagnostic data and rendering MUST exclude secrets, reversible
   secret fingerprints, protected paths, unsafe commands, raw external output,
   exceptions, and stack traces, including in verbose or fallback modes.

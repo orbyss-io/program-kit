@@ -123,9 +123,10 @@ The public, stateless invocation contract.
 | `constructionMode` | Construction intent | `new` or `repair`; present only for `construct` |
 | `rootBundle` | Exact operation root | One `ArtifactReference` |
 | `workspaceIdentity` | Logical workspace identity | Never the host absolute path |
-| `requestedEffect` | Maximum effect | `none`, `candidate-only`, or `commit` |
+| `evaluationContext` | Approved validity context | Exact instant, source identity, and local assurance; never ambient clock authority |
+| `requestedEffect` | Maximum effect | `none`, `candidate-only`, or `committed` |
 | `selections` | Exact profiles/providers/capabilities | Complete, pinned, approved |
-| `authorityGrant` | Exact grant reference | Required for candidate or commit effects |
+| `authorityGrant` | Exact grant reference | Required for candidate-only or committed effects |
 | `expectedState` | Optimistic publication precondition | Closure/state digest when effects are possible |
 
 The CLI receives the physical workspace path separately for location only. It is
@@ -319,7 +320,8 @@ The authoritative result of every recoverable public command path.
 | Field | Meaning | Closed values |
 |---|---|---|
 | `schema` | Result schema | `program-kit.operation-result/v1` |
-| `operation` | Public operation | `explain`, `construct`, `evaluate` |
+| `command` | Public CLI command | `explain`, `construct`, `evaluate`, `help`, or `version` |
+| `operationContract` | Exact public behavior contract | Authority-qualified immutable identity |
 | `requestIdentity` | Available request digest | Exact or absent when unavailable |
 | `constructionIdentity` | Available construction identity | Exact or absent |
 | `outcome` | Top-level result | `succeeded`, `needs-input`, `blocked`, `cancelled`, `faulted` |
@@ -328,7 +330,7 @@ The authoritative result of every recoverable public command path.
 | `disposition` | Primary caller guidance | `complete`, `retry`, `provide-input`, `request-approval`, `repair`, `revise`, `stop` |
 | `artifacts` / `receipts` / `evidence` | Exact available outputs | Canonically ordered |
 | `diagnostics` | Complete diagnostic collection or bounded view | Never hides outcome causes |
-| `continuation` | Stateless needs-input continuation | Present only when applicable |
+| `continuation` | Inline stateless needs-input continuation | Present only when applicable; requires no live write |
 
 There is no partial-success or unknown outcome. `succeeded` requires complete
 bytes and a `complete` disposition.
@@ -362,7 +364,7 @@ Diagnostic trigger and violated-invariant meaning never change for an ID.
 | `preconditions` | State, freshness, and ownership requirements |
 | `effectClass` | Maximum proposed effect |
 | `authorityRequired` | Exact required grant characteristics |
-| `request` | Structured command arguments, request artifact, or digested patch |
+| `request` | Existing exact artifact or inline structured factory request/arguments/digested patch |
 | `postconditions` | Verifiable expected result |
 | `retryPhase` | Safe phase from which a new operation may begin |
 

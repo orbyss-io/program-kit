@@ -35,6 +35,7 @@
       "required": [
         "schema",
         "canonicalProfile",
+        "command",
         "operationContract",
         "outcome",
         "furthestPhase",
@@ -53,6 +54,16 @@
         },
         "canonicalProfile": {
           "$ref": "common.schema.json#/$defs/canonicalProfile"
+        },
+        "command": {
+          "type": "string",
+          "enum": [
+            "explain",
+            "construct",
+            "evaluate",
+            "help",
+            "version"
+          ]
         },
         "operationContract": {
           "$ref": "common.schema.json#/$defs/governedIdentity"
@@ -125,7 +136,26 @@
           "$ref": "#/$defs/diagnosticView"
         },
         "continuation": {
-          "$ref": "common.schema.json#/$defs/artifactReference"
+          "$ref": "#/$defs/continuation"
+        },
+        "explanation": {
+          "$ref": "resolution.schema.json#/$defs/integrationResolutionExplanation"
+        },
+        "utility": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
         }
       },
       "allOf": [
@@ -223,7 +253,6 @@
         "omitted",
         "grouping",
         "fullCollectionDigest",
-        "fullCollectionArtifact",
         "items"
       ],
       "properties": {
@@ -490,8 +519,7 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "kind",
-            "artifact"
+            "kind"
           ],
           "properties": {
             "kind": {
@@ -504,6 +532,9 @@
             },
             "artifact": {
               "$ref": "common.schema.json#/$defs/artifactReference"
+            },
+            "document": {
+              "$ref": "factory-request.schema.json"
             }
           }
         },

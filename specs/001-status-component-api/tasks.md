@@ -27,10 +27,10 @@ limited to Setup and Foundational phases; consumer Status meaning remains under
 its four production and three proof boundaries.
 
 - [ ] T001 Pin SDK `10.0.302`, C# `14.0`, `net10.0`, nullable, deterministic compilation, warnings-as-errors, code style, and LF/UTF-8 policy in `global.json`, `Directory.Build.props`, and `.editorconfig`
-- [ ] T002 Define exact centrally managed package versions and locked-source policy in `Directory.Packages.props` and `NuGet.Config`
+- [ ] T002 Define exact centrally managed package versions, locked-source policy, and deterministic governed dependency-mirror bootstrap/manifest in `Directory.Packages.props`, `NuGet.Config`, `eng/Bootstrap-DependencyMirror.ps1`, and `eng/dependency-mirror.manifest.json`
 - [ ] T003 Create the four production projects, three MSTest projects, fixed project-reference directions, and repository solution in `src/*/*.csproj`, `tests/ProgramKit.*Tests/*.csproj`, and `ProgramKit.slnx`
 - [ ] T004 [P] Add repository build targets that reject floating package versions, forbidden production namespaces, and Program Kit/Spec Kit/AI references from generated consumers in `Directory.Build.targets`
-- [ ] T005 [P] Add shared test utilities for isolated workspaces, culture switching, deterministic environment setup, process capture, and exact-path cleanup in `tests/ProgramKit.Testing/`
+- [ ] T005 [P] Add linked shared test sources for isolated workspaces, culture switching, deterministic environment setup, process capture, and exact-path cleanup without creating another project boundary in `tests/Shared/`
 - [ ] T006 Copy the accepted Draft 2020-12 contract schemas into embedded public resources without semantic edits in `src/ProgramKit.Contracts/Schemas/`
 - [ ] T007 Create the reference fixture directory structure and ownership marker files in `tests/Fixtures/Reference.Status/Valid/`, `tests/Fixtures/Reference.Status/Invalid/`, and `tests/Fixtures/Reference.Status/Golden/`
 - [ ] T008 Restore every executable and test root, commit the resulting exact `packages.lock.json` files, and prove a second `dotnet restore ProgramKit.slnx --locked-mode` is clean
@@ -46,14 +46,14 @@ diagnostic result boundary, and thin CLI shell required by every story.
 contract and architecture checks.
 
 - [ ] T009 Implement immutable identity, digest, artifact, ownership, trace, safe-value, evidence, waiver, and gate primitives in `src/ProgramKit.Contracts/Identity/` and `src/ProgramKit.Contracts/Operations/CommonContracts.cs`
-- [ ] T010 [P] Implement immutable operation request, result, change, continuation, diagnostic, remediation, and catalog contracts with closed enums in `src/ProgramKit.Contracts/Operations/` and `src/ProgramKit.Contracts/Diagnostics/`
+- [ ] T010 [P] Implement immutable command/operation request, inline result/explanation/continuation, change, diagnostic, inline-or-existing remediation, and catalog contracts with closed enums in `src/ProgramKit.Contracts/Operations/` and `src/ProgramKit.Contracts/Diagnostics/`
 - [ ] T011 [P] Implement immutable provider manifest/SPI, exact selection, resolution lock, explanation, seam, and coverage contracts in `src/ProgramKit.Contracts/Providers/` and `src/ProgramKit.Contracts/Resolution/`
 - [ ] T012 [P] Implement immutable candidate, publication journal, receipt, artifact-state, and workspace snapshot contracts in `src/ProgramKit.Contracts/Workspace/`
 - [ ] T013 Implement the offline exact `$id`/digest schema registry and bounded `JsonSchema.Net` structural adapter in `src/ProgramKit.Kernel/Validation/SchemaRegistry.cs` and `src/ProgramKit.Kernel/Validation/StructuralSchemaValidator.cs`
 - [ ] T014 Implement strict duplicate-rejecting JSON parsing and `program-kit.canonical-json/v1` encoding, including unsigned UTF-16 key order, safe integers, string validation, and no BOM/whitespace/newline in `src/ProgramKit.Kernel/Canonicalization/`
 - [ ] T015 [P] Implement SHA-256 qualified digests, typed collection identities, canonical logical-path normalization, and traversal/symlink/case/reserved-name collision checks in `src/ProgramKit.Kernel/Canonicalization/Digests.cs` and `src/ProgramKit.Kernel/Artifacts/LogicalPaths.cs`
 - [ ] T016 Implement the exact kernel and .NET provider diagnostic catalogs, deterministic ordering/grouping/truncation, and disclosure classification in `src/ProgramKit.Contracts/Diagnostics/Catalogs/` and `src/ProgramKit.Kernel/Diagnostics/`
-- [ ] T017 Implement the operation-result factory, outcome/effect/disposition invariants, canonical serialization, and dependency-minimal `PKINT0001` fallback serializer in `src/ProgramKit.Kernel/Operations/`
+- [ ] T017 Implement the command-aware operation-result factory, command-specific inline payload invariants, optional bounded diagnostic artifact rules, outcome/effect/disposition invariants, canonical serialization, and dependency-minimal `PKINT0001` fallback serializer in `src/ProgramKit.Kernel/Operations/`
 - [ ] T018 Implement the finite case-sensitive `explain|construct|evaluate|help|version` argument grammar and typed invocation model in `src/ProgramKit.Cli/Parsing/`
 - [ ] T019 Implement JSON/text result renderers, stdout/stderr separation, outcome exit-code mapping, and `help`/`version` envelopes in `src/ProgramKit.Cli/Rendering/` and `src/ProgramKit.Cli/Commands/UtilityCommands.cs`
 - [ ] T020 Implement the immutable exact first-party provider registry contracts and CLI composition root without assembly scanning in `src/ProgramKit.Kernel/Operations/ProviderRegistry.cs` and `src/ProgramKit.Cli/Composition/ProgramKitComposition.cs`
@@ -79,7 +79,7 @@ result must be actionable and create no live artifacts.
 
 ### Tests and fixtures for User Story 1
 
-- [ ] T024 [P] [US1] Author canonical valid component/API bundle, relationship, selection, authority, custom-source, and explain-request inputs in `tests/Fixtures/Reference.Status/Valid/`
+- [ ] T024 [P] [US1] Author canonical valid component/API bundle, relationship, selection, request-bound approved evaluation context, authority, custom-source, and explain-request inputs in `tests/Fixtures/Reference.Status/Valid/`
 - [ ] T025 [P] [US1] Author missing-selection, ambiguous-selection, conflicting-identity, incompatible-contract, unavailable-input, duplicate-key, and restricted-YAML rejection fixtures in `tests/Fixtures/Reference.Status/Invalid/`
 - [ ] T026 [P] [US1] Add restricted-YAML/strict-JSON equivalence, rejection, resource-limit, typed-binding, semantic-completeness, and aggregate-needs-input tests in `tests/ProgramKit.UnitTests/Kernel/Intake/`
 - [ ] T027 [P] [US1] Add exact provider-selection, authority, closure, relationship, seam, construction-identity, and no-implicit-fallback resolution tests in `tests/ProgramKit.UnitTests/Kernel/Resolution/`
@@ -91,7 +91,7 @@ result must be actionable and create no live artifacts.
 - [ ] T030 [US1] Implement the bounded low-level `program-kit.restricted-yaml/v1` parser with explicit event rejection and safe source spans in `src/ProgramKit.Kernel/Intake/RestrictedYamlParser.cs`
 - [ ] T031 [US1] Implement extension-selected YAML/JSON loading, neutral value projection, structural validation, and immutable typed binding in `src/ProgramKit.Kernel/Intake/IntakePipeline.cs` and `src/ProgramKit.Kernel/Validation/TypedContractBinder.cs`
 - [ ] T032 [US1] Implement bundle/request semantic validators for identity integrity, traceability, completeness, ownership, selection, effect, continuation, and operation agreement in `src/ProgramKit.Kernel/Validation/SemanticValidator.cs`
-- [ ] T033 [P] [US1] Implement the repository-record authority provider with exact request/lock/effect/freshness/revocation checks in `src/ProgramKit.Kernel/Authority/RepositoryAuthorityProvider.cs`
+- [ ] T033 [P] [US1] Implement the repository-record authority provider with exact request/lock/effect/freshness/revocation checks against the approved request-bound evaluation context and no ambient clock reads in `src/ProgramKit.Kernel/Authority/RepositoryAuthorityProvider.cs`
 - [ ] T034 [P] [US1] Define exact intake, CShells component, ASP.NET assembler, and evaluation provider manifests plus distribution provenance in `src/ProgramKit.Providers.DotNet/Manifests/`
 - [ ] T035 [US1] Implement fail-closed finite-closure resolution, provider/profile availability, relationship disposition, seam ownership, and deterministic resolution locks in `src/ProgramKit.Kernel/Resolution/ResolutionEngine.cs`
 - [ ] T036 [US1] Implement the trace-complete Integration Resolution Explanation projector with bounded claims and planned ownership/claim classes in `src/ProgramKit.Kernel/Resolution/IntegrationExplanationBuilder.cs`
@@ -213,11 +213,11 @@ prove fresh-consumer usability, and document only what is actually true.
 - [ ] T076 [P] Add path/culture/input/provider/contribution/filesystem/scheduling-order repeatability matrices and canonical-byte comparisons in `tests/ProgramKit.AcceptanceTests/Repeatability/RepeatabilityTests.cs`
 - [ ] T077 [P] Add external `.nupkg` verified-equivalence tests and upgrade its claim only if exact SDK `10.0.302` fixtures prove byte identity in `tests/ProgramKit.AcceptanceTests/Repeatability/PackageVerifierTests.cs`
 - [ ] T078 Add relocated clean-cache locked restore/build/test/publish, assets/deps/PE allowlisting, process startup, and black-box Status runtime-isolation proof in `tests/ProgramKit.AcceptanceTests/RuntimeIsolation/RuntimeIsolationTests.cs`
-- [ ] T079 [P] Add offline/local-source-only, no-telemetry/source-upload, secret scanning, no-self-host bootstrap, and dependency/source/lock drift tests in `tests/ProgramKit.ContractTests/Security/LocalSafetyTests.cs`
+- [ ] T079 [P] Add offline/local-source-only, no-telemetry/source-upload, secret scanning, no-self-host bootstrap, dependency/source/lock drift tests, and an explicit Windows/Linux proof matrix in `tests/ProgramKit.ContractTests/Security/LocalSafetyTests.cs` and `.github/workflows/vertical-slice.yml`
 - [ ] T080 [P] Generate deterministic distribution manifest, dependency inventory/SBOM, source/package provenance, diagnostic catalog digests, and exact provider support metadata in `eng/Generate-DistributionEvidence.ps1` and `artifacts/evidence/`
 - [ ] T081 Add performance assertions for the two-bundle finite closure and sub-two-second local `explain` path in `tests/ProgramKit.AcceptanceTests/VerticalSlice/PerformanceAcceptanceTests.cs`
 - [ ] T082 Automate the documented valid/invalid/repeatability/drift/repair walkthrough without ambient setup in `eng/Invoke-VerticalSliceQuickstart.ps1` and reconcile `specs/001-status-component-api/quickstart.md` with the executable flow
-- [ ] T083 Record the fresh-contributor one-hour human product review, including the seven architecture questions and any honest limitation, in `specs/001-status-component-api/reviews/first-vertical-slice.md`
+- [ ] T083 Prepare the fresh-contributor one-hour product-review record with automated timing evidence, the seven architecture questions, every honest limitation, and an explicit pending human-approval gate that must not be reported as passed without an independent reviewer in `specs/001-status-component-api/reviews/first-vertical-slice.md`
 - [ ] T084 Reconcile `README.md` with the accepted constitution, implemented CLI behavior, archived-history boundary, current branch/main state, known limitations, and exact contributor entry points
 - [ ] T085 Run locked restore, release build, all tests, schema validation, generated-consumer runtime isolation, quickstart automation, formatting, and clean-worktree checks; record the exact verification commands and results in `specs/001-status-component-api/verification.md`
 

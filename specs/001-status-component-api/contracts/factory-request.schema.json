@@ -10,6 +10,7 @@
     "operation",
     "rootBundle",
     "workspaceIdentity",
+    "evaluationContext",
     "requestedEffect",
     "selections"
   ],
@@ -41,6 +42,28 @@
     },
     "workspaceIdentity": {
       "$ref": "common.schema.json#/$defs/governedIdentity"
+    },
+    "evaluationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instant",
+        "source",
+        "assurance"
+      ],
+      "properties": {
+        "instant": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "source": {
+          "$ref": "common.schema.json#/$defs/governedIdentity"
+        },
+        "assurance": {
+          "type": "string",
+          "const": "approved-declared-instant"
+        }
+      }
     },
     "requestedEffect": {
       "type": "string",

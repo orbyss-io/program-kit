@@ -83,8 +83,10 @@ observations, or causes remain distinct.
 ## Remediation contract
 
 Every remediation names exact targets, preconditions, effect class, required
-authority, a structured request artifact/argument array/digested patch,
-postconditions, and safe retry phase. Remediation is a proposal, not a grant.
+authority, postconditions, safe retry phase, and either an existing structured
+request artifact or an inline factory request, argument array, or digested
+patch. An inline request is returned in the result for the caller to materialize
+and submit under separate authority. Remediation is a proposal, not a grant.
 
 Reference expectations:
 
