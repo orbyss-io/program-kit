@@ -137,11 +137,11 @@ installation-and-removal remains pending and is not claimed.
 
 Two exports from distinct clean output roots produced:
 
-- review-kit digest: `sha256:5014034d791b4b0341f4645a16751dcbcd8419bc59888f8b347df552417a6581`;
-- package digest: `sha256:dcd8c376b7cdc1d263ad6a3eb8a075ea8451718ff697e01b169b5c40a82a26a0`;
+- review-kit digest: `sha256:ebe2278f7541b8c931b032c56f49cc1e756a5dc325767e44f8120541812a0e1e`;
+- package digest: `sha256:bb1026698d66c54b752cd41fb90754152c50dbb8b96d1004ce74020f71763c1d`;
 - shared-corpus digest: `sha256:12d964d52f2b1aa374c158643d0c497e9eb0e511ba828edcac69020eedc7320b`;
-- installed CLI executable digest: `sha256:43668ea63c5ba95f1c114db54c395f0003524a36c4bd97a35465e2088823f352`;
-- runtime/build source revision: `git-sha1:12c1f9ddcc2f99a7a3a5b418fdbf4cfd58c5a251`;
+- installed CLI executable digest: `sha256:083c91eb430fc34f33a1f592e3fe4118698649299050ba092eb34e0da4785182`;
+- runtime/build source revision: `git-sha1:881163b0d67ce0097a2617946120cba8ed24bc25`;
 - component bindings: 9 exact digests;
 - file count: 50 including `manifest.json` in each export;
 - byte/hash differences: 0.
