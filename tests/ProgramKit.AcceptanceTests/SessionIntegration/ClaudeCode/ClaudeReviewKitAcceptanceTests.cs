@@ -22,11 +22,14 @@ public sealed class ClaudeReviewKitAcceptanceTests
         StringAssert.Contains(export, "canonicalDependencyStatus = 'rejected'");
         StringAssert.Contains(export, "SharedConformance");
         StringAssert.Contains(export, "componentBindings");
+        StringAssert.Contains(export, "runtime/build inputs must be committed");
+        StringAssert.Contains(export, "SourceRevisionId");
         StringAssert.Contains(export, "conformanceCorpusDigest");
         StringAssert.Contains(initialize, "Review-kit digest mismatch");
         StringAssert.Contains(initialize, "aggregate review-kit identity");
         StringAssert.Contains(initialize, "exact .NET SDK 10.0.302");
         StringAssert.Contains(initialize, ".claude/skills/program-kit");
+        StringAssert.Contains(initialize, "runtime source revision");
         StringAssert.Contains(initialize, ".program-kit-source.json");
         StringAssert.Contains(deterministic, "supportClaim = 'not-evaluated'");
         StringAssert.Contains(deterministic, "passed = 10");

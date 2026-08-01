@@ -46,6 +46,8 @@ foreach ($pkBindingName in $pkBindingNames) {
     if ($pkBindingValue -notmatch '^sha256:[0-9a-f]{64}$') { throw "Invalid component digest: $pkBindingName" }
     $pkIdentityLines.Add('binding:' + $pkBindingName + ':' + $pkBindingValue)
 }
+if ($pkManifest.runtimeSourceRevision -notmatch '^git-sha1:[0-9a-f]{40}$') { throw 'The runtime source revision is not an exact Git commit.' }
+$pkIdentityLines.Add('runtime-source:' + $pkManifest.runtimeSourceRevision)
 $pkIdentityBytes = [Text.Encoding]::UTF8.GetBytes($pkIdentityLines -join ([char]10))
 $pkObservedKitDigest = 'sha256:' + [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($pkIdentityBytes)).ToLowerInvariant()
 if ($pkObservedKitDigest -ne $pkManifest.reviewKitDigest) { throw 'The aggregate review-kit identity does not match its sealed files and component bindings.' }
@@ -91,6 +93,7 @@ $pkEnvironment = [ordered]@{
     codexProjectionAbsent = $true
     claudeProjectionAbsent = $true
     priorSessionStateAbsent = $true
+    runtimeSourceRevision = $pkManifest.runtimeSourceRevision
     reviewKitDigest = $pkManifest.reviewKitDigest
     cliPackageDigest = $pkManifest.componentBindings.cliPackageDigest
     selectedProviderVersion = '2.1.220'

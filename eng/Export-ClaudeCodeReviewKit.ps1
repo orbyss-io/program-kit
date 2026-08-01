@@ -60,6 +60,23 @@ function ConvertTo-DeterministicNuGetPackage {
 }
 
 $pkRepositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+$pkRuntimeInputs = @(
+    'src',
+    'Directory.Build.props',
+    'Directory.Packages.props',
+    'global.json',
+    'NuGet.Config',
+    'ProgramKit.slnx',
+    'eng/Pack-ProgramKitTool.ps1'
+)
+$pkRuntimeStatus = @(& git -C $pkRepositoryRoot status --porcelain -- @pkRuntimeInputs)
+if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect the runtime source identity.' }
+if ($pkRuntimeStatus.Count -ne 0) { throw 'The runtime/build inputs must be committed before a review kit can be sealed.' }
+$pkRuntimeCommit = (& git -C $pkRepositoryRoot log -1 --format=%H -- @pkRuntimeInputs | Select-Object -First 1)
+if ($LASTEXITCODE -ne 0) { throw 'Unable to resolve the runtime source commit.' }
+$pkRuntimeCommit = ([string]$pkRuntimeCommit).Trim()
+if ($pkRuntimeCommit -notmatch '^[0-9a-f]{40}$') { throw 'The runtime source commit is not exact.' }
+$pkRuntimeSourceRevision = 'git-sha1:' + $pkRuntimeCommit
 $pkOutput = [IO.Path]::GetFullPath($OutputPath)
 if ($pkOutput -eq $pkRepositoryRoot -or $pkOutput.StartsWith($pkRepositoryRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
     throw 'The external Claude review kit must not be exported inside the Program Kit source repository.'
@@ -78,7 +95,7 @@ $pkSchemas = Join-Path $pkOutput 'schemas'
 $pkScripts = Join-Path $pkOutput 'scripts'
 New-Item -ItemType Directory -Path $pkFeed, $pkPackScratch, $pkFixtures, $pkSchemas, $pkScripts -Force | Out-Null
 
-& (Join-Path $PSScriptRoot 'Pack-ProgramKitTool.ps1') -OutputRoot $pkPackScratch
+& (Join-Path $PSScriptRoot 'Pack-ProgramKitTool.ps1') -OutputRoot $pkPackScratch -SourceRevisionId $pkRuntimeCommit
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit packaging failed.' }
 $pkPackages = @(Get-ChildItem -LiteralPath $pkPackScratch -Filter 'Orbyss.ProgramKit.Cli.*.nupkg' -File | Where-Object { $_.Name -notlike '*.snupkg' })
 if ($pkPackages.Count -ne 1) { throw 'Exactly one Program Kit CLI package must be produced.' }
@@ -131,6 +148,7 @@ $pkComponentBindings = [ordered]@{
 }
 $pkIdentityLines = [Collections.Generic.List[string]]::new()
 foreach ($pkFile in $pkFiles) { $pkIdentityLines.Add($pkFile.logicalPath + ':' + $pkFile.digest + ':' + $pkFile.length) }
+$pkIdentityLines.Add('runtime-source:' + $pkRuntimeSourceRevision)
 foreach ($pkBinding in $pkComponentBindings.GetEnumerator()) { $pkIdentityLines.Add('binding:' + $pkBinding.Key + ':' + $pkBinding.Value) }
 $pkIdentityInput = $pkIdentityLines -join "`n"
 $pkIdentityBytes = [Text.Encoding]::UTF8.GetBytes($pkIdentityInput)
@@ -142,6 +160,7 @@ $pkManifest = [ordered]@{
     schema = 'program-kit.claude-code-review-kit/v1'
     canonicalProfile = 'program-kit.canonical-json/v1'
     reviewKitDigest = $pkKitDigest
+    runtimeSourceRevision = $pkRuntimeSourceRevision
     cliPackage = 'Orbyss.ProgramKit.Cli@1.0.0-alpha.1'
     definition = 'orbyss.program-kit:session-integration-definition:human-led-software-factory@1.0.0'
     provider = 'anthropic:session-provider:claude-code@2.1.220'
