@@ -41,13 +41,13 @@ $pkObservedBindingNames = @($pkManifest.componentBindings.PSObject.Properties.Na
 if (@(Compare-Object $pkBindingNames $pkObservedBindingNames).Count -ne 0) { throw 'The review-kit component binding set is incomplete or unknown.' }
 $pkIdentityLines = [Collections.Generic.List[string]]::new()
 foreach ($pkFile in $pkManifest.files) { $pkIdentityLines.Add($pkFile.logicalPath + ':' + $pkFile.digest + ':' + $pkFile.length) }
+if ($pkManifest.runtimeSourceRevision -notmatch '^git-sha1:[0-9a-f]{40}$') { throw 'The runtime source revision is not an exact Git commit.' }
+$pkIdentityLines.Add('runtime-source:' + $pkManifest.runtimeSourceRevision)
 foreach ($pkBindingName in $pkBindingNames) {
     $pkBindingValue = [string]$pkManifest.componentBindings.$pkBindingName
     if ($pkBindingValue -notmatch '^sha256:[0-9a-f]{64}$') { throw "Invalid component digest: $pkBindingName" }
     $pkIdentityLines.Add('binding:' + $pkBindingName + ':' + $pkBindingValue)
 }
-if ($pkManifest.runtimeSourceRevision -notmatch '^git-sha1:[0-9a-f]{40}$') { throw 'The runtime source revision is not an exact Git commit.' }
-$pkIdentityLines.Add('runtime-source:' + $pkManifest.runtimeSourceRevision)
 $pkIdentityBytes = [Text.Encoding]::UTF8.GetBytes($pkIdentityLines -join ([char]10))
 $pkObservedKitDigest = 'sha256:' + [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($pkIdentityBytes)).ToLowerInvariant()
 if ($pkObservedKitDigest -ne $pkManifest.reviewKitDigest) { throw 'The aggregate review-kit identity does not match its sealed files and component bindings.' }

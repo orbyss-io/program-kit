@@ -137,10 +137,11 @@ installation-and-removal remains pending and is not claimed.
 
 Two exports from distinct clean output roots produced:
 
-- review-kit digest: `sha256:5feebc70378e3ec5ddb50e33fe6b595c0b7b1050d4f9eda6d751d6d6acd92620`;
-- package digest: `sha256:fedf947a139a884c9b4ad23c690e338effbd6f55e962408cc0d4ccc4c3b838ef`;
+- review-kit digest: `sha256:7b2a2bb7c3683590a95296c694c150c8c9a5bc8b68c62058034afc32a8a9fa04`;
+- package digest: `sha256:1bdac17b801ec0ce26c0706f860e14a03f7626ac27e01af90a815221717ee169`;
 - shared-corpus digest: `sha256:12d964d52f2b1aa374c158643d0c497e9eb0e511ba828edcac69020eedc7320b`;
-- installed CLI executable digest: `sha256:47fb557b1983a3dc30278b45c9ea1b4debf0d5040b571fd09b610126cf1d93ac`;
+- installed CLI executable digest: `sha256:43668ea63c5ba95f1c114db54c395f0003524a36c4bd97a35465e2088823f352`;
+- runtime/build source revision: `git-sha1:12c1f9ddcc2f99a7a3a5b418fdbf4cfd58c5a251`;
 - component bindings: 9 exact digests;
 - file count: 50 including `manifest.json` in each export;
 - byte/hash differences: 0.
@@ -150,6 +151,7 @@ Windows x64 with exact .NET SDK `10.0.302`. Initialization verified every file,
 the aggregate kit identity, component bindings, selected provider, and absence
 of source, Spec Kit, Codex/Claude projections, and prior lifecycle state. Ten
 package-only CLI installations all produced the same executable digest,
+with the package pinned to the exact clean runtime/build source revision above,
 reported CLI `1.0.0-alpha.1`, Claude support `not-evaluated`,
 `effectState: none`, and no Claude project skill or lifecycle state. The bounded
 proof recorded 10 passed and 0 failed. No Claude process was launched.
