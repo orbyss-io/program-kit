@@ -193,17 +193,17 @@
 
 ### Tests first
 
-- [ ] T086 [P] [US5] Add absent, installed, partial, drifted, interrupted, and already-removed state-transition tests in `tests/ProgramKit.UnitTests/RemoveSessionIntegrationTests.cs` (FR-044 through FR-046)
-- [ ] T087 [P] [US5] Add byte-for-byte preservation acceptance coverage for unrelated files, drifted owned files, provider/global state, and the installed CLI in `tests/ProgramKit.AcceptanceTests/SessionRemovalAcceptanceTests.cs` (FR-044 through FR-046, SC-008)
+- [X] T086 [P] [US5] Add absent, installed, partial, drifted, interrupted, and already-removed state-transition tests in `tests/ProgramKit.UnitTests/RemoveSessionIntegrationTests.cs` (FR-044 through FR-046)
+- [X] T087 [P] [US5] Add byte-for-byte preservation acceptance coverage for unrelated files, drifted owned files, provider/global state, and the installed CLI in `tests/ProgramKit.AcceptanceTests/SessionRemovalAcceptanceTests.cs` (FR-044 through FR-046, SC-008)
 
 ### Implementation
 
-- [ ] T088 [US5] Implement record-driven removal planning, exact fingerprint checks, scoped authority, and fail-closed drift handling in `src/ProgramKit.SessionIntegration/Publication/RemoveSessionIntegrationOperation.cs` (FR-044 through FR-046)
-- [ ] T089 [US5] Implement recoverable removal journaling and final-state receipts without broad directory deletion in `src/ProgramKit.SessionIntegration/Publication/SessionRemovalJournal.cs` (FR-044, FR-045)
-- [ ] T090 [US5] Extend verification to distinguish absent, removed, partially removed, drifted, and corrupt-record states in `src/ProgramKit.SessionIntegration/Publication/VerifySessionIntegrationOperation.cs` (FR-023, FR-045, FR-046)
-- [ ] T091 [P] [US5] Add exact-removal fixtures under `tests/Fixtures/SessionIntegration/Valid/Removal/`, drifted and unrelated-state fixtures under `tests/Fixtures/SessionIntegration/Drifted/Removal/`, and absent, partial, and interrupted-removal fixtures under `tests/Fixtures/SessionIntegration/Invalid/Removal/` (FR-044 through FR-046)
-- [ ] T092 [US5] Add packaged-tool removal coverage that invokes the CLI after projection removal and compares all preserved bytes in `tests/ProgramKit.AcceptanceTests/PackagedToolRemovalAcceptanceTests.cs` (FR-003, FR-044 through FR-046, SC-008)
-- [ ] T093 [US5] Run the US5 test filters and record owned/preserved artifact hashes and final lifecycle states in `specs/002-session-integration-proof/verification.md` (SC-008)
+- [X] T088 [US5] Implement record-driven removal planning, exact fingerprint checks, scoped authority, and fail-closed drift handling in `src/ProgramKit.SessionIntegration/Publication/RemoveSessionIntegrationOperation.cs` (FR-044 through FR-046)
+- [X] T089 [US5] Implement recoverable removal journaling and final-state receipts without broad directory deletion in `src/ProgramKit.SessionIntegration/Publication/SessionRemovalJournal.cs` (FR-044, FR-045)
+- [X] T090 [US5] Extend verification to distinguish absent, removed, partially removed, drifted, and corrupt-record states in `src/ProgramKit.SessionIntegration/Publication/VerifySessionIntegrationOperation.cs` (FR-023, FR-045, FR-046)
+- [X] T091 [P] [US5] Add exact-removal fixtures under `tests/Fixtures/SessionIntegration/Valid/Removal/`, drifted and unrelated-state fixtures under `tests/Fixtures/SessionIntegration/Drifted/Removal/`, and absent, partial, and interrupted-removal fixtures under `tests/Fixtures/SessionIntegration/Invalid/Removal/` (FR-044 through FR-046)
+- [X] T092 [US5] Add packaged-tool removal coverage that invokes the CLI after projection removal and compares all preserved bytes in `tests/ProgramKit.AcceptanceTests/PackagedToolRemovalAcceptanceTests.cs` (FR-003, FR-044 through FR-046, SC-008)
+- [X] T093 [US5] Run the US5 test filters and record owned/preserved artifact hashes and final lifecycle states in `specs/002-session-integration-proof/verification.md` (SC-008)
 
 **Checkpoint**: Removal is exact and recoverable; it never treats provider directories, global configuration, the CLI installation, or drifted consumer files as disposable.
 

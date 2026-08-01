@@ -1,0 +1,1 @@
+{"scenario":"absent-installation-record","expectedDiagnostic":"program-kit.session/PKSES0008","delete":false}

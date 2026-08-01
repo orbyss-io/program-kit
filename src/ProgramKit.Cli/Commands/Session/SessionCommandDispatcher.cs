@@ -31,6 +31,7 @@ public sealed class SessionCommandDispatcher
                 PublicCommand.SessionExplain => new ExplainSessionIntegrationOperation(services).Execute(workspace, request),
                 PublicCommand.SessionInstall => new InstallSessionIntegrationOperation(services).Execute(workspace, request),
                 PublicCommand.SessionVerify => new VerifySessionIntegrationOperation(services).Execute(workspace, request),
+                PublicCommand.SessionRemove => new RemoveSessionIntegrationOperation(services).Execute(workspace, request),
                 _ => Invalid(invocation.Command, "The session lifecycle operation is not implemented."),
             };
         }

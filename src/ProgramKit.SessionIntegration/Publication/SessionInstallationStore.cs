@@ -23,6 +23,7 @@ public sealed class SessionInstallationStore
     private readonly string workspaceRoot;
     private readonly string stateRoot;
     private readonly string recordPath;
+    private readonly string removalReceiptPath;
 
     public SessionInstallationStore(string workspaceRoot, string provider)
     {
@@ -31,13 +32,15 @@ public sealed class SessionInstallationStore
         if (normalizedProvider.Any(static value => !(char.IsAsciiLetterOrDigit(value) || value == '-'))) throw new ArgumentException("Provider state name is not safe.", nameof(provider));
         stateRoot = Path.Combine(this.workspaceRoot, ".program-kit", "session-integrations", normalizedProvider);
         recordPath = Path.Combine(stateRoot, "installation.json");
+        removalReceiptPath = Path.Combine(stateRoot, "removal.json");
     }
 
     public string RecordLogicalPath => LogicalPaths.Normalize(Path.GetRelativePath(workspaceRoot, recordPath).Replace('\\', '/'));
 
+    public string RemovalReceiptLogicalPath => LogicalPaths.Normalize(Path.GetRelativePath(workspaceRoot, removalReceiptPath).Replace('\\', '/'));
     public SessionInstallationInspection Inspect()
     {
-        if (!File.Exists(recordPath)) return new(SessionIntegrationState.Absent, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>());
+        if (!File.Exists(recordPath)) return new(File.Exists(removalReceiptPath) ? SessionIntegrationState.Removed : SessionIntegrationState.Absent, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>());
         SessionInstallationRecord record;
         try { record = Parse(CanonicalJson.Parse(File.ReadAllBytes(recordPath)).AsObject()); }
         catch { return new(SessionIntegrationState.Partial, SessionAvailability.NotEvaluated, null, Array.Empty<SessionProjectionObservation>()); }

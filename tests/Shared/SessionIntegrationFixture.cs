@@ -33,7 +33,7 @@ internal static class SessionIntegrationFixture
         JsonObject explain = Request("explain", "none", workspaceRoot);
         JsonObject install = Request("install", "committed", workspaceRoot);
         install["expectedInstallationState"] = expected;
-        JsonObject grant = Grant(CanonicalJson.Digest(install), install["workspace"]!["identity"]!.AsObject());
+        JsonObject grant = Grant(CanonicalJson.Digest(install), install["workspace"]!["identity"]!.AsObject(), "session-install", "install-codex");
         string grantPath = Path.Combine(workspaceRoot, ".program-kit", "authority", "session-install.json");
         Directory.CreateDirectory(Path.GetDirectoryName(grantPath)!);
         byte[] grantBytes = CanonicalJson.Encode(grant);
@@ -49,6 +49,24 @@ internal static class SessionIntegrationFixture
         File.WriteAllBytes(verifyPath, CanonicalJson.Encode(verify));
         return new SessionRequestPaths(explainPath, installPath, verifyPath);
     }
+
+    public static string WriteRemoveRequest(string workspaceRoot)
+    {
+        string requests = Path.Combine(workspaceRoot, "requests");
+        Directory.CreateDirectory(requests);
+        JsonObject remove = Request("remove", "committed", workspaceRoot);
+        remove["expectedInstallationState"] = new SessionInstallationStore(workspaceRoot, "codex").CurrentStateDigest(new[] { ".agents/skills/program-kit/SKILL.md" });
+        JsonObject grant = Grant(CanonicalJson.Digest(remove), remove["workspace"]!["identity"]!.AsObject(), "session-remove", "remove-codex");
+        string grantPath = Path.Combine(workspaceRoot, ".program-kit", "authority", "session-remove.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(grantPath)!);
+        byte[] grantBytes = CanonicalJson.Encode(grant);
+        File.WriteAllBytes(grantPath, grantBytes);
+        remove["authorityGrant"] = Artifact("authority-grant", ".program-kit/authority/session-remove.json", Digests.Sha256(grantBytes), "consumer-owned");
+        string removePath = Path.Combine(requests, "session-remove.json");
+        File.WriteAllBytes(removePath, CanonicalJson.Encode(remove));
+        return removePath;
+    }
+
 
     public static SessionProjectionContext ProjectionContext()
     {
@@ -91,14 +109,14 @@ internal static class SessionIntegrationFixture
         };
     }
 
-    private static JsonObject Grant(string requestBinding, JsonObject workspaceIdentity) => new()
+    private static JsonObject Grant(string requestBinding, JsonObject workspaceIdentity, string operation, string name) => new()
     {
         ["schema"] = "program-kit.authority-grant/v1",
         ["canonicalProfile"] = CanonicalJson.Profile,
-        ["identity"] = IdentityJson(Identity("consumer.example", "authority-grant", "install-codex", "1.0.0")),
+        ["identity"] = IdentityJson(Identity("consumer.example", "authority-grant", name, "1.0.0")),
         ["issuerAssertion"] = new JsonObject { ["provider"] = IdentityJson(Identity("consumer.example", "authority-provider", "repository-record", "1.0.0")), ["issuer"] = "fixture-human-review-record", ["assurance"] = "repository-record-presence" },
         ["subjects"] = new JsonArray(new JsonObject { ["kind"] = "workspace", ["identity"] = workspaceIdentity.DeepClone() }),
-        ["operations"] = new JsonArray("session-install"),
+        ["operations"] = new JsonArray(operation),
         ["effects"] = new JsonArray("committed"),
         ["requestBinding"] = requestBinding,
         ["conditions"] = new JsonArray(

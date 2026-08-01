@@ -92,7 +92,7 @@ public sealed class SessionIntegrationCandidateBuilder
         string liveState = store.CurrentStateDigest(artifacts.Select(static artifact => artifact.LogicalPath));
         if (effect != RequestedEffect.None && !string.Equals(request.ExpectedInstallationState, liveState, StringComparison.Ordinal))
             throw new InvalidDataException("The expected installation state is stale or does not match the exact live workspace state.");
-        if (effect != RequestedEffect.None) PreflightOwnership(workspaceRoot, store, artifacts);
+        if (operation == SessionLifecycleOperation.Install) PreflightOwnership(workspaceRoot, store, artifacts);
 
         string setDigest = Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', artifacts.Select(static artifact => $"{artifact.LogicalPath}:{Digests.Sha256(artifact.Content)}"))));
         string installationIdentity = Digests.Sha256(Encoding.UTF8.GetBytes($"{requestCoreIdentity}\n{services.Definition.Fingerprint}\n{provider.Manifest.AdapterIdentity.StableKey}\n{cli.PackageDigest}\n{setDigest}"));

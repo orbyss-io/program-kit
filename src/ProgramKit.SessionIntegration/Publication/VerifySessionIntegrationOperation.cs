@@ -34,6 +34,9 @@ public sealed class VerifySessionIntegrationOperation
                 Diagnostics = Orbyss.ProgramKit.Kernel.Diagnostics.DiagnosticFactory.View(new[] { availability }),
             };
         }
+        if (inspection.State == SessionIntegrationState.Removed)
+            return OperationResultFactory.Success(PublicCommand.SessionVerify, OperationPhase.Completion, EffectState.None, candidate.RequestIdentity, session: session, disclosure: SessionPayload.Disclosure);
+
 
         if (inspection.State == SessionIntegrationState.Absent)
         {

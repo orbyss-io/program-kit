@@ -114,3 +114,32 @@ US4 observations:
 - repeated projection is byte-stable and provider-local paths are normalized out of semantic comparison;
 - canonical source and corpus inspection found no reference-provider paths, payloads, command names, or types; and
 - semantic weakening produces ordered exact failures instead of silently lowering the canonical boundary.
+
+## US5 — exact record-driven removal — 2026-08-01
+
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --no-restore --filter RemoveSessionIntegrationTests`
+  - Passed: 5; failed: 0.
+  - Absent, exact, partial, drifted, interrupted, and already-removed transitions were exercised; interrupted removal rolled back the admitted bytes and returned `PKSES0005` with an `indeterminate` effect.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter SessionRemovalAcceptanceTests`
+  - Passed: 2; failed: 0.
+  - Exact removal preserved unrelated workspace files and independent provider state byte for byte; drifted owned content was retained and blocked with `PKSES0004`.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter PackagedToolRemovalAcceptanceTests`
+  - Passed: 1; failed: 0.
+  - The locally packed and workspace-installed CLI remained callable and returned release `1.0.0-alpha.1` after its Codex session projection was removed.
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --no-restore --filter Session`
+  - Passed: 17; failed: 0.
+- Exact-removal fixture corpus aggregate SHA-256: `sha256:b0a12389080e615f801f0b16930e6361ad4fbcdb928f9ccac7174f48eccd8aa6`.
+- Preserved fixture-byte SHA-256 values:
+  - unrelated consumer skill: `sha256:2410afe65935fd59b394ea566129afb3ffffe694ba20f9c063e29c783dab44ca`;
+  - unrelated consumer source: `sha256:5039bcb2e17e52f8e551c6c4daa72326bde093956e72297a09796ff1bb284738`; and
+  - independent provider/global state: `sha256:43486b14488497e183fda442c5b82dac7b70e59d097fea192ba4231b1906c31a`.
+
+US5 observations:
+
+- removal requires an exact unconsumed grant bound to the removal request, workspace, provider, scope, operation, and committed effect;
+- every recorded projection is revalidated under the workspace lock before any deletion;
+- only exact paths from the admitted record are backed up and removed, with no broad consumer-directory deletion;
+- interruption produces a durable rollback/incomplete journal, restores any removed exact bytes when possible, and never reports a committed outcome;
+- a committed receipt distinguishes an explicitly removed integration from one never installed, while verification reports no provider-session availability claim;
+- missing, partial, corrupt-record, and drifted installations fail closed without mutation; and
+- authority grants, unrelated `.agents` content, application files, provider/global state, and the independently installed workspace-local CLI remain outside removal ownership.
