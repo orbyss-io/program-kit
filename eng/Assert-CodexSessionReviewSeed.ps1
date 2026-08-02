@@ -49,6 +49,64 @@ function Assert-ExactIdentity {
     }
 }
 
+function Assert-DependencyMirror {
+    param([Parameter(Mandatory = $true)] $Binding)
+
+    $logicalPath = [string]$Binding.logicalPath
+    $mirror = Resolve-SeedFile -LogicalPath $logicalPath
+    if (-not (Test-Path -LiteralPath $mirror -PathType Container)) {
+        throw 'The review-seed dependency mirror is missing.'
+    }
+    if ((Get-Item -LiteralPath $mirror -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw 'The review-seed dependency mirror must not be a reparse point.'
+    }
+
+    $lockPath = Join-Path $mirror 'mirror.lock.json'
+    if (-not (Test-Path -LiteralPath $lockPath -PathType Leaf)) {
+        throw 'The review-seed dependency mirror lock is missing.'
+    }
+    if ((Get-Item -LiteralPath $lockPath -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw 'The review-seed dependency mirror lock must not be a reparse point.'
+    }
+    $lockDigest = Get-ByteDigest -Path $lockPath
+    if ($lockDigest -cne [string]$Binding.lockDigest) {
+        throw 'The review-seed dependency mirror lock is stale or mismatched.'
+    }
+    $lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json -Depth 100
+    if ($lock.schema -cne 'program-kit.dependency-mirror-lock/v1' -or @($lock.packages).Count -eq 0) {
+        throw 'The review-seed dependency mirror lock contract is unsupported.'
+    }
+
+    $expectedNames = @('mirror.lock.json')
+    foreach ($package in $lock.packages) {
+        $fileName = (([string]$package.id).ToLowerInvariant() + '.' + [string]$package.version + '.nupkg')
+        $expectedNames += $fileName
+        $packagePath = Join-Path $mirror $fileName
+        if (-not (Test-Path -LiteralPath $packagePath -PathType Leaf) -or
+            ((Get-Item -LiteralPath $packagePath -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+            (Get-ByteDigest -Path $packagePath) -cne [string]$package.sha256) {
+            throw "The review-seed dependency mirror artifact is missing or changed: $fileName"
+        }
+    }
+    if (@($expectedNames | Sort-Object -Unique).Count -ne $expectedNames.Count) {
+        throw 'The review-seed dependency mirror contains duplicate package identities.'
+    }
+    if (@(Get-ChildItem -LiteralPath $mirror -Force -Directory).Count -ne 0) {
+        throw 'The review-seed dependency mirror contains undeclared directories.'
+    }
+    $actualNames = @(Get-ChildItem -LiteralPath $mirror -Force -File | ForEach-Object { $_.Name } | Sort-Object -CaseSensitive)
+    $sortedExpected = @($expectedNames | Sort-Object -CaseSensitive)
+    if (Compare-Object -ReferenceObject $sortedExpected -DifferenceObject $actualNames -CaseSensitive) {
+        throw 'The review-seed dependency mirror contains undeclared, missing, or case-colliding artifacts.'
+    }
+
+    return [ordered]@{
+        logicalPath = $logicalPath
+        lockDigest = $lockDigest
+        fileCount = $actualNames.Count
+    }
+}
+
 $contract = if ([IO.Path]::IsPathRooted($ContractPath)) {
     [IO.Path]::GetFullPath($ContractPath)
 }
@@ -78,6 +136,7 @@ foreach ($file in $seedContract.files) {
     $observedDigest = Get-ByteDigest -Path $path
     if ($observedDigest -cne [string]$file.digest) { throw "The live review seed has stale or mismatched bytes at '$($file.logicalPath)'." }
 }
+$dependencyMirror = Assert-DependencyMirror -Binding $seedContract.dependencyMirror
 
 $construct = Get-Content -LiteralPath (Resolve-SeedFile 'requests/construct.json') -Raw | ConvertFrom-Json -Depth 100
 $grant = Get-Content -LiteralPath (Resolve-SeedFile 'authority/construct-grant.json') -Raw | ConvertFrom-Json -Depth 100
@@ -108,6 +167,7 @@ if ($StaticOnly) {
         scenarioIdentity = $seedContract.scenarioIdentity
         seedContractDigest = Get-ByteDigest -Path $contract
         staticFileCount = @($seedContract.files).Count
+        dependencyMirror = $dependencyMirror
         constructAuthorityGrant = [ordered]@{
             logicalPath = [string]$construct.authorityGrant.logicalPath
             digest = [string]$construct.authorityGrant.digest
@@ -129,6 +189,11 @@ if ($reviewPacket.schema -cne 'program-kit.codex-session-review-packet/v1' -or
     $reviewPacket.scenarioIdentity -cne $seedContract.scenarioIdentity -or
     $reviewPacket.seedContractDigest -cne (Get-ByteDigest -Path $contract)) {
     throw 'The Codex session-review packet is stale or bound to a different scenario or seed contract.'
+}
+if ([string]$reviewPacket.dependencyMirror.logicalPath -cne [string]$dependencyMirror.logicalPath -or
+    [string]$reviewPacket.dependencyMirror.lockDigest -cne [string]$dependencyMirror.lockDigest -or
+    [int]$reviewPacket.dependencyMirror.fileCount -ne [int]$dependencyMirror.fileCount) {
+    throw "The Codex session-review packet's dependency-mirror binding is stale or mismatched."
 }
 
 $programKitLogicalPath = if ($IsWindows) { '.program-kit/tools/program-kit.exe' } else { '.program-kit/tools/program-kit' }
@@ -188,4 +253,5 @@ if ($versionResult.schema -cne 'program-kit.operation-result/v1' -or
         logicalPath = [string]$construct.authorityGrant.logicalPath
         digest = [string]$construct.authorityGrant.digest
     }
+    dependencyMirror = $dependencyMirror
 } | ConvertTo-Json -Depth 20 -Compress

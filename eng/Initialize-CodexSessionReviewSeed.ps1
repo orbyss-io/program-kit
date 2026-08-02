@@ -41,6 +41,26 @@ foreach ($file in $contract.files) {
     Copy-Item -LiteralPath $source -Destination $target
 }
 
+$mirrorLogicalPath = [string]$contract.dependencyMirror.logicalPath
+if ([IO.Path]::IsPathRooted($mirrorLogicalPath) -or $mirrorLogicalPath.Contains('..', [StringComparison]::Ordinal)) {
+    throw "Review-seed dependency-mirror path is unsafe: $mirrorLogicalPath"
+}
+$mirrorSource = Join-Path $repositoryRoot 'artifacts/dependency-mirror'
+$mirrorTarget = [IO.Path]::GetFullPath((Join-Path $consumer $mirrorLogicalPath))
+if (-not (Test-Path -LiteralPath (Join-Path $mirrorSource 'mirror.lock.json') -PathType Leaf)) {
+    throw 'The exact governed dependency mirror is unavailable; run the repository dependency-mirror bootstrap first.'
+}
+$sourceMirrorLockDigest = 'sha256:' + (Get-FileHash -LiteralPath (Join-Path $mirrorSource 'mirror.lock.json') -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($sourceMirrorLockDigest -cne [string]$contract.dependencyMirror.lockDigest) {
+    throw 'The repository dependency mirror is stale relative to the review-seed contract.'
+}
+if (-not (Test-Path -LiteralPath $mirrorTarget)) {
+    New-Item -ItemType Directory -Path $mirrorTarget | Out-Null
+    Get-ChildItem -LiteralPath $mirrorSource -Force -File | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination $mirrorTarget
+    }
+}
+
 $programKitLogicalPath = if ($IsWindows) { '.program-kit/tools/program-kit.exe' } else { '.program-kit/tools/program-kit' }
 $dynamicPaths = [ordered]@{
     cli = $programKitLogicalPath
@@ -72,6 +92,11 @@ New-Item -ItemType Directory -Path (Split-Path -Parent $packetPath) -Force | Out
     definition = $installation.definition
     provider = $installation.provider
     cliRelease = $installation.cliRelease
+    dependencyMirror = [ordered]@{
+        logicalPath = $mirrorLogicalPath
+        lockDigest = [string]$contract.dependencyMirror.lockDigest
+        fileCount = @(Get-ChildItem -LiteralPath $mirrorTarget -Force -File).Count
+    }
     dynamicArtifacts = $dynamicArtifacts
 } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $packetPath -Encoding utf8NoBOM
 

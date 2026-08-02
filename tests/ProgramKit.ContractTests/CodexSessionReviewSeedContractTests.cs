@@ -21,6 +21,9 @@ public sealed class CodexSessionReviewSeedContractTests
         JsonObject document = JsonNode.Parse(result.Output)?.AsObject() ?? throw new AssertFailedException("Expected preflight JSON.");
         Assert.AreEqual("ready", document["status"]!.GetValue<string>());
         Assert.AreEqual(9, document["staticFileCount"]!.GetValue<int>());
+        Assert.AreEqual("dependencies", document["dependencyMirror"]!["logicalPath"]!.GetValue<string>());
+        Assert.IsTrue(document["dependencyMirror"]!["lockDigest"]!.GetValue<string>().StartsWith("sha256:", StringComparison.Ordinal));
+        Assert.IsTrue(document["dependencyMirror"]!["fileCount"]!.GetValue<int>() > 1);
         Assert.AreEqual("authority/construct-grant.json", document["constructAuthorityGrant"]!["logicalPath"]!.GetValue<string>());
         Assert.IsTrue(document["constructAuthorityGrant"]!["digest"]!.GetValue<string>().StartsWith("sha256:", StringComparison.Ordinal));
     }
@@ -45,6 +48,22 @@ public sealed class CodexSessionReviewSeedContractTests
         string firstDigest = "sha256:" + new string(grant[(grant.IndexOf("sha256:", StringComparison.Ordinal) + 7)..].Take(64).ToArray());
         File.WriteAllText(zeroDigest.PathOf("authority/construct-grant.json"), grant.Replace(firstDigest, "sha256:" + new string('0', 64), StringComparison.Ordinal));
         AssertFailed(zeroDigest.Root, "zero digest");
+
+        using SeedWorkspace missingMirror = SeedWorkspace.Create();
+        Directory.Delete(missingMirror.PathOf("dependencies"), recursive: true);
+        AssertFailed(missingMirror.Root, "dependency mirror is missing");
+
+        using SeedWorkspace changedMirror = SeedWorkspace.Create();
+        File.AppendAllText(Directory.EnumerateFiles(changedMirror.PathOf("dependencies"), "*.nupkg").First(), "changed");
+        AssertFailed(changedMirror.Root, "dependency mirror artifact is missing or changed");
+
+        using SeedWorkspace extraMirror = SeedWorkspace.Create();
+        File.WriteAllText(Path.Combine(extraMirror.PathOf("dependencies"), "extra.nupkg"), "extra");
+        AssertFailed(extraMirror.Root, "undeclared, missing, or case-colliding artifacts");
+
+        using SeedWorkspace directoryMirror = SeedWorkspace.Create();
+        Directory.CreateDirectory(Path.Combine(directoryMirror.PathOf("dependencies"), "extra"));
+        AssertFailed(directoryMirror.Root, "undeclared directories");
     }
 
     private static void AssertFailed(string seed, string expected)
@@ -95,6 +114,9 @@ public sealed class CodexSessionReviewSeedContractTests
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 File.Copy(Path.Combine(source, logicalPath.Replace('/', Path.DirectorySeparatorChar)), target);
             }
+            CopyDirectory(
+                Path.Combine(TestRepository.Root, "artifacts", "dependency-mirror"),
+                Path.Combine(root, contract["dependencyMirror"]!["logicalPath"]!.GetValue<string>()));
             return new SeedWorkspace(root);
         }
 
@@ -106,6 +128,13 @@ public sealed class CodexSessionReviewSeedContractTests
             string resolved = Path.GetFullPath(Root);
             if (resolved.StartsWith(temporaryRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) && Directory.Exists(resolved))
                 Directory.Delete(resolved, recursive: true);
+        }
+
+        private static void CopyDirectory(string source, string destination)
+        {
+            Directory.CreateDirectory(destination);
+            foreach (string file in Directory.EnumerateFiles(source))
+                File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
         }
     }
 
