@@ -25,9 +25,16 @@ public sealed class SessionProjectionDeterminismTests
         SessionProviderConformanceReport left = new SessionProviderConformanceEvaluator().Evaluate(adapter, baseline);
         SessionProviderConformanceReport right = new SessionProviderConformanceEvaluator().Evaluate(adapter, permuted);
         Assert.AreEqual(left.ObservationDigest, right.ObservationDigest);
-        string expectedObservationDigest = OperatingSystem.IsWindows()
-            ? "sha256:ff7595b2b4f1663addf7a55da6889bd823024335bc988061eb1936bfaf77bb85"
-            : "sha256:5dbf1c2b4c8037a3b4c184ffa81cc3b9f0ae9cc725933a88bccd2e41ccde0bfa";
-        Assert.AreEqual(expectedObservationDigest, left.ObservationDigest);
+
+        SessionProjectionContext windows = WithExecutable(baseline, ".program-kit/tools/program-kit.exe");
+        SessionProjectionContext linux = WithExecutable(baseline, ".program-kit/tools/program-kit");
+        SessionProviderConformanceReport windowsReport = new SessionProviderConformanceEvaluator().Evaluate(adapter, windows);
+        SessionProviderConformanceReport linuxReport = new SessionProviderConformanceEvaluator().Evaluate(adapter, linux);
+        Assert.AreEqual("sha256:75e6c138ce46a1906ba30adc5d7835484d1d02390386604aaf441cdf8ee33167", windowsReport.ObservationDigest);
+        Assert.AreEqual("sha256:2faf690449b67030cf4e9181183b23174492bed2849d4593578c586c17295462", linuxReport.ObservationDigest);
+        Assert.AreEqual(OperatingSystem.IsWindows() ? windowsReport.ObservationDigest : linuxReport.ObservationDigest, left.ObservationDigest);
     }
+
+    private static SessionProjectionContext WithExecutable(SessionProjectionContext context, string executable) =>
+        context with { Request = context.Request with { CliRelease = context.Request.CliRelease with { WorkspaceRelativeExecutable = executable } } };
 }

@@ -4,6 +4,10 @@ param(
     [string] $ConsumerRoot
 )
 
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'Codex session review requires PowerShell 7 or later. Open PowerShell 7 with pwsh and rerun the command.'
+}
+
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $consumer = (Resolve-Path -LiteralPath $ConsumerRoot).Path

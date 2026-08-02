@@ -6,7 +6,7 @@
     "kind": "session-integration-definition",
     "name": "human-led-software-factory",
     "revision": "1.0.0",
-    "digest": "sha256:238ed8e709e0bc85204cc802556e364f51002d370145e7ce6cec7f7832c5994f"
+    "digest": "sha256:b3bb6db99a6284e7e8e85cb3d1c33d2a2212e4ec9a3b8c1ca07499ab64c27164"
   },
   "operationContracts": [
     {
@@ -65,10 +65,10 @@
     "diagnosticIdentityRequired": true
   },
   "guidanceArtifact": {
-    "identity": { "authority": "orbyss.program-kit", "kind": "session-guidance", "name": "human-led-software-factory", "revision": "1.0.0", "digest": "sha256:52bf06c6b2be94cc4e3602b4bfff5ccb44f52c45eb0c19c126b0bd4a215ce4c5" },
+    "identity": { "authority": "orbyss.program-kit", "kind": "session-guidance", "name": "human-led-software-factory", "revision": "1.0.0", "digest": "sha256:f21c6c9d4c875babafa7a28e800855197b9caa180aa08394b1fb184f6f0924aa" },
     "mediaType": "text/markdown",
     "logicalPath": "canonical/session-guidance.md",
-    "digest": "sha256:52bf06c6b2be94cc4e3602b4bfff5ccb44f52c45eb0c19c126b0bd4a215ce4c5",
+    "digest": "sha256:f21c6c9d4c875babafa7a28e800855197b9caa180aa08394b1fb184f6f0924aa",
     "ownership": "generated-owned"
   },
   "projectionRequirements": {

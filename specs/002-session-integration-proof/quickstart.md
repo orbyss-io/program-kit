@@ -7,7 +7,8 @@ Program Kit requests after bootstrap.
 
 ## 1. Prerequisites
 
-- Windows or Linux with PowerShell 7.
+- Windows or Linux with PowerShell 7. Run these commands from `pwsh`, not
+  Windows PowerShell 5.1.
 - Exact .NET SDK from `global.json` (`10.0.302` for this feature).
 - A clean Program Kit checkout used only to build the distribution and run its
   standard tests.
@@ -323,19 +324,26 @@ authorizes the ten launches:
   -ExpectedCodexVersion 0.137.0 `
   -ExpectedModel gpt-5.5 `
   -ReviewerIdentity '<independent-reviewer-id>' `
+  -CodexPath '<absolute-path-to-codex-executable>' `
   -EvidencePath 'specs/002-session-integration-proof/reviews/codex-session-review-remediated.json' `
   -AuthorizeProviderLaunch
 ```
 
-The review launches fresh ephemeral Codex sessions in the isolated consumer
-repository and supplies the exact accepted scenario identities. The reviewer
-answers approval questions directly. The script records only:
+`-CodexPath` is optional when `codex` is already discoverable or the Windows
+desktop installation is present at its standard user-local location. The script
+does not modify PATH. The review launches fresh ephemeral Codex sessions in the
+isolated consumer repository and supplies the exact accepted scenario
+identities. The session must read and name the exact existing grant logical path
+before asking the reviewer to select it; the reviewer must not discover or guess
+the path on the session's behalf. A vague authority request is a failed trial.
+The reviewer answers approval questions directly. The script records only:
 
 - tested provider, version, and explicitly pinned model;
 - installation identity and trial identity;
 - expected scenario identity;
 - observed Program Kit operation sequence;
 - whether construction preceded human approval;
+- whether the session itself named the exact request-bound grant;
 - typed final outcome, effect, and disposition; and
 - reviewer attestation and limitations.
 

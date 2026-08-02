@@ -453,3 +453,46 @@ expected typed authority/drift failures, and empty failure collections.
 T117 is complete without a duplicated local full gate. T118 remains the next
 mandatory checkpoint: a new explicitly human-operated ten-fresh-session Codex
 review against this exact CI-green candidate. Product acceptance remains false.
+
+### Human-review usability convergence — 2026-08-02
+
+The first attempted T118 session was stopped without evidence after the session
+asked the reviewer to select an “existing exact request-bound grant” but did not
+name `authority/construct-grant.json`. This is retained as a usability finding,
+not a failed or assisted trial. T121–T123 now require the session to read and
+name `authorityGrant.logicalPath` before asking, require a separate
+`exactGrantNamed` reviewer attestation for every passing trial, and reject a
+vague authority request. The bounded evidence continues to exclude the path,
+prompt, response, transcript, provider output, and credentials.
+
+The launcher now stops Windows PowerShell 5.1 before preflight with an explicit
+PowerShell 7/`pwsh` instruction. It accepts an optional absolute `-CodexPath`,
+otherwise checks command discovery and the standard Windows desktop location,
+preserves exact version/model checks, and never mutates PATH. A direct
+non-launching Windows PowerShell probe observed the new prerequisite error.
+
+Focused proof passed 11 guidance/resource/seed/review contract tests and 2
+human-led workflow acceptance tests. The projection determinism proof now
+asserts both platform observations on every machine:
+`sha256:75e6c138ce46a1906ba30adc5d7835484d1d02390386604aaf441cdf8ee33167`
+for Windows and
+`sha256:2faf690449b67030cf4e9181183b23174492bed2849d4593578c586c17295462`
+for Linux. The invalidated canonical identities are guidance
+`sha256:f21c6c9d4c875babafa7a28e800855197b9caa180aa08394b1fb184f6f0924aa`,
+definition
+`sha256:b3bb6db99a6284e7e8e85cb3d1c33d2a2212e4ec9a3b8c1ca07499ab64c27164`,
+and provider/adapter
+`sha256:596394fc3a130079c48a7cd62c2efa6c52ae6dac9696d4493eb0be8e7ff8900d`.
+The review-evidence schema byte digest is
+`sha256:6f64e5b20567584dbcc21ad087f71eb22731155141f7c67c3acbc18cf41dba76`.
+
+T124 regenerated the affected distribution evidence; the checked-in manifest
+byte digest is
+`sha256:53e7843c665f09e7c8f583091938fc16f00d02271dbc8fc7ffec6ccdfa504baf`.
+One `eng/Invoke-Verification.ps1 -Mode PrePr` repair rerun then passed Spec Kit
+integrity, canonical text, four zero-warning/error isolated builds, 46 unit
+tests, 65 contract tests, changed-file formatting, and diff hygiene. The full
+local acceptance/conformance/platform matrix and live Codex were intentionally
+not run. T121–T124 are complete; T125 requires authoritative protected
+Windows/Linux CI for the exact pushed repair. The earlier prepared consumer is
+identity-stale and must not be used for T118; a fresh packet follows T125.

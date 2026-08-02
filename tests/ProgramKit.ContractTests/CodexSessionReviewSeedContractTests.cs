@@ -21,6 +21,8 @@ public sealed class CodexSessionReviewSeedContractTests
         JsonObject document = JsonNode.Parse(result.Output)?.AsObject() ?? throw new AssertFailedException("Expected preflight JSON.");
         Assert.AreEqual("ready", document["status"]!.GetValue<string>());
         Assert.AreEqual(9, document["staticFileCount"]!.GetValue<int>());
+        Assert.AreEqual("authority/construct-grant.json", document["constructAuthorityGrant"]!["logicalPath"]!.GetValue<string>());
+        Assert.IsTrue(document["constructAuthorityGrant"]!["digest"]!.GetValue<string>().StartsWith("sha256:", StringComparison.Ordinal));
     }
 
     [TestMethod]

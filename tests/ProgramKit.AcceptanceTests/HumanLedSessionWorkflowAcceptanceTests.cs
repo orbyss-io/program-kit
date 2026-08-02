@@ -42,6 +42,11 @@ public sealed class HumanLedSessionWorkflowAcceptanceTests
             Assert.IsTrue(missingAuthority["continuation"]!["missingInputs"]!.AsArray().Any(static item => item!["identity"]!.GetValue<string>() == "authoritygrant"));
             Assert.AreEqual(beforeDecline, TestRepository.DigestTree(workspace), "Declining to provide authority must leave the workspace unchanged.");
 
+            JsonObject exactConstructRequest = JsonNode.Parse(File.ReadAllText(Path.Combine(workspace, "requests", "construct.json")))!.AsObject();
+            string exactGrantLogicalPath = exactConstructRequest["authorityGrant"]!["logicalPath"]!.GetValue<string>();
+            Assert.AreEqual("authority/construct-grant.json", exactGrantLogicalPath);
+            Assert.IsTrue(File.Exists(Path.Combine(workspace, exactGrantLogicalPath.Replace('/', Path.DirectorySeparatorChar))), "The session-named grant must already exist at the exact request-bound logical path.");
+
             (int constructExit, string constructOutput, _) = TestRepository.RunCli("construct", "--workspace", workspace, "--request", Path.Combine(workspace, "requests", "construct.json"), "--format", "json");
             Assert.AreEqual(0, constructExit, constructOutput);
             JsonObject constructed = ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, constructOutput);

@@ -10,6 +10,10 @@ param(
     [switch] $StaticOnly
 )
 
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'Codex session review requires PowerShell 7 or later. Open PowerShell 7 with pwsh and rerun the command.'
+}
+
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $seed = (Resolve-Path -LiteralPath $SeedRoot).Path
@@ -104,6 +108,10 @@ if ($StaticOnly) {
         scenarioIdentity = $seedContract.scenarioIdentity
         seedContractDigest = Get-ByteDigest -Path $contract
         staticFileCount = @($seedContract.files).Count
+        constructAuthorityGrant = [ordered]@{
+            logicalPath = [string]$construct.authorityGrant.logicalPath
+            digest = [string]$construct.authorityGrant.digest
+        }
     } | ConvertTo-Json -Compress
     return
 }
@@ -176,4 +184,8 @@ if ($versionResult.schema -cne 'program-kit.operation-result/v1' -or
     definition = $installation.definition
     provider = $installation.provider
     cliRelease = $installation.cliRelease
+    constructAuthorityGrant = [ordered]@{
+        logicalPath = [string]$construct.authorityGrant.logicalPath
+        digest = [string]$construct.authorityGrant.digest
+    }
 } | ConvertTo-Json -Depth 20 -Compress

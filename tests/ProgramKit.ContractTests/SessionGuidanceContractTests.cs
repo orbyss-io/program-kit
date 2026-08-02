@@ -16,6 +16,8 @@ public sealed class SessionGuidanceContractTests
         StringAssert.Contains(guidance, "provider selection as explicit");
         StringAssert.Contains(guidance, "conversation and human confirmation as direction, never as an authority grant");
         StringAssert.Contains(guidance, "do not author, widen, refresh, replace, or reuse a grant");
+        StringAssert.Contains(guidance, "read its existing authorityGrant.logicalPath, name that exact request-bound grant before asking");
+        StringAssert.Contains(guidance, "never require the human to discover or guess the grant");
         StringAssert.Contains(guidance, "Invoke construct only for the same reviewed canonical request");
         StringAssert.Contains(guidance, "Invoke evaluate only after construct reports that successful committed result");
         StringAssert.Contains(guidance, "obey primaryDisposition");

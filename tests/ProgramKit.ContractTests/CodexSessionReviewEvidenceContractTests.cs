@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -29,6 +30,10 @@ public sealed class CodexSessionReviewEvidenceContractTests
         JsonObject inconsistentAttestation = (JsonObject)ready.DeepClone();
         inconsistentAttestation["trials"]![2]!["missingInputAskedWithinTwoTurns"] = false;
         AssertInvalid(inconsistentAttestation);
+
+        JsonObject vagueAuthorityRequest = (JsonObject)ready.DeepClone();
+        vagueAuthorityRequest["trials"]![2]!["exactGrantNamed"] = false;
+        AssertInvalid(vagueAuthorityRequest);
 
         JsonObject repeatedTrial = (JsonObject)ready.DeepClone();
         repeatedTrial["trials"]![9]!["trial"] = 9;
@@ -65,7 +70,46 @@ public sealed class CodexSessionReviewEvidenceContractTests
 
         Assert.IsTrue(preflight >= 0 && providerResolution > preflight);
         StringAssert.Contains(launcher, "-ValidateOnly");
+        StringAssert.Contains(launcher, "-CodexPath");
+        StringAssert.Contains(launcher, "Programs/OpenAI/Codex/bin/codex.exe");
+        StringAssert.Contains(launcher, "requires PowerShell 7 or later");
+        StringAssert.Contains(launcher, "name its exact logicalPath");
+        StringAssert.Contains(launcher, "a vague authority request is a failed attestation");
         StringAssert.Contains(launcher, "codex-session-review-remediated.json");
+        Assert.IsFalse(launcher.Contains("$env:PATH", StringComparison.OrdinalIgnoreCase), "The review launcher must not mutate PATH.");
+    }
+
+    [TestMethod]
+    public void Windows_PowerShell_stops_with_actionable_PowerShell_7_guidance_before_preflight()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        ProcessStartInfo start = new("powershell.exe")
+        {
+            WorkingDirectory = TestRepository.Root,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        start.ArgumentList.Add("-NoProfile");
+        start.ArgumentList.Add("-ExecutionPolicy");
+        start.ArgumentList.Add("Bypass");
+        start.ArgumentList.Add("-File");
+        start.ArgumentList.Add(Path.Combine(TestRepository.Root, "eng", "Invoke-CodexSessionReview.ps1"));
+        start.ArgumentList.Add("-ConsumerRoot");
+        start.ArgumentList.Add(Path.GetTempPath());
+        start.ArgumentList.Add("-ReviewerIdentity");
+        start.ArgumentList.Add("contract-probe");
+        start.ArgumentList.Add("-ValidateOnly");
+
+        using Process process = Process.Start(start) ?? throw new AssertFailedException("Could not start Windows PowerShell.");
+        string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+        Assert.IsTrue(process.WaitForExit(20_000), "Windows PowerShell prerequisite probe timed out.");
+        Assert.AreNotEqual(0, process.ExitCode);
+        StringAssert.Contains(output, "requires PowerShell 7 or later");
+        StringAssert.Contains(output, "pwsh");
+        Assert.IsFalse(output.Contains("Assert-CodexSessionReviewSeed", StringComparison.Ordinal));
     }
 
     private static JsonObject Evidence() => new()
@@ -109,6 +153,7 @@ public sealed class CodexSessionReviewEvidenceContractTests
         ["operationOrderMatched"] = true,
         ["missingInputAskedWithinTwoTurns"] = true,
         ["explicitAuthorityRequested"] = true,
+        ["exactGrantNamed"] = true,
         ["authorityPrecededEffect"] = true,
         ["boundedConstructionCompleted"] = true,
         ["constructionEffectState"] = "committed",
