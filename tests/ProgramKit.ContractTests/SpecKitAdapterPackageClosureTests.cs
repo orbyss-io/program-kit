@@ -45,6 +45,18 @@ public sealed class SpecKitAdapterPackageClosureTests
                 "tools/program-kit-spec-kit-adapter.runtimeconfig.json",
             }) Assert.IsTrue(entries.ContainsKey(required), required);
 
+            foreach (string generatedJson in new[]
+            {
+                "tools/program-kit-spec-kit-adapter.deps.json",
+                "tools/program-kit-spec-kit-adapter.runtimeconfig.json",
+            })
+            {
+                byte[] bytes = entries[generatedJson];
+                Assert.IsFalse(bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble), generatedJson);
+                Assert.IsFalse(bytes.AsSpan().Contains((byte)'\r'), generatedJson);
+                _ = CanonicalJson.Parse(bytes);
+            }
+
             string[] expectedSchemas = Directory.EnumerateFiles(Path.Combine(TestRepository.Root, "src", "ProgramKit.SpecKitAdapter", "Schemas"), "*.schema.json")
                 .Select(Path.GetFileName)
                 .OrderBy(static value => value, StringComparer.Ordinal)

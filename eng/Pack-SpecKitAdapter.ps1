@@ -49,19 +49,42 @@ try {
         Copy-Item -Path (Join-Path $resolvedTools '*') -Destination $publishRoot -Recurse
     }
     else {
+        $adapterProject = Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj'
+        $releaseProperties = @(
+            '-p:ContinuousIntegrationBuild=true',
+            '-p:DebugSymbols=false',
+            '-p:DebugType=None'
+        )
+        if (-not $NoBuild) {
+            $buildArguments = @(
+                'build',
+                $adapterProject,
+                '--configuration', 'Release',
+                '--no-restore',
+                '--no-incremental'
+            ) + $releaseProperties
+            & dotnet @buildArguments
+            if ($LASTEXITCODE -ne 0) { throw 'Spec Kit adapter release build failed.' }
+        }
         $publishArguments = @(
             'publish',
-            (Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj'),
+            $adapterProject,
             '--configuration', 'Release',
             '--no-restore',
+            '--no-build',
             '--output', $publishRoot,
-            '-p:ContinuousIntegrationBuild=true'
+            $releaseProperties
         )
-        if ($NoBuild) { $publishArguments += '--no-build' }
         & dotnet @publishArguments
         if ($LASTEXITCODE -ne 0) { throw 'Spec Kit adapter publish failed.' }
     }
     Get-ChildItem -LiteralPath $publishRoot -File | Where-Object { $_.Extension -In @('.pdb', '.xml', '.exe') } | Remove-Item -Force
+    $utf8NoBom = [Text.UTF8Encoding]::new($false, $true)
+    foreach ($generatedJson in (Get-ChildItem -LiteralPath $publishRoot -File -Filter '*.json')) {
+        $jsonText = [IO.File]::ReadAllText($generatedJson.FullName, $utf8NoBom)
+        $normalizedJson = $jsonText.Replace("`r`n", "`n").Replace("`r", "`n")
+        [IO.File]::WriteAllText($generatedJson.FullName, $normalizedJson, $utf8NoBom)
+    }
 
     $requiredFiles = @(
         'extension.yml',

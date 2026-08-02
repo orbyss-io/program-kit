@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -103,8 +104,11 @@ public sealed class DistributionEvidenceTests
         Assert.AreEqual(AdapterDiagnosticCatalog.Digest, bindings["diagnosticCatalog"]!.GetValue<string>());
         Assert.AreEqual(Digest(Path.Combine(evidenceRoot, "provider-support.json")), bindings["providerSupport"]!.GetValue<string>());
         string packageRoot = Path.Combine(TestRepository.Root, "artifacts", "work", "evidence-adapter-package");
+        string packagedTools = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0", "tools");
         string archive = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0.zip");
         string releaseFiles = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0", "release-files.json");
+        AssertNoCodeViewDebugEntry(Path.Combine(packagedTools, "program-kit-spec-kit-adapter.dll"));
+        AssertNoCodeViewDebugEntry(Path.Combine(packagedTools, "ProgramKit.Contracts.dll"));
         Assert.AreEqual(release["archiveDigest"]!.GetValue<string>(), Digest(archive));
         Assert.AreEqual(release["releaseFilesDigest"]!.GetValue<string>(), Digest(releaseFiles));
         JsonObject releaseFilesDocument = Read(releaseFiles);
@@ -123,6 +127,13 @@ public sealed class DistributionEvidenceTests
     }
 
     private static JsonObject Read(string path) => CanonicalJson.Parse(File.ReadAllBytes(path)).AsObject();
+    private static void AssertNoCodeViewDebugEntry(string path)
+    {
+        using FileStream stream = File.OpenRead(path);
+        using PEReader reader = new(stream);
+        Assert.IsFalse(reader.ReadDebugDirectory().Any(static entry => entry.Type == DebugDirectoryEntryType.CodeView), path);
+    }
+
     private static string Digest(string path) => $"sha256:{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant()}";
     private static string[] Values(JsonObject document, string name) => document[name]!.AsArray().Select(static item => item!.GetValue<string>()).ToArray();
 }
