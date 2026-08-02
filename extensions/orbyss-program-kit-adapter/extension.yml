@@ -11,50 +11,58 @@ requires:
   speckit_version: "==0.15.1"
 provides:
   commands:
-    - name: speckit.program-kit.doctor
+    - name: speckit.orbyss-program-kit-adapter.doctor
       file: commands/doctor.md
       description: Validate base or feature readiness.
-    - name: speckit.program-kit.activate
+    - name: speckit.orbyss-program-kit-adapter.activate
       file: commands/activate.md
       description: Propose explicit feature activation.
-    - name: speckit.program-kit.disable
+    - name: speckit.orbyss-program-kit-adapter.disable
       file: commands/disable.md
       description: Propose explicit feature disablement.
-    - name: speckit.program-kit.handoff
+    - name: speckit.orbyss-program-kit-adapter.handoff
       file: commands/handoff.md
       description: Propose a bounded factory handoff.
-    - name: speckit.program-kit.validate
+    - name: speckit.orbyss-program-kit-adapter.validate
       file: commands/validate.md
       description: Validate current adapter state.
-    - name: speckit.program-kit.prepare
+    - name: speckit.orbyss-program-kit-adapter.prepare
       file: commands/prepare.md
       description: Translate and prepare without construction.
-    - name: speckit.program-kit.explain
+    - name: speckit.orbyss-program-kit-adapter.explain
       file: commands/explain.md
       description: Explain the prepared public factory request.
-    - name: speckit.program-kit.construct
+    - name: speckit.orbyss-program-kit-adapter.construct
       file: commands/construct.md
       description: Explicitly construct with a supplied grant.
-    - name: speckit.program-kit.evaluate
+    - name: speckit.orbyss-program-kit-adapter.evaluate
       file: commands/evaluate.md
       description: Evaluate the constructed product.
-    - name: speckit.program-kit.cleanup
+    - name: speckit.orbyss-program-kit-adapter.cleanup
       file: commands/cleanup.md
       description: Remove unchanged regenerable adapter candidates.
+  config:
+    - name: orbyss-program-kit-adapter-config.yml
+      template: config/orbyss-program-kit-adapter-config.template.yml
+      description: Repository-owned adapter activation and exact profile defaults.
+      required: true
   hooks:
     - event: after_plan
-      command: speckit.program-kit.handoff
+      command: speckit.orbyss-program-kit-adapter.handoff
       optional: true
       priority: 10
     - event: after_tasks
-      command: speckit.program-kit.validate
+      command: speckit.orbyss-program-kit-adapter.validate
       optional: true
       priority: 10
     - event: before_implement
-      command: speckit.program-kit.validate
+      command: speckit.orbyss-program-kit-adapter.validate
       optional: false
       priority: 10
     - event: after_implement
-      command: speckit.program-kit.prepare
+      command: speckit.orbyss-program-kit-adapter.prepare
       optional: true
       priority: 10
+
+config:
+  defaults: {}

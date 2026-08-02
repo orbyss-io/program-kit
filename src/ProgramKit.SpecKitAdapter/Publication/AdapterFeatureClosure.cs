@@ -20,6 +20,7 @@ public static class AdapterFeatureClosure
         Dictionary<string, JsonObject> documents = new(StringComparer.Ordinal);
         foreach (JsonObject output in manifest["outputs"]!.AsArray().OfType<JsonObject>())
         {
+            if (output["state"]?.GetValue<string>() == "removed") continue;
             string logicalPath = output["logicalPath"]!.GetValue<string>();
             string path = LogicalPathPolicy.Resolve(workspaceRoot, logicalPath);
             byte[] bytes = File.ReadAllBytes(path);

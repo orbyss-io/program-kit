@@ -278,16 +278,20 @@ Program Kit trust or authority provider.
 
 **Decision**: Ship these final command identities:
 
-- `speckit.program-kit.doctor`
-- `speckit.program-kit.activate`
-- `speckit.program-kit.disable`
-- `speckit.program-kit.handoff`
-- `speckit.program-kit.validate`
-- `speckit.program-kit.prepare`
-- `speckit.program-kit.explain`
-- `speckit.program-kit.construct`
-- `speckit.program-kit.evaluate`
-- `speckit.program-kit.cleanup`
+- `speckit.orbyss-program-kit-adapter.doctor`
+- `speckit.orbyss-program-kit-adapter.activate`
+- `speckit.orbyss-program-kit-adapter.disable`
+- `speckit.orbyss-program-kit-adapter.handoff`
+- `speckit.orbyss-program-kit-adapter.validate`
+- `speckit.orbyss-program-kit-adapter.prepare`
+- `speckit.orbyss-program-kit-adapter.explain`
+- `speckit.orbyss-program-kit-adapter.construct`
+- `speckit.orbyss-program-kit-adapter.evaluate`
+- `speckit.orbyss-program-kit-adapter.cleanup`
+
+Spec Kit 0.15.1 requires the middle command namespace to equal the exact
+extension ID. The shorter `speckit.program-kit.*` spelling is therefore not a
+valid installable V1 contract.
 
 The adapter executable accepts one canonical adapter request file and emits one
 adapter-result envelope. Commands may create absent seeded handoffs or

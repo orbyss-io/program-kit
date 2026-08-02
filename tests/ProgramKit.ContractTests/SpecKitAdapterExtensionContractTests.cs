@@ -22,19 +22,19 @@ public sealed class SpecKitAdapterExtensionContractTests
             .ToArray();
         CollectionAssert.AreEquivalent(new[]
         {
-            "speckit.program-kit.doctor", "speckit.program-kit.activate", "speckit.program-kit.disable",
-            "speckit.program-kit.handoff", "speckit.program-kit.validate", "speckit.program-kit.prepare",
-            "speckit.program-kit.explain", "speckit.program-kit.construct", "speckit.program-kit.evaluate",
-            "speckit.program-kit.cleanup",
+            "speckit.orbyss-program-kit-adapter.doctor", "speckit.orbyss-program-kit-adapter.activate", "speckit.orbyss-program-kit-adapter.disable",
+            "speckit.orbyss-program-kit-adapter.handoff", "speckit.orbyss-program-kit-adapter.validate", "speckit.orbyss-program-kit-adapter.prepare",
+            "speckit.orbyss-program-kit-adapter.explain", "speckit.orbyss-program-kit-adapter.construct", "speckit.orbyss-program-kit-adapter.evaluate",
+            "speckit.orbyss-program-kit-adapter.cleanup",
         }, commands);
 
         JsonObject[] hooks = provides["hooks"]!.AsArray().OfType<JsonObject>().ToArray();
-        AssertHook(hooks, "after_plan", "speckit.program-kit.handoff", optional: true);
-        AssertHook(hooks, "after_tasks", "speckit.program-kit.validate", optional: true);
-        AssertHook(hooks, "before_implement", "speckit.program-kit.validate", optional: false);
-        AssertHook(hooks, "after_implement", "speckit.program-kit.prepare", optional: true);
+        AssertHook(hooks, "after_plan", "speckit.orbyss-program-kit-adapter.handoff", optional: true);
+        AssertHook(hooks, "after_tasks", "speckit.orbyss-program-kit-adapter.validate", optional: true);
+        AssertHook(hooks, "before_implement", "speckit.orbyss-program-kit-adapter.validate", optional: false);
+        AssertHook(hooks, "after_implement", "speckit.orbyss-program-kit-adapter.prepare", optional: true);
         Assert.IsTrue(hooks.All(hook => hook["command"]!.GetValue<string>() is
-            "speckit.program-kit.handoff" or "speckit.program-kit.validate" or "speckit.program-kit.prepare"));
+            "speckit.orbyss-program-kit-adapter.handoff" or "speckit.orbyss-program-kit-adapter.validate" or "speckit.orbyss-program-kit-adapter.prepare"));
 
         foreach (string command in new[] { "handoff", "validate", "prepare" })
         {

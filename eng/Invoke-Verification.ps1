@@ -135,7 +135,7 @@ try {
         Invoke-Checked { dotnet build ProgramKit.slnx --configuration Release --no-restore } 'Release build failed.'
         Invoke-Checked { & (Join-Path $PSScriptRoot 'Generate-DistributionEvidence.ps1') } 'Distribution evidence generation failed.'
         Invoke-Checked { & git diff --exit-code -- artifacts/evidence } 'Checked-in distribution evidence is stale.'
-        Invoke-Checked { dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore } 'Authoritative Ubuntu test proof failed.'
+        Invoke-Checked { dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore --filter 'TestCategory!=PlatformLifecycle' } 'Authoritative platform-neutral Ubuntu test proof failed.'
         Invoke-Checked { dotnet format ProgramKit.slnx --no-restore --verify-no-changes } 'Repository formatting verification failed.'
         Invoke-Checked { & git diff --check } 'Git whitespace verification failed.'
         Write-Host 'CI core verification passed once. The workflow-owned platform job runs only package/process/path/lifecycle/end-to-end proof.'

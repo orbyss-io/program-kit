@@ -41,6 +41,7 @@ public static class Program
                 AdapterOperation.Explain => new ExplainCommand().Execute(workspace, request),
                 AdapterOperation.Construct => new ConstructCommand().Execute(workspace, request),
                 AdapterOperation.Evaluate => new EvaluateCommand().Execute(workspace, request),
+                AdapterOperation.Cleanup => CleanupCommand.Execute(workspace, request),
                 _ => AdapterResultWriter.Failure(operation, AdapterFailureKind.InvalidHandoff),
             };
         }

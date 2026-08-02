@@ -19,6 +19,7 @@ public sealed class VerificationTierContractTests
         StringAssert.Contains(script, "Human verification is a post-CI review checkpoint");
         Assert.AreEqual(1, Count(script, "Generate-DistributionEvidence.ps1"));
         Assert.AreEqual(1, Count(script, "dotnet test ProgramKit.slnx"));
+        StringAssert.Contains(script, "TestCategory!=PlatformLifecycle");
 
         int prePrStart = script.IndexOf("$dependencyChanges", System.StringComparison.Ordinal);
         string prePr = script[prePrStart..];
@@ -38,6 +39,8 @@ public sealed class VerificationTierContractTests
         StringAssert.Contains(workflow, "os: [windows-latest, ubuntu-latest]");
         StringAssert.Contains(workflow, "--filter");
         StringAssert.Contains(workflow, "SpecKitAdapterProductRuntimeAcceptanceTests");
+        StringAssert.Contains(workflow, "SpecKitAdapterLifecycleAcceptanceTests");
+        StringAssert.Contains(workflow, "uv tool install specify-cli==0.15.1");
         Assert.AreEqual(1, Count(workflow, "Run authoritative Ubuntu core proof once"));
         Assert.AreEqual(1, Count(workflow, "Upload bounded core evidence"));
 
@@ -45,6 +48,7 @@ public sealed class VerificationTierContractTests
         Assert.IsFalse(platform.Contains("Generate-DistributionEvidence.ps1", System.StringComparison.Ordinal));
         Assert.IsFalse(platform.Contains("dotnet test ProgramKit.slnx", System.StringComparison.Ordinal));
         Assert.IsFalse(platform.Contains("dotnet format ProgramKit.slnx", System.StringComparison.Ordinal));
+        Assert.AreEqual(1, Count(workflow, "uv tool install specify-cli==0.15.1"));
     }
 
     [TestMethod]

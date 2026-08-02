@@ -17,6 +17,8 @@ public static class AdapterGeneratedManifestBuilder
             ["logicalPath"] = item.Key,
             ["digest"] = "sha256:" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(item.Value)).ToLowerInvariant(),
             ["ownership"] = "adapter-generated-owned",
+            ["retention"] = item.Key.Contains("/definitions/", StringComparison.Ordinal) ? "regenerable-candidate" : "retained-evidence",
+            ["state"] = "current",
         }).ToArray());
         JsonObject invalidation = TraceInvalidationEngine.Build(handoff, reviewDigest, translation, trace, compatibility.Digest);
         JsonObject manifest = new()

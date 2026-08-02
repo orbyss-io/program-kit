@@ -60,6 +60,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.302
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v6
+      - name: Install exact Spec Kit lifecycle CLI
+        shell: pwsh
+        run: |
+          uv tool install specify-cli==0.15.1
+          uv tool dir --bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Bootstrap exact dependency mirror
         shell: pwsh
         run: ./eng/Bootstrap-DependencyMirror.ps1
@@ -74,7 +83,7 @@ jobs:
           --no-build
           --no-restore
           --filter
-          "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~PackagedToolRemovalAcceptanceTests|FullyQualifiedName~PackagedSessionNegativeMatrixAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests|FullyQualifiedName~SessionRemovalAcceptanceTests|FullyQualifiedName~SessionCliReleaseBindingAcceptanceTests|FullyQualifiedName~SpecKitAdapterBootstrapAcceptanceTests|FullyQualifiedName~SpecKitAdapterPreparationAcceptanceTests|FullyQualifiedName~SpecKitAdapterConstructionAcceptanceTests|FullyQualifiedName~SpecKitAdapterProductRuntimeAcceptanceTests"
+          "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~PackagedToolRemovalAcceptanceTests|FullyQualifiedName~PackagedSessionNegativeMatrixAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests|FullyQualifiedName~SessionRemovalAcceptanceTests|FullyQualifiedName~SessionCliReleaseBindingAcceptanceTests|FullyQualifiedName~SpecKitAdapterBootstrapAcceptanceTests|FullyQualifiedName~SpecKitAdapterPreparationAcceptanceTests|FullyQualifiedName~SpecKitAdapterConstructionAcceptanceTests|FullyQualifiedName~SpecKitAdapterProductRuntimeAcceptanceTests|FullyQualifiedName~SpecKitAdapterLifecycleAcceptanceTests"
       - name: Pack workspace-local CLI
         shell: pwsh
         run: ./eng/Pack-ProgramKitTool.ps1 -OutputRoot (Join-Path $env:RUNNER_TEMP 'program-kit-tool-feed')

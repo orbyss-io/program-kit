@@ -98,7 +98,7 @@ The supported project configuration is instantiated at
 from the adjacent extension-owned template. Commit the project configuration;
 do not use the `.local.yml` or environment layers for adapter semantics.
 
-Invoke the registered `speckit.program-kit.doctor` command through the active
+Invoke the registered `speckit.orbyss-program-kit-adapter.doctor` command through the active
 AI integration for base scope.
 
 Expected:
@@ -157,14 +157,14 @@ Expected:
 Run the normal Spec Kit specify/clarify/plan/tasks flow for the Reference Status
 example. Invoke:
 
-1. `speckit.program-kit.activate` for the exact feature;
-2. `speckit.program-kit.handoff` to create an absent candidate;
+1. `speckit.orbyss-program-kit-adapter.activate` for the exact feature;
+2. `speckit.orbyss-program-kit-adapter.handoff` to create an absent candidate;
 3. human review of applicability, exact inherited/explicit profile, provider
    fields, generated/custom ownership, unresolved/unsupported/deferred/excluded
    meaning, effect ceiling, and field-level trace; and
 4. creation of `handoff-review.json` binding that exact handoff and named human.
 
-Then invoke `speckit.program-kit.validate`.
+Then invoke `speckit.orbyss-program-kit-adapter.validate`.
 
 Expected:
 
@@ -180,8 +180,8 @@ Expected:
 After custom implementation referenced by the handoff exists, invoke:
 
 ```text
-speckit.program-kit.prepare
-speckit.program-kit.explain
+speckit.orbyss-program-kit-adapter.prepare
+speckit.orbyss-program-kit-adapter.explain
 ```
 
 Expected generated closure:
@@ -229,8 +229,8 @@ used elsewhere, is separately identified and disclosed.
 
 ## 11. Construct and evaluate explicitly
 
-Supply the exact grant reference to `speckit.program-kit.construct`, then invoke
-`speckit.program-kit.evaluate`.
+Supply the exact grant reference to `speckit.orbyss-program-kit-adapter.construct`, then invoke
+`speckit.orbyss-program-kit-adapter.evaluate`.
 
 Expected:
 

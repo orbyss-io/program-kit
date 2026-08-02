@@ -26,16 +26,16 @@ Installation through Spec Kit proves only **installed**. Base doctor proves
 
 | Spec Kit command | Maximum effect | Required behavior |
 |---|---:|---|
-| `speckit.program-kit.doctor` | none | Base or feature readiness and exact compatibility |
-| `speckit.program-kit.activate` | config/handoff proposal | Propose explicit feature applicability/profile override; never authority |
-| `speckit.program-kit.disable` | config/handoff proposal | Record/propose exact disable; preserve all prior work |
-| `speckit.program-kit.handoff` | seeded/adapter files | Propose an absent handoff and show unresolved meaning |
-| `speckit.program-kit.validate` | none | Validate config, handoff, review, trace, ownership, paths, staleness |
-| `speckit.program-kit.prepare` | adapter files | Translate exact inputs and invoke public `prepare` |
-| `speckit.program-kit.explain` | adapter files | Invoke public `explain`; capture exact result |
-| `speckit.program-kit.construct` | bounded Program Kit effect | Require exact caller-supplied grant; invoke public `construct` |
-| `speckit.program-kit.evaluate` | adapter files | Invoke public `evaluate`; capture exact result |
-| `speckit.program-kit.cleanup` | adapter candidates only | Digest-checked removal of unchanged regenerable candidates |
+| `speckit.orbyss-program-kit-adapter.doctor` | none | Base or feature readiness and exact compatibility |
+| `speckit.orbyss-program-kit-adapter.activate` | config/handoff proposal | Propose explicit feature applicability/profile override; never authority |
+| `speckit.orbyss-program-kit-adapter.disable` | config/handoff proposal | Record/propose exact disable; preserve all prior work |
+| `speckit.orbyss-program-kit-adapter.handoff` | seeded/adapter files | Propose an absent handoff and show unresolved meaning |
+| `speckit.orbyss-program-kit-adapter.validate` | none | Validate config, handoff, review, trace, ownership, paths, staleness |
+| `speckit.orbyss-program-kit-adapter.prepare` | adapter files | Translate exact inputs and invoke public `prepare` |
+| `speckit.orbyss-program-kit-adapter.explain` | adapter files | Invoke public `explain`; capture exact result |
+| `speckit.orbyss-program-kit-adapter.construct` | bounded Program Kit effect | Require exact caller-supplied grant; invoke public `construct` |
+| `speckit.orbyss-program-kit-adapter.evaluate` | adapter files | Invoke public `evaluate`; capture exact result |
+| `speckit.orbyss-program-kit-adapter.cleanup` | adapter candidates only | Digest-checked removal of unchanged regenerable candidates |
 
 Command instructions are AI-facing guidance. The deterministic executable owns
 schema validation, translation, path safety, Program Kit invocation, and result
