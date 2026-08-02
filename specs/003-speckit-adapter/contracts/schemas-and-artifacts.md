@@ -65,6 +65,11 @@ disable/update never rewrites it and removal uses Spec Kit `--keep-config`.
 `orbyss-program-kit-adapter-config.local.yml` and environment overrides are not
 semantic inputs and are reported rather than merged.
 
+The release compatibility document also carries one closed `translationProfile`.
+That binding is the sole adapter authority for the supported definition family,
+provider/profile identities, emitted media types, and emitted or consumed schema
+identities; translation fails closed when the current workspace lock differs.
+
 ## Conditional feature artifact set
 
 ```text

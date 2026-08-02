@@ -15,10 +15,12 @@ public sealed class DotNetHandoffTranslator
 
     public TranslationResult Translate(BoundHandoff handoff, JsonObject workspaceLock)
     {
+        AdapterTranslationProfile compatibility = AdapterCompatibility.Load().TranslationProfile;
+        RequireExact(handoff.Document["definitionFamily"]!, compatibility.DefinitionFamily, "The handoff definition family is outside the tested adapter compatibility manifest.");
         string featureKey = handoff.Document["feature"]!["key"]!.GetValue<string>();
         string featureRoot = $"specs/{featureKey}/program-kit/generated";
         JsonObject definition = (JsonObject)handoff.Document["definition"]!.DeepClone();
-        if (definition["schema"]?.GetValue<string>() != "program-kit.provider.dotnet.component-api-definition/v1")
+        if (definition["schema"]?.GetValue<string>() != compatibility.DefinitionSchema)
             throw new InvalidOperationException("Only the bounded .NET component API definition family is supported.");
         string definitionPath = $"{featureRoot}/definitions/dotnet-component-api.json";
         string definitionDigest = CanonicalDocument.Digest(definition);
@@ -26,7 +28,7 @@ public sealed class DotNetHandoffTranslator
         JsonObject definitionIdentity = TranslationIdentityResolver.Identity("semantic-record", componentName, definition);
         JsonObject definitionArtifact = TranslationIdentityResolver.Artifact(
             definitionIdentity,
-            "application/vnd.program-kit.provider.dotnet.component-api+json",
+            compatibility.DefinitionMediaType,
             definitionPath,
             definitionDigest,
             "generated-owned");
@@ -34,7 +36,7 @@ public sealed class DotNetHandoffTranslator
         JsonObject lockIdentity = TranslationIdentityResolver.Identity("workspace-lock", handoff.Document["feature"]!["key"]!.GetValue<string>(), workspaceLock);
         string lockDigest = CanonicalDocument.Digest(workspaceLock);
         JsonObject lockArtifact = TranslationIdentityResolver.Artifact(lockIdentity, "application/json", "program-kit.lock.json", lockDigest, "generated-owned");
-        JsonObject[] selections = BuildSelections(handoff, workspaceLock, lockArtifact);
+        JsonObject[] selections = BuildSelections(handoff, workspaceLock, lockArtifact, compatibility);
         JsonObject targetProfile = (JsonObject)selections.Single(static item => item["role"]!.GetValue<string>() == "target-profile")["selected"]!.DeepClone();
         JsonObject bundleIdentity = new()
         {
@@ -46,7 +48,7 @@ public sealed class DotNetHandoffTranslator
         };
         JsonObject bundle = new()
         {
-            ["schema"] = "program-kit.software-definition-bundle/v1",
+            ["schema"] = compatibility.BundleSchema,
             ["canonicalProfile"] = "program-kit.canonical-json/v1",
             ["identity"] = bundleIdentity,
             ["semanticRecords"] = new JsonArray(definitionArtifact),
@@ -59,7 +61,7 @@ public sealed class DotNetHandoffTranslator
         bundleIdentity["digest"] = CanonicalDocument.Digest(bundle);
         string bundlePath = $"{featureRoot}/definitions/software-bundle.json";
         string bundleDigest = CanonicalDocument.Digest(bundle);
-        JsonObject bundleArtifact = TranslationIdentityResolver.Artifact(bundleIdentity, "application/vnd.program-kit.software-definition+json", bundlePath, bundleDigest, "generated-owned");
+        JsonObject bundleArtifact = TranslationIdentityResolver.Artifact(bundleIdentity, compatibility.BundleMediaType, bundlePath, bundleDigest, "generated-owned");
         JsonObject workspaceIdentity = (JsonObject)workspaceLock["workspaceIdentity"]!.DeepClone();
         JsonObject evaluationContext = (JsonObject)handoff.Document["evaluationContext"]!.DeepClone();
         string constructionMode = handoff.Document["constructionMode"]?.GetValue<string>() ?? "new";
@@ -67,7 +69,7 @@ public sealed class DotNetHandoffTranslator
         if (maximumEffect == "none") throw new InvalidOperationException("Preparation requires a candidate-only or committed maximum effect.");
         JsonObject preparation = new()
         {
-            ["schema"] = "program-kit.preparation-request/v1",
+            ["schema"] = compatibility.PreparationSchema,
             ["canonicalProfile"] = "program-kit.canonical-json/v1",
             ["rootBundle"] = bundleArtifact.DeepClone(),
             ["workspaceIdentity"] = workspaceIdentity.DeepClone(),
@@ -79,7 +81,7 @@ public sealed class DotNetHandoffTranslator
         };
         JsonObject explain = new()
         {
-            ["schema"] = "program-kit.factory-request/v1",
+            ["schema"] = compatibility.FactoryRequestSchema,
             ["canonicalProfile"] = "program-kit.canonical-json/v1",
             ["operation"] = "explain",
             ["rootBundle"] = bundleArtifact.DeepClone(),
@@ -98,7 +100,7 @@ public sealed class DotNetHandoffTranslator
         return new TranslationResult(featureRoot, documents, CanonicalArtifactWriter.Materialize(documents));
     }
 
-    private static JsonObject[] BuildSelections(BoundHandoff handoff, JsonObject workspaceLock, JsonObject lockArtifact)
+    private static JsonObject[] BuildSelections(BoundHandoff handoff, JsonObject workspaceLock, JsonObject lockArtifact, AdapterTranslationProfile compatibility)
     {
         string alias = handoff.Document["effectiveSelection"]!["alias"]!.GetValue<string>();
         JsonObject selected = workspaceLock["selections"]!.AsArray().OfType<JsonObject>()
@@ -106,6 +108,8 @@ public sealed class DotNetHandoffTranslator
         JsonObject provider = selected["provider"]!.AsObject();
         JsonObject profile = selected["targetProfile"]!.AsObject();
         JsonObject authority = selected["selectionAuthority"]!.AsObject();
+        RequireExact(provider, compatibility.Provider, "The selected provider is outside the tested adapter compatibility manifest.");
+        RequireExact(profile, compatibility.TargetProfile, "The selected target profile is outside the tested adapter compatibility manifest.");
         return new[] { "intake-mapping", "construction", "evaluation", "target-profile" }.Select(role => new JsonObject
         {
             ["role"] = role,
@@ -118,5 +122,10 @@ public sealed class DotNetHandoffTranslator
                 ["claimKind"] = "accepted-workspace-selection",
             },
         }).ToArray();
+    }
+
+    private static void RequireExact(JsonNode actual, JsonNode expected, string message)
+    {
+        if (!CanonicalDocument.Encode(actual).SequenceEqual(CanonicalDocument.Encode(expected))) throw new InvalidOperationException(message);
     }
 }

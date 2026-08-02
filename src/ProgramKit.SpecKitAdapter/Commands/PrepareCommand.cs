@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
 using Orbyss.ProgramKit.SpecKitAdapter.Invocation;
@@ -25,36 +24,28 @@ public sealed class PrepareCommand
         if (!context.Applicability.Active)
             return AdapterResultWriter.NotApplicable(AdapterOperation.Prepare, new JsonObject { ["blocking"] = context.Applicability.BlocksWorkflow });
         TranslationResult translation = new DotNetHandoffTranslator().Translate(context.Handoff!, context.WorkspaceLock);
-        string reviewDigest = context.Review!["digest"]!.GetValue<string>();
-        JsonObject manifest = AdapterGeneratedManifestBuilder.Build(context.Handoff!, reviewDigest, translation, context.Trace!);
-        if (!FilesAreExact(workspaceRoot, translation.Bytes)) new AdapterArtifactPublisher().Publish(workspaceRoot, translation, manifest);
+        string manifestPath = LogicalPathPolicy.Resolve(workspaceRoot, $"{translation.FeatureRoot}/adapter-manifest.json");
+        Dictionary<string, JsonObject> documents = File.Exists(manifestPath)
+            ? new Dictionary<string, JsonObject>(AdapterFeatureClosure.Load(workspaceRoot, translation.FeatureRoot), StringComparer.Ordinal)
+            : new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        foreach ((string logicalPath, JsonObject document) in translation.Documents) documents[logicalPath] = (JsonObject)document.DeepClone();
+        PublicationResult initialPublication = AdapterFeatureClosure.Publish(workspaceRoot, context, documents);
 
         string preparePath = $"{translation.FeatureRoot}/requests/prepare.json";
         string explainPath = $"{translation.FeatureRoot}/requests/explain.json";
         JsonObject prepareResult = invoker.Invoke(workspaceRoot, "prepare", preparePath);
         JsonObject explainResult = invoker.Invoke(workspaceRoot, "explain", explainPath);
-        Dictionary<string, JsonObject> finalDocuments = new(translation.Documents, StringComparer.Ordinal)
-        {
-            [$"{translation.FeatureRoot}/results/prepare.json"] = prepareResult,
-            [$"{translation.FeatureRoot}/results/explain.json"] = explainResult,
-        };
-        TranslationResult finalTranslation = new(translation.FeatureRoot, finalDocuments, CanonicalArtifactWriter.Materialize(finalDocuments));
-        JsonObject finalManifest = AdapterGeneratedManifestBuilder.Build(context.Handoff!, reviewDigest, finalTranslation, context.Trace!);
-        PublicationResult publication = new AdapterArtifactPublisher().Publish(workspaceRoot, finalTranslation, finalManifest);
+        documents[$"{translation.FeatureRoot}/results/prepare.json"] = prepareResult;
+        documents[$"{translation.FeatureRoot}/results/explain.json"] = explainResult;
+        PublicationResult publication = AdapterFeatureClosure.Publish(workspaceRoot, context, documents);
+        JsonObject finalManifest = CanonicalDocument.Parse(File.ReadAllBytes(manifestPath)).AsObject();
         return AdapterResultWriter.Success(AdapterOperation.Prepare, new JsonObject
         {
             ["handoffDigest"] = context.Handoff!.Digest,
             ["proposalDigest"] = prepareResult["payload"]?["proposal"]?["digest"]?.DeepClone(),
             ["explanationRequest"] = explainPath,
             ["generatedManifestDigest"] = finalManifest["digest"]!.DeepClone(),
-            ["changed"] = publication.Changed,
+            ["changed"] = initialPublication.Changed || publication.Changed,
         }, "adapter-files-only", prepareResult);
     }
-
-    private static bool FilesAreExact(string workspaceRoot, IReadOnlyDictionary<string, byte[]> expected) =>
-        expected.All(item =>
-        {
-            string path = LogicalPathPolicy.Resolve(workspaceRoot, item.Key);
-            return File.Exists(path) && File.ReadAllBytes(path).SequenceEqual(item.Value);
-        });
 }

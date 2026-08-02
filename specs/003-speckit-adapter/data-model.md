@@ -150,6 +150,7 @@ Immutable release-owned compatibility boundary shipped in the extension.
 | `providerProfiles` | exact array | First-party .NET + `dotnet10-cshells-0.0.28@1.0.0` |
 | `contractBindings` | identity/digest map | Every consumed Program Kit/adapter schema and canonical profile |
 | `commandBindings` | exact map | Adapter command to supported Program Kit command/result version |
+| `translationProfile` | exact closed binding | Definition family/schema/media types, bundle/request/result schemas, provider identity, and target-profile identity used by V1 translation |
 | `platforms` | exact array | Windows and Linux |
 | `releaseArtifacts` | artifact references | Executable, schemas, instructions, diagnostic catalog |
 | `digest` | digest | Canonical manifest bytes |

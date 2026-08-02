@@ -56,15 +56,16 @@ public sealed record AdapterRequest(
 
 public sealed record AdapterCompatibilityManifest(
     string Schema,
-    GovernedIdentity Adapter,
+    string Adapter,
     IReadOnlyList<string> SpecKitVersions,
     IReadOnlyList<string> ProgramKitVersions,
-    IReadOnlyList<GovernedIdentity> RuntimeProfiles,
-    IReadOnlyList<GovernedIdentity> ProviderProfiles,
+    IReadOnlyList<string> RuntimeProfiles,
+    IReadOnlyList<string> ProviderProfiles,
     IReadOnlyDictionary<string, string> ContractBindings,
     IReadOnlyDictionary<string, string> CommandBindings,
+    AdapterTranslationProfile TranslationProfile,
     IReadOnlyList<string> Platforms,
-    IReadOnlyList<ArtifactReference> ReleaseArtifacts,
+    IReadOnlyList<string> ReleaseArtifacts,
     string Digest);
 
 public sealed record AdapterGeneratedManifest(

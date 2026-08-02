@@ -42,6 +42,8 @@ public static class AdapterFeatureContextLoader
         EffectiveSelection selection = SelectionResolver.Resolve(config.Document, featureKey, workspaceLock);
         if (!string.Equals(handoff.Document["effectiveSelection"]?["alias"]?.GetValue<string>(), selection.Alias, StringComparison.Ordinal))
             throw new InvalidDataException("The reviewed handoff selection differs from the current effective selection.");
+        if (!string.Equals(handoff.Document["effectiveSelection"]?["source"]?.GetValue<string>(), selection.Source, StringComparison.Ordinal))
+            throw new InvalidDataException("The reviewed handoff selection source differs from the current precedence result.");
         JsonObject review = CanonicalDocument.Parse(File.ReadAllBytes(reviewPath)).AsObject();
         TraceResolution trace = HandoffReviewValidator.Validate(workspaceRoot, handoff, review);
         return new AdapterFeatureContext(featureKey, config, applicability, workspaceLock, handoff, review, trace);

@@ -35,6 +35,8 @@ public static class Program
                 AdapterOperation.Validate => ValidateCommand.Execute(workspace, request),
                 AdapterOperation.Prepare => new PrepareCommand().Execute(workspace, request),
                 AdapterOperation.Explain => new ExplainCommand().Execute(workspace, request),
+                AdapterOperation.Construct => new ConstructCommand().Execute(workspace, request),
+                AdapterOperation.Evaluate => new EvaluateCommand().Execute(workspace, request),
                 _ => AdapterResultWriter.Failure(operation, AdapterFailureKind.InvalidHandoff),
             };
         }

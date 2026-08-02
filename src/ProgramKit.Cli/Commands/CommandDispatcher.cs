@@ -72,7 +72,7 @@ public sealed class CommandDispatcher
                 PublicCommand.CatalogList => kernel.ListCatalog(request),
                 PublicCommand.Restore => kernel.RestoreWorkspace(workspace, request),
                 PublicCommand.Prepare => PrepareCommand.Execute(kernel, workspace, request),
-                PublicCommand.AuthorityRecord => Pending(command, "authority-recording"),
+                PublicCommand.AuthorityRecord => AuthorityRecordCommand.Execute(kernel, workspace, request),
                 _ => Invalid(command, "Unsupported public command."),
             };
         }
@@ -87,6 +87,10 @@ public sealed class CommandDispatcher
         catch (IOException)
         {
             return WorkspaceFailure(command, DiagnosticIds.GeneratedDrift, PrimaryDisposition.Repair, "Generated workspace state conflicts with the requested exact state.");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return WorkspaceFailure(command, DiagnosticIds.MissingAuthority, PrimaryDisposition.RequestApproval, "The repository authority decision is absent, denied, stale, ambiguous, or widened.");
         }
     }
 

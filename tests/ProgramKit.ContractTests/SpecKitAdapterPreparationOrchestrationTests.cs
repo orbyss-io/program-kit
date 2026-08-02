@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.SpecKitAdapter.Commands;
@@ -20,6 +21,8 @@ public sealed class SpecKitAdapterPreparationOrchestrationTests
             PublicCliTestInvoker invoker = new();
             PrepareCommand command = new(invoker);
             JsonObject request = SpecKitAdapterFixture.AdapterRequest("prepare");
+            byte[] handoffBefore = File.ReadAllBytes(Path.Combine(workspace, "specs", SpecKitAdapterFixture.FeatureKey, "program-kit", "handoff.yaml"));
+            byte[] reviewBefore = File.ReadAllBytes(Path.Combine(workspace, "specs", SpecKitAdapterFixture.FeatureKey, "program-kit", "handoff-review.json"));
             JsonObject first = command.Execute(workspace, request);
             Assert.AreEqual("succeeded", first["outcome"]!.GetValue<string>());
             Assert.AreEqual("adapter-files-only", first["effectState"]!.GetValue<string>());
@@ -29,6 +32,11 @@ public sealed class SpecKitAdapterPreparationOrchestrationTests
             Assert.IsTrue(File.Exists(Path.Combine(generated, "results", "explain.json")));
             Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".program-kit", "candidates")));
             Assert.IsFalse(Directory.Exists(Path.Combine(workspace, "src", "Reference.Status")));
+            CollectionAssert.AreEqual(handoffBefore, File.ReadAllBytes(Path.Combine(workspace, "specs", SpecKitAdapterFixture.FeatureKey, "program-kit", "handoff.yaml")));
+            CollectionAssert.AreEqual(reviewBefore, File.ReadAllBytes(Path.Combine(workspace, "specs", SpecKitAdapterFixture.FeatureKey, "program-kit", "handoff-review.json")));
+            JsonObject manifest = CanonicalDocument.Parse(File.ReadAllBytes(Path.Combine(generated, "adapter-manifest.json"))).AsObject();
+            Assert.AreEqual(AdapterCompatibility.Load().Digest, manifest["compatibility"]!["digest"]!.GetValue<string>());
+            Assert.IsTrue(manifest["outputs"]!.AsArray().All(item => item!["logicalPath"]!.GetValue<string>().StartsWith($"specs/{SpecKitAdapterFixture.FeatureKey}/program-kit/generated/", System.StringComparison.Ordinal)));
             string beforeRepeat = TestRepository.DigestTree(workspace);
 
             invoker.Commands.Clear();

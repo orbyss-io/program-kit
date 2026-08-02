@@ -3,7 +3,7 @@
   "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-compatibility.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "adapter", "specKitVersions", "programKitVersions", "runtimeProfiles", "providerProfiles", "contractBindings", "commandBindings", "platforms", "releaseArtifacts", "digest"],
+  "required": ["schema", "adapter", "specKitVersions", "programKitVersions", "runtimeProfiles", "providerProfiles", "contractBindings", "commandBindings", "translationProfile", "platforms", "releaseArtifacts", "digest"],
   "properties": {
     "schema": { "const": "program-kit.spec-kit-adapter-compatibility/v1" },
     "adapter": { "type": "string", "const": "orbyss-program-kit-adapter@0.1.0" },
@@ -13,8 +13,39 @@
     "providerProfiles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
     "contractBindings": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" } },
     "commandBindings": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "minLength": 1 } },
+    "translationProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definitionFamily", "definitionSchema", "definitionMediaType", "bundleSchema", "bundleMediaType", "preparationSchema", "factoryRequestSchema", "operationResultSchema", "provider", "targetProfile"],
+      "properties": {
+        "definitionFamily": { "$ref": "#/$defs/governedIdentity" },
+        "definitionSchema": { "const": "program-kit.provider.dotnet.component-api-definition/v1" },
+        "definitionMediaType": { "const": "application/vnd.program-kit.provider.dotnet.component-api+json" },
+        "bundleSchema": { "const": "program-kit.software-definition-bundle/v1" },
+        "bundleMediaType": { "const": "application/vnd.program-kit.software-definition+json" },
+        "preparationSchema": { "const": "program-kit.preparation-request/v1" },
+        "factoryRequestSchema": { "const": "program-kit.factory-request/v1" },
+        "operationResultSchema": { "const": "program-kit.operation-result/v2" },
+        "provider": { "$ref": "#/$defs/governedIdentity" },
+        "targetProfile": { "$ref": "#/$defs/governedIdentity" }
+      }
+    },
     "platforms": { "type": "array", "const": ["linux-x64", "win-x64"] },
     "releaseArtifacts": { "type": "array", "minItems": 1, "items": { "type": "string" } },
     "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  },
+  "$defs": {
+    "governedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "kind", "name", "revision", "digest"],
+      "properties": {
+        "authority": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    }
   }
 }

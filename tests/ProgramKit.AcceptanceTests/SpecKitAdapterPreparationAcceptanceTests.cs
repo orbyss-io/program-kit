@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Security;
 using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
@@ -26,6 +28,7 @@ public sealed class SpecKitAdapterPreparationAcceptanceTests
             string configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent?.Name ?? throw new InvalidOperationException("Test configuration unavailable.");
             string project = Path.Combine(TestRepository.Root, "src", "ProgramKit.Cli", "ProgramKit.Cli.csproj");
             AssertSucceeded(Run("dotnet", TestRepository.Root, environment, "pack", project, "--configuration", configuration, "--no-build", "--no-restore", "--output", feed));
+            StageCliDependencyPackages(project, feed);
             string nugetConfig = WriteNuGetConfig(workspace, feed);
             WriteToolManifest(workspace);
             AssertSucceeded(Run("dotnet", workspace, environment, "tool", "restore", "--configfile", nugetConfig, "--no-cache"));
@@ -64,6 +67,25 @@ public sealed class SpecKitAdapterPreparationAcceptanceTests
         finally
         {
             TestRepository.DeleteWorkspace(workspace);
+        }
+    }
+
+    private static void StageCliDependencyPackages(string project, string feed)
+    {
+        string assetsPath = Path.Combine(Path.GetDirectoryName(project)!, "obj", "project.assets.json");
+        JsonObject assets = JsonNode.Parse(File.ReadAllBytes(assetsPath))!.AsObject();
+        string[] packageFolders = assets["packageFolders"]!.AsObject().Select(static item => item.Key).ToArray();
+        foreach ((string library, JsonNode? metadata) in assets["libraries"]!.AsObject())
+        {
+            if (metadata?["type"]?.GetValue<string>() != "package") continue;
+            string relative = metadata["path"]?.GetValue<string>() ?? library.Replace('/', Path.DirectorySeparatorChar).ToLowerInvariant();
+            string? package = packageFolders
+                .Select(folder => Path.Combine(folder, relative.Replace('/', Path.DirectorySeparatorChar)))
+                .Where(Directory.Exists)
+                .SelectMany(directory => Directory.EnumerateFiles(directory, "*.nupkg", SearchOption.TopDirectoryOnly))
+                .SingleOrDefault();
+            if (package is null) throw new InvalidOperationException($"The acquired package archive for {library} is unavailable.");
+            File.Copy(package, Path.Combine(feed, Path.GetFileName(package)), overwrite: true);
         }
     }
 
@@ -127,6 +149,8 @@ public sealed class SpecKitAdapterPreparationAcceptanceTests
             ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1",
             ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
             ["DOTNET_NOLOGO"] = "1",
+            ["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0",
+            ["MSBUILDDISABLENODEREUSE"] = "1",
             ["NUGET_XMLDOC_MODE"] = "skip",
             ["http_proxy"] = "http://127.0.0.1:1",
             ["https_proxy"] = "http://127.0.0.1:1",
@@ -150,15 +174,16 @@ public sealed class SpecKitAdapterPreparationAcceptanceTests
         foreach ((string key, string value) in environment) start.Environment[key] = value;
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
         using Process process = Process.Start(start) ?? throw new InvalidOperationException("Could not start acceptance process.");
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
+        Task<string> output = process.StandardOutput.ReadToEndAsync();
+        Task<string> error = process.StandardError.ReadToEndAsync();
         if (!process.WaitForExit(120_000))
         {
-            process.Kill();
+            process.Kill(entireProcessTree: true);
+            process.WaitForExit();
             throw new TimeoutException("Acceptance process exceeded two minutes.");
         }
 
-        return new ProcessResult(process.ExitCode, output, error);
+        return new ProcessResult(process.ExitCode, output.GetAwaiter().GetResult(), error.GetAwaiter().GetResult());
     }
 
     private sealed record ProcessResult(int ExitCode, string Output, string Error);

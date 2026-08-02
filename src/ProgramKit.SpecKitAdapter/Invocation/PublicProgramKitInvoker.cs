@@ -23,11 +23,13 @@ public sealed class PublicProgramKitInvoker : IPublicProgramKitInvoker
             workspaceRoot,
             TimeSpan.FromMinutes(2));
         ProgramKitProcessResult result = client.RunAsync(request, CancellationToken.None).GetAwaiter().GetResult();
-        if (result.ExitCode != 0 || result.OutputTruncated) throw new IOException("The Program Kit child process did not return one complete successful result.");
+        if (result.OutputTruncated) throw new IOException("The Program Kit child process did not return one complete result.");
         JsonObject document = CanonicalDocument.Parse(System.Text.Encoding.UTF8.GetBytes(result.StandardOutput)).AsObject();
-        const string expectedSchema = "program-kit.operation-result/v2";
-        if (document["schema"]?.GetValue<string>() != expectedSchema || document["outcome"]?.GetValue<string>() != "succeeded")
-            throw new IOException("The Program Kit child result is incompatible or unsuccessful.");
+        string expectedSchema = AdapterCompatibility.Load().TranslationProfile.OperationResultSchema;
+        string outcome = document["outcome"]?.GetValue<string>() ?? string.Empty;
+        int expectedExitCode = outcome switch { "succeeded" => 0, "faulted" => 1, "needs-input" => 2, "blocked" => 3, "cancelled" => 130, _ => -1 };
+        if (document["schema"]?.GetValue<string>() != expectedSchema || result.ExitCode != expectedExitCode)
+            throw new IOException("The Program Kit child result schema, outcome, and exit code are inconsistent.");
         return document;
     }
 }

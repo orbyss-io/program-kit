@@ -83,7 +83,7 @@ public sealed class RepositoryAuthorityProvider
         }
 
         JsonObject review = LoadAuthorityArtifact(workspaceRoot, grant.Provenance, "human review");
-        ValidateReview(review, grant, input.RequestDocument.AuthorityBindingDigest, reviewBinding, request);
+        ValidateReview(workspaceRoot, review, grant, input.RequestDocument.AuthorityBindingDigest, reviewBinding, request);
         JsonObject revocations = LoadAuthorityArtifact(workspaceRoot, grant.RevocationReference, "revocation state");
         ValidateRevocation(revocations, revocationHandle);
 
@@ -130,8 +130,14 @@ public sealed class RepositoryAuthorityProvider
             (JsonObject)document.DeepClone());
     }
 
-    private static void ValidateReview(JsonObject review, AuthorityGrant grant, string requestBinding, string reviewBinding, FactoryRequest request)
+    private void ValidateReview(string workspaceRoot, JsonObject review, AuthorityGrant grant, string requestBinding, string reviewBinding, FactoryRequest request)
     {
+        if (string.Equals(review["schema"]?.GetValue<string>(), "program-kit.authority-decision-record/v1", StringComparison.Ordinal))
+        {
+            ValidateDecisionRecord(workspaceRoot, review, grant, requestBinding, reviewBinding, request);
+            return;
+        }
+
         if (!string.Equals(reviewBinding, grant.Provenance.Digest, StringComparison.Ordinal)
             || !string.Equals(review["schema"]?.GetValue<string>(), "program-kit.human-review/v1", StringComparison.Ordinal)
             || !string.Equals(review["decision"]?.GetValue<string>(), "approved", StringComparison.Ordinal)
@@ -143,6 +149,59 @@ public sealed class RepositoryAuthorityProvider
         {
             throw new UnauthorizedAccessException("The exact current human review does not approve this request closure.");
         }
+    }
+
+    private void ValidateDecisionRecord(string workspaceRoot, JsonObject decision, AuthorityGrant grant, string requestBinding, string reviewBinding, FactoryRequest request)
+    {
+        if (structural.Validate(Orbyss.ProgramKit.Contracts.Schemas.ContractSchemaResources.AuthorityDecisionRecordId, decision).Count > 0
+            || !string.Equals(reviewBinding, grant.Provenance.Digest, StringComparison.Ordinal)
+            || !string.Equals(decision["decision"]?.GetValue<string>(), "approve", StringComparison.Ordinal)
+            || !string.Equals(decision["reviewer"]?.GetValue<string>(), grant.Issuer, StringComparison.Ordinal))
+            throw new UnauthorizedAccessException("The repository authority decision is unavailable, denied, or bound to another issuer assertion.");
+
+        string[] operations = RequiredArray(decision, "operations").Select(static item => item!.GetValue<string>()).ToArray();
+        string[] effects = RequiredArray(decision, "effects").Select(static item => item!.GetValue<string>()).ToArray();
+        if (operations.Length != 1 || operations[0] != Kebab(request.Operation)
+            || effects.Length != 1 || effects[0] != Kebab(request.RequestedEffect))
+            throw new UnauthorizedAccessException("The repository authority decision operation or effect is ambiguous or mismatched.");
+
+        GovernedIdentity[] decisionSubjects = RequiredArray(decision, "subjects")
+            .OfType<JsonObject>()
+            .Select(binder.BindIdentity)
+            .OrderBy(static item => item.StableKey, StringComparer.Ordinal)
+            .ToArray();
+        GovernedIdentity[] grantSubjects = grant.Subjects.OrderBy(static item => item.StableKey, StringComparer.Ordinal).ToArray();
+        if (!decisionSubjects.SequenceEqual(grantSubjects))
+            throw new UnauthorizedAccessException("The repository authority decision subjects differ from the exact grant subjects.");
+
+        JsonObject validity = RequiredObject(decision, "validity");
+        if (ParseInstant(validity, "notBefore") != grant.NotBefore || ParseInstant(validity, "notAfter") != grant.NotAfter)
+            throw new UnauthorizedAccessException("The repository authority decision validity differs from the exact grant validity.");
+
+        ArtifactReference preparationReference = binder.BindArtifact(RequiredObject(decision, "proposal"));
+        JsonObject preparationResult = LoadAuthorityArtifact(workspaceRoot, preparationReference, "preparation result");
+        if (!string.Equals(preparationResult["schema"]?.GetValue<string>(), "program-kit.operation-result/v2", StringComparison.Ordinal)
+            || !string.Equals(preparationResult["command"]?.GetValue<string>(), "prepare", StringComparison.Ordinal)
+            || !string.Equals(preparationResult["outcome"]?.GetValue<string>(), "succeeded", StringComparison.Ordinal)
+            || preparationResult["payload"]?["proposal"] is not JsonObject proposal)
+            throw new UnauthorizedAccessException("The authority decision preparation result is unavailable or unsuccessful.");
+
+        JsonObject proposalMaterial = (JsonObject)proposal.DeepClone();
+        string proposalDigest = RequiredString(proposalMaterial, "digest");
+        proposalMaterial.Remove("digest");
+        JsonObject projection = RequiredObject(proposal, "ungrantedProjection");
+        if (!string.Equals(proposalDigest, CanonicalJson.Digest(proposalMaterial), StringComparison.Ordinal)
+            || !string.Equals(CanonicalJson.Digest(IntakePipeline.NormalizeRequest(projection)), requestBinding, StringComparison.Ordinal)
+            || request.ExpectedState is null
+            || !string.Equals(proposal["closureDigest"]?.GetValue<string>(), request.ExpectedState.ClosureDigest, StringComparison.Ordinal)
+            || !string.Equals(proposal["liveStateDigest"]?.GetValue<string>(), request.ExpectedState.LiveStateDigest, StringComparison.Ordinal))
+            throw new UnauthorizedAccessException("The current construct request differs from the exact prepared proposal.");
+
+        ArtifactReference provenance = binder.BindArtifact(RequiredObject(decision, "provenance"));
+        JsonObject handoffReview = LoadAuthorityArtifact(workspaceRoot, provenance, "handoff review");
+        if (!string.Equals(handoffReview["schema"]?.GetValue<string>(), "program-kit.spec-kit-handoff-review/v1", StringComparison.Ordinal)
+            || !string.Equals(handoffReview["decision"]?.GetValue<string>(), "approved", StringComparison.Ordinal))
+            throw new UnauthorizedAccessException("The authority decision provenance is not an exact approved handoff review.");
     }
 
     private static void ValidateRevocation(JsonObject document, string revocationHandle)

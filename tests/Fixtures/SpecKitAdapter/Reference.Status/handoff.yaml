@@ -1,1 +1,218 @@
-{"applicability":"applicable","deferred":[],"definition":{"application":{"consumesPackage":"Reference.Status","method":"GET","name":"Reference.Status.Api","namespace":"Reference.Status.Api","route":"/status"},"component":{"contractName":"IStatusReader","featureClass":"StatusFeature","featureName":"Status","implementationSource":"tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs","name":"Reference.Status","namespace":"Reference.Status","packageId":"Reference.Status","version":"1.0.0"},"dependencyMirror":"dependencies","schema":"program-kit.provider.dotnet.component-api-definition/v1"},"definitionFamily":{"authority":"orbyss.program-kit.dotnet","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"definition-family","name":"component-api","revision":"1.0.0"},"effectiveSelection":{"alias":"dotnet-default","source":"feature-override"},"evaluationContext":{"assurance":"approved-declared-instant","instant":"2026-08-02T10:00:00Z","source":{"authority":"consumer.reference","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"evaluation-context-source","name":"feature-review","revision":"1.0.0"}},"excluded":[],"feature":{"key":"003-reference-status","root":"specs/003-reference-status"},"implementation":[{"digest":"sha256:cea98955af10337b1ba39d03f0616c48250d44c679288bb678251f7bb4697d8c","identity":{"authority":"consumer.reference","digest":"sha256:cea98955af10337b1ba39d03f0616c48250d44c679288bb678251f7bb4697d8c","kind":"source-code","name":"Reference.Status.StatusFeature","revision":"1.0.0"},"logicalPath":"tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs","mediaType":"text/x-csharp","ownership":"consumer-owned"}],"intentOwner":"reference-status-owner","maximumEffect":"candidate-only","ownership":[{"logicalPath":"src/Reference.Status","ownership":"generated-owned"},{"logicalPath":"tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs","ownership":"consumer-owned"}],"requestedOperation":"construct","schema":"program-kit.spec-kit-handoff/v1","sources":[{"kind":"spec","logicalPath":"tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md"}],"trace":[{"mappingAuthority":"handoff-review","observedValue":"003-reference-status","sourceKind":"human-decision","targetPointer":"/feature/key"},{"mappingAuthority":"handoff-review","observedValue":{"application":{"consumesPackage":"Reference.Status","method":"GET","name":"Reference.Status.Api","namespace":"Reference.Status.Api","route":"/status"},"component":{"contractName":"IStatusReader","featureClass":"StatusFeature","featureName":"Status","implementationSource":"tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs","name":"Reference.Status","namespace":"Reference.Status","packageId":"Reference.Status","version":"1.0.0"},"dependencyMirror":"dependencies","schema":"program-kit.provider.dotnet.component-api-definition/v1"},"sourceAnchor":"FR-001","sourceArtifact":{"logicalPath":"tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md"},"sourceBlockDigest":"sha256:826374263d316ccf134b0cd850609676bd5e1f2081d1911bdf032aebd28469a8","sourceKind":"spec-block","targetPointer":"/definition"},{"mappingAuthority":"handoff-review","observedValue":"dotnet-default","sourceKind":"human-decision","targetPointer":"/effectiveSelection/alias"},{"mappingAuthority":"handoff-review","observedValue":{"assurance":"approved-declared-instant","instant":"2026-08-02T10:00:00Z","source":{"authority":"consumer.reference","digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","kind":"evaluation-context-source","name":"feature-review","revision":"1.0.0"}},"sourceKind":"human-decision","targetPointer":"/evaluationContext"},{"mappingAuthority":"compatibility-manifest","observedValue":"construct","sourceKind":"compatibility-fixed","targetPointer":"/requestedOperation"},{"mappingAuthority":"handoff-review","observedValue":"candidate-only","sourceKind":"human-decision","targetPointer":"/maximumEffect"},{"mappingAuthority":"handoff-review","observedValue":[{"logicalPath":"src/Reference.Status","ownership":"generated-owned"},{"logicalPath":"tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs","ownership":"consumer-owned"}],"sourceKind":"human-decision","targetPointer":"/ownership"}],"unresolved":[],"unsupported":[]}
+{
+  "schema": "program-kit.spec-kit-handoff/v1",
+  "feature": { "key": "003-reference-status", "root": "specs/003-reference-status" },
+  "intentOwner": "reference-status-owner",
+  "sources": [
+    { "kind": "spec", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md" },
+    { "kind": "plan", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/plan.md" },
+    { "kind": "tasks", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md" }
+  ],
+  "applicability": "applicable",
+  "effectiveSelection": { "alias": "dotnet-default", "source": "feature-override" },
+  "definitionFamily": {
+    "authority": "orbyss.program-kit.dotnet",
+    "kind": "definition-family",
+    "name": "component-api",
+    "revision": "1.0.0",
+    "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+  },
+  "definition": {
+    "schema": "program-kit.provider.dotnet.component-api-definition/v1",
+    "component": {
+      "name": "Reference.Status",
+      "namespace": "Reference.Status",
+      "packageId": "Reference.Status",
+      "version": "1.0.0",
+      "featureName": "Status",
+      "featureClass": "StatusFeature",
+      "contractName": "IStatusReader",
+      "implementationSource": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs"
+    },
+    "application": {
+      "name": "Reference.Status.Api",
+      "namespace": "Reference.Status.Api",
+      "route": "/status",
+      "method": "GET",
+      "consumesPackage": "Reference.Status"
+    },
+    "dependencyMirror": "dependencies"
+  },
+  "implementation": [
+    {
+      "identity": {
+        "authority": "consumer.reference",
+        "kind": "source-code",
+        "name": "Reference.Status.StatusFeature",
+        "revision": "1.0.0",
+        "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822"
+      },
+      "mediaType": "text/x-csharp",
+      "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs",
+      "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822",
+      "ownership": "consumer-owned"
+    }
+  ],
+  "evaluationContext": {
+    "instant": "2026-08-02T10:00:00Z",
+    "source": {
+      "authority": "consumer.reference",
+      "kind": "evaluation-context-source",
+      "name": "feature-review",
+      "revision": "1.0.0",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "assurance": "approved-declared-instant"
+  },
+  "requestedOperation": "construct",
+  "maximumEffect": "candidate-only",
+  "ownership": [
+    { "logicalPath": "src/Reference.Status", "ownership": "generated-owned" },
+    { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs", "ownership": "consumer-owned" }
+  ],
+  "trace": [
+    {
+      "targetPointer": "/feature",
+      "sourceKind": "human-decision",
+      "observedValue": { "key": "003-reference-status", "root": "specs/003-reference-status" },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/intentOwner",
+      "sourceKind": "plan-decision",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/plan.md" },
+      "sourceAnchor": "DEC-001",
+      "observedValue": "reference-status-owner",
+      "sourceBlockDigest": "sha256:2edd7ce9f74a71f860b4a7b93fc4dae721b93b0e5cfe3096b1021b77af546051",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/applicability",
+      "sourceKind": "task-row",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md" },
+      "sourceAnchor": "T001",
+      "observedValue": "applicable",
+      "sourceBlockDigest": "sha256:572ffd7d3f90f62cb3c1a9c104ac7f17ebd556779f39db330c4da2cb90e1b665",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/effectiveSelection",
+      "sourceKind": "human-decision",
+      "observedValue": { "alias": "dotnet-default", "source": "feature-override" },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/definitionFamily",
+      "sourceKind": "compatibility-fixed",
+      "observedValue": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "definition-family",
+        "name": "component-api",
+        "revision": "1.0.0",
+        "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+      },
+      "mappingAuthority": "compatibility-manifest"
+    },
+    {
+      "targetPointer": "/definition",
+      "sourceKind": "spec-block",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md" },
+      "sourceAnchor": "FR-001",
+      "observedValue": {
+        "schema": "program-kit.provider.dotnet.component-api-definition/v1",
+        "component": {
+          "name": "Reference.Status",
+          "namespace": "Reference.Status",
+          "packageId": "Reference.Status",
+          "version": "1.0.0",
+          "featureName": "Status",
+          "featureClass": "StatusFeature",
+          "contractName": "IStatusReader",
+          "implementationSource": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs"
+        },
+        "application": {
+          "name": "Reference.Status.Api",
+          "namespace": "Reference.Status.Api",
+          "route": "/status",
+          "method": "GET",
+          "consumesPackage": "Reference.Status"
+        },
+        "dependencyMirror": "dependencies"
+      },
+      "sourceBlockDigest": "sha256:826374263d316ccf134b0cd850609676bd5e1f2081d1911bdf032aebd28469a8",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/implementation",
+      "sourceKind": "human-decision",
+      "observedValue": [
+        {
+          "identity": {
+            "authority": "consumer.reference",
+            "kind": "source-code",
+            "name": "Reference.Status.StatusFeature",
+            "revision": "1.0.0",
+            "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822"
+          },
+          "mediaType": "text/x-csharp",
+          "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs",
+          "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822",
+          "ownership": "consumer-owned"
+        }
+      ],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/evaluationContext",
+      "sourceKind": "human-decision",
+      "observedValue": {
+        "instant": "2026-08-02T10:00:00Z",
+        "source": {
+          "authority": "consumer.reference",
+          "kind": "evaluation-context-source",
+          "name": "feature-review",
+          "revision": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "assurance": "approved-declared-instant"
+      },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/requestedOperation",
+      "sourceKind": "compatibility-fixed",
+      "observedValue": "construct",
+      "mappingAuthority": "compatibility-manifest"
+    },
+    {
+      "targetPointer": "/maximumEffect",
+      "sourceKind": "human-decision",
+      "observedValue": "candidate-only",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/ownership",
+      "sourceKind": "human-decision",
+      "observedValue": [
+        { "logicalPath": "src/Reference.Status", "ownership": "generated-owned" },
+        { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs", "ownership": "consumer-owned" }
+      ],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/deferred",
+      "sourceKind": "human-decision",
+      "observedValue": [],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/excluded",
+      "sourceKind": "human-decision",
+      "observedValue": [],
+      "mappingAuthority": "handoff-review"
+    }
+  ],
+  "unresolved": [],
+  "unsupported": [],
+  "deferred": [],
+  "excluded": []
+}

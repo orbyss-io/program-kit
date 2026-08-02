@@ -34,6 +34,11 @@ public sealed class SpecKitAdapterContractTests
     {
         AssertValid("compatibility.schema.json", ReadResource("compatibility.json"));
         AssertValid("diagnostic-catalog.schema.json", ReadResource("diagnostic-catalog.json"));
+        AdapterCompatibilityDocument compatibility = AdapterCompatibility.Load();
+        Assert.AreEqual(64 + "sha256:".Length, compatibility.Digest.Length);
+        Assert.IsFalse(compatibility.Document.ToJsonString().Contains(new string('1', 64), StringComparison.Ordinal));
+        Assert.AreEqual("program-kit.provider.dotnet.component-api-definition/v1", compatibility.TranslationProfile.DefinitionSchema);
+        Assert.AreEqual("dotnet10-cshells-0.0.28", compatibility.TranslationProfile.TargetProfile["name"]!.GetValue<string>());
     }
 
     [TestMethod]

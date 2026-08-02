@@ -11,18 +11,18 @@ public static class AdapterResultWriter
     {
         JsonObject result = new()
         {
-        ["schema"] = "program-kit.spec-kit-adapter-result/v1",
-        ["canonicalProfile"] = "program-kit.canonical-json/v1",
-        ["operation"] = Kebab(operation),
-        ["adapterRelease"] = "orbyss-program-kit-adapter@0.1.0",
-        ["compatibility"] = "compatible",
-        ["outcome"] = "succeeded",
-        ["furthestStage"] = "completion",
-        ["effectState"] = effectState,
-        ["primaryDisposition"] = "complete",
-        ["artifacts"] = new JsonArray(),
-        ["diagnostics"] = EmptyDiagnostics(),
-        ["disclosure"] = new JsonArray(),
+            ["schema"] = "program-kit.spec-kit-adapter-result/v1",
+            ["canonicalProfile"] = "program-kit.canonical-json/v1",
+            ["operation"] = Kebab(operation),
+            ["adapterRelease"] = "orbyss-program-kit-adapter@0.1.0",
+            ["compatibility"] = "compatible",
+            ["outcome"] = "succeeded",
+            ["furthestStage"] = "completion",
+            ["effectState"] = effectState,
+            ["primaryDisposition"] = "complete",
+            ["artifacts"] = new JsonArray(),
+            ["diagnostics"] = EmptyDiagnostics(),
+            ["disclosure"] = new JsonArray(),
             ["payload"] = payload,
         };
         if (programKitResult is not null) result["programKitResult"] = programKitResult.DeepClone();
@@ -45,6 +45,35 @@ public static class AdapterResultWriter
         ["disclosure"] = new JsonArray(),
         ["payload"] = payload,
     };
+
+    public static JsonObject Preserve(AdapterOperation operation, JsonObject programKitResult, JsonObject payload)
+    {
+        string publicEffect = programKitResult["effectState"]?.GetValue<string>() ?? "indeterminate";
+        string effect = publicEffect switch
+        {
+            "none" => "adapter-files-only",
+            "candidate-only" => "program-kit-candidate",
+            "committed" => "program-kit-committed",
+            _ => "indeterminate",
+        };
+        return new JsonObject
+        {
+            ["schema"] = "program-kit.spec-kit-adapter-result/v1",
+            ["canonicalProfile"] = "program-kit.canonical-json/v1",
+            ["operation"] = Kebab(operation),
+            ["adapterRelease"] = "orbyss-program-kit-adapter@0.1.0",
+            ["compatibility"] = "compatible",
+            ["outcome"] = programKitResult["outcome"]!.DeepClone(),
+            ["furthestStage"] = "invocation",
+            ["effectState"] = effect,
+            ["primaryDisposition"] = programKitResult["primaryDisposition"]!.DeepClone(),
+            ["artifacts"] = new JsonArray(),
+            ["diagnostics"] = EmptyDiagnostics(),
+            ["disclosure"] = new JsonArray(),
+            ["programKitResult"] = programKitResult.DeepClone(),
+            ["payload"] = payload,
+        };
+    }
 
     public static JsonObject Failure(AdapterOperation operation, AdapterFailureKind kind, string outcome = "blocked")
     {

@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Contracts.Schemas;
+using Orbyss.ProgramKit.Kernel.Authority;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Distribution;
 using Orbyss.ProgramKit.Kernel.Intake;
@@ -24,6 +25,7 @@ public sealed class ProgramKitKernel
     private readonly WorkspaceRestoreService restore;
     private readonly WorkspaceInitializationService initialize = new();
     private readonly PrepareOperation prepare;
+    private readonly RepositoryAuthorityRecordOperation authorityRecord;
 
     public ProgramKitKernel(IEnumerable<IFactoryProvider> providers)
     {
@@ -36,6 +38,7 @@ public sealed class ProgramKitKernel
         catalog = new DistributionCatalogService(registry);
         restore = new WorkspaceRestoreService(registry);
         prepare = new PrepareOperation(new PreparationService(registry));
+        authorityRecord = new RepositoryAuthorityRecordOperation(registry);
     }
 
     public OperationResult Explain(string workspaceRoot, string requestPath) => explain.Execute(workspaceRoot, requestPath);
@@ -69,6 +72,9 @@ public sealed class ProgramKitKernel
 
     public OperationResult Prepare(string workspaceRoot, string requestPath) =>
         prepare.Execute(workspaceRoot, ReadRequest(requestPath, ContractSchemaResources.PreparationRequestId));
+
+    public OperationResult RecordAuthority(string workspaceRoot, string requestPath) =>
+        authorityRecord.Execute(workspaceRoot, ReadRequest(requestPath, ContractSchemaResources.AuthorityRecordRequestId));
 
     private static JsonObject ReadRequest(string requestPath, string schemaId)
     {

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Schemas;
 using Orbyss.ProgramKit.Kernel.Artifacts;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Intake;
 using Orbyss.ProgramKit.Kernel.Operations;
+using Orbyss.ProgramKit.Kernel.Publication;
 using Orbyss.ProgramKit.Kernel.Resolution;
 using Orbyss.ProgramKit.Kernel.Validation;
 
@@ -16,6 +16,7 @@ namespace Orbyss.ProgramKit.Kernel.Preparation;
 
 public sealed class PreparationService
 {
+    private const string EmptyDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
     private readonly IntakePipeline intake;
     private readonly ResolutionEngine resolution;
 
@@ -29,20 +30,6 @@ public sealed class PreparationService
     {
         Validate(ContractSchemaResources.PreparationRequestId, request);
         ValidateExpectedLock(workspaceRoot, request["expectedLock"]!.AsObject());
-        JsonObject explainRequest = new()
-        {
-            ["schema"] = "program-kit.factory-request/v1",
-            ["canonicalProfile"] = CanonicalJson.Profile,
-            ["operation"] = "explain",
-            ["rootBundle"] = request["rootBundle"]!.DeepClone(),
-            ["workspaceIdentity"] = request["workspaceIdentity"]!.DeepClone(),
-            ["evaluationContext"] = request["evaluationContext"]!.DeepClone(),
-            ["requestedEffect"] = "none",
-            ["selections"] = request["selections"]!.DeepClone(),
-        };
-        FactoryInput admitted = intake.AdmitAndMap(workspaceRoot, explainRequest);
-        ResolvedFactoryInput resolved = resolution.Resolve(admitted);
-        string liveState = ProspectiveLiveState(workspaceRoot, resolved.Explanation.CanonicalDocument);
         JsonObject ungranted = new()
         {
             ["schema"] = "program-kit.factory-request/v1",
@@ -56,10 +43,22 @@ public sealed class PreparationService
             ["selections"] = request["selections"]!.DeepClone(),
             ["expectedState"] = new JsonObject
             {
-                ["closureDigest"] = resolved.Lock.ClosureDigest,
-                ["liveStateDigest"] = liveState,
+                ["closureDigest"] = EmptyDigest,
+                ["liveStateDigest"] = EmptyDigest,
             },
         };
+        ResolvedFactoryInput preview = ResolveProspective(workspaceRoot, ungranted);
+        string previewLiveState = ProspectiveLiveState(workspaceRoot, preview.Explanation.CanonicalDocument);
+        ungranted["expectedState"] = new JsonObject
+        {
+            ["closureDigest"] = preview.Lock.ClosureDigest,
+            ["liveStateDigest"] = previewLiveState,
+        };
+        ResolvedFactoryInput resolved = ResolveProspective(workspaceRoot, ungranted);
+        string liveState = ProspectiveLiveState(workspaceRoot, resolved.Explanation.CanonicalDocument);
+        if (!string.Equals(resolved.Lock.ClosureDigest, preview.Lock.ClosureDigest, StringComparison.Ordinal)
+            || !string.Equals(liveState, previewLiveState, StringComparison.Ordinal))
+            throw new InvalidDataException("Prospective construction resolution did not converge to one exact closure.");
         JsonObject proposal = new()
         {
             ["schema"] = "program-kit.preparation-proposal/v1",
@@ -67,7 +66,7 @@ public sealed class PreparationService
             ["requestBinding"] = CanonicalJson.Digest(request),
             ["closureDigest"] = resolved.Lock.ClosureDigest,
             ["liveStateDigest"] = liveState,
-            ["subjects"] = new JsonArray(request["rootBundle"]!["identity"]!.DeepClone()),
+            ["subjects"] = new JsonArray(request["workspaceIdentity"]!.DeepClone(), request["rootBundle"]!["identity"]!.DeepClone()),
             ["operation"] = "construct",
             ["constructionMode"] = request["constructionMode"]!.DeepClone(),
             ["maximumEffect"] = request["desiredEffect"]!.DeepClone(),
@@ -81,6 +80,33 @@ public sealed class PreparationService
         return proposal;
     }
 
+    public static JsonObject ProspectiveConstructRequest(JsonObject ungrantedProjection)
+    {
+        JsonObject request = (JsonObject)ungrantedProjection.DeepClone();
+        request["authorityGrant"] = new JsonObject
+        {
+            ["identity"] = new JsonObject
+            {
+                ["authority"] = "orbyss.program-kit",
+                ["kind"] = "authority-placeholder",
+                ["name"] = "ungranted-proposal",
+                ["revision"] = "1.0.0",
+                ["digest"] = EmptyDigest,
+            },
+            ["mediaType"] = "application/vnd.program-kit.ungranted-placeholder+json",
+            ["logicalPath"] = ".program-kit/authority/ungranted-proposal.placeholder.json",
+            ["digest"] = EmptyDigest,
+            ["ownership"] = "generated-owned",
+        };
+        return request;
+    }
+
+    private ResolvedFactoryInput ResolveProspective(string workspaceRoot, JsonObject ungrantedProjection)
+    {
+        FactoryInput admitted = intake.AdmitAndMap(workspaceRoot, ProspectiveConstructRequest(ungrantedProjection));
+        return resolution.Resolve(admitted);
+    }
+
     private static void ValidateExpectedLock(string workspaceRoot, JsonObject artifact)
     {
         string logicalPath = artifact["logicalPath"]?.GetValue<string>() ?? throw new InvalidDataException("Expected lock logicalPath is required.");
@@ -90,17 +116,15 @@ public sealed class PreparationService
             throw new InvalidDataException("The expected workspace lock is missing or stale.");
     }
 
-    private static string ProspectiveLiveState(string workspaceRoot, JsonObject explanation)
+    public static string ProspectiveLiveState(string workspaceRoot, JsonObject explanation)
     {
         SortedSet<string> paths = new(StringComparer.Ordinal);
         CollectLogicalPaths(explanation["artifactPlan"], paths);
-        string material = string.Join('\n', paths.Select(path =>
+        return LiveState.ComputeObserved(paths.Select(path =>
         {
             string resolved = LogicalPaths.ResolveInside(workspaceRoot, path);
-            string digest = File.Exists(resolved) ? Digests.Sha256(File.ReadAllBytes(resolved)) : "missing";
-            return $"{path}:{digest}";
+            return (path, File.Exists(resolved) ? Digests.Sha256(File.ReadAllBytes(resolved)) : null);
         }));
-        return Digests.Sha256(Encoding.UTF8.GetBytes(material));
     }
 
     private static void CollectLogicalPaths(JsonNode? node, ISet<string> paths)

@@ -11,6 +11,23 @@ public sealed record BoundHandoff(JsonObject Document, string Digest, IReadOnlyL
 
 public sealed class HandoffBinder
 {
+    private static readonly string[] RequiredTraceTargets =
+    {
+        "/feature",
+        "/intentOwner",
+        "/applicability",
+        "/effectiveSelection",
+        "/definitionFamily",
+        "/definition",
+        "/implementation",
+        "/evaluationContext",
+        "/requestedOperation",
+        "/maximumEffect",
+        "/ownership",
+        "/deferred",
+        "/excluded",
+    };
+
     private static readonly HashSet<string> ForbiddenNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "grant", "authorityGrant", "issuer", "credential", "secret", "prompt", "transcript", "shellCommand", "commandLine",
@@ -30,6 +47,16 @@ public sealed class HandoffBinder
             .ToArray();
         if (traceTargets.Distinct(StringComparer.Ordinal).Count() != traceTargets.Length)
             throw new InvalidDataException("Every traced output field must have exactly one source.");
+        if (requireComplete)
+        {
+            IEnumerable<string> required = handoff.ContainsKey("constructionMode")
+                ? RequiredTraceTargets.Append("/constructionMode")
+                : RequiredTraceTargets;
+            string[] missing = required.Except(traceTargets, StringComparer.Ordinal).OrderBy(static value => value, StringComparer.Ordinal).ToArray();
+            string[] unexpected = traceTargets.Except(required, StringComparer.Ordinal).OrderBy(static value => value, StringComparer.Ordinal).ToArray();
+            if (missing.Length > 0 || unexpected.Length > 0)
+                throw new InvalidDataException("A complete handoff requires exactly one trace for every identity or output-affecting field.");
+        }
         return new BoundHandoff((JsonObject)handoff.DeepClone(), CanonicalDocument.Digest(handoff), traceTargets);
     }
 
