@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,6 +30,7 @@ public sealed class SpecKitAdapterPackageClosureTests
             PackResult first = PackAdapter(Path.Combine(root, "first"));
             PackResult second = PackAdapter(Path.Combine(root, "second"));
             CollectionAssert.AreEqual(File.ReadAllBytes(first.Archive), File.ReadAllBytes(second.Archive), "The release archive is not byte deterministic.");
+            AssertCanonicalZipMetadata(first.Archive);
 
             Dictionary<string, byte[]> entries = ReadArchive(first.Archive);
             foreach (string required in new[]
@@ -177,6 +179,35 @@ public sealed class SpecKitAdapterPackageClosureTests
         CollectionAssert.Contains(references, "ProgramKit.Contracts");
         foreach (string forbidden in new[] { "ProgramKit.Kernel", "ProgramKit.Providers", "ProgramKit.SessionIntegration", "SpecKit", "Microsoft.CodeAnalysis" })
             Assert.IsFalse(references.Any(name => name.Contains(forbidden, StringComparison.OrdinalIgnoreCase)), forbidden);
+    }
+
+    private static void AssertCanonicalZipMetadata(string path)
+    {
+        byte[] bytes = File.ReadAllBytes(path);
+        int minimumEocdOffset = Math.Max(0, bytes.Length - 65_557);
+        int eocdOffset = -1;
+        for (int candidate = bytes.Length - 22; candidate >= minimumEocdOffset; candidate--)
+        {
+            if (BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(candidate, 4)) == 0x06054b50)
+            {
+                eocdOffset = candidate;
+                break;
+            }
+        }
+
+        Assert.IsTrue(eocdOffset >= 0, "ZIP end-of-central-directory record is missing.");
+        int entryCount = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(eocdOffset + 10, 2));
+        int entryOffset = checked((int)BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(eocdOffset + 16, 4)));
+        for (int entryIndex = 0; entryIndex < entryCount; entryIndex++)
+        {
+            Assert.AreEqual(0x02014b50u, BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(entryOffset, 4)), $"entry {entryIndex}");
+            Assert.AreEqual((byte)0, bytes[entryOffset + 5], $"entry {entryIndex} platform");
+            Assert.AreEqual(0u, BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(entryOffset + 38, 4)), $"entry {entryIndex} attributes");
+            int nameLength = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(entryOffset + 28, 2));
+            int extraLength = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(entryOffset + 30, 2));
+            int commentLength = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(entryOffset + 32, 2));
+            entryOffset += 46 + nameLength + extraLength + commentLength;
+        }
     }
 
     private static ProcessResult Run(string executable, string workingDirectory, params string[] arguments)

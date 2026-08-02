@@ -10,6 +10,39 @@ param(
     [string] $PublishedToolsRoot
 )
 
+function Set-CanonicalZipMetadata {
+    param([Parameter(Mandatory)][string] $Path)
+
+    $bytes = [IO.File]::ReadAllBytes($Path)
+    $minimumEocdOffset = [Math]::Max(0, $bytes.Length - 65557)
+    $eocdOffset = -1
+    for ($candidate = $bytes.Length - 22; $candidate -ge $minimumEocdOffset; $candidate--) {
+        if ([BitConverter]::ToUInt32($bytes, $candidate) -eq 0x06054b50) {
+            $eocdOffset = $candidate
+            break
+        }
+    }
+    if ($eocdOffset -lt 0) { throw 'The staged adapter archive has no ZIP end-of-central-directory record.' }
+
+    $entryCount = [BitConverter]::ToUInt16($bytes, $eocdOffset + 10)
+    $entryOffset = [BitConverter]::ToUInt32($bytes, $eocdOffset + 16)
+    for ($entryIndex = 0; $entryIndex -lt $entryCount; $entryIndex++) {
+        if ([BitConverter]::ToUInt32($bytes, $entryOffset) -ne 0x02014b50) {
+            throw "The staged adapter archive has an invalid central-directory entry at index $entryIndex."
+        }
+        $bytes[$entryOffset + 5] = 0
+        $bytes[$entryOffset + 38] = 0
+        $bytes[$entryOffset + 39] = 0
+        $bytes[$entryOffset + 40] = 0
+        $bytes[$entryOffset + 41] = 0
+        $nameLength = [BitConverter]::ToUInt16($bytes, $entryOffset + 28)
+        $extraLength = [BitConverter]::ToUInt16($bytes, $entryOffset + 30)
+        $commentLength = [BitConverter]::ToUInt16($bytes, $entryOffset + 32)
+        $entryOffset += 46 + $nameLength + $extraLength + $commentLength
+    }
+    [IO.File]::WriteAllBytes($Path, $bytes)
+}
+
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $resolvedOutput = if ([IO.Path]::IsPathRooted($OutputRoot)) {
@@ -130,6 +163,7 @@ try {
                 $logicalPath = [IO.Path]::GetRelativePath($attemptStage, $file.FullName).Replace('\', '/')
                 $entry = $archive.CreateEntry($logicalPath, [IO.Compression.CompressionLevel]::NoCompression)
                 $entry.LastWriteTime = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
+                $entry.ExternalAttributes = 0
                 $source = $file.OpenRead()
                 $destination = $entry.Open()
                 try { $source.CopyTo($destination) }
@@ -142,6 +176,7 @@ try {
         finally { $archive.Dispose() }
     }
     finally { $archiveStream.Dispose() }
+    Set-CanonicalZipMetadata -Path $attemptArchive
     if (-not (Test-Path -LiteralPath $attemptArchive -PathType Leaf)) {
         throw 'Spec Kit adapter archive staging failed.'
     }
