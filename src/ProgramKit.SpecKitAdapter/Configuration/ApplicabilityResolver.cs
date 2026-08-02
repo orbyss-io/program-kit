@@ -19,11 +19,12 @@ public static class ApplicabilityResolver
             return new ApplicabilityResolution(defaultMode, Applicability.Unresolved, Active: false, BlocksWorkflow: blocks, "project-default");
         }
 
-        ActivationMode mode = ParseMode(feature["mode"]!.GetValue<string>());
+        bool hasModeOverride = feature["mode"] is not null;
+        ActivationMode mode = hasModeOverride ? ParseMode(feature["mode"]!.GetValue<string>()) : defaultMode;
         Applicability applicability = ParseApplicability(feature["applicability"]!.GetValue<string>());
         bool active = mode != ActivationMode.Off && applicability == Applicability.Applicable;
         bool blocking = mode == ActivationMode.Required && applicability == Applicability.Unresolved;
-        return new ApplicabilityResolution(mode, applicability, active, blocking, "feature-override");
+        return new ApplicabilityResolution(mode, applicability, active, blocking, hasModeOverride ? "feature-override" : "project-default");
     }
 
     private static ActivationMode ParseMode(string value) => value switch

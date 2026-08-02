@@ -21,7 +21,7 @@ public sealed class EvaluateCommand
     {
         AdapterFeatureContext context = AdapterFeatureContextLoader.Load(workspaceRoot, request, requireReviewedHandoff: true);
         if (!context.Applicability.Active)
-            return AdapterResultWriter.NotApplicable(AdapterOperation.Evaluate, new JsonObject { ["blocking"] = context.Applicability.BlocksWorkflow });
+            return AdapterResultWriter.Inactive(AdapterOperation.Evaluate, context.Applicability);
         string featureRoot = $"specs/{context.FeatureKey}/program-kit/generated";
         Dictionary<string, JsonObject> documents = new(AdapterFeatureClosure.Load(workspaceRoot, featureRoot), StringComparer.Ordinal);
         JsonObject construct = documents.TryGetValue($"{featureRoot}/requests/construct.json", out JsonObject? found)

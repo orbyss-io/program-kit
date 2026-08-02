@@ -11,7 +11,7 @@ public static class HandoffCommand
     {
         AdapterFeatureContext context = AdapterFeatureContextLoader.Load(workspaceRoot, request, requireReviewedHandoff: false);
         if (!context.Applicability.Active)
-            return AdapterResultWriter.NotApplicable(Contracts.AdapterOperation.Handoff, new JsonObject { ["applicability"] = context.Applicability.Applicability.ToString().ToLowerInvariant(), ["blocking"] = context.Applicability.BlocksWorkflow });
+            return AdapterResultWriter.Inactive(Contracts.AdapterOperation.Handoff, context.Applicability);
         string logicalPath = $"specs/{context.FeatureKey}/program-kit/handoff.yaml";
         string path = LogicalPathPolicy.Resolve(workspaceRoot, logicalPath);
         if (!File.Exists(path))

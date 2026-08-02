@@ -8,7 +8,34 @@
     { "kind": "tasks", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md" }
   ],
   "applicability": "applicable",
-  "effectiveSelection": { "alias": "dotnet-default", "source": "feature-override" },
+  "effectiveSelection": {
+    "alias": "dotnet-default",
+    "source": "feature-override",
+    "selection": {
+      "alias": "dotnet-default",
+      "provider": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "factory-provider",
+        "name": "dotnet-cshells",
+        "revision": "1.0.0",
+        "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+      },
+      "targetProfile": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "target-profile",
+        "name": "dotnet10-cshells-0.0.28",
+        "revision": "1.0.0",
+        "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+      },
+      "selectionAuthority": {
+        "authority": "consumer.example",
+        "kind": "selection-authority",
+        "name": "human-review",
+        "revision": "1.0.0",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
   "definitionFamily": {
     "authority": "orbyss.program-kit.dotnet",
     "kind": "definition-family",
@@ -97,7 +124,34 @@
     {
       "targetPointer": "/effectiveSelection",
       "sourceKind": "human-decision",
-      "observedValue": { "alias": "dotnet-default", "source": "feature-override" },
+      "observedValue": {
+        "alias": "dotnet-default",
+        "source": "feature-override",
+        "selection": {
+          "alias": "dotnet-default",
+          "provider": {
+            "authority": "orbyss.program-kit.dotnet",
+            "kind": "factory-provider",
+            "name": "dotnet-cshells",
+            "revision": "1.0.0",
+            "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+          },
+          "targetProfile": {
+            "authority": "orbyss.program-kit.dotnet",
+            "kind": "target-profile",
+            "name": "dotnet10-cshells-0.0.28",
+            "revision": "1.0.0",
+            "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+          },
+          "selectionAuthority": {
+            "authority": "consumer.example",
+            "kind": "selection-authority",
+            "name": "human-review",
+            "revision": "1.0.0",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      },
       "mappingAuthority": "handoff-review"
     },
     {

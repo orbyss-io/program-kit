@@ -103,8 +103,10 @@ public sealed class DotNetHandoffTranslator
     private static JsonObject[] BuildSelections(BoundHandoff handoff, JsonObject workspaceLock, JsonObject lockArtifact, AdapterTranslationProfile compatibility)
     {
         string alias = handoff.Document["effectiveSelection"]!["alias"]!.GetValue<string>();
-        JsonObject selected = workspaceLock["selections"]!.AsArray().OfType<JsonObject>()
+        JsonObject selected = handoff.Document["effectiveSelection"]!["selection"]!.AsObject();
+        JsonObject current = workspaceLock["selections"]!.AsArray().OfType<JsonObject>()
             .Single(item => string.Equals(item["alias"]!.GetValue<string>(), alias, StringComparison.Ordinal));
+        RequireExact(selected, current, "The reviewed exact selection is unavailable or changed in the current workspace lock.");
         JsonObject provider = selected["provider"]!.AsObject();
         JsonObject profile = selected["targetProfile"]!.AsObject();
         JsonObject authority = selected["selectionAuthority"]!.AsObject();

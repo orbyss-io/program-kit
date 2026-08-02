@@ -204,7 +204,7 @@ canonical JSON. It is seeded-handoff on first creation and then consumer-owned.
 | `intentOwner` | safe identity | Named human/accountable role |
 | `sources` | artifact observations | spec, plan, tasks where applicable; whole bytes are provenance only |
 | `applicability` | decision | Exact state and source |
-| `effectiveSelection` | selection binding | Required only when applicable; explicit/inherited source |
+| `effectiveSelection` | exact selection binding | Required only when applicable; alias, explicit/inherited source, and the complete pinned lock selection |
 | `definitionFamily` | governed identity | Exact provider-supported family |
 | `definition` | object | Explicit provider-specific supported fields |
 | `implementation` | artifact bindings | Consumer-owned custom implementation references |

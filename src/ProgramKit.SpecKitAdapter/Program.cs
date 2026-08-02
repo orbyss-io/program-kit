@@ -31,6 +31,8 @@ public static class Program
             result = operation switch
             {
                 AdapterOperation.Doctor => DoctorCommand.Execute(workspace, request),
+                AdapterOperation.Activate => ActivateCommand.Execute(workspace, request),
+                AdapterOperation.Disable => DisableCommand.Execute(workspace, request),
                 AdapterOperation.Handoff => HandoffCommand.Execute(workspace, request),
                 AdapterOperation.Validate => ValidateCommand.Execute(workspace, request),
                 AdapterOperation.Prepare => new PrepareCommand().Execute(workspace, request),

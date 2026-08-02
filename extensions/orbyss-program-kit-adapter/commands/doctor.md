@@ -6,6 +6,10 @@ description: Validate exact Program Kit adapter readiness without selecting, act
 
 Determine whether the requested scope is `base` or one explicitly named
 feature. Do not infer applicability, a profile, or authority from prose.
+Resolve project semantics only from
+`.specify/extensions/orbyss-program-kit-adapter/orbyss-program-kit-adapter-config.yml`;
+ignore local configuration, environment variables, path globs, installation
+order, and machine-global defaults.
 
 Invoke the installed adapter executable with an exact argument vector:
 

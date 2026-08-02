@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.SpecKitAdapter.Configuration;
@@ -13,6 +12,7 @@ public sealed record AdapterFeatureContext(
     ResolvedAdapterConfig Config,
     ApplicabilityResolution Applicability,
     JsonObject WorkspaceLock,
+    EffectiveSelection? Selection,
     BoundHandoff? Handoff,
     JsonObject? Review,
     TraceResolution? Trace);
@@ -25,13 +25,15 @@ public static class AdapterFeatureContextLoader
         string configPath = request["config"]?["logicalPath"]?.GetValue<string>() ?? throw new InvalidDataException("A config logicalPath is required.");
         ResolvedAdapterConfig config = new AdapterConfigResolver().Resolve(workspaceRoot, configPath);
         ApplicabilityResolution applicability = ApplicabilityResolver.Resolve(config.Document, featureKey);
+        if (!applicability.Active)
+            return new AdapterFeatureContext(featureKey, config, applicability, new JsonObject(), null, null, null, null);
         string lockLogical = config.Document["programKit"]!["lock"]!.GetValue<string>();
         string lockPath = LogicalPathPolicy.Resolve(workspaceRoot, lockLogical);
         JsonObject workspaceLock = File.Exists(lockPath)
             ? CanonicalDocument.Parse(File.ReadAllBytes(lockPath)).AsObject()
             : new JsonObject();
-        if (!requireReviewedHandoff || !applicability.Active)
-            return new AdapterFeatureContext(featureKey, config, applicability, workspaceLock, null, null, null);
+        if (!requireReviewedHandoff)
+            return new AdapterFeatureContext(featureKey, config, applicability, workspaceLock, null, null, null, null);
 
         string handoffLogical = request["handoff"]?["logicalPath"]?.GetValue<string>() ?? $"specs/{featureKey}/program-kit/handoff.yaml";
         string reviewLogical = request["review"]?["logicalPath"]?.GetValue<string>() ?? $"specs/{featureKey}/program-kit/handoff-review.json";
@@ -39,13 +41,9 @@ public static class AdapterFeatureContextLoader
         string reviewPath = LogicalPathPolicy.Resolve(workspaceRoot, reviewLogical);
         if (!File.Exists(handoffPath) || !File.Exists(reviewPath)) throw new InvalidDataException("The reviewed feature handoff is incomplete.");
         BoundHandoff handoff = new HandoffBinder().Bind(RestrictedYaml.Parse(File.ReadAllText(handoffPath)), requireComplete: true);
-        EffectiveSelection selection = SelectionResolver.Resolve(config.Document, featureKey, workspaceLock);
-        if (!string.Equals(handoff.Document["effectiveSelection"]?["alias"]?.GetValue<string>(), selection.Alias, StringComparison.Ordinal))
-            throw new InvalidDataException("The reviewed handoff selection differs from the current effective selection.");
-        if (!string.Equals(handoff.Document["effectiveSelection"]?["source"]?.GetValue<string>(), selection.Source, StringComparison.Ordinal))
-            throw new InvalidDataException("The reviewed handoff selection source differs from the current precedence result.");
+        EffectiveSelection selection = SelectionResolver.ResolvePinned(config.Document, featureKey, workspaceLock, handoff.Document["effectiveSelection"]!.AsObject());
         JsonObject review = CanonicalDocument.Parse(File.ReadAllBytes(reviewPath)).AsObject();
         TraceResolution trace = HandoffReviewValidator.Validate(workspaceRoot, handoff, review);
-        return new AdapterFeatureContext(featureKey, config, applicability, workspaceLock, handoff, review, trace);
+        return new AdapterFeatureContext(featureKey, config, applicability, workspaceLock, selection, handoff, review, trace);
     }
 }

@@ -21,7 +21,7 @@ public sealed class ConstructCommand
     {
         AdapterFeatureContext context = AdapterFeatureContextLoader.Load(workspaceRoot, request, requireReviewedHandoff: true);
         if (!context.Applicability.Active)
-            return AdapterResultWriter.NotApplicable(AdapterOperation.Construct, new JsonObject { ["blocking"] = context.Applicability.BlocksWorkflow });
+            return AdapterResultWriter.Inactive(AdapterOperation.Construct, context.Applicability);
         if (request["grant"] is not JsonObject grant)
             return AdapterResultWriter.Failure(AdapterOperation.Construct, Diagnostics.AdapterFailureKind.InvalidAuthority, "needs-input");
 

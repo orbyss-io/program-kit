@@ -10,7 +10,16 @@
     "intentOwner": { "type": "string", "minLength": 1 },
     "sources": { "type": "array", "minItems": 1, "items": { "type": "object" } },
     "applicability": { "enum": ["applicable", "disabled", "not-applicable", "unresolved"] },
-    "effectiveSelection": { "type": "object" },
+    "effectiveSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alias", "source", "selection"],
+      "properties": {
+        "alias": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "source": { "enum": ["feature-override", "workspace-lock-default"] },
+        "selection": { "type": "object" }
+      }
+    },
     "definitionFamily": { "type": "object" },
     "definition": { "type": "object" },
     "implementation": { "type": "array", "items": { "type": "object" } },

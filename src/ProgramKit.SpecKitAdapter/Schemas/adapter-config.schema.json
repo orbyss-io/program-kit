@@ -24,7 +24,7 @@
           "type": "object",
           "additionalProperties": {
             "type": "object", "additionalProperties": false,
-            "required": ["mode", "applicability", "decisionSource"],
+            "required": ["applicability", "decisionSource"],
             "properties": {
               "mode": { "enum": ["off", "assist", "required"] },
               "applicability": { "enum": ["applicable", "disabled", "not-applicable", "unresolved"] },

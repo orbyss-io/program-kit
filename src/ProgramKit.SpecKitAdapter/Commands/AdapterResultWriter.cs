@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.SpecKitAdapter.Configuration;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
 using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 
@@ -45,6 +46,19 @@ public static class AdapterResultWriter
         ["disclosure"] = new JsonArray(),
         ["payload"] = payload,
     };
+
+    public static JsonObject Inactive(AdapterOperation operation, ApplicabilityResolution applicability)
+    {
+        if (applicability.BlocksWorkflow)
+            return Failure(operation, AdapterFailureKind.UnresolvedApplicability, "needs-input");
+        return NotApplicable(operation, new JsonObject
+        {
+            ["mode"] = Kebab(applicability.Mode),
+            ["applicability"] = Kebab(applicability.Applicability),
+            ["source"] = applicability.Source,
+            ["blocking"] = false,
+        });
+    }
 
     public static JsonObject Preserve(AdapterOperation operation, JsonObject programKitResult, JsonObject payload)
     {

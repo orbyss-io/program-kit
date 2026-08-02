@@ -4,6 +4,10 @@ programKit:
   manifest: program-kit.yaml
   lock: program-kit.lock.json
 activation:
+  # Feature mode overrides this repository default. No local or environment
+  # layer participates in applicability, profile, ownership, effect, or authority.
   defaultMode: assist
+  # Add an explicit feature entry before factory work. Resolve applicability
+  # before selection; only applicable features may inherit lock.defaultSelection.
   features: {}
 defaultRequestedEffect: none

@@ -16,14 +16,14 @@
     "https://schemas.program-kit.dev/v1/authority-grant.schema.json": "sha256:6987d28f61e3736d7025b52d08ec211c179918d704ac5b741ce66bfcee923120",
     "https://schemas.program-kit.dev/v1/factory-request.schema.json": "sha256:bfe093096cf074e1bbbd2851f832c238e5ac67706c80edac35e8ccd67615f336",
     "https://schemas.program-kit.dev/v2/operation-result.schema.json": "sha256:253b70d42ba81f8086dc687c6a0e2b9c40a303a7810026404859cfd215f91db6",
-    "https://schemas.program-kit.dev/v1/spec-kit-adapter-config.schema.json": "sha256:d123aeb073b9eff1ecea4092f3d87bbc50fa59ff1a7984a80a2aef9db36d71e6",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-config.schema.json": "sha256:b8d2a72e3762c26faa29a1ecf271f7e4e440f29454f38ee4109642d3d6ad8311",
     "https://schemas.program-kit.dev/v1/spec-kit-adapter-request.schema.json": "sha256:f3cd093b04e47fd7ed60d40da492ba0a9a654e516c7729f93d21b35c9e43c3fc",
     "https://schemas.program-kit.dev/v1/spec-kit-adapter-result.schema.json": "sha256:7c88be669177cdc231041cb261d7d2e5190760cb2f4d3f249b2e9fa5f2e41fd4",
     "https://schemas.program-kit.dev/v1/spec-kit-adapter-compatibility.schema.json": "sha256:e4c52f8adc671c0468913abddb13e3fe8a0a9581796571ba94d23408e1250cb1",
     "https://schemas.program-kit.dev/v1/spec-kit-adapter-diagnostic-catalog.schema.json": "sha256:cd4dd864dc05686a0967c8c07c387a2935373f4f63c311c1dd008733bfe96ae0",
     "https://schemas.program-kit.dev/v1/spec-kit-adapter-manifest.schema.json": "sha256:c897b4e0d200e5676f727c30c60176d5a8fc44e0425674c4364cb39340cc779d",
     "https://schemas.program-kit.dev/v1/spec-kit-handoff-review.schema.json": "sha256:8845a3877859351aac074c0da7ed66abf97dbcc9440ec735f6193adb8842214f",
-    "https://schemas.program-kit.dev/v1/spec-kit-handoff.schema.json": "sha256:e765abd5b2d116a5086dec05f19292a6f6a53a63b7031337952ccc15f8862b61"
+    "https://schemas.program-kit.dev/v1/spec-kit-handoff.schema.json": "sha256:9555945071ed87732ebf046732129d3ed5b7326c1349701616afcd07ad46de42"
   },
   "commandBindings": {
     "prepare": "program-kit prepare@v2",
@@ -67,5 +67,5 @@
     "schemas/",
     "diagnostic-catalog.json"
   ],
-  "digest": "sha256:61520e9acc21cd0e1a8bff34f0bbcece26163d6a47e42399d2507b9afa8b9532"
+  "digest": "sha256:0fb6fdc0fd39273d2efbdb9f3527dd74633ff167fd36538b16c29c9ab821e8c8"
 }

@@ -22,7 +22,7 @@ public sealed class PrepareCommand
     {
         AdapterFeatureContext context = AdapterFeatureContextLoader.Load(workspaceRoot, request, requireReviewedHandoff: true);
         if (!context.Applicability.Active)
-            return AdapterResultWriter.NotApplicable(AdapterOperation.Prepare, new JsonObject { ["blocking"] = context.Applicability.BlocksWorkflow });
+            return AdapterResultWriter.Inactive(AdapterOperation.Prepare, context.Applicability);
         TranslationResult translation = new DotNetHandoffTranslator().Translate(context.Handoff!, context.WorkspaceLock);
         string manifestPath = LogicalPathPolicy.Resolve(workspaceRoot, $"{translation.FeatureRoot}/adapter-manifest.json");
         Dictionary<string, JsonObject> documents = File.Exists(manifestPath)

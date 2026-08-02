@@ -9,7 +9,7 @@ public static class ValidateCommand
     {
         AdapterFeatureContext context = AdapterFeatureContextLoader.Load(workspaceRoot, request, requireReviewedHandoff: true);
         if (!context.Applicability.Active)
-            return AdapterResultWriter.NotApplicable(Contracts.AdapterOperation.Validate, new JsonObject { ["blocking"] = context.Applicability.BlocksWorkflow });
+            return AdapterResultWriter.Inactive(Contracts.AdapterOperation.Validate, context.Applicability);
         TranslationResult translation = new DotNetHandoffTranslator().Translate(context.Handoff!, context.WorkspaceLock);
         return AdapterResultWriter.Success(Contracts.AdapterOperation.Validate, new JsonObject
         {
@@ -17,6 +17,9 @@ public static class ValidateCommand
             ["reviewDigest"] = context.Review!["digest"]!.DeepClone(),
             ["traceDependencyCount"] = context.Trace!.DependencyDigests.Count,
             ["selectionAlias"] = context.Handoff.Document["effectiveSelection"]!["alias"]!.DeepClone(),
+            ["selectionDiverged"] = context.Selection!.Diverged,
+            ["currentSelectionAlias"] = context.Selection.CurrentAlias,
+            ["requiresRehandoff"] = context.Selection.Diverged,
             ["translatedArtifactCount"] = translation.Documents.Count,
         });
     }

@@ -17,7 +17,7 @@ public sealed class ExplainCommand
     {
         AdapterFeatureContext context = AdapterFeatureContextLoader.Load(workspaceRoot, request, requireReviewedHandoff: true);
         if (!context.Applicability.Active)
-            return AdapterResultWriter.NotApplicable(AdapterOperation.Explain, new JsonObject { ["blocking"] = context.Applicability.BlocksWorkflow });
+            return AdapterResultWriter.Inactive(AdapterOperation.Explain, context.Applicability);
         string path = $"specs/{context.FeatureKey}/program-kit/generated/requests/explain.json";
         JsonObject result = invoker.Invoke(workspaceRoot, "explain", path);
         return AdapterResultWriter.Success(AdapterOperation.Explain, new JsonObject { ["request"] = path }, programKitResult: result);
