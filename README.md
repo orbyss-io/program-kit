@@ -89,6 +89,26 @@ universal source-code translator, or a runtime required by the software it
 creates. Generated applications are ordinary software: developers can inspect,
 build, test, run, and own them with the normal tools of their ecosystem.
 
+### Where this is heading
+
+Our vision is for Program Kit to become much more than a deterministic
+scaffolder: a semantic construction and compatibility system. We can grow
+toward that incrementally—one well-defined, versioned semantic area at a
+time—without pretending to understand arbitrary source code.
+
+Planned areas of growth include canonical descriptions of enums, data models,
+and interfaces; .NET options, feature registrations, service-to-implementation
+bindings, lifetimes, and deterministic assembly-scan results; and bounded
+pre-build impact analysis that identifies the declared implementations,
+consumers, adapters, packages, and evidence affected by a proposed contract
+change. Each area can add its own compatibility rules and exact provider
+projection while unsupported or custom meaning remains explicitly unknown.
+
+This is a product direction, not a claim that the current vertical slices
+already provide those capabilities. The path is to add each semantic vocabulary
+and profile through versioned contracts, traceable relationships, exact locks,
+and evidence-backed evaluation.
+
 ## The problem we want to solve
 
 AI-assisted software projects often carry their own disconnected instructions,
