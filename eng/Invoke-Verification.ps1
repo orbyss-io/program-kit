@@ -58,7 +58,13 @@ try {
         $env:XDG_CONFIG_HOME = $toolHome
     }
 
-    Invoke-Checked { & (Join-Path $PSScriptRoot 'Assert-SpecKitIntegrity.ps1') } 'Spec Kit project integrity failed.'
+    $specKitIntegrity = Join-Path $PSScriptRoot 'Assert-SpecKitIntegrity.ps1'
+    if ($env:GITHUB_ACTIONS -eq 'true') {
+        Invoke-Checked { & $specKitIntegrity -RepositoryOnly } 'Spec Kit project integrity failed.'
+    }
+    else {
+        Invoke-Checked { & $specKitIntegrity } 'Spec Kit project integrity failed.'
+    }
     Invoke-Checked { & (Join-Path $PSScriptRoot 'Assert-CanonicalText.ps1') } 'Canonical text verification failed.'
 
     if ($effectiveMode -eq 'Human') {

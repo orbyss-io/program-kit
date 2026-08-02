@@ -14,6 +14,8 @@ public sealed class VerificationTierContractTests
         StringAssert.Contains(script, "'Fast' { 'Edit' }");
         StringAssert.Contains(script, "'Contract' { 'Story' }");
         StringAssert.Contains(script, "$env:GITHUB_ACTIONS -ne 'true'");
+        StringAssert.Contains(script, "& $specKitIntegrity -RepositoryOnly");
+        StringAssert.Contains(script, "& $specKitIntegrity } 'Spec Kit project integrity failed.'");
         StringAssert.Contains(script, "CI verification is protected-runner-only");
         StringAssert.Contains(script, "SpecKitAdapterBootstrapAcceptanceTests");
         StringAssert.Contains(script, "Human verification is a post-CI review checkpoint");
