@@ -258,15 +258,15 @@ fresh real provider session.
 
 | Field | Meaning | Validation |
 |---|---|---|
-| `schema` | Review family | `program-kit.session-review/v1` |
-| `reviewerAttestation` | Human-owned review statement | Exact reviewer identity asserted outside Program Kit authority |
-| `providerObservation` | Provider and tested version | Safe version identity only |
-| `installationIdentity` | Integration under review | Exact admitted record binding |
+| `schema` | Review family | `program-kit.codex-session-review/v2` |
+| `candidate` | Exact reviewed implementation and seed | Packet, seed contract, CLI, projection, installation record, definition, provider, adapter, and conformance digests/identities |
+| `reviewerIdentity` | Human-owned review attribution | Exact reviewer identity asserted outside Program Kit authority |
+| `provider` | Provider, tested version, and pinned model | Safe identifiers only; no raw provider output |
+| `scenarioIdentity` | Golden scenario under review | Exact fixed identity; no prompt or transcript content |
 | `trialIdentity` | One fresh-session trial | Unique non-secret identity |
-| `expectedScenario` | Golden scenario identity | No prompt or transcript content |
-| `observedOperations` | Operation identity sequence | No raw model text |
-| `authorityBoundaryObserved` | Whether effect preceded approval | Boolean plus safe evidence reference |
-| `finalOutcome` | Typed Program Kit outcome | Exact outcome, effect, and disposition |
+| `observedOperations` | Reviewer-attested operation identity sequence | Empty or exact `explain`, `construct`, `evaluate`; no raw model text |
+| `authorityPrecededEffect` | Whether human selection of exact authority preceded the effect | Reviewer-attested Boolean |
+| `finalOutcome` / `finalEffectState` / `finalDisposition` | Typed final Program Kit result | Exact safe values or `not-observed`; never inferred from prose |
 | `limitations` | Honest unproven aspects | Required when any observation is incomplete |
 
 The record cannot prove deterministic AI behavior. It is evidence-backed and

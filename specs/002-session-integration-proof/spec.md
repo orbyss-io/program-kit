@@ -4,9 +4,31 @@
 
 **Created**: 2026-08-01
 
-**Status**: Draft
+**Status**: Remediation approved; product acceptance pending
 
 **Input**: User description: "Prove that an exact independently installed Program Kit CLI can be registered as a tool and accompanied by a thin session capability in an isolated consumer workspace. Establish a provider-neutral canonical integration contract with explicit provider adapters, beginning with one reference provider and a neutral conformance harness. A human-led AI session must use explain, construct, and evaluate safely, recover from imperfect intent through structured diagnostics, require human authority before effects, and operate without Program Kit source, Spec Kit, self-hosting, or runtime coupling."
+
+## Intent, Authority, and Scope *(mandatory)*
+
+**Intent Owner**: Program Kit product owner.
+
+**Decision Authority**: The product owner resolves scope and product meaning;
+an independent human reviewer owns final session-experience acceptance. Automation
+may establish executable evidence but cannot approve semantic fitness.
+
+**In Scope**: Close the provider-neutral, workspace-local session-integration
+slice from exact CLI selection through safe removal; preserve Feature 001's
+current public factory, authority, diagnostic, and evidence contracts; and
+produce a fresh bounded ten-session review after affected executable proof is
+green.
+
+**Out of Scope**: A provider-hosted runtime, autonomous planning, inferred
+authority, provider-global installation, additional provider products, release
+publication, and changes to consumer-domain meaning.
+
+**Unresolved Meaning**: None. The rejected 8/10 review is historical evidence,
+not an acceptance baseline. Reconsideration requires the existing SC-003 and
+SC-005 thresholds without weakening them.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -424,6 +446,61 @@ The following are explicitly outside this feature:
 - **FR-046**: After exact removal, verification MUST report the integration as
   absent without treating independently installed CLI artifacts or unrelated
   provider configuration as owned by the removed integration.
+
+### Requirement Classification
+
+The acceptance boundary names the observable claim; it does not grant release
+or publication authority. `Human-review` rows may also use executable evidence,
+but only the named reviewer can decide fitness.
+
+| Requirement | Class | Authority | Acceptance Boundary | Proof Class |
+|-------------|-------|-----------|---------------------|-------------|
+| FR-001 | contract | Maintainer | Exact external CLI acquisition is attributable | evidence-backed |
+| FR-002 | safety | Kernel | Callable bytes match the selected release before admission | executable-invariant |
+| FR-003 | safety | Maintainer | Consumer proof contains no Program Kit source or Spec Kit | evidence-backed |
+| FR-004 | behavior | CLI | CLI remains independently callable | executable-invariant |
+| FR-005 | safety | Consumer | Generated runtime has no factory/session dependency | evidence-backed |
+| FR-006 | governance | Maintainer | Repository delivery never self-hosts through this integration | executable-invariant |
+| FR-007 | contract | Product owner | One versioned canonical session definition governs meaning | executable-invariant |
+| FR-008 | contract | Product owner | Factory, binding, capability, and adapter identities remain distinct | executable-invariant |
+| FR-009 | contract | Product owner | Public operation/effect meaning remains provider-neutral | executable-invariant |
+| FR-010 | behavior | Product owner | Guidance consumes typed result fields and diagnostic identities | executable-invariant |
+| FR-011 | governance | Product owner | Guidance grants no domain meaning, selection, or effect authority | executable-invariant |
+| FR-012 | contract | Adapter owner | Every projection binds the exact canonical revision | executable-invariant |
+| FR-013 | safety | Kernel | Non-exact projections never verify as current | executable-invariant |
+| FR-014 | safety | Kernel | Mandatory meaning loss is an explicit incompatibility | executable-invariant |
+| FR-015 | safety | Human operator | All installation selections are explicit and exact | executable-invariant |
+| FR-016 | safety | Human operator | Configuration effects are explained and authorized first | executable-invariant |
+| FR-017 | safety | Consumer | Ownership is explicit and pre-existing material is protected | executable-invariant |
+| FR-018 | safety | Kernel | Complete preflight precedes live effects | executable-invariant |
+| FR-019 | safety | Kernel | Complete candidate set is staged and validated atomically | executable-invariant |
+| FR-020 | safety | Kernel | Admission follows exact live verification only | executable-invariant |
+| FR-021 | safety | Kernel | Partial, interrupted, colliding, or unverifiable setup stays untrusted | executable-invariant |
+| FR-022 | behavior | CLI | Installation validity and fresh-session availability are distinct | executable-invariant |
+| FR-023 | contract | CLI | Lifecycle results preserve effects, evidence, diagnostics, and next action | executable-invariant |
+| FR-024 | behavior | Human reviewer | A fresh verified session discovers the supported tool boundary | human-review |
+| FR-025 | behavior | Product owner | Guidance requires explanation before incomplete effect-bearing work | human-review |
+| FR-026 | safety | Human operator | Availability or conversation never implies current authority | executable-invariant |
+| FR-027 | safety | Human operator | Effect invocation carries an exact current scoped grant | executable-invariant |
+| FR-028 | safety | Kernel | Invalid or incomplete authority blocks with bounded human action | executable-invariant |
+| FR-029 | behavior | Human reviewer | Fresh sessions complete explain, authorize, construct, and evaluate | human-review |
+| FR-030 | safety | Kernel | Evaluation remains read-only under drift | executable-invariant |
+| FR-031 | safety | Kernel | Remediation is bounded and revalidated separately | executable-invariant |
+| FR-032 | contract | CLI | Provider transport preserves the complete Program Kit result meaning | executable-invariant |
+| FR-033 | contract | Product owner | Real and neutral adapters consume one canonical definition | evidence-backed |
+| FR-034 | architecture | Adapter owner | Provider code contains projection/lifecycle mechanics only | executable-invariant |
+| FR-035 | contract | Product owner | Another adapter does not redefine public factory/session meaning | evidence-backed |
+| FR-036 | contract | Adapter owner | Conformance proves all mandatory preservation boundaries | executable-invariant |
+| FR-037 | contract | Kernel | Direct, neutral, and provider paths preserve normalized meaning | executable-invariant |
+| FR-038 | safety | Kernel | Capability or normalization loss fails as exact incompatibility | executable-invariant |
+| FR-039 | contract | CLI | Every recoverable path returns a structured result or classified transport failure | executable-invariant |
+| FR-040 | contract | Kernel | Every integration diagnostic is complete, safe, evidenced, and actionable | executable-invariant |
+| FR-041 | behavior | Kernel | Required negative scenarios remain independently distinguishable | executable-invariant |
+| FR-042 | safety | Kernel | Governed outputs withhold protected and unsafe material | executable-invariant |
+| FR-043 | safety | Maintainer | Registration and verification stay local-first without hidden effects | evidence-backed |
+| FR-044 | safety | Human operator | Removal requires exact record and explicit authority | executable-invariant |
+| FR-045 | safety | Consumer | Removal touches only unchanged integration-owned bytes | executable-invariant |
+| FR-046 | behavior | CLI | Removed state is reported without claiming unrelated ownership | executable-invariant |
 
 ### Key Entities
 

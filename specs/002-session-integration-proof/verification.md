@@ -356,3 +356,45 @@ approval. Reconsideration requires first-vertical-slice authority-closure
 remediation, correction of the resulting session-guidance failures, a new full
 ten-consecutive-fresh-session evidence set, and a new independent human
 decision. T105 is complete as a truthful reconciliation, not as an approval.
+
+## Approved remediation candidate — 2026-08-02
+
+This section supersedes only the implementation-readiness conclusion above. It
+does not reinterpret the rejected 8/10 review or claim new product acceptance.
+
+- T112 passed focused diagnostic proof: 12 contract tests, including schema
+  validation of every retained `PKSES` and `PKCDX` result. The negative aggregate
+  identity is `sha256:f57590685ce39389c0d5d5440bdfbd78a19442627629b4cac1637c966a4ad3da`.
+  The session and Codex catalog identities are respectively
+  `sha256:006042a0eaee83f410f96405db492c33ccd66514f19886a54ea88913335b22e5`
+  and `sha256:e96a4a56a2c9e6b007a745e1e31713ebdc630592c6fb4616e8d733ec02f0b2c5`.
+- T113 passed the exact-seed helper and contract matrix for the current Feature
+  001 factory request, grant, review, revocation, definition, implementation,
+  explain, construct, and evaluate closure. The seed identity is
+  `sha256:cd2207f623d9705a1768c9a242a6f76acc8feb78f15d24557602c76b20de45f6`.
+- T114 passed one focused projection test and two human-led workflow acceptance
+  tests covering typed missing input, exact continuation, non-authorizing
+  conversation, selected grant authority, construction, and evaluation. The
+  current definition and provider-manifest identities are respectively
+  `sha256:238ed8e709e0bc85204cc802556e364f51002d370145e7ce6cec7f7832c5994f`
+  and `sha256:2f8ca6b14475f0c06e56746916fd4f7156442c9247279a6cd8f78a63db4f1d9f`.
+- T115 passed feature-owned schema and contract proof for exact candidate
+  bindings, ten bounded reviewer attestations, typed final results, fail-closed
+  invalid evidence, and absence of raw prompts, responses, transcripts, output,
+  credentials, and paths. The schema identity is
+  `sha256:963b74d9721993dfd2bd9f3adeb4c9ac5316d1042a33d5e9e465cbc7f6c43ad3`.
+  The rejected historical evidence remains byte-exact at
+  `sha256:e7d6b00c53b0473e9e2a0de98bf8a2c783a50d21447d66f96ef5f5e72ea6f91d`.
+- T116 regenerated eight deterministic distribution artifacts twice without
+  drift. The manifest identity is
+  `sha256:439355b70d8319ab1c26c8e2fda692d96e678618705d255f5d9553d25184ef4b`.
+  `eng/Invoke-Verification.ps1 -Mode PrePr` then passed isolated builds with
+  zero warnings/errors, 46 unit tests, 64 contract tests, changed-file format,
+  SpecKit integrity, canonical text, and diff hygiene. The unchanged dependency
+  mirror was reused; the local full acceptance/conformance/platform matrix was
+  intentionally not duplicated.
+
+T117 is pending authoritative protected Windows/Linux CI. T118 remains an
+explicitly human-operated ten-fresh-session review, T119 remains a new
+independent human decision, and T120 remains final reconciliation. Therefore
+Feature 002 is remediated for CI handoff but is not yet accepted.

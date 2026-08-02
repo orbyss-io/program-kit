@@ -17,7 +17,11 @@ public static class CanonicalSessionGuidance
 
     public static IReadOnlyList<string> WorkflowSteps { get; } = GuidanceText
         .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Where(static line => line.Length > 3 && char.IsAsciiDigit(line[0]) && line[1] == '.')
-        .Select(static line => line[3..])
+        .Where(static line =>
+        {
+            int separator = line.IndexOf(". ", StringComparison.Ordinal);
+            return separator > 0 && line[..separator].All(static character => char.IsAsciiDigit(character));
+        })
+        .Select(static line => line[(line.IndexOf(". ", StringComparison.Ordinal) + 2)..])
         .ToArray();
 }

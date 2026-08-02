@@ -26,5 +26,16 @@ public sealed class SessionDiagnosticCatalogContractTests
         }
 
         CollectionAssert.AreEqual(new[] { "program-kit.session.codex/PKCDX0001", "program-kit.session.codex/PKCDX0002", "program-kit.session.codex/PKCDX0003" }, CodexDiagnosticCatalog.Entries.Keys.ToArray());
+        foreach (SessionDiagnosticDefinition entry in CodexDiagnosticCatalog.Entries.Values)
+        {
+            Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Trigger));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Expected));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(entry.Consequence));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(entry.SafeRemediation));
+        }
+        Assert.AreEqual(SessionDiagnosticCatalog.Identity.Digest, SessionDiagnosticCatalog.Artifact.Digest);
+        Assert.AreEqual(CodexDiagnosticCatalog.Identity.Digest, CodexDiagnosticCatalog.Artifact.Digest);
+        ContractAssertions.AssertValid(ContractAssertions.OperationResult, SessionDiagnosticCatalog.ToDocument());
+        ContractAssertions.AssertValid(ContractAssertions.OperationResult, CodexDiagnosticCatalog.ToDocument());
     }
 }

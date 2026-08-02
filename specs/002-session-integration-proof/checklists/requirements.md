@@ -38,3 +38,7 @@
 - The specification intentionally leaves projection formats, packaging
   technology, command spelling, process boundaries, and provider configuration
   layouts for planning.
+- Revalidation on 2026-08-02 passed after adding explicit intent authority,
+  rejected-review status, bounded reconsideration scope, and per-requirement
+  classification without weakening FR-001 through FR-046 or SC-001 through
+  SC-010.

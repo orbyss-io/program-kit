@@ -20,7 +20,7 @@ public static class SessionFailureBoundary
                 OperationOutcome.Blocked,
                 exception.Phase,
                 exception.EffectState,
-                ParseDisposition(definition.Disposition),
+                definition.Disposition,
                 new[] { SessionDiagnosticFactory.Create(exception.DiagnosticId, exception.Phase, "session-integration", exception.Message) });
         }
         catch (Exception)
@@ -28,15 +28,4 @@ public static class SessionFailureBoundary
             return OperationResultFactory.Fallback(command, EffectState.None);
         }
     }
-
-    private static PrimaryDisposition ParseDisposition(string value) => value switch
-    {
-        "complete" => PrimaryDisposition.Complete,
-        "retry" => PrimaryDisposition.Retry,
-        "provide-input" => PrimaryDisposition.ProvideInput,
-        "request-approval" => PrimaryDisposition.RequestApproval,
-        "repair" => PrimaryDisposition.Repair,
-        "revise" => PrimaryDisposition.Revise,
-        _ => PrimaryDisposition.Stop,
-    };
 }

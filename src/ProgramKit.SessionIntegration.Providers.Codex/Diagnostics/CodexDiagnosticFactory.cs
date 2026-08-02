@@ -6,28 +6,28 @@ using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 
-namespace Orbyss.ProgramKit.SessionIntegration.Diagnostics;
+namespace Orbyss.ProgramKit.SessionIntegration.Providers.Codex.Diagnostics;
 
-public static class SessionDiagnosticFactory
+public static class CodexDiagnosticFactory
 {
     public static Diagnostic Create(string id, OperationPhase phase, string subject, string cause)
     {
-        SessionDiagnosticDefinition definition = SessionDiagnosticCatalog.Get(id);
+        SessionDiagnosticDefinition definition = CodexDiagnosticCatalog.Get(id);
         SafeValue safeSubjectValue = DisclosureFilter.RepositoryRelative(subject);
         SafeValue safeCause = DisclosureFilter.PublicText(cause);
         SafeValue expected = DisclosureFilter.PublicText(definition.Expected);
         SafeValue consequence = DisclosureFilter.PublicText(definition.Consequence);
         string safeSubject = safeSubjectValue.Value ?? "withheld";
         string occurrence = Digests.Sha256(Encoding.UTF8.GetBytes($"{id}\n{safeSubject}\n{safeCause.Value ?? "withheld"}"));
-        PrimaryDisposition disposition = definition.Disposition;
         return new Diagnostic(
             id,
-            SessionDiagnosticCatalog.Identity,
+            CodexDiagnosticCatalog.Identity,
             definition.Severity,
             definition.Category,
             phase,
-            disposition,
+            definition.Disposition,
             occurrence,
             1,
             new[] { safeSubject },
@@ -45,7 +45,7 @@ public static class SessionDiagnosticFactory
             new[]
             {
                 new Remediation(
-                    RemediationKind(disposition),
+                    SessionDiagnosticCatalog.Kebab(definition.Disposition),
                     new[] { safeSubject },
                     new[] { "diagnostic-is-current" },
                     RequestedEffect.None,
@@ -53,18 +53,9 @@ public static class SessionDiagnosticFactory
                     null,
                     null,
                     new[] { "help" },
-                    new[] { "session-invariant-is-re-evaluated" },
+                    new[] { "provider-invariant-is-re-evaluated" },
                     phase),
             },
-            new[] { SessionDiagnosticCatalog.EvidenceFor(id) });
+            new[] { CodexDiagnosticCatalog.EvidenceFor(id) });
     }
-
-    private static string RemediationKind(PrimaryDisposition disposition) => disposition switch
-    {
-        PrimaryDisposition.ProvideInput => "provide-input",
-        PrimaryDisposition.Repair => "repair",
-        PrimaryDisposition.Retry => "retry",
-        PrimaryDisposition.Revise => "revise",
-        _ => "stop",
-    };
 }

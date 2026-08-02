@@ -13,7 +13,7 @@ adds explicit `session explain|install|verify|remove` application operations,
 request-bound human effect grants, a namespaced atomic publisher, versioned
 canonical integration and provider manifests, exact installation records, and
 structured diagnostics. Deterministic neutral tests prove the abstraction and
-an optional human-reviewed live Codex exercise assesses the real session
+an explicitly authorized human-reviewed live Codex exercise assesses the real session
 experience. The design introduces no MCP server, plugin marketplace, native
 planning system, Program Kit self-hosting, or generated-application runtime
 dependency.
@@ -26,7 +26,7 @@ dependency.
 
 **Storage**: Canonical JSON contracts and records plus Markdown/YAML provider projections in the consumer filesystem; no database or remote state
 
-**Testing**: MSTest `4.3.3`, Microsoft.NET.Test.Sdk `18.8.1`, JSON Schema validation, golden contract/result fixtures, package-and-install smoke tests, a provider-neutral conformance harness, Windows/Linux CI, and an optional exact-version live Codex review
+**Testing**: MSTest `4.3.3`, Microsoft.NET.Test.Sdk `18.8.1`, JSON Schema validation, golden contract/result fixtures, package-and-install smoke tests, a provider-neutral conformance harness, Windows/Linux CI, and an explicitly authorized exact-version live Codex review required for product acceptance
 
 **Target Platform**: Windows and Linux development workspaces with .NET 10; Codex is the first real session provider
 
@@ -38,25 +38,50 @@ dependency.
 
 **Scale/Scope**: One exact CLI package, two focused production projects, four session lifecycle commands, one provider-neutral definition family, one real Codex adapter, one neutral conformance adapter, and the Feature 002 deterministic and human-review evidence set
 
+## Change Risk and Boundaries *(mandatory)*
+
+**Risk Level**: High — `main` changed Feature 001 authority closure, the public
+diagnostic/result contract, CLI dispatch, and final evidence generation after
+Feature 002's rejected review.
+
+**Affected Public Boundaries**: Session lifecycle commands, canonical session
+definition and guidance, provider projections, structured diagnostics/results,
+Feature 001 authority references, distribution evidence, and live-session
+review evidence.
+
+**Affected Authority/Ownership**: The product owner owns intent and scope; the
+kernel owns executable authority and diagnostic invariants; provider adapters
+own lossless projection; the human operator owns effect grants; an independent
+human reviewer owns final product acceptance.
+
+**Dependencies and External Assumptions**: The branch consumes Feature 001's
+merged factory contracts from `main`. The selected Codex version and model are
+recorded external review inputs, not deterministic product dependencies. A live
+review requires explicit authorization and fresh isolated sessions.
+
+**Explicitly Unaffected Areas**: Consumer-domain semantics, additional provider
+products, runtime hosting, provider-global installation, autonomous planning,
+release publication, and Program Kit self-hosting remain outside this recovery.
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
 
 ### Pre-design gate
 
-| Principle or boundary | Applicability and decision | Enforcement mode | Planned evidence | Failure disposition | Waiver |
-|---|---|---|---|---|---|
-| I. Human Authority and Semantic Honesty | Applies. The integration may translate exact requests but cannot infer authority, identity-forming choices, or consumer meaning. Effect-bearing install/remove use request-bound grants; live session adequacy remains human-owned. | `executable-invariant` for grants and unknown state; `human-review` for semantic adequacy | Authority mismatch/expiry/widening fixtures, canonical request records, live review record | Refuse the effect with a structured result and bounded next action | Not allowed for kernel authority gates |
-| II. Independent Software Factory | Applies. The exact packed CLI is installed and invoked in an isolated consumer workspace. Session providers call public CLI contracts only. Program Kit source carries a fail-closed authoring marker. | `executable-invariant` and `evidence-backed` | Clean build, package-only install, black-box CLI invocation, source-marker refusal, forbidden dependency tests | Block admission or release | Not waivable |
-| III. Exact Contracts and Governed Resolution | Applies. CLI release, canonical definition, adapter, provider, diagnostic catalog, request, grant, and installed projections resolve by exact identity with no ambient selection. | `executable-invariant` | JSON schemas, canonicalization and identity fixtures, zero/multiple/stale/incompatible resolution tests | Return no trusted result; diagnose the exact unresolved identity | Not waivable |
-| IV. Honest Determinism and Evidence | Applies. Program Kit-owned canonical files are byte-deterministic inside the declared profile; NuGet package output is claimed only as verifier-backed equivalent. Live Codex behavior is not claimed deterministic. | `executable-invariant`, `evidence-backed`, and `human-review` | Repeatability/permutation fixtures, exact digests, tool install evidence, honest live-review status | Downgrade the claim or block admission/release | Not waivable for evidence truth |
-| V. Artifact Ownership and Atomic Trust | Applies. Session integration owns one explicit namespace, stages and validates the complete candidate set, journals publication, and refuses collision or drift. | `executable-invariant` | Ownership manifest, collision/interruption/drift/removal fixtures, namespaced publisher tests | Leave the set untrusted and preserve consumer bytes | Not waivable |
-| VI. Explicit Extensions and Composition | Applies. Factory operation providers and AI-session integrations remain distinct. Codex is an explicitly selected first-party adapter; no dynamic provider loading is added. | `executable-invariant` and `evidence-backed` | Project dependency tests, provider manifest schema, neutral conformance harness | Reject unavailable, ambiguous, or nonconforming provider | Not waivable for composition/admission gates |
-| VII. AI-Usable Diagnostics | Applies. Every recoverable session command returns the existing `program-kit.operation-result/v1` envelope with exact neutral/provider catalog identities, effect state, remediation, and safe disclosure. | `executable-invariant` | Schema/golden/redaction/fallback/ordering fixtures and CLI JSON tests | Return the safest specific faulted envelope; block release on missing meaningful results | Not waivable |
-| VIII. Consumer Ownership, Runtime Isolation, and Local Safety | Applies. Integration files are development-session-only; generated products carry no session or Program Kit runtime reference. Network is limited to separately explicit CLI acquisition. | `executable-invariant` and `evidence-backed` | Package closure, forbidden-reference, runtime launch, offline session lifecycle, secret/disclosure fixtures | Block admission or release | Not waivable |
-| IX. Evidence-First Vertical Delivery | Applies. The slice proves acquisition through safe removal with direct CLI, neutral adapter, Codex projection, negative paths, and independent review. | `evidence-backed` and `human-review` | Quickstart, 10-trial deterministic suites, optional live review, independent product review | Keep the feature incomplete or review status pending | No waiver planned |
-| V1 product boundary | Applies. Session integration invokes the existing intake/construction/evaluation factory surface but adds no fourth provider operation role, planning system, runtime engine, migration system, or untrusted execution. | `executable-invariant` and `human-review` | Dependency/API review, forbidden-symbol tests, accepted plan review | Stop and amend the specification/constitution before crossing the boundary | Not applicable |
-| Enforcement contract and Spec Kit workflow | Applies. Each rule states its honest enforcement mode; this feature is specified/planned through Spec Kit and cannot execute Program Kit against its own source. | `executable-invariant` and `evidence-backed` | This gate, source marker, repository bootstrap tests, task traceability in the next phase | Stop planning or implementation on contradiction or missing mandatory evidence | Kernel gates not waivable |
+| Principle / MUST | Status | Enforcement Mode | Owner | Evidence / Boundary | Failure Disposition | Planned Task/Proof |
+|------------------|--------|------------------|-------|---------------------|---------------------|--------------------|
+| I. Human Authority and Semantic Honesty | covered | executable-invariant / human-review | Human operator / independent reviewer | Exact grants, authority-negative proof, fresh live review | Block effects or keep acceptance pending | Authority regression; SC-003/SC-005 review |
+| II. Independent Software Factory | covered | executable-invariant / evidence-backed | Maintainer | Package-only black-box CLI and source-marker proof | Block admission or release | Protected CI isolation proof |
+| III. Exact Contracts and Governed Resolution | covered | executable-invariant | Kernel owner | Exact identities, schemas, and zero/multiple/stale fixtures | Return no trusted result | Contract and resolution matrices |
+| IV. Honest Determinism and Evidence | covered | executable-invariant / evidence-backed / human-review | Kernel owner / reviewer | Declared profiles, exact evidence, honest live status | Downgrade claim or block | Evidence regeneration; fresh review |
+| V. Artifact Ownership and Atomic Trust | covered | executable-invariant | Kernel owner / consumer | Ownership, staging, interruption, drift, removal proof | Preserve bytes and leave untrusted | Publication/removal matrices |
+| VI. Explicit Extensions and Composition | covered | executable-invariant / evidence-backed | Adapter owner | Exact first-party adapter and neutral conformance | Reject unavailable or nonconforming provider | Conformance proof |
+| VII. AI-Usable Diagnostics | covered | executable-invariant | Kernel owner | Complete schema-valid diagnostics, bounded remediation, exact evidence | Safest specific envelope; block release | Session diagnostic recovery task |
+| VIII. Consumer Ownership, Runtime Isolation, and Local Safety | covered | executable-invariant / evidence-backed | Consumer / maintainer | Offline lifecycle, disclosure, package and runtime closure | Block admission or release | CI disclosure/runtime proof |
+| IX. Evidence-First Vertical Delivery | covered | evidence-backed / human-review | Maintainer / product owner | Quickstart, platform matrix, fresh 10-session review, independent decision | Keep feature incomplete | CI and human recovery gates |
+| V1 product boundary | covered | executable-invariant / human-review | Product owner | Dependency/API boundary and forbidden-symbol proof | Stop for scoped amendment | Architecture and review proof |
+| Enforcement contract / Spec Kit workflow | covered | executable-invariant / evidence-backed | Maintainer | Analyze, owned proof matrix, tiered verification, explicit pending human gate | Stop on unowned MUST or overclaim | Convergence recovery phase |
 
 **Pre-design result**: PASS. Phase 0 may proceed. No constitutional violation,
 waiver, unresolved meaning, or product-boundary amendment is required.
@@ -171,8 +196,8 @@ All technical unknowns are resolved in [research.md](research.md):
 4. Install/remove authority is bound to the complete canonical request and
    expected live state. Explain/verify remain read-only.
 5. Deterministic neutral conformance is release-blocking; live Codex interaction
-   is exact-version, optional, human-reviewed evidence and never an implicit CI
-   dependency.
+   is exact-version, explicitly authorized, mandatory for Feature 002 product
+   acceptance, and never an implicit CI dependency.
 
 ## Phase 1: Design Decisions
 
@@ -225,12 +250,66 @@ All technical unknowns are resolved in [research.md](research.md):
    workspace-local tool path, invoke it as a black box, perform the session
    lifecycle, run ten deterministic fresh-workspace trials, and verify generated
    runtime independence on Windows and Linux.
-4. The optional live script runs ten fresh Codex sessions at the recorded exact
-   provider version. It records observations and human decisions, never silently
-   promotes missing or partial review to success, and is not required for the
-   independent source build.
+4. The explicitly authorized live script runs ten fresh Codex sessions at the
+   recorded exact provider version. It records observations and human decisions,
+   never silently promotes missing or partial review to success, is mandatory
+   for Feature 002 product acceptance, and is not required for the independent
+   source build or protected executable CI.
 5. Final product review remains a named human gate. CI success is execution
    evidence, not semantic approval, publication authority, or release approval.
+
+## Requirement and Proof Matrix *(mandatory)*
+
+Every Feature 002 requirement is owned below exactly once. Historical proof may
+remain evidence, but only proof whose declared inputs remain unchanged can be
+reused for the remediated candidate.
+
+| Requirement | Implementation Boundary | Proof Obligation | Proof Owner | Verification Tier | Invalidated By |
+|-------------|-------------------------|------------------|-------------|-------------------|----------------|
+| FR-001–FR-006 | Independent packaged CLI and runtime isolation | Isolated acquisition, direct invocation, source separation, post-removal runtime proof | Maintainer / protected CI | ci | Packaging, CLI entry point, dependencies, or runtime closure |
+| FR-007–FR-014 | Canonical definition and exact provider projection | Definition/manifest identity, drift, round-trip, and incompatibility contract proof | Kernel and adapter owners | story / ci | Definition, manifest, projection, public operations, or support envelope |
+| FR-015–FR-023 | Exact authorized installation lifecycle | Selection, authority, preflight, atomic publication, verification, interruption, and result proof | Kernel owner | story / ci | Authority, publication, record, CLI binding, or result contract |
+| FR-024–FR-032 | Human-led session guidance and public journey | Focused guidance/authority regression plus ten fresh sessions completing the full journey | Product owner / independent reviewer | story / human | Guidance, authority, diagnostics, provider projection, CLI behavior, or model/provider review inputs |
+| FR-033–FR-038 | Provider-neutral conformance | Direct/neutral/Codex parity and fail-closed conformance proof | Adapter owner / protected CI | story / ci | Adapter, canonical definition, normalization, operations, authority, or disclosure |
+| FR-039–FR-043 | Diagnostics, disclosure, and local safety | Schema-valid production diagnostics with exact evidence plus adversarial disclosure/local-safety proof | Kernel owner / protected CI | story / ci | Diagnostic catalog/factory/schema/projector, disclosure classification, or external effects |
+| FR-044–FR-046 | Exact safe removal | Authorized exact-record removal, drift refusal, byte preservation, and absent-state proof | Kernel owner / protected CI | story / ci | Record, ownership, publication, removal, verification, or path handling |
+| SC-001 | Ten-minute documented setup | Timed isolated supported-platform quickstart | Protected CI | ci | Packaging, documentation steps, installation, or verification |
+| SC-002 | Ten consecutive complete-or-safe installations | Current Windows/Linux deterministic matrix | Protected CI | ci | Installation/admission/publication behavior or platform inputs |
+| SC-003 | Ten consecutive successful fresh sessions | New bounded 10/10 live review after current CI candidate | Independent reviewer | human | Any product/API/authority/guidance/provider/model input affecting the journey |
+| SC-004 | Exact negative next-action/effect classes | Packaged and production negative matrices | Kernel owner / protected CI | story / ci | Diagnostics, disposition, effects, authority, or failure handling |
+| SC-005 | Missing input requested within two turns | Focused guidance proof and new bounded 10/10 live review | Product owner / independent reviewer | story / human | Guidance, diagnostics, authority, provider/model input, or scenario protocol |
+| SC-006 | Direct/provider/neutral semantic parity | Shared conformance corpus | Adapter owner / protected CI | story / ci | Adapter, normalization, result, diagnostic, or canonical contract |
+| SC-007 | Exact installation record | Record/schema/current-binding proof | Kernel owner / protected CI | story / ci | Identity, CLI/package/executable, provider, projection, or record schema |
+| SC-008 | Removal preserves unrelated bytes | Removal fixture corpus and packaged removal proof | Kernel owner / protected CI | story / ci | Ownership, record, removal, publication, or path handling |
+| SC-009 | Zero protected disclosure or hidden effects | Adversarial result/projection/evidence/package scan | Security proof owner / protected CI | story / ci | Disclosure, diagnostics, evidence fields, packaging, network, telemetry, or provider launch |
+| SC-010 | Generated runtime remains independent | Restore/build/start/status after integration removal | Protected CI | ci | Generated output, dependencies, runtime entry point, or package closure |
+| Constitution VII | Complete AI-usable diagnostic contract | Every production diagnostic schema-valid with typed disposition, expected/observed, bounded remediation, and exact evidence | Kernel owner | story / ci | Diagnostic catalog/factory/schema/projector/fallback |
+| Constitution IX / Spec Kit workflow | Honest closure and proportional proof | No unresolved high finding; only invalidated proof reruns; human decision remains explicit | Maintainer / product owner | pre-pr / ci / human | Requirement, proof ownership, invalidation classification, or accepted claim |
+
+## Verification Strategy *(mandatory)*
+
+| Tier | Purpose | Required Checks | Explicitly Excluded |
+|------|---------|-----------------|---------------------|
+| Edit | Seconds-scale feedback | Affected project build and focused unit test | Restore, evidence regeneration, full contract/acceptance |
+| Story | Prove the repaired boundary | Relevant unit/contract plus narrowly scoped authority, diagnostic, guidance, and session acceptance proof | Unrelated suites, packaging matrix, live sessions |
+| Pre-PR | Catch local integration errors once | Isolated locked restore/build, complete unit/contract, changed-file formatting and diff hygiene | Full acceptance/conformance, repeated workspaces, cross-platform matrix, live sessions |
+| CI | Authoritative executable merge proof | Full acceptance/conformance/evidence and required Windows/Linux matrix for the exact candidate | Duplicate local full-gate rerun |
+| Human | Decide subjective fitness | Ten fresh sessions and a named independent review of bounded claims/limitations | Repeating mechanizable proof already established by CI |
+
+**Evidence Reuse Rule**: Evidence is reusable only while its declared source,
+contracts, provider/model inputs, platform profile, and scenario remain unchanged.
+The rejected 8/10 review remains historical evidence and can never be reused as
+acceptance. Merge-invalidated generated evidence is refreshed once at the final
+candidate boundary; timestamps and unrelated documentation commits alone do not
+force executable reruns.
+
+**Acceptance Invalidation Rule**: Changes to public behavior, canonical guidance,
+provider projection, authority, diagnostics/results, disclosure, security, or
+runtime/session semantics invalidate applicable executable proof and the live
+human review. Proof-only changes require new executable evidence and human
+review only if the accepted claim or limitation changes. Documentation,
+formatting, and metadata changes do not invalidate product acceptance unless
+they change reviewed guidance, evidence bytes, or claims.
 
 ## Complexity Tracking
 

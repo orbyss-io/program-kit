@@ -6,21 +6,21 @@
     "kind": "session-provider",
     "name": "codex",
     "revision": "1.0.0",
-    "digest": "sha256:966fe2188382b2964039354bdb6dcfcb673519e084fed5d889530168f4bd053f"
+    "digest": "sha256:2f8ca6b14475f0c06e56746916fd4f7156442c9247279a6cd8f78a63db4f1d9f"
   },
   "adapterIdentity": {
     "authority": "orbyss.program-kit",
     "kind": "session-provider-adapter",
     "name": "codex-repository-skill",
     "revision": "1.0.0",
-    "digest": "sha256:966fe2188382b2964039354bdb6dcfcb673519e084fed5d889530168f4bd053f"
+    "digest": "sha256:2f8ca6b14475f0c06e56746916fd4f7156442c9247279a6cd8f78a63db4f1d9f"
   },
   "definitionBinding": {
     "authority": "orbyss.program-kit",
     "kind": "session-integration-definition",
     "name": "human-led-software-factory",
     "revision": "1.0.0",
-    "digest": "sha256:32deb790b8127e3d5950d871df152781ecc34bebefe39577794e8b2653cc091b"
+    "digest": "sha256:238ed8e709e0bc85204cc802556e364f51002d370145e7ce6cec7f7832c5994f"
   },
   "bindingKind": "shell-cli",
   "supportedScopes": [
@@ -61,7 +61,7 @@
     "kind": "diagnostic-catalog",
     "name": "session-provider",
     "revision": "1.0.0",
-    "digest": "sha256:3ee3c4ec3a535ce1572cab0a23bf35af3450624266b93f3f71112c12a501acea"
+    "digest": "sha256:e96a4a56a2c9e6b007a745e1e31713ebdc630592c6fb4616e8d733ec02f0b2c5"
   },
   "conformanceProfile": {
     "authority": "orbyss.program-kit",

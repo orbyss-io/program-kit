@@ -4,12 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
 using Orbyss.ProgramKit.Contracts.Schemas;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Validation;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 
 namespace Orbyss.ProgramKit.SessionIntegration.Definitions;
 
@@ -119,9 +121,12 @@ public sealed class SessionIntegrationDefinitionLoader
         GovernedIdentity[] catalogs = RequiredArray(document, "diagnosticCatalogs")
             .Select(value => ParseIdentity(value as JsonObject ?? throw new InvalidDataException("Each diagnostic catalog must be an object.")))
             .ToArray();
-        if (catalogs.Length < 2 || catalogs.Select(static item => item.StableKey).Distinct(StringComparer.Ordinal).Count() != catalogs.Length)
-            throw new InvalidDataException("At least two unique exact diagnostic catalogs are required.");
+        if (catalogs.Length != 2 || catalogs.Select(static item => item.StableKey).Distinct(StringComparer.Ordinal).Count() != catalogs.Length)
+            throw new InvalidDataException("Exactly the kernel and session diagnostic catalogs are required.");
         foreach (GovernedIdentity catalog in catalogs) DemandIdentity(catalog, "diagnostic-catalog", "diagnostic catalog");
+        if (!catalogs.Any(static catalog => Exact(catalog, DiagnosticCatalogArtifacts.KernelIdentity)) ||
+            !catalogs.Any(static catalog => Exact(catalog, SessionDiagnosticCatalog.Identity)))
+            throw new InvalidDataException("The session definition diagnostic catalog bindings are not exact executable identities.");
 
         return new CanonicalSessionIntegrationDefinition(
             "program-kit.session-integration-definition/v1",

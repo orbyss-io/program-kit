@@ -4,9 +4,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.SessionIntegration.Definitions;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 using Orbyss.ProgramKit.SessionIntegration.Providers.Codex;
 
 namespace Orbyss.ProgramKit.Tests;
@@ -36,6 +38,9 @@ public sealed class CanonicalSessionResourceContractTests
         Assert.IsTrue(first.ResultRules.DiagnosticIdentityRequired);
         Assert.AreEqual("workspace-root", first.ProjectionRequirements.WorkingDirectory);
         Assert.AreEqual(2, first.DiagnosticCatalogs.Count);
+        CollectionAssert.AreEquivalent(
+            new[] { DiagnosticCatalogArtifacts.KernelIdentity, SessionDiagnosticCatalog.Identity },
+            first.DiagnosticCatalogs.ToArray());
         Assert.AreEqual(Digests.Sha256(guidanceBytes), first.GuidanceArtifact.Digest);
     }
 

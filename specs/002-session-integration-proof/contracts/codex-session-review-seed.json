@@ -1,0 +1,43 @@
+{
+  "schema": "program-kit.codex-session-review-seed/v1",
+  "canonicalProfile": "program-kit.canonical-json/v1",
+  "scenarioIdentity": "orbyss.program-kit:live-session-scenario:explain-authorize-construct-evaluate@1.0.0",
+  "files": [
+    {
+      "logicalPath": "authority/construct-grant.json",
+      "digest": "sha256:e8a5f5b34688cb9166db3d67626b40d2fb55f179196adb2d74de3c233d938304"
+    },
+    {
+      "logicalPath": "authority/review.json",
+      "digest": "sha256:f1924c6abf15787ec55ae062f36fcc794a83b9a75dc16bab495a16c820206809"
+    },
+    {
+      "logicalPath": "authority/revocations.json",
+      "digest": "sha256:815113948d7379f6c82e41151dc1604a99fb7f9eb392682c4c0afc3db08acdce"
+    },
+    {
+      "logicalPath": "definitions/reference-status.json",
+      "digest": "sha256:f8070394164c526cb14a12dd3954c50d7241a54d7846e7b3b2b881cb0cc8ca41"
+    },
+    {
+      "logicalPath": "definitions/software-bundle.json",
+      "digest": "sha256:5df07d95ea9d907a398a110ac6331490a8b8198f6e7f966af84d244843c89ce8"
+    },
+    {
+      "logicalPath": "implementation/StatusFeature.cs",
+      "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822"
+    },
+    {
+      "logicalPath": "requests/construct.json",
+      "digest": "sha256:c0bb5d866841e61947dc9d8b71af21219e3f8e7e4eeb364fea10869ef6c4692d"
+    },
+    {
+      "logicalPath": "requests/evaluate.json",
+      "digest": "sha256:edb4527b7098d51450806333e01cb403c74971686cb14a461a459c5cdb07f692"
+    },
+    {
+      "logicalPath": "requests/explain.json",
+      "digest": "sha256:3768cf5b44ef0dad0cd54ddf83135d3f4cd3d67358bbcb719ae71589977f9784"
+    }
+  ]
+}

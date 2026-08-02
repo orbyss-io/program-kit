@@ -6,7 +6,7 @@
     "kind": "session-integration-definition",
     "name": "human-led-software-factory",
     "revision": "1.0.0",
-    "digest": "sha256:32deb790b8127e3d5950d871df152781ecc34bebefe39577794e8b2653cc091b"
+    "digest": "sha256:238ed8e709e0bc85204cc802556e364f51002d370145e7ce6cec7f7832c5994f"
   },
   "operationContracts": [
     {
@@ -65,10 +65,10 @@
     "diagnosticIdentityRequired": true
   },
   "guidanceArtifact": {
-    "identity": { "authority": "orbyss.program-kit", "kind": "session-guidance", "name": "human-led-software-factory", "revision": "1.0.0", "digest": "sha256:79508c93cca342aeb78c56c56ab9b625c1e360a04088cd7f26836634e0810733" },
+    "identity": { "authority": "orbyss.program-kit", "kind": "session-guidance", "name": "human-led-software-factory", "revision": "1.0.0", "digest": "sha256:52bf06c6b2be94cc4e3602b4bfff5ccb44f52c45eb0c19c126b0bd4a215ce4c5" },
     "mediaType": "text/markdown",
     "logicalPath": "canonical/session-guidance.md",
-    "digest": "sha256:79508c93cca342aeb78c56c56ab9b625c1e360a04088cd7f26836634e0810733",
+    "digest": "sha256:52bf06c6b2be94cc4e3602b4bfff5ccb44f52c45eb0c19c126b0bd4a215ce4c5",
     "ownership": "generated-owned"
   },
   "projectionRequirements": {
@@ -80,7 +80,7 @@
     "domainSemanticsAllowed": false
   },
   "diagnosticCatalogs": [
-    { "authority": "orbyss.program-kit", "kind": "diagnostic-catalog", "name": "kernel", "revision": "1.0.0", "digest": "sha256:5c0008fec6ddb481f2f9c497d1b5264ad00ba73e73fb359175b88957c0a58080" },
-    { "authority": "orbyss.program-kit.session", "kind": "diagnostic-catalog", "name": "session", "revision": "1.0.0", "digest": "sha256:ee659ca1aff279df42edd3326683f782a6ef09f39ae55036c944e009b5c83242" }
+    { "authority": "orbyss.program-kit", "kind": "diagnostic-catalog", "name": "kernel", "revision": "1.0.0", "digest": "sha256:113c041abed194a27c9b7768c28ce45f1ca4ee2f00fc03c08f1f48d5a3955aa7" },
+    { "authority": "orbyss.program-kit.session", "kind": "diagnostic-catalog", "name": "session", "revision": "1.0.0", "digest": "sha256:006042a0eaee83f410f96405db492c33ccd66514f19886a54ea88913335b22e5" }
   ]
 }

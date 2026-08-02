@@ -12,10 +12,18 @@ public sealed class SessionGuidanceContractTests
     {
         string guidance = string.Join('\n', CanonicalSessionGuidance.WorkflowSteps);
         StringAssert.Contains(guidance, "known, incomplete-known, or unknown");
+        StringAssert.Contains(guidance, "continuation.missingInputs");
         StringAssert.Contains(guidance, "provider selection as explicit");
-        StringAssert.Contains(guidance, "request-bound authority");
+        StringAssert.Contains(guidance, "conversation and human confirmation as direction, never as an authority grant");
+        StringAssert.Contains(guidance, "do not author, widen, refresh, replace, or reuse a grant");
+        StringAssert.Contains(guidance, "Invoke construct only for the same reviewed canonical request");
+        StringAssert.Contains(guidance, "Invoke evaluate only after construct reports that successful committed result");
+        StringAssert.Contains(guidance, "obey primaryDisposition");
+        StringAssert.Contains(guidance, "requestDocument, requestArtifact, or requestArguments");
         StringAssert.Contains(guidance, "Leave unknown custom implementation intent explicit");
-        Assert.AreEqual(9, CanonicalSessionGuidance.WorkflowSteps.Count);
+        Assert.AreEqual(12, CanonicalSessionGuidance.WorkflowSteps.Count);
+        Assert.IsTrue(guidance.IndexOf("invoke explain", StringComparison.OrdinalIgnoreCase) < guidance.IndexOf("Invoke construct", StringComparison.Ordinal));
+        Assert.IsTrue(guidance.IndexOf("Invoke construct", StringComparison.Ordinal) < guidance.IndexOf("Invoke evaluate", StringComparison.Ordinal));
         Assert.IsFalse(guidance.Contains("authentication", StringComparison.OrdinalIgnoreCase));
         Assert.IsFalse(guidance.Contains("business domain", StringComparison.OrdinalIgnoreCase));
     }

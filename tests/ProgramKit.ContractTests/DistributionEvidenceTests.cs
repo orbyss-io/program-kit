@@ -9,6 +9,8 @@ using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
+using Orbyss.ProgramKit.SessionIntegration.Providers.Codex.Diagnostics;
 
 namespace Orbyss.ProgramKit.Tests;
 
@@ -37,8 +39,12 @@ public sealed class DistributionEvidenceTests
 
         JsonObject kernelCatalog = Read(Path.Combine(evidenceRoot, "kernel-diagnostic-catalog.json"));
         JsonObject providerCatalog = Read(Path.Combine(evidenceRoot, "dotnet-diagnostic-catalog.json"));
+        JsonObject sessionCatalog = Read(Path.Combine(evidenceRoot, "session-diagnostic-catalog.json"));
+        JsonObject codexCatalog = Read(Path.Combine(evidenceRoot, "codex-diagnostic-catalog.json"));
         Assert.AreEqual(DiagnosticCatalogArtifacts.KernelIdentity.Digest, Digest(Path.Combine(evidenceRoot, "kernel-diagnostic-catalog.json")));
         Assert.AreEqual(DiagnosticCatalogArtifacts.DotNetIdentity.Digest, Digest(Path.Combine(evidenceRoot, "dotnet-diagnostic-catalog.json")));
+        Assert.AreEqual(SessionDiagnosticCatalog.Identity.Digest, Digest(Path.Combine(evidenceRoot, "session-diagnostic-catalog.json")));
+        Assert.AreEqual(CodexDiagnosticCatalog.Identity.Digest, Digest(Path.Combine(evidenceRoot, "codex-diagnostic-catalog.json")));
         Assert.AreEqual(provider.DiagnosticCatalog.Identity.Digest, provider.DiagnosticCatalog.Digest);
         Assert.AreEqual(provider.DiagnosticCatalog.Digest, Digest(Path.Combine(TestRepository.Root, provider.DiagnosticCatalog.LogicalPath.Replace('/', Path.DirectorySeparatorChar))));
         Assert.IsTrue(provider.ConformanceEvidence.Count > 0);
@@ -48,6 +54,8 @@ public sealed class DistributionEvidenceTests
         Assert.AreEqual(provider.ConformanceEvidence[0].Artifact.Digest, manifest["conformanceEvidence"]![0]!["artifact"]!["digest"]!.GetValue<string>());
         ContractAssertions.AssertValid(ContractAssertions.OperationResult, kernelCatalog);
         ContractAssertions.AssertValid(ContractAssertions.OperationResult, providerCatalog);
+        ContractAssertions.AssertValid(ContractAssertions.OperationResult, sessionCatalog);
+        ContractAssertions.AssertValid(ContractAssertions.OperationResult, codexCatalog);
         string[] expectedIds = DiagnosticCatalog.Entries.Keys.OrderBy(static item => item, StringComparer.Ordinal).ToArray();
         string[] actualIds = kernelCatalog["entries"]!.AsArray()
             .Concat(providerCatalog["entries"]!.AsArray())
@@ -57,6 +65,8 @@ public sealed class DistributionEvidenceTests
         CollectionAssert.AreEqual(expectedIds, actualIds);
         Assert.IsTrue(kernelCatalog["entries"]!.AsArray().All(static item => item!["primaryDisposition"] is not null));
         Assert.IsTrue(providerCatalog["entries"]!.AsArray().All(static item => item!["primaryDisposition"] is not null));
+        CollectionAssert.AreEqual(SessionDiagnosticCatalog.Entries.Keys.ToArray(), sessionCatalog["entries"]!.AsArray().Select(static item => item!["id"]!.GetValue<string>()).ToArray());
+        CollectionAssert.AreEqual(CodexDiagnosticCatalog.Entries.Keys.ToArray(), codexCatalog["entries"]!.AsArray().Select(static item => item!["id"]!.GetValue<string>()).ToArray());
 
         JsonObject sbom = Read(Path.Combine(evidenceRoot, "dependency-sbom.cdx.json"));
         Assert.IsTrue(sbom["components"]!.AsArray().Count > 0);

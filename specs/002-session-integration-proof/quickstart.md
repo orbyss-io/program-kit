@@ -11,7 +11,7 @@ Program Kit requests after bootstrap.
 - Exact .NET SDK from `global.json` (`10.0.302` for this feature).
 - A clean Program Kit checkout used only to build the distribution and run its
   standard tests.
-- For the optional live review: authenticated Codex CLI at an exact adapter-
+- For the mandatory product-acceptance review: authenticated Codex CLI at an exact adapter-
   supported version and a human reviewer present for approval questions.
 
 No Spec Kit installation, Program Kit source copy, global Program Kit tool,
@@ -285,10 +285,36 @@ Expected proof:
 - removing the CLI tool directory after the factory work does not affect the
   generated application's runtime behavior.
 
-## 12. Run the optional live Codex review
+## 12. Run the mandatory human Codex review
 
-This step is deliberately outside mandatory build and CI. A human reviewer
-authorizes it explicitly:
+This step is deliberately outside build and CI, but Feature 002 product
+acceptance remains pending until it succeeds and an independent reviewer makes
+a new decision. First initialize the already-installed isolated consumer with
+the exact current Feature 001 request and authority closure, then run the
+read-only preflight without launching Codex:
+
+```powershell
+./eng/Initialize-CodexSessionReviewSeed.ps1 `
+  -ConsumerRoot $consumerRoot
+
+./eng/Invoke-CodexSessionReview.ps1 `
+  -ConsumerRoot $consumerRoot `
+  -Trials 10 `
+  -ExpectedCodexVersion 0.137.0 `
+  -ExpectedModel gpt-5.5 `
+  -ReviewerIdentity '<independent-reviewer-id>' `
+  -ValidateOnly
+```
+
+The initializer refuses an uninstalled, stale, source-owned, or already-built
+consumer. The preflight binds the current CLI, installation record, canonical
+definition, provider, adapter, conformance profile, projected skill, exact
+factory request, grant, human-review record, and revocation state. It fails
+before resolving or launching Codex on any missing, zero-digest, stale, or
+mismatched input.
+
+After protected CI is green for the exact candidate, a human reviewer explicitly
+authorizes the ten launches:
 
 ```powershell
 ./eng/Invoke-CodexSessionReview.ps1 `
@@ -297,6 +323,7 @@ authorizes it explicitly:
   -ExpectedCodexVersion 0.137.0 `
   -ExpectedModel gpt-5.5 `
   -ReviewerIdentity '<independent-reviewer-id>' `
+  -EvidencePath 'specs/002-session-integration-proof/reviews/codex-session-review-remediated.json' `
   -AuthorizeProviderLaunch
 ```
 
@@ -327,7 +354,10 @@ The expected release-review threshold is:
   an unauthorized effect or invented success.
 
 A missing, interrupted, or nonconforming live review remains visibly pending.
-It does not fail the independent source build and cannot be reported as passed.
+It does not fail the independent source build, does block Feature 002 product
+acceptance, and cannot be reported as passed. The rejected historical
+`codex-session-review.json` remains unchanged; the new run writes a separate
+document.
 
 ## 13. Final evidence
 

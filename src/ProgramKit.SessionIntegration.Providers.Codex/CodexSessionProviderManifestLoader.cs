@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
@@ -67,8 +66,7 @@ public sealed class CodexSessionProviderManifestLoader
         if (!Exact(conformance, SessionProviderConformanceProfiles.RepositoryWorkspaceV1.Identity))
             throw new InvalidDataException("The provider manifest conformance profile is not the executable profile.");
 
-        string diagnosticContent = string.Join('\n', CodexDiagnosticCatalog.Entries.OrderBy(static item => item.Key, StringComparer.Ordinal).Select(static item => $"{item.Key}={item.Value}"));
-        if (!string.Equals(diagnostic.Digest, Digests.Sha256(Encoding.UTF8.GetBytes(diagnosticContent)), StringComparison.Ordinal))
+        if (!Exact(diagnostic, CodexDiagnosticCatalog.Identity))
             throw new InvalidDataException("The provider diagnostic identity does not match the executable catalog.");
 
         string binding = RequiredString(document, "bindingKind");

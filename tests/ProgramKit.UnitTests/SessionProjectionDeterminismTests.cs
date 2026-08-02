@@ -26,8 +26,8 @@ public sealed class SessionProjectionDeterminismTests
         SessionProviderConformanceReport right = new SessionProviderConformanceEvaluator().Evaluate(adapter, permuted);
         Assert.AreEqual(left.ObservationDigest, right.ObservationDigest);
         string expectedObservationDigest = OperatingSystem.IsWindows()
-            ? "sha256:a3489d215f54322f33df2e40bc41c1df45433a160dbd399dbe353226157b2225"
-            : "sha256:f2ea82bf0e87f78efc934f76b5594398549d635e069368de1b69d040e2501160";
+            ? "sha256:ff7595b2b4f1663addf7a55da6889bd823024335bc988061eb1936bfaf77bb85"
+            : "sha256:5dbf1c2b4c8037a3b4c184ffa81cc3b9f0ae9cc725933a88bccd2e41ccde0bfa";
         Assert.AreEqual(expectedObservationDigest, left.ObservationDigest);
     }
 }
