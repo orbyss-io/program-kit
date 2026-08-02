@@ -53,7 +53,8 @@ try {
         $releaseProperties = @(
             '-p:ContinuousIntegrationBuild=true',
             '-p:DebugSymbols=false',
-            '-p:DebugType=None'
+            '-p:DebugType=None',
+            "-p:PathMap=$repositoryRoot=/_/"
         )
         if (-not $NoBuild) {
             $buildArguments = @(
