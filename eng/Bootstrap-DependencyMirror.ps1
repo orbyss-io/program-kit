@@ -72,9 +72,12 @@ try {
         Invoke-WebRequest -Uri $packageUri -OutFile $packageFile
         [pscustomobject]@{ id = $package.id; version = $package.version; sha256 = "sha256:$((Get-FileHash -LiteralPath $packageFile -Algorithm SHA256).Hash.ToLowerInvariant())" }
     }
-    [ordered]@{ schema = 'program-kit.dependency-mirror-lock/v1'; packages = @($locked) } |
-        ConvertTo-Json -Depth 10 |
-        Set-Content -LiteralPath (Join-Path $resolvedOutput 'mirror.lock.json') -Encoding utf8
+    $lockJson = [ordered]@{ schema = 'program-kit.dependency-mirror-lock/v1'; packages = @($locked) } |
+        ConvertTo-Json -Depth 10 -Compress
+    [IO.File]::WriteAllText(
+        (Join-Path $resolvedOutput 'mirror.lock.json'),
+        $lockJson,
+        [Text.UTF8Encoding]::new($false))
 } finally {
     foreach ($entry in $priorEnvironment.GetEnumerator()) {
         if ($null -eq $entry.Value) {

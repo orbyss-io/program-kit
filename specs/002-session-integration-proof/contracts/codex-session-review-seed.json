@@ -4,7 +4,7 @@
   "scenarioIdentity": "orbyss.program-kit:live-session-scenario:explain-authorize-construct-evaluate@1.0.0",
   "dependencyMirror": {
     "logicalPath": "dependencies",
-    "lockDigest": "sha256:4fd3ba4f6399f8da933583041b8daf03f932e2a3b1d50059ea0e2d9d933086d6"
+    "lockDigest": "sha256:76efabe89e8b287c307fae6a2de0a8c8e3e5464c419727bbe6e864cbbd4c1ed3"
   },
   "files": [
     {
