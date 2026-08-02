@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Orbyss.ProgramKit.Tests;
@@ -70,7 +71,13 @@ public sealed class CodexSessionReviewSeedContractTests
     {
         ProcessResult result = Preflight(seed);
         Assert.AreNotEqual(0, result.ExitCode);
-        StringAssert.Contains(result.Output + result.Error, expected);
+        string diagnostic = Regex.Replace(
+            result.Output + result.Error,
+            "\\u001B\\[[0-?]*[ -/]*[@-~]",
+            string.Empty,
+            RegexOptions.CultureInvariant);
+        diagnostic = Regex.Replace(diagnostic, "\\s+", " ", RegexOptions.CultureInvariant);
+        StringAssert.Contains(diagnostic, expected);
     }
 
     private static ProcessResult Preflight(string seed)
