@@ -33,8 +33,11 @@ try {
     }
 
     $adapterPackageRoot = Join-Path $repositoryRoot 'artifacts/work/evidence-adapter-package'
-    $publishedAdapterTools = Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/bin/Release/net10.0'
-    $packedAdapter = & (Join-Path $PSScriptRoot 'Pack-SpecKitAdapter.ps1') -OutputRoot $adapterPackageRoot -PublishedToolsRoot $publishedAdapterTools | ConvertFrom-Json
+    $packOutput = @(& (Join-Path $PSScriptRoot 'Pack-SpecKitAdapter.ps1') -OutputRoot $adapterPackageRoot)
+    if ($packOutput.Count -eq 0) {
+        throw 'Spec Kit adapter packaging returned no receipt.'
+    }
+    $packedAdapter = $packOutput[-1] | ConvertFrom-Json
     $env:PROGRAM_KIT_ADAPTER_ARCHIVE = $packedAdapter.ArchivePath
     $env:PROGRAM_KIT_ADAPTER_STAGE = $packedAdapter.StageRoot
 

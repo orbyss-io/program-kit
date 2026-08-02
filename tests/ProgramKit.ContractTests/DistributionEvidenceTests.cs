@@ -23,6 +23,10 @@ public sealed class DistributionEvidenceTests
     [TestMethod]
     public void Distribution_evidence_is_canonical_exact_and_matches_runtime_catalog_and_support()
     {
+        string generator = File.ReadAllText(Path.Combine(TestRepository.Root, "eng", "Generate-DistributionEvidence.ps1"));
+        StringAssert.Contains(generator, "Pack-SpecKitAdapter.ps1') -OutputRoot $adapterPackageRoot");
+        Assert.IsFalse(generator.Contains("-PublishedToolsRoot", StringComparison.Ordinal));
+
         string evidenceRoot = Path.Combine(TestRepository.Root, "artifacts", "evidence");
         JsonObject manifest = Read(Path.Combine(evidenceRoot, "distribution-manifest.json"));
         foreach (JsonObject artifact in manifest["artifacts"]!.AsArray().Select(static node => node!.AsObject()))
