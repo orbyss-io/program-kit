@@ -40,6 +40,7 @@ jobs:
         shell: pwsh
         run: ./eng/Invoke-Verification.ps1 -Mode Ci
       - name: Upload bounded core evidence
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: program-kit-evidence-ubuntu
