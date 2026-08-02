@@ -2,31 +2,137 @@
 
 Date: 2026-08-01
 
-## Passing local evidence
+## Current status
+
+**The corrected exact candidate passed the complete protected Windows/Ubuntu
+vertical-slice workflow and received an explicit named-human T095 ACCEPT
+decision on the corrected exact binding.**
+
+The exact pushed review candidate is commit
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`. It contains provenance correction
+`4d1c519fd5e788c36252437de03cb8c1ccb13c33`, portable restore-source assertion
+`bed501be2db48cbf0c8f6ea9880fac9367820c73`, and the repository-wide LF guard at
+its tip. Its checked-in `artifacts/evidence/distribution-manifest.json` has byte
+digest
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+The source boundary rejects BOM, invalid UTF-8, and CR bytes before hashing; the
+canonical-text guard rejects CRLF/mixed index or working-tree text before local
+or CI verification proceeds.
+
+The previous T095 acceptance remains valid only for review commit
+`16c6c627dfc9cd2211993580019f43d084dc718d`, implementation/evidence ancestor
+`2f7151b25022d7e380d3b09e662f6debe9d787f3`, and manifest digest
+`sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`.
+
+The independent audit of prior pushed HEAD
+`4d15000c7d45062d9376c3b3f2966e57fa5348ff` returned NOT READY only because
+raw unknown CLI tokens could enter parse-error prose and one review sentence
+retained the obsolete 89-test count. That previously accepted candidate removes those raw
+tokens, adds black-box opaque-token proof for command, positional, and option
+paths, corrects the count, and reruns the full gate. A subsequent independent
+read-only audit returned READY against the exact accepted review commit and
+manifest digest; that verdict established readiness but did not itself infer
+acceptance.
+
+The rejected baseline remains recorded in
+[`reviews/task-closure-audit.md`](reviews/task-closure-audit.md). The later T096
+audit identified 27 proof gaps without erasing that history. T097-T106 closed
+those gaps. The human then explicitly
+authorized the current `80 satisfied, 5 superseded, 0 missing` ledger treatment;
+that authorization concerns evidence accounting only. Product acceptance for
+the prior exact binding was recorded separately under T095 after the final
+readiness verdict. The refreshed decision below separately accepts the corrected
+merge candidate.
+
+## Passing repository gate
+
+The repository-owned command passed against the exact implementation/evidence
+candidate:
 
 ```powershell
-dotnet clean ProgramKit.slnx --configuration Debug
-dotnet clean ProgramKit.slnx --configuration Release
 ./eng/Invoke-VerticalSliceQuickstart.ps1
 ```
 
-The quickstart bootstraps the exact dependency mirror, performs a locked
-restore, builds and tests in `Release`, and verifies formatting. Debug outputs
-were cleaned first so acceptance tests could not pass against stale binaries.
+It performed dependency-mirror bootstrap, locked restore, Release build,
+deterministic distribution-evidence regeneration and stale checking, all tests,
+formatting verification, and Git whitespace verification.
 
-The test run passed 23 tests: 15 unit, 4 contract, and 4 acceptance tests.
-Acceptance coverage includes generated component/package/API construction,
-admission, exact evaluation, drift/no-mutation, a relocated-style clean local
-restore/build, runtime dependency inspection, host startup, and `/status`.
+- build: 0 warnings, 0 errors;
+- unit: 25 passed;
+- contract: 35 passed;
+- acceptance: 31 passed;
+- total: 91 passed, 0 failed, 0 skipped;
+- distribution evidence regeneration/stale check: passed;
+- formatting and `git diff --check`: passed;
+- implementation/evidence worktree after commit: clean and pushed.
 
-The exact dependency mirror is governed by
-`eng/dependency-mirror.manifest.json` and
-`eng/dependency-mirror.lock.json`; its downloaded package bytes remain ignored
-local test input under `artifacts/dependency-mirror/`.
+The acceptance and contract evidence includes:
+
+- exact request/closure/effect/freshness/review/revocation authority;
+- strict public schema and three-role provider admission;
+- candidate collision, receipt-last admission, and every publication-boundary
+  recovery path;
+- read-only drift detection and fresh-authority repair;
+- typed safe values, finite waivers, safe restricted-YAML source spans, and
+  canonical snapshot orientation/freshness proof;
+- black-box CLI grammar, canonical explanations, executable invalid inputs, and
+  result-derived stream/exit behavior;
+- all 26 public diagnostic identities with schema-valid catalog projections and
+  production references, including the six formerly untriggered boundaries;
+- typed disposition, expected/observed values, non-empty evidence, executable
+  remediation payloads, continuation grouping, adversarial disclosure/fallback,
+  and opaque CLI parse-token behavior;
+- nine executable SC-005 fixtures covering duplicate route, missing assembler,
+  ambiguous order, unsafe disclosure, generated drift, live collision, stale
+  precondition, interrupted publication, and provider failure;
+- content-bound, schema-valid kernel and .NET diagnostic catalogs plus exact
+  provider-manifest conformance-evidence bindings;
+- dependency-mirror tamper refusal plus exact package SHA-256 and NuGet content
+  hash verification;
+- Unicode-path, culture, JSON/YAML, and ordering repeatability with direct
+  canonical-byte comparison; and
+- clean relocated locked restore/build/test/publish, assets/deps/PE allowlists,
+  process startup, and `/status` without authoring state or Program Kit runtime.
+
+The evidence generator and dependency bootstrap use isolated tool homes and do
+not consult machine-local user NuGet configuration. CI regenerates the bounded
+evidence set on Windows and Ubuntu and uploads only that set for 14 days.
+
+## Previous human product decision
+
+On 2026-08-01, `joey-orbyss`, acting as product owner and requirements author,
+reviewed commit `16c6c627dfc9cd2211993580019f43d084dc718d`, bound to
+distribution-manifest digest
+`sha256:60b63f41a220c95df0fb87abcb7bbca94f17f97da8c361350d1115539110e557`,
+and explicitly decided **ACCEPT**. The reviewer disclosed participation in
+defining the requirements and accepted the limitations documented in
+`reviews/first-vertical-slice.md`.
+
+This decision accepts the bounded .NET 10 + CShells 0.0.28 `explain`,
+`construct`, and `evaluate` product foundation demonstrated by Feature 001. It
+does not declare Program Kit generally released, multi-provider,
+migration-ready, or complete.
+
+## Corrected merge candidate decision
+
+**ACCEPTED.**
+
+On 2026-08-01, `joey-orbyss`, acting as product owner and requirements author,
+explicitly **ACCEPTED** corrected candidate
+`c84335ee9eea4666fc69af5c2e49cbce821b8fbb`, bound to distribution-manifest
+digest
+`sha256:25fd0146dcca3fe8b8d359a9a208e51504718eb978b95fde60570a33cd8ecebd`.
+The reviewer accepted the previously documented bounded scope and limitations.
+This accepts the corrected .NET 10 + CShells 0.0.28 `explain`, `construct`, and
+`evaluate` foundation; it does not declare Program Kit generally released,
+multi-provider, migration-ready, or complete. The reviewer disclosed being the
+product owner and participating in defining the requirements. This named-human
+decision is not inferred from the 91 tests, generated evidence, protected CI,
+ledger reconciliation, or any prior acceptance.
 
 ## Deliberately not claimed
 
-The disabled historical `Program Kit integration` self-host check was not run
-or awaited. No independent human product review has passed. The independent
-`Vertical slice` Windows and Ubuntu pull-request jobs are required to pass
-before merge; they do not replace the pending human product review.
+The disabled historical Program Kit self-host integration check remains outside
+this redesign gate. No further Feature 001 convergence work should be added
+unless an independent readiness audit maps it to an existing unmet FR, SC, or
+constitutional MUST; desirable improvements belong in a later feature.

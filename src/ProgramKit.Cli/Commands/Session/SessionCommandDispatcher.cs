@@ -47,7 +47,7 @@ public sealed class SessionCommandDispatcher
         catch (IOException exception) { return Failure(invocation.Command, DiagnosticIds.Collision, OperationPhase.Publication, PrimaryDisposition.Repair, exception.Message); }
         catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or FormatException or System.Text.Json.JsonException)
         {
-            return Failure(invocation.Command, DiagnosticIds.InvalidInput, OperationPhase.Validation, exception.Message.Contains("source-authoring", StringComparison.OrdinalIgnoreCase) ? PrimaryDisposition.Stop : PrimaryDisposition.Revise, exception.Message);
+            return Failure(invocation.Command, DiagnosticIds.InvalidInput, OperationPhase.Validation, PrimaryDisposition.Revise, exception.Message);
         }
     }
 
@@ -55,7 +55,12 @@ public sealed class SessionCommandDispatcher
 
     private static OperationResult Failure(PublicCommand command, string id, OperationPhase phase, PrimaryDisposition disposition, string message, EffectState effectState = EffectState.None, OperationOutcome outcome = OperationOutcome.Blocked)
     {
-        Diagnostic diagnostic = DiagnosticFactory.Create(id, phase, "session-integration", message, "No session integration effect was admitted.");
+        Diagnostic diagnostic = DiagnosticFactory.Create(
+            id,
+            phase,
+            DisclosureFilter.PublicText("session-integration"),
+            DisclosureFilter.Withhold(message, "session-command-failure-detail"),
+            DisclosureFilter.PublicText("No session integration effect was admitted."));
         return OperationResultFactory.Failure(command, outcome, phase, effectState, disposition, new[] { diagnostic });
     }
 }

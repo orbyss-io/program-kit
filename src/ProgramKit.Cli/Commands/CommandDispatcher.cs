@@ -48,7 +48,7 @@ public sealed class CommandDispatcher
 
         return invocation.Command switch
         {
-            PublicCommand.Explain => kernel.Explain(request),
+            PublicCommand.Explain => kernel.Explain(workspace, request),
             PublicCommand.Construct => kernel.Construct(workspace, request),
             PublicCommand.Evaluate => kernel.Evaluate(workspace, request),
             PublicCommand.SessionExplain => sessions.Execute(invocation, workspace, request),
@@ -64,9 +64,9 @@ public sealed class CommandDispatcher
         Diagnostic diagnostic = DiagnosticFactory.Create(
             DiagnosticIds.InvalidInput,
             OperationPhase.Request,
-            "command-line",
-            cause,
-            "The command was refused before any workspace effect.");
+            DisclosureFilter.PublicText("command-line"),
+            DisclosureFilter.PublicText(cause),
+            DisclosureFilter.PublicText("The command was refused before any workspace effect."));
         return OperationResultFactory.Failure(command, OperationOutcome.Blocked, OperationPhase.Request, EffectState.None, PrimaryDisposition.Revise, new[] { diagnostic });
     }
 }

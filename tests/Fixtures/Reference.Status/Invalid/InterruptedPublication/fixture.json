@@ -1,0 +1,1 @@
+{"expectedDiagnostic":"program-kit.kernel/PKWSP0003","expectedDisposition":"repair","expectedEffectState":"indeterminate","expectedOutcome":"blocked","schema":"program-kit.invalid-fixture/v1","scenario":"interrupted-publication","trigger":"ConstructOperation.Execute"}

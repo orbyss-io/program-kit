@@ -38,7 +38,7 @@ public static class ResultRenderer
 
         foreach (Orbyss.ProgramKit.Contracts.Diagnostics.Diagnostic diagnostic in result.Diagnostics.Items)
         {
-            builder.AppendLine(CultureInfo.InvariantCulture, $"{diagnostic.Id}: {diagnostic.MessageKey} ({diagnostic.Cause})");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{diagnostic.Id}: {diagnostic.MessageKey} ({diagnostic.Cause.Value})");
         }
 
         if (result.Explanation is not null)

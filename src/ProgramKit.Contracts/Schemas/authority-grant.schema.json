@@ -68,8 +68,6 @@
         "type": "string",
         "enum": [
           "explain",
-          "session-install",
-          "session-remove",
           "construct",
           "evaluate"
         ]

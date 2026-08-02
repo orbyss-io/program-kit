@@ -23,12 +23,12 @@ public sealed class CliParser
         if (string.Equals(arguments[0], "session", StringComparison.Ordinal))
         {
             if (arguments.Length < 2) return new(null, "A session lifecycle operation is required.");
-            if (!TrySessionCommand(arguments[1], out command)) return new(null, $"Unknown session lifecycle operation: {arguments[1]}");
+            if (!TrySessionCommand(arguments[1], out command)) return new(null, "Unknown session lifecycle operation.");
             optionStart = 2;
         }
         else
         {
-            if (!TryCommand(arguments[0], out command)) return new(null, $"Unknown command: {arguments[0]}");
+            if (!TryCommand(arguments[0], out command)) return new(null, "Unknown command.");
             optionStart = 1;
         }
 
@@ -50,12 +50,12 @@ public sealed class CliParser
 
             if (!token.StartsWith("--", StringComparison.Ordinal) || endOfOptions)
             {
-                return new(null, $"Unexpected positional argument: {token}");
+                return new(null, "Unexpected positional argument.");
             }
 
             if (token is not ("--workspace" or "--request" or "--format"))
             {
-                return new(null, $"Unknown option: {token}");
+                return new(null, "Unknown option.");
             }
 
             if (options.ContainsKey(token))

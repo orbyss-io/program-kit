@@ -1,16 +1,34 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.Providers;
+using Orbyss.ProgramKit.Kernel.Artifacts;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
+using Orbyss.ProgramKit.Kernel.Diagnostics;
+using Orbyss.ProgramKit.Kernel.Operations;
+using Orbyss.ProgramKit.Kernel.Validation;
 
 namespace Orbyss.ProgramKit.Kernel.Intake;
 
 public sealed class IntakePipeline
 {
+    public const string FactoryRequestSchemaId = "https://schemas.program-kit.dev/v1/factory-request.schema.json";
+    public const string BundleSchemaId = "https://schemas.program-kit.dev/v1/software-definition-bundle.schema.json";
+
     private readonly RestrictedYamlParser yamlParser = new();
+    private readonly StructuralSchemaValidator structural;
+    private readonly TypedContractBinder binder = new();
+    private readonly ProviderRegistry providers;
+
+    public IntakePipeline(ProviderRegistry providers)
+    {
+        this.providers = providers;
+        structural = new StructuralSchemaValidator(new SchemaRegistry());
+    }
 
     public JsonObject Load(string path)
     {
@@ -21,78 +39,80 @@ public sealed class IntakePipeline
             ".yaml" or ".yml" => yamlParser.Parse(bytes),
             _ => throw new InvalidDataException("Only .json, .yaml, and .yml request files are supported."),
         };
-        return node as JsonObject ?? throw new InvalidDataException("The request root must be a mapping/object.");
+        return node as JsonObject ?? throw new InvalidDataException("The document root must be a mapping/object.");
     }
 
-    public FactoryInput Bind(JsonObject document)
+    public FactoryInput AdmitAndMap(string workspaceRoot, JsonObject document)
     {
-        string schema = RequiredString(document, "schema");
-        if (!string.Equals(schema, "program-kit.dotnet-factory-intake/v1", StringComparison.Ordinal))
+        IReadOnlyList<string> structuralFailures = structural.Validate(FactoryRequestSchemaId, document);
+        if (structuralFailures.Count > 0)
         {
-            throw new InvalidDataException("Unsupported request schema.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.InvalidInput, OperationPhase.Validation, PrimaryDisposition.Revise, string.Join(" ", structuralFailures));
         }
 
-        FactoryOperation operation = ParseEnum<FactoryOperation>(RequiredString(document, "operation"));
-        RequestedEffect effect = ParseEnum<RequestedEffect>(RequiredString(document, "requestedEffect"));
-        ConstructionMode? mode = document["constructionMode"] is null
-            ? null
-            : ParseEnum<ConstructionMode>(RequiredString(document, "constructionMode"));
-        if (operation == FactoryOperation.Construct && mode is null)
+        FactoryRequest request = binder.BindFactoryRequest(document);
+        JsonObject bundle = LoadExactArtifact(workspaceRoot, request.RootBundle);
+        IReadOnlyList<string> bundleFailures = structural.Validate(BundleSchemaId, bundle);
+        if (bundleFailures.Count > 0)
         {
-            throw new InvalidDataException("construct requires constructionMode.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.InvalidInput, OperationPhase.Validation, PrimaryDisposition.Revise, string.Join(" ", bundleFailures));
         }
 
-        if (operation != FactoryOperation.Construct && mode is not null)
+        JsonObject bundleIdentity = bundle["identity"] as JsonObject
+            ?? throw new InvalidDataException("The root bundle has no identity.");
+        if (!string.Equals(bundleIdentity["digest"]?.GetValue<string>(), request.RootBundle.Identity.Digest, StringComparison.Ordinal)
+            || !string.Equals(DocumentIdentityDigest(bundle), request.RootBundle.Identity.Digest, StringComparison.Ordinal))
         {
-            throw new InvalidDataException("constructionMode is valid only for construct.");
+            throw new ProgramKitDiagnosticException(DiagnosticIds.ConflictingIdentity, OperationPhase.Validation, PrimaryDisposition.Revise, "The root bundle identity digest is not exact.");
         }
 
-        JsonObject evaluation = RequiredObject(document, "evaluationContext");
-        DateTimeOffset instant = DateTimeOffset.ParseExact(
-            RequiredString(evaluation, "instant"),
-            "yyyy-MM-dd'T'HH:mm:ss'Z'",
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-        string assurance = RequiredString(evaluation, "assurance");
-        if (!string.Equals(assurance, "approved-declared-instant", StringComparison.Ordinal))
+        JsonObject authorityBindingDocument = NormalizeRequest(document);
+        authorityBindingDocument.Remove("authorityGrant");
+        string requestDigest = CanonicalJson.Digest(NormalizeRequest(document));
+        string authorityBindingDigest = CanonicalJson.Digest(authorityBindingDocument);
+        FactoryRequestDocument requestDocument = new(
+            request,
+            requestDigest,
+            authorityBindingDigest,
+            bundle,
+            NormalizeRequest(document));
+
+        IIntakeMappingProvider mapper = providers.ResolveRole<IIntakeMappingProvider>(request.Selections, ProviderRole.IntakeMapping);
+        ProviderIntakeResult mapped = mapper.MapAsync(new ProviderIntakeContext(
+            workspaceRoot,
+            bundle,
+            requestDigest,
+            System.Threading.CancellationToken.None)).GetAwaiter().GetResult();
+        if (!mapped.Succeeded)
         {
-            throw new InvalidDataException("Unsupported evaluation-context assurance.");
+            throw new InvalidDataException($"The selected intake-mapping provider refused the bundle: {string.Join(",", mapped.Diagnostics.OrderBy(static item => item, StringComparer.Ordinal))}");
         }
 
-        JsonObject? legacyAuthority = document["authority"] as JsonObject;
-        JsonObject requestCore = (JsonObject)document.DeepClone();
-        requestCore.Remove("authorityGrant");
-        requestCore.Remove("authority");
-        string? authorityGrant = (document["authorityGrant"] as JsonObject)?["logicalPath"]?.GetValue<string>();
-        string requestCoreIdentity = CanonicalJson.Digest(requestCore);
-        JsonObject selections = RequiredObject(document, "selections");
-        JsonObject definition = RequiredObject(document, "definition");
+        return new FactoryInput(requestDocument, (JsonObject)mapped.Definition.DeepClone(), mapped.Inputs, mapped.Evidence);
+    }
 
-        return new FactoryInput(
-            operation,
-            mode,
-            effect,
-            RequiredString(document, "workspaceIdentity"),
-            instant,
-            RequiredString(evaluation, "source"),
-            legacyAuthority is not null && RequiredBoolean(legacyAuthority, "approved"),
-            legacyAuthority is null ? instant : ParseInstant(legacyAuthority, "notBefore"),
-            legacyAuthority is null ? instant : ParseInstant(legacyAuthority, "notAfter"),
-            authorityGrant,
-            requestCoreIdentity,
-            RequiredString(selections, "provider"),
-            RequiredString(selections, "profile"),
-            (JsonObject)definition.DeepClone(),
-            (JsonObject)document.DeepClone());
+    public static JsonObject NormalizeRequest(JsonObject document)
+    {
+        JsonObject normalized = (JsonObject)document.DeepClone();
+        if (normalized["selections"] is JsonArray selections)
+        {
+            normalized["selections"] = new JsonArray(selections
+                .OfType<JsonObject>()
+                .OrderBy(static selection => selection["role"]?.GetValue<string>(), StringComparer.Ordinal)
+                .ThenBy(static selection => CanonicalJson.Digest(selection), StringComparer.Ordinal)
+                .Select(static selection => selection.DeepClone())
+                .ToArray());
+        }
+
+        return normalized;
     }
 
     public IReadOnlyList<string> MissingFields(JsonObject document)
     {
         string[] paths =
         {
-            "schema", "operation", "workspaceIdentity", "requestedEffect",
+            "schema", "canonicalProfile", "operation", "rootBundle", "workspaceIdentity", "requestedEffect", "selections",
             "evaluationContext.instant", "evaluationContext.source", "evaluationContext.assurance",
-            "selections.provider", "selections.profile", "definition.component", "definition.application",
         };
         List<string> missing = new();
         foreach (string path in paths)
@@ -109,35 +129,58 @@ public sealed class IntakePipeline
             }
         }
 
-        string? requestedEffect = document["requestedEffect"]?.GetValue<string>();
-        if (requestedEffect is "candidate-only" or "committed" && document["authorityGrant"] is null)
+        string? operation = document["operation"]?.GetValue<string>();
+        string? effect = document["requestedEffect"]?.GetValue<string>();
+        if (string.Equals(operation, "construct", StringComparison.Ordinal) && document["constructionMode"] is null)
         {
-            missing.Add("authorityGrant");
+            missing.Add("constructionMode");
         }
 
-        return missing;
+        if (effect is "candidate-only" or "committed")
+        {
+            if (document["authorityGrant"] is null)
+            {
+                missing.Add("authorityGrant");
+            }
+
+            if (document["expectedState"] is null)
+            {
+                missing.Add("expectedState");
+            }
+        }
+
+        return missing.OrderBy(static item => item, StringComparer.Ordinal).ToArray();
     }
 
-    private static JsonObject RequiredObject(JsonObject parent, string name) =>
-        parent[name] as JsonObject ?? throw new InvalidDataException($"{name} must be an object.");
-
-    private static string RequiredString(JsonObject parent, string name) =>
-        parent[name]?.GetValue<string>() is { Length: > 0 } value
-            ? value
-            : throw new InvalidDataException($"{name} must be a non-empty string.");
-
-    private static bool RequiredBoolean(JsonObject parent, string name) =>
-        parent[name]?.GetValue<bool>() ?? throw new InvalidDataException($"{name} must be a Boolean.");
-
-    private static DateTimeOffset ParseInstant(JsonObject parent, string name) =>
-        DateTimeOffset.ParseExact(RequiredString(parent, name), "yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-
-    private static T ParseEnum<T>(string value)
-        where T : struct, Enum
+    public static JsonObject LoadExactArtifact(string workspaceRoot, ArtifactReference artifact)
     {
-        string normalized = value.Replace("-", string.Empty, StringComparison.Ordinal);
-        return Enum.TryParse(normalized, true, out T result)
-            ? result
-            : throw new InvalidDataException($"Unsupported {typeof(T).Name} value: {value}");
+        string path = LogicalPaths.ResolveInside(workspaceRoot, artifact.LogicalPath);
+        if (!File.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+        {
+            throw new ProgramKitDiagnosticException(DiagnosticIds.ExternalUnavailable, OperationPhase.Intake, PrimaryDisposition.Stop, $"The exact referenced artifact is unavailable: {artifact.LogicalPath}");
+        }
+
+        byte[] bytes = File.ReadAllBytes(path);
+        if (!string.Equals(Digests.Sha256(bytes), artifact.Digest, StringComparison.Ordinal))
+        {
+            throw new ProgramKitDiagnosticException(DiagnosticIds.ConflictingIdentity, OperationPhase.Validation, PrimaryDisposition.Revise, $"The referenced artifact digest is not exact: {artifact.LogicalPath}");
+        }
+
+        JsonNode node = Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".json" => CanonicalJson.Parse(bytes),
+            ".yaml" or ".yml" => new RestrictedYamlParser().Parse(bytes),
+            _ => throw new InvalidDataException("Referenced structured artifacts must use JSON or restricted YAML."),
+        };
+        return node as JsonObject ?? throw new InvalidDataException("The referenced artifact root must be an object.");
+    }
+
+    public static string DocumentIdentityDigest(JsonObject document)
+    {
+        JsonObject clone = (JsonObject)document.DeepClone();
+        JsonObject identity = clone["identity"] as JsonObject
+            ?? throw new InvalidDataException("Identity-bearing documents require an identity object.");
+        identity["digest"] = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+        return CanonicalJson.Digest(clone);
     }
 }

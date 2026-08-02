@@ -86,7 +86,7 @@ PowerShell:
 ```powershell
 $explainJson = dotnet run --project $cliProject --no-build -- explain `
   --workspace $referenceWorkspace `
-  --request (Join-Path $referenceWorkspace 'requests/explain.yaml') `
+  --request (Join-Path $referenceWorkspace 'requests/explain.json') `
   --format json
 $explain = $explainJson | ConvertFrom-Json
 $explain | Select-Object outcome, furthestPhase, effectState, primaryDisposition
@@ -97,7 +97,7 @@ Bash:
 ```bash
 dotnet run --project "$cli_project" --no-build -- explain \
   --workspace "$reference_workspace" \
-  --request "$reference_workspace/requests/explain.yaml" \
+  --request "$reference_workspace/requests/explain.json" \
   --format json
 ```
 
@@ -133,7 +133,7 @@ PowerShell:
 ```powershell
 $constructJson = dotnet run --project $cliProject --no-build -- construct `
   --workspace $referenceWorkspace `
-  --request (Join-Path $referenceWorkspace 'requests/construct.yaml') `
+  --request (Join-Path $referenceWorkspace 'requests/construct.json') `
   --format json
 $construct = $constructJson | ConvertFrom-Json
 $construct | Select-Object outcome, furthestPhase, effectState, primaryDisposition
@@ -144,7 +144,7 @@ Bash:
 ```bash
 dotnet run --project "$cli_project" --no-build -- construct \
   --workspace "$reference_workspace" \
-  --request "$reference_workspace/requests/construct.yaml" \
+  --request "$reference_workspace/requests/construct.json" \
   --format json
 ```
 
@@ -178,7 +178,7 @@ startup, and black-box Status observation:
 ```powershell
 dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj `
   --no-restore --no-build `
-  --filter 'FullyQualifiedName~RuntimeIsolation'
+  --filter 'FullyQualifiedName~GeneratedHostRunsWithoutProgramKitAndServesStatus'
 ```
 
 Bash uses the same command with line continuations changed to `\`.
@@ -234,7 +234,7 @@ Add-Content -LiteralPath $generatedProject -Value '<!-- deliberate drift -->'
 $driftedDigest = (Get-FileHash -LiteralPath $generatedProject -Algorithm SHA256).Hash
 $evaluateJson = dotnet run --project $cliProject --no-build -- evaluate `
   --workspace $referenceWorkspace `
-  --request (Join-Path $referenceWorkspace 'requests/evaluate.yaml') `
+  --request (Join-Path $referenceWorkspace 'requests/evaluate.json') `
   --format json
 $evaluate = $evaluateJson | ConvertFrom-Json
 ```
@@ -281,7 +281,7 @@ unchanged across drift, evaluation, and repair.
 ```powershell
 dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj `
   --no-restore --no-build `
-  --filter 'FullyQualifiedName~Repeatability|FullyQualifiedName~PublicationRecovery'
+  --filter 'FullyQualifiedName~ProductProof|FullyQualifiedName~PublicationRecovery'
 ```
 
 The repeatability matrix varies:

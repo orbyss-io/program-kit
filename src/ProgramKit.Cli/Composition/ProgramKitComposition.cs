@@ -9,7 +9,7 @@ namespace Orbyss.ProgramKit.Cli.Composition;
 
 public static class ProgramKitComposition
 {
-    public static ProgramKitKernel CreateKernel() => new(new[] { new DotNetFactoryProvider() });
+    public static ProgramKitKernel CreateKernel() => new(new[] { new DotNetProvider() });
 
     public static SessionIntegrationServices CreateSessionServices() => new(new SessionProviderRegistry(new[] { new CodexSessionProviderAdapter() }), CliReleaseIdentityProvider.InvokedVersion);
 }

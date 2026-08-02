@@ -35,7 +35,7 @@ public sealed class SessionNegativeResultGoldenTests
                 "Observed bounded contract failure.");
             OperationResult result = Orbyss.ProgramKit.Kernel.Operations.OperationResultFactory.Failure(
                 PublicCommand.SessionVerify,
-                item.Value.Severity == "warning" ? OperationOutcome.NeedsInput : OperationOutcome.Blocked,
+                OperationOutcome.Blocked,
                 OperationPhase.Validation,
                 EffectState.None,
                 ParseDisposition(item.Value.Disposition),

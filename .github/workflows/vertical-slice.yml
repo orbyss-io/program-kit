@@ -2,14 +2,34 @@ name: Vertical slice
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
 
 permissions:
   contents: read
 
+concurrency:
+  group: vertical-slice-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Spec Kit project layer
+        shell: pwsh
+        run: ./eng/Assert-SpecKitIntegrity.ps1 -RepositoryOnly
+      - name: Verify canonical tracked text
+        shell: pwsh
+        run: ./eng/Assert-CanonicalText.ps1
+
   verify:
+    needs: preflight
+    if: ${{ github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false) }}
     strategy:
       fail-fast: false
       matrix:
@@ -20,6 +40,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.302
+      - name: Verify canonical tracked text
+        shell: pwsh
+        run: ./eng/Assert-CanonicalText.ps1
       - name: Bootstrap exact dependency mirror
         shell: pwsh
         run: ./eng/Bootstrap-DependencyMirror.ps1
@@ -27,6 +50,11 @@ jobs:
         run: dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config
       - name: Build release
         run: dotnet build ProgramKit.slnx --configuration Release --no-restore
+      - name: Regenerate deterministic distribution evidence
+        shell: pwsh
+        run: ./eng/Generate-DistributionEvidence.ps1
+      - name: Verify checked-in distribution evidence
+        run: git diff --exit-code -- artifacts/evidence
       - name: Test vertical slice
         run: dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore
       - name: Verify formatting
@@ -34,21 +62,6 @@ jobs:
       - name: Pack workspace-local CLI
         shell: pwsh
         run: ./eng/Pack-ProgramKitTool.ps1 -OutputRoot (Join-Path $env:RUNNER_TEMP 'program-kit-tool-feed')
-      - name: Verify provider-neutral conformance
-        run: >-
-          dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj
-          --configuration Release --no-build --no-restore
-          --filter "CodexProviderConformanceAcceptanceTests|SessionProviderParityAcceptanceTests"
-      - name: Verify runtime isolation
-        run: >-
-          dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj
-          --configuration Release --no-build --no-restore
-          --filter "RuntimeAndDriftAcceptanceTests|SessionRuntimeIsolationAcceptanceTests"
-      - name: Verify bounded disclosure
-        run: >-
-          dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj
-          --configuration Release --no-build --no-restore
-          --filter SessionDisclosureTests
       - name: Run ten-workspace session quickstart
         shell: pwsh
         run: >-
@@ -61,3 +74,10 @@ jobs:
           name: deterministic-session-review-${{ matrix.os }}
           path: ${{ runner.temp }}/deterministic-session-review.json
           if-no-files-found: error
+      - name: Upload bounded product evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: program-kit-evidence-${{ matrix.os }}
+          path: artifacts/evidence
+          if-no-files-found: error
+          retention-days: 14
