@@ -11,7 +11,8 @@ public static class LogicalPathPolicy
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceRoot);
         ArgumentException.ThrowIfNullOrWhiteSpace(logicalPath);
-        if (Path.IsPathRooted(logicalPath) || logicalPath.Contains('\\'))
+        bool hasWindowsDrivePrefix = logicalPath.Length >= 2 && char.IsAsciiLetter(logicalPath[0]) && logicalPath[1] == ':';
+        if (Path.IsPathRooted(logicalPath) || hasWindowsDrivePrefix || logicalPath.Contains('\\'))
         {
             throw new InvalidDataException("A logical path must be relative and use forward slashes.");
         }

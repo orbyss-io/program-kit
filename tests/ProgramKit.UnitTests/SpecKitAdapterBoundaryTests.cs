@@ -23,6 +23,7 @@ public sealed class SpecKitAdapterBoundaryTests
         {
             Assert.ThrowsExactly<InvalidDataException>(() => LogicalPathPolicy.Resolve(root, "../escape"));
             Assert.ThrowsExactly<InvalidDataException>(() => LogicalPathPolicy.Resolve(root, "C:/escape"));
+            Assert.ThrowsExactly<InvalidDataException>(() => LogicalPathPolicy.Resolve(root, "C:escape"));
             Assert.ThrowsExactly<InvalidDataException>(() => LogicalPathPolicy.Resolve(root, "a\\b"));
             Assert.ThrowsExactly<InvalidDataException>(() => LogicalPathPolicy.ValidateDistinct(new[] { "A/file.json", "a/file.json" }));
             StringAssert.StartsWith(LogicalPathPolicy.Resolve(root, "safe/file.json"), Path.GetFullPath(root));
