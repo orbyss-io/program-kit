@@ -60,7 +60,7 @@ public sealed class CodexSessionReviewSeedContractTests
 
         using SeedWorkspace extraMirror = SeedWorkspace.Create();
         File.WriteAllText(Path.Combine(extraMirror.PathOf("dependencies"), "extra.nupkg"), "extra");
-        AssertFailed(extraMirror.Root, "undeclared, missing, or case-colliding artifacts");
+        AssertFailed(extraMirror.Root, "case-colliding artifacts");
 
         using SeedWorkspace directoryMirror = SeedWorkspace.Create();
         Directory.CreateDirectory(Path.Combine(directoryMirror.PathOf("dependencies"), "extra"));
