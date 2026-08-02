@@ -496,3 +496,37 @@ local acceptance/conformance/platform matrix and live Codex were intentionally
 not run. T121–T124 are complete; T125 requires authoritative protected
 Windows/Linux CI for the exact pushed repair. The earlier prepared consumer is
 identity-stale and must not be used for T118; a fresh packet follows T125.
+
+### Authoritative human-review repair proof — 2026-08-02
+
+T125 is satisfied by protected run `30744656556` against exact pushed
+implementation/evidence head
+`4366513e2dc735d5092d8cb29e2d60eca82b78c8`. Preflight job `91488089006`,
+Windows job `91488103914`, and Ubuntu job `91488103916` all passed. Each
+platform independently completed canonical text, exact dependency bootstrap,
+locked restore, zero-warning/error Release build, deterministic evidence
+regeneration and staleness, the complete vertical-slice test suite, formatting,
+packaging, ten isolated workspaces, and bounded evidence retention/upload.
+
+Windows completed 10/10 deterministic trials with an empty failure collection;
+its bounded evidence byte digest is
+`sha256:e5355b1212cdcef075fd5b4242a0463c41c01f694b196c82e6856f788dbd91a9`,
+package digest is
+`sha256:393a7d5137ad86a6b53725d087ba16f13b18ef6a8f27c3e23e9a415cf5d01595`,
+and projection digest is
+`sha256:0f01a734d3d2b8943a9e8fab26d796b3ebe2bc5fd4058963462bb17a8f2a1944`.
+Ubuntu completed 10/10 deterministic trials with an empty failure collection;
+its bounded evidence byte digest is
+`sha256:c7bc64dd5d142e9a3b3e54355195e78be4d7500262ae29921bac2cf91012733f`,
+package digest is
+`sha256:1c5f3de2b1142222ee1fe61bc620d111a58ead57beae307b99bf71528f82bc1c`,
+and projection digest is
+`sha256:c84666e282adc94fa289889d60fd6023047ea068a554de4efeb28efdbd21af1b`.
+Both artifacts assert deterministic projection, denied network after
+acquisition, disabled telemetry, no source upload or provider-global
+registration, preserved consumer bytes, typed authority/drift failures, exact
+removal, and a callable CLI after removal.
+
+PR 7 was returned to draft immediately after this proof. T125 is complete
+without a duplicate local full gate. T118 and T119 remain mandatory human
+checkpoints; no live-session success or product acceptance is inferred from CI.
