@@ -1,9 +1,27 @@
 [CmdletBinding()]
-param()
+param(
+    [switch]$RepositoryOnly
+)
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $failures = [System.Collections.Generic.List[string]]::new()
+$trackedPaths = $null
+
+if ($RepositoryOnly) {
+    $trackedPaths = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::Ordinal
+    )
+    $trackedOutput = & git -C $repositoryRoot ls-files
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error 'Unable to enumerate repository-tracked files for the Spec Kit integrity check.'
+        exit 1
+    }
+
+    foreach ($trackedPath in $trackedOutput) {
+        [void]$trackedPaths.Add($trackedPath.Replace('\', '/'))
+    }
+}
 
 function Add-IntegrityFailure {
     param([Parameter(Mandatory)][string]$Message)
@@ -41,6 +59,11 @@ $manifestDirectory = Join-Path $repositoryRoot '.specify/integrations'
 foreach ($manifestPath in Get-ChildItem -LiteralPath $manifestDirectory -Filter '*.manifest.json') {
     $manifest = Get-Content -LiteralPath $manifestPath.FullName -Raw | ConvertFrom-Json
     foreach ($entry in $manifest.files.PSObject.Properties) {
+        $managedRelativePath = $entry.Name.Replace('\', '/')
+        if ($RepositoryOnly -and -not $trackedPaths.Contains($managedRelativePath)) {
+            continue
+        }
+
         $managedPath = Join-Path $repositoryRoot $entry.Name
         if (-not (Test-Path -LiteralPath $managedPath -PathType Leaf)) {
             Add-IntegrityFailure "Spec Kit managed file is missing: $($entry.Name)"
@@ -115,7 +138,7 @@ Assert-ContainsLiteral '.specify/templates/overrides/plan-template.md' '## Verif
 Assert-ContainsLiteral '.specify/templates/overrides/tasks-template.md' '**Proof rule**:'
 Assert-ContainsLiteral '.specify/memory/constitution.md' 'Equivalent evidence MUST be reused while its declared input and invalidation set'
 Assert-ContainsLiteral 'eng/Invoke-Verification.ps1' "ValidateSet('Fast', 'Contract', 'PrePr')"
-Assert-ContainsLiteral '.github/workflows/vertical-slice.yml' './eng/Assert-SpecKitIntegrity.ps1'
+Assert-ContainsLiteral '.github/workflows/vertical-slice.yml' './eng/Assert-SpecKitIntegrity.ps1 -RepositoryOnly'
 Assert-ContainsLiteral '.github/workflows/vertical-slice.yml' 'cancel-in-progress:'
 
 if ($failures.Count -gt 0) {
@@ -123,5 +146,6 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'Spec Kit project integrity passed: managed core is pristine and project overlays remain active.'
+$scope = if ($RepositoryOnly) { 'repository-tracked managed core' } else { 'installed managed core' }
+Write-Host "Spec Kit project integrity passed: $scope is pristine and project overlays remain active."
 $global:LASTEXITCODE = 0
