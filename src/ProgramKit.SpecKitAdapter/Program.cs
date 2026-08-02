@@ -25,6 +25,8 @@ public static class Program
         JsonObject result;
         try
         {
+            if (args.Length > 0 && !IsKnownOperation(args[0]))
+                throw new AdapterBoundaryException(AdapterFailureKind.ForbiddenOperation, "The requested adapter operation is not supported.");
             (string workspace, string requestPath) = ParsePaths(args);
             JsonObject request = CanonicalDocument.Parse(File.ReadAllBytes(requestPath)).AsObject();
             AdapterSchemaValidator.Validate("adapter-request.schema.json", request);
@@ -44,6 +46,10 @@ public static class Program
                 AdapterOperation.Cleanup => CleanupCommand.Execute(workspace, request),
                 _ => AdapterResultWriter.Failure(operation, AdapterFailureKind.InvalidHandoff),
             };
+        }
+        catch (AdapterBoundaryException exception)
+        {
+            result = AdapterResultWriter.Failure(operation, exception.Kind, exception.Outcome);
         }
         catch (InvalidDataException)
         {
@@ -137,6 +143,10 @@ public static class Program
         "cleanup" => AdapterOperation.Cleanup,
         _ => AdapterOperation.Doctor,
     };
+
+    private static bool IsKnownOperation(string value) => value is
+        "doctor" or "activate" or "disable" or "handoff" or "validate" or
+        "prepare" or "explain" or "construct" or "evaluate" or "cleanup";
 
     private static bool DetectJson(string[] args)
     {

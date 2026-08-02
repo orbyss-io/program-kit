@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
+using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 using Orbyss.ProgramKit.SpecKitAdapter.Handoff;
 
 namespace Orbyss.ProgramKit.SpecKitAdapter.Translation;
@@ -15,7 +17,15 @@ public sealed class DotNetHandoffTranslator
 
     public TranslationResult Translate(BoundHandoff handoff, JsonObject workspaceLock)
     {
-        AdapterTranslationProfile compatibility = AdapterCompatibility.Load().TranslationProfile;
+        AdapterTranslationProfile compatibility;
+        try
+        {
+            compatibility = AdapterCompatibility.Load().TranslationProfile;
+        }
+        catch (InvalidDataException exception)
+        {
+            throw new AdapterBoundaryException(AdapterFailureKind.UnsupportedCompatibility, "The adapter compatibility envelope is invalid.", innerException: exception);
+        }
         RequireExact(handoff.Document["definitionFamily"]!, compatibility.DefinitionFamily, "The handoff definition family is outside the tested adapter compatibility manifest.");
         string featureKey = handoff.Document["feature"]!["key"]!.GetValue<string>();
         string featureRoot = $"specs/{featureKey}/program-kit/generated";
@@ -128,6 +138,7 @@ public sealed class DotNetHandoffTranslator
 
     private static void RequireExact(JsonNode actual, JsonNode expected, string message)
     {
-        if (!CanonicalDocument.Encode(actual).SequenceEqual(CanonicalDocument.Encode(expected))) throw new InvalidOperationException(message);
+        if (!CanonicalDocument.Encode(actual).SequenceEqual(CanonicalDocument.Encode(expected)))
+            throw new AdapterBoundaryException(AdapterFailureKind.UnsupportedCompatibility, message);
     }
 }

@@ -2,6 +2,7 @@
 #:project ../src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj
 #:project ../src/ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj
 #:project ../src/ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj
+#:project ../src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj
 #:property PublishAot=false
 #:property RestoreLockedMode=false
 #:property NuGetAudit=false
@@ -21,6 +22,8 @@ using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
 using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 using Orbyss.ProgramKit.SessionIntegration.Providers.Codex.Diagnostics;
+using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
+using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 
 string root = Directory.GetCurrentDirectory();
 if (!File.Exists(Path.Combine(root, "global.json")))
@@ -198,6 +201,64 @@ JsonObject provenance = new()
 };
 string provenanceDigest = Write("source-package-provenance.json", provenance);
 
+string adapterArchive = Environment.GetEnvironmentVariable("PROGRAM_KIT_ADAPTER_ARCHIVE")
+    ?? throw new InvalidOperationException("The exact adapter archive path was not supplied by the evidence wrapper.");
+string adapterStage = Environment.GetEnvironmentVariable("PROGRAM_KIT_ADAPTER_STAGE")
+    ?? throw new InvalidOperationException("The exact adapter stage path was not supplied by the evidence wrapper.");
+string adapterPackageManifest = Path.Combine(root, "extensions", "orbyss-program-kit-adapter", "package-manifest.json");
+string adapterExtensionManifest = Path.Combine(root, "extensions", "orbyss-program-kit-adapter", "extension.yml");
+string adapterLock = Path.Combine(root, "src", "ProgramKit.SpecKitAdapter", "packages.lock.json");
+string releaseFilesPath = Path.Combine(adapterStage, "release-files.json");
+JsonObject releaseFiles = CanonicalJson.Parse(File.ReadAllBytes(releaseFilesPath)).AsObject();
+JsonArray publicSchemas = new(AdapterSchemaResources.ReadAll()
+    .Select(static pair => JsonNode.Parse(pair.Value)!.AsObject())
+    .OrderBy(static schema => schema["$id"]!.GetValue<string>(), StringComparer.Ordinal)
+    .Select(schema => new JsonObject
+    {
+        ["identity"] = schema["$id"]!.DeepClone(),
+        ["digest"] = CanonicalJson.Digest(schema),
+    }).ToArray());
+JsonObject adapterEvidence = new()
+{
+    ["schema"] = "program-kit.spec-kit-adapter-distribution-evidence/v1",
+    ["canonicalProfile"] = CanonicalJson.Profile,
+    ["release"] = new JsonObject
+    {
+        ["identity"] = "orbyss-program-kit-adapter@0.1.0",
+        ["specKitVersion"] = "0.15.1",
+        ["programKitVersion"] = "1.0.0-alpha.2",
+        ["runtime"] = "net10.0",
+        ["packageManifestDigest"] = SourceDigest(adapterPackageManifest),
+        ["extensionManifestDigest"] = SourceDigest(adapterExtensionManifest),
+        ["archiveDigest"] = ByteDigest(adapterArchive),
+        ["releaseFilesDigest"] = ByteDigest(releaseFilesPath),
+        ["releaseClosureDigest"] = CanonicalJson.Digest(releaseFiles["files"]!),
+    },
+    ["compatibility"] = new JsonObject
+    {
+        ["identity"] = AdapterCompatibility.LogicalPath,
+        ["digest"] = AdapterCompatibility.Load().Digest,
+    },
+    ["diagnosticCatalog"] = new JsonObject
+    {
+        ["identity"] = AdapterDiagnosticCatalog.Identity.Name,
+        ["digest"] = AdapterDiagnosticCatalog.Digest,
+    },
+    ["publicSchemas"] = publicSchemas,
+    ["providerSupportDigest"] = supportDigest,
+    ["dependencyLockDigest"] = SourceDigest(adapterLock),
+};
+adapterEvidence["claimInvalidationBindings"] = new JsonObject
+{
+    ["release"] = CanonicalJson.Digest(adapterEvidence["release"]!),
+    ["compatibility"] = AdapterCompatibility.Load().Digest,
+    ["publicSchemas"] = CanonicalJson.Digest(publicSchemas),
+    ["diagnosticCatalog"] = AdapterDiagnosticCatalog.Digest,
+    ["providerSupport"] = supportDigest,
+    ["dependencies"] = SourceDigest(adapterLock),
+};
+string adapterEvidenceDigest = Write("spec-kit-adapter-distribution-evidence.json", adapterEvidence);
+
 JsonObject distribution = new()
 {
     ["schema"] = "program-kit.distribution-manifest/v1",
@@ -213,6 +274,7 @@ JsonObject distribution = new()
         Evidence("kernel-diagnostic-catalog.json", "application/json", kernelCatalogDigest),
         Evidence("provider-support.json", "application/json", supportDigest),
         Evidence("session-diagnostic-catalog.json", "application/json", sessionCatalogDigest),
+        Evidence("spec-kit-adapter-distribution-evidence.json", "application/json", adapterEvidenceDigest),
         Evidence("source-package-provenance.json", "application/json", provenanceDigest)),
 };
 Write("distribution-manifest.json", distribution);

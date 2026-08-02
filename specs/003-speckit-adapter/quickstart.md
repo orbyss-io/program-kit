@@ -1,9 +1,9 @@
 # Validation Quickstart: Program Kit Adapter for Spec Kit
 
-This is the planned package-only validation journey for the completed feature.
-It is not an implementation script and is not runnable until the tasks are
-implemented. Exact request examples will live in the packaged acceptance
-fixtures; this guide references their schemas rather than duplicating them.
+This is the shipped package-only validation journey for the feature candidate.
+The automated two-scenario form is
+`eng/Invoke-SpecKitAdapterQuickstart.ps1`; this guide explains the same public
+steps without replacing human handoff and authority review.
 
 ## 1. Exact prerequisites
 
@@ -98,8 +98,8 @@ The supported project configuration is instantiated at
 from the adjacent extension-owned template. Commit the project configuration;
 do not use the `.local.yml` or environment layers for adapter semantics.
 
-Invoke the registered `speckit.orbyss-program-kit-adapter.doctor` command through the active
-AI integration for base scope.
+Invoke the registered `speckit.orbyss-program-kit-adapter.doctor` command through
+the active AI integration for base scope.
 
 Expected:
 
@@ -155,7 +155,9 @@ Expected:
 ## 8. Create and review a factory feature handoff
 
 Run the normal Spec Kit specify/clarify/plan/tasks flow for the Reference Status
-example. Invoke:
+example. The adapter does not infer the semantic definition from arbitrary
+prose; a human or agent proposes the structured mapping and the named reviewer
+owns its approval. Invoke:
 
 1. `speckit.orbyss-program-kit-adapter.activate` for the exact feature;
 2. `speckit.orbyss-program-kit-adapter.handoff` to create an absent candidate;
@@ -288,8 +290,8 @@ Expected:
 Use the cheapest tier that proves the changed boundary:
 
 ```powershell
-./eng/Invoke-Verification.ps1 -Mode Fast
-./eng/Invoke-Verification.ps1 -Mode Contract
+./eng/Invoke-Verification.ps1 -Mode Edit -TestFilter '<affected-unit-filter>'
+./eng/Invoke-Verification.ps1 -Mode Story -TestFilter '<story-filter>' -IncludeAcceptance
 ```
 
 Run once when the local candidate is complete:
@@ -301,6 +303,12 @@ Run once when the local candidate is complete:
 Do not routinely run the full acceptance/conformance/cross-platform matrix
 locally. Protected CI owns the authoritative merge-candidate proof. After CI is
 green, run three fresh human journeys using shipped instructions only.
+
+Current limitations are deliberate: the adapter supports one exact Spec Kit
+release, one Program Kit release, one compiled .NET profile, and one
+component/API definition family. It does not plan work, infer arbitrary
+Markdown, create authority, perform migration, dynamically load providers, or
+make consumer-authored implementation deterministic.
 
 For each journey, retain one named review proving that the reviewer can:
 

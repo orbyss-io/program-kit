@@ -23,14 +23,14 @@ internal static class TestRepository
         }
     }
 
-    public static string AdapterExecutable
+    public static string AdapterAssembly
     {
         get
         {
             DirectoryInfo testOutput = new(AppContext.BaseDirectory);
             string configuration = testOutput.Parent?.Name ?? throw new InvalidOperationException("Test build configuration not found.");
             string targetFramework = testOutput.Name;
-            return Path.Combine(Root, "src", "ProgramKit.SpecKitAdapter", "bin", configuration, targetFramework, OperatingSystem.IsWindows() ? "program-kit-spec-kit-adapter.exe" : "program-kit-spec-kit-adapter");
+            return Path.Combine(Root, "src", "ProgramKit.SpecKitAdapter", "bin", configuration, targetFramework, "program-kit-spec-kit-adapter.dll");
         }
     }
 
@@ -70,7 +70,8 @@ internal static class TestRepository
 
     public static (int ExitCode, string StandardOutput, string StandardError) RunAdapter(params string[] arguments)
     {
-        ProcessStartInfo start = new(AdapterExecutable) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+        ProcessStartInfo start = new("dotnet") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+        start.ArgumentList.Add(AdapterAssembly);
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
         using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start the Program Kit Spec Kit adapter.");
         string stdout = process.StandardOutput.ReadToEnd();

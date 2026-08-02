@@ -9,6 +9,11 @@
   "releaseFiles": "release-files.json",
   "projectConfigTemplate": "config/orbyss-program-kit-adapter-config.template.yml",
   "projectConfigPath": ".specify/extensions/orbyss-program-kit-adapter/orbyss-program-kit-adapter-config.yml",
+  "publicContracts": {
+    "compatibility": "compatibility.json",
+    "diagnosticCatalog": "diagnostic-catalog.json",
+    "schemas": "schemas/"
+  },
   "ownership": {
     "extensionSource": "spec-kit-extension-managed",
     "extensionReleaseFiles": "adapter-release-owned",

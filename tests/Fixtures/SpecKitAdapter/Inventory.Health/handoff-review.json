@@ -1,0 +1,27 @@
+{
+  "schema": "program-kit.spec-kit-handoff-review/v1",
+  "handoff": {
+    "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/handoff.yaml",
+    "digest": "sha256:f86d624c8b3a92efcea0d472dd9447c9f26ad70672008dd341f6e2937c25153b"
+  },
+  "reviewer": "inventory-reviewer",
+  "decision": "approved",
+  "reviewedFields": [
+    "/applicability",
+    "/deferred",
+    "/definition",
+    "/definitionFamily",
+    "/effectiveSelection",
+    "/evaluationContext",
+    "/excluded",
+    "/feature",
+    "/implementation",
+    "/intentOwner",
+    "/maximumEffect",
+    "/ownership",
+    "/requestedOperation"
+  ],
+  "limitations": [],
+  "recordedAt": "2026-08-02T11:05:00Z",
+  "digest": "sha256:d3d77ac6fa2cb0ac514d662e4bfa077a8cde320cda6453b42802f941f1026eae"
+}

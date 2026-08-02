@@ -173,9 +173,34 @@ The intended workflow is collaborative and evidence-led:
 For teams that want a guided discovery, specification, planning, and task
 workflow, Spec Kit is the recommended orchestrator. Program Kit v1 remains an
 independent factory: it does not embed a second planning system and does not
-depend on Spec Kit at runtime. A future thin adapter may hand an approved Spec
-Kit plan to Program Kit through the same public CLI contracts available to any
-other caller.
+depend on Spec Kit at runtime. The separately packaged Program Kit adapter for
+Spec Kit can translate one explicitly reviewed, supported .NET handoff into the
+same public CLI contracts available to any other caller.
+
+## Spec Kit adapter proof
+
+Feature 003 adds the first bounded orchestration adapter. In a consumer
+workspace, Spec Kit `0.15.1` owns extension registration and the normal
+specify/plan/tasks workflow; the Program Kit CLI remains an exact workspace-local
+.NET tool. The consumer selects the exact first-party .NET profile in
+`program-kit.yaml`, and the adapter only acts for an applicable feature after a
+reviewed handoff exists. Documentation-only or disabled work invokes no factory
+path and requires no profile.
+
+The adapter can validate, translate, prepare, explain, construct, evaluate, and
+clean its own proven regenerable candidates. Construction still requires a
+separate human-or-agent-invoked `program-kit authority record` decision and an
+exact grant; Spec Kit review is never construction authority. Generated
+products remain ordinary relocatable .NET software with no Program Kit, Spec
+Kit, adapter, or AI runtime dependency.
+
+The current envelope is intentionally narrow: one adapter release, one exact
+Spec Kit release, one compiled first-party provider/profile, one component/API
+definition family, Windows and Linux, and consumer-authored custom behavior. It
+does not infer arbitrary Markdown, plan applications, migrate consumers,
+dynamically load providers, discover global tools, or claim deterministic
+business implementation. Those are explicit future product decisions, not
+hidden extension behavior.
 
 ## Provider-neutral AI-session integration proof
 

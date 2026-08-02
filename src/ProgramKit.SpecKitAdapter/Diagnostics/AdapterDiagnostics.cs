@@ -28,6 +28,19 @@ public enum AdapterFailureKind
     ForbiddenOperation,
 }
 
+public sealed class AdapterBoundaryException : Exception
+{
+    public AdapterBoundaryException(AdapterFailureKind kind, string message, string outcome = "blocked", Exception? innerException = null)
+        : base(message, innerException)
+    {
+        Kind = kind;
+        Outcome = outcome;
+    }
+
+    public AdapterFailureKind Kind { get; }
+    public string Outcome { get; }
+}
+
 public sealed record AdapterDiagnosticDefinition(
     AdapterFailureKind Kind,
     string Id,

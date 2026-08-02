@@ -1,7 +1,13 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string] $OutputRoot
+    [string] $OutputRoot,
+
+    [Parameter()]
+    [switch] $NoBuild,
+
+    [Parameter()]
+    [string] $PublishedToolsRoot
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,18 +36,40 @@ try {
     $configTemplate = Join-Path $attemptStage 'config/orbyss-program-kit-adapter-config.template.yml'
     $projectConfig = Join-Path $attemptStage 'orbyss-program-kit-adapter-config.yml'
     Copy-Item -LiteralPath $configTemplate -Destination $projectConfig
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/Schemas') -Destination (Join-Path $attemptStage 'schemas') -Recurse
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/Resources/compatibility.json') -Destination (Join-Path $attemptStage 'compatibility.json')
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/Resources/diagnostic-catalog.json') -Destination (Join-Path $attemptStage 'diagnostic-catalog.json')
 
-    dotnet publish (Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj') `
-        --configuration Release `
-        --no-restore `
-        --output $publishRoot `
-        -p:ContinuousIntegrationBuild=true
-    if ($LASTEXITCODE -ne 0) { throw 'Spec Kit adapter publish failed.' }
+    if ($PublishedToolsRoot) {
+        $resolvedTools = [IO.Path]::GetFullPath($PublishedToolsRoot)
+        if (-not (Test-Path -LiteralPath (Join-Path $resolvedTools 'program-kit-spec-kit-adapter.dll') -PathType Leaf)) {
+            throw 'The supplied published adapter tools are incomplete.'
+        }
+        New-Item -ItemType Directory -Path $publishRoot | Out-Null
+        Copy-Item -Path (Join-Path $resolvedTools '*') -Destination $publishRoot -Recurse
+    }
+    else {
+        $publishArguments = @(
+            'publish',
+            (Join-Path $repositoryRoot 'src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj'),
+            '--configuration', 'Release',
+            '--no-restore',
+            '--output', $publishRoot,
+            '-p:ContinuousIntegrationBuild=true'
+        )
+        if ($NoBuild) { $publishArguments += '--no-build' }
+        & dotnet @publishArguments
+        if ($LASTEXITCODE -ne 0) { throw 'Spec Kit adapter publish failed.' }
+    }
+    Get-ChildItem -LiteralPath $publishRoot -File | Where-Object { $_.Extension -In @('.pdb', '.xml', '.exe') } | Remove-Item -Force
 
     $requiredFiles = @(
         'extension.yml',
         'package-manifest.json',
         'orbyss-program-kit-adapter-config.yml',
+        'compatibility.json',
+        'diagnostic-catalog.json',
+        'schemas/adapter-result.schema.json',
         'tools/program-kit-spec-kit-adapter.dll',
         'tools/program-kit-spec-kit-adapter.runtimeconfig.json'
     )
@@ -59,14 +87,35 @@ try {
                 digest = 'sha256:' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             }
         }
-    [ordered]@{
+    $releaseFilesDocument = [ordered]@{
         schema = 'program-kit.spec-kit-adapter-release-files/v1'
         release = 'orbyss-program-kit-adapter@0.1.0'
         ownership = 'adapter-release-owned'
         files = @($releaseFiles)
-    } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $attemptStage 'release-files.json') -Encoding utf8NoBOM
+    }
+    $releaseFilesJson = $releaseFilesDocument | ConvertTo-Json -Depth 6 -Compress
+    [IO.File]::WriteAllText((Join-Path $attemptStage 'release-files.json'), $releaseFilesJson, [Text.UTF8Encoding]::new($false))
 
-    Compress-Archive -Path (Join-Path $attemptStage '*') -DestinationPath $attemptArchive
+    $archiveStream = [IO.File]::Open($attemptArchive, [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    try {
+        $archive = [IO.Compression.ZipArchive]::new($archiveStream, [IO.Compression.ZipArchiveMode]::Create, $true)
+        try {
+            foreach ($file in (Get-ChildItem -LiteralPath $attemptStage -Recurse -File | Sort-Object { [IO.Path]::GetRelativePath($attemptStage, $_.FullName).Replace('\', '/') })) {
+                $logicalPath = [IO.Path]::GetRelativePath($attemptStage, $file.FullName).Replace('\', '/')
+                $entry = $archive.CreateEntry($logicalPath, [IO.Compression.CompressionLevel]::NoCompression)
+                $entry.LastWriteTime = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
+                $source = $file.OpenRead()
+                $destination = $entry.Open()
+                try { $source.CopyTo($destination) }
+                finally {
+                    $destination.Dispose()
+                    $source.Dispose()
+                }
+            }
+        }
+        finally { $archive.Dispose() }
+    }
+    finally { $archiveStream.Dispose() }
     if (-not (Test-Path -LiteralPath $attemptArchive -PathType Leaf)) {
         throw 'Spec Kit adapter archive staging failed.'
     }

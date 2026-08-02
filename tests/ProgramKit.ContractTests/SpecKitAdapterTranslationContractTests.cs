@@ -7,6 +7,7 @@ using Orbyss.ProgramKit.Contracts.Schemas;
 using Orbyss.ProgramKit.Kernel.Intake;
 using Orbyss.ProgramKit.SpecKitAdapter.Commands;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
+using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 using Orbyss.ProgramKit.SpecKitAdapter.Handoff;
 using Orbyss.ProgramKit.SpecKitAdapter.Translation;
 
@@ -87,15 +88,15 @@ public sealed class SpecKitAdapterTranslationContractTests
             JsonObject wrongFamilyDocument = (JsonObject)context.Handoff!.Document.DeepClone();
             wrongFamilyDocument["definitionFamily"]!["digest"] = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
             BoundHandoff wrongFamily = new(wrongFamilyDocument, CanonicalDocument.Digest(wrongFamilyDocument), context.Handoff.TraceTargets);
-            Assert.ThrowsExactly<InvalidOperationException>(() => translator.Translate(wrongFamily, context.WorkspaceLock));
+            AssertUnsupported(() => translator.Translate(wrongFamily, context.WorkspaceLock));
 
             JsonObject wrongProviderLock = (JsonObject)context.WorkspaceLock.DeepClone();
             wrongProviderLock["selections"]![0]!["provider"]!["digest"] = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-            Assert.ThrowsExactly<InvalidOperationException>(() => translator.Translate(context.Handoff, wrongProviderLock));
+            AssertUnsupported(() => translator.Translate(context.Handoff, wrongProviderLock));
 
             JsonObject wrongProfileLock = (JsonObject)context.WorkspaceLock.DeepClone();
             wrongProfileLock["selections"]![0]!["targetProfile"]!["name"] = "dotnet-unknown";
-            Assert.ThrowsExactly<InvalidOperationException>(() => translator.Translate(context.Handoff, wrongProfileLock));
+            AssertUnsupported(() => translator.Translate(context.Handoff, wrongProfileLock));
         }
         finally
         {
@@ -107,6 +108,12 @@ public sealed class SpecKitAdapterTranslationContractTests
     {
         CollectionAssert.AreEquivalent(expected.Keys.ToArray(), actual.Keys.ToArray());
         foreach (string path in expected.Keys) CollectionAssert.AreEqual(expected[path], actual[path], path);
+    }
+
+    private static void AssertUnsupported(Action action)
+    {
+        AdapterBoundaryException exception = Assert.ThrowsExactly<AdapterBoundaryException>(action);
+        Assert.AreEqual(AdapterFailureKind.UnsupportedCompatibility, exception.Kind);
     }
 
     private static JsonNode PermuteObjects(JsonNode node, int offset)

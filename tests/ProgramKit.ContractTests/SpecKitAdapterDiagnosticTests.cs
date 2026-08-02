@@ -11,7 +11,7 @@ namespace Orbyss.ProgramKit.Tests;
 public sealed class SpecKitAdapterDiagnosticTests
 {
     [TestMethod]
-    public void Every_public_adapter_diagnostic_has_one_definition_and_a_production_factory_trigger()
+    public void Every_public_adapter_diagnostic_has_one_exact_typed_definition()
     {
         Assert.AreEqual(12, AdapterDiagnosticCatalog.Definitions.Count);
         Assert.AreEqual(12, AdapterDiagnosticCatalog.Definitions.Select(static item => item.Id).Distinct(StringComparer.Ordinal).Count());

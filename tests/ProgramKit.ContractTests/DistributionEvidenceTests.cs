@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -11,6 +12,8 @@ using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
 using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
 using Orbyss.ProgramKit.SessionIntegration.Providers.Codex.Diagnostics;
+using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
+using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 
 namespace Orbyss.ProgramKit.Tests;
 
@@ -84,6 +87,35 @@ public sealed class DistributionEvidenceTests
             _ = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetString(bytes);
             Assert.AreEqual(source["digest"]!.GetValue<string>(), Digest(path), logicalPath);
         }
+
+        JsonObject adapter = Read(Path.Combine(evidenceRoot, "spec-kit-adapter-distribution-evidence.json"));
+        JsonObject release = adapter["release"]!.AsObject();
+        JsonObject bindings = adapter["claimInvalidationBindings"]!.AsObject();
+        Assert.AreEqual("orbyss-program-kit-adapter@0.1.0", release["identity"]!.GetValue<string>());
+        Assert.AreEqual(AdapterCompatibility.Load().Digest, adapter["compatibility"]!["digest"]!.GetValue<string>());
+        Assert.AreEqual(AdapterDiagnosticCatalog.Digest, adapter["diagnosticCatalog"]!["digest"]!.GetValue<string>());
+        Assert.AreEqual(CanonicalJson.Digest(release), bindings["release"]!.GetValue<string>());
+        Assert.AreEqual(CanonicalJson.Digest(adapter["publicSchemas"]!), bindings["publicSchemas"]!.GetValue<string>());
+        Assert.AreEqual(AdapterDiagnosticCatalog.Digest, bindings["diagnosticCatalog"]!.GetValue<string>());
+        Assert.AreEqual(Digest(Path.Combine(evidenceRoot, "provider-support.json")), bindings["providerSupport"]!.GetValue<string>());
+        string packageRoot = Path.Combine(TestRepository.Root, "artifacts", "work", "evidence-adapter-package");
+        string archive = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0.zip");
+        string releaseFiles = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0", "release-files.json");
+        Assert.AreEqual(release["archiveDigest"]!.GetValue<string>(), Digest(archive));
+        Assert.AreEqual(release["releaseFilesDigest"]!.GetValue<string>(), Digest(releaseFiles));
+        JsonObject releaseFilesDocument = Read(releaseFiles);
+        Assert.AreEqual(release["releaseClosureDigest"]!.GetValue<string>(), CanonicalJson.Digest(releaseFilesDocument["files"]!));
+        Dictionary<string, string> schemaDigests = adapter["publicSchemas"]!.AsArray().Select(static node => node!.AsObject())
+            .ToDictionary(static schema => schema["identity"]!.GetValue<string>(), static schema => schema["digest"]!.GetValue<string>(), StringComparer.Ordinal);
+        foreach (string schemaText in AdapterSchemaResources.ReadAll().Values)
+        {
+            JsonObject schema = JsonNode.Parse(schemaText)!.AsObject();
+            Assert.AreEqual(CanonicalJson.Digest(schema), schemaDigests[schema["$id"]!.GetValue<string>()]);
+        }
+
+        JsonObject staleRelease = (JsonObject)release.DeepClone();
+        staleRelease["archiveDigest"] = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        Assert.AreNotEqual(bindings["release"]!.GetValue<string>(), CanonicalJson.Digest(staleRelease));
     }
 
     private static JsonObject Read(string path) => CanonicalJson.Parse(File.ReadAllBytes(path)).AsObject();

@@ -23,6 +23,7 @@ public sealed record PublicationResult(IReadOnlyDictionary<string, string> Diges
 public sealed class AdapterPublicationException : IOException
 {
     public AdapterPublicationException(string message) : base(message) { }
+    public AdapterPublicationException(string message, Exception innerException) : base(message, innerException) { }
 }
 
 public sealed class AtomicArtifactPublisher

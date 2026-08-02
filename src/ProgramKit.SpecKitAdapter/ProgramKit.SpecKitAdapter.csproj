@@ -4,6 +4,7 @@
     <AssemblyName>program-kit-spec-kit-adapter</AssemblyName>
     <RootNamespace>Orbyss.ProgramKit.SpecKitAdapter</RootNamespace>
     <Version>0.1.0</Version>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JsonSchema.Net" />

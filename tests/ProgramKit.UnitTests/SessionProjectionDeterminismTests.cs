@@ -30,8 +30,8 @@ public sealed class SessionProjectionDeterminismTests
         SessionProjectionContext linux = WithExecutable(baseline, ".program-kit/tools/program-kit");
         SessionProviderConformanceReport windowsReport = new SessionProviderConformanceEvaluator().Evaluate(adapter, windows);
         SessionProviderConformanceReport linuxReport = new SessionProviderConformanceEvaluator().Evaluate(adapter, linux);
-        Assert.AreEqual("sha256:75e6c138ce46a1906ba30adc5d7835484d1d02390386604aaf441cdf8ee33167", windowsReport.ObservationDigest);
-        Assert.AreEqual("sha256:2faf690449b67030cf4e9181183b23174492bed2849d4593578c586c17295462", linuxReport.ObservationDigest);
+        Assert.AreEqual("sha256:79a5e640f855a9437e31653fb615a0f92c2c3447a319478d2a0e41e42d0756f1", windowsReport.ObservationDigest);
+        Assert.AreEqual("sha256:d84d2dd99738842948f96871f347ff41f909924a3de023a54de9f87d8975dabc", linuxReport.ObservationDigest);
         Assert.AreEqual(OperatingSystem.IsWindows() ? windowsReport.ObservationDigest : linuxReport.ObservationDigest, left.ObservationDigest);
     }
 

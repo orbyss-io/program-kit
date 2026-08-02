@@ -15,20 +15,38 @@ namespace Orbyss.ProgramKit.Tests;
 
 internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
 {
-    private SpecKitAdapterPackagedWorkspace(string root, Dictionary<string, string> environment, string adapterDll)
+    private SpecKitAdapterPackagedWorkspace(string root, Dictionary<string, string> environment, string adapterDll, SpecKitAdapterScenario scenario)
     {
         Root = root;
         Environment = environment;
         AdapterDll = adapterDll;
+        Scenario = scenario;
     }
 
     public string Root { get; }
     public IReadOnlyDictionary<string, string> Environment { get; }
     public string AdapterDll { get; }
+    public SpecKitAdapterScenario Scenario { get; }
 
     public static SpecKitAdapterPackagedWorkspace Create(bool includeDependencyMirror)
     {
-        string workspace = SpecKitAdapterFixture.CreateWorkspace(restoreFactory: false);
+        SpecKitAdapterPackagedWorkspace workspace = CreateClean(SpecKitAdapterFixture.ReferenceStatus, includeDependencyMirror);
+        try
+        {
+            workspace.InitializeFactory();
+            workspace.StageReviewedFixture();
+            return workspace;
+        }
+        catch
+        {
+            workspace.Dispose();
+            throw;
+        }
+    }
+
+    public static SpecKitAdapterPackagedWorkspace CreateClean(SpecKitAdapterScenario scenario, bool includeDependencyMirror)
+    {
+        string workspace = TestRepository.CreateEmptyWorkspace();
         try
         {
             Dictionary<string, string> environment = IsolatedEnvironment(workspace);
@@ -42,11 +60,9 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
             WriteToolManifest(workspace);
             AssertSucceeded(Run("dotnet", workspace, environment, "tool", "restore", "--configfile", nugetConfig, "--no-cache"));
 
-            string restoreRequest = WorkspaceBootstrapFixture.WriteRequest(workspace, "restore-package.json", WorkspaceBootstrapFixture.RestoreRequest("factory"));
-            AssertSucceeded(Run("dotnet", workspace, environment, "tool", "run", "program-kit", "--", "restore", "--workspace", workspace, "--request", restoreRequest, "--format", "json"));
             if (includeDependencyMirror) CopyDirectory(Path.Combine(TestRepository.Root, "artifacts", "dependency-mirror"), Path.Combine(workspace, "dependencies"));
             string adapterDll = StageAdapter(workspace, configuration);
-            return new SpecKitAdapterPackagedWorkspace(workspace, environment, adapterDll);
+            return new SpecKitAdapterPackagedWorkspace(workspace, environment, adapterDll, scenario);
         }
         catch
         {
@@ -65,9 +81,28 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
         return Run("dotnet", Root, Environment, command.ToArray());
     }
 
+    public void InitializeFactory()
+    {
+        string initRequest = WriteJson("requests/init.json", WorkspaceBootstrapFixture.InitRequest());
+        AssertSucceeded(RunProgramKit("init", "--workspace", Root, "--request", initRequest, "--format", "json"));
+        string baseRequest = WriteJson("requests/restore-base.json", WorkspaceBootstrapFixture.RestoreRequest("base"));
+        AssertSucceeded(RunProgramKit("restore", "--workspace", Root, "--request", baseRequest, "--format", "json"));
+        string catalogRequest = WriteJson("requests/catalog.json", WorkspaceBootstrapFixture.CatalogRequest());
+        AssertSucceeded(RunProgramKit("catalog", "list", "--workspace", Root, "--request", catalogRequest, "--format", "json"));
+        File.WriteAllBytes(Path.Combine(Root, "program-kit.yaml"), CanonicalJson.Encode(WorkspaceBootstrapFixture.ExactFactoryManifest()));
+        string factoryRequest = WriteJson("requests/restore-factory.json", WorkspaceBootstrapFixture.RestoreRequest("factory"));
+        AssertSucceeded(RunProgramKit("restore", "--workspace", Root, "--request", factoryRequest, "--format", "json"));
+    }
+
+    public void StageConsumerIntent() => SpecKitAdapterFixture.StageConsumerIntent(Root, Scenario);
+
+    public void StageReviewedHandoff() => SpecKitAdapterFixture.StageReviewedHandoff(Root, Scenario);
+
+    public void StageReviewedFixture() => SpecKitAdapterFixture.StageReviewedFixture(Root, Scenario);
+
     public string WriteAdapterRequest(string operation, JsonObject? grant = null, string? requestedEffect = null)
     {
-        JsonObject request = SpecKitAdapterFixture.AdapterRequest(operation);
+        JsonObject request = SpecKitAdapterFixture.AdapterRequest(Scenario, operation);
         if (requestedEffect is not null) request["requestedEffect"] = requestedEffect;
         if (grant is not null) request["grant"] = grant.DeepClone();
         return WriteJson($"requests/adapter-{operation}.json", request);
@@ -85,15 +120,21 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
 
     public JsonObject ApproveCommittedHandoff()
     {
-        string handoffPath = Path.Combine(Root, "specs", SpecKitAdapterFixture.FeatureKey, "program-kit", "handoff.yaml");
+        string handoffPath = Path.Combine(Root, "specs", Scenario.FeatureKey, "program-kit", "handoff.yaml");
         JsonObject handoff = RestrictedYaml.Parse(File.ReadAllText(handoffPath));
         handoff["maximumEffect"] = "committed";
         JsonObject trace = handoff["trace"]!.AsArray().OfType<JsonObject>().Single(item => item["targetPointer"]!.GetValue<string>() == "/maximumEffect");
         trace["observedValue"] = "committed";
         File.WriteAllBytes(handoffPath, CanonicalJson.Encode(handoff));
+        return RebindReview();
+    }
+
+    public JsonObject RebindReview()
+    {
+        string handoffPath = Path.Combine(Root, "specs", Scenario.FeatureKey, "program-kit", "handoff.yaml");
         BoundHandoff rebound = new HandoffBinder().Bind(RestrictedYaml.Parse(File.ReadAllText(handoffPath)), requireComplete: true);
 
-        string reviewPath = Path.Combine(Root, "specs", SpecKitAdapterFixture.FeatureKey, "program-kit", "handoff-review.json");
+        string reviewPath = Path.Combine(Root, "specs", Scenario.FeatureKey, "program-kit", "handoff-review.json");
         JsonObject review = CanonicalJson.Parse(File.ReadAllBytes(reviewPath)).AsObject();
         review["handoff"]!["digest"] = rebound.Digest;
         review["digest"] = null;
@@ -105,10 +146,10 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
 
     public JsonObject RecordAuthority(string effect)
     {
-        string preparationPath = $"specs/{SpecKitAdapterFixture.FeatureKey}/program-kit/generated/results/prepare.json";
-        JsonObject preparationReference = Artifact(preparationPath, "preparation-result", "reference-status-preparation", "application/vnd.program-kit.operation-result+json", "generated-owned");
+        string preparationPath = $"specs/{Scenario.FeatureKey}/program-kit/generated/results/prepare.json";
+        JsonObject preparationReference = Artifact(preparationPath, "preparation-result", $"{Scenario.ArtifactPrefix}-preparation", "application/vnd.program-kit.operation-result+json", "generated-owned");
         JsonObject proposal = Read(preparationPath)["payload"]!["proposal"]!.AsObject();
-        string reviewPath = $"specs/{SpecKitAdapterFixture.FeatureKey}/program-kit/handoff-review.json";
+        string reviewPath = $"specs/{Scenario.FeatureKey}/program-kit/handoff-review.json";
         JsonObject decision = new()
         {
             ["schema"] = "program-kit.authority-decision-record/v1",
@@ -121,19 +162,19 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
             ["effects"] = new JsonArray(effect),
             ["conditions"] = new JsonArray(),
             ["validity"] = new JsonObject { ["notBefore"] = "2026-01-01T00:00:00Z", ["notAfter"] = "2027-01-01T00:00:00Z" },
-            ["provenance"] = Artifact(reviewPath, "handoff-review", "reference-status-handoff", "application/json", "consumer-owned"),
+            ["provenance"] = Artifact(reviewPath, "handoff-review", $"{Scenario.ArtifactPrefix}-handoff", "application/json", "consumer-owned"),
             ["recordedAt"] = "2026-08-02T10:10:00Z",
         };
-        string decisionPath = ".program-kit/authority/reference-status.decision.json";
+        string decisionPath = $".program-kit/authority/{Scenario.ArtifactPrefix}.decision.json";
         WriteJson(decisionPath, decision);
         JsonObject request = new()
         {
             ["schema"] = "program-kit.authority-record-request/v1",
             ["canonicalProfile"] = "program-kit.canonical-json/v1",
             ["proposal"] = preparationReference,
-            ["decision"] = Artifact(decisionPath, "authority-decision", "reference-status-decision", "application/json", "consumer-owned"),
-            ["grantPath"] = ".program-kit/authority/reference-status.grant.json",
-            ["revocationPath"] = ".program-kit/authority/reference-status.revocations.json",
+            ["decision"] = Artifact(decisionPath, "authority-decision", $"{Scenario.ArtifactPrefix}-decision", "application/json", "consumer-owned"),
+            ["grantPath"] = $".program-kit/authority/{Scenario.ArtifactPrefix}.grant.json",
+            ["revocationPath"] = $".program-kit/authority/{Scenario.ArtifactPrefix}.revocations.json",
         };
         string requestPath = WriteJson("requests/authority-record.json", request);
         ProcessResult recorded = RunProgramKit("authority", "record", "--workspace", Root, "--request", requestPath, "--format", "json");
@@ -218,10 +259,11 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
     {
         string state = Path.Combine(workspace, ".program-kit", "dotnet-state");
         Directory.CreateDirectory(state);
-        return new Dictionary<string, string>(StringComparer.Ordinal)
+        Dictionary<string, string> environment = new(StringComparer.Ordinal)
         {
             ["DOTNET_CLI_HOME"] = Path.Combine(state, "home"),
             ["NUGET_PACKAGES"] = Path.Combine(state, "packages"),
+            ["NUGET_HTTP_CACHE_PATH"] = Path.Combine(state, "http-cache"),
             ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1",
             ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
             ["DOTNET_NOLOGO"] = "1",
@@ -231,6 +273,8 @@ internal sealed class SpecKitAdapterPackagedWorkspace : IDisposable
             ["http_proxy"] = "http://127.0.0.1:1",
             ["https_proxy"] = "http://127.0.0.1:1",
         };
+        environment[OperatingSystem.IsWindows() ? "APPDATA" : "XDG_CONFIG_HOME"] = Path.Combine(state, "config");
+        return environment;
     }
 
     private static ProcessResult Run(string executable, string workingDirectory, IReadOnlyDictionary<string, string> environment, params string[] arguments)

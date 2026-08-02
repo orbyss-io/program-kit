@@ -14,20 +14,36 @@ public static class AdapterFeatureClosure
     public static IReadOnlyDictionary<string, JsonObject> Load(string workspaceRoot, string featureRoot)
     {
         string manifestPath = LogicalPathPolicy.Resolve(workspaceRoot, $"{featureRoot}/adapter-manifest.json");
-        if (!File.Exists(manifestPath)) throw new InvalidDataException("The adapter generated manifest is unavailable.");
-        JsonObject manifest = CanonicalDocument.Parse(File.ReadAllBytes(manifestPath)).AsObject();
-        AdapterSchemaValidator.Validate("generated-manifest.schema.json", manifest);
+        if (!File.Exists(manifestPath)) throw new AdapterPublicationException("The adapter generated manifest is unavailable.");
+        JsonObject manifest;
+        try
+        {
+            manifest = CanonicalDocument.Parse(File.ReadAllBytes(manifestPath)).AsObject();
+            AdapterSchemaValidator.Validate("generated-manifest.schema.json", manifest);
+        }
+        catch (InvalidDataException exception)
+        {
+            throw new AdapterPublicationException("The adapter generated manifest is invalid.", exception);
+        }
         Dictionary<string, JsonObject> documents = new(StringComparer.Ordinal);
         foreach (JsonObject output in manifest["outputs"]!.AsArray().OfType<JsonObject>())
         {
             if (output["state"]?.GetValue<string>() == "removed") continue;
             string logicalPath = output["logicalPath"]!.GetValue<string>();
             string path = LogicalPathPolicy.Resolve(workspaceRoot, logicalPath);
+            if (!File.Exists(path)) throw new AdapterPublicationException("An adapter-generated feature artifact is missing.");
             byte[] bytes = File.ReadAllBytes(path);
             string digest = "sha256:" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
             if (!string.Equals(digest, output["digest"]!.GetValue<string>(), StringComparison.Ordinal))
-                throw new InvalidDataException("An adapter-generated feature artifact changed outside its exact manifest.");
-            documents[logicalPath] = CanonicalDocument.Parse(bytes).AsObject();
+                throw new AdapterPublicationException("An adapter-generated feature artifact changed outside its exact manifest.");
+            try
+            {
+                documents[logicalPath] = CanonicalDocument.Parse(bytes).AsObject();
+            }
+            catch (System.Text.Json.JsonException exception)
+            {
+                throw new AdapterPublicationException("An adapter-generated feature artifact is not canonical JSON.", exception);
+            }
         }
 
         return documents;

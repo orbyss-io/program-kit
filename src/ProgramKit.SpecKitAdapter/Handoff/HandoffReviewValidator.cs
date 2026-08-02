@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
+using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 
 namespace Orbyss.ProgramKit.SpecKitAdapter.Handoff;
 
@@ -20,6 +21,13 @@ public static class HandoffReviewValidator
         string declaredDigest = digestMaterial["digest"]!.GetValue<string>();
         digestMaterial.Remove("digest");
         if (!string.Equals(declaredDigest, CanonicalDocument.Digest(digestMaterial), StringComparison.Ordinal)) throw new InvalidDataException("The review digest is not exact.");
-        return TraceResolver.Validate(workspaceRoot, handoff);
+        try
+        {
+            return TraceResolver.Validate(workspaceRoot, handoff);
+        }
+        catch (InvalidDataException exception)
+        {
+            throw new AdapterBoundaryException(AdapterFailureKind.StaleTrace, "The reviewed handoff trace is stale.", innerException: exception);
+        }
     }
 }

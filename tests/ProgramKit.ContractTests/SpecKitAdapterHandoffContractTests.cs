@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orbyss.ProgramKit.SpecKitAdapter.Commands;
 using Orbyss.ProgramKit.SpecKitAdapter.Configuration;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
+using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
 using Orbyss.ProgramKit.SpecKitAdapter.Handoff;
 
 namespace Orbyss.ProgramKit.Tests;
@@ -40,11 +41,11 @@ public sealed class SpecKitAdapterHandoffContractTests
     [TestMethod]
     public void Changed_handoff_named_block_or_implementation_stales_exact_review_or_trace()
     {
-        AssertMutationFails("specs/003-reference-status/program-kit/handoff.yaml", static text => text.Replace("candidate-only", "committed", StringComparison.Ordinal), "handoff changed");
-        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md", static text => text.Replace("GET /status", "GET /health", StringComparison.Ordinal), "named block changed");
-        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/plan.md", static text => text.Replace("accountable intent owner", "feature owner", StringComparison.Ordinal), "plan decision changed");
-        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md", static text => text.Replace("factory-applicable", "factory eligible", StringComparison.Ordinal), "task row changed");
-        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs", static text => text.Replace("\"operational\"", "\"degraded\"", StringComparison.Ordinal), "implementation changed");
+        AssertMutationFails("specs/003-reference-status/program-kit/handoff.yaml", static text => text.Replace("candidate-only", "committed", StringComparison.Ordinal), AdapterFailureKind.InvalidReview, "handoff changed");
+        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md", static text => text.Replace("GET /status", "GET /health", StringComparison.Ordinal), AdapterFailureKind.StaleTrace, "named block changed");
+        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/plan.md", static text => text.Replace("accountable intent owner", "feature owner", StringComparison.Ordinal), AdapterFailureKind.StaleTrace, "plan decision changed");
+        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md", static text => text.Replace("factory-applicable", "factory eligible", StringComparison.Ordinal), AdapterFailureKind.StaleTrace, "task row changed");
+        AssertMutationFails("tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs", static text => text.Replace("\"operational\"", "\"degraded\"", StringComparison.Ordinal), AdapterFailureKind.StaleTrace, "implementation changed");
     }
 
     [TestMethod]
@@ -163,16 +164,17 @@ public sealed class SpecKitAdapterHandoffContractTests
         }
     }
 
-    private static void AssertMutationFails(string logicalPath, Func<string, string> mutate, string because)
+    private static void AssertMutationFails(string logicalPath, Func<string, string> mutate, AdapterFailureKind expected, string because)
     {
         string workspace = SpecKitAdapterFixture.CreateWorkspace();
         try
         {
             string path = Path.Combine(workspace, logicalPath.Replace('/', Path.DirectorySeparatorChar));
             File.WriteAllText(path, mutate(File.ReadAllText(path)));
-            Assert.ThrowsExactly<InvalidDataException>(
+            AdapterBoundaryException exception = Assert.ThrowsExactly<AdapterBoundaryException>(
                 () => AdapterFeatureContextLoader.Load(workspace, SpecKitAdapterFixture.AdapterRequest("validate"), requireReviewedHandoff: true),
                 because);
+            Assert.AreEqual(expected, exception.Kind);
         }
         finally
         {

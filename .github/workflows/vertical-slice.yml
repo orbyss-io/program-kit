@@ -43,7 +43,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: program-kit-evidence-ubuntu
-          path: artifacts/evidence
+          path: |
+            artifacts/evidence
+            artifacts/work/evidence-adapter-package/orbyss-program-kit-adapter-0.1.0.zip
           if-no-files-found: error
           retention-days: 14
 
@@ -83,7 +85,7 @@ jobs:
           --no-build
           --no-restore
           --filter
-          "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~PackagedToolRemovalAcceptanceTests|FullyQualifiedName~PackagedSessionNegativeMatrixAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests|FullyQualifiedName~SessionRemovalAcceptanceTests|FullyQualifiedName~SessionCliReleaseBindingAcceptanceTests|FullyQualifiedName~SpecKitAdapterBootstrapAcceptanceTests|FullyQualifiedName~SpecKitAdapterPreparationAcceptanceTests|FullyQualifiedName~SpecKitAdapterConstructionAcceptanceTests|FullyQualifiedName~SpecKitAdapterProductRuntimeAcceptanceTests|FullyQualifiedName~SpecKitAdapterLifecycleAcceptanceTests"
+          "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~PackagedToolRemovalAcceptanceTests|FullyQualifiedName~PackagedSessionNegativeMatrixAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests|FullyQualifiedName~SessionRemovalAcceptanceTests|FullyQualifiedName~SessionCliReleaseBindingAcceptanceTests|FullyQualifiedName~SpecKitAdapterBootstrapAcceptanceTests|FullyQualifiedName~SpecKitAdapterPreparationAcceptanceTests|FullyQualifiedName~SpecKitAdapterConstructionAcceptanceTests|FullyQualifiedName~SpecKitAdapterProductRuntimeAcceptanceTests|FullyQualifiedName~SpecKitAdapterLifecycleAcceptanceTests|FullyQualifiedName~SpecKitAdapterQuickstartAcceptanceTests|FullyQualifiedName~SpecKitAdapterNegativeMatrixAcceptanceTests"
       - name: Pack workspace-local CLI
         shell: pwsh
         run: ./eng/Pack-ProgramKitTool.ps1 -OutputRoot (Join-Path $env:RUNNER_TEMP 'program-kit-tool-feed')
