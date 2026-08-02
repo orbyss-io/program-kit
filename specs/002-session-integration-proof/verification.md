@@ -421,3 +421,35 @@ The fast pre-PR gate then passed zero-warning/error builds, 46 unit tests, 64
 contract tests, formatting, SpecKit integrity, canonical text, and diff hygiene
 while reusing both the dependency mirror and locked restore. T114 and T116 are
 reclosed; T117 still requires a new protected run for the repaired exact head.
+
+### Authoritative protected remediation proof — 2026-08-02
+
+T117 is satisfied by protected run `30743035067` against exact pushed head
+`66faaef40ac4e93578af8468c24d522c01d77a16`. Preflight job `91483735917`,
+Windows job `91483756635`, and Ubuntu job `91483756636` all passed. Each
+platform independently passed canonical text, exact mirror bootstrap, locked
+restore, zero-warning/error Release build, deterministic distribution-evidence
+regeneration and staleness, 46 unit + 64 contract + 55 acceptance tests,
+formatting, packaged CLI construction, ten isolated workspaces, bounded evidence
+retention, and evidence upload.
+
+Ubuntu completed 10/10 trials with no failures; raw bounded evidence identity is
+`sha256:652ea0f68b9c2f7b216542e3f9c07dd825f6b7ed214e65be6af437bb77f9956b`,
+package identity is
+`sha256:637cad2fd7f5a0c8e647d9a89b76425018863976bfc8fb6e6ca8145eb21229ec`,
+and projection identity is
+`sha256:d6fdd763014ccefa29bd8f72bad1781f880b4c527aa2f8a8e3debe6cc29b0248`.
+Windows completed 10/10 trials with no failures; raw bounded evidence identity is
+`sha256:1d5c3923894ca815d7d159776bd02cbf58e4c0ce5edb7587585e9282f5fa6e94`,
+package identity is
+`sha256:e0bbc2298e1004d00d9fe1a0a84caa9626993b321b7652ed949ea161619c44d5`,
+and projection identity is
+`sha256:216d141a03471c54aa2f9247e40d31396b4c1ca48fd69149ed0b16cba857e846`.
+Both evidence documents assert deterministic projection, denied network after
+acquisition, disabled telemetry, no source upload, no provider-global
+registration, preserved consumer bytes, callable CLI after exact removal,
+expected typed authority/drift failures, and empty failure collections.
+
+T117 is complete without a duplicated local full gate. T118 remains the next
+mandatory checkpoint: a new explicitly human-operated ten-fresh-session Codex
+review against this exact CI-green candidate. Product acceptance remains false.
