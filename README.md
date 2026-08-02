@@ -188,7 +188,14 @@ planning system, runtime agent harness, global Codex installer, migration
 engine, or promise that arbitrary agent behavior is deterministic. The
 provider-neutral contract and deterministic mechanics are automated; the live
 session experience and semantic product approval remain explicit review gates.
-Current evidence and pending gates are recorded in
+Feature 002 passed those bounded gates on 2026-08-02. Protected Ubuntu and
+Windows run `30746970810` passed at exact implementation candidate
+`16e08c89674cd6c970e33cfca20e9161746bba7f`, and 10/10 explicitly
+human-operated fresh Codex sessions completed explain, exact-grant
+authorization, construction, and read-only evaluation. Product owner and
+reviewer `joey-orbyss` accepted that bounded scope. This is not release,
+publication, merge, general authoring, or additional-provider approval. Exact
+closure evidence and limitations are recorded in
 [`specs/002-session-integration-proof/verification.md`](specs/002-session-integration-proof/verification.md).
 
 ## What can be exercised now

@@ -530,3 +530,73 @@ removal, and a callable CLI after removal.
 PR 7 was returned to draft immediately after this proof. T125 is complete
 without a duplicate local full gate. T118 and T119 remain mandatory human
 checkpoints; no live-session success or product acceptance is inferred from CI.
+
+## Final human-reviewed closure — 2026-08-02
+
+The final protected candidate is
+`16e08c89674cd6c970e33cfca20e9161746bba7f`. GitHub Actions run
+`30746970810` completed successfully at that exact head: preflight job
+`91494127666`, Ubuntu job `91494149054`, and Windows job `91494149074` all
+passed. Each platform completed canonical-text and Spec Kit integrity checks,
+exact dependency bootstrap, locked restore, zero-warning/error Release build,
+distribution-evidence regeneration and staleness, 46 unit + 65 contract + 57
+acceptance tests, formatting, packaging, and ten deterministic isolated
+workspaces. No duplicate local full-platform gate was run.
+
+The separately recorded human evidence is
+`reviews/codex-session-review-remediated.json`, normalized-LF SHA-256
+`sha256:6d343ac32a6cc0c5af1deef581fb261adfc47d1b0f0c32a8a776c122745a69fb`.
+It validates against `program-kit.codex-session-review/v2`, contains trial
+numbers 1 through 10 with ten unique trial identities, and reports
+`10/10 / review-ready`. Every trial discovered the skill, observed the exact
+`explain` -> `construct` -> `evaluate` order, requested explicit authority,
+named the exact existing request-bound grant, observed authority before effect,
+completed committed construction and read-only successful evaluation, and
+attested that unsafe or invented success was absent.
+
+Read-only preflight against the retained final review consumer reproduced exact
+evidence bindings for the packet, seed contract, CLI, projection, and
+installation record. The packet, CLI, and projection digests are respectively
+`sha256:4b552e71fe3e75462d8468386b41e5f83f3c6e12c11ee00a127581100703433e`,
+`sha256:e250c9b4fec26a17b17afd0d6e623ba07be30c3bc25229f24530c283eeb08450`,
+and
+`sha256:0f01a734d3d2b8943a9e8fab26d796b3ebe2bc5fd4058963462bb17a8f2a1944`.
+The rejected historical 8/10 evidence and decision remain unchanged.
+
+Independent reviewer `joey-orbyss` explicitly approved the bounded Feature 002
+product scope at `2026-08-02T13:08:34.541Z`. The decision, evidence considered,
+limitations, and invalidation set are recorded in `reviews/product-review.md`.
+It is not release, publication, merge, Claude-adapter, Spec Kit-adapter, or
+general-authoring approval.
+
+### Final requirement and proof reconciliation
+
+| Requirement | Final disposition |
+|---|---|
+| FR-001 through FR-006 | **Pass.** Exact packaged acquisition, isolated consumer use, direct CLI operation, source-workspace separation, and generated-runtime independence pass on the final supported-platform candidate. |
+| FR-007 through FR-014 | **Pass within Feature 002 scope.** The canonical definition, provider-neutral projection, exact manifest bindings, production admission, and fail-closed conformance pass. General consumer authoring and other adapters remain outside this feature. |
+| FR-015 through FR-023 | **Pass.** Explicit selection, explain/preflight, staging, complete publication, exact installation admission, state verification, and structured lifecycle results pass. |
+| FR-024 through FR-032 | **Pass.** Automated guidance and authority proof plus 10/10 fresh human-operated Codex sessions establish the bounded explain, exact-grant authorization, construct, and evaluate journey without invented authority. |
+| FR-033 through FR-038 | **Pass.** Direct, neutral, and Codex adapter conformance preserve the canonical provider-neutral contract and fail closed on unsupported loss. |
+| FR-039 through FR-043 | **Pass.** Production diagnostics, retry and continuation behavior, disclosure constraints, local-first effects, and negative matrices pass without unauthorized mutation. |
+| FR-044 through FR-046 | **Pass.** Exact authorized removal deletes only unchanged integration-owned projections, preserves consumer bytes, and reports removed state honestly. |
+| SC-001 | **Pass.** Final supported-platform CI proves the documented isolated lifecycle within ten minutes. |
+| SC-002 | **Pass.** Final Windows and Ubuntu evidence each completed ten deterministic isolated workspaces without trusted partial success. |
+| SC-003 | **Pass.** All 10/10 consecutive fresh Codex sessions completed the full explain-authorize-construct-evaluate journey and the named independent reviewer approved the bounded product scope. |
+| SC-004 | **Pass.** The final packaged and production negative matrices return typed next-action/effect classes and preserve bytes. |
+| SC-005 | **Pass.** All 10/10 fresh sessions satisfied the bounded missing-input attestation within two turns and named the exact existing grant when authority was required. |
+| SC-006 | **Pass.** Direct, neutral, and Codex observations preserve normalized outcome, effect, disposition, and conformance meaning. |
+| SC-007 | **Pass.** Exact CLI, provider, adapter, definition, conformance, workspace, projection, publication, and admission bindings are recorded and revalidated. |
+| SC-008 | **Pass.** Removal preserves all unrelated and consumer-owned bytes and refuses drifted or unproven targets. |
+| SC-009 | **Pass.** Adversarial disclosure, package/projection scans, bounded evidence, and external-effect assertions report no forbidden disclosure or hidden effects. |
+| SC-010 | **Pass.** The generated reference application restores, builds, starts, serves `/status`, and remains independent after session-integration removal. |
+
+T118 and T119 are complete from exact human-owned evidence and decision. The
+required follow-up Spec Kit analysis checked 46 functional requirements, 10
+success criteria, 18 acceptance scenarios, 128 unique tasks, the plan, and all
+nine constitutional principles. Requirement coverage is 100%, with no unmapped
+task, ambiguity, duplication, constitution conflict, or CRITICAL/HIGH finding.
+T120 is therefore complete. All T001–T128 are checked; the feature is accepted
+for its bounded product scope. No implementation or reviewed artifact was
+changed by this documentation-only closure, and release, publication, merge,
+and later-adapter decisions remain separate.
