@@ -36,14 +36,14 @@ public sealed class PackagedToolAcceptanceTests
         string feed = SecurityElement.Escape(workspace.Feed) ?? throw new InvalidOperationException("Local feed path could not be encoded.");
         File.WriteAllText(config, $"<?xml version=\"1.0\" encoding=\"utf-8\"?><configuration><packageSources><clear/><add key=\"local\" value=\"{feed}\"/></packageSources></configuration>");
         string toolPath = Path.Combine(workspace.Root, ".program-kit", "tools");
-        (int installExit, _, string installError) = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.1", "--configfile", config, "--no-cache");
+        (int installExit, _, string installError) = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.2", "--configfile", config, "--no-cache");
         Assert.AreEqual(0, installExit, installError);
 
         string executable = Path.Combine(toolPath, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
         (int versionExit, string versionOutput, string versionError) = Run(executable, workspace.Root, workspace.Root, "version", "--format", "json");
         Assert.AreEqual(0, versionExit, versionError);
         JsonNode result = JsonNode.Parse(versionOutput) ?? throw new InvalidDataException("The packaged tool did not return JSON.");
-        Assert.AreEqual("1.0.0-alpha.1", result["utility"]!["cli"]!.GetValue<string>());
+        Assert.AreEqual("1.0.0-alpha.2", result["utility"]!["cli"]!.GetValue<string>());
         Assert.AreEqual(0, Directory.EnumerateFiles(workspace.Root, "*.csproj", SearchOption.AllDirectories).Count());
     }
 

@@ -18,7 +18,7 @@ public sealed class SessionNegativeResultGoldenTests
         OperationResult result = SessionFailureBoundary.Execute(PublicCommand.SessionVerify, static () => throw new InvalidOperationException("secret token=unsafe stack trace"));
         JsonObject document = Orbyss.ProgramKit.Kernel.Operations.OperationResultProjector.ToJson(result);
         ContractAssertions.AssertValid(ContractAssertions.OperationResult, document);
-        Assert.AreEqual("program-kit.operation-result/v1", document["schema"]!.GetValue<string>());
+        Assert.AreEqual("program-kit.operation-result/v2", document["schema"]!.GetValue<string>());
         Assert.AreEqual("program-kit.kernel/PKINT0001", document["diagnostics"]!["items"]![0]!["id"]!.GetValue<string>());
         Assert.AreEqual("stop", document["primaryDisposition"]!.GetValue<string>());
         Assert.IsFalse(document.ToJsonString().Contains("unsafe", StringComparison.OrdinalIgnoreCase));
@@ -67,6 +67,6 @@ public sealed class SessionNegativeResultGoldenTests
             Assert.AreEqual(item.Key, document["diagnostics"]!["items"]![0]!["id"]!.GetValue<string>());
             goldenDocuments.Add(document.ToJsonString());
         }
-        Assert.AreEqual("sha256:f57590685ce39389c0d5d5440bdfbd78a19442627629b4cac1637c966a4ad3da", Orbyss.ProgramKit.Kernel.Canonicalization.Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', goldenDocuments))));
+        Assert.AreEqual("sha256:da57147a635422d46d9b36d3f6d47d6a3f091b4ca0249025d448f5b73da63d26", Orbyss.ProgramKit.Kernel.Canonicalization.Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', goldenDocuments))));
     }
 }

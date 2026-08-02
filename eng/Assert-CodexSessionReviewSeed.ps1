@@ -227,7 +227,7 @@ $programKit = Resolve-SeedFile -LogicalPath $programKitLogicalPath
 $versionOutput = (& $programKit version --format json 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'The exact workspace-local Program Kit CLI failed its read-only version preflight.' }
 $versionResult = $versionOutput | ConvertFrom-Json -Depth 100
-if ($versionResult.schema -cne 'program-kit.operation-result/v1' -or
+if ($versionResult.schema -cne 'program-kit.operation-result/v2' -or
     $versionResult.outcome -cne 'succeeded' -or
     $versionResult.effectState -cne 'none' -or
     $versionResult.primaryDisposition -cne 'complete' -or

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-diagnostic-catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "revision", "definitions"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-adapter-diagnostic-catalog/v1" },
+    "authority": { "const": "orbyss.program-kit.spec-kit-adapter" },
+    "revision": { "const": "1.0.0" },
+    "definitions": {
+      "type": "array", "minItems": 12, "maxItems": 12,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "category", "severity", "disposition", "messageKey"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^orbyss\\.program-kit\\.spec-kit-adapter/PKSKA00(?:0[1-9]|1[0-2])$" },
+          "category": { "enum": ["conformance", "workspace", "semantic", "resolution", "policy", "external"] },
+          "severity": { "enum": ["error", "fatal"] },
+          "disposition": { "enum": ["provide-input", "request-approval", "repair", "retry", "revise", "stop"] },
+          "messageKey": { "type": "string", "pattern": "^adapter\\.[a-z0-9.-]+$" }
+        }
+      }
+    }
+  }
+}

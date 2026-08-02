@@ -22,7 +22,7 @@ internal static class SessionIntegrationFixture
     private static readonly SessionProviderManifest Manifest = new CodexSessionProviderAdapter().Manifest;
 
     public static SessionIntegrationServices Services() =>
-        new(new SessionProviderRegistry(new[] { new CodexSessionProviderAdapter() }), "1.0.0-alpha.1");
+        new(new SessionProviderRegistry(new[] { new CodexSessionProviderAdapter() }), "1.0.0-alpha.2");
 
     public static string ExplainRequest(string workspaceRoot) => WriteLifecycleRequests(workspaceRoot).Explain;
 
@@ -146,10 +146,10 @@ internal static class SessionIntegrationFixture
             Path.GetDirectoryName(executable)!,
             ".store",
             packageName,
-            "1.0.0-alpha.1",
+            "1.0.0-alpha.2",
             packageName,
-            "1.0.0-alpha.1",
-            $"{packageName}.1.0.0-alpha.1.nupkg");
+            "1.0.0-alpha.2",
+            $"{packageName}.1.0.0-alpha.2.nupkg");
         Directory.CreateDirectory(Path.GetDirectoryName(package)!);
         if (!File.Exists(package)) File.Copy(TestRepository.CliExecutable, package);
     }
@@ -180,19 +180,19 @@ internal static class SessionIntegrationFixture
     {
         string executable = Path.Combine(workspaceRoot, ExecutableLogicalPath().Replace('/', Path.DirectorySeparatorChar));
         string packageName = "orbyss.programkit.cli";
-        string package = Path.Combine(Path.GetDirectoryName(executable)!, ".store", packageName, "1.0.0-alpha.1", packageName, "1.0.0-alpha.1", $"{packageName}.1.0.0-alpha.1.nupkg");
+        string package = Path.Combine(Path.GetDirectoryName(executable)!, ".store", packageName, "1.0.0-alpha.2", packageName, "1.0.0-alpha.2", $"{packageName}.1.0.0-alpha.2.nupkg");
         return new CliReleaseIdentity(
             "program-kit.cli-release-identity/v1",
             CanonicalJson.Profile,
             "Orbyss.ProgramKit.Cli",
-            "1.0.0-alpha.1",
+            "1.0.0-alpha.2",
             PackageSource(),
             Digests.Sha256(File.ReadAllBytes(package)),
             "program-kit",
             ExecutableLogicalPath(),
             Digests.Sha256(File.ReadAllBytes(executable)),
-            "1.0.0-alpha.1",
-            SessionCliReleaseContract.Current("1.0.0-alpha.1").RuntimeProfile,
+            "1.0.0-alpha.2",
+            SessionCliReleaseContract.Current("1.0.0-alpha.2").RuntimeProfile,
             ClaimClass.VerifiedEquivalent);
     }
 
@@ -200,14 +200,14 @@ internal static class SessionIntegrationFixture
         "program-kit.cli-release-identity/v1",
         CanonicalJson.Profile,
         "Orbyss.ProgramKit.Cli",
-        "1.0.0-alpha.1",
+        "1.0.0-alpha.2",
         PackageSource(),
         Digests.Sha256(Encoding.UTF8.GetBytes("fixture package")),
         "program-kit",
         ExecutableLogicalPath(),
         Digests.Sha256(Encoding.UTF8.GetBytes("fixture executable")),
-        "1.0.0-alpha.1",
-        SessionCliReleaseContract.Current("1.0.0-alpha.1").RuntimeProfile,
+        "1.0.0-alpha.2",
+        SessionCliReleaseContract.Current("1.0.0-alpha.2").RuntimeProfile,
         ClaimClass.VerifiedEquivalent);
 
     private static GovernedIdentity PackageSource() => Identity("consumer.example", "package-source", "local-feed", "1.0.0", Digests.Sha256(Encoding.UTF8.GetBytes("consumer.example package source local-feed v1")));

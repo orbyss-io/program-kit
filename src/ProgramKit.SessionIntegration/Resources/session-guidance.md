@@ -1,7 +1,7 @@
 # Program Kit human-led session guidance
 
 1. Classify intent as known, incomplete-known, or unknown without inventing consumer semantics.
-2. Treat only program-kit.operation-result/v1 JSON fields and diagnostic identities as authoritative; prose is never authority, success, or permission.
+2. Treat only program-kit.operation-result/v2 JSON fields and diagnostic identities as authoritative; prose is never authority, success, or permission.
 3. When outcome is needs-input or continuation.missingInputs is non-empty, ask only for those exact missing fields and do not guess or silently rewrite them.
 4. Preserve the human's clarified values in the canonical request, then invoke explain and inspect its typed outcome, effectState, primaryDisposition, continuation, diagnostics, and evidence.
 5. Treat provider selection as explicit and never select from installed ambient state.

@@ -36,7 +36,7 @@ public sealed class SessionProviderAdmissionAcceptanceTests
 
         for (int index = 0; index < invalid.Length; index++)
         {
-            SessionIntegrationServices services = new(new SessionProviderRegistry(new[] { invalid[index] }), "1.0.0-alpha.1");
+            SessionIntegrationServices services = new(new SessionProviderRegistry(new[] { invalid[index] }), "1.0.0-alpha.2");
             OperationResult result = SessionFailureBoundary.Execute(
                 PublicCommand.SessionExplain,
                 () => new ExplainSessionIntegrationOperation(services).Execute(workspace.Root, request));
@@ -56,7 +56,7 @@ public sealed class SessionProviderAdmissionAcceptanceTests
         {
             DefinitionBinding = reference.Manifest.DefinitionBinding with { Digest = "sha256:" + new string('6', 64) },
         });
-        SessionIntegrationServices services = new(new SessionProviderRegistry(new[] { divergent }), "1.0.0-alpha.1");
+        SessionIntegrationServices services = new(new SessionProviderRegistry(new[] { divergent }), "1.0.0-alpha.2");
 
         OperationResult result = SessionFailureBoundary.Execute(
             PublicCommand.SessionExplain,

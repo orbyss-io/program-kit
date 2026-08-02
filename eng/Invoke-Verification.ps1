@@ -2,7 +2,13 @@
 param(
     [Parameter()]
     [ValidateSet('Fast', 'Contract', 'PrePr')]
-    [string]$Mode = 'Fast'
+    [string]$Mode = 'Fast',
+
+    [Parameter()]
+    [string]$TestFilter,
+
+    [Parameter()]
+    [switch]$IncludeAcceptance
 )
 
 $ErrorActionPreference = 'Stop'
@@ -52,7 +58,12 @@ try {
 
     if ($Mode -eq 'Fast') {
         Invoke-Checked {
-            dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration Debug --no-restore
+            if ($TestFilter) {
+                dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration Debug --no-restore --filter $TestFilter
+            }
+            else {
+                dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration Debug --no-restore
+            }
         } 'Fast unit verification failed. If dependency inputs changed, run PrePr once to perform a locked restore.'
 
         Write-Host 'Fast verification passed. Acceptance, conformance, evidence regeneration, and platform proof remain CI-owned.'
@@ -69,14 +80,39 @@ try {
         Invoke-Checked {
             dotnet build tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --configuration ContractLoop --no-restore
         } 'Contract build failed. If dependency inputs changed, run PrePr once to perform a locked restore.'
+        if ($IncludeAcceptance) {
+            Invoke-Checked {
+                dotnet build tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --configuration ContractLoop --no-restore
+            } 'Acceptance build failed. If dependency inputs changed, run PrePr once to perform a locked restore.'
+        }
         Invoke-Checked {
-            dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration ContractLoop --no-build --no-restore
+            if ($TestFilter) {
+                dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration ContractLoop --no-build --no-restore --filter $TestFilter
+            }
+            else {
+                dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration ContractLoop --no-build --no-restore
+            }
         } 'Unit verification failed.'
         Invoke-Checked {
-            dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --configuration ContractLoop --no-build --no-restore
+            if ($TestFilter) {
+                dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --configuration ContractLoop --no-build --no-restore --filter $TestFilter
+            }
+            else {
+                dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --configuration ContractLoop --no-build --no-restore
+            }
         } 'Contract verification failed.'
+        if ($IncludeAcceptance) {
+            Invoke-Checked {
+                if ($TestFilter) {
+                    dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --configuration ContractLoop --no-build --no-restore --filter $TestFilter
+                }
+                else {
+                    dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --configuration ContractLoop --no-build --no-restore
+                }
+            } 'Acceptance verification failed.'
+        }
 
-        Write-Host 'Contract verification passed. Full acceptance, evidence regeneration, and platform proof remain CI-owned.'
+        Write-Host 'Contract verification passed. Unselected acceptance, evidence regeneration, and platform proof remain CI-owned.'
         return
     }
 

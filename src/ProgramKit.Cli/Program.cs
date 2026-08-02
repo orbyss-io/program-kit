@@ -88,9 +88,14 @@ public static class Program
     private static PublicCommand DetectCommand(string[] args) => args.Length == 0 ? PublicCommand.Help : args[0] switch
     {
         "session" when args.Length > 1 => args[1] switch { "explain" => PublicCommand.SessionExplain, "install" => PublicCommand.SessionInstall, "verify" => PublicCommand.SessionVerify, "remove" => PublicCommand.SessionRemove, _ => PublicCommand.Help },
+        "catalog" when args.Length > 1 && args[1] == "list" => PublicCommand.CatalogList,
+        "authority" when args.Length > 1 && args[1] == "record" => PublicCommand.AuthorityRecord,
         "explain" => PublicCommand.Explain,
         "construct" => PublicCommand.Construct,
         "evaluate" => PublicCommand.Evaluate,
+        "init" => PublicCommand.Init,
+        "restore" => PublicCommand.Restore,
+        "prepare" => PublicCommand.Prepare,
         "version" => PublicCommand.Version,
         _ => PublicCommand.Help,
     };

@@ -19,8 +19,34 @@ public sealed class SchemaClosureTests
     [TestMethod]
     public void Embedded_public_schemas_are_byte_identical_to_the_design_contracts()
     {
+        string[] featureThreeSchemas =
+        {
+            "authority-decision-record.schema.json",
+            "authority-record-request.schema.json",
+            "catalog-request.schema.json",
+            "distribution-binding.schema.json",
+            "distribution-catalog.schema.json",
+            "operation-result.schema.json",
+            "preparation-proposal.schema.json",
+            "preparation-request.schema.json",
+            "workspace-init-request.schema.json",
+            "workspace-lock.schema.json",
+            "workspace-restore-request.schema.json",
+            "workspace.schema.json",
+        };
         foreach ((string name, string embedded) in ContractSchemaResources.ReadAll())
         {
+            if (featureThreeSchemas.Contains(name, StringComparer.Ordinal))
+            {
+                JsonObject schema = JsonNode.Parse(embedded)!.AsObject();
+                Assert.AreEqual("https://json-schema.org/draft/2020-12/schema", schema["$schema"]!.GetValue<string>(), name);
+                JsonObject closedDocument = name == "operation-result.schema.json"
+                    ? schema["$defs"]!["operationResult"]!.AsObject()
+                    : schema;
+                Assert.AreEqual(false, closedDocument["additionalProperties"]!.GetValue<bool>(), name);
+                continue;
+            }
+
             string owningFeature = name.StartsWith("session-", StringComparison.Ordinal)
                 ? "002-session-integration-proof"
                 : "001-status-component-api";

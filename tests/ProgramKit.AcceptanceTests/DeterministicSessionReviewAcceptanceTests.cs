@@ -25,7 +25,7 @@ public sealed class DeterministicSessionReviewAcceptanceTests
             Assert.AreEqual(0, packed.ExitCode, packed.Error);
         }
 
-        string package = Directory.EnumerateFiles(feed, "Orbyss.ProgramKit.Cli.1.0.0-alpha.1.nupkg", SearchOption.TopDirectoryOnly).Single();
+        string package = Directory.EnumerateFiles(feed, "Orbyss.ProgramKit.Cli.1.0.0-alpha.2.nupkg", SearchOption.TopDirectoryOnly).Single();
         string packageDigest = Digest(File.ReadAllBytes(package));
         JsonArray trials = new();
         string? expectedProjectionDigest = null;
@@ -37,14 +37,14 @@ public sealed class DeterministicSessionReviewAcceptanceTests
             string config = WriteLocalConfig(workspace.Root, feed);
             string toolPath = Path.Combine(workspace.Root, ".program-kit", "tools");
             Stopwatch installationTimer = Stopwatch.StartNew();
-            ProcessResult toolInstall = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.1", "--configfile", config, "--no-cache");
+            ProcessResult toolInstall = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.2", "--configfile", config, "--no-cache");
             installationTimer.Stop();
             Assert.AreEqual(0, toolInstall.ExitCode, toolInstall.Error);
             string executable = Path.Combine(toolPath, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
 
             ProcessResult version = Invoke(executable, workspace.Root, "version", "--format", "json");
             Assert.AreEqual(0, version.ExitCode, version.Error);
-            Assert.AreEqual("1.0.0-alpha.1", Parse(version)["utility"]!["cli"]!.GetValue<string>());
+            Assert.AreEqual("1.0.0-alpha.2", Parse(version)["utility"]!["cli"]!.GetValue<string>());
 
             SessionRequestPaths requests = SessionIntegrationFixture.WriteLifecycleRequests(workspace.Root);
             ProcessResult explained = Invoke(executable, workspace.Root, "session", "explain", "--workspace", workspace.Root, "--request", requests.Explain, "--format", "json");
@@ -117,7 +117,7 @@ public sealed class DeterministicSessionReviewAcceptanceTests
             ["generatedAt"] = DateTimeOffset.UtcNow.ToString("O"),
             ["sdkVersion"] = Run("dotnet", TestRepository.Root, distribution.Root, "--version").Output.Trim(),
             ["packageId"] = "Orbyss.ProgramKit.Cli",
-            ["packageVersion"] = "1.0.0-alpha.1",
+            ["packageVersion"] = "1.0.0-alpha.2",
             ["packageDigest"] = packageDigest,
             ["trials"] = trials,
             ["failures"] = new JsonArray(),

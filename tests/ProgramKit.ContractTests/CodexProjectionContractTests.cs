@@ -18,7 +18,7 @@ public sealed class CodexProjectionContractTests
         ProjectedSessionArtifact skill = artifacts.Single(item => item.LogicalPath == ".agents/skills/program-kit/SKILL.md");
         string text = Encoding.UTF8.GetString(skill.Content);
         StringAssert.StartsWith(text, "---\nname: program-kit\n");
-        StringAssert.Contains(text, "program-kit.operation-result/v1");
+        StringAssert.Contains(text, "program-kit.operation-result/v2");
         StringAssert.Contains(text, "request-bound");
         Assert.IsFalse(text.Contains("Spec Kit", StringComparison.OrdinalIgnoreCase));
         Assert.IsFalse(text.Contains("MCP", StringComparison.OrdinalIgnoreCase));

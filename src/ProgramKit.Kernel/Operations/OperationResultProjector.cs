@@ -60,6 +60,11 @@ public static class OperationResultProjector
             document["session"] = result.Session.DeepClone();
         }
 
+        if (result.Payload is not null)
+        {
+            document["payload"] = result.Payload.DeepClone();
+        }
+
         if (result.Disclosure is not null)
         {
             document["disclosure"] = new JsonArray(result.Disclosure.Select(static item => new JsonObject

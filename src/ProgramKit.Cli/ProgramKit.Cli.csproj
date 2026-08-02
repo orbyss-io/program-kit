@@ -6,7 +6,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>program-kit</ToolCommandName>
     <PackageId>Orbyss.ProgramKit.Cli</PackageId>
-    <Version>1.0.0-alpha.1</Version>
+    <Version>1.0.0-alpha.2</Version>
     <Authors>Orbyss</Authors>
     <Description>Human-governed, contract-bounded software factory CLI.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

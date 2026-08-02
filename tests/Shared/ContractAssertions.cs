@@ -10,7 +10,7 @@ internal static class ContractAssertions
 {
     public const string AuthorityGrant = "https://schemas.program-kit.dev/v1/authority-grant.schema.json";
     public const string FactoryRequest = "https://schemas.program-kit.dev/v1/factory-request.schema.json";
-    public const string OperationResult = "https://schemas.program-kit.dev/v1/operation-result.schema.json";
+    public const string OperationResult = "https://schemas.program-kit.dev/v2/operation-result.schema.json";
     public const string Resolution = "https://schemas.program-kit.dev/v1/resolution.schema.json";
     public const string ConstructionReceipt = "https://schemas.program-kit.dev/v1/construction-receipt.schema.json";
     public const string WorkspaceSnapshot = "https://schemas.program-kit.dev/v1/workspace-snapshot.schema.json";

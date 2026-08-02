@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-compatibility.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "adapter", "specKitVersions", "programKitVersions", "runtimeProfiles", "providerProfiles", "contractBindings", "commandBindings", "platforms", "releaseArtifacts", "digest"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-adapter-compatibility/v1" },
+    "adapter": { "type": "string", "const": "orbyss-program-kit-adapter@0.1.0" },
+    "specKitVersions": { "type": "array", "const": ["0.15.1"] },
+    "programKitVersions": { "type": "array", "const": ["1.0.0-alpha.2"] },
+    "runtimeProfiles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "providerProfiles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "contractBindings": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" } },
+    "commandBindings": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "minLength": 1 } },
+    "platforms": { "type": "array", "const": ["linux-x64", "win-x64"] },
+    "releaseArtifacts": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

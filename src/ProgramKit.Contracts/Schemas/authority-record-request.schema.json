@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/authority-record-request.schema.json",
+  "title": "Program Kit Authority Record Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "proposal", "decision", "grantPath", "revocationPath"],
+  "properties": {
+    "schema": { "const": "program-kit.authority-record-request/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "proposal": { "$ref": "common.schema.json#/$defs/artifactReference" },
+    "decision": { "$ref": "common.schema.json#/$defs/artifactReference" },
+    "grantPath": { "$ref": "common.schema.json#/$defs/logicalPath" },
+    "revocationPath": { "$ref": "common.schema.json#/$defs/logicalPath" }
+  }
+}

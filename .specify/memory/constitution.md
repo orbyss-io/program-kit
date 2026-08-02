@@ -1,16 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 -> 1.1.0
+- Version change: 1.1.0 -> 1.2.0
 - Modified sections:
-  - Enforcement Contract: proportional automation and evidence reuse
-  - Spec Kit Development Workflow: proof ownership, verification tiers,
-    acceptance invalidation, and upgrade-safe project customization
+  - Exact Contracts and Governed Resolution: direct pre-consumer contract
+    evolution and explicit approval for compatibility surfaces
+  - Spec Kit Development Workflow: named-consumer justification for parallel
+    contract or API versions
 - Added obligations:
-  - analyze before implementation and reject unowned MUST/proof rows
-  - keep fast local feedback distinct from authoritative final CI proof
-  - reuse equivalent evidence while its declared inputs remain unchanged
-  - separate semantic product acceptance from release provenance
-  - protect project workflow policy across Spec Kit upgrades
+  - evolve the current contract directly while no supported external consumer
+    or approved migration capability exists
+  - prohibit speculative parallel legacy/current surfaces
+  - require explicit human approval, named current consumers, and a bounded
+    retirement or migration plan before compatibility duplication
 - Template compatibility:
   - project artifact shapes live in .specify/templates/overrides/
   - lifecycle changes live in .specify/workflows/overlays/
@@ -109,6 +110,16 @@ composition, through an exact explicit adapter or available migration, or as a
 precise contract-backed incompatibility. Zero matches, multiple matches,
 conflicting meaning, representational loss, incomplete support, and unavailable
 inputs MUST remain explicit and actionable; ambiguity is failure.
+
+Before the repository records a supported external consumer for a public
+contract or an explicitly approved migration capability, that contract MUST
+evolve directly as one current surface. Its version identity MAY advance and
+breaking changes MAY require consumers to adapt their code manually. Program
+Kit MUST NOT retain old and new contract, result, command, or API surfaces in
+parallel solely for hypothetical compatibility. A parallel compatibility
+surface requires explicit human approval naming the current consumer need, its
+support duration, and its bounded retirement or migration plan. Automated
+migration remains deferred until separately designed and approved.
 
 Program Kit MAY use a thin target-specific feature model, but MUST NOT impose a
 universal domain architecture. Features, interfaces, contracts, intakes,
@@ -400,7 +411,11 @@ Before implementation, every feature specification and plan MUST:
 5. define actionable result/diagnostic behavior for invalid, ambiguous,
    unavailable, drifted, and faulted paths; and
 6. define the smallest vertical proof, including negative paths and human-review
-   obligations.
+   obligations; and
+7. identify every proposed parallel contract or API version, name the current
+   consumers that require compatibility, and record explicit human approval and
+   a bounded retirement or migration plan; without that evidence, the existing
+   surface MUST be evolved directly.
 
 Task generation MUST convert every applicable MUST and planned proof into an
 explicit dependency-ordered task with requirement references, an observable
@@ -477,4 +492,4 @@ authority, consumer-owned meaning, exact contracts, fail-closed integrity,
 actionable diagnostics, runtime isolation, and independent bootstrap prevails.
 If a material conflict remains, work MUST stop for human resolution.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-01 | **Last Amended**: 2026-08-02
+**Version**: 1.2.0 | **Ratified**: 2026-08-01 | **Last Amended**: 2026-08-02

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "operation", "workspace", "config", "requestedEffect", "outputRoot"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-adapter-request/v1" },
+    "operation": { "enum": ["doctor", "activate", "disable", "handoff", "validate", "prepare", "explain", "construct", "evaluate", "cleanup"] },
+    "workspace": { "type": "object" },
+    "feature": { "type": "object" },
+    "config": { "type": "object" },
+    "handoff": { "type": "object" },
+    "review": { "type": "object" },
+    "grant": { "type": "object" },
+    "requestedEffect": { "enum": ["none", "candidate-only", "committed"] },
+    "outputRoot": { "type": "string", "minLength": 1 }
+  }
+}

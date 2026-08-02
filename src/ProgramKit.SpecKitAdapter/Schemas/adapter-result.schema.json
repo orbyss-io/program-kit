@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "operation", "adapterRelease", "compatibility", "outcome", "furthestStage", "effectState", "primaryDisposition", "artifacts", "diagnostics", "disclosure"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-adapter-result/v1" },
+    "canonicalProfile": { "const": "program-kit.canonical-json/v1" },
+    "operation": { "enum": ["doctor", "activate", "disable", "handoff", "validate", "prepare", "explain", "construct", "evaluate", "cleanup"] },
+    "adapterRelease": { "type": "string", "const": "orbyss-program-kit-adapter@0.1.0" },
+    "compatibility": { "enum": ["compatible", "incompatible", "stale", "not-evaluated"] },
+    "outcome": { "enum": ["succeeded", "not-applicable", "needs-input", "blocked", "cancelled", "faulted"] },
+    "furthestStage": { "enum": ["request", "compatibility", "applicability", "handoff", "translation", "invocation", "publication", "completion"] },
+    "effectState": { "enum": ["none", "adapter-files-only", "program-kit-candidate", "program-kit-committed", "indeterminate"] },
+    "primaryDisposition": { "enum": ["complete", "retry", "provide-input", "request-approval", "repair", "revise", "stop"] },
+    "artifacts": { "type": "array", "items": { "type": "object" } },
+    "diagnostics": { "type": "object" },
+    "disclosure": { "type": "array", "items": { "type": "object" } },
+    "programKitResult": { "type": "object" },
+    "payload": { "type": "object" }
+  }
+}

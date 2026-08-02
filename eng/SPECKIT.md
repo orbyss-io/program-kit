@@ -20,6 +20,20 @@ currently needs template overrides and a workflow overlay; it does not install
 an extension merely to imitate functionality those narrower mechanisms already
 provide.
 
+## Contract evolution before migration support
+
+While Program Kit has no recorded supported external consumer for a contract
+and no separately approved migration capability, evolve that contract as one
+current surface. Increment its version when appropriate, but do not keep legacy
+and current result, command, schema, or API paths in parallel for hypothetical
+compatibility. Consumers adapt their code manually during this stage.
+
+A specification or plan may introduce a parallel compatibility surface only
+after explicit human approval naming the current consumers that require it, the
+support duration, and a bounded retirement or migration plan. “Public” or
+“versioned” alone is not evidence of that need. Analyze MUST flag an unjustified
+parallel surface as a blocking complexity and product-boundary finding.
+
 ## Safe upgrade
 
 1. Create a dedicated branch with a clean worktree.

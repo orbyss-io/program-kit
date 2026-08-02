@@ -23,6 +23,17 @@ internal static class TestRepository
         }
     }
 
+    public static string AdapterExecutable
+    {
+        get
+        {
+            DirectoryInfo testOutput = new(AppContext.BaseDirectory);
+            string configuration = testOutput.Parent?.Name ?? throw new InvalidOperationException("Test build configuration not found.");
+            string targetFramework = testOutput.Name;
+            return Path.Combine(Root, "src", "ProgramKit.SpecKitAdapter", "bin", configuration, targetFramework, OperatingSystem.IsWindows() ? "program-kit-spec-kit-adapter.exe" : "program-kit-spec-kit-adapter");
+        }
+    }
+
     public static string Fixture(string relative) => Path.Combine(Root, "tests", "Fixtures", "Reference.Status", relative.Replace('/', Path.DirectorySeparatorChar));
 
     public static string CreateWorkspace(bool includeMirror = false)
@@ -56,6 +67,17 @@ internal static class TestRepository
 
     public static (int ExitCode, string StandardOutput, string StandardError) RunCli(params string[] arguments) =>
         RunCliWithEnvironment(new Dictionary<string, string>(StringComparer.Ordinal), arguments);
+
+    public static (int ExitCode, string StandardOutput, string StandardError) RunAdapter(params string[] arguments)
+    {
+        ProcessStartInfo start = new(AdapterExecutable) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+        foreach (string argument in arguments) start.ArgumentList.Add(argument);
+        using Process process = Process.Start(start) ?? throw new InvalidOperationException("Unable to start the Program Kit Spec Kit adapter.");
+        string stdout = process.StandardOutput.ReadToEnd();
+        string stderr = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        return (process.ExitCode, stdout, stderr);
+    }
 
     public static (int ExitCode, string StandardOutput, string StandardError) RunCliWithEnvironment(
         IReadOnlyDictionary<string, string> environment,

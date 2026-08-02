@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Cli.Commands.Session;
 using Orbyss.ProgramKit.Cli.Parsing;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
@@ -55,8 +57,37 @@ public sealed class CommandDispatcher
             PublicCommand.SessionInstall => sessions.Execute(invocation, workspace, request),
             PublicCommand.SessionVerify => sessions.Execute(invocation, workspace, request),
             PublicCommand.SessionRemove => sessions.Execute(invocation, workspace, request),
+            PublicCommand.Init or PublicCommand.CatalogList or PublicCommand.Restore or PublicCommand.Prepare or PublicCommand.AuthorityRecord => ExecuteWorkspaceCommand(invocation.Command, workspace, request),
             _ => Invalid(invocation.Command, "Unsupported public command."),
         };
+    }
+
+    private OperationResult ExecuteWorkspaceCommand(PublicCommand command, string workspace, string request)
+    {
+        try
+        {
+            return command switch
+            {
+                PublicCommand.Init => kernel.InitializeWorkspace(workspace, request),
+                PublicCommand.CatalogList => kernel.ListCatalog(request),
+                PublicCommand.Restore => kernel.RestoreWorkspace(workspace, request),
+                PublicCommand.Prepare => PrepareCommand.Execute(kernel, workspace, request),
+                PublicCommand.AuthorityRecord => Pending(command, "authority-recording"),
+                _ => Invalid(command, "Unsupported public command."),
+            };
+        }
+        catch (KeyNotFoundException)
+        {
+            return WorkspaceFailure(command, DiagnosticIds.MissingSelection, PrimaryDisposition.ProvideInput, "An exact selected item is unavailable.");
+        }
+        catch (InvalidDataException)
+        {
+            return Invalid(command, "The request or referenced workspace document is invalid.");
+        }
+        catch (IOException)
+        {
+            return WorkspaceFailure(command, DiagnosticIds.GeneratedDrift, PrimaryDisposition.Repair, "Generated workspace state conflicts with the requested exact state.");
+        }
     }
 
     private static OperationResult Invalid(PublicCommand command, string cause)
@@ -68,5 +99,28 @@ public sealed class CommandDispatcher
             DisclosureFilter.PublicText(cause),
             DisclosureFilter.PublicText("The command was refused before any workspace effect."));
         return OperationResultFactory.Failure(command, OperationOutcome.Blocked, OperationPhase.Request, EffectState.None, PrimaryDisposition.Revise, new[] { diagnostic });
+    }
+
+    private static OperationResult Pending(PublicCommand command, string handler)
+    {
+        Diagnostic diagnostic = DiagnosticFactory.Create(
+            DiagnosticIds.IncompleteMeaning,
+            OperationPhase.Validation,
+            DisclosureFilter.PublicText(handler),
+            DisclosureFilter.PublicText("The typed command handler has no admitted request implementation yet."),
+            DisclosureFilter.PublicText("No workspace effect was attempted."));
+        return OperationResultFactory.Failure(command, OperationOutcome.Blocked, OperationPhase.Request, EffectState.None, diagnostic.Disposition, new[] { diagnostic }, payload: new JsonObject { ["handler"] = handler });
+    }
+
+    private static OperationResult WorkspaceFailure(PublicCommand command, string id, PrimaryDisposition disposition, string cause)
+    {
+        Diagnostic diagnostic = DiagnosticFactory.Create(
+            id,
+            OperationPhase.Validation,
+            DisclosureFilter.PublicText("workspace-request"),
+            DisclosureFilter.PublicText(cause),
+            DisclosureFilter.PublicText("No requested workspace state was admitted."));
+        if (diagnostic.Disposition != disposition) throw new InvalidOperationException("The requested failure disposition does not match its diagnostic catalog.");
+        return OperationResultFactory.Failure(command, OperationOutcome.Blocked, OperationPhase.Workspace, EffectState.None, disposition, new[] { diagnostic });
     }
 }

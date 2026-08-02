@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-config.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "programKit", "activation", "defaultRequestedEffect"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-adapter-config/v1" },
+    "programKit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["invocation", "manifest", "lock"],
+      "properties": {
+        "invocation": { "const": "dotnet-tool-manifest" },
+        "manifest": { "type": "string", "const": "program-kit.yaml" },
+        "lock": { "type": "string", "const": "program-kit.lock.json" }
+      }
+    },
+    "activation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["defaultMode", "features"],
+      "properties": {
+        "defaultMode": { "enum": ["off", "assist", "required"] },
+        "features": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object", "additionalProperties": false,
+            "required": ["mode", "applicability", "decisionSource"],
+            "properties": {
+              "mode": { "enum": ["off", "assist", "required"] },
+              "applicability": { "enum": ["applicable", "disabled", "not-applicable", "unresolved"] },
+              "selection": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+              "decisionSource": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+    "defaultRequestedEffect": { "enum": ["none", "candidate-only", "committed"] }
+  }
+}

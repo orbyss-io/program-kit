@@ -1,0 +1,60 @@
+schema_version: "1.0"
+extension:
+  id: orbyss-program-kit-adapter
+  name: Program Kit Adapter
+  version: 0.1.0
+  description: Connects reviewed Spec Kit planning to public Program Kit contracts.
+  author: Orbyss
+  repository: https://github.com/orbyss-io/program-kit
+  license: Proprietary
+requires:
+  speckit_version: "==0.15.1"
+provides:
+  commands:
+    - name: speckit.program-kit.doctor
+      file: commands/doctor.md
+      description: Validate base or feature readiness.
+    - name: speckit.program-kit.activate
+      file: commands/activate.md
+      description: Propose explicit feature activation.
+    - name: speckit.program-kit.disable
+      file: commands/disable.md
+      description: Propose explicit feature disablement.
+    - name: speckit.program-kit.handoff
+      file: commands/handoff.md
+      description: Propose a bounded factory handoff.
+    - name: speckit.program-kit.validate
+      file: commands/validate.md
+      description: Validate current adapter state.
+    - name: speckit.program-kit.prepare
+      file: commands/prepare.md
+      description: Translate and prepare without construction.
+    - name: speckit.program-kit.explain
+      file: commands/explain.md
+      description: Explain the prepared public factory request.
+    - name: speckit.program-kit.construct
+      file: commands/construct.md
+      description: Explicitly construct with a supplied grant.
+    - name: speckit.program-kit.evaluate
+      file: commands/evaluate.md
+      description: Evaluate the constructed product.
+    - name: speckit.program-kit.cleanup
+      file: commands/cleanup.md
+      description: Remove unchanged regenerable adapter candidates.
+  hooks:
+    - event: after_plan
+      command: speckit.program-kit.handoff
+      optional: true
+      priority: 10
+    - event: after_tasks
+      command: speckit.program-kit.validate
+      optional: true
+      priority: 10
+    - event: before_implement
+      command: speckit.program-kit.validate
+      optional: false
+      priority: 10
+    - event: after_implement
+      command: speckit.program-kit.prepare
+      optional: true
+      priority: 10

@@ -139,6 +139,14 @@
           "ProgramKit.SessionIntegration.Providers.Codex": "[1.0.0, )"
         }
       },
+      "program-kit-spec-kit-adapter": {
+        "type": "Project",
+        "dependencies": {
+          "JsonSchema.Net": "[9.4.0, 9.4.0]",
+          "ProgramKit.Contracts": "[1.0.0, )",
+          "YamlDotNet": "[18.1.0, 18.1.0]"
+        }
+      },
       "programkit.contracts": {
         "type": "Project"
       },

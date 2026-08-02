@@ -1,0 +1,11 @@
+{
+  "schema": "program-kit.spec-kit-adapter-package/v1",
+  "id": "orbyss-program-kit-adapter",
+  "version": "0.1.0",
+  "specKitVersion": "0.15.1",
+  "programKitVersion": "1.0.0-alpha.2",
+  "runtime": "net10.0",
+  "entrypoint": "tools/program-kit-spec-kit-adapter.dll",
+  "projectConfigTemplate": "config/orbyss-program-kit-adapter-config.template.yml",
+  "projectConfigPath": ".specify/extensions/orbyss-program-kit-adapter/orbyss-program-kit-adapter-config.yml"
+}

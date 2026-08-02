@@ -1,0 +1,25 @@
+{
+  "schema": "program-kit.spec-kit-adapter-compatibility/v1",
+  "adapter": "orbyss-program-kit-adapter@0.1.0",
+  "specKitVersions": ["0.15.1"],
+  "programKitVersions": ["1.0.0-alpha.2"],
+  "runtimeProfiles": ["net10.0@10.0.0"],
+  "providerProfiles": ["program-kit.provider.dotnet/dotnet10-cshells-0.0.28@1.0.0"],
+  "contractBindings": {
+    "program-kit.factory-request/v1": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "program-kit.operation-result/v2": "sha256:253b70d42ba81f8086dc687c6a0e2b9c40a303a7810026404859cfd215f91db6"
+  },
+  "commandBindings": {
+    "prepare": "program-kit prepare@v2",
+    "explain": "program-kit explain@v2",
+    "construct": "program-kit construct@v2",
+    "evaluate": "program-kit evaluate@v2"
+  },
+  "platforms": ["linux-x64", "win-x64"],
+  "releaseArtifacts": [
+    "program-kit-spec-kit-adapter",
+    "schemas/",
+    "diagnostic-catalog.json"
+  ],
+  "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+}

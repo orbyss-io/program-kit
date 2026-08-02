@@ -48,6 +48,18 @@ public sealed class NamespacedArtifactSetPublisher
             throw new InvalidOperationException("Stale publication staging exists; blind retry is refused.");
 
         IReadOnlyList<PreparedArtifact> ordered = Prepare(workspace, artifacts);
+        string journalPath = Path.Combine(stateRoot, "publication.journal.json");
+        if (ordered.All(static value => value.Unchanged) && File.Exists(journalPath))
+        {
+            string exactLiveState = Digests.Sha256(Encoding.UTF8.GetBytes(string.Join('\n', ordered.Select(static item => $"{item.LogicalPath}:{item.ContentDigest}"))));
+            return new NamespacedPublicationResult(
+                ordered.Select(static item => new OperationChange("unchanged", item.LogicalPath, EffectState.None)).ToArray(),
+                Array.Empty<string>(),
+                exactLiveState,
+                LogicalPaths.Normalize(Path.GetRelativePath(workspace, journalPath).Replace('\\', '/')),
+                Digests.Sha256(File.ReadAllBytes(journalPath)));
+        }
+
         Directory.CreateDirectory(stateRoot);
         string lockPath = Path.Combine(programKitRoot, "workspace.lock");
         using FileStream workspaceLock = new(lockPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
@@ -56,7 +68,6 @@ public sealed class NamespacedArtifactSetPublisher
         string transactionDirectory = Digests.Sha256(Encoding.UTF8.GetBytes(transactionIdentity))["sha256:".Length..];
         string stagingRoot = Path.Combine(stagingParent, transactionDirectory);
         string backupRoot = Path.Combine(stateRoot, "backups", transactionDirectory);
-        string journalPath = Path.Combine(stateRoot, "publication.journal.json");
         Directory.CreateDirectory(stagingRoot);
         foreach (PreparedArtifact artifact in ordered.Where(static value => !value.Unchanged))
         {

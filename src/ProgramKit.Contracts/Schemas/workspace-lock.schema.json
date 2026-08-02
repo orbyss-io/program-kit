@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/workspace-lock.schema.json",
+  "title": "Program Kit Workspace Resolution Lock v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "workspaceIdentity", "distributionBinding", "manifestDigest", "mode", "resolvedItems", "selections", "unresolvedItems", "closureDigest", "evidence", "digest"],
+  "properties": {
+    "schema": { "const": "program-kit.workspace-lock/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "workspaceIdentity": { "$ref": "common.schema.json#/$defs/governedIdentity" },
+    "distributionBinding": { "$ref": "distribution-binding.schema.json" },
+    "manifestDigest": { "$ref": "common.schema.json#/$defs/digest" },
+    "mode": { "enum": ["base", "factory"] },
+    "resolvedItems": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/governedIdentity" } },
+    "selections": { "type": "array", "items": { "type": "object" } },
+    "defaultSelection": { "type": "string" },
+    "unresolvedItems": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/governedIdentity" } },
+    "closureDigest": { "$ref": "common.schema.json#/$defs/digest" },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "digest": { "$ref": "common.schema.json#/$defs/digest" }
+  }
+}

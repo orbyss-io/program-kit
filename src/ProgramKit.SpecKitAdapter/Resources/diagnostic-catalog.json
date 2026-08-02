@@ -1,0 +1,19 @@
+{
+  "schema": "program-kit.spec-kit-adapter-diagnostic-catalog/v1",
+  "authority": "orbyss.program-kit.spec-kit-adapter",
+  "revision": "1.0.0",
+  "definitions": [
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0001", "category": "conformance", "severity": "fatal", "disposition": "stop", "messageKey": "adapter.compatibility.unsupported" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0002", "category": "workspace", "severity": "error", "disposition": "provide-input", "messageKey": "adapter.config.invalid" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0003", "category": "semantic", "severity": "error", "disposition": "provide-input", "messageKey": "adapter.applicability.unresolved" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0004", "category": "resolution", "severity": "error", "disposition": "provide-input", "messageKey": "adapter.selection.invalid" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0005", "category": "semantic", "severity": "error", "disposition": "revise", "messageKey": "adapter.handoff.invalid" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0006", "category": "policy", "severity": "error", "disposition": "request-approval", "messageKey": "adapter.review.invalid" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0007", "category": "semantic", "severity": "error", "disposition": "revise", "messageKey": "adapter.trace.stale" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0008", "category": "workspace", "severity": "fatal", "disposition": "stop", "messageKey": "adapter.path.unsafe" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0009", "category": "workspace", "severity": "error", "disposition": "repair", "messageKey": "adapter.publication.drift" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0010", "category": "external", "severity": "error", "disposition": "retry", "messageKey": "adapter.process.failed" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0011", "category": "policy", "severity": "error", "disposition": "request-approval", "messageKey": "adapter.authority.invalid" },
+    { "id": "orbyss.program-kit.spec-kit-adapter/PKSKA0012", "category": "policy", "severity": "fatal", "disposition": "stop", "messageKey": "adapter.operation.forbidden" }
+  ]
+}

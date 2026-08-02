@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-adapter-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "adapterRelease", "compatibility", "feature", "inputs", "outputs", "ownership", "invalidationSets", "digest"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-adapter-manifest/v1" },
+    "adapterRelease": { "type": "string", "const": "orbyss-program-kit-adapter@0.1.0" },
+    "compatibility": { "type": "object" },
+    "feature": { "type": "object" },
+    "inputs": { "type": "array", "items": { "type": "object" } },
+    "outputs": { "type": "array", "items": { "type": "object" } },
+    "ownership": { "type": "string", "const": "adapter-generated-owned" },
+    "invalidationSets": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

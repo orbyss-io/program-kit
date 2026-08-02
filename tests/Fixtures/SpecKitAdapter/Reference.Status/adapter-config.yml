@@ -1,0 +1,16 @@
+schema: program-kit.spec-kit-adapter-config/v1
+programKit:
+  invocation: dotnet-tool-manifest
+  manifest: program-kit.yaml
+  lock: program-kit.lock.json
+activation:
+  defaultMode: assist
+  features:
+    003-reference-status:
+      mode: required
+      applicability: applicable
+      selection: dotnet-default
+      decisionSource:
+        kind: human-decision
+        name: reference-status-review
+defaultRequestedEffect: none

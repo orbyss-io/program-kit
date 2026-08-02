@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/spec-kit-handoff.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "feature", "intentOwner", "sources", "applicability", "definitionFamily", "definition", "implementation", "evaluationContext", "requestedOperation", "maximumEffect", "ownership", "trace", "unresolved", "unsupported", "deferred", "excluded"],
+  "properties": {
+    "schema": { "const": "program-kit.spec-kit-handoff/v1" },
+    "feature": { "type": "object" },
+    "intentOwner": { "type": "string", "minLength": 1 },
+    "sources": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "applicability": { "enum": ["applicable", "disabled", "not-applicable", "unresolved"] },
+    "effectiveSelection": { "type": "object" },
+    "definitionFamily": { "type": "object" },
+    "definition": { "type": "object" },
+    "implementation": { "type": "array", "items": { "type": "object" } },
+    "evaluationContext": {
+      "type": "object", "additionalProperties": false,
+      "required": ["instant", "source", "assurance"],
+      "properties": {
+        "instant": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+        "source": { "type": "object" },
+        "assurance": { "const": "approved-declared-instant" }
+      }
+    },
+    "requestedOperation": { "enum": ["construct", "evaluate"] },
+    "maximumEffect": { "enum": ["none", "candidate-only", "committed"] },
+    "ownership": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "trace": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "unresolved": { "type": "array" },
+    "unsupported": { "type": "array" },
+    "deferred": { "type": "array" },
+    "excluded": { "type": "array" }
+  }
+}

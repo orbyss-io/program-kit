@@ -13,6 +13,7 @@
     <ProjectReference Include="../../src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
     <ProjectReference Include="../../src/ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj" />
     <ProjectReference Include="../../src/ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj" />
+    <ProjectReference Include="../../src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj" />
     <Compile Include="../Shared/**/*.cs" Link="Shared/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

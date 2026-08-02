@@ -21,7 +21,7 @@ public sealed class SessionOperationResultContractTests
             disclosure: new[] { new DisclosureEntry("workspace", DisclosureClassification.RepositoryRelative, "reported") });
 
         JsonObject projected = OperationResultProjector.ToJson(result);
-        Assert.AreEqual("program-kit.operation-result/v1", projected["schema"]!.GetValue<string>());
+        Assert.AreEqual("program-kit.operation-result/v2", projected["schema"]!.GetValue<string>());
         Assert.AreEqual("session-explain", projected["command"]!.GetValue<string>());
         Assert.AreEqual("absent", projected["session"]!["state"]!.GetValue<string>());
         Assert.AreEqual("repository-relative", projected["disclosure"]![0]!["classification"]!.GetValue<string>());

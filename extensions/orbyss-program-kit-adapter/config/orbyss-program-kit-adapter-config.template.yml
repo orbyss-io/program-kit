@@ -1,0 +1,9 @@
+schema: program-kit.spec-kit-adapter-config/v1
+programKit:
+  invocation: dotnet-tool-manifest
+  manifest: program-kit.yaml
+  lock: program-kit.lock.json
+activation:
+  defaultMode: assist
+  features: {}
+defaultRequestedEffect: none

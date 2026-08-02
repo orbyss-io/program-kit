@@ -12,7 +12,7 @@ public static class CodexSkillProjector
         StringBuilder skill = new();
         skill.Append("---\nname: program-kit\ndescription: Use Program Kit for human-led software construction, explanation, evaluation, and diagnostic recovery.\n---\n\n");
         skill.Append("# Program Kit software factory\n\n");
-        skill.Append("This repository uses the independently installed Program Kit CLI through a provider-neutral, human-led workflow. The authoritative result is `program-kit.operation-result/v1` JSON; never infer success, authority, or remediation from prose.\n\n");
+        skill.Append("This repository uses the independently installed Program Kit CLI through a provider-neutral, human-led workflow. The authoritative result is `program-kit.operation-result/v2` JSON; never infer success, authority, or remediation from prose.\n\n");
         skill.Append("Canonical guarantees: `authority=request-bound`; `disclosure=classified`; `normalization=canonical-json`; `fresh-session=separately-classified`.\n\n");
         skill.Append(CultureInfo.InvariantCulture, $"Exact workspace-local executable: `{executable}`. First invoke `version --format json` and require release `{context.Request.CliRelease.ReportedVersion}`. Pass shell arguments as an array, keep the workspace root explicit, and do not select a global command.\n\n");
         skill.Append("## Required workflow\n\n");

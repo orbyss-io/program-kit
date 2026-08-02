@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/workspace-restore-request.schema.json",
+  "title": "Program Kit Workspace Restore Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "workspaceIdentity", "distributionBinding", "manifest", "lockPath", "mode", "allowedSources"],
+  "properties": {
+    "schema": { "const": "program-kit.workspace-restore-request/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "workspaceIdentity": { "$ref": "common.schema.json#/$defs/governedIdentity" },
+    "distributionBinding": { "$ref": "distribution-binding.schema.json" },
+    "manifest": { "const": "program-kit.yaml" },
+    "lockPath": { "const": "program-kit.lock.json" },
+    "mode": { "enum": ["base", "factory"] },
+    "allowedSources": { "type": "array", "maxItems": 0 }
+  }
+}

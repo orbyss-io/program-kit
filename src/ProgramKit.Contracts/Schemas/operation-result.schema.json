@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.program-kit.dev/v1/operation-result.schema.json",
-  "title": "Program Kit Operation, Diagnostic, and Continuation Contracts v1",
+  "$id": "https://schemas.program-kit.dev/v2/operation-result.schema.json",
+  "title": "Program Kit Operation, Diagnostic, and Continuation Contracts v2",
   "oneOf": [
     {
       "$ref": "#/$defs/operationResult"
@@ -24,6 +24,10 @@
         "explanation",
         "construction",
         "evaluation",
+        "distribution",
+        "workspace",
+        "preparation",
+        "authority",
         "publication",
         "admission",
         "completion"
@@ -50,10 +54,10 @@
       "properties": {
         "schema": {
           "type": "string",
-          "const": "program-kit.operation-result/v1"
+          "const": "program-kit.operation-result/v2"
         },
         "canonicalProfile": {
-          "$ref": "common.schema.json#/$defs/canonicalProfile"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
         },
         "command": {
           "type": "string",
@@ -65,18 +69,23 @@
             "session-install",
             "session-verify",
             "session-remove",
+            "init",
+            "catalog-list",
+            "restore",
+            "prepare",
+            "authority-record",
             "help",
             "version"
           ]
         },
         "operationContract": {
-          "$ref": "common.schema.json#/$defs/governedIdentity"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
         },
         "requestIdentity": {
-          "$ref": "common.schema.json#/$defs/digest"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
         },
         "constructionIdentity": {
-          "$ref": "common.schema.json#/$defs/digest"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
         },
         "outcome": {
           "type": "string",
@@ -121,19 +130,19 @@
         "artifacts": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/artifactReference"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
           }
         },
         "receipts": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/artifactReference"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
           }
         },
         "evidence": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/evidenceReference"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/evidenceReference"
           }
         },
         "diagnostics": {
@@ -143,7 +152,7 @@
           "$ref": "#/$defs/continuation"
         },
         "explanation": {
-          "$ref": "resolution.schema.json#/$defs/integrationResolutionExplanation"
+          "$ref": "https://schemas.program-kit.dev/v1/resolution.schema.json#/$defs/integrationResolutionExplanation"
         },
         "utility": {
           "type": "object",
@@ -162,6 +171,9 @@
           }
         },
         "session": {
+          "type": "object"
+        },
+        "payload": {
           "type": "object"
         },
         "disclosure": {
@@ -274,7 +286,7 @@
           ]
         },
         "subject": {
-          "$ref": "common.schema.json#/$defs/typedSubject"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/typedSubject"
         },
         "effect": {
           "type": "string",
@@ -318,10 +330,10 @@
           "const": "program-kit.diagnostic-grouping/v1"
         },
         "fullCollectionDigest": {
-          "$ref": "common.schema.json#/$defs/digest"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
         },
         "fullCollectionArtifact": {
-          "$ref": "common.schema.json#/$defs/artifactReference"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
         },
         "cursor": {
           "type": "object",
@@ -332,7 +344,7 @@
           ],
           "properties": {
             "collectionDigest": {
-              "$ref": "common.schema.json#/$defs/digest"
+              "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
             },
             "offset": {
               "type": "integer",
@@ -380,7 +392,7 @@
           "maxLength": 200
         },
         "catalog": {
-          "$ref": "common.schema.json#/$defs/governedIdentity"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
         },
         "severity": {
           "type": "string",
@@ -419,7 +431,7 @@
           ]
         },
         "occurrenceKey": {
-          "$ref": "common.schema.json#/$defs/digest"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
         },
         "occurrenceCount": {
           "type": "integer",
@@ -430,11 +442,11 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "common.schema.json#/$defs/typedSubject"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/typedSubject"
           }
         },
         "rule": {
-          "$ref": "common.schema.json#/$defs/governedIdentity"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
         },
         "messageKey": {
           "type": "string",
@@ -447,7 +459,7 @@
             "pattern": "^[a-z][A-Za-z0-9]*$"
           },
           "additionalProperties": {
-            "$ref": "common.schema.json#/$defs/safeValue"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
           }
         },
         "cause": {
@@ -465,7 +477,7 @@
             "details": {
               "type": "array",
               "items": {
-                "$ref": "common.schema.json#/$defs/safeValue"
+                "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
               }
             }
           }
@@ -492,10 +504,10 @@
           }
         },
         "expected": {
-          "$ref": "common.schema.json#/$defs/safeValue"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
         },
         "observed": {
-          "$ref": "common.schema.json#/$defs/safeValue"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
         },
         "remediations": {
           "type": "array",
@@ -508,13 +520,13 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "common.schema.json#/$defs/evidenceReference"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/evidenceReference"
           }
         },
         "documentation": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/artifactReference"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
           }
         }
       }
@@ -549,13 +561,13 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "common.schema.json#/$defs/typedSubject"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/typedSubject"
           }
         },
         "preconditions": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/safeValue"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
           }
         },
         "effectClass": {
@@ -589,10 +601,10 @@
               ]
             },
             "artifact": {
-              "$ref": "common.schema.json#/$defs/artifactReference"
+              "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/artifactReference"
             },
             "document": {
-              "$ref": "factory-request.schema.json"
+              "$ref": "https://schemas.program-kit.dev/v1/factory-request.schema.json"
             },
             "arguments": {
               "type": "array",
@@ -660,7 +672,7 @@
         "postconditions": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/safeValue"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
           }
         },
         "retryPhase": {
@@ -688,15 +700,15 @@
           "const": "program-kit.continuation/v1"
         },
         "canonicalProfile": {
-          "$ref": "common.schema.json#/$defs/canonicalProfile"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
         },
         "requestDigest": {
-          "$ref": "common.schema.json#/$defs/digest"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
         },
         "completedWork": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/evidenceReference"
+            "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/evidenceReference"
           }
         },
         "missingInputs": {
@@ -728,18 +740,18 @@
           ],
           "properties": {
             "lockDigest": {
-              "$ref": "common.schema.json#/$defs/digest"
+              "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
             },
             "workspaceDigest": {
-              "$ref": "common.schema.json#/$defs/digest"
+              "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
             },
             "evidenceDigest": {
-              "$ref": "common.schema.json#/$defs/digest"
+              "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
             }
           }
         },
         "digest": {
-          "$ref": "common.schema.json#/$defs/digest"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest"
         }
       }
     },
@@ -766,7 +778,7 @@
           "pattern": "^[a-z][a-z0-9-]*$"
         },
         "rule": {
-          "$ref": "common.schema.json#/$defs/governedIdentity"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity"
         }
       }
     },
@@ -784,7 +796,7 @@
           "pattern": "^[a-z][a-z0-9.-]*$"
         },
         "value": {
-          "$ref": "common.schema.json#/$defs/safeValue"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/safeValue"
         },
         "consequence": {
           "type": "string",
@@ -808,10 +820,10 @@
           "const": "program-kit.diagnostic-catalog/v1"
         },
         "canonicalProfile": {
-          "$ref": "common.schema.json#/$defs/canonicalProfile"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile"
         },
         "protocolRevision": {
-          "$ref": "common.schema.json#/$defs/revision"
+          "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision"
         },
         "entries": {
           "type": "array",
