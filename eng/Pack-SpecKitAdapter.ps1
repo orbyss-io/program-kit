@@ -54,6 +54,8 @@ try {
             '-p:ContinuousIntegrationBuild=true',
             '-p:DebugSymbols=false',
             '-p:DebugType=None',
+            '-p:IncludeSourceRevisionInInformationalVersion=false',
+            '-p:NoWin32Manifest=true',
             "-p:PathMap=$repositoryRoot=/_/"
         )
         if (-not $NoBuild) {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -107,8 +108,8 @@ public sealed class DistributionEvidenceTests
         string packagedTools = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0", "tools");
         string archive = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0.zip");
         string releaseFiles = Path.Combine(packageRoot, "orbyss-program-kit-adapter-0.1.0", "release-files.json");
-        AssertNoCodeViewDebugEntry(Path.Combine(packagedTools, "program-kit-spec-kit-adapter.dll"));
-        AssertNoCodeViewDebugEntry(Path.Combine(packagedTools, "ProgramKit.Contracts.dll"));
+        AssertStableReleaseAssembly(Path.Combine(packagedTools, "program-kit-spec-kit-adapter.dll"), "0.1.0", forbidWin32Manifest: true);
+        AssertStableReleaseAssembly(Path.Combine(packagedTools, "ProgramKit.Contracts.dll"), "1.0.0", forbidWin32Manifest: false);
         Assert.AreEqual(release["archiveDigest"]!.GetValue<string>(), Digest(archive));
         Assert.AreEqual(release["releaseFilesDigest"]!.GetValue<string>(), Digest(releaseFiles));
         JsonObject releaseFilesDocument = Read(releaseFiles);
@@ -127,11 +128,14 @@ public sealed class DistributionEvidenceTests
     }
 
     private static JsonObject Read(string path) => CanonicalJson.Parse(File.ReadAllBytes(path)).AsObject();
-    private static void AssertNoCodeViewDebugEntry(string path)
+    private static void AssertStableReleaseAssembly(string path, string productVersion, bool forbidWin32Manifest)
     {
         using FileStream stream = File.OpenRead(path);
         using PEReader reader = new(stream);
         Assert.IsFalse(reader.ReadDebugDirectory().Any(static entry => entry.Type == DebugDirectoryEntryType.CodeView), path);
+        Assert.AreEqual(productVersion, FileVersionInfo.GetVersionInfo(path).ProductVersion, path);
+        if (forbidWin32Manifest)
+            Assert.AreEqual(-1, File.ReadAllBytes(path).AsSpan().IndexOf("urn:schemas-microsoft-com:asm.v1"u8), path);
     }
 
     private static string Digest(string path) => $"sha256:{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant()}";
