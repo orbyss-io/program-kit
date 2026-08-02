@@ -398,3 +398,26 @@ T117 is pending authoritative protected Windows/Linux CI. T118 remains an
 explicitly human-operated ten-fresh-session review, T119 remains a new
 independent human decision, and T120 remains final reconciliation. Therefore
 Feature 002 is remediated for CI handoff but is not yet accepted.
+
+### First protected remediation run — 2026-08-02
+
+Protected run `30742625953` exercised exact head
+`bab4d453099973198a29f372ce44c9d619c4bb4c`. Preflight, locked restore,
+Release build, and deterministic evidence passed on Windows and Ubuntu. Both
+platform jobs then found the same existing-requirement blocker in
+`Packaged_cli_negative_matrix_is_typed_fail_closed_and_byte_preserving`: the
+ambiguous session-provider path requested `needs-input` without the mandatory
+typed continuation, so result aggregation safely replaced it with fallback
+`PKINT0001`. T114 and T116 were reopened; T117 remains pending. This failed run
+is retained as repair provenance and is not acceptance evidence.
+
+The approved focused repair now emits `needs-input` with exact diagnostic
+`PKRES0002`, a request-bound continuation, and missing-input identity
+`providerselection.provider.selected`. The single previously failing packaged
+acceptance test passed in 6 seconds. Distribution evidence regenerated twice
+without drift; the repaired manifest identity is
+`sha256:ef753696a915123aa38b09600b37e154d4757799c00b586da785132fddc11a95`.
+The fast pre-PR gate then passed zero-warning/error builds, 46 unit tests, 64
+contract tests, formatting, SpecKit integrity, canonical text, and diff hygiene
+while reusing both the dependency mirror and locked restore. T114 and T116 are
+reclosed; T117 still requires a new protected run for the repaired exact head.

@@ -3,6 +3,7 @@ using System.IO;
 using Orbyss.ProgramKit.Cli.Parsing;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Kernel.Operations;
 using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
@@ -37,7 +38,17 @@ public sealed class SessionCommandDispatcher
         }
         catch (AmbiguousSessionSelectionException exception)
         {
-            return Failure(invocation.Command, DiagnosticIds.AmbiguousSelection, OperationPhase.Resolution, PrimaryDisposition.ProvideInput, exception.Message, EffectState.None, OperationOutcome.NeedsInput);
+            string requestDigest = CanonicalJson.Digest(CanonicalJson.Parse(File.ReadAllBytes(request)));
+            return Failure(
+                invocation.Command,
+                DiagnosticIds.AmbiguousSelection,
+                OperationPhase.Resolution,
+                PrimaryDisposition.ProvideInput,
+                exception.Message,
+                EffectState.None,
+                OperationOutcome.NeedsInput,
+                requestDigest,
+                ContinuationBuilder.ForMissing(requestDigest, new[] { "providerSelection.provider.selected" }));
         }
         catch (UnauthorizedAccessException exception) { return Failure(invocation.Command, DiagnosticIds.MissingAuthority, OperationPhase.Validation, PrimaryDisposition.RequestApproval, exception.Message); }
         catch (InvalidOperationException exception) when (exception.Message.Contains("Stale publication staging", StringComparison.Ordinal))
@@ -53,7 +64,16 @@ public sealed class SessionCommandDispatcher
 
     private static OperationResult Invalid(PublicCommand command, string message) => Failure(command, DiagnosticIds.InvalidInput, OperationPhase.Request, PrimaryDisposition.Revise, message);
 
-    private static OperationResult Failure(PublicCommand command, string id, OperationPhase phase, PrimaryDisposition disposition, string message, EffectState effectState = EffectState.None, OperationOutcome outcome = OperationOutcome.Blocked)
+    private static OperationResult Failure(
+        PublicCommand command,
+        string id,
+        OperationPhase phase,
+        PrimaryDisposition disposition,
+        string message,
+        EffectState effectState = EffectState.None,
+        OperationOutcome outcome = OperationOutcome.Blocked,
+        string? requestIdentity = null,
+        Continuation? continuation = null)
     {
         Diagnostic diagnostic = DiagnosticFactory.Create(
             id,
@@ -61,6 +81,14 @@ public sealed class SessionCommandDispatcher
             DisclosureFilter.PublicText("session-integration"),
             DisclosureFilter.Withhold(message, "session-command-failure-detail"),
             DisclosureFilter.PublicText("No session integration effect was admitted."));
-        return OperationResultFactory.Failure(command, outcome, phase, effectState, disposition, new[] { diagnostic });
+        return OperationResultFactory.Failure(
+            command,
+            outcome,
+            phase,
+            effectState,
+            disposition,
+            new[] { diagnostic },
+            requestIdentity,
+            continuation: continuation);
     }
 }

@@ -57,7 +57,13 @@ public sealed class PackagedSessionNegativeMatrixAcceptanceTests
         ambiguous["providerSelection"]!["provider"]!["selected"]!["authority"] = "ambient";
         string ambiguousPath = requestFailures.PathOf("requests/ambiguous-session-provider.json");
         File.WriteAllBytes(ambiguousPath, CanonicalJson.Encode(ambiguous));
-        AssertFailure(Invoke(executable, requestFailures.Root, "session", "explain", "--workspace", requestFailures.Root, "--request", ambiguousPath, "--format", "json"), "program-kit.kernel/PKRES0002", "provide-input", "none", 2);
+        AssertFailure(
+            Invoke(executable, requestFailures.Root, "session", "explain", "--workspace", requestFailures.Root, "--request", ambiguousPath, "--format", "json"),
+            "program-kit.kernel/PKRES0002",
+            "provide-input",
+            "none",
+            2,
+            "providerselection.provider.selected");
 
         string unsupported = requestFailures.PathOf("requests/unsupported-factory.yaml");
         File.Copy(TestRepository.Fixture("Invalid/MissingSelection/requests/explain.yaml"), unsupported);
@@ -107,13 +113,19 @@ public sealed class PackagedSessionNegativeMatrixAcceptanceTests
 
     private static string Tool(SessionIntegrationTestWorkspace workspace) => workspace.PathOf(OperatingSystem.IsWindows() ? ".program-kit/tools/program-kit.exe" : ".program-kit/tools/program-kit");
 
-    private static void AssertFailure(ProcessResult process, string diagnostic, string disposition, string effect, int expectedExitCode = 3)
+    private static void AssertFailure(ProcessResult process, string diagnostic, string disposition, string effect, int expectedExitCode = 3, string? missingInput = null)
     {
         JsonNode result = JsonNode.Parse(process.Output) ?? throw new InvalidDataException(process.Error);
         Assert.AreEqual(expectedExitCode, process.ExitCode, process.Output + process.Error);
         Assert.AreEqual(diagnostic, result["diagnostics"]!["items"]![0]!["id"]!.GetValue<string>(), process.Output);
         Assert.AreEqual(disposition, result["primaryDisposition"]!.GetValue<string>(), process.Output);
         Assert.AreEqual(effect, result["effectState"]!.GetValue<string>(), process.Output);
+        if (missingInput is not null)
+        {
+            Assert.AreEqual("needs-input", result["outcome"]!.GetValue<string>(), process.Output);
+            Assert.AreEqual(result["requestIdentity"]!.GetValue<string>(), result["continuation"]!["requestDigest"]!.GetValue<string>(), process.Output);
+            Assert.AreEqual(missingInput, result["continuation"]!["missingInputs"]![0]!["identity"]!.GetValue<string>(), process.Output);
+        }
     }
 
     private static ProcessResult Invoke(string executable, string workspace, params string[] arguments) => Run(executable, workspace, workspace, arguments);
