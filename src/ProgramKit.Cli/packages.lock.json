@@ -38,6 +38,19 @@
           "ProgramKit.Contracts": "[1.0.0, )"
         }
       },
+      "programkit.sessionintegration": {
+        "type": "Project",
+        "dependencies": {
+          "ProgramKit.Contracts": "[1.0.0, )",
+          "ProgramKit.Kernel": "[1.0.0, )"
+        }
+      },
+      "programkit.sessionintegration.providers.codex": {
+        "type": "Project",
+        "dependencies": {
+          "ProgramKit.SessionIntegration": "[1.0.0, )"
+        }
+      },
       "JsonSchema.Net": {
         "type": "CentralTransitive",
         "requested": "[9.4.0, 9.4.0]",

@@ -157,6 +157,47 @@ depend on Spec Kit at runtime. A future thin adapter may hand an approved Spec
 Kit plan to Program Kit through the same public CLI contracts available to any
 other caller.
 
+## Provider-neutral AI-session integration proof
+
+The second executable proof adds a provider-neutral development-session
+integration boundary without moving AI-session behavior into generated
+applications or the factory kernel. `Orbyss.ProgramKit.Cli` is packed and
+installed into each consumer workspace as an exact local .NET tool. The public
+session lifecycle then supports `session explain`, `session install`, `session
+verify`, and `session remove` through versioned structured requests and results.
+
+Canonical session meaning, authority requirements, diagnostics, disclosure,
+installation records, and conformance rules live outside provider adapters.
+The first adapter projects that meaning into one Codex repository skill at
+`.agents/skills/program-kit/SKILL.md`. The adapter does not launch Codex, edit
+global provider configuration, add an MCP server, copy Program Kit source, or
+make Codex part of the generated application's runtime. An opt-in review script
+is the only repository harness allowed to launch a live Codex process, and its
+ten-session evidence remains a separate human-owned acceptance gate.
+
+Session effects require exact request-bound authority. Installation admits only
+verified generated-owned projection bytes; verification is read-only; removal
+uses the admitted record and refuses missing, drifted, or unproven targets.
+Program Kit source workspaces are marked and deliberately reject consumer
+session initialization, catalog, preflight, read, and removal operations. This
+repository continues to use Spec Kit—not Program Kit's consumer capability—to
+develop Program Kit itself.
+
+This proof is intentionally not a general provider plugin framework, native
+planning system, runtime agent harness, global Codex installer, migration
+engine, or promise that arbitrary agent behavior is deterministic. The
+provider-neutral contract and deterministic mechanics are automated; the live
+session experience and semantic product approval remain explicit review gates.
+Feature 002 passed those bounded gates on 2026-08-02. Protected Ubuntu and
+Windows run `30746970810` passed at exact implementation candidate
+`16e08c89674cd6c970e33cfca20e9161746bba7f`, and 10/10 explicitly
+human-operated fresh Codex sessions completed explain, exact-grant
+authorization, construction, and read-only evaluation. Product owner and
+reviewer `joey-orbyss` accepted that bounded scope. This is not release,
+publication, merge, general authoring, or additional-provider approval. Exact
+closure evidence and limitations are recorded in
+[`specs/002-session-integration-proof/verification.md`](specs/002-session-integration-proof/verification.md).
+
 ## What can be exercised now
 
 The repository pins .NET SDK `10.0.302`, restores from exact package versions,
@@ -182,7 +223,15 @@ customization and upgrade safeguards are documented in
 [`eng/SPECKIT.md`](eng/SPECKIT.md).
 
 The public executable supports `explain`, `construct`, `evaluate`, `help`, and
-`version`. The accepted first request fixture lives under
+`version`, plus the provider-neutral `session explain`, `session install`,
+`session verify`, and `session remove` lifecycle. Run the isolated ten-workspace
+package and lifecycle proof with:
+
+```powershell
+./eng/Invoke-SessionIntegrationQuickstart.ps1
+```
+
+The accepted first factory request fixture lives under
 `tests/Fixtures/Reference.Status/Valid/`; it is evidence for the operation
 model, not a declaration that Status is kernel meaning.
 

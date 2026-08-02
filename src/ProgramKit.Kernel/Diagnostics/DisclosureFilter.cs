@@ -48,6 +48,19 @@ public static partial class DisclosureFilter
             value.Classification == SafeValueClassification.RepositoryRelative);
     }
 
+    public static string SafeLogicalValue(string value) => Legacy(RepositoryRelative(value));
+
+    public static string SafeText(string value) => Legacy(PublicText(value));
+
+    public static string SafeToolOutput(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return "withheld";
+    }
+
+    private static string Legacy(SafeValue value) =>
+        value.Classification == SafeValueClassification.Withheld ? "withheld" : value.Value!;
+
     private static SafeValue Visible(
         string value,
         SafeValueClassification classification,
@@ -60,10 +73,20 @@ public static partial class DisclosureFilter
             return Withheld("disclosure-floor");
         }
 
-        string singleLine = value.Replace("\r", " ", StringComparison.Ordinal).Replace("\n", " ", StringComparison.Ordinal);
+        char[] sanitized = value.Replace("\r", " ", StringComparison.Ordinal).Replace("\n", " ", StringComparison.Ordinal).ToCharArray();
+        for (int index = 0; index < sanitized.Length; index++)
+        {
+            if (char.IsControl(sanitized[index]))
+            {
+                sanitized[index] = ' ';
+            }
+        }
+
+        string singleLine = new(sanitized);
         if (singleLine.Length > 500)
         {
-            singleLine = singleLine[..500];
+            const string suffix = "[truncated]";
+            singleLine = singleLine[..(500 - suffix.Length)] + suffix;
         }
 
         return new SafeValue(classification, kind, singleLine);
@@ -89,6 +112,7 @@ public static partial class DisclosureFilter
             "password", "passwd", "secret", "token=", "token:", "bearer ", "apikey", "api-key",
             "connectionstring", "private key", "authorization:", "stack trace", "stdout:", "stderr:",
             "rm -rf", "remove-item", "del /", "format ", "cmd /c", "bash -c", "sh -c", "encodedcommand",
+            "conversation id", "raw tool output",
         };
         foreach (string marker in sensitiveMarkers)
         {

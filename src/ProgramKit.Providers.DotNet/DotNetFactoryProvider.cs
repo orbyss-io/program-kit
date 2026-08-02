@@ -222,13 +222,13 @@ internal sealed class DotNetFactoryProvider
         if (!Directory.Exists(source) || (File.GetAttributes(source) & FileAttributes.ReparsePoint) != 0
             || Directory.EnumerateDirectories(source).Any())
         {
-            throw new InvalidOperationException("The governed dependency mirror is unavailable or not a closed directory.");
+            throw MirrorUnavailable("The governed dependency mirror is unavailable or not a closed directory.");
         }
 
         string lockPath = Path.Combine(source, "mirror.lock.json");
         if (!File.Exists(lockPath) || (File.GetAttributes(lockPath) & FileAttributes.ReparsePoint) != 0)
         {
-            throw new InvalidOperationException("The governed dependency mirror lock is unavailable.");
+            throw MirrorUnavailable("The governed dependency mirror lock is unavailable.");
         }
 
         byte[] lockBytes = File.ReadAllBytes(lockPath);
@@ -245,7 +245,7 @@ internal sealed class DotNetFactoryProvider
             || document["packages"] is not JsonArray packages
             || packages.Count == 0)
         {
-            throw new InvalidOperationException("The governed dependency mirror lock has an unsupported contract.");
+            throw MirrorUnavailable("The governed dependency mirror lock has an unsupported contract.");
         }
 
         List<MirrorArtifact> expected = new();
@@ -259,7 +259,7 @@ internal sealed class DotNetFactoryProvider
             if (!File.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0
                 || !string.Equals(Digest(File.ReadAllBytes(path)), digest, StringComparison.Ordinal))
             {
-                throw new InvalidOperationException($"Dependency mirror artifact is missing or changed: {fileName}");
+                throw MirrorUnavailable($"Dependency mirror artifact is missing or changed: {fileName}");
             }
 
             expected.Add(new MirrorArtifact(fileName, digest));
@@ -267,14 +267,14 @@ internal sealed class DotNetFactoryProvider
 
         if (expected.Select(static item => item.FileName).Distinct(StringComparer.OrdinalIgnoreCase).Count() != expected.Count)
         {
-            throw new InvalidOperationException("The governed dependency mirror lock contains duplicate package identities.");
+            throw MirrorUnavailable("The governed dependency mirror lock contains duplicate package identities.");
         }
 
         string[] expectedFiles = expected.Select(static item => item.FileName).Append("mirror.lock.json").OrderBy(static item => item, StringComparer.Ordinal).ToArray();
         string[] actualFiles = Directory.EnumerateFiles(source).Select(Path.GetFileName).OrderBy(static item => item, StringComparer.Ordinal).ToArray()!;
         if (!expectedFiles.SequenceEqual(actualFiles, StringComparer.Ordinal))
         {
-            throw new InvalidOperationException("The governed dependency mirror contains undeclared, missing, or case-colliding artifacts.");
+            throw MirrorUnavailable("The governed dependency mirror contains undeclared, missing, or case-colliding artifacts.");
         }
 
         expected.Add(new MirrorArtifact("mirror.lock.json", Digest(lockBytes)));
@@ -289,17 +289,20 @@ internal sealed class DotNetFactoryProvider
             byte[] bytes = File.ReadAllBytes(Path.Combine(source, artifact.FileName));
             if (!string.Equals(Digest(bytes), artifact.Digest, StringComparison.Ordinal))
             {
-                throw new InvalidOperationException($"Dependency mirror artifact changed during construction: {artifact.FileName}");
+                throw MirrorUnavailable($"Dependency mirror artifact changed during construction: {artifact.FileName}");
             }
 
             string target = Path.Combine(destination, artifact.FileName);
             File.WriteAllBytes(target, bytes);
             if (!string.Equals(Digest(File.ReadAllBytes(target)), artifact.Digest, StringComparison.Ordinal))
             {
-                throw new InvalidOperationException($"Dependency mirror artifact copy verification failed: {artifact.FileName}");
+                throw MirrorUnavailable($"Dependency mirror artifact copy verification failed: {artifact.FileName}");
             }
         }
     }
+
+    private static ProviderDiagnosticException MirrorUnavailable(string message) =>
+        new(DiagnosticIds.ExternalUnavailable, PrimaryDisposition.Stop, message);
 
     private sealed record MirrorArtifact(string FileName, string Digest);
 
@@ -310,7 +313,9 @@ internal sealed class DotNetFactoryProvider
     {
         foreach (string path in Directory.EnumerateDirectories(root, "*", SearchOption.AllDirectories)
             .Where(static path => string.Equals(Path.GetFileName(path), "bin", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(Path.GetFileName(path), "obj", StringComparison.OrdinalIgnoreCase))
+                || string.Equals(Path.GetFileName(path), "obj", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetFileName(path), ".program-kit-tool-appdata", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetFileName(path), ".program-kit-tool-home", StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(static path => path.Length))
         {
             if (Directory.Exists(path))

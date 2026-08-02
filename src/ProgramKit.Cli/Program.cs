@@ -34,7 +34,7 @@ public static class Program
             }
             else
             {
-                CommandDispatcher dispatcher = new(ProgramKitComposition.CreateKernel());
+                CommandDispatcher dispatcher = new(ProgramKitComposition.CreateKernel(), ProgramKitComposition.CreateSessionServices());
                 result = dispatcher.Execute(parsed.Invocation!);
                 format = parsed.Invocation!.Format;
             }
@@ -87,6 +87,7 @@ public static class Program
 
     private static PublicCommand DetectCommand(string[] args) => args.Length == 0 ? PublicCommand.Help : args[0] switch
     {
+        "session" when args.Length > 1 => args[1] switch { "explain" => PublicCommand.SessionExplain, "install" => PublicCommand.SessionInstall, "verify" => PublicCommand.SessionVerify, "remove" => PublicCommand.SessionRemove, _ => PublicCommand.Help },
         "explain" => PublicCommand.Explain,
         "construct" => PublicCommand.Construct,
         "evaluate" => PublicCommand.Evaluate,

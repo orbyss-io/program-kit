@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.Contracts.Diagnostics;
 using Orbyss.ProgramKit.Contracts.Identity;
 using Orbyss.ProgramKit.Contracts.Operations;
+using Orbyss.ProgramKit.Contracts.SessionIntegration;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 
@@ -23,7 +24,9 @@ public static class OperationResultFactory
         IReadOnlyList<ArtifactReference>? artifacts = null,
         IReadOnlyList<ArtifactReference>? receipts = null,
         IReadOnlyList<EvidenceReference>? evidence = null,
-        IReadOnlyList<OperationChange>? changes = null)
+        IReadOnlyList<OperationChange>? changes = null,
+        JsonObject? session = null,
+        IReadOnlyList<DisclosureEntry>? disclosure = null)
     {
         if (phase == OperationPhase.Completion && effect == EffectState.Indeterminate)
         {
@@ -31,7 +34,8 @@ public static class OperationResultFactory
         }
 
         if (command == PublicCommand.Explain && explanation is null
-            || command is PublicCommand.Help or PublicCommand.Version && utility is null)
+            || command is PublicCommand.Help or PublicCommand.Version && utility is null
+            || command is PublicCommand.SessionExplain or PublicCommand.SessionInstall or PublicCommand.SessionVerify or PublicCommand.SessionRemove && session is null)
         {
             throw new InvalidOperationException("The successful command-specific inline result is required.");
         }
@@ -54,7 +58,9 @@ public static class OperationResultFactory
             DiagnosticFactory.View(Array.Empty<Diagnostic>()),
             null,
             explanation,
-            utility);
+            utility,
+            session,
+            disclosure);
         OperationExecutionTracker.Complete(result);
         return result;
     }
@@ -127,6 +133,9 @@ public static class OperationResultFactory
                 DisclosureFilter.PublicText("The normal result pipeline could not complete."),
                 DisclosureFilter.PublicText("No further claim is made; use the safest bounded stop action.")),
         });
+
+    public static OperationResult Fallback(PublicCommand command, EffectState effect) =>
+        Fallback(command, OperationPhase.Request, effect);
 
     private static string Kebab(PublicCommand command) => command.ToString().ToLowerInvariant();
 }

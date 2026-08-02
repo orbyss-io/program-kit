@@ -3,10 +3,27 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>program-kit</AssemblyName>
     <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>program-kit</ToolCommandName>
+    <PackageId>Orbyss.ProgramKit.Cli</PackageId>
+    <Version>1.0.0-alpha.1</Version>
+    <Authors>Orbyss</Authors>
+    <Description>Human-governed, contract-bounded software factory CLI.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/orbyss-io/program-kit</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../ProgramKit.Contracts/ProgramKit.Contracts.csproj" />
     <ProjectReference Include="../ProgramKit.Kernel/ProgramKit.Kernel.csproj" />
     <ProjectReference Include="../ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
+    <ProjectReference Include="../ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj" />
+    <ProjectReference Include="../ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Link="README.md" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,602 @@
+# Verification: Provider-Neutral AI Session Integration Proof
+
+This record contains repository-local execution evidence. It is not semantic approval, publication authority, or a substitute for the independent human/live-session gates listed in `tasks.md`.
+
+## Foundation — 2026-08-01
+
+- Red-state contract filter: failed to compile because the four session schemas, session result fields, lifecycle command identities, and disclosure contracts did not yet exist.
+- Red-state unit filter: failed to compile because request-bound authority and namespaced publication contracts did not yet exist.
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-restore --filter "FullyQualifiedName~SessionIntegrationSchemaContractTests|FullyQualifiedName~SessionOperationResultContractTests|FullyQualifiedName~SessionIntegrationBoundaryTests"`
+  - Passed: 6; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-restore --filter "FullyQualifiedName~SessionAuthorityGrantTests|FullyQualifiedName~NamespacedArtifactSetPublisherTests"`
+  - Passed: 4; failed: 0.
+- `dotnet test ProgramKit.slnx -c Release --no-restore`
+  - Contract: 10 passed.
+  - Unit: 19 passed.
+  - Acceptance: 4 passed.
+
+Foundation observations:
+
+- session contracts are embedded in the offline registry with stable schema identifiers;
+- session results reuse `program-kit.operation-result/v1`;
+- read-only operations reject supplied authority, while effects require an exact unexpired, unrevoked, unconsumed grant bound to request, operation, workspace, provider, and scope;
+- namespaced publication preserves candidate bytes, rejects collisions and stale staging, and rolls back an injected partial publication;
+- source-authoring workspaces fail closed;
+- canonical and provider-neutral assemblies contain no provider-local projection symbols; and
+- runtime projects do not acquire development-session dependencies.
+
+## US1 — workspace-local CLI and Codex projection — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-build --filter "FullyQualifiedName~SessionCliContractTests|FullyQualifiedName~CodexProjectionContractTests"`
+  - Passed: 6; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-build --filter "FullyQualifiedName~SessionLifecycleTests"`
+  - Passed: 2; failed: 0.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --filter "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests"`
+  - Passed: 3; failed: 0.
+  - The package was produced without rebuilding, installed through an isolated local-only NuGet configuration, and invoked only through the workspace-local `program-kit` app host while network proxies were denied.
+  - Ten fresh workspaces completed explain/install/verify with equal generated skill fingerprints.
+  - Each installation classified the live projection as `exact`, while provider-session availability remained separately `reload-required`.
+- `eng/Pack-ProgramKitTool.ps1 -OutputRoot C:\tmp\program-kit-us1-pack`
+  - Package: `Orbyss.ProgramKit.Cli.1.0.0-alpha.1.nupkg`.
+  - SHA-256: `2B1D70BF84A738D248B4E7C85158ED2EA3105BD773CB2E83AA9FEAF6D5B23D8B`.
+
+US1 observations:
+
+- explain returned no effect and the exact provider, adapter, definition, release, candidate-set, projection, expected-state, and authority-request bindings;
+- install consumed a separately stored grant bound to the exact request core, workspace, provider, scope, operation, and committed effect;
+- projection publication and its journal were namespaced under `.program-kit/session-integrations/codex/`, with the admission record written last;
+- verify compared admitted record and live bytes without mutation;
+- source-authoring workspaces were rejected before lifecycle inspection or projection;
+- the installed projection consisted only of `.agents/skills/program-kit/SKILL.md`; and
+- no source checkout, global registration, provider process, network client, telemetry client, or runtime dependency was introduced.
+
+## US2 — human-led intent and exact construction authority — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-build --filter "FullyQualifiedName~SessionGuidanceContractTests"`
+  - Passed: 1; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-build --filter "FullyQualifiedName~ConstructAuthorityBindingTests"`
+  - Passed: 1; failed: 0.
+  - Changes to canonical input, operation, workspace target, or provider selection invalidated the original binding.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --filter "FullyQualifiedName~HumanLedSessionWorkflowAcceptanceTests|FullyQualifiedName~SessionRuntimeIsolationAcceptanceTests"`
+  - Passed: 2; failed: 0.
+  - Declined/missing authority produced `blocked / none / request-approval`; the exact separately granted request installed successfully; verify preserved the complete workspace digest.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --filter "FullyQualifiedName~Construct_then_evaluate_proves_admission"`
+  - Passed: 1; failed: 0 after migrating Feature 001's reference request from ambient approval to an exact repository grant.
+- `dotnet test ProgramKit.slnx -c Release --no-build`
+  - Contract: 17 passed.
+  - Unit: 22 passed.
+  - Acceptance: 9 passed.
+
+US2 observations:
+
+- the canonical workflow distinguishes known, incomplete-known, and unknown intent without inventing consumer semantics;
+- clarified input, target paths, provider resolution, operation, and grant identity participate in the invocation binding;
+- factory construction now loads and consumes a request-bound repository grant instead of trusting an ambient Boolean;
+- the existing public construct/evaluate slice remained compatible under the stricter authority mechanism;
+- the ten-workspace deterministic lifecycle suite retained equal projection fingerprints, exact request bindings, committed install outcomes, and read-only verification outcomes.
+
+## US3 — stable diagnostics and corrective guidance — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --no-restore --filter "SessionDiagnosticCatalogContractTests|SessionNegativeResultGoldenTests|InvocationTransportGuidanceContractTests"`
+  - Passed: 4; failed: 0.
+  - Aggregate canonical negative-result SHA-256: `sha256:6c72c60b19a44e2ef7ef2279eac0a269576c5ff9f38f349d25142189a4dc5947`.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --no-restore --filter SessionDisclosureTests`
+  - Passed: 6; failed: 0.
+  - Secrets, credentials, authorization headers, conversation identifiers, raw tool output, rooted paths, controls, stack traces, and oversized values were withheld or bounded.
+- `dotnet build src/ProgramKit.Cli/ProgramKit.Cli.csproj --no-restore` followed by `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --no-build --filter SessionDiagnosticsAcceptanceTests`
+  - Passed: 3; failed: 0.
+  - CLI mismatch stopped with `PKSES0001`; admitted drift proposed a separate repair with `PKSES0004`; source-authoring use stopped with `PKSES0006`; every case proved `effectState: none` or byte-for-byte preservation.
+
+US3 observations:
+
+- reserved neutral IDs `PKSES0001` through `PKSES0009` and provider IDs `PKCDX0001` through `PKCDX0003` have stable versioned catalog entries;
+- transport failures before a valid envelope remain integration-layer failures and never fabricate a Program Kit result or launch a provider;
+- unexpected internal exceptions return the existing safe `PKINT0001` fallback rather than being mislabeled as a session-availability warning;
+- remediation projection is typed, bounded, non-executable guidance; and
+- disclosure filtering returns stable withheld/truncated values without raw paths, provider output, credentials, prompts, transcripts, or exception details.
+
+## US4 — provider-neutral conformance — 2026-08-01
+
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --no-restore --filter "SessionProviderConformanceContractTests|ProviderNeutralityArchitectureTests"`
+  - Passed: 3; failed: 0.
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --no-restore --filter SessionProjectionDeterminismTests`
+  - Passed: 1; failed: 0.
+  - Repeated and semantically irrelevant projection variants produced observation SHA-256 `sha256:26822f5b3c1d3f55bd25981f12605131bea313105d56a457e533e0fd00b0dd00`.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter "CodexProviderConformanceAcceptanceTests|SessionProviderParityAcceptanceTests"`
+  - Passed: 3; failed: 0.
+  - Valid, stale-definition, incompatible-support, and corrupted-content cases were classified exactly; direct CLI, neutral harness, and reference-provider observations preserved normalized outcome, effect, and disposition meaning.
+- Provider-neutral golden corpus aggregate SHA-256: `sha256:255f26e0db6e737dd016041525b05e828763fe2144e8af6652cf46d71a3eb562`.
+
+US4 observations:
+
+- conformance evaluates only the public adapter contract and canonical definition;
+- required operations, workspace scope, generated ownership, diagnostic/profile identities, structured-result expectations, authority, disclosure, and fresh-session classification are explicit profile fields;
+- repeated projection is byte-stable and provider-local paths are normalized out of semantic comparison;
+- canonical source and corpus inspection found no reference-provider paths, payloads, command names, or types; and
+- semantic weakening produces ordered exact failures instead of silently lowering the canonical boundary.
+
+## US5 — exact record-driven removal — 2026-08-01
+
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --no-restore --filter RemoveSessionIntegrationTests`
+  - Passed: 5; failed: 0.
+  - Absent, exact, partial, drifted, interrupted, and already-removed transitions were exercised; interrupted removal rolled back the admitted bytes and returned `PKSES0005` with an `indeterminate` effect.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter SessionRemovalAcceptanceTests`
+  - Passed: 2; failed: 0.
+  - Exact removal preserved unrelated workspace files and independent provider state byte for byte; drifted owned content was retained and blocked with `PKSES0004`.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --no-restore --filter PackagedToolRemovalAcceptanceTests`
+  - Passed: 1; failed: 0.
+  - The locally packed and workspace-installed CLI remained callable and returned release `1.0.0-alpha.1` after its Codex session projection was removed.
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --no-restore --filter Session`
+  - Passed: 17; failed: 0.
+- Exact-removal fixture corpus aggregate SHA-256: `sha256:b0a12389080e615f801f0b16930e6361ad4fbcdb928f9ccac7174f48eccd8aa6`.
+- Preserved fixture-byte SHA-256 values:
+  - unrelated consumer skill: `sha256:2410afe65935fd59b394ea566129afb3ffffe694ba20f9c063e29c783dab44ca`;
+  - unrelated consumer source: `sha256:5039bcb2e17e52f8e551c6c4daa72326bde093956e72297a09796ff1bb284738`; and
+  - independent provider/global state: `sha256:43486b14488497e183fda442c5b82dac7b70e59d097fea192ba4231b1906c31a`.
+
+US5 observations:
+
+- removal requires an exact unconsumed grant bound to the removal request, workspace, provider, scope, operation, and committed effect;
+- every recorded projection is revalidated under the workspace lock before any deletion;
+- only exact paths from the admitted record are backed up and removed, with no broad consumer-directory deletion;
+- interruption produces a durable rollback/incomplete journal, restores any removed exact bytes when possible, and never reports a committed outcome;
+- a committed receipt distinguishes an explicitly removed integration from one never installed, while verification reports no provider-session availability claim;
+- missing, partial, corrupt-record, and drifted installations fail closed without mutation; and
+- authority grants, unrelated `.agents` content, application files, provider/global state, and the independently installed workspace-local CLI remain outside removal ownership.
+
+## Cross-cutting completion evidence — 2026-08-01
+
+Environment and dependency closure:
+
+- .NET SDK: `10.0.302`.
+- `dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config`, with isolated `APPDATA`, `XDG_CONFIG_HOME`, `DOTNET_CLI_HOME`, and the repository-ignored package cache:
+  - succeeded; all projects were already current;
+  - no `packages.lock.json` changed.
+- A restore without the explicit repository `NuGet.Config` was rejected by the workspace sandbox because the .NET SDK attempted to read the inaccessible user-level NuGet configuration. No result from that rejected invocation is counted as restore evidence.
+- `dotnet format ProgramKit.slnx --no-restore --verify-no-changes`: passed.
+- `dotnet build ProgramKit.slnx -c Release --no-restore`: passed with 0 warnings and 0 errors.
+- Final full Release suites:
+  - contract: 24 passed, 0 failed;
+  - unit: 34 passed, 0 failed;
+  - acceptance: 19 passed, 0 failed.
+
+Package and isolated-workspace proof:
+
+- `eng/Invoke-SessionIntegrationQuickstart.ps1 -SkipBootstrap` completed on Windows in ten isolated workspaces outside the source repository.
+- Bounded evidence: `reviews/deterministic-session-review.json` using schema `program-kit.deterministic-session-review/v1`.
+- Evidence SHA-256: `sha256:bc8ffe0d1ae8cdd51bc2a03202cd019a7c82f07b7385d4573bbd9e47efa73846`.
+- Acquired package identity: `Orbyss.ProgramKit.Cli` `1.0.0-alpha.1`; observed package SHA-256: `sha256:d9fd462a847045b4fd4887e1fd14967bdac5cc67893bbbd5b3fa03b0be2c7907`.
+- Trials: 10 passed, 0 failed. Workspace-local tool installation took 316 ms minimum, 323.5 ms median, and 335 ms maximum.
+- The ten workspace-bound installation records and removal receipts each had ten distinct exact digests; every generated skill had the same projection SHA-256 `sha256:8ddcb2a195a09bc56c060a97398491607b2191e053c951b88f84519e80a4b4fb`.
+- Every trial proved missing-authority `program-kit.kernel/PKPOL0001`, drift `program-kit.session/PKSES0004`, exact removal, preserved consumer bytes, and a still-callable independently installed CLI.
+- The evidence asserts denied network after package acquisition, disabled telemetry, no source upload, and no provider-global registration.
+- A separate final pack inspection produced `Orbyss.ProgramKit.Cli.1.0.0-alpha.1.nupkg`, SHA-256 `sha256:0643fee471958f0acdba4aec31664f724d8deb392e8bf112c22d9c61b4bbc6cc`, 908,816 bytes, with 31 expected entries and no external NuGet dependencies in its manifest. NuGet archive hashes are recorded per acquisition and are not claimed to be equal across separate pack invocations.
+
+Focused conformance, disclosure, and runtime evidence:
+
+- `dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj -c Release --no-build --no-restore --filter SessionDisclosureTests`: 6 passed.
+- `dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj -c Release --no-build --no-restore --filter "SessionProviderConformanceContractTests|ProviderNeutralityArchitectureTests"`: 3 passed.
+- `dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj -c Release --no-build --no-restore --filter "CodexProviderConformanceAcceptanceTests|SessionProviderParityAcceptanceTests|RuntimeAndDriftAcceptanceTests|SessionRuntimeIsolationAcceptanceTests"`: 6 passed.
+- The runtime test now installs and removes the session projection before restoring, building, starting, and calling the generated reference application's accepted `/status` behavior. Its dependency closure contains no Program Kit, Spec Kit, session-integration, or Codex provider assembly.
+- Static scans of product session/CLI sources found zero network clients, telemetry mechanisms, provider launches, source-upload mechanisms, credential literals, or user-global registration mechanisms.
+- Static scans of bounded review evidence found zero source-root paths, temporary consumer roots, prompts, responses, transcripts, or credential-like values.
+- Inspection of every extracted package entry found zero source-root paths, temporary consumer roots, or credential-like values. The intentional synthetic disclosure-test fixture `password=withheld` is test data and is not a product or evidence finding.
+
+## Requirement reconciliation and pending gates — 2026-08-01
+
+| Requirement area | Disposition |
+|---|---|
+| FR-001, FR-003 through FR-006 | Passing Windows automated package/isolation, direct-CLI, source-separation, and runtime evidence. Linux execution remains pending the shared matrix run. |
+| FR-002, FR-020, SC-007 | Partial: the selected exact release/version and admitted identities are recorded and observed, but a cryptographic binding from the acquired package through the callable executable is not yet enforced. This is a recorded first-vertical-slice convergence gap, not a Feature 002 success claim. |
+| FR-007 through FR-014 | Canonical session contracts and provider-neutral projections pass their contract tests. Provider-role admission and vocabulary/support-envelope fail-closed enforcement remain recorded follow-up gaps. |
+| FR-015 through FR-023 | Automated explain, preflight, exact authority, staged publication, verification, failure, and structured-result behavior passes, subject to the exact artifact-binding gap above. |
+| FR-024 through FR-032, SC-003, SC-005 | Guidance and deterministic workflow mechanics pass automated tests. Fresh live Codex behavior and the two-turn human interaction outcome remain pending T101 and T102. |
+| FR-033 through FR-038, SC-006 | The public session adapter conformance and parity suites pass. The separate factory SPI/public factory-request seam is not remediated by this feature. |
+| FR-039 through FR-046, SC-004, SC-008 through SC-010 | Passing diagnostics, disclosure, local-first, exact-removal, preservation, and post-removal runtime evidence. |
+| SC-001, SC-002 | Ten Windows workspaces pass. Linux and the documented fresh-provider-session portion remain pending shared CI/live review. |
+
+Final disposition: the Feature 002 implementation and deterministic Windows evidence are ready for review, but the feature is not semantically approved, release-ready, or fully converged. T100 remains open for Linux execution, T101 remains open because no live Codex launch was authorized, T102 remains open for an independent human product decision, and T105 remains open because the known artifact-binding and factory/VSL enforcement gaps are engineering gaps rather than human gates.
+
+The separate read-only review identified these out-of-scope follow-ups; none were implemented in Feature 002:
+
+1. `ProviderRole` declares construction, evaluation, and projection roles while `IFactoryProvider` exposes only construction, and role admission is not enforced.
+2. Runtime intake uses the provider-specific .NET intake instead of the public factory-request seam.
+3. Exact digest equality and observed CLI/package/executable binding need convergence wherever Feature 002 claims exactness.
+4. Vocabulary and support-envelope behavior is not yet fully fail-closed.
+
+Agreed follow-up order: close and converge Feature 002 with the pending evidence visible; reconcile and implement the existing pushed Feature 003 Claude adapter; reconcile and implement the existing pushed Feature 004 engineering-quality/constitution gates; then create Feature 005 for first-vertical-slice convergence. No later feature branch was created or executed during this work.
+## Phase 9 convergence evidence — 2026-08-01
+
+The following evidence supersedes the earlier partial dispositions for the canonical definition, provider manifest, CLI artifact binding, production provider admission, and installation-record trust chain. It does not change the pending Linux, live Codex, or independent-human gates.
+
+- `dotnet format ProgramKit.slnx --no-restore --verify-no-changes`: passed.
+- `dotnet build ProgramKit.slnx -c Release --no-restore`: passed with 0 warnings and 0 errors.
+- Full Release suites after convergence:
+  - contract: 28 passed, 0 failed;
+  - unit: 34 passed, 0 failed;
+  - acceptance: 27 passed, 0 failed.
+- The acceptance suite includes the ten fresh packaged/offline Windows workspaces and the packaged negative matrix.
+
+T106 — canonical session definition:
+
+- one embedded `session-integration-definition.json` is now the runtime source for the full authority, effect, result, guidance, projection, diagnostic, factory-operation, and lifecycle contract;
+- its identity digest is recomputed from normalized canonical content, the guidance reference is verified against the embedded Markdown bytes, and placeholder or drifted identities are rejected;
+- round-trip, definition-drift, guidance-drift, and definition/provider-binding tests pass.
+
+T107 — Codex manifest:
+
+- the embedded `codex-provider-manifest.json` is now the only runtime source for provider, adapter, definition, conformance, provider-surface, tested-version, diagnostic, support, operation, scope, and projection declarations;
+- provider and adapter identities bind the normalized manifest content, the diagnostic identity binds the executable Codex diagnostic catalog, and the manifest must bind the exact executable definition and conformance profile;
+- placeholder and divergent manifest identities fail closed.
+
+T108 — selected CLI release:
+
+- candidate admission resolves the declared workspace-local executable, hashes its current bytes, resolves the exact installed `.store` NuGet package, hashes its current bytes, and compares schema, canonical profile, package ID/version/digest evidence, command, executable path/digest, reported version, runtime profile, package-source evidence identity, and claim class;
+- the mismatch table covers every governed CLI field plus missing executable and missing installed-package evidence, always returning `PKSES0001` with `effectState: none`.
+
+T109 — production provider admission:
+
+- exact provider, adapter, definition, and conformance-profile content identities are resolved before projection;
+- the declared conformance evaluator now runs in production before effects and rejects support, scope, operation, binding, ownership, definition, diagnostic, deterministic projection, structured-result, authority, disclosure, normalization, and fresh-session-classification loss;
+- ambient provider selection is rejected as typed ambiguity `PKRES0002`; unavailable exact selection remains `PKSES0002`; incompatible admitted behavior remains `PKSES0003`.
+
+T110 — installation trust and verification:
+
+- the installation-record schema now matches the emitted exact record, including canonical profile, workspace root binding, provider/adapter/definition/conformance identities, full CLI release, projection set, publication evidence, admission receipt, and record digest;
+- inspection recomputes the record digest, installation identity, projection-set live-state digest, journal digest, admission receipt, installed package/executable evidence, and current workspace/provider/CLI/projection bindings without mutation;
+- tests prove exact idempotence, reload-required/fresh-session separation, corrupt and missing-journal `partial`, current CLI `stale`, provider-profile `incompatible`, and projection `drifted` states.
+
+T111 — packaged negative matrix:
+
+- the locally packed and workspace-installed CLI proves malformed input `PKREQ0002`, ambient ambiguity `PKRES0002`, incomplete/unsupported exact selection `PKRES0001` or `PKSES0002`, unavailable executable/package `PKSES0001`, collision `PKWSP0002`, interrupted prior publication `PKWSP0003`, stale/drifted binding `PKSES0004`, and missing authority `PKPOL0001`; the production-admission corpus separately injects incompatible providers and proves `PKSES0003`;
+- every case asserts the primary disposition and effect state; collision, interruption, drift, missing authority, and all request failures preserve consumer-owned or pre-existing bytes.
+
+Convergence disposition:
+
+- the earlier FR-002/FR-020/SC-007 cryptographic package-to-callable-executable gap is closed for the tested workspace-local .NET tool layout;
+- the earlier FR-007 through FR-014 placeholder-definition/manifest and test-only session-provider admission gaps are closed;
+- the factory SPI/public factory-request/vocabulary findings remain deliberately deferred to Feature 005 and were not implemented here;
+- T100 remains pending for Linux execution, T101 remains pending because no live Codex launch was authorized, T102 remains pending for an independent human product decision, and T105 remains pending until those authorized final gates can be truthfully consolidated.
+
+## Supported-platform deterministic review — 2026-08-01
+
+T100 is satisfied by the bounded Windows/Linux matrix evidence in
+`reviews/deterministic-session-review.json`:
+
+- Draft PR `#7`, workflow run `30699217250`, head
+  `d19626a288d5b2de143b9709b2a3e15b48dd01af` passed both supported jobs:
+  Ubuntu job `91367117663` and Windows job `91367117669`.
+- Aggregate evidence schema:
+  `program-kit.deterministic-session-review-index/v1`; SHA-256
+  `sha256:c253d0b4cbf1eed212b57777244713debe7f8560412495b154da5bbcecfc0171`.
+- Ubuntu raw evidence SHA-256:
+  `sha256:e5bceb579558f271749810647d083d25052137f058bd3f34e92454207192ceee`;
+  Windows raw evidence SHA-256:
+  `sha256:2cc5c3583a115a991c29a73ca7890ba6817aa10b98473448c604cda6eddfdc9b`.
+- Both platforms used SDK `10.0.302` and package identity
+  `Orbyss.ProgramKit.Cli@1.0.0-alpha.1`. Observed package bytes are honestly
+  `verified-equivalent`, not claimed cross-platform canonical-byte: Ubuntu
+  `sha256:8414bfc5c919d048f4b4d378fdcbf476c1db727e1ce41177276d19e8f6152884`;
+  Windows `sha256:500c5d24250da816c2f4d338829d9cb7a93cac3102a78a23ca94f35cc82d42ce`.
+- Ten fresh workspaces passed per platform, twenty total, with zero failures.
+  Tool installation took 314–344 ms on Ubuntu and 518–2150 ms on Windows.
+- Each platform produced ten distinct installation-record digests and ten
+  distinct removal-receipt digests. Every trial proved missing-authority
+  `program-kit.kernel/PKPOL0001`, drift `program-kit.session/PKSES0004`, exact
+  removal, preserved consumer bytes, and a callable CLI after removal.
+- Platform-specific projections were deterministic within their declared
+  profiles: Ubuntu `sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10`;
+  Windows `sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21`.
+- Bounded evidence scans found zero source-root paths, temporary consumer roots,
+  prompts, responses, transcripts, credential-like values, or raw provider
+  output. T100 is complete.
+
+## Live Codex session review — 2026-08-01
+
+T101 was executed with explicit authorization and recorded as bounded evidence
+in `reviews/codex-session-review.json`:
+
+- provider `codex`, exact CLI version `0.137.0`, observed version output
+  `codex-cli 0.137.0`, and explicitly pinned bundled model `gpt-5.5`;
+- reviewer identity `joey-orbyss`, 10 fresh isolated trials, 8 complete passing
+  attestations, and final status `findings-present`;
+- trial 3 did not ask for missing input within two interaction turns; trial 9
+  neither completed evaluation nor asked for missing input within two turns;
+- normalized-LF evidence SHA-256
+  `sha256:e7d6b00c53b0473e9e2a0de98bf8a2c783a50d21447d66f96ef5f5e72ea6f91d`;
+- the bounded record contains no prompt, response, transcript, conversation,
+  credential, raw-output, source-root, consumer-root, or workspace-path field;
+  absolute-path and credential-pattern scans returned zero findings.
+
+The human-observed bounded finding was that the construct authority grant
+declared consumer-owned `requests/revocations.json` and
+`requests/review.json` artifacts that were absent, while construction was
+still admitted. The repository authority loader currently does not close those
+declared revocation and provenance references. This is an upstream Feature 001
+first-vertical-slice authority-closure finding and was deliberately not
+remediated inside Feature 002.
+
+T101 execution is complete, but SC-003 and SC-005 are not passed by this run.
+T102 remains pending for an independent human approval or rejection decision;
+T105 remains pending until that decision is recorded without self-approval.
+
+## Final T105 requirement reconciliation — 2026-08-01
+
+This section supersedes the earlier pending-gate dispositions while preserving
+their raw provenance. It records the final Feature 002 state after T100, T101,
+and the independent T102 decision.
+
+| Requirement | Final evidence disposition |
+|---|---|
+| FR-001 through FR-006 | **Automated pass.** Exact packaged acquisition, isolated consumer use, direct CLI operation, source-workspace separation, and generated-runtime independence pass supported-platform and runtime evidence. |
+| FR-007 through FR-014 | **Automated pass within Feature 002 scope.** Canonical session definition, provider-neutral projection, manifest/definition binding, production adapter admission, and fail-closed projection validation pass. The separately recorded factory SPI/public-request/vocabulary work remains deferred to Feature 005 and is not claimed here. |
+| FR-015 through FR-023 | **Automated pass.** Explicit selection, explain/preflight, staged publication, exact CLI/package/executable admission, verification state, and structured lifecycle results pass the convergence and negative matrices. |
+| FR-024 through FR-032 | **Not product-accepted.** Automated guidance/authority/result mechanics pass, but live trial 9 did not complete evaluation and trials 3 and 9 failed timely missing-input handling. The missing revocation/provenance closure means the exercised factory authority path was not a valid happy path. |
+| FR-033 through FR-038 | **Automated pass.** Codex remains one provider projection; neutral/direct/provider conformance and normalized semantic parity pass. |
+| FR-039 through FR-043 | **Automated pass.** Stable diagnostics, bounded next actions, disclosure filtering, local-first behavior, and zero credential/path/transcript evidence findings pass. |
+| FR-044 through FR-046 | **Automated pass.** Explicit authorized removal, unchanged-owned-byte deletion, consumer-byte preservation, and removed-state verification pass. |
+| SC-001 | **Pass.** Supported-platform deterministic evidence proves documented isolated acquisition, installation, and verification well within ten minutes. |
+| SC-002 | **Pass.** 20/20 supported-platform fresh-workspace trials admitted complete exact state or failed safely, with zero trusted partial-success reports. |
+| SC-003 | **Fail.** The authorized live review passed only 8/10 attestations; trial 9 did not complete evaluation. Independent reviewer `joey-orbyss` rejected product acceptance. |
+| SC-004 | **Pass.** The packaged negative and production-admission matrices return the expected typed next-action/effect classes without unauthorized mutation. |
+| SC-005 | **Fail.** Trials 3 and 9 did not ask for missing input within two interaction turns. |
+| SC-006 | **Pass.** Direct, neutral, and Codex adapter conformance preserve normalized outcome, effect, and disposition meaning. |
+| SC-007 | **Pass.** Exact CLI release, provider/adapter/definition/conformance identities, workspace binding, projection set, and verification state are recorded and revalidated. |
+| SC-008 | **Pass.** Exact removal preserves unrelated/consumer-owned bytes and refuses drifted or unproven targets. |
+| SC-009 | **Pass.** Source, package, projection, and bounded-evidence scans found zero secrets, protected paths, transcripts, source uploads, telemetry, or undeclared provider launching. |
+| SC-010 | **Pass.** The generated reference application restores, builds, starts, serves `/status`, and remains runtime-independent after session integration and Program Kit removal. |
+
+Independent review disposition: **REJECTED — NOT APPROVED**. The exact decision
+is recorded in `reviews/product-review.md` under reviewer identity
+`joey-orbyss` at `2026-08-01T13:28:07.307Z`.
+
+Feature 002 implementation evidence is complete enough to hand off, but the
+feature MUST NOT claim product acceptance, release readiness, or semantic
+approval. Reconsideration requires first-vertical-slice authority-closure
+remediation, correction of the resulting session-guidance failures, a new full
+ten-consecutive-fresh-session evidence set, and a new independent human
+decision. T105 is complete as a truthful reconciliation, not as an approval.
+
+## Approved remediation candidate — 2026-08-02
+
+This section supersedes only the implementation-readiness conclusion above. It
+does not reinterpret the rejected 8/10 review or claim new product acceptance.
+
+- T112 passed focused diagnostic proof: 12 contract tests, including schema
+  validation of every retained `PKSES` and `PKCDX` result. The negative aggregate
+  identity is `sha256:f57590685ce39389c0d5d5440bdfbd78a19442627629b4cac1637c966a4ad3da`.
+  The session and Codex catalog identities are respectively
+  `sha256:006042a0eaee83f410f96405db492c33ccd66514f19886a54ea88913335b22e5`
+  and `sha256:e96a4a56a2c9e6b007a745e1e31713ebdc630592c6fb4616e8d733ec02f0b2c5`.
+- T113 passed the exact-seed helper and contract matrix for the current Feature
+  001 factory request, grant, review, revocation, definition, implementation,
+  explain, construct, and evaluate closure. The seed identity is
+  `sha256:cd2207f623d9705a1768c9a242a6f76acc8feb78f15d24557602c76b20de45f6`.
+- T114 passed one focused projection test and two human-led workflow acceptance
+  tests covering typed missing input, exact continuation, non-authorizing
+  conversation, selected grant authority, construction, and evaluation. The
+  current definition and provider-manifest identities are respectively
+  `sha256:238ed8e709e0bc85204cc802556e364f51002d370145e7ce6cec7f7832c5994f`
+  and `sha256:2f8ca6b14475f0c06e56746916fd4f7156442c9247279a6cd8f78a63db4f1d9f`.
+- T115 passed feature-owned schema and contract proof for exact candidate
+  bindings, ten bounded reviewer attestations, typed final results, fail-closed
+  invalid evidence, and absence of raw prompts, responses, transcripts, output,
+  credentials, and paths. The schema identity is
+  `sha256:963b74d9721993dfd2bd9f3adeb4c9ac5316d1042a33d5e9e465cbc7f6c43ad3`.
+  The rejected historical evidence remains byte-exact at
+  `sha256:e7d6b00c53b0473e9e2a0de98bf8a2c783a50d21447d66f96ef5f5e72ea6f91d`.
+- T116 regenerated eight deterministic distribution artifacts twice without
+  drift. The manifest identity is
+  `sha256:439355b70d8319ab1c26c8e2fda692d96e678618705d255f5d9553d25184ef4b`.
+  `eng/Invoke-Verification.ps1 -Mode PrePr` then passed isolated builds with
+  zero warnings/errors, 46 unit tests, 64 contract tests, changed-file format,
+  SpecKit integrity, canonical text, and diff hygiene. The unchanged dependency
+  mirror was reused; the local full acceptance/conformance/platform matrix was
+  intentionally not duplicated.
+
+T117 is pending authoritative protected Windows/Linux CI. T118 remains an
+explicitly human-operated ten-fresh-session review, T119 remains a new
+independent human decision, and T120 remains final reconciliation. Therefore
+Feature 002 is remediated for CI handoff but is not yet accepted.
+
+### First protected remediation run — 2026-08-02
+
+Protected run `30742625953` exercised exact head
+`bab4d453099973198a29f372ce44c9d619c4bb4c`. Preflight, locked restore,
+Release build, and deterministic evidence passed on Windows and Ubuntu. Both
+platform jobs then found the same existing-requirement blocker in
+`Packaged_cli_negative_matrix_is_typed_fail_closed_and_byte_preserving`: the
+ambiguous session-provider path requested `needs-input` without the mandatory
+typed continuation, so result aggregation safely replaced it with fallback
+`PKINT0001`. T114 and T116 were reopened; T117 remains pending. This failed run
+is retained as repair provenance and is not acceptance evidence.
+
+The approved focused repair now emits `needs-input` with exact diagnostic
+`PKRES0002`, a request-bound continuation, and missing-input identity
+`providerselection.provider.selected`. The single previously failing packaged
+acceptance test passed in 6 seconds. Distribution evidence regenerated twice
+without drift; the repaired manifest identity is
+`sha256:ef753696a915123aa38b09600b37e154d4757799c00b586da785132fddc11a95`.
+The fast pre-PR gate then passed zero-warning/error builds, 46 unit tests, 64
+contract tests, formatting, SpecKit integrity, canonical text, and diff hygiene
+while reusing both the dependency mirror and locked restore. T114 and T116 are
+reclosed; T117 still requires a new protected run for the repaired exact head.
+
+### Authoritative protected remediation proof — 2026-08-02
+
+T117 is satisfied by protected run `30743035067` against exact pushed head
+`66faaef40ac4e93578af8468c24d522c01d77a16`. Preflight job `91483735917`,
+Windows job `91483756635`, and Ubuntu job `91483756636` all passed. Each
+platform independently passed canonical text, exact mirror bootstrap, locked
+restore, zero-warning/error Release build, deterministic distribution-evidence
+regeneration and staleness, 46 unit + 64 contract + 55 acceptance tests,
+formatting, packaged CLI construction, ten isolated workspaces, bounded evidence
+retention, and evidence upload.
+
+Ubuntu completed 10/10 trials with no failures; raw bounded evidence identity is
+`sha256:652ea0f68b9c2f7b216542e3f9c07dd825f6b7ed214e65be6af437bb77f9956b`,
+package identity is
+`sha256:637cad2fd7f5a0c8e647d9a89b76425018863976bfc8fb6e6ca8145eb21229ec`,
+and projection identity is
+`sha256:d6fdd763014ccefa29bd8f72bad1781f880b4c527aa2f8a8e3debe6cc29b0248`.
+Windows completed 10/10 trials with no failures; raw bounded evidence identity is
+`sha256:1d5c3923894ca815d7d159776bd02cbf58e4c0ce5edb7587585e9282f5fa6e94`,
+package identity is
+`sha256:e0bbc2298e1004d00d9fe1a0a84caa9626993b321b7652ed949ea161619c44d5`,
+and projection identity is
+`sha256:216d141a03471c54aa2f9247e40d31396b4c1ca48fd69149ed0b16cba857e846`.
+Both evidence documents assert deterministic projection, denied network after
+acquisition, disabled telemetry, no source upload, no provider-global
+registration, preserved consumer bytes, callable CLI after exact removal,
+expected typed authority/drift failures, and empty failure collections.
+
+T117 is complete without a duplicated local full gate. T118 remains the next
+mandatory checkpoint: a new explicitly human-operated ten-fresh-session Codex
+review against this exact CI-green candidate. Product acceptance remains false.
+
+### Human-review usability convergence — 2026-08-02
+
+The first attempted T118 session was stopped without evidence after the session
+asked the reviewer to select an “existing exact request-bound grant” but did not
+name `authority/construct-grant.json`. This is retained as a usability finding,
+not a failed or assisted trial. T121–T123 now require the session to read and
+name `authorityGrant.logicalPath` before asking, require a separate
+`exactGrantNamed` reviewer attestation for every passing trial, and reject a
+vague authority request. The bounded evidence continues to exclude the path,
+prompt, response, transcript, provider output, and credentials.
+
+The launcher now stops Windows PowerShell 5.1 before preflight with an explicit
+PowerShell 7/`pwsh` instruction. It accepts an optional absolute `-CodexPath`,
+otherwise checks command discovery and the standard Windows desktop location,
+preserves exact version/model checks, and never mutates PATH. A direct
+non-launching Windows PowerShell probe observed the new prerequisite error.
+
+Focused proof passed 11 guidance/resource/seed/review contract tests and 2
+human-led workflow acceptance tests. The projection determinism proof now
+asserts both platform observations on every machine:
+`sha256:75e6c138ce46a1906ba30adc5d7835484d1d02390386604aaf441cdf8ee33167`
+for Windows and
+`sha256:2faf690449b67030cf4e9181183b23174492bed2849d4593578c586c17295462`
+for Linux. The invalidated canonical identities are guidance
+`sha256:f21c6c9d4c875babafa7a28e800855197b9caa180aa08394b1fb184f6f0924aa`,
+definition
+`sha256:b3bb6db99a6284e7e8e85cb3d1c33d2a2212e4ec9a3b8c1ca07499ab64c27164`,
+and provider/adapter
+`sha256:596394fc3a130079c48a7cd62c2efa6c52ae6dac9696d4493eb0be8e7ff8900d`.
+The review-evidence schema byte digest is
+`sha256:6f64e5b20567584dbcc21ad087f71eb22731155141f7c67c3acbc18cf41dba76`.
+
+T124 regenerated the affected distribution evidence; the checked-in manifest
+byte digest is
+`sha256:53e7843c665f09e7c8f583091938fc16f00d02271dbc8fc7ffec6ccdfa504baf`.
+One `eng/Invoke-Verification.ps1 -Mode PrePr` repair rerun then passed Spec Kit
+integrity, canonical text, four zero-warning/error isolated builds, 46 unit
+tests, 65 contract tests, changed-file formatting, and diff hygiene. The full
+local acceptance/conformance/platform matrix and live Codex were intentionally
+not run. T121–T124 are complete; T125 requires authoritative protected
+Windows/Linux CI for the exact pushed repair. The earlier prepared consumer is
+identity-stale and must not be used for T118; a fresh packet follows T125.
+
+### Authoritative human-review repair proof — 2026-08-02
+
+T125 is satisfied by protected run `30744656556` against exact pushed
+implementation/evidence head
+`4366513e2dc735d5092d8cb29e2d60eca82b78c8`. Preflight job `91488089006`,
+Windows job `91488103914`, and Ubuntu job `91488103916` all passed. Each
+platform independently completed canonical text, exact dependency bootstrap,
+locked restore, zero-warning/error Release build, deterministic evidence
+regeneration and staleness, the complete vertical-slice test suite, formatting,
+packaging, ten isolated workspaces, and bounded evidence retention/upload.
+
+Windows completed 10/10 deterministic trials with an empty failure collection;
+its bounded evidence byte digest is
+`sha256:e5355b1212cdcef075fd5b4242a0463c41c01f694b196c82e6856f788dbd91a9`,
+package digest is
+`sha256:393a7d5137ad86a6b53725d087ba16f13b18ef6a8f27c3e23e9a415cf5d01595`,
+and projection digest is
+`sha256:0f01a734d3d2b8943a9e8fab26d796b3ebe2bc5fd4058963462bb17a8f2a1944`.
+Ubuntu completed 10/10 deterministic trials with an empty failure collection;
+its bounded evidence byte digest is
+`sha256:c7bc64dd5d142e9a3b3e54355195e78be4d7500262ae29921bac2cf91012733f`,
+package digest is
+`sha256:1c5f3de2b1142222ee1fe61bc620d111a58ead57beae307b99bf71528f82bc1c`,
+and projection digest is
+`sha256:c84666e282adc94fa289889d60fd6023047ea068a554de4efeb28efdbd21af1b`.
+Both artifacts assert deterministic projection, denied network after
+acquisition, disabled telemetry, no source upload or provider-global
+registration, preserved consumer bytes, typed authority/drift failures, exact
+removal, and a callable CLI after removal.
+
+PR 7 was returned to draft immediately after this proof. T125 is complete
+without a duplicate local full gate. T118 and T119 remain mandatory human
+checkpoints; no live-session success or product acceptance is inferred from CI.
+
+## Final human-reviewed closure — 2026-08-02
+
+The final protected candidate is
+`16e08c89674cd6c970e33cfca20e9161746bba7f`. GitHub Actions run
+`30746970810` completed successfully at that exact head: preflight job
+`91494127666`, Ubuntu job `91494149054`, and Windows job `91494149074` all
+passed. Each platform completed canonical-text and Spec Kit integrity checks,
+exact dependency bootstrap, locked restore, zero-warning/error Release build,
+distribution-evidence regeneration and staleness, 46 unit + 65 contract + 57
+acceptance tests, formatting, packaging, and ten deterministic isolated
+workspaces. No duplicate local full-platform gate was run.
+
+The separately recorded human evidence is
+`reviews/codex-session-review-remediated.json`, normalized-LF SHA-256
+`sha256:6d343ac32a6cc0c5af1deef581fb261adfc47d1b0f0c32a8a776c122745a69fb`.
+It validates against `program-kit.codex-session-review/v2`, contains trial
+numbers 1 through 10 with ten unique trial identities, and reports
+`10/10 / review-ready`. Every trial discovered the skill, observed the exact
+`explain` -> `construct` -> `evaluate` order, requested explicit authority,
+named the exact existing request-bound grant, observed authority before effect,
+completed committed construction and read-only successful evaluation, and
+attested that unsafe or invented success was absent.
+
+Read-only preflight against the retained final review consumer reproduced exact
+evidence bindings for the packet, seed contract, CLI, projection, and
+installation record. The packet, CLI, and projection digests are respectively
+`sha256:4b552e71fe3e75462d8468386b41e5f83f3c6e12c11ee00a127581100703433e`,
+`sha256:e250c9b4fec26a17b17afd0d6e623ba07be30c3bc25229f24530c283eeb08450`,
+and
+`sha256:0f01a734d3d2b8943a9e8fab26d796b3ebe2bc5fd4058963462bb17a8f2a1944`.
+The rejected historical 8/10 evidence and decision remain unchanged.
+
+Independent reviewer `joey-orbyss` explicitly approved the bounded Feature 002
+product scope at `2026-08-02T13:08:34.541Z`. The decision, evidence considered,
+limitations, and invalidation set are recorded in `reviews/product-review.md`.
+It is not release, publication, merge, Claude-adapter, Spec Kit-adapter, or
+general-authoring approval.
+
+### Final requirement and proof reconciliation
+
+| Requirement | Final disposition |
+|---|---|
+| FR-001 through FR-006 | **Pass.** Exact packaged acquisition, isolated consumer use, direct CLI operation, source-workspace separation, and generated-runtime independence pass on the final supported-platform candidate. |
+| FR-007 through FR-014 | **Pass within Feature 002 scope.** The canonical definition, provider-neutral projection, exact manifest bindings, production admission, and fail-closed conformance pass. General consumer authoring and other adapters remain outside this feature. |
+| FR-015 through FR-023 | **Pass.** Explicit selection, explain/preflight, staging, complete publication, exact installation admission, state verification, and structured lifecycle results pass. |
+| FR-024 through FR-032 | **Pass.** Automated guidance and authority proof plus 10/10 fresh human-operated Codex sessions establish the bounded explain, exact-grant authorization, construct, and evaluate journey without invented authority. |
+| FR-033 through FR-038 | **Pass.** Direct, neutral, and Codex adapter conformance preserve the canonical provider-neutral contract and fail closed on unsupported loss. |
+| FR-039 through FR-043 | **Pass.** Production diagnostics, retry and continuation behavior, disclosure constraints, local-first effects, and negative matrices pass without unauthorized mutation. |
+| FR-044 through FR-046 | **Pass.** Exact authorized removal deletes only unchanged integration-owned projections, preserves consumer bytes, and reports removed state honestly. |
+| SC-001 | **Pass.** Final supported-platform CI proves the documented isolated lifecycle within ten minutes. |
+| SC-002 | **Pass.** Final Windows and Ubuntu evidence each completed ten deterministic isolated workspaces without trusted partial success. |
+| SC-003 | **Pass.** All 10/10 consecutive fresh Codex sessions completed the full explain-authorize-construct-evaluate journey and the named independent reviewer approved the bounded product scope. |
+| SC-004 | **Pass.** The final packaged and production negative matrices return typed next-action/effect classes and preserve bytes. |
+| SC-005 | **Pass.** All 10/10 fresh sessions satisfied the bounded missing-input attestation within two turns and named the exact existing grant when authority was required. |
+| SC-006 | **Pass.** Direct, neutral, and Codex observations preserve normalized outcome, effect, disposition, and conformance meaning. |
+| SC-007 | **Pass.** Exact CLI, provider, adapter, definition, conformance, workspace, projection, publication, and admission bindings are recorded and revalidated. |
+| SC-008 | **Pass.** Removal preserves all unrelated and consumer-owned bytes and refuses drifted or unproven targets. |
+| SC-009 | **Pass.** Adversarial disclosure, package/projection scans, bounded evidence, and external-effect assertions report no forbidden disclosure or hidden effects. |
+| SC-010 | **Pass.** The generated reference application restores, builds, starts, serves `/status`, and remains independent after session-integration removal. |
+
+T118 and T119 are complete from exact human-owned evidence and decision. The
+required follow-up Spec Kit analysis checked 46 functional requirements, 10
+success criteria, 18 acceptance scenarios, 128 unique tasks, the plan, and all
+nine constitutional principles. Requirement coverage is 100%, with no unmapped
+task, ambiguity, duplication, constitution conflict, or CRITICAL/HIGH finding.
+T120 is therefore complete. All T001–T128 are checked; the feature is accepted
+for its bounded product scope. No implementation or reviewed artifact was
+changed by this documentation-only closure, and release, publication, merge,
+and later-adapter decisions remain separate.

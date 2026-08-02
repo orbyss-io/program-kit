@@ -59,6 +59,10 @@ public sealed class ConstructOperation
         string? requestIdentity = null;
         bool recoveredPublication = false;
         string? constructionIdentity = null;
+        string? candidateRoot = null;
+        string? requestLogicalPath = null;
+        string? providerIdentity = null;
+        RequestedEffect requestedEffect = RequestedEffect.None;
         try
         {
             JsonObject document = intake.Load(requestPath);
@@ -87,6 +91,8 @@ public sealed class ConstructOperation
             OperationExecutionTracker.Advance(phase, effect);
             FactoryInput input = intake.AdmitAndMap(workspaceRoot, document);
             requestIdentity = input.RequestDigest;
+            requestLogicalPath = LogicalRequestPath(workspaceRoot, requestPath);
+            requestedEffect = input.Request.RequestedEffect;
             if (input.Request.Operation != FactoryOperation.Construct
                 || input.Request.RequestedEffect == RequestedEffect.None
                 || input.Request.ConstructionMode is null
@@ -98,6 +104,7 @@ public sealed class ConstructOperation
             phase = OperationPhase.Resolution;
             OperationExecutionTracker.Advance(phase, effect);
             ResolvedFactoryInput resolved = resolution.Resolve(input);
+            providerIdentity = resolved.ConstructionProvider.Manifest.Identity.StableKey;
             constructionIdentity = resolved.Lock.ConstructionIdentity
                 ?? throw new InvalidOperationException("Construction identity is unavailable.");
             phase = OperationPhase.Validation;
@@ -125,7 +132,30 @@ public sealed class ConstructOperation
                 ValidateRepairPrecondition(workspaceRoot, input.Request.ExpectedState.LiveStateDigest);
             }
 
-            string candidateRoot = Path.Combine(workspaceRoot, ".program-kit", "candidates", constructionIdentity["sha256:".Length..]);
+            string mirrorLogicalPath = input.Definition["dependencyMirror"]?.GetValue<string>()
+                ?? throw new InvalidDataException("definition.dependencyMirror is required.");
+            string dependencyMirror = LogicalPaths.ResolveInside(workspaceRoot, mirrorLogicalPath);
+            if (!Directory.Exists(dependencyMirror)
+                || (File.GetAttributes(dependencyMirror) & FileAttributes.ReparsePoint) != 0)
+            {
+                Diagnostic unavailable = DiagnosticFactory.Create(
+                    DiagnosticIds.ExternalUnavailable,
+                    OperationPhase.Validation,
+                    DisclosureFilter.RepositoryRelative(mirrorLogicalPath),
+                    DisclosureFilter.PublicText("The exact declared dependency mirror is unavailable."),
+                    DisclosureFilter.PublicText("Construction stopped before a candidate or live output was created."));
+                return OperationResultFactory.Failure(
+                    PublicCommand.Construct,
+                    OperationOutcome.Blocked,
+                    OperationPhase.Validation,
+                    EffectState.None,
+                    PrimaryDisposition.Stop,
+                    new[] { unavailable },
+                    requestIdentity,
+                    constructionIdentity);
+            }
+
+            candidateRoot = Path.Combine(workspaceRoot, ".program-kit", "candidates", constructionIdentity["sha256:".Length..]);
             if (Directory.Exists(candidateRoot))
             {
                 return InterruptedResult(requestIdentity, constructionIdentity, EffectState.CandidateOnly);
@@ -141,9 +171,6 @@ public sealed class ConstructOperation
             File.WriteAllBytes(Path.Combine(stateRoot, "resolution.lock.json"), CanonicalJson.Encode(resolved.Lock.CanonicalDocument));
             File.WriteAllBytes(Path.Combine(stateRoot, "integration-resolution.json"), CanonicalJson.Encode(resolved.Explanation.CanonicalDocument));
 
-            string mirrorLogicalPath = input.Definition["dependencyMirror"]?.GetValue<string>()
-                ?? throw new InvalidDataException("definition.dependencyMirror is required.");
-            string dependencyMirror = LogicalPaths.ResolveInside(workspaceRoot, mirrorLogicalPath);
             ProviderConstructionResult providerResult = ProviderInvocation.Invoke(() => resolved.ConstructionProvider.ConstructAsync(new ProviderConstructionContext(
                 workspaceRoot,
                 candidateRoot,
@@ -153,7 +180,23 @@ public sealed class ConstructOperation
                 System.Threading.CancellationToken.None)), phase);
             if (!providerResult.Succeeded)
             {
-                return ProviderFailure(resolved, providerResult.Diagnostics, requestIdentity, constructionIdentity, phase, effect);
+                if (!TryRollbackUnsealedCandidate(workspaceRoot, candidateRoot))
+                {
+                    return InterruptedResult(requestIdentity, constructionIdentity, EffectState.CandidateOnly);
+                }
+
+                effect = EffectState.None;
+                OperationExecutionTracker.Advance(phase, effect);
+                return ProviderFailure(
+                    resolved,
+                    providerResult.Diagnostics,
+                    providerResult.Evidence,
+                    requestIdentity,
+                    constructionIdentity,
+                    requestLogicalPath,
+                    requestedEffect,
+                    phase,
+                    effect);
             }
 
             phase = OperationPhase.Evaluation;
@@ -166,7 +209,23 @@ public sealed class ConstructOperation
                 System.Threading.CancellationToken.None)), phase);
             if (!providerEvaluation.Succeeded)
             {
-                return ProviderFailure(resolved, providerEvaluation.Diagnostics, requestIdentity, constructionIdentity, phase, effect);
+                if (!TryRollbackUnsealedCandidate(workspaceRoot, candidateRoot))
+                {
+                    return InterruptedResult(requestIdentity, constructionIdentity, EffectState.CandidateOnly);
+                }
+
+                effect = EffectState.None;
+                OperationExecutionTracker.Advance(phase, effect);
+                return ProviderFailure(
+                    resolved,
+                    providerEvaluation.Diagnostics,
+                    providerEvaluation.Evidence,
+                    requestIdentity,
+                    constructionIdentity,
+                    requestLogicalPath,
+                    requestedEffect,
+                    phase,
+                    effect);
             }
 
             JsonObject providerEvidence = new()
@@ -304,12 +363,35 @@ public sealed class ConstructOperation
         }
         catch (ProgramKitDiagnosticException exception)
         {
+            if (string.Equals(exception.DiagnosticId, DiagnosticIds.ExternalFailure, StringComparison.Ordinal)
+                && effect == EffectState.CandidateOnly
+                && candidateRoot is not null)
+            {
+                if (!TryRollbackUnsealedCandidate(workspaceRoot, candidateRoot))
+                {
+                    return InterruptedResult(
+                        requestIdentity!,
+                        constructionIdentity!,
+                        EffectState.CandidateOnly);
+                }
+
+                effect = EffectState.None;
+                OperationExecutionTracker.Advance(exception.Phase, effect);
+            }
+
             Diagnostic diagnostic = DiagnosticFactory.Create(
                 exception.DiagnosticId,
                 exception.Phase,
-                DisclosureFilter.PublicText("factory-operation"),
+                DisclosureFilter.PublicText(providerIdentity ?? "factory-operation"),
                 DisclosureFilter.Withhold(exception.Message, "diagnostic-exception-detail"),
-                DisclosureFilter.PublicText("No trusted completion is claimed; follow the typed remediation and disposition."));
+                DisclosureFilter.PublicText("No trusted completion is claimed; follow the typed remediation and disposition."),
+                parameters: new Dictionary<string, SafeValue>(StringComparer.Ordinal)
+                {
+                    ["failureBoundary"] = DisclosureFilter.PublicText("provider-invocation"),
+                },
+                remediations: exception.Disposition == PrimaryDisposition.Retry && requestLogicalPath is not null
+                    ? new[] { RetryConstruction(requestLogicalPath, requestedEffect, providerIdentity ?? "factory-provider") }
+                    : null);
             return OperationResultFactory.Failure(
                 PublicCommand.Construct, OperationOutcome.Blocked, exception.Phase, effect,
                 exception.Disposition, new[] { diagnostic }, requestIdentity, constructionIdentity);
@@ -367,18 +449,122 @@ public sealed class ConstructOperation
     private static OperationResult ProviderFailure(
         ResolvedFactoryInput resolved,
         IReadOnlyList<string> diagnosticIds,
+        IReadOnlyList<JsonObject> providerEvidence,
         string requestIdentity,
         string constructionIdentity,
+        string requestLogicalPath,
+        RequestedEffect requestedEffect,
         OperationPhase phase,
         EffectState effect)
     {
-        Diagnostic[] diagnostics = diagnosticIds.Select(id => DiagnosticFactory.Create(
-            id,
-            phase,
-            DisclosureFilter.PublicText(resolved.ConstructionProvider.Manifest.Identity.StableKey),
-            DisclosureFilter.PublicText("The exact provider reported a bounded failure."),
-            DisclosureFilter.PublicText("No candidate was admitted or published."))).ToArray();
+        IReadOnlyDictionary<string, SafeValue> parameters = ProviderObservation(providerEvidence);
+        string provider = resolved.ConstructionProvider.Manifest.Identity.StableKey;
+        Diagnostic[] diagnostics = diagnosticIds.Select(id =>
+        {
+            PrimaryDisposition disposition = DiagnosticCatalog.Entries[id].Disposition;
+            return DiagnosticFactory.Create(
+                id,
+                phase,
+                DisclosureFilter.PublicText(provider),
+                DisclosureFilter.PublicText("The exact provider reported a bounded failure."),
+                DisclosureFilter.PublicText("The unsealed candidate was rolled back; no candidate was admitted or published."),
+                parameters,
+                disposition == PrimaryDisposition.Retry
+                    ? new[] { RetryConstruction(requestLogicalPath, requestedEffect, provider) }
+                    : null);
+        }).ToArray();
         return OperationResultFactory.Failure(PublicCommand.Construct, OperationOutcome.Blocked, phase, effect, DiagnosticFactory.PrimaryDispositionFor(diagnostics), diagnostics, requestIdentity, constructionIdentity);
+    }
+
+    private static Remediation RetryConstruction(string requestLogicalPath, RequestedEffect requestedEffect, string provider) => new(
+        "retry",
+        new[] { provider },
+        new[] { "failed-candidate-rolled-back", "request-and-authority-still-current", "external-precondition-corrected" },
+        requestedEffect,
+        requestedEffect == RequestedEffect.None ? Array.Empty<string>() : new[] { "current-exact-authority" },
+        null,
+        null,
+        new[] { "construct", "--workspace", ".", "--request", requestLogicalPath, "--format", "json" },
+        new[] { "the-separate-invocation-revalidates-authority-and-returns-one-complete-result" },
+        OperationPhase.Construction);
+
+    private static IReadOnlyDictionary<string, SafeValue> ProviderObservation(IReadOnlyList<JsonObject> providerEvidence)
+    {
+        JsonObject? observation = providerEvidence.FirstOrDefault(static item => item["observationDigest"] is not null);
+        if (observation is null)
+        {
+            return new Dictionary<string, SafeValue>(StringComparer.Ordinal)
+            {
+                ["failureBoundary"] = DisclosureFilter.PublicText("provider-result"),
+            };
+        }
+
+        Dictionary<string, SafeValue> parameters = new(StringComparer.Ordinal)
+        {
+            ["failureBoundary"] = DisclosureFilter.PublicText("provider-result"),
+        };
+        if (observation["tool"]?.GetValue<string>() is { Length: > 0 } tool)
+        {
+            parameters["tool"] = DisclosureFilter.PublicText(tool);
+        }
+        if (observation["observationDigest"]?.GetValue<string>() is { Length: > 0 } digest)
+        {
+            parameters["observationDigest"] = new SafeValue(SafeValueClassification.Public, SafeValueKind.Digest, digest);
+        }
+        if (observation["exitCode"] is JsonValue exitCodeValue && exitCodeValue.TryGetValue(out int exitCode))
+        {
+            parameters["exitCode"] = new SafeValue(SafeValueClassification.Public, SafeValueKind.WholeNumber, exitCode.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+        if (observation["diagnosticCodes"] is JsonArray codes)
+        {
+            string joined = string.Join(',', codes.Select(static item => item?.GetValue<string>()).Where(static item => !string.IsNullOrWhiteSpace(item)));
+            if (joined.Length > 0)
+            {
+                parameters["diagnosticCodes"] = DisclosureFilter.PublicText(joined);
+            }
+        }
+
+        return parameters;
+    }
+
+    private static bool TryRollbackUnsealedCandidate(string workspaceRoot, string candidateRoot)
+    {
+        string expectedParent = Path.GetFullPath(Path.Combine(workspaceRoot, ".program-kit", "candidates"))
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string target = Path.GetFullPath(candidateRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        if (!target.StartsWith(expectedParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        try
+        {
+            if (Directory.Exists(target))
+            {
+                Directory.Delete(target, recursive: true);
+            }
+            if (Directory.Exists(expectedParent) && !Directory.EnumerateFileSystemEntries(expectedParent).Any())
+            {
+                Directory.Delete(expectedParent);
+            }
+            return !Directory.Exists(target);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static string LogicalRequestPath(string workspaceRoot, string requestPath)
+    {
+        string root = Path.GetFullPath(workspaceRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string absolute = Path.GetFullPath(Path.IsPathRooted(requestPath) ? requestPath : Path.Combine(root, requestPath));
+        if (!absolute.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("The request path must remain inside the workspace.");
+        }
+
+        return Path.GetRelativePath(root, absolute).Replace('\\', '/');
     }
 
     private static OperationResult InterruptedResult(string requestIdentity, string constructionIdentity, EffectState effect)

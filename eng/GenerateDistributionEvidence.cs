@@ -1,7 +1,10 @@
 #:project ../src/ProgramKit.Kernel/ProgramKit.Kernel.csproj
 #:project ../src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj
+#:project ../src/ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj
+#:project ../src/ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj
 #:property PublishAot=false
 #:property RestoreLockedMode=false
+#:property NuGetAudit=false
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +19,8 @@ using Orbyss.ProgramKit.Contracts.Providers;
 using Orbyss.ProgramKit.Kernel.Canonicalization;
 using Orbyss.ProgramKit.Kernel.Diagnostics;
 using Orbyss.ProgramKit.Providers.DotNet.Manifests;
+using Orbyss.ProgramKit.SessionIntegration.Diagnostics;
+using Orbyss.ProgramKit.SessionIntegration.Providers.Codex.Diagnostics;
 
 string root = Directory.GetCurrentDirectory();
 if (!File.Exists(Path.Combine(root, "global.json")))
@@ -119,8 +124,12 @@ JsonObject Catalog(string idPrefix)
 
 string kernelCatalogDigest = Write("kernel-diagnostic-catalog.json", Catalog("program-kit.kernel/"));
 string providerCatalogDigest = Write("dotnet-diagnostic-catalog.json", Catalog("program-kit.provider.dotnet/"));
+string sessionCatalogDigest = Write("session-diagnostic-catalog.json", SessionDiagnosticCatalog.ToDocument());
+string codexCatalogDigest = Write("codex-diagnostic-catalog.json", CodexDiagnosticCatalog.ToDocument());
 if (!string.Equals(kernelCatalogDigest, DiagnosticCatalogArtifacts.KernelArtifact.Digest, StringComparison.Ordinal)
-    || !string.Equals(providerCatalogDigest, provider.DiagnosticCatalog.Digest, StringComparison.Ordinal))
+    || !string.Equals(providerCatalogDigest, provider.DiagnosticCatalog.Digest, StringComparison.Ordinal)
+    || !string.Equals(sessionCatalogDigest, SessionDiagnosticCatalog.Identity.Digest, StringComparison.Ordinal)
+    || !string.Equals(codexCatalogDigest, CodexDiagnosticCatalog.Identity.Digest, StringComparison.Ordinal))
 {
     throw new InvalidOperationException("A diagnostic catalog changed without an exact content-bound identity update.");
 }
@@ -199,9 +208,11 @@ JsonObject distribution = new()
     ["conformanceEvidence"] = new JsonArray(provider.ConformanceEvidence.Select(item => BoundEvidence(item)).ToArray()),
     ["artifacts"] = new JsonArray(
         Evidence("dependency-sbom.cdx.json", "application/vnd.cyclonedx+json", sbomDigest),
+        Evidence("codex-diagnostic-catalog.json", "application/json", codexCatalogDigest),
         Evidence("dotnet-diagnostic-catalog.json", "application/json", providerCatalogDigest),
         Evidence("kernel-diagnostic-catalog.json", "application/json", kernelCatalogDigest),
         Evidence("provider-support.json", "application/json", supportDigest),
+        Evidence("session-diagnostic-catalog.json", "application/json", sessionCatalogDigest),
         Evidence("source-package-provenance.json", "application/json", provenanceDigest)),
 };
 Write("distribution-manifest.json", distribution);

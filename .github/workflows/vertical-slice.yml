@@ -59,6 +59,21 @@ jobs:
         run: dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore
       - name: Verify formatting
         run: dotnet format ProgramKit.slnx --no-restore --verify-no-changes
+      - name: Pack workspace-local CLI
+        shell: pwsh
+        run: ./eng/Pack-ProgramKitTool.ps1 -OutputRoot (Join-Path $env:RUNNER_TEMP 'program-kit-tool-feed')
+      - name: Run ten-workspace session quickstart
+        shell: pwsh
+        run: >-
+          ./eng/Invoke-SessionIntegrationQuickstart.ps1
+          -SkipBootstrap
+          -EvidencePath (Join-Path $env:RUNNER_TEMP 'deterministic-session-review.json')
+      - name: Retain deterministic session review evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-session-review-${{ matrix.os }}
+          path: ${{ runner.temp }}/deterministic-session-review.json
+          if-no-files-found: error
       - name: Upload bounded product evidence
         uses: actions/upload-artifact@v4
         with:

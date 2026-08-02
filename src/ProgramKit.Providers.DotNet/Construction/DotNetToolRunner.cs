@@ -49,6 +49,14 @@ public sealed partial class DotNetToolRunner
             startInfo.ArgumentList.Add(argument);
         }
 
+        string isolatedAppData = Path.Combine(workingDirectory, ".program-kit-tool-appdata");
+        string isolatedHome = Path.Combine(workingDirectory, ".program-kit-tool-home");
+        Directory.CreateDirectory(Path.Combine(isolatedAppData, "NuGet"));
+        Directory.CreateDirectory(isolatedHome);
+        startInfo.Environment["APPDATA"] = isolatedAppData;
+        startInfo.Environment["XDG_CONFIG_HOME"] = isolatedAppData;
+        startInfo.Environment["DOTNET_CLI_HOME"] = isolatedHome;
+        startInfo.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
         startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         startInfo.Environment["DOTNET_CLI_HOME"] = toolHome;
         startInfo.Environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";

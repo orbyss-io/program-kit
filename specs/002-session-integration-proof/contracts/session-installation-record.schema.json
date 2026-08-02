@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/session-installation-record.schema.json",
+  "title": "Program Kit Session Installation Record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "canonicalProfile",
+    "installationIdentity",
+    "requestIdentity",
+    "requestCoreIdentity",
+    "workspaceIdentity",
+    "scope",
+    "definition",
+    "provider",
+    "cliRelease",
+    "projectionSet",
+    "publication",
+    "state",
+    "sessionAvailability",
+    "admissionReceipt",
+    "recordDigest"
+  ],
+  "properties": {
+    "schema": { "type": "string", "const": "program-kit.session-installation-record/v1" },
+    "canonicalProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile" },
+    "installationIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+    "requestIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+    "requestCoreIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+    "workspaceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "identity", "rootBinding" ],
+      "properties": {
+        "identity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "rootBinding": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" }
+      }
+    },
+    "scope": { "type": "string", "const": "workspace" },
+    "definition": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "provider", "adapter", "definition", "conformanceProfile" ],
+      "properties": {
+        "provider": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "adapter": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "definition": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "conformanceProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" }
+      }
+    },
+    "cliRelease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "schema", "canonicalProfile", "packageId", "packageVersion", "packageSource", "packageDigest", "commandName", "workspaceRelativeExecutable", "executableDigest", "reportedVersion", "runtimeProfile", "claimClass" ],
+      "properties": {
+        "schema": { "type": "string", "const": "program-kit.cli-release-identity/v1" },
+        "canonicalProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/canonicalProfile" },
+        "packageId": { "type": "string", "const": "Orbyss.ProgramKit.Cli" },
+        "packageVersion": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision" },
+        "packageSource": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "packageDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "commandName": { "type": "string", "const": "program-kit" },
+        "workspaceRelativeExecutable": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath" },
+        "executableDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "reportedVersion": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/revision" },
+        "runtimeProfile": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+        "claimClass": { "type": "string", "const": "verified-equivalent" }
+      }
+    },
+    "projectionSet": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [ "logicalPath", "mediaType", "ownership", "producerIdentity", "definitionBinding", "contentDigest", "claimClass", "removalPolicy" ],
+        "properties": {
+          "logicalPath": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath" },
+          "mediaType": { "type": "string", "minLength": 3 },
+          "ownership": { "type": "string", "const": "generated-owned" },
+          "producerIdentity": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+          "definitionBinding": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/governedIdentity" },
+          "contentDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+          "claimClass": { "type": "string", "const": "canonical-byte" },
+          "removalPolicy": { "type": "string", "const": "exact-admitted-digest-only" }
+        }
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "journalLogicalPath", "journalDigest", "liveStateDigest", "state" ],
+      "properties": {
+        "journalLogicalPath": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/logicalPath" },
+        "journalDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "liveStateDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+        "state": { "type": "string", "const": "committed" }
+      }
+    },
+    "state": { "type": "string", "const": "admitted" },
+    "sessionAvailability": { "type": "string", "enum": [ "not-evaluated", "reload-required", "available", "unavailable" ] },
+    "admissionReceipt": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" },
+    "recordDigest": { "$ref": "https://schemas.program-kit.dev/v1/common.schema.json#/$defs/digest" }
+  }
+}

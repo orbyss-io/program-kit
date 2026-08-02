@@ -71,24 +71,58 @@ public sealed class InvalidInvariantAcceptanceTests
     }
 
     [TestMethod]
-    public void Provider_failure_fixture_is_bounded_to_candidate_state()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Provider_failure_rolls_back_its_unsealed_candidate_and_the_exact_retry_can_complete(bool throwFailure)
     {
-        JsonObject fixture = Fixture("ProviderFailure");
         string workspace = TestRepository.CreateWorkspace(includeMirror: true);
         try
         {
-            ThrowingConstructionProvider provider = new();
+            RecoveringConstructionProvider provider = new(throwFailure);
             ProviderRegistry registry = new(new IFactoryProvider[] { provider });
             OperationExecutionTracker.Start(PublicCommand.Construct);
-            OperationResult result = new ConstructOperation(
+            ConstructOperation operation = new(
                 new IntakePipeline(registry),
-                new ResolutionEngine(registry)).Execute(
+                new ResolutionEngine(registry));
+            OperationResult failed = operation.Execute(
                     workspace,
                     Path.Combine(workspace, "requests", "construct.json"));
+            JsonObject projected = OperationResultProjector.ToJson(failed);
+            ContractAssertions.AssertValid(ContractAssertions.OperationResult, projected);
 
-            AssertFixture(OperationResultProjector.ToJson(result), fixture);
+            Assert.AreEqual("blocked", projected["outcome"]!.GetValue<string>());
+            Assert.AreEqual("none", projected["effectState"]!.GetValue<string>());
+            Assert.AreEqual("retry", projected["primaryDisposition"]!.GetValue<string>());
+            string expectedDiagnostic = throwFailure ? "program-kit.kernel/PKEXT0001" : "program-kit.provider.dotnet/PKDOT0006";
+            Assert.AreEqual(expectedDiagnostic, projected["diagnostics"]!["items"]![0]!["id"]!.GetValue<string>());
+            JsonObject remediation = projected["diagnostics"]!["items"]![0]!["remediations"]![0]!.AsObject();
+            CollectionAssert.AreEqual(
+                new[] { "construct", "--workspace", ".", "--request", "requests/construct.json", "--format", "json" },
+                remediation["request"]!["arguments"]!.AsArray().Select(static item => item!.GetValue<string>()).ToArray());
+            CollectionAssert.Contains(
+                remediation["authorityRequired"]!.AsArray().Select(static item => item!.GetValue<string>()).ToArray(),
+                "current-exact-authority");
+            if (!throwFailure)
+            {
+                JsonObject parameters = projected["diagnostics"]!["items"]![0]!["parameters"]!.AsObject();
+                Assert.AreEqual("dotnet", parameters["tool"]!["value"]!.GetValue<string>());
+                Assert.AreEqual("1", parameters["exitCode"]!["value"]!.GetValue<string>());
+                Assert.AreEqual($"sha256:{new string('1', 64)}", parameters["observationDigest"]!["value"]!.GetValue<string>());
+                Assert.AreEqual("NU1000", parameters["diagnosticCodes"]!["value"]!.GetValue<string>());
+            }
+            Assert.IsNotNull(failed.ConstructionIdentity);
+            Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".program-kit", "candidates", failed.ConstructionIdentity!["sha256:".Length..])));
+            Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".program-kit", "candidates")));
             Assert.IsFalse(Directory.Exists(Path.Combine(workspace, "products")));
             Assert.IsFalse(File.Exists(Path.Combine(workspace, ".program-kit", "construction-receipt.json")));
+
+            OperationExecutionTracker.Start(PublicCommand.Construct);
+            OperationResult retried = operation.Execute(
+                workspace,
+                Path.Combine(workspace, "requests", "construct.json"));
+            Assert.AreEqual(OperationOutcome.Succeeded, retried.Outcome);
+            Assert.AreEqual(EffectState.Committed, retried.EffectState);
+            Assert.AreEqual(PrimaryDisposition.Complete, retried.PrimaryDisposition);
         }
         finally
         {
@@ -126,16 +160,70 @@ public sealed class InvalidInvariantAcceptanceTests
         CollectionAssert.Contains(diagnostics, fixture["expectedDiagnostic"]!.GetValue<string>());
     }
 
-    private sealed class ThrowingConstructionProvider : IIntakeMappingProvider, IConstructionProvider, IEvaluationProvider
+    [TestMethod]
+    public void Missing_declared_dependency_mirror_is_unavailable_before_candidate_creation()
+    {
+        string workspace = TestRepository.CreateWorkspace();
+        try
+        {
+            var execution = TestRepository.RunCli(
+                "construct", "--workspace", workspace,
+                "--request", Path.Combine(workspace, "requests", "construct.json"),
+                "--format", "json");
+            JsonObject result = ContractAssertions.ParseAndValidate(ContractAssertions.OperationResult, execution.StandardOutput);
+
+            Assert.AreEqual("blocked", result["outcome"]!.GetValue<string>());
+            Assert.AreEqual("none", result["effectState"]!.GetValue<string>());
+            Assert.AreEqual("stop", result["primaryDisposition"]!.GetValue<string>());
+            Assert.AreEqual("program-kit.kernel/PKEXT0002", result["diagnostics"]!["items"]![0]!["id"]!.GetValue<string>());
+            Assert.IsFalse(Directory.Exists(Path.Combine(workspace, ".program-kit", "candidates")));
+        }
+        finally
+        {
+            TestRepository.DeleteWorkspace(workspace);
+        }
+    }
+
+    private sealed class RecoveringConstructionProvider : IIntakeMappingProvider, IConstructionProvider, IEvaluationProvider
     {
         private readonly DotNetProvider inner = new();
+        private readonly bool throwFailure;
+        private int attempts;
+
+        public RecoveringConstructionProvider(bool throwFailure) => this.throwFailure = throwFailure;
 
         public ProviderManifest Manifest => inner.Manifest;
 
         public Task<ProviderIntakeResult> MapAsync(ProviderIntakeContext context) => inner.MapAsync(context);
 
-        public Task<ProviderConstructionResult> ConstructAsync(ProviderConstructionContext context) =>
-            throw new InvalidOperationException("Raw provider exception that must remain undisclosed.");
+        public Task<ProviderConstructionResult> ConstructAsync(ProviderConstructionContext context)
+        {
+            attempts++;
+            if (attempts > 1)
+            {
+                return inner.ConstructAsync(context);
+            }
+
+            if (throwFailure)
+            {
+                throw new InvalidOperationException("Raw provider exception that must remain undisclosed.");
+            }
+
+            return Task.FromResult(new ProviderConstructionResult(
+                Array.Empty<ProviderArtifact>(),
+                new[]
+                {
+                    new JsonObject
+                    {
+                        ["tool"] = "dotnet",
+                        ["observationDigest"] = $"sha256:{new string('1', 64)}",
+                        ["diagnosticCodes"] = new JsonArray("NU1000"),
+                        ["exitCode"] = 1,
+                    },
+                },
+                new[] { "program-kit.provider.dotnet/PKDOT0006" },
+                false));
+        }
 
         public Task<ProviderEvaluationResult> EvaluateAsync(ProviderEvaluationContext context) => inner.EvaluateAsync(context);
     }

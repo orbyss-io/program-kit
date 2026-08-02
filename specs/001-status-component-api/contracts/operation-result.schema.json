@@ -61,6 +61,10 @@
             "explain",
             "construct",
             "evaluate",
+            "session-explain",
+            "session-install",
+            "session-verify",
+            "session-remove",
             "help",
             "version"
           ]
@@ -156,6 +160,15 @@
               }
             ]
           }
+        },
+        "session": {
+          "type": "object"
+        },
+        "disclosure": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/disclosureEntry"
+          }
         }
       },
       "allOf": [
@@ -211,6 +224,35 @@
           }
         }
       ]
+    },
+    "disclosureEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "classification",
+        "action"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "public",
+            "repository-relative",
+            "withheld"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
     },
     "change": {
       "type": "object",

@@ -21,7 +21,10 @@ public sealed class SchemaClosureTests
     {
         foreach ((string name, string embedded) in ContractSchemaResources.ReadAll())
         {
-            string designPath = Path.Combine(TestRepository.Root, "specs", "001-status-component-api", "contracts", name);
+            string owningFeature = name.StartsWith("session-", StringComparison.Ordinal)
+                ? "002-session-integration-proof"
+                : "001-status-component-api";
+            string designPath = Path.Combine(TestRepository.Root, "specs", owningFeature, "contracts", name);
             Assert.IsTrue(File.Exists(designPath), designPath);
             Assert.AreEqual(File.ReadAllText(designPath), embedded, name);
         }

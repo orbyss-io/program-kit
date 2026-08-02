@@ -18,14 +18,23 @@ public sealed class CliParser
             return new(null, "A command is required.");
         }
 
-        if (!TryCommand(arguments[0], out PublicCommand command))
+        PublicCommand command;
+        int optionStart;
+        if (string.Equals(arguments[0], "session", StringComparison.Ordinal))
         {
-            return new(null, "Unknown command.");
+            if (arguments.Length < 2) return new(null, "A session lifecycle operation is required.");
+            if (!TrySessionCommand(arguments[1], out command)) return new(null, "Unknown session lifecycle operation.");
+            optionStart = 2;
+        }
+        else
+        {
+            if (!TryCommand(arguments[0], out command)) return new(null, "Unknown command.");
+            optionStart = 1;
         }
 
         Dictionary<string, string> options = new(StringComparer.Ordinal);
         bool endOfOptions = false;
-        for (int index = 1; index < arguments.Length; index++)
+        for (int index = optionStart; index < arguments.Length; index++)
         {
             string token = arguments[index];
             if (token == "--")
@@ -63,7 +72,7 @@ public sealed class CliParser
             endOfOptions = false;
         }
 
-        bool factoryCommand = command is PublicCommand.Explain or PublicCommand.Construct or PublicCommand.Evaluate;
+        bool factoryCommand = command is PublicCommand.Explain or PublicCommand.Construct or PublicCommand.Evaluate or PublicCommand.SessionExplain or PublicCommand.SessionInstall or PublicCommand.SessionVerify or PublicCommand.SessionRemove;
         if (factoryCommand && (!options.ContainsKey("--workspace") || !options.ContainsKey("--request")))
         {
             return new(null, "Factory commands require --workspace and --request.");
@@ -87,6 +96,19 @@ public sealed class CliParser
         }
 
         return new(new CliInvocation(command, options.GetValueOrDefault("--workspace"), options.GetValueOrDefault("--request"), format), null);
+    }
+
+    private static bool TrySessionCommand(string value, out PublicCommand command)
+    {
+        command = value switch
+        {
+            "explain" => PublicCommand.SessionExplain,
+            "install" => PublicCommand.SessionInstall,
+            "verify" => PublicCommand.SessionVerify,
+            "remove" => PublicCommand.SessionRemove,
+            _ => (PublicCommand)(-1),
+        };
+        return Enum.IsDefined(command);
     }
 
     private static bool TryCommand(string value, out PublicCommand command)

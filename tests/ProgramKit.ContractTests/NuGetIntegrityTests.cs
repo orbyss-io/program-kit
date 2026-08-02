@@ -35,7 +35,7 @@ public sealed class NuGetIntegrityTests
                 CancellationToken.None));
 
             Assert.IsFalse(result.Succeeded);
-            CollectionAssert.Contains(result.Diagnostics.ToArray(), DiagnosticIds.DotNetToolFailure);
+            CollectionAssert.Contains(result.Diagnostics.ToArray(), DiagnosticIds.ExternalUnavailable);
             Assert.IsFalse(Directory.Exists(candidate), "Mirror admission must fail before candidate writes.");
         }
         finally

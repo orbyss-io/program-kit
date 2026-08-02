@@ -1,0 +1,7 @@
+{
+  "schema": "program-kit.test-guidance-scenario/v1",
+  "intentClass": "incomplete-known",
+  "clarificationTurns": 2,
+  "answersPreservedInRequest": true,
+  "newAuthorityRequiredAfterChange": true
+}

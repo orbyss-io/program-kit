@@ -55,6 +55,21 @@ public static class OperationResultProjector
             document["utility"] = result.Utility.DeepClone();
         }
 
+        if (result.Session is not null)
+        {
+            document["session"] = result.Session.DeepClone();
+        }
+
+        if (result.Disclosure is not null)
+        {
+            document["disclosure"] = new JsonArray(result.Disclosure.Select(static item => new JsonObject
+            {
+                ["field"] = item.Field,
+                ["classification"] = Kebab(item.Classification),
+                ["action"] = item.Action,
+            }).ToArray());
+        }
+
         return document;
     }
 

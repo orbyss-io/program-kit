@@ -7,6 +7,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+$toolHome = Join-Path $repositoryRoot 'artifacts/work/verification-tool-home'
+[IO.Directory]::CreateDirectory($toolHome) | Out-Null
+$priorEnvironment = @{
+    DOTNET_CLI_HOME = $env:DOTNET_CLI_HOME
+    DOTNET_CLI_TELEMETRY_OPTOUT = $env:DOTNET_CLI_TELEMETRY_OPTOUT
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+    DOTNET_NOLOGO = $env:DOTNET_NOLOGO
+    NUGET_XMLDOC_MODE = $env:NUGET_XMLDOC_MODE
+    APPDATA = $env:APPDATA
+    XDG_CONFIG_HOME = $env:XDG_CONFIG_HOME
+}
 
 function Invoke-Checked {
     param(
@@ -24,6 +35,18 @@ function Invoke-Checked {
 
 Push-Location $repositoryRoot
 try {
+    $env:DOTNET_CLI_HOME = $toolHome
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+    $env:DOTNET_NOLOGO = '1'
+    $env:NUGET_XMLDOC_MODE = 'skip'
+    if ($IsWindows) {
+        $env:APPDATA = $toolHome
+    }
+    else {
+        $env:XDG_CONFIG_HOME = $toolHome
+    }
+
     Invoke-Checked { & (Join-Path $PSScriptRoot 'Assert-SpecKitIntegrity.ps1') } 'Spec Kit project integrity failed.'
     Invoke-Checked { & (Join-Path $PSScriptRoot 'Assert-CanonicalText.ps1') } 'Canonical text verification failed.'
 
@@ -67,10 +90,23 @@ try {
     $missingAssets = Get-ChildItem -Recurse -Filter '*.csproj' | Where-Object {
         -not (Test-Path -LiteralPath (Join-Path $_.DirectoryName 'obj/project.assets.json'))
     }
-    if ($dependencyChanges.Count -gt 0 -or $missingAssets.Count -gt 0) {
+    $mirrorInputsChanged = @(
+        & git diff HEAD --name-only -- eng/dependency-mirror.manifest.json eng/Bootstrap-DependencyMirror.ps1 NuGet.Config
+        & git ls-files --others --exclude-standard -- eng/dependency-mirror.manifest.json eng/Bootstrap-DependencyMirror.ps1 NuGet.Config
+    ) | Where-Object { $_ }
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not determine whether dependency-mirror inputs changed.'
+    }
+    $mirrorMissing = -not (Test-Path -LiteralPath 'artifacts/dependency-mirror/mirror.lock.json' -PathType Leaf)
+    if ($mirrorInputsChanged.Count -gt 0 -or $mirrorMissing) {
         Invoke-Checked { & (Join-Path $PSScriptRoot 'Bootstrap-DependencyMirror.ps1') } 'Dependency mirror bootstrap failed.'
+    }
+    else {
+        Write-Host 'Dependency-mirror inputs are unchanged and the local mirror exists; reusing it.'
+    }
+    if ($dependencyChanges.Count -gt 0 -or $missingAssets.Count -gt 0) {
         Invoke-Checked {
-            dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config
+            dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config -p:NuGetAudit=false
         } 'Locked restore failed.'
     }
     else {
@@ -116,4 +152,12 @@ try {
 }
 finally {
     Pop-Location
+    foreach ($entry in $priorEnvironment.GetEnumerator()) {
+        if ($null -eq $entry.Value) {
+            Remove-Item -LiteralPath "Env:$($entry.Key)" -ErrorAction SilentlyContinue
+        }
+        else {
+            Set-Item -LiteralPath "Env:$($entry.Key)" -Value $entry.Value
+        }
+    }
 }

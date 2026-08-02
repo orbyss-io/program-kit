@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ProgramKit.SessionIntegration.Providers.Codex</AssemblyName>
+    <RootNamespace>Orbyss.ProgramKit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.SessionIntegration/ProgramKit.SessionIntegration.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/*.json" />
+  </ItemGroup>
+</Project>

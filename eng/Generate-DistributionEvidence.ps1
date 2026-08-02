@@ -30,7 +30,7 @@ try {
         $env:XDG_CONFIG_HOME = $toolHome
     }
 
-    & dotnet run --file (Join-Path $PSScriptRoot 'GenerateDistributionEvidence.cs')
+    & dotnet run --property NuGetAudit=false --file (Join-Path $PSScriptRoot 'GenerateDistributionEvidence.cs')
     if ($LASTEXITCODE -ne 0) {
         throw "Distribution evidence generation failed with exit code $LASTEXITCODE."
     }

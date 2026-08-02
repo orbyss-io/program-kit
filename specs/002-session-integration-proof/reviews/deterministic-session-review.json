@@ -1,0 +1,343 @@
+{
+  "schema": "program-kit.deterministic-session-review-index/v1",
+  "generatedAt": "2026-08-01T12:19:06.9483892+00:00",
+  "workflow": {
+    "repository": "orbyss-io/program-kit",
+    "pullRequest": 7,
+    "runId": 30699217250,
+    "headSha": "d19626a288d5b2de143b9709b2a3e15b48dd01af"
+  },
+  "supportedPlatforms": [
+    "linux",
+    "windows"
+  ],
+  "runs": [
+    {
+      "platform": "linux",
+      "runner": "ubuntu-latest",
+      "jobId": 91367117663,
+      "artifact": "deterministic-session-review-ubuntu-latest",
+      "evidenceDigest": "sha256:e5bceb579558f271749810647d083d25052137f058bd3f34e92454207192ceee",
+      "evidence": {
+        "schema": "program-kit.deterministic-session-review/v1",
+        "generatedAt": "2026-08-01T14:15:37.5070549+02:00",
+        "sdkVersion": "10.0.302",
+        "packageId": "Orbyss.ProgramKit.Cli",
+        "packageVersion": "1.0.0-alpha.1",
+        "packageDigest": "sha256:8414bfc5c919d048f4b4d378fdcbf476c1db727e1ce41177276d19e8f6152884",
+        "trials": [
+          {
+            "trial": 1,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 324,
+            "recordDigest": "sha256:583e65599beb4be918b17646c3cb0f53d4ef8dbafc664b6f8fd0f8815d3887a4",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:f7d47fe948c64ca1665a2a4d081fcb31ecba0411ec7fea701bd7e6958d89e794",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 2,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 344,
+            "recordDigest": "sha256:e64164d0ed6fdfa7e93d6e2e3e8503ec924156e0b4e41d0f609810dbbe2c4d33",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:57ca90ba9ff31a556d961ff5d0a0a8865132034b1f97384ec4b8c2af1c39cfca",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 3,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 321,
+            "recordDigest": "sha256:9ccbcbb510c2d6398ae09b91b2be272499bce130285157ec34caac5a5723efa0",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:3c12492a11f774a5edd060b9da8bf747fc4ba923b2ebf9220ec7cac5e3acdbc0",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 4,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 322,
+            "recordDigest": "sha256:03c0f72de2f5137b3897971a7513be11b172b5d47a3853a3348f8c70b5211f69",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:16065af9c8de3735eee5012c864c553432ba5ad31a14765ffa05d2cc6ad575e6",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 5,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 315,
+            "recordDigest": "sha256:c3bbe30ecdcf4f68001ee69a65930f97c8a9da04b7da271251e1a1383414eefc",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:5990ab71590d3f704bed973ad5c32dbc8d93aee29a1ae89088592aa0150bf8ce",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 6,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 318,
+            "recordDigest": "sha256:f5e84033770840dd7bfb6cc0f43bec2f8b1747197358461b078f1fda6416795c",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:edd65e0fdd94e9a5c8a415418fc0b091285fc18f8633c502480a6c1bd35906fb",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 7,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 323,
+            "recordDigest": "sha256:f9776dfbca355a812cc6ce05df8150e61f89798fcfacac0dade62bcc65670b49",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:26ff2fe210df12cc2f1a0fc119a228b3efece168be5c36e7e258f304e514e982",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 8,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 317,
+            "recordDigest": "sha256:709c0fe186ef8eeac4e753ea2006e995c5e40b940d7ca56d79aa91d52310627b",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:69087e58e7adfd63fed20fd9a40c9726e8919578c9be0976ff48caf9f4a3638e",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 9,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 314,
+            "recordDigest": "sha256:7799d0fe95d5a5474ef0d86b4d60f2ae9868702339adf2cbba78f5bb61e524a8",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:1a322a90a1fa0e820f9d183c9d85ac043c6828176ae3851025ce17b4206c79ed",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 10,
+            "platform": "linux",
+            "toolInstallElapsedMilliseconds": 317,
+            "recordDigest": "sha256:ab4415e82628bb7034806230767ba6279d1380260843476bd07c534585c92889",
+            "projectionDigest": "sha256:f6b58f754bd93c6d8bd40259933eabba7200bf53db14ee54103e7c5271d18f10",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:16118ec731518582ecf41b9b1c3898d279c2020d9355fdce8a138704cadd8cb6",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          }
+        ],
+        "failures": [],
+        "assertions": {
+          "allTrialsPassed": true,
+          "networkDeniedAfterAcquisition": true,
+          "telemetryDisabled": true,
+          "sourceUploadObserved": false,
+          "providerGlobalRegistrationObserved": false,
+          "projectionDeterministic": true
+        }
+      }
+    },
+    {
+      "platform": "windows",
+      "runner": "windows-latest",
+      "jobId": 91367117669,
+      "artifact": "deterministic-session-review-windows-latest",
+      "evidenceDigest": "sha256:2cc5c3583a115a991c29a73ca7890ba6817aa10b98473448c604cda6eddfdc9b",
+      "evidence": {
+        "schema": "program-kit.deterministic-session-review/v1",
+        "generatedAt": "2026-08-01T14:18:04.5470673+02:00",
+        "sdkVersion": "10.0.302",
+        "packageId": "Orbyss.ProgramKit.Cli",
+        "packageVersion": "1.0.0-alpha.1",
+        "packageDigest": "sha256:500c5d24250da816c2f4d338829d9cb7a93cac3102a78a23ca94f35cc82d42ce",
+        "trials": [
+          {
+            "trial": 1,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 524,
+            "recordDigest": "sha256:13dba6a3d05c8aab826bc36556f277fde7cf9bad8066825539c2124df293bc41",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:1e6807555a95e582703d6eb6b23dd4bd099e3718f3a978f3204850d1565dcf1a",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 2,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 538,
+            "recordDigest": "sha256:2c95b27c879a8e10b79ea994fb10557d46ff81b90a11008c1354f7d808eb37db",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:6f1e7afd62a13413282267d449d13dd9f23b3ca576d9004a5276df9f3fbf8c73",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 3,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 518,
+            "recordDigest": "sha256:12512b42bc50f9c02e7bfd2a64c3422882286c353ba46a97da0e3ae5f9376858",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:bd8cd5311422138c25a42b97636b3bf66399a104f576eb6e846ec67f1ef612b4",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 4,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 2150,
+            "recordDigest": "sha256:d34c36d1aeb6debb2ad7ccd26c00dece2543feb797a63de1799d7e8bf00ad7a2",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:16d1cb646cc9643bf83b5d2105bb8b745e1ab7a706babcb6612f1c6901234390",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 5,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 1044,
+            "recordDigest": "sha256:f571b83416a4a41bdb4f324565f9a883462284d22e2f4826f311bfc7ea5cef7e",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:489d05ef50f94d8203d53b64cf05954c9e51973cbb6f48824a0ae6b2326b3950",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 6,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 1130,
+            "recordDigest": "sha256:bdb9be0ebd605091fbd7fab6182d96f2236a331db4f11cacd31fd1f582075884",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:58156369a0b185393be741d317a6d18904f3ab8eddcf0fd9f12c4b9e9cfeba9f",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 7,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 1634,
+            "recordDigest": "sha256:5c4985b79dd01bac537402bc9da178c0c1ca2fa72b8f7cd4395d5e21450b3ff7",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:d65c23975bfd4619722cd1874787f75cc57edd42a1a74b2ba9b3e708d038f5c3",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 8,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 893,
+            "recordDigest": "sha256:c6b111d3fe9a0c65d87f66585263b454257211ec5c64d70c8322b336d31338ec",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:324465119a3fe5b6915f8eccfd40105db23a856c40522a2b00613dc57ae59ffa",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 9,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 683,
+            "recordDigest": "sha256:bfaa06e8e5f2f3e943f7e8df09124c2fcf5b0b86b3041d0cfade753e63e79fd2",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:5ff2fbc87b1ba52df67467773be91aeff3f1e9fe7ed6b7e2e81c444e5d3bbd93",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          },
+          {
+            "trial": 10,
+            "platform": "windows",
+            "toolInstallElapsedMilliseconds": 617,
+            "recordDigest": "sha256:65061af91137e62e45ee40dfb441133da4113b2cf5f1a0884a9b7729ceba5e14",
+            "projectionDigest": "sha256:1e27eb2a631c2a4de27cb08fccfe0cac00837b112c0de3c44154643143e00a21",
+            "missingAuthorityDiagnostic": "program-kit.kernel/PKPOL0001",
+            "driftDiagnostic": "program-kit.session/PKSES0004",
+            "removalReceiptDigest": "sha256:7dd0e8e7dbddd76661d8ba91d8a033c8309fa92eff399a5bd6e2750eb7a50035",
+            "finalState": "removed",
+            "cliCallableAfterRemoval": true,
+            "consumerBytesPreserved": true
+          }
+        ],
+        "failures": [],
+        "assertions": {
+          "allTrialsPassed": true,
+          "networkDeniedAfterAcquisition": true,
+          "telemetryDisabled": true,
+          "sourceUploadObserved": false,
+          "providerGlobalRegistrationObserved": false,
+          "projectionDeterministic": true
+        }
+      }
+    }
+  ],
+  "failures": [],
+  "assertions": {
+    "allSupportedPlatformsPassed": true,
+    "trialsPerPlatform": 10,
+    "totalTrials": 20,
+    "sdkIdentityConsistent": true,
+    "packageIdentityConsistent": true,
+    "packageClaimClass": "verified-equivalent",
+    "platformProjectionProfilesExplicit": true,
+    "networkDeniedAfterAcquisition": true,
+    "telemetryDisabled": true,
+    "sourceUploadObserved": false,
+    "providerGlobalRegistrationObserved": false,
+    "noUnsafeDisclosureMarkers": true
+  }
+}
