@@ -103,7 +103,7 @@ public sealed class SpecKitAdapterBoundaryTests
             Directory.CreateDirectory(Path.GetDirectoryName(existing)!);
             File.WriteAllText(existing, "consumer-owned");
             AtomicArtifactPublisher publisher = new();
-            Assert.ThrowsExactly<IOException>(() => publisher.Publish(root, new Dictionary<string, byte[]> { ["generated/existing.json"] = Encoding.UTF8.GetBytes("new") }));
+            Assert.ThrowsExactly<AdapterPublicationException>(() => publisher.Publish(root, new Dictionary<string, byte[]> { ["generated/existing.json"] = Encoding.UTF8.GetBytes("new") }));
             Assert.AreEqual("consumer-owned", File.ReadAllText(existing));
 
             AtomicArtifactPublisher interrupted = new(new ThrowOnSecondPublication());

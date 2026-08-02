@@ -225,18 +225,21 @@ and keeps the downloaded CShells dependency mirror outside version control.
 Use the smallest verification tier that proves the current change:
 
 ```powershell
-# Normal edit loop: unit feedback without restore or evidence regeneration
-./eng/Invoke-Verification.ps1 -Mode Fast
+# Normal edit loop: affected unit feedback without restore or evidence regeneration
+./eng/Invoke-Verification.ps1 -Mode Edit -TestFilter '<affected-test-filter>'
 
-# Public-contract changes: unit plus contract feedback
-./eng/Invoke-Verification.ps1 -Mode Contract
+# Completed story: relevant unit/contract and, when needed, one focused consumer flow
+./eng/Invoke-Verification.ps1 -Mode Story -TestFilter '<story-test-filter>' -IncludeAcceptance
 
-# Once before a PR: locked restore, isolated build, unit/contract, changed-file hygiene
+# Once before a PR: reusable locked restore, isolated build, unit/contract,
+# one staged-extension smoke, and changed-file hygiene
 ./eng/Invoke-Verification.ps1 -Mode PrePr
 ```
 
-Protected CI owns the complete acceptance, conformance, deterministic-evidence,
-and Windows/Linux proof. The full local
+Protected CI runs the complete platform-neutral proof once on Ubuntu. A
+separate Windows/Ubuntu matrix repeats only package, process, path, lifecycle,
+and end-to-end behavior. Human review starts after that exact candidate is
+green and does not repeat the automated gate. The full local
 `./eng/Invoke-VerticalSliceQuickstart.ps1` remains available for release work,
 CI diagnosis, or a change whose declared invalidation set requires it. Spec Kit
 customization and upgrade safeguards are documented in

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
 
 namespace Orbyss.ProgramKit.SpecKitAdapter.Publication;
 
@@ -18,6 +20,11 @@ public sealed class NullPublicationObserver : IPublicationObserver
 
 public sealed record PublicationResult(IReadOnlyDictionary<string, string> Digests, bool Changed);
 
+public sealed class AdapterPublicationException : IOException
+{
+    public AdapterPublicationException(string message) : base(message) { }
+}
+
 public sealed class AtomicArtifactPublisher
 {
     private readonly IPublicationObserver observer;
@@ -30,11 +37,17 @@ public sealed class AtomicArtifactPublisher
     public PublicationResult Publish(
         string workspaceRoot,
         IReadOnlyDictionary<string, byte[]> outputs,
-        IReadOnlyDictionary<string, string>? expectedCurrentDigests = null)
+        IReadOnlyDictionary<string, string>? expectedCurrentDigests = null,
+        string? trustMarkerLogicalPath = null)
     {
         LogicalPathPolicy.ValidateDistinct(outputs.Keys);
+        if (trustMarkerLogicalPath is not null && !outputs.ContainsKey(trustMarkerLogicalPath))
+            throw new ArgumentException("The trust marker must be one of the published outputs.", nameof(trustMarkerLogicalPath));
         expectedCurrentDigests ??= new Dictionary<string, string>(StringComparer.Ordinal);
-        string[] paths = outputs.Keys.OrderBy(static path => path, StringComparer.Ordinal).ToArray();
+        string[] paths = outputs.Keys
+            .OrderBy(path => string.Equals(path, trustMarkerLogicalPath, StringComparison.Ordinal) ? 1 : 0)
+            .ThenBy(static path => path, StringComparer.Ordinal)
+            .ToArray();
         Dictionary<string, string> digests = outputs.ToDictionary(static item => item.Key, static item => Digest(item.Value), StringComparer.Ordinal);
         bool allExact = true;
         foreach (string logicalPath in paths)
@@ -44,7 +57,7 @@ public sealed class AtomicArtifactPublisher
             if (File.Exists(destination) && !string.Equals(Digest(File.ReadAllBytes(destination)), digests[logicalPath], StringComparison.Ordinal))
             {
                 if (!expectedCurrentDigests.TryGetValue(logicalPath, out string? expected) || !string.Equals(Digest(File.ReadAllBytes(destination)), expected, StringComparison.Ordinal))
-                    throw new IOException($"Refusing unproven overwrite: {logicalPath}");
+                    throw new AdapterPublicationException($"Refusing unproven overwrite: {logicalPath}");
             }
         }
 
@@ -55,12 +68,33 @@ public sealed class AtomicArtifactPublisher
         List<(string Destination, string? Backup)> published = new();
         try
         {
+            JsonArray journalEntries = new();
             foreach (string logicalPath in paths)
             {
                 string staged = Path.Combine(stagingRoot, logicalPath.Replace('/', Path.DirectorySeparatorChar));
                 Directory.CreateDirectory(Path.GetDirectoryName(staged)!);
                 File.WriteAllBytes(staged, outputs[logicalPath]);
+                string destination = LogicalPathPolicy.Resolve(workspaceRoot, logicalPath);
+                JsonObject entry = new()
+                {
+                    ["logicalPath"] = logicalPath,
+                    ["outputDigest"] = digests[logicalPath],
+                };
+                if (File.Exists(destination))
+                {
+                    entry["priorDigest"] = Digest(File.ReadAllBytes(destination));
+                    entry["backupName"] = $"backup-{journalEntries.Count:D4}";
+                }
+                journalEntries.Add(entry);
             }
+            JsonObject journal = new()
+            {
+                ["schema"] = "program-kit.spec-kit-adapter-publication-staging/v1",
+                ["ownership"] = "adapter-generated-owned",
+                ["trustMarker"] = trustMarkerLogicalPath,
+                ["entries"] = journalEntries,
+            };
+            File.WriteAllBytes(Path.Combine(stagingRoot, "staging-state.json"), CanonicalDocument.Encode(journal));
 
             for (int index = 0; index < paths.Length; index++)
             {
@@ -72,7 +106,8 @@ public sealed class AtomicArtifactPublisher
                 string? backup = null;
                 if (File.Exists(destination))
                 {
-                    backup = Path.Combine(stagingRoot, $"backup-{index:D4}");
+                    string backupName = journalEntries[index]!["backupName"]!.GetValue<string>();
+                    backup = Path.Combine(stagingRoot, backupName);
                     File.Move(destination, backup);
                 }
 

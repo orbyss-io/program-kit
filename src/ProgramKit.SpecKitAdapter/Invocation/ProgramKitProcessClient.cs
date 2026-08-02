@@ -17,7 +17,12 @@ public sealed record ProgramKitProcessRequest(
 
 public sealed record ProgramKitProcessResult(int ExitCode, string StandardOutput, string StandardError, bool OutputTruncated);
 
-public sealed class ProgramKitProcessClient
+public interface IProgramKitProcessClient
+{
+    Task<ProgramKitProcessResult> RunAsync(ProgramKitProcessRequest request, CancellationToken cancellationToken);
+}
+
+public sealed class ProgramKitProcessClient : IProgramKitProcessClient
 {
     public static ProcessStartInfo CreateStartInfo(ProgramKitProcessRequest request)
     {

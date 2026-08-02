@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
     [Parameter()]
-    [ValidateSet('Fast', 'Contract', 'PrePr')]
-    [string]$Mode = 'Fast',
+    [ValidateSet('Edit', 'Story', 'PrePr', 'Ci', 'Human', 'Fast', 'Contract')]
+    [string]$Mode = 'Edit',
 
     [Parameter()]
     [string]$TestFilter,
@@ -12,6 +12,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$effectiveMode = switch ($Mode) {
+    'Fast' { 'Edit' }
+    'Contract' { 'Story' }
+    default { $Mode }
+}
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $toolHome = Join-Path $repositoryRoot 'artifacts/work/verification-tool-home'
 [IO.Directory]::CreateDirectory($toolHome) | Out-Null
@@ -56,7 +61,12 @@ try {
     Invoke-Checked { & (Join-Path $PSScriptRoot 'Assert-SpecKitIntegrity.ps1') } 'Spec Kit project integrity failed.'
     Invoke-Checked { & (Join-Path $PSScriptRoot 'Assert-CanonicalText.ps1') } 'Canonical text verification failed.'
 
-    if ($Mode -eq 'Fast') {
+    if ($effectiveMode -eq 'Human') {
+        Write-Host 'Human verification is a post-CI review checkpoint. This mode launches no provider, repeats no automated gate, and records no acceptance by itself.'
+        return
+    }
+
+    if ($effectiveMode -eq 'Edit') {
         Invoke-Checked {
             if ($TestFilter) {
                 dotnet test tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj --configuration Debug --no-restore --filter $TestFilter
@@ -66,11 +76,11 @@ try {
             }
         } 'Fast unit verification failed. If dependency inputs changed, run PrePr once to perform a locked restore.'
 
-        Write-Host 'Fast verification passed. Acceptance, conformance, evidence regeneration, and platform proof remain CI-owned.'
+        Write-Host 'Edit verification passed. Story, pre-PR, CI, and human proof remain at their declared checkpoints.'
         return
     }
 
-    if ($Mode -eq 'Contract') {
+    if ($effectiveMode -eq 'Story') {
         Invoke-Checked {
             dotnet build src/ProgramKit.Cli/ProgramKit.Cli.csproj --configuration ContractLoop --no-restore
         } 'CLI build failed. If dependency inputs changed, run PrePr once to perform a locked restore.'
@@ -112,7 +122,23 @@ try {
             } 'Acceptance verification failed.'
         }
 
-        Write-Host 'Contract verification passed. Unselected acceptance, evidence regeneration, and platform proof remain CI-owned.'
+        Write-Host 'Story verification passed. Unselected acceptance, evidence regeneration, and platform proof remain CI-owned.'
+        return
+    }
+
+    if ($effectiveMode -eq 'Ci') {
+        if ($env:GITHUB_ACTIONS -ne 'true') {
+            throw 'CI verification is protected-runner-only; use PrePr locally.'
+        }
+        Invoke-Checked { & (Join-Path $PSScriptRoot 'Bootstrap-DependencyMirror.ps1') } 'Dependency mirror bootstrap failed.'
+        Invoke-Checked { dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config -p:NuGetAudit=false } 'Locked restore failed.'
+        Invoke-Checked { dotnet build ProgramKit.slnx --configuration Release --no-restore } 'Release build failed.'
+        Invoke-Checked { & (Join-Path $PSScriptRoot 'Generate-DistributionEvidence.ps1') } 'Distribution evidence generation failed.'
+        Invoke-Checked { & git diff --exit-code -- artifacts/evidence } 'Checked-in distribution evidence is stale.'
+        Invoke-Checked { dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore } 'Authoritative Ubuntu test proof failed.'
+        Invoke-Checked { dotnet format ProgramKit.slnx --no-restore --verify-no-changes } 'Repository formatting verification failed.'
+        Invoke-Checked { & git diff --check } 'Git whitespace verification failed.'
+        Write-Host 'CI core verification passed once. The workflow-owned platform job runs only package/process/path/lifecycle/end-to-end proof.'
         return
     }
 
@@ -165,6 +191,9 @@ try {
     Invoke-Checked {
         dotnet test tests/ProgramKit.ContractTests/ProgramKit.ContractTests.csproj --configuration PrePr --no-build --no-restore
     } 'Pre-PR contract verification failed.'
+    Invoke-Checked {
+        dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --configuration PrePr --no-build --no-restore --filter 'FullyQualifiedName~SpecKitAdapterBootstrapAcceptanceTests'
+    } 'Pre-PR staged-extension smoke failed.'
 
     $changedCode = @(
         & git diff HEAD --name-only --diff-filter=ACMR -- '*.cs'

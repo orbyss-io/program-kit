@@ -90,40 +90,7 @@ public static class AdapterResultWriter
     }
 
     public static JsonObject Failure(AdapterOperation operation, AdapterFailureKind kind, string outcome = "blocked")
-    {
-        AdapterDiagnosticDefinition definition = AdapterDiagnosticCatalog.Get(kind);
-        JsonObject result = new()
-        {
-            ["schema"] = "program-kit.spec-kit-adapter-result/v1",
-            ["canonicalProfile"] = "program-kit.canonical-json/v1",
-            ["operation"] = Kebab(operation),
-            ["adapterRelease"] = "orbyss-program-kit-adapter@0.1.0",
-            ["compatibility"] = kind == AdapterFailureKind.UnsupportedCompatibility ? "incompatible" : "not-evaluated",
-            ["outcome"] = outcome,
-            ["furthestStage"] = kind == AdapterFailureKind.InvalidConfiguration ? "request" : "compatibility",
-            ["effectState"] = "none",
-            ["primaryDisposition"] = Kebab(definition.Disposition),
-            ["artifacts"] = new JsonArray(),
-            ["diagnostics"] = new JsonObject
-            {
-                ["total"] = 1,
-                ["returned"] = 1,
-                ["omitted"] = 0,
-                ["grouping"] = "identity-occurrence",
-                ["fullCollectionDigest"] = CanonicalDocument.Digest(new JsonArray(definition.Id)),
-                ["items"] = new JsonArray(new JsonObject
-                {
-                    ["id"] = definition.Id,
-                    ["messageKey"] = definition.MessageKey,
-                    ["disposition"] = Kebab(definition.Disposition),
-                    ["expected"] = "exact-compatible-input",
-                    ["observed"] = "withheld-boundary-refusal",
-                }),
-            },
-            ["disclosure"] = new JsonArray(new JsonObject { ["field"] = "external-error", ["classification"] = "withheld", ["action"] = "omitted" }),
-        };
-        return result;
-    }
+        => AdapterResultFactory.Failure(operation, kind, outcome);
 
     private static JsonObject EmptyDiagnostics() => new()
     {

@@ -20,6 +20,15 @@ currently needs template overrides and a workflow overlay; it does not install
 an extension merely to imitate functionality those narrower mechanisms already
 provide.
 
+## Verification ownership
+
+Use `Edit` for affected unit feedback, `Story` for the relevant contract and
+single consumer slice, and `PrePr` once before review. Protected CI owns the
+complete Ubuntu proof and repeats only platform-sensitive package, process,
+path, lifecycle, and end-to-end checks on Windows and Linux. `Human` is a
+post-CI review checkpoint; it launches no provider and records no acceptance by
+itself. `Fast` and `Contract` remain temporary aliases for `Edit` and `Story`.
+
 ## Contract evolution before migration support
 
 While Program Kit has no recorded supported external consumer for a contract

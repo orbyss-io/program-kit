@@ -69,7 +69,27 @@ public static class TraceResolver
         int endIndex = startIndex < 0 ? -1 : normalized.IndexOf(end, startIndex + start.Length, StringComparison.Ordinal);
         if (startIndex < 0 || secondStart >= 0 || endIndex < 0) throw new InvalidDataException("A traced named source block is missing or ambiguous.");
         int contentStart = startIndex + start.Length;
-        return normalized[contentStart..endIndex].Trim();
+        return NormalizeWhitespace(normalized[contentStart..endIndex]);
+    }
+
+    public static string NormalizeWhitespace(string value)
+    {
+        StringBuilder result = new();
+        bool pendingSpace = false;
+        foreach (char character in value.Trim())
+        {
+            if (char.IsWhiteSpace(character))
+            {
+                pendingSpace = result.Length > 0;
+                continue;
+            }
+
+            if (pendingSpace) result.Append(' ');
+            result.Append(character);
+            pendingSpace = false;
+        }
+
+        return result.ToString();
     }
 
     private static JsonNode ResolvePointer(JsonNode root, string pointer)

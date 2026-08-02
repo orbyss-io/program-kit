@@ -18,9 +18,7 @@ public static class AdapterGeneratedManifestBuilder
             ["digest"] = "sha256:" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(item.Value)).ToLowerInvariant(),
             ["ownership"] = "adapter-generated-owned",
         }).ToArray());
-        JsonObject invalidation = new();
-        string[] inputs = trace.DependencyDigests.OrderBy(static item => item.Key, StringComparer.Ordinal).Select(static item => $"{item.Key}:{item.Value}").ToArray();
-        foreach (JsonNode? output in outputs) invalidation[output!["logicalPath"]!.GetValue<string>()] = new JsonArray(inputs.Select(static value => JsonValue.Create(value)).ToArray());
+        JsonObject invalidation = TraceInvalidationEngine.Build(handoff, reviewDigest, translation, trace, compatibility.Digest);
         JsonObject manifest = new()
         {
             ["schema"] = "program-kit.spec-kit-adapter-manifest/v1",

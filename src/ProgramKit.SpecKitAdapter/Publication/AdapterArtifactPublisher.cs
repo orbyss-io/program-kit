@@ -28,6 +28,6 @@ public sealed class AdapterArtifactPublisher
             expected[manifestLogicalPath] = "sha256:" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(manifestPath))).ToLowerInvariant();
         }
 
-        return new AtomicArtifactPublisher().Publish(workspaceRoot, outputs, expected);
+        return new AtomicArtifactPublisher().Publish(workspaceRoot, outputs, expected, manifestLogicalPath);
     }
 }

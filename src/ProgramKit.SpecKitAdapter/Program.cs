@@ -5,6 +5,8 @@ using System.Text.Json.Nodes;
 using Orbyss.ProgramKit.SpecKitAdapter.Commands;
 using Orbyss.ProgramKit.SpecKitAdapter.Contracts;
 using Orbyss.ProgramKit.SpecKitAdapter.Diagnostics;
+using Orbyss.ProgramKit.SpecKitAdapter.Invocation;
+using Orbyss.ProgramKit.SpecKitAdapter.Publication;
 
 namespace Orbyss.ProgramKit.SpecKitAdapter;
 
@@ -45,6 +47,14 @@ public static class Program
         catch (InvalidDataException)
         {
             result = AdapterResultWriter.Failure(operation, AdapterFailureKind.InvalidConfiguration);
+        }
+        catch (ProgramKitInvocationException)
+        {
+            result = AdapterResultWriter.Failure(operation, AdapterFailureKind.ProcessFailure, "faulted");
+        }
+        catch (AdapterPublicationException)
+        {
+            result = AdapterResultWriter.Failure(operation, AdapterFailureKind.PublicationDrift);
         }
         catch (IOException)
         {

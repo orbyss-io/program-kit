@@ -2,7 +2,7 @@
   "schema": "program-kit.spec-kit-handoff-review/v1",
   "handoff": {
     "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/handoff.yaml",
-    "digest": "sha256:7e8998bd46c6e4e0223aecac3528bcc136dcb83e583e757bf1a8904f836dd810"
+    "digest": "sha256:44253a77befe00bc411763429b9887687e45b2f205fc84009d12e10cc2dc6f06"
   },
   "reviewer": "joey-orbyss",
   "decision": "approved",
@@ -23,5 +23,5 @@
   ],
   "limitations": [],
   "recordedAt": "2026-08-02T10:05:00Z",
-  "digest": "sha256:90158d356a9754b7e342178cef36dcc26881c0130da7af675ec87afe69adfc03"
+  "digest": "sha256:e67fbbf0dee078e780fbd537ad7498358007121a95b2840b018dcaa9eeb14a0e"
 }

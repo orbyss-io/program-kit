@@ -25,6 +25,8 @@ public sealed class SpecKitAdapterDiagnosticTests
             AdapterDiagnosticDefinition definition = AdapterDiagnosticCatalog.Get(kind);
             Assert.AreEqual(definition.Id, diagnostic.Id);
             Assert.AreEqual(definition.Disposition, diagnostic.Disposition);
+            Assert.AreEqual(AdapterDiagnosticCatalog.Digest, diagnostic.Catalog.Digest);
+            Assert.AreEqual(AdapterDiagnosticCatalog.Digest, diagnostic.Evidence.Single().Artifact.Digest);
             Assert.IsTrue(diagnostic.Evidence.Count > 0, diagnostic.Id);
             Assert.IsTrue(diagnostic.Remediations.Count > 0, diagnostic.Id);
             Assert.IsTrue(diagnostic.Remediations.All(static item => item.RequestArguments is { Count: > 0 } || item.RequestArtifact is not null || item.RequestDocument is not null), diagnostic.Id);
