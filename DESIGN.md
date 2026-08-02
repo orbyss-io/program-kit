@@ -124,7 +124,7 @@ records active answers, consequences, emergent questions, and decisions.
 
 ## 9. Decision register
 
-Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-045`
+Decisions `DEC-002`–`DEC-010`, `DEC-013`–`DEC-026`, and `DEC-028`–`DEC-046`
 are accepted. `DEC-001`, `DEC-011`, `DEC-012`, and `DEC-027` are superseded.
 All non-deferred categories are closed. Migration remains deferred by `DEC-030`.
 
@@ -178,6 +178,7 @@ All non-deferred categories are closed. Migration remains deferred by `DEC-030`.
 | `DEC-043` | `GOV-010`–`GOV-012` | `accepted` | V1 is local-first with no secrets in governed outputs, no telemetry/source upload/network by default, exact locked dependencies and sources, complete release provenance, freshness-bound vulnerability/license evidence, and deterministic SBOMs for Program Kit and executable-provider releases. Signing is explicitly deferred. Kernel, CLI, first-party .NET providers, and the initial generated profile target `net10.0` with stable C# and an exact deliberately updated SDK patch. System.Text.Json, JSON Schema, NuGet, SDK-style MSBuild/dotnet, and provider-scoped Roslyn have bounded roles. Source generators, custom build tasks, weaving, reflection discovery, and hidden generation are outside the first CLI. | 2026-08-01 |
 | `DEC-044` | `VSL-001`–`VSL-005` | `accepted` | The first slice constructs independent consumer-owned Status component and ASP.NET API bundles. The component supplies a contract, custom-bounded implementation, and CShells feature; the API consumes its exact local package and exposes one endpoint through a provider-owned contribution seam and assembler. The public diagnostics-first flow maps, validates, resolves, constructs, evaluates, publishes, packs, builds/tests, proves repeatability, and diagnoses/repairs drift. Custom code remains consumer-owned, generated plumbing is deterministic, the output has no Program Kit runtime, and larger platform capabilities remain outside the slice. | 2026-08-01 |
 | `DEC-045` | `VSL-006`–`VSL-008` | `accepted` | Green tests cannot excuse hard-coded reference semantics, ambient/manual steps, Program Kit runtime coupling, false deterministic claims, weak AI diagnostics, unexplained integration, unreproducibility, public-contract bypass, or bootstrap coupling. The first architect-visible value is a deterministic Integration Resolution Explanation. Every workspace receives a generated-owned canonical `.program-kit/workspace.snapshot.json`, scoped to an exact finite root closure and tracing identity, semantics, bindings, selections, graph, seams, artifacts, ownership, provenance, evidence, gates, waivers, support, and diagnostic state to authoritative sources. It becomes stale visibly and is a reproducible view, not competing truth. | 2026-08-01 |
+| `DEC-046` | `EXT-013` | `accepted` | The Program Kit Adapter for Spec Kit is a separately installed consumer-only extension over public Program Kit contracts. It uses an exact workspace-local Program Kit distribution, neutral zero-profile initialization and base lock, read-only local distribution catalog, explicit manifest/profile resolution, reviewed deterministic handoff, public preparation, and separate repository authority. Adapter participation resolves per feature from repository-owned `off`, `assist`, or `required` policy plus exact overrides; applicability precedes profile selection, non-factory work invokes no Program Kit operation, defaults never silently rebind reviewed handoffs, and disable/re-enable never deletes prior work. The approved design and proof obligations are authoritative in `DESIGN-SPECKIT-ADAPTER.md`; implementation still requires the normal Spec Kit feature packet and human checkpoints. | 2026-08-02 |
 New items receive the next stable ID within the relevant category and cite the
 answer or tension that created them.
 
@@ -640,3 +641,22 @@ answer or tension that created them.
   `DEC-030`; no unproven migration design was invented to close the ledger.
 - Marked the root design and foundations converged and ready for Spec Kit
   constitution synthesis.
+
+### 2026-08-02 — Spec Kit adapter design approved
+
+- The human product owner approved the complete separately installed Program
+  Kit Adapter for Spec Kit design after reviewing its product boundary,
+  installation, public preparation, authority, handoff, lifecycle, proof, and
+  efficient verification model.
+- Accepted `DEC-046` for a workspace-local Program Kit distribution, neutral
+  zero-profile initialization and base lock, distribution-local read-only
+  catalog, exact optional profile defaults, and public-contract-only adapter.
+- Made adapter participation per-feature and repository-owned through `off`,
+  `assist`, or `required` workspace policy plus exact overrides; applicability
+  precedes profile selection and non-factory work performs no Program Kit
+  invocation or feature write.
+- Required defaults to remain non-ambient and non-retroactive, disable/re-enable
+  to preserve prior work, and documentation-only/mixed-workspace behavior to
+  receive executable proof.
+- Approved `DESIGN-SPECKIT-ADAPTER.md` as authority input for a new Spec Kit
+  feature packet without authorizing implementation.
