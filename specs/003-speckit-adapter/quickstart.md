@@ -1,50 +1,113 @@
 # Validation Quickstart: Program Kit Adapter for Spec Kit
 
-This is the shipped package-only validation journey for the feature candidate.
-The automated two-scenario form is
-`eng/Invoke-SpecKitAdapterQuickstart.ps1`; this guide explains the same public
-steps without replacing human handoff and authority review.
+This guide has two distinct roles:
+
+1. a maintainer prepares one exact unpublished candidate from the clean Program
+   Kit repository after protected CI is green; and
+2. a reviewer performs each actual journey in one of three empty consumer
+   workspaces outside that repository.
+
+The CLI and adapter are not published to NuGet or a public Spec Kit catalog.
+The preparation command below builds the exact local packages, catalog, and
+dependency mirror used by the review. The automated two-scenario proof remains
+`eng/Invoke-SpecKitAdapterQuickstart.ps1`; it does not replace human handoff,
+missing-input, authority, or ownership review.
 
 ## 1. Exact prerequisites
 
-- Windows or Linux clean consumer workspace.
-- .NET SDK `10.0.302`, roll-forward disabled.
+- PowerShell 7 on Windows or Linux.
+- .NET SDK `10.0.302`.
 - Spec Kit exactly `0.15.1`.
-- Local/offline package source containing:
-  `Orbyss.ProgramKit.Cli.1.0.0-alpha.2.nupkg`.
-- Adapter extension archive/catalog entry:
-  `orbyss-program-kit-adapter` `0.1.0`.
-- Exact dependency mirror required by the generated .NET product.
+- A clean Program Kit candidate whose protected CI run is green.
+- One new review-root path outside the Program Kit repository.
 
-The Program Kit repository is not the consumer workspace. No Program Kit
-manifest, lock, profile selection, adapter registration, handoff, definition,
-bundle, factory request, grant, or product file may be copied into the clean
-workspace.
-
-## 2. Initialize Spec Kit and acquire Program Kit locally
-
-From the empty consumer workspace:
+`specify` is the Spec Kit terminal executable. Verify it before preparing the
+seed:
 
 ```powershell
+specify --version
+```
+
+If PowerShell cannot find it after an exact `uv` tool installation, add the
+`uv` tool directory to this terminal and retry:
+
+```powershell
+$uvBin = (uv tool dir --bin)
+$env:Path = "$uvBin$([IO.Path]::PathSeparator)$env:Path"
+specify --version
+```
+
+Do not run a human journey in the Program Kit repository. Do not copy its
+manifest, lock, selection, registration, handoff, factory request, grant, or
+product files into a consumer workspace.
+
+## 2. Prepare the candidate, then enter one empty consumer workspace
+
+Run this once from the clean Program Kit repository. `ReviewRoot` must not
+already exist:
+
+```powershell
+$reviewRoot = 'C:\tmp\program-kit-feature003-review'
+./eng/Initialize-SpecKitAdapterHumanReview.ps1 -ReviewRoot $reviewRoot
+```
+
+The final JSON must report `"status":"ready"`. The command creates:
+
+- one exact local NuGet feed containing the unpublished CLI and its package
+  closure;
+- one exact local Spec Kit extension catalog and adapter archive;
+- one exact dependency mirror and pinned `global.json`; and
+- three genuinely empty directories: `consumer-01`, `consumer-02`, and
+  `consumer-03`.
+
+It does not initialize Spec Kit or Program Kit inside those three directories.
+
+In a second PowerShell terminal, from the Program Kit repository, start the
+prepared local catalog and leave that terminal open during all three journeys:
+
+```powershell
+$reviewRoot = 'C:\tmp\program-kit-feature003-review'
+./eng/Start-SpecKitAdapterHumanReviewCatalog.ps1 -ReviewRoot $reviewRoot
+```
+
+For the first journey, switch to the first untouched consumer and verify that it
+is empty before initializing anything:
+
+```powershell
+$reviewRoot = 'C:\tmp\program-kit-feature003-review'
+$consumerRoot = Join-Path $reviewRoot 'consumer-01'
+if (@(Get-ChildItem -LiteralPath $consumerRoot -Force).Count -ne 0) {
+    throw 'This consumer workspace is not empty. Use the next untouched review workspace.'
+}
+Set-Location $consumerRoot
 specify init --here --integration codex
+Copy-Item -LiteralPath (Join-Path $reviewRoot 'global.json') -Destination 'global.json'
+Copy-Item -LiteralPath (Join-Path $reviewRoot 'extension-catalogs.yml') -Destination '.specify/extension-catalogs.yml'
+Copy-Item -LiteralPath (Join-Path $reviewRoot 'dependency-mirror') -Destination 'dependencies' -Recurse
 dotnet new tool-manifest
-dotnet tool install Orbyss.ProgramKit.Cli `
-  --version 1.0.0-alpha.2 `
-  --add-source <exact-local-feed>
+dotnet tool install Orbyss.ProgramKit.Cli --version 1.0.0-alpha.2 --configfile (Join-Path $reviewRoot 'NuGet.Config')
 dotnet tool run program-kit -- version --format json
 ```
 
 Expected:
 
+- Spec Kit created the workspace integration; the review seed did not preinstall
+  it;
 - the version result identifies `Orbyss.ProgramKit.Cli@1.0.0-alpha.2`;
-- acquisition changes only .NET-owned tool-manifest/package state;
-- no profile is selected and no Program Kit workspace/factory state exists;
-- a global `program-kit` executable, if present, is irrelevant.
+- the workspace-local tool manifest, not any global Program Kit executable,
+  controls CLI resolution;
+- no Program Kit profile is selected and no Program Kit factory state exists;
+  and
+- acquisition used only the prepared local CLI feed and local dependency mirror.
+
+Repeat this section later with `consumer-02` and `consumer-03`. Never copy state
+from a completed journey into the next one.
 
 ## 3. Neutral Program Kit initialization
 
-Create one consumer-authored request conforming to
-`program-kit.workspace-init-request/v1`, then run:
+In the consumer-rooted task, have the reviewer or authorized agent prepare
+one consumer-owned request conforming to
+`program-kit.workspace-init-request/v1`. Review the file, then either may run:
 
 ```powershell
 dotnet tool run program-kit -- init `
@@ -100,6 +163,19 @@ do not use the `.local.yml` or environment layers for adapter semantics.
 
 Invoke the registered `speckit.orbyss-program-kit-adapter.doctor` command through
 the active AI integration for base scope.
+
+The installation command above is a PowerShell command. Adapter operations are
+AI-integration commands. For Codex, open a new task whose workspace is this
+consumer directory after installation, then type:
+
+```text
+$speckit-orbyss-program-kit-adapter-doctor
+```
+
+That is a chat skill, not a PowerShell command. If the short skill name is not
+listed in the already-open task, start a new task after installation so Codex
+discovers the consumer's installed skills; changing `PATH` will not fix a chat
+skill.
 
 Expected:
 
@@ -303,6 +379,34 @@ Run once when the local candidate is complete:
 Do not routinely run the full acceptance/conformance/cross-platform matrix
 locally. Protected CI owns the authoritative merge-candidate proof. After CI is
 green, run three fresh human journeys using shipped instructions only.
+
+### The three named human journeys
+
+Each journey starts from the corresponding untouched directory and repeats
+section 2. After base doctor succeeds, give the consumer-rooted Codex task only
+the matching intent:
+
+| Workspace | Journey | Initial intent |
+|---|---|---|
+| `consumer-01` | Reference Status | Build a .NET Reference Status API whose `GET /status` endpoint delegates to `Reference.Status.IStatusReader`. Use the Program Kit adapter and stop whenever meaning or authority is missing. |
+| `consumer-02` | Inventory Health | Build a distinct .NET Inventory Health API whose `GET /inventory/health` endpoint delegates to `Warehouse.Inventory.IInventoryProbe` and reports degraded state plus backlog count. Use the workspace default and stop whenever meaning or authority is missing. |
+| `consumer-03` | Mixed applicability | First complete a documentation-only feature with Program Kit explicitly not applicable. Then build a factory feature with an explicit feature selection override, while preserving the documentation-only feature and stopping whenever meaning or authority is missing. |
+
+The agent may create schema-valid request files and invoke the shown terminal
+commands under the reviewer's ordinary workspace authorization. The reviewer
+does not need to transcribe JSON or manually run every command. The human work
+is to inspect and decide:
+
+1. answer a typed missing-input request in chat instead of letting the agent
+   guess;
+2. review the handoff and prepared artifact set;
+3. explicitly approve or deny the exact construction proposal in chat; and
+4. let the agent invoke `authority record` only after that semantic decision.
+
+A chat statement such as “I approve this exact construction proposal” is the
+human decision; it is not itself a grant file. Program Kit's repository
+authority provider records the bounded grant when the agent invokes the public
+command. Hooks and the adapter never do that automatically.
 
 Current limitations are deliberate: the adapter supports one exact Spec Kit
 release, one Program Kit release, one compiled .NET profile, and one

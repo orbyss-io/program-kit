@@ -337,3 +337,7 @@ rather than silently expanding the task.
 - Deferred work remains unchecked and requires explicit human approval.
 - Cross-platform CI and human tasks remain unchecked until their external proof
   actually exists; local implementation does not infer those results.
+
+## Phase 10: Convergence
+
+- [X] T084 Add a reproducible unpublished-candidate human-review seed, local extension-catalog launcher, focused contract proof, and exact three-journey quickstart instructions per FR-032 and SC-008 (partial)
