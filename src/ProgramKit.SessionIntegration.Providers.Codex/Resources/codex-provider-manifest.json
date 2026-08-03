@@ -6,21 +6,21 @@
     "kind": "session-provider",
     "name": "codex",
     "revision": "1.0.0",
-    "digest": "sha256:596394fc3a130079c48a7cd62c2efa6c52ae6dac9696d4493eb0be8e7ff8900d"
+    "digest": "sha256:0c6f1aa6983642bae044006e86d9c53d0bbd7f7a6452dbbd0ced2b6a100027c0"
   },
   "adapterIdentity": {
     "authority": "orbyss.program-kit",
     "kind": "session-provider-adapter",
     "name": "codex-repository-skill",
     "revision": "1.0.0",
-    "digest": "sha256:596394fc3a130079c48a7cd62c2efa6c52ae6dac9696d4493eb0be8e7ff8900d"
+    "digest": "sha256:0c6f1aa6983642bae044006e86d9c53d0bbd7f7a6452dbbd0ced2b6a100027c0"
   },
   "definitionBinding": {
     "authority": "orbyss.program-kit",
     "kind": "session-integration-definition",
     "name": "human-led-software-factory",
     "revision": "1.0.0",
-    "digest": "sha256:b3bb6db99a6284e7e8e85cb3d1c33d2a2212e4ec9a3b8c1ca07499ab64c27164"
+    "digest": "sha256:719cad40cce1e0cb800c7cc0323756c6e52d96322200afca82d1d2cdb033a943"
   },
   "bindingKind": "shell-cli",
   "supportedScopes": [

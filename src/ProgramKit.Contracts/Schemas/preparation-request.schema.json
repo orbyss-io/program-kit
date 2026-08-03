@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/preparation-request.schema.json",
+  "title": "Program Kit Preparation Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "rootBundle", "workspaceIdentity", "constructionMode", "desiredEffect", "selections", "evaluationContext", "expectedLock"],
+  "properties": {
+    "schema": { "const": "program-kit.preparation-request/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "rootBundle": { "$ref": "common.schema.json#/$defs/artifactReference" },
+    "workspaceIdentity": { "$ref": "common.schema.json#/$defs/governedIdentity" },
+    "constructionMode": { "enum": ["new", "repair"] },
+    "desiredEffect": { "enum": ["candidate-only", "committed"] },
+    "selections": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/exactSelection" } },
+    "evaluationContext": { "$ref": "factory-request.schema.json#/properties/evaluationContext" },
+    "expectedLock": { "$ref": "common.schema.json#/$defs/artifactReference" }
+  }
+}

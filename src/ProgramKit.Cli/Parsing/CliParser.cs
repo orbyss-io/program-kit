@@ -26,6 +26,20 @@ public sealed class CliParser
             if (!TrySessionCommand(arguments[1], out command)) return new(null, "Unknown session lifecycle operation.");
             optionStart = 2;
         }
+        else if (string.Equals(arguments[0], "catalog", StringComparison.Ordinal))
+        {
+            if (arguments.Length < 2) return new(null, "A catalog operation is required.");
+            if (!string.Equals(arguments[1], "list", StringComparison.Ordinal)) return new(null, "Unknown catalog operation.");
+            command = PublicCommand.CatalogList;
+            optionStart = 2;
+        }
+        else if (string.Equals(arguments[0], "authority", StringComparison.Ordinal))
+        {
+            if (arguments.Length < 2) return new(null, "An authority operation is required.");
+            if (!string.Equals(arguments[1], "record", StringComparison.Ordinal)) return new(null, "Unknown authority operation.");
+            command = PublicCommand.AuthorityRecord;
+            optionStart = 2;
+        }
         else
         {
             if (!TryCommand(arguments[0], out command)) return new(null, "Unknown command.");
@@ -68,11 +82,16 @@ public sealed class CliParser
                 return new(null, $"Missing value for {token}.");
             }
 
+            if (arguments[index].StartsWith("--", StringComparison.Ordinal))
+            {
+                return new(null, "An option value is missing.");
+            }
+
             options[token] = arguments[index];
             endOfOptions = false;
         }
 
-        bool factoryCommand = command is PublicCommand.Explain or PublicCommand.Construct or PublicCommand.Evaluate or PublicCommand.SessionExplain or PublicCommand.SessionInstall or PublicCommand.SessionVerify or PublicCommand.SessionRemove;
+        bool factoryCommand = command is not (PublicCommand.Help or PublicCommand.Version);
         if (factoryCommand && (!options.ContainsKey("--workspace") || !options.ContainsKey("--request")))
         {
             return new(null, "Factory commands require --workspace and --request.");
@@ -118,10 +137,14 @@ public sealed class CliParser
             "explain" => PublicCommand.Explain,
             "construct" => PublicCommand.Construct,
             "evaluate" => PublicCommand.Evaluate,
+            "init" => PublicCommand.Init,
+            "restore" => PublicCommand.Restore,
+            "prepare" => PublicCommand.Prepare,
             "help" => PublicCommand.Help,
             "version" => PublicCommand.Version,
             _ => (PublicCommand)(-1),
         };
         return Enum.IsDefined(command);
     }
+
 }

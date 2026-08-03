@@ -137,7 +137,7 @@ Assert-ContainsLiteral '.specify/templates/overrides/plan-template.md' '## Requi
 Assert-ContainsLiteral '.specify/templates/overrides/plan-template.md' '## Verification Strategy *(mandatory)*'
 Assert-ContainsLiteral '.specify/templates/overrides/tasks-template.md' '**Proof rule**:'
 Assert-ContainsLiteral '.specify/memory/constitution.md' 'Equivalent evidence MUST be reused while its declared input and invalidation set'
-Assert-ContainsLiteral 'eng/Invoke-Verification.ps1' "ValidateSet('Fast', 'Contract', 'PrePr')"
+Assert-ContainsLiteral 'eng/Invoke-Verification.ps1' "ValidateSet('Edit', 'Story', 'PrePr', 'Ci', 'Human', 'Fast', 'Contract')"
 Assert-ContainsLiteral '.github/workflows/vertical-slice.yml' './eng/Assert-SpecKitIntegrity.ps1 -RepositoryOnly'
 Assert-ContainsLiteral '.github/workflows/vertical-slice.yml' 'cancel-in-progress:'
 

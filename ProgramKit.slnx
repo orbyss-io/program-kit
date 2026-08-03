@@ -6,6 +6,7 @@
     <Project Path="src/ProgramKit.SessionIntegration.Providers.Codex/ProgramKit.SessionIntegration.Providers.Codex.csproj" />
     <Project Path="src/ProgramKit.Providers.DotNet/ProgramKit.Providers.DotNet.csproj" />
     <Project Path="src/ProgramKit.Cli/ProgramKit.Cli.csproj" />
+    <Project Path="src/ProgramKit.SpecKitAdapter/ProgramKit.SpecKitAdapter.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ProgramKit.UnitTests/ProgramKit.UnitTests.csproj" />

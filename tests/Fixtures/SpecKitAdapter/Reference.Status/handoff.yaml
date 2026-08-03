@@ -1,0 +1,272 @@
+{
+  "schema": "program-kit.spec-kit-handoff/v1",
+  "feature": { "key": "003-reference-status", "root": "specs/003-reference-status" },
+  "intentOwner": "reference-status-owner",
+  "sources": [
+    { "kind": "spec", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md" },
+    { "kind": "plan", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/plan.md" },
+    { "kind": "tasks", "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md" }
+  ],
+  "applicability": "applicable",
+  "effectiveSelection": {
+    "alias": "dotnet-default",
+    "source": "feature-override",
+    "selection": {
+      "alias": "dotnet-default",
+      "provider": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "factory-provider",
+        "name": "dotnet-cshells",
+        "revision": "1.0.0",
+        "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+      },
+      "targetProfile": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "target-profile",
+        "name": "dotnet10-cshells-0.0.28",
+        "revision": "1.0.0",
+        "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+      },
+      "selectionAuthority": {
+        "authority": "consumer.example",
+        "kind": "selection-authority",
+        "name": "human-review",
+        "revision": "1.0.0",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
+  "definitionFamily": {
+    "authority": "orbyss.program-kit.dotnet",
+    "kind": "definition-family",
+    "name": "component-api",
+    "revision": "1.0.0",
+    "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+  },
+  "definition": {
+    "schema": "program-kit.provider.dotnet.component-api-definition/v1",
+    "component": {
+      "name": "Reference.Status",
+      "namespace": "Reference.Status",
+      "packageId": "Reference.Status",
+      "version": "1.0.0",
+      "featureName": "Status",
+      "featureClass": "StatusFeature",
+      "contractName": "IStatusReader",
+      "implementationSource": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs"
+    },
+    "application": {
+      "name": "Reference.Status.Api",
+      "namespace": "Reference.Status.Api",
+      "route": "/status",
+      "method": "GET",
+      "consumesPackage": "Reference.Status"
+    },
+    "dependencyMirror": "dependencies"
+  },
+  "implementation": [
+    {
+      "identity": {
+        "authority": "consumer.reference",
+        "kind": "source-code",
+        "name": "Reference.Status.StatusFeature",
+        "revision": "1.0.0",
+        "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822"
+      },
+      "mediaType": "text/x-csharp",
+      "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs",
+      "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822",
+      "ownership": "consumer-owned"
+    }
+  ],
+  "evaluationContext": {
+    "instant": "2026-08-02T10:00:00Z",
+    "source": {
+      "authority": "consumer.reference",
+      "kind": "evaluation-context-source",
+      "name": "feature-review",
+      "revision": "1.0.0",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "assurance": "approved-declared-instant"
+  },
+  "requestedOperation": "construct",
+  "maximumEffect": "candidate-only",
+  "ownership": [
+    { "logicalPath": "src/Reference.Status", "ownership": "generated-owned" },
+    { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs", "ownership": "consumer-owned" }
+  ],
+  "trace": [
+    {
+      "targetPointer": "/feature",
+      "sourceKind": "human-decision",
+      "observedValue": { "key": "003-reference-status", "root": "specs/003-reference-status" },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/intentOwner",
+      "sourceKind": "plan-decision",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/plan.md" },
+      "sourceAnchor": "DEC-001",
+      "observedValue": "reference-status-owner",
+      "sourceBlockDigest": "sha256:2edd7ce9f74a71f860b4a7b93fc4dae721b93b0e5cfe3096b1021b77af546051",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/applicability",
+      "sourceKind": "task-row",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/tasks.md" },
+      "sourceAnchor": "T001",
+      "observedValue": "applicable",
+      "sourceBlockDigest": "sha256:572ffd7d3f90f62cb3c1a9c104ac7f17ebd556779f39db330c4da2cb90e1b665",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/effectiveSelection",
+      "sourceKind": "human-decision",
+      "observedValue": {
+        "alias": "dotnet-default",
+        "source": "feature-override",
+        "selection": {
+          "alias": "dotnet-default",
+          "provider": {
+            "authority": "orbyss.program-kit.dotnet",
+            "kind": "factory-provider",
+            "name": "dotnet-cshells",
+            "revision": "1.0.0",
+            "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+          },
+          "targetProfile": {
+            "authority": "orbyss.program-kit.dotnet",
+            "kind": "target-profile",
+            "name": "dotnet10-cshells-0.0.28",
+            "revision": "1.0.0",
+            "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+          },
+          "selectionAuthority": {
+            "authority": "consumer.example",
+            "kind": "selection-authority",
+            "name": "human-review",
+            "revision": "1.0.0",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/definitionFamily",
+      "sourceKind": "compatibility-fixed",
+      "observedValue": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "definition-family",
+        "name": "component-api",
+        "revision": "1.0.0",
+        "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+      },
+      "mappingAuthority": "compatibility-manifest"
+    },
+    {
+      "targetPointer": "/definition",
+      "sourceKind": "spec-block",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/spec.md" },
+      "sourceAnchor": "FR-001",
+      "observedValue": {
+        "schema": "program-kit.provider.dotnet.component-api-definition/v1",
+        "component": {
+          "name": "Reference.Status",
+          "namespace": "Reference.Status",
+          "packageId": "Reference.Status",
+          "version": "1.0.0",
+          "featureName": "Status",
+          "featureClass": "StatusFeature",
+          "contractName": "IStatusReader",
+          "implementationSource": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs"
+        },
+        "application": {
+          "name": "Reference.Status.Api",
+          "namespace": "Reference.Status.Api",
+          "route": "/status",
+          "method": "GET",
+          "consumesPackage": "Reference.Status"
+        },
+        "dependencyMirror": "dependencies"
+      },
+      "sourceBlockDigest": "sha256:b841dc390b51b54ccbd6bc1b1509bb8a866696d32817b3c3c6a22e900d943795",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/implementation",
+      "sourceKind": "human-decision",
+      "observedValue": [
+        {
+          "identity": {
+            "authority": "consumer.reference",
+            "kind": "source-code",
+            "name": "Reference.Status.StatusFeature",
+            "revision": "1.0.0",
+            "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822"
+          },
+          "mediaType": "text/x-csharp",
+          "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs",
+          "digest": "sha256:ae311a605718999a71e35bfa2a08a5f7391f8ff1d2a08673bf863af960269822",
+          "ownership": "consumer-owned"
+        }
+      ],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/evaluationContext",
+      "sourceKind": "human-decision",
+      "observedValue": {
+        "instant": "2026-08-02T10:00:00Z",
+        "source": {
+          "authority": "consumer.reference",
+          "kind": "evaluation-context-source",
+          "name": "feature-review",
+          "revision": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "assurance": "approved-declared-instant"
+      },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/requestedOperation",
+      "sourceKind": "compatibility-fixed",
+      "observedValue": "construct",
+      "mappingAuthority": "compatibility-manifest"
+    },
+    {
+      "targetPointer": "/maximumEffect",
+      "sourceKind": "human-decision",
+      "observedValue": "candidate-only",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/ownership",
+      "sourceKind": "human-decision",
+      "observedValue": [
+        { "logicalPath": "src/Reference.Status", "ownership": "generated-owned" },
+        { "logicalPath": "tests/Fixtures/SpecKitAdapter/Reference.Status/implementation/StatusFeature.cs", "ownership": "consumer-owned" }
+      ],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/deferred",
+      "sourceKind": "human-decision",
+      "observedValue": [],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/excluded",
+      "sourceKind": "human-decision",
+      "observedValue": [],
+      "mappingAuthority": "handoff-review"
+    }
+  ],
+  "unresolved": [],
+  "unsupported": [],
+  "deferred": [],
+  "excluded": []
+}

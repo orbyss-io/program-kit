@@ -27,7 +27,30 @@ jobs:
         shell: pwsh
         run: ./eng/Assert-CanonicalText.ps1
 
-  verify:
+  core:
+    needs: preflight
+    if: ${{ github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.302
+      - name: Run authoritative Ubuntu core proof once
+        shell: pwsh
+        run: ./eng/Invoke-Verification.ps1 -Mode Ci
+      - name: Upload bounded core evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: program-kit-evidence-ubuntu
+          path: |
+            artifacts/evidence
+            artifacts/work/evidence-adapter-package/orbyss-program-kit-adapter-0.1.0.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  platform:
     needs: preflight
     if: ${{ github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false) }}
     strategy:
@@ -40,25 +63,30 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.302
-      - name: Verify canonical tracked text
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v6
+      - name: Install exact Spec Kit lifecycle CLI
         shell: pwsh
-        run: ./eng/Assert-CanonicalText.ps1
+        run: |
+          uv tool install specify-cli==0.15.1
+          uv tool dir --bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Bootstrap exact dependency mirror
         shell: pwsh
         run: ./eng/Bootstrap-DependencyMirror.ps1
       - name: Restore locked repository graph
         run: dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.Config
-      - name: Build release
-        run: dotnet build ProgramKit.slnx --configuration Release --no-restore
-      - name: Regenerate deterministic distribution evidence
-        shell: pwsh
-        run: ./eng/Generate-DistributionEvidence.ps1
-      - name: Verify checked-in distribution evidence
-        run: git diff --exit-code -- artifacts/evidence
-      - name: Test vertical slice
-        run: dotnet test ProgramKit.slnx --configuration Release --no-build --no-restore
-      - name: Verify formatting
-        run: dotnet format ProgramKit.slnx --no-restore --verify-no-changes
+      - name: Build platform-sensitive acceptance surface
+        run: dotnet build tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj --configuration Release --no-restore
+      - name: Test package process path lifecycle and product journeys
+        run: >-
+          dotnet test tests/ProgramKit.AcceptanceTests/ProgramKit.AcceptanceTests.csproj
+          --configuration Release
+          --no-build
+          --no-restore
+          --filter
+          "FullyQualifiedName~PackagedToolAcceptanceTests|FullyQualifiedName~PackagedToolRemovalAcceptanceTests|FullyQualifiedName~PackagedSessionNegativeMatrixAcceptanceTests|FullyQualifiedName~SessionInstallationAcceptanceTests|FullyQualifiedName~SessionRemovalAcceptanceTests|FullyQualifiedName~SessionCliReleaseBindingAcceptanceTests|FullyQualifiedName~SpecKitAdapterBootstrapAcceptanceTests|FullyQualifiedName~SpecKitAdapterPreparationAcceptanceTests|FullyQualifiedName~SpecKitAdapterConstructionAcceptanceTests|FullyQualifiedName~SpecKitAdapterProductRuntimeAcceptanceTests|FullyQualifiedName~SpecKitAdapterLifecycleAcceptanceTests|FullyQualifiedName~SpecKitAdapterQuickstartAcceptanceTests|FullyQualifiedName~SpecKitAdapterNegativeMatrixAcceptanceTests"
       - name: Pack workspace-local CLI
         shell: pwsh
         run: ./eng/Pack-ProgramKitTool.ps1 -OutputRoot (Join-Path $env:RUNNER_TEMP 'program-kit-tool-feed')
@@ -74,10 +102,3 @@ jobs:
           name: deterministic-session-review-${{ matrix.os }}
           path: ${{ runner.temp }}/deterministic-session-review.json
           if-no-files-found: error
-      - name: Upload bounded product evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: program-kit-evidence-${{ matrix.os }}
-          path: artifacts/evidence
-          if-no-files-found: error
-          retention-days: 14

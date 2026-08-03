@@ -7,7 +7,7 @@ using Orbyss.ProgramKit.Contracts.Operations;
 
 namespace Orbyss.ProgramKit.Kernel.Canonicalization;
 
-internal static class ContractJson
+public static class ContractJson
 {
     public static JsonObject Identity(GovernedIdentity value) => new()
     {

@@ -86,7 +86,7 @@ internal static class FallbackResultWriter
         writer.WriteString("outcome", "faulted");
         writer.WriteString("primaryDisposition", "stop");
         writer.WriteStartArray("receipts"); writer.WriteEndArray();
-        writer.WriteString("schema", "program-kit.operation-result/v1");
+        writer.WriteString("schema", "program-kit.operation-result/v2");
         writer.WriteEndObject();
         writer.Flush();
     }

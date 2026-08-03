@@ -122,7 +122,7 @@ public sealed class CodexSessionReviewEvidenceContractTests
             ["packetDigest"] = Digest,
             ["seedContractDigest"] = Digest,
             ["cliDigest"] = Digest,
-            ["cliReportedVersion"] = "1.0.0-alpha.1",
+            ["cliReportedVersion"] = "1.0.0-alpha.2",
             ["projectionDigest"] = Digest,
             ["installationRecordDigest"] = Digest,
             ["installationIdentity"] = Identity("session-installation", "codex"),

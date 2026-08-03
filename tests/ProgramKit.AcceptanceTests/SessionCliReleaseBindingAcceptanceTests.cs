@@ -54,7 +54,7 @@ public sealed class SessionCliReleaseBindingAcceptanceTests
         SessionRequestPaths requests = SessionIntegrationFixture.WriteLifecycleRequests(workspace.Root);
         JsonObject request = CanonicalJson.Parse(File.ReadAllBytes(requests.Explain)).AsObject();
         string packageName = "orbyss.programkit.cli";
-        string package = workspace.PathOf($".program-kit/tools/.store/{packageName}/1.0.0-alpha.1/{packageName}/1.0.0-alpha.1/{packageName}.1.0.0-alpha.1.nupkg");
+        string package = workspace.PathOf($".program-kit/tools/.store/{packageName}/1.0.0-alpha.2/{packageName}/1.0.0-alpha.2/{packageName}.1.0.0-alpha.2.nupkg");
         File.Delete(package);
 
         (int exitCode, string output, _) = TestRepository.RunCli("session", "explain", "--workspace", workspace.Root, "--request", requests.Explain, "--format", "json");

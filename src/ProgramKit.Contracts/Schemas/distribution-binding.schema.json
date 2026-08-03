@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/distribution-binding.schema.json",
+  "title": "Program Kit Distribution Binding v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "packageId", "packageVersion", "commandName", "invocationKind", "toolManifest", "reportedVersion", "packageDigest", "executableDigest", "runtimeProfile", "distribution"],
+  "properties": {
+    "schema": { "const": "program-kit.distribution-binding/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "packageId": { "const": "Orbyss.ProgramKit.Cli" },
+    "packageVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+    "commandName": { "const": "program-kit" },
+    "invocationKind": { "enum": ["dotnet-tool-manifest", "tool-path"] },
+    "toolManifest": { "$ref": "common.schema.json#/$defs/logicalPath" },
+    "reportedVersion": { "type": "string", "minLength": 1 },
+    "packageDigest": { "$ref": "common.schema.json#/$defs/digest" },
+    "executableDigest": { "$ref": "common.schema.json#/$defs/digest" },
+    "runtimeProfile": { "$ref": "common.schema.json#/$defs/governedIdentity" },
+    "distribution": { "$ref": "common.schema.json#/$defs/governedIdentity" }
+  }
+}

@@ -13,7 +13,7 @@ public sealed class SessionProviderConformanceContractTests
         SessionProviderConformanceProfile profile = SessionProviderConformanceProfiles.RepositoryWorkspaceV1;
         CollectionAssert.AreEqual(new[] { "explain", "construct", "evaluate", "session-explain", "session-install", "session-verify", "session-remove" }, profile.RequiredOperations.ToArray());
         CollectionAssert.AreEqual(new[] { "workspace" }, profile.RequiredScopes.ToArray());
-        Assert.AreEqual("program-kit.operation-result/v1", profile.ResultSchema);
+        Assert.AreEqual("program-kit.operation-result/v2", profile.ResultSchema);
         Assert.IsTrue(profile.RequireGeneratedOwnership);
         Assert.IsTrue(profile.RequireCleanStructuredResult);
         Assert.IsTrue(profile.RequireAuthorityPreservation);

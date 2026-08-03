@@ -37,7 +37,7 @@ internal sealed class NeutralSessionProviderHarness : ISessionProviderAdapter
 
     public IReadOnlyList<ProjectedSessionArtifact> Project(SessionProjectionContext context)
     {
-        string content = corrupt ? string.Empty : $"definition={context.Definition.Identity.StableKey}\nresult=program-kit.operation-result/v1\nauthority=request-bound\ndisclosure=classified\nnormalization=canonical-json\nfresh-session=separately-classified\noperation=session-explain\neffect=none\n";
+        string content = corrupt ? string.Empty : $"definition={context.Definition.Identity.StableKey}\nresult=program-kit.operation-result/v2\nauthority=request-bound\ndisclosure=classified\nnormalization=canonical-json\nfresh-session=separately-classified\noperation=session-explain\neffect=none\n";
         return new[] { new ProjectedSessionArtifact(".session-capabilities/program-kit.md", "text/markdown", Encoding.UTF8.GetBytes(content)) };
     }
 

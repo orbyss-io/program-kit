@@ -10,9 +10,12 @@ public static class HelpCommand
     public static OperationResult Help() => OperationResultFactory.Success(PublicCommand.Help, OperationPhase.Completion, EffectState.None, utility: new JsonObject
     {
         ["kind"] = "help",
-        ["commands"] = new JsonArray("explain", "construct", "evaluate", "session explain", "session install", "session verify", "session remove", "help", "version"),
+        ["commands"] = new JsonArray("init", "catalog list", "restore", "prepare", "authority record", "explain", "construct", "evaluate", "session explain", "session install", "session verify", "session remove", "help", "version"),
+        ["workspaceGrammar"] = "program-kit <init|restore|prepare> --workspace <path> --request <path> [--format text|json]",
+        ["catalogGrammar"] = "program-kit catalog list --workspace <path> --request <path> [--format text|json]",
+        ["authorityGrammar"] = "program-kit authority record --workspace <path> --request <path> [--format text|json]",
         ["sessionGrammar"] = "program-kit session <explain|install|verify|remove> --workspace <path> --request <path> [--format text|json]",
-        ["effectBearing"] = new JsonArray("construct", "session install", "session remove"),
+        ["effectBearing"] = new JsonArray("init", "restore", "authority record", "construct", "session install", "session remove"),
         ["sessionProtocol"] = "program-kit.session-integration-definition/v1",
         ["installedSessionAdapters"] = new JsonArray("orbyss.program-kit:session-provider:codex@1.0.0"),
     });

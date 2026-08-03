@@ -1,0 +1,71 @@
+{
+  "schema": "program-kit.spec-kit-adapter-compatibility/v1",
+  "adapter": "orbyss-program-kit-adapter@0.1.0",
+  "specKitVersions": ["0.15.1"],
+  "programKitVersions": ["1.0.0-alpha.2"],
+  "runtimeProfiles": ["net10.0@10.0.0"],
+  "providerProfiles": ["program-kit.provider.dotnet/dotnet10-cshells-0.0.28@1.0.0"],
+  "contractBindings": {
+    "program-kit.canonical-json/v1": "sha256:44a027fc98d6b47eefc3b58ade82305f360ec0dd0f54dde34c61c45b64478245",
+    "https://schemas.program-kit.dev/v1/workspace-lock.schema.json": "sha256:74a96428f2a9f9428c1d26b845453896167bb44d8a6304bce14558a46b00a892",
+    "https://schemas.program-kit.dev/v1/software-definition-bundle.schema.json": "sha256:322eef3e0366d6edda77205a795de64740bafaa218ae79ed8059fd71290de872",
+    "https://schemas.program-kit.dev/v1/preparation-request.schema.json": "sha256:72ab7f7da69645afced6e3fa352d3d542a8b4042a8fff532a98bef886bb6c270",
+    "https://schemas.program-kit.dev/v1/preparation-proposal.schema.json": "sha256:0513e9a8681bed0dffe05b98fc64d1ad8001de62fa1bd69d654e96284b622b21",
+    "https://schemas.program-kit.dev/v1/authority-decision-record.schema.json": "sha256:b45657cae5a47cf18c6d325374bcdcbb81784dcf23073d592b15aa6316fe447e",
+    "https://schemas.program-kit.dev/v1/authority-record-request.schema.json": "sha256:f6f8501aa73d2404e247cc758cc44e35842dd534492381981e389c0f35db4c5a",
+    "https://schemas.program-kit.dev/v1/authority-grant.schema.json": "sha256:6987d28f61e3736d7025b52d08ec211c179918d704ac5b741ce66bfcee923120",
+    "https://schemas.program-kit.dev/v1/factory-request.schema.json": "sha256:bfe093096cf074e1bbbd2851f832c238e5ac67706c80edac35e8ccd67615f336",
+    "https://schemas.program-kit.dev/v2/operation-result.schema.json": "sha256:253b70d42ba81f8086dc687c6a0e2b9c40a303a7810026404859cfd215f91db6",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-config.schema.json": "sha256:b8d2a72e3762c26faa29a1ecf271f7e4e440f29454f38ee4109642d3d6ad8311",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-request.schema.json": "sha256:f3cd093b04e47fd7ed60d40da492ba0a9a654e516c7729f93d21b35c9e43c3fc",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-result.schema.json": "sha256:7c88be669177cdc231041cb261d7d2e5190760cb2f4d3f249b2e9fa5f2e41fd4",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-compatibility.schema.json": "sha256:e4c52f8adc671c0468913abddb13e3fe8a0a9581796571ba94d23408e1250cb1",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-diagnostic-catalog.schema.json": "sha256:cd4dd864dc05686a0967c8c07c387a2935373f4f63c311c1dd008733bfe96ae0",
+    "https://schemas.program-kit.dev/v1/spec-kit-adapter-manifest.schema.json": "sha256:c897b4e0d200e5676f727c30c60176d5a8fc44e0425674c4364cb39340cc779d",
+    "https://schemas.program-kit.dev/v1/spec-kit-handoff-review.schema.json": "sha256:8845a3877859351aac074c0da7ed66abf97dbcc9440ec735f6193adb8842214f",
+    "https://schemas.program-kit.dev/v1/spec-kit-handoff.schema.json": "sha256:9555945071ed87732ebf046732129d3ed5b7326c1349701616afcd07ad46de42"
+  },
+  "commandBindings": {
+    "prepare": "program-kit prepare@v2",
+    "explain": "program-kit explain@v2",
+    "construct": "program-kit construct@v2",
+    "evaluate": "program-kit evaluate@v2"
+  },
+  "translationProfile": {
+    "definitionFamily": {
+      "authority": "orbyss.program-kit.dotnet",
+      "kind": "definition-family",
+      "name": "component-api",
+      "revision": "1.0.0",
+      "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+    },
+    "definitionSchema": "program-kit.provider.dotnet.component-api-definition/v1",
+    "definitionMediaType": "application/vnd.program-kit.provider.dotnet.component-api+json",
+    "bundleSchema": "program-kit.software-definition-bundle/v1",
+    "bundleMediaType": "application/vnd.program-kit.software-definition+json",
+    "preparationSchema": "program-kit.preparation-request/v1",
+    "factoryRequestSchema": "program-kit.factory-request/v1",
+    "operationResultSchema": "program-kit.operation-result/v2",
+    "provider": {
+      "authority": "orbyss.program-kit.dotnet",
+      "kind": "factory-provider",
+      "name": "dotnet-cshells",
+      "revision": "1.0.0",
+      "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+    },
+    "targetProfile": {
+      "authority": "orbyss.program-kit.dotnet",
+      "kind": "target-profile",
+      "name": "dotnet10-cshells-0.0.28",
+      "revision": "1.0.0",
+      "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+    }
+  },
+  "platforms": ["linux-x64", "win-x64"],
+  "releaseArtifacts": [
+    "program-kit-spec-kit-adapter",
+    "schemas/",
+    "diagnostic-catalog.json"
+  ],
+  "digest": "sha256:0fb6fdc0fd39273d2efbdb9f3527dd74633ff167fd36538b16c29c9ab821e8c8"
+}

@@ -21,7 +21,7 @@ public sealed class PackagedToolRemovalAcceptanceTests
         string feed = SecurityElement.Escape(workspace.Feed) ?? throw new InvalidOperationException("Feed path could not be encoded.");
         File.WriteAllText(config, $"<?xml version=\"1.0\" encoding=\"utf-8\"?><configuration><packageSources><clear/><add key=\"local\" value=\"{feed}\"/></packageSources></configuration>");
         string toolPath = Path.Combine(workspace.Root, ".program-kit", "tools");
-        ProcessResult installation = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.1", "--configfile", config, "--no-cache");
+        ProcessResult installation = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", toolPath, "--version", "1.0.0-alpha.2", "--configfile", config, "--no-cache");
         Assert.AreEqual(0, installation.ExitCode, installation.Error);
         string executable = Path.Combine(toolPath, OperatingSystem.IsWindows() ? "program-kit.exe" : "program-kit");
 
@@ -33,7 +33,7 @@ public sealed class PackagedToolRemovalAcceptanceTests
         Assert.IsFalse(File.Exists(workspace.PathOf(".agents/skills/program-kit/SKILL.md")));
         ProcessResult version = Run(executable, workspace.Root, workspace.Root, "version", "--format", "json");
         Assert.AreEqual(0, version.ExitCode, version.Error);
-        Assert.AreEqual("1.0.0-alpha.1", JsonNode.Parse(version.Output)!["utility"]!["cli"]!.GetValue<string>());
+        Assert.AreEqual("1.0.0-alpha.2", JsonNode.Parse(version.Output)!["utility"]!["cli"]!.GetValue<string>());
     }
 
     private static ProcessResult Run(string executable, string workingDirectory, string environmentRoot, params string[] arguments)

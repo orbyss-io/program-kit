@@ -6,7 +6,7 @@ namespace Orbyss.ProgramKit.Cli.Composition;
 public static class CliReleaseIdentityProvider
 {
     public const string PackageId = "Orbyss.ProgramKit.Cli";
-    public const string PackageVersion = "1.0.0-alpha.1";
+    public const string PackageVersion = "1.0.0-alpha.2";
     public const string ToolCommandName = "program-kit";
 
     public static string InvokedVersion

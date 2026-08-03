@@ -9,6 +9,19 @@ namespace Orbyss.ProgramKit.Tests;
 public sealed class ProviderNeutralityArchitectureTests
 {
     [TestMethod]
+    public void Provider_composition_is_explicit_and_has_no_dynamic_loading_surface()
+    {
+        string composition = File.ReadAllText(Path.Combine(TestRepository.Root, "src", "ProgramKit.Cli", "Composition", "ProgramKitComposition.cs"));
+        StringAssert.Contains(composition, "new DotNetProvider()");
+        Assert.IsFalse(composition.Contains("Assembly.Load", StringComparison.Ordinal));
+        Assert.IsFalse(composition.Contains("Activator.CreateInstance", StringComparison.Ordinal));
+
+        string registry = File.ReadAllText(Path.Combine(TestRepository.Root, "src", "ProgramKit.Kernel", "Operations", "ProviderRegistry.cs"));
+        Assert.IsFalse(registry.Contains("Assembly.Load", StringComparison.Ordinal));
+        Assert.IsFalse(registry.Contains("Directory.EnumerateFiles", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public void Canonical_conformance_artifacts_contain_no_reference_provider_surface()
     {
         string[] roots =

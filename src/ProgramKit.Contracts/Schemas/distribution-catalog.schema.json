@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/distribution-catalog.schema.json",
+  "title": "Program Kit Distribution Catalog v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "distributionBinding", "providers", "schemas", "diagnosticCatalogs", "canonicalProfiles", "evidence", "digest"],
+  "properties": {
+    "schema": { "const": "program-kit.distribution-catalog/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "distributionBinding": { "$ref": "distribution-binding.schema.json" },
+    "providers": { "type": "array", "items": { "type": "object" } },
+    "schemas": { "type": "object", "additionalProperties": { "$ref": "common.schema.json#/$defs/digest" } },
+    "diagnosticCatalogs": { "type": "object", "additionalProperties": { "$ref": "common.schema.json#/$defs/digest" } },
+    "canonicalProfiles": { "type": "object", "additionalProperties": { "$ref": "common.schema.json#/$defs/digest" } },
+    "evidence": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/evidenceReference" } },
+    "digest": { "$ref": "common.schema.json#/$defs/digest" }
+  }
+}

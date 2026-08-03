@@ -6,7 +6,7 @@ namespace Orbyss.ProgramKit.Contracts.SessionIntegration;
 
 public static class SessionOperationContracts
 {
-    public const string Schema = "program-kit.operation-result/v1";
+    public const string Schema = "program-kit.operation-result/v2";
     public static GovernedIdentity Explain { get; } = Identity("session-explain");
     public static GovernedIdentity Install { get; } = Identity("session-install");
     public static GovernedIdentity Verify { get; } = Identity("session-verify");

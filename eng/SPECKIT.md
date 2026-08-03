@@ -20,6 +20,29 @@ currently needs template overrides and a workflow overlay; it does not install
 an extension merely to imitate functionality those narrower mechanisms already
 provide.
 
+## Verification ownership
+
+Use `Edit` for affected unit feedback, `Story` for the relevant contract and
+single consumer slice, and `PrePr` once before review. Protected CI owns the
+complete Ubuntu proof and repeats only platform-sensitive package, process,
+path, lifecycle, and end-to-end checks on Windows and Linux. `Human` is a
+post-CI review checkpoint; it launches no provider and records no acceptance by
+itself. `Fast` and `Contract` remain temporary aliases for `Edit` and `Story`.
+
+## Contract evolution before migration support
+
+While Program Kit has no recorded supported external consumer for a contract
+and no separately approved migration capability, evolve that contract as one
+current surface. Increment its version when appropriate, but do not keep legacy
+and current result, command, schema, or API paths in parallel for hypothetical
+compatibility. Consumers adapt their code manually during this stage.
+
+A specification or plan may introduce a parallel compatibility surface only
+after explicit human approval naming the current consumers that require it, the
+support duration, and a bounded retirement or migration plan. “Public” or
+“versioned” alone is not evidence of that need. Analyze MUST flag an unjustified
+parallel surface as a blocking complexity and product-boundary finding.
+
 ## Safe upgrade
 
 1. Create a dedicated branch with a clean worktree.

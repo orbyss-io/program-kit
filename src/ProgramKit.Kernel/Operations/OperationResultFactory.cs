@@ -26,7 +26,8 @@ public static class OperationResultFactory
         IReadOnlyList<EvidenceReference>? evidence = null,
         IReadOnlyList<OperationChange>? changes = null,
         JsonObject? session = null,
-        IReadOnlyList<DisclosureEntry>? disclosure = null)
+        IReadOnlyList<DisclosureEntry>? disclosure = null,
+        JsonObject? payload = null)
     {
         if (phase == OperationPhase.Completion && effect == EffectState.Indeterminate)
         {
@@ -35,13 +36,14 @@ public static class OperationResultFactory
 
         if (command == PublicCommand.Explain && explanation is null
             || command is PublicCommand.Help or PublicCommand.Version && utility is null
-            || command is PublicCommand.SessionExplain or PublicCommand.SessionInstall or PublicCommand.SessionVerify or PublicCommand.SessionRemove && session is null)
+            || command is PublicCommand.SessionExplain or PublicCommand.SessionInstall or PublicCommand.SessionVerify or PublicCommand.SessionRemove && session is null
+            || command is PublicCommand.Init or PublicCommand.CatalogList or PublicCommand.Restore or PublicCommand.Prepare or PublicCommand.AuthorityRecord && payload is null)
         {
             throw new InvalidOperationException("The successful command-specific inline result is required.");
         }
 
         OperationResult result = new(
-            "program-kit.operation-result/v1",
+            "program-kit.operation-result/v2",
             CanonicalJson.Profile,
             command,
             ProtocolIdentities.Operation(Kebab(command)),
@@ -60,7 +62,8 @@ public static class OperationResultFactory
             explanation,
             utility,
             session,
-            disclosure);
+            disclosure,
+            payload);
         OperationExecutionTracker.Complete(result);
         return result;
     }
@@ -78,7 +81,8 @@ public static class OperationResultFactory
         IReadOnlyList<ArtifactReference>? artifacts = null,
         IReadOnlyList<ArtifactReference>? receipts = null,
         IReadOnlyList<EvidenceReference>? evidence = null,
-        IReadOnlyList<OperationChange>? changes = null)
+        IReadOnlyList<OperationChange>? changes = null,
+        JsonObject? payload = null)
     {
         Diagnostic[] materializedDiagnostics = diagnostics.ToArray();
         if (materializedDiagnostics.Length == 0
@@ -98,7 +102,7 @@ public static class OperationResultFactory
         }
 
         OperationResult result = new(
-            "program-kit.operation-result/v1",
+            "program-kit.operation-result/v2",
             CanonicalJson.Profile,
             command,
             ProtocolIdentities.Operation(Kebab(command)),
@@ -113,7 +117,8 @@ public static class OperationResultFactory
             receipts ?? Array.Empty<ArtifactReference>(),
             evidence ?? Array.Empty<EvidenceReference>(),
             DiagnosticFactory.View(materializedDiagnostics),
-            continuation);
+            continuation,
+            Payload: payload);
         OperationExecutionTracker.Complete(result);
         return result;
     }
@@ -137,5 +142,14 @@ public static class OperationResultFactory
     public static OperationResult Fallback(PublicCommand command, EffectState effect) =>
         Fallback(command, OperationPhase.Request, effect);
 
-    private static string Kebab(PublicCommand command) => command.ToString().ToLowerInvariant();
+    private static string Kebab(PublicCommand command) => command switch
+    {
+        PublicCommand.CatalogList => "catalog-list",
+        PublicCommand.AuthorityRecord => "authority-record",
+        PublicCommand.SessionExplain => "session-explain",
+        PublicCommand.SessionInstall => "session-install",
+        PublicCommand.SessionVerify => "session-verify",
+        PublicCommand.SessionRemove => "session-remove",
+        _ => command.ToString().ToLowerInvariant(),
+    };
 }

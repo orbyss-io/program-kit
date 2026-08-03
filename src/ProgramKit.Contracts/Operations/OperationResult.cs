@@ -15,6 +15,11 @@ public enum PublicCommand
     SessionInstall,
     SessionVerify,
     SessionRemove,
+    Init,
+    CatalogList,
+    Restore,
+    Prepare,
+    AuthorityRecord,
     Help,
     Version,
 }
@@ -37,6 +42,10 @@ public enum OperationPhase
     Explanation,
     Construction,
     Evaluation,
+    Distribution,
+    Workspace,
+    Preparation,
+    Authority,
     Publication,
     Admission,
     Completion,
@@ -96,4 +105,5 @@ public sealed record OperationResult(
     JsonObject? Explanation = null,
     JsonObject? Utility = null,
     JsonObject? Session = null,
-    IReadOnlyList<DisclosureEntry>? Disclosure = null);
+    IReadOnlyList<DisclosureEntry>? Disclosure = null,
+    JsonObject? Payload = null);

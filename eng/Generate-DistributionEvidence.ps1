@@ -14,6 +14,8 @@ $priorEnvironment = @{
     NUGET_XMLDOC_MODE = $env:NUGET_XMLDOC_MODE
     APPDATA = $env:APPDATA
     XDG_CONFIG_HOME = $env:XDG_CONFIG_HOME
+    PROGRAM_KIT_ADAPTER_ARCHIVE = $env:PROGRAM_KIT_ADAPTER_ARCHIVE
+    PROGRAM_KIT_ADAPTER_STAGE = $env:PROGRAM_KIT_ADAPTER_STAGE
 }
 Push-Location $repositoryRoot
 try {
@@ -29,6 +31,15 @@ try {
     else {
         $env:XDG_CONFIG_HOME = $toolHome
     }
+
+    $adapterPackageRoot = Join-Path $repositoryRoot 'artifacts/work/evidence-adapter-package'
+    $packOutput = @(& (Join-Path $PSScriptRoot 'Pack-SpecKitAdapter.ps1') -OutputRoot $adapterPackageRoot)
+    if ($packOutput.Count -eq 0) {
+        throw 'Spec Kit adapter packaging returned no receipt.'
+    }
+    $packedAdapter = $packOutput[-1] | ConvertFrom-Json
+    $env:PROGRAM_KIT_ADAPTER_ARCHIVE = $packedAdapter.ArchivePath
+    $env:PROGRAM_KIT_ADAPTER_STAGE = $packedAdapter.StageRoot
 
     & dotnet run --property NuGetAudit=false --file (Join-Path $PSScriptRoot 'GenerateDistributionEvidence.cs')
     if ($LASTEXITCODE -ne 0) {

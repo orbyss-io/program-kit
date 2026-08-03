@@ -17,6 +17,8 @@
         Condition="'$(MSBuildProjectName)' == 'ProgramKit.Kernel' and '%(ProjectReference.Filename)' != 'ProgramKit.Contracts'" />
       <_ProgramKitForbiddenReference Include="@(ProjectReference)"
         Condition="'$(MSBuildProjectName)' == 'ProgramKit.Providers.DotNet' and '%(ProjectReference.Filename)' != 'ProgramKit.Contracts'" />
+      <_ProgramKitForbiddenReference Include="@(ProjectReference)"
+        Condition="'$(MSBuildProjectName)' == 'ProgramKit.SpecKitAdapter' and '%(ProjectReference.Filename)' != 'ProgramKit.Contracts'" />
     </ItemGroup>
     <Error Condition="'@(_ProgramKitForbiddenReference)' != ''"
       Text="Program Kit source architecture boundary violation in $(MSBuildProjectName): @(_ProgramKitForbiddenReference)" />

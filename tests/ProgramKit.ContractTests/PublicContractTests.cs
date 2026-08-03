@@ -17,7 +17,7 @@ public sealed class PublicContractTests
     public void Embedded_schemas_are_unique_local_draft_2020_12_documents()
     {
         var schemas = ContractSchemaResources.ReadAll();
-        Assert.AreEqual(12, schemas.Count);
+        Assert.AreEqual(23, schemas.Count);
         string[] ids = schemas.Values.Select(schema => JsonNode.Parse(schema)!["$id"]!.GetValue<string>()).ToArray();
         Assert.AreEqual(ids.Length, ids.Distinct(StringComparer.Ordinal).Count());
         foreach (string schema in schemas.Values)

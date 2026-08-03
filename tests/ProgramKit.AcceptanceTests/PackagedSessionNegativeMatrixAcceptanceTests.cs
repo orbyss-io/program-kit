@@ -101,7 +101,7 @@ public sealed class PackagedSessionNegativeMatrixAcceptanceTests
         string config = workspace.PathOf("NuGet.Config");
         string encodedFeed = SecurityElement.Escape(Path.GetFullPath(feed)) ?? throw new InvalidOperationException("Feed path could not be encoded.");
         File.WriteAllText(config, $"<?xml version=\"1.0\" encoding=\"utf-8\"?><configuration><packageSources><clear/><add key=\"local\" value=\"{encodedFeed}\"/></packageSources></configuration>");
-        ProcessResult installed = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", workspace.PathOf(".program-kit/tools"), "--version", "1.0.0-alpha.1", "--configfile", config, "--no-cache");
+        ProcessResult installed = Run("dotnet", workspace.Root, workspace.Root, "tool", "install", "Orbyss.ProgramKit.Cli", "--tool-path", workspace.PathOf(".program-kit/tools"), "--version", "1.0.0-alpha.2", "--configfile", config, "--no-cache");
         if (installed.ExitCode != 0)
         {
             workspace.Dispose();

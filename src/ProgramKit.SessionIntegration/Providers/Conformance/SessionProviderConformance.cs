@@ -42,7 +42,7 @@ public static class SessionProviderConformanceProfiles
         new GovernedIdentity("orbyss.program-kit", "session-provider-conformance", "repository-skill-v1", "1.0.0", "sha256:4f09e1f5b6aebc4992c1755f295af4a78625de351f6676f893b732b164f9a237"),
         new[] { "explain", "construct", "evaluate", "session-explain", "session-install", "session-verify", "session-remove" },
         new[] { "workspace" },
-        "program-kit.operation-result/v1",
+        "program-kit.operation-result/v2",
         true,
         true,
         true,

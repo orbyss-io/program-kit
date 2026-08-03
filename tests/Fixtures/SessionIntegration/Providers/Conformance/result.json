@@ -1,1 +1,1 @@
-{"schema":"program-kit.operation-result/v1","command":"session-explain","outcome":"succeeded","effectState":"none","primaryDisposition":"complete"}
+{"schema":"program-kit.operation-result/v2","command":"session-explain","outcome":"succeeded","effectState":"none","primaryDisposition":"complete"}

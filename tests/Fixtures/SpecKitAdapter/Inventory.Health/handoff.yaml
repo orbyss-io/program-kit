@@ -1,0 +1,272 @@
+{
+  "schema": "program-kit.spec-kit-handoff/v1",
+  "feature": { "key": "003-inventory-health", "root": "specs/003-inventory-health" },
+  "intentOwner": "inventory-health-owner",
+  "sources": [
+    { "kind": "spec", "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/spec.md" },
+    { "kind": "plan", "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/plan.md" },
+    { "kind": "tasks", "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/tasks.md" }
+  ],
+  "applicability": "applicable",
+  "effectiveSelection": {
+    "alias": "dotnet-default",
+    "source": "feature-override",
+    "selection": {
+      "alias": "dotnet-default",
+      "provider": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "factory-provider",
+        "name": "dotnet-cshells",
+        "revision": "1.0.0",
+        "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+      },
+      "targetProfile": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "target-profile",
+        "name": "dotnet10-cshells-0.0.28",
+        "revision": "1.0.0",
+        "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+      },
+      "selectionAuthority": {
+        "authority": "consumer.example",
+        "kind": "selection-authority",
+        "name": "human-review",
+        "revision": "1.0.0",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
+  "definitionFamily": {
+    "authority": "orbyss.program-kit.dotnet",
+    "kind": "definition-family",
+    "name": "component-api",
+    "revision": "1.0.0",
+    "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+  },
+  "definition": {
+    "schema": "program-kit.provider.dotnet.component-api-definition/v1",
+    "component": {
+      "name": "Warehouse.Inventory",
+      "namespace": "Warehouse.Inventory",
+      "packageId": "Warehouse.Inventory",
+      "version": "1.0.0",
+      "featureName": "InventoryHealth",
+      "featureClass": "InventoryFeature",
+      "contractName": "IInventoryProbe",
+      "implementationSource": "tests/Fixtures/SpecKitAdapter/Inventory.Health/implementation/InventoryFeature.cs"
+    },
+    "application": {
+      "name": "Warehouse.Inventory.Api",
+      "namespace": "Warehouse.Inventory.Api",
+      "route": "/inventory/health",
+      "method": "GET",
+      "consumesPackage": "Warehouse.Inventory"
+    },
+    "dependencyMirror": "dependencies"
+  },
+  "implementation": [
+    {
+      "identity": {
+        "authority": "consumer.inventory",
+        "kind": "source-code",
+        "name": "Warehouse.Inventory.InventoryFeature",
+        "revision": "1.0.0",
+        "digest": "sha256:86f39bbea22ab14353d8765fc08472e385e2aea75f37e78253a5527a18f9e399"
+      },
+      "mediaType": "text/x-csharp",
+      "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/implementation/InventoryFeature.cs",
+      "digest": "sha256:86f39bbea22ab14353d8765fc08472e385e2aea75f37e78253a5527a18f9e399",
+      "ownership": "consumer-owned"
+    }
+  ],
+  "evaluationContext": {
+    "instant": "2026-08-02T10:00:00Z",
+    "source": {
+      "authority": "consumer.inventory",
+      "kind": "evaluation-context-source",
+      "name": "feature-review",
+      "revision": "1.0.0",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "assurance": "approved-declared-instant"
+  },
+  "requestedOperation": "construct",
+  "maximumEffect": "candidate-only",
+  "ownership": [
+    { "logicalPath": "src/Warehouse.Inventory", "ownership": "generated-owned" },
+    { "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/implementation/InventoryFeature.cs", "ownership": "consumer-owned" }
+  ],
+  "trace": [
+    {
+      "targetPointer": "/feature",
+      "sourceKind": "human-decision",
+      "observedValue": { "key": "003-inventory-health", "root": "specs/003-inventory-health" },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/intentOwner",
+      "sourceKind": "plan-decision",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/plan.md" },
+      "sourceAnchor": "DEC-001",
+      "observedValue": "inventory-health-owner",
+      "sourceBlockDigest": "sha256:d92d02f03650d23de51fe2e3890afcb2bcecca73e6f6a74cee4571c7a905db1c",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/applicability",
+      "sourceKind": "task-row",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/tasks.md" },
+      "sourceAnchor": "T001",
+      "observedValue": "applicable",
+      "sourceBlockDigest": "sha256:7271c9ed796ef17b58a0f11f301326732b9a7f5da371f97148840c28a8bdcc0e",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/effectiveSelection",
+      "sourceKind": "human-decision",
+      "observedValue": {
+        "alias": "dotnet-default",
+        "source": "feature-override",
+        "selection": {
+          "alias": "dotnet-default",
+          "provider": {
+            "authority": "orbyss.program-kit.dotnet",
+            "kind": "factory-provider",
+            "name": "dotnet-cshells",
+            "revision": "1.0.0",
+            "digest": "sha256:bb853839a88b6a73774a5993850fd42b0928bf82ac7dc0ff2fad6589357dde6c"
+          },
+          "targetProfile": {
+            "authority": "orbyss.program-kit.dotnet",
+            "kind": "target-profile",
+            "name": "dotnet10-cshells-0.0.28",
+            "revision": "1.0.0",
+            "digest": "sha256:15ebdc9c2356449e172579992b397ba215fa57e3b1ba1c09ad1873e4a30c894b"
+          },
+          "selectionAuthority": {
+            "authority": "consumer.example",
+            "kind": "selection-authority",
+            "name": "human-review",
+            "revision": "1.0.0",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/definitionFamily",
+      "sourceKind": "compatibility-fixed",
+      "observedValue": {
+        "authority": "orbyss.program-kit.dotnet",
+        "kind": "definition-family",
+        "name": "component-api",
+        "revision": "1.0.0",
+        "digest": "sha256:35daebbb70a60b75256adcda9be18c65dfcf482554e460b7863fbaea55d0cce5"
+      },
+      "mappingAuthority": "compatibility-manifest"
+    },
+    {
+      "targetPointer": "/definition",
+      "sourceKind": "spec-block",
+      "sourceArtifact": { "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/spec.md" },
+      "sourceAnchor": "FR-001",
+      "observedValue": {
+        "schema": "program-kit.provider.dotnet.component-api-definition/v1",
+        "component": {
+          "name": "Warehouse.Inventory",
+          "namespace": "Warehouse.Inventory",
+          "packageId": "Warehouse.Inventory",
+          "version": "1.0.0",
+          "featureName": "InventoryHealth",
+          "featureClass": "InventoryFeature",
+          "contractName": "IInventoryProbe",
+          "implementationSource": "tests/Fixtures/SpecKitAdapter/Inventory.Health/implementation/InventoryFeature.cs"
+        },
+        "application": {
+          "name": "Warehouse.Inventory.Api",
+          "namespace": "Warehouse.Inventory.Api",
+          "route": "/inventory/health",
+          "method": "GET",
+          "consumesPackage": "Warehouse.Inventory"
+        },
+        "dependencyMirror": "dependencies"
+      },
+      "sourceBlockDigest": "sha256:dcbe5d5142a3fb59aebd4efc027095858d30267afcfafb760fa5eae4a34b4398",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/implementation",
+      "sourceKind": "human-decision",
+      "observedValue": [
+        {
+          "identity": {
+            "authority": "consumer.inventory",
+            "kind": "source-code",
+            "name": "Warehouse.Inventory.InventoryFeature",
+            "revision": "1.0.0",
+            "digest": "sha256:86f39bbea22ab14353d8765fc08472e385e2aea75f37e78253a5527a18f9e399"
+          },
+          "mediaType": "text/x-csharp",
+          "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/implementation/InventoryFeature.cs",
+          "digest": "sha256:86f39bbea22ab14353d8765fc08472e385e2aea75f37e78253a5527a18f9e399",
+          "ownership": "consumer-owned"
+        }
+      ],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/evaluationContext",
+      "sourceKind": "human-decision",
+      "observedValue": {
+        "instant": "2026-08-02T10:00:00Z",
+        "source": {
+          "authority": "consumer.inventory",
+          "kind": "evaluation-context-source",
+          "name": "feature-review",
+          "revision": "1.0.0",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "assurance": "approved-declared-instant"
+      },
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/requestedOperation",
+      "sourceKind": "compatibility-fixed",
+      "observedValue": "construct",
+      "mappingAuthority": "compatibility-manifest"
+    },
+    {
+      "targetPointer": "/maximumEffect",
+      "sourceKind": "human-decision",
+      "observedValue": "candidate-only",
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/ownership",
+      "sourceKind": "human-decision",
+      "observedValue": [
+        { "logicalPath": "src/Warehouse.Inventory", "ownership": "generated-owned" },
+        { "logicalPath": "tests/Fixtures/SpecKitAdapter/Inventory.Health/implementation/InventoryFeature.cs", "ownership": "consumer-owned" }
+      ],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/deferred",
+      "sourceKind": "human-decision",
+      "observedValue": [],
+      "mappingAuthority": "handoff-review"
+    },
+    {
+      "targetPointer": "/excluded",
+      "sourceKind": "human-decision",
+      "observedValue": [],
+      "mappingAuthority": "handoff-review"
+    }
+  ],
+  "unresolved": [],
+  "unsupported": [],
+  "deferred": [],
+  "excluded": []
+}

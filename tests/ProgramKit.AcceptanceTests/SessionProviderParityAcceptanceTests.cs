@@ -39,7 +39,7 @@ public sealed class SessionProviderParityAcceptanceTests
         OperationOutcome.Succeeded,
         EffectState.None,
         PrimaryDisposition.Complete,
-        "program-kit.operation-result/v1",
+        "program-kit.operation-result/v2",
         true,
         true,
         true,

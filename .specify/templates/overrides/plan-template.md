@@ -45,6 +45,14 @@ template. It is filled by `$speckit-plan`; it is not a fork of Spec Kit core.
 
 ## Constitution Check
 
+### Contract-evolution check
+
+- Does this plan add a parallel contract, schema, result, command, or API
+  version? If yes, name the current supported consumers, explicit human
+  approval, support duration, and bounded retirement or migration plan.
+- If no approved migration capability and no named current consumer requires
+  compatibility, evolve the single current surface directly.
+
 *GATE: Complete before Phase 0 research and re-check after Phase 1 design.*
 
 Use `covered`, `unowned`, `deferred-approved`, or `not-applicable`; a bare

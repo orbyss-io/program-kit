@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/catalog-request.schema.json",
+  "title": "Program Kit Distribution Catalog Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "scope", "distributionBinding"],
+  "properties": {
+    "schema": { "const": "program-kit.catalog-request/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "scope": { "const": "distribution" },
+    "distributionBinding": { "$ref": "distribution-binding.schema.json" }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.program-kit.dev/v1/workspace-init-request.schema.json",
+  "title": "Program Kit Workspace Initialization Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "canonicalProfile", "workspaceIdentity", "distributionBinding", "requestedBy", "requestedEffect", "manifestPath", "lockPath"],
+  "properties": {
+    "schema": { "const": "program-kit.workspace-init-request/v1" },
+    "canonicalProfile": { "$ref": "common.schema.json#/$defs/canonicalProfile" },
+    "workspaceIdentity": { "$ref": "common.schema.json#/$defs/governedIdentity" },
+    "distributionBinding": { "$ref": "distribution-binding.schema.json" },
+    "requestedBy": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "requestedEffect": { "const": "bootstrap-absent-files" },
+    "manifestPath": { "const": "program-kit.yaml" },
+    "lockPath": { "const": "program-kit.lock.json" }
+  }
+}
