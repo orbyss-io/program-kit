@@ -42,6 +42,17 @@ $staging = Join-Path $resolvedParent ('.' + $leaf + '.staging-' + [Guid]::NewGui
 $published = $false
 $utf8NoBom = [Text.UTF8Encoding]::new($false)
 
+$priorEnvironment = @{
+    DOTNET_CLI_HOME = $env:DOTNET_CLI_HOME
+    NUGET_PACKAGES = $env:NUGET_PACKAGES
+    NUGET_HTTP_CACHE_PATH = $env:NUGET_HTTP_CACHE_PATH
+    DOTNET_CLI_TELEMETRY_OPTOUT = $env:DOTNET_CLI_TELEMETRY_OPTOUT
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+    DOTNET_NOLOGO = $env:DOTNET_NOLOGO
+    APPDATA = $env:APPDATA
+    XDG_CONFIG_HOME = $env:XDG_CONFIG_HOME
+}
+
 function Write-Utf8NoBom {
     param([Parameter(Mandatory)][string] $Path, [Parameter(Mandatory)][string] $Text)
     [IO.File]::WriteAllText($Path, $Text, $utf8NoBom)
@@ -53,6 +64,18 @@ try {
     $cliBuild = Join-Path $packageBuild 'cli'
     $adapterBuild = Join-Path $packageBuild 'adapter'
     New-Item -ItemType Directory -Path $cliBuild, $adapterBuild -Force | Out-Null
+
+    $packageCache = Join-Path $repositoryRoot 'artifacts/work/spec-kit-adapter-human-review-package-cache'
+    $toolHome = Join-Path $packageCache 'dotnet-home'
+    New-Item -ItemType Directory -Path $toolHome, (Join-Path $packageCache 'packages') -Force | Out-Null
+    $env:DOTNET_CLI_HOME = $toolHome
+    $env:NUGET_PACKAGES = Join-Path $packageCache 'packages'
+    $env:NUGET_HTTP_CACHE_PATH = Join-Path $packageCache 'http-cache'
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+    $env:DOTNET_NOLOGO = '1'
+    if ($IsWindows) { $env:APPDATA = $toolHome }
+    else { $env:XDG_CONFIG_HOME = $toolHome }
 
     & (Join-Path $PSScriptRoot 'Pack-ProgramKitTool.ps1') -OutputRoot $cliBuild
     if ($LASTEXITCODE -ne 0) { throw 'The exact Program Kit CLI package could not be prepared.' }
@@ -161,6 +184,15 @@ try {
     Write-Output $environmentJson
 }
 finally {
+    foreach ($entry in $priorEnvironment.GetEnumerator()) {
+        if ($null -eq $entry.Value) {
+            Remove-Item -LiteralPath "Env:$($entry.Key)" -ErrorAction SilentlyContinue
+        }
+        else {
+            Set-Item -LiteralPath "Env:$($entry.Key)" -Value $entry.Value
+        }
+    }
+
     if (-not $published -and (Test-Path -LiteralPath $staging)) {
         $resolvedStaging = [IO.Path]::GetFullPath($staging)
         if ($resolvedStaging.StartsWith($resolvedParent + [IO.Path]::DirectorySeparatorChar, $comparison)) {

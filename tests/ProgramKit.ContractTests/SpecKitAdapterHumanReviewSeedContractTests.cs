@@ -22,6 +22,7 @@ public sealed class SpecKitAdapterHumanReviewSeedContractTests
 
         StringAssert.Contains(initialize, "status --porcelain=v1");
         StringAssert.Contains(initialize, "Pack-ProgramKitTool.ps1");
+        StringAssert.Contains(initialize, "$env:NUGET_PACKAGES = Join-Path $packageCache 'packages'");
         StringAssert.Contains(initialize, "Pack-SpecKitAdapter.ps1");
         StringAssert.Contains(initialize, "consumer-01");
         StringAssert.Contains(initialize, "consumer-02");
