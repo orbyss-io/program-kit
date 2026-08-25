@@ -69,6 +69,8 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal("extension version", extension["extension"]["version"], version)
     require_equal("workflow version", workflow["workflow"]["version"], version)
     require_equal("extension repository", extension["extension"]["repository"], REPOSITORY)
+    require_equal("bundle license", bundle["bundle"]["license"], "MIT")
+    require_equal("extension license", extension["extension"]["license"], "MIT")
 
     extension_entry = extensions_catalog["extensions"]["program-kit"]
     workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
@@ -76,6 +78,9 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal("extension catalog version", extension_entry["version"], version)
     require_equal("workflow catalog version", workflow_entry["version"], version)
     require_equal("bundle catalog version", bundle_entry["version"], version)
+    require_equal("extension catalog license", extension_entry["license"], "MIT")
+    require_equal("workflow catalog license", workflow_entry["license"], "MIT")
+    require_equal("bundle catalog license", bundle_entry["license"], "MIT")
 
     tag = f"v{version}"
     require_equal(
@@ -142,4 +147,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

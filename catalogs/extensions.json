@@ -14,7 +14,7 @@
       "homepage": "https://github.com/orbyss-io/program-kit-bootstrap",
       "documentation": "https://github.com/orbyss-io/program-kit-bootstrap/blob/main/README.md",
       "changelog": "https://github.com/orbyss-io/program-kit-bootstrap/blob/main/CHANGELOG.md",
-      "license": "UNLICENSED",
+      "license": "MIT",
       "category": "process",
       "effect": "read-write",
       "requires": {
@@ -29,4 +29,3 @@
     }
   }
 }
-

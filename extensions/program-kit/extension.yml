@@ -7,7 +7,7 @@ extension:
   description: "Bootstraps and enforces architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit-bootstrap"
-  license: "UNLICENSED"
+  license: "MIT"
 
 requires:
   speckit_version: ">=1.0.1,<2.0.0"

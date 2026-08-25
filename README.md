@@ -106,6 +106,6 @@ gh attestation verify program-kit-bootstrap-0.1.0.zip --repo orbyss-io/program-k
 Get-FileHash program-kit-bootstrap-0.1.0.zip -Algorithm SHA256
 ```
 
-## Current licensing status
+## License
 
-This pre-release is `UNLICENSED`. The files are publicly visible, but no redistribution license is granted until the owner chooses one. Update `bundle.yml`, `extension.yml`, and all catalogs together when a license is selected.
+Program Kit Bootstrap is open source under the [MIT License](LICENSE).
