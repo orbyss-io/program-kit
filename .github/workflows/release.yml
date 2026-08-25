@@ -70,3 +70,6 @@ jobs:
 
       - name: Test live public catalog installation
         run: python tests/validate_public_install.py
+
+      - name: Test live public catalog upgrade from v0.2.0
+        run: python tests/validate_public_upgrade.py

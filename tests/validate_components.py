@@ -101,6 +101,12 @@ def main() -> int:
     if "NativeEndpoints" in dotnet_profile.read_text(encoding="utf-8"):
         raise AssertionError("The .NET profile must use Minimal APIs, not NativeEndpoints")
     require_text(
+        extension_root / "commands/speckit.program-kit-governance.intake.md",
+        "governance_state.py validate-installation",
+        "Before reading the initial design or writing any project artifact",
+        "Run those commands in the displayed order",
+    )
+    require_text(
         extension_root / "commands/speckit.program-kit-governance.constitution-begin.md",
         "speckit.constitution",
         ".agents/skills/speckit-constitution/SKILL.md",
@@ -129,8 +135,16 @@ def main() -> int:
         "specification roadmap",
         "vertical outcomes",
     )
-    if not (extension_root / "scripts/governance_state.py").is_file():
+    governance_script = extension_root / "scripts/governance_state.py"
+    if not governance_script.is_file():
         raise AssertionError("Governance-state validator is missing")
+    require_text(
+        governance_script,
+        "validate_installation()",
+        "version-incoherent",
+        "specify workflow update program-kit-bootstrap",
+        "specify bundle update program-kit --integration",
+    )
 
     print("Extension and workflow manifests are valid.")
     return 0

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -121,8 +122,10 @@ def main() -> int:
             raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
 
         deployed_extension = project / ".specify/extensions/program-kit-governance"
-        if not (deployed_extension / "scripts/governance_state.py").is_file():
+        governance = deployed_extension / "scripts/governance_state.py"
+        if not governance.is_file():
             raise AssertionError("Installed governance-state validator is missing")
+        run(sys.executable, str(governance), "validate-installation", cwd=project)
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
             if not (deployed_extension / "references" / reference).is_file():
                 raise AssertionError(f"Installed extension is missing {reference}")

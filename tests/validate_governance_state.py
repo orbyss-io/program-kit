@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -24,6 +26,68 @@ def expect_error(module, action, contains: str) -> None:
             raise AssertionError(f"Expected error containing {contains!r}, got {exc!r}") from exc
     else:
         raise AssertionError(f"Expected GovernanceStateError containing {contains!r}")
+
+
+def write_installation(project: Path, version: str, *, workflow_version: str | None = None) -> None:
+    workflow_version = workflow_version or version
+    extension_manifest = project / ".specify/extensions/program-kit-governance/extension.yml"
+    extension_manifest.parent.mkdir(parents=True, exist_ok=True)
+    extension_manifest.write_text(
+        f'schema_version: "1.0"\n\nextension:\n  id: "program-kit-governance"\n  version: "{version}"\n',
+        encoding="utf-8",
+    )
+    workflow_manifest = project / ".specify/workflows/program-kit-bootstrap/workflow.yml"
+    workflow_manifest.parent.mkdir(parents=True, exist_ok=True)
+    workflow_manifest.write_text(
+        f'schema_version: "1.0"\n\nworkflow:\n  id: "program-kit-bootstrap"\n  version: "{workflow_version}"\n',
+        encoding="utf-8",
+    )
+    registry = {
+        "schema_version": "1.0",
+        "workflows": {
+            "program-kit-bootstrap": {
+                "version": workflow_version,
+                "source": "catalog",
+            }
+        },
+    }
+    registry_path = project / ".specify/workflows/workflow-registry.json"
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    registry_path.write_text(json.dumps(registry), encoding="utf-8")
+    bundle_records = {
+        "schema_version": "1.0",
+        "bundles": [
+            {
+                "bundle_id": "program-kit",
+                "version": version,
+                "contributed_components": [
+                    {
+                        "kind": "extensions",
+                        "id": "program-kit-governance",
+                        "version": version,
+                    }
+                ],
+            }
+        ],
+    }
+    records_path = project / ".specify/bundle-records.json"
+    records_path.write_text(json.dumps(bundle_records), encoding="utf-8")
+    integration = {
+        "integration": "codex",
+        "default_integration": "codex",
+    }
+    (project / ".specify/integration.json").write_text(
+        json.dumps(integration), encoding="utf-8"
+    )
+
+
+def run_main(module, *arguments: str) -> int:
+    original = sys.argv
+    try:
+        sys.argv = ["governance_state.py", *arguments]
+        return module.main()
+    finally:
+        sys.argv = original
 
 
 def constitution(*, placeholder: bool = False) -> str:
@@ -85,7 +149,25 @@ def main() -> int:
             project = Path(directory)
             os.chdir(project)
 
-            expect_error(module, module.validate_ratification, "ratification record")
+            write_installation(project, "0.3.1", workflow_version="0.3.0")
+            expect_error(module, module.validate_installation, "version-incoherent")
+            expect_error(module, module.validate_installation, "workflow update program-kit-bootstrap")
+            expect_error(
+                module,
+                module.validate_installation,
+                "bundle update program-kit --integration codex",
+            )
+            if run_main(module, "begin") != 1:
+                raise AssertionError("A mixed-version installation must fail before begin")
+            if (project / module.RATIFICATION).exists():
+                raise AssertionError("Mixed-version preflight wrote governance state")
+
+            write_installation(project, "0.3.1")
+            versions = module.validate_installation()
+            if set(versions.values()) != {"0.3.1"}:
+                raise AssertionError(f"Unexpected coherent versions: {versions}")
+
+            expect_error(module, module.validate_ratification, "governance state file")
 
             constitution_path = project / module.CONSTITUTION
             constitution_path.parent.mkdir(parents=True)

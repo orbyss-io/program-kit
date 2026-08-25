@@ -13,6 +13,11 @@ CONSTITUTION = Path(".specify/memory/constitution.md")
 RATIFICATION = Path(".specify/memory/constitution-ratification.json")
 ROADMAP = Path("docs/architecture/specification-roadmap.md")
 DECISIONS = Path("docs/architecture/decisions")
+EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-governance/extension.yml")
+WORKFLOW_MANIFEST = Path(".specify/workflows/program-kit-bootstrap/workflow.yml")
+WORKFLOW_REGISTRY = Path(".specify/workflows/workflow-registry.json")
+BUNDLE_RECORDS = Path(".specify/bundle-records.json")
+INTEGRATION_STATE = Path(".specify/integration.json")
 STATUSES = {"Candidate", "Blocked", "Ready", "Active", "Delivered", "Superseded"}
 REQUIRED_RECORD_FIELDS = {
     "User-visible outcome",
@@ -32,6 +37,109 @@ REQUIRED_RECORD_FIELDS = {
 
 class GovernanceStateError(ValueError):
     pass
+
+
+def manifest_version(path: Path, component: str) -> str:
+    if not path.is_file():
+        raise GovernanceStateError(f"Installed {component} manifest is missing: {path}")
+    match = re.search(
+        r"^\s{2}version:\s*[\"']?([^\"'#\s]+)",
+        path.read_text(encoding="utf-8"),
+        re.MULTILINE,
+    )
+    if not match:
+        raise GovernanceStateError(f"Installed {component} manifest has no version: {path}")
+    return match.group(1)
+
+
+def repair_commands() -> str:
+    integration = "auto"
+    state_path = project_path(INTEGRATION_STATE)
+    if state_path.is_file():
+        state = read_json(state_path)
+        candidate = state.get("default_integration") or state.get("integration")
+        if isinstance(candidate, str) and re.fullmatch(r"[A-Za-z0-9_-]+", candidate.strip()):
+            integration = candidate.strip()
+    return (
+        "specify workflow update program-kit-bootstrap\n"
+        f"specify bundle update program-kit --integration {integration}"
+    )
+
+
+def validate_installation() -> dict[str, str]:
+    versions = {
+        "extension": manifest_version(
+            project_path(EXTENSION_MANIFEST), "Program Kit Governance extension"
+        ),
+        "workflow": manifest_version(
+            project_path(WORKFLOW_MANIFEST), "Program Kit Bootstrap workflow"
+        ),
+    }
+    registry_path = project_path(WORKFLOW_REGISTRY)
+    if not registry_path.is_file():
+        raise GovernanceStateError(
+            f"Workflow registry is missing: {registry_path}\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    registry = read_json(registry_path)
+    workflows = registry.get("workflows")
+    entry = workflows.get("program-kit-bootstrap") if isinstance(workflows, dict) else None
+    registry_version = entry.get("version") if isinstance(entry, dict) else None
+    if not isinstance(registry_version, str):
+        raise GovernanceStateError(
+            f"Program Kit Bootstrap is absent from the workflow registry: {registry_path}\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    versions["workflow registry"] = registry_version
+
+    records_path = project_path(BUNDLE_RECORDS)
+    if not records_path.is_file():
+        raise GovernanceStateError(
+            f"Bundle records are missing: {records_path}\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    records = read_json(records_path).get("bundles")
+    bundle = next(
+        (
+            record
+            for record in records or []
+            if isinstance(record, dict) and record.get("bundle_id") == "program-kit"
+        ),
+        None,
+    )
+    if not isinstance(bundle, dict) or not isinstance(bundle.get("version"), str):
+        raise GovernanceStateError(
+            f"Program Kit is absent from the bundle records: {records_path}\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    versions["bundle record"] = bundle["version"]
+    components = bundle.get("contributed_components")
+    extension = next(
+        (
+            component
+            for component in components or []
+            if isinstance(component, dict)
+            and component.get("kind") == "extensions"
+            and component.get("id") == "program-kit-governance"
+        ),
+        None,
+    )
+    if not isinstance(extension, dict) or not isinstance(extension.get("version"), str):
+        raise GovernanceStateError(
+            "Program Kit Governance is absent from the Program Kit bundle record.\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    versions["bundle extension record"] = extension["version"]
+
+    if len(set(versions.values())) != 1:
+        details = ", ".join(f"{name}={version}" for name, version in versions.items())
+        raise GovernanceStateError(
+            f"Program Kit installation is version-incoherent ({details}). Spec Kit 1.0.1 "
+            "cannot refresh the separately installed workflow through bundle update. Do not "
+            "run bootstrap between repair commands. Repair the installation, in this order:\n"
+            f"{repair_commands()}"
+        )
+    return versions
 
 
 def project_path(relative: Path) -> Path:
@@ -59,9 +167,9 @@ def read_json(path: Path) -> dict:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise GovernanceStateError(f"Invalid ratification record {path}: {exc}") from exc
+        raise GovernanceStateError(f"Invalid governance state file {path}: {exc}") from exc
     if not isinstance(value, dict):
-        raise GovernanceStateError(f"Ratification record must be an object: {path}")
+        raise GovernanceStateError(f"Governance state file must be an object: {path}")
     return value
 
 
@@ -251,6 +359,7 @@ def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate Program Kit governance state")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("validate-installation")
     subparsers.add_parser("begin")
     ratify_parser = subparsers.add_parser("ratify")
     ratify_parser.add_argument("--verdict", required=True)
@@ -261,18 +370,26 @@ def main() -> int:
     roadmap_parser.add_argument("--require-ready", action="store_true")
     args = parser.parse_args()
     try:
-        if args.command == "begin":
-            begin()
-        elif args.command == "ratify":
-            ratify(args.verdict)
-        elif args.command == "validate":
-            validate_ratification()
-            if args.require_roadmap or args.require_ready:
+        if args.command == "validate-installation":
+            versions = validate_installation()
+            print(f"Program Kit installation is version-coherent: {next(iter(versions.values()))}")
+        else:
+            # Installation coherence is the first invariant for every stateful or
+            # validating governance operation. In particular, no Draft marker may
+            # be written while the separately installed workflow is stale.
+            validate_installation()
+            if args.command == "begin":
+                begin()
+            elif args.command == "ratify":
+                ratify(args.verdict)
+            elif args.command == "validate":
+                validate_ratification()
+                if args.require_roadmap or args.require_ready:
+                    validate_roadmap(args.require_ready)
+                print("Program Kit governance state is valid")
+            elif args.command == "validate-roadmap":
                 validate_roadmap(args.require_ready)
-            print("Program Kit governance state is valid")
-        elif args.command == "validate-roadmap":
-            validate_roadmap(args.require_ready)
-            print("Specification roadmap is valid")
+                print("Specification roadmap is valid")
     except GovernanceStateError as exc:
         print(f"governance state error: {exc}", file=sys.stderr)
         return 1

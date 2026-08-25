@@ -46,6 +46,17 @@ Replace `codex` with the integration you use. The bundle itself is integration-a
 
 Spec Kit 1.0.1's bundle adapter incorrectly routes a catalog workflow ID through its local-development installer. Preinstalling `program-kit-bootstrap` as shown above is the tested workaround: the bundle then recognizes the pinned workflow and installs the governance extension. Until Spec Kit fixes the adapter, remove the workflow separately with `specify workflow remove program-kit-bootstrap` if you uninstall the bundle.
 
+### Upgrade an existing Program Kit installation
+
+With Spec Kit 1.0.1, the catalog workflow is installed separately from the bundle and must be updated first. Run both commands consecutively from the consuming repository, in this exact order:
+
+```powershell
+specify workflow update program-kit-bootstrap
+specify bundle update program-kit --integration codex
+```
+
+Replace `codex` with the repository's installed integration. Do not run the bootstrap or any Program Kit governance command between these two updates. Program Kit validates the installed workflow registry, workflow manifest, extension manifest, and bundle records before governance work; a mixed-version installation stops with these repair commands before reading the initial design or mutating governance state.
+
 Run the architecture bootstrap with the path to your initial design:
 
 ```powershell
@@ -134,8 +145,8 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 Pushing a SemVer tag matching `VERSION` creates a GitHub release:
 
 ```powershell
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.3.1
+git push origin v0.3.1
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -150,8 +161,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.3.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.3.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.3.1.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.3.1.zip -Algorithm SHA256
 ```
 
 ## License

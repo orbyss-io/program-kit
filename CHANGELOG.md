@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2026-08-25
+
+- Detect version-incoherent Program Kit bundle, governance extension, workflow manifest, and workflow registry state before any bootstrap artifact read or governance-state mutation.
+- Document the mandatory workflow-first upgrade sequence required by Spec Kit 1.0.1 and emit exact, integration-aware repair commands.
+- Add a genuine public-style v0.2.0 to v0.3.1 upgrade regression, including the previously unsafe bundle-first path and the constitution-first workflow shape after repair.
+
 ## 0.3.0 - 2026-08-25
 
 - Make vertical slices the default outcome-oriented delivery decomposition.
