@@ -6,12 +6,12 @@
     "program-kit": {
       "name": "Program Kit",
       "id": "program-kit",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "role": "architecture-governed-development",
-      "description": "Bootstraps architecture-governed, specification-driven repositories from an initial design.",
+      "description": "Bootstraps constitution-first, modular, vertically sliced Spec Kit repositories from an initial design.",
       "author": "Orbyss",
       "license": "MIT",
-      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.2.0/program-kit-0.2.0.zip",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.3.0/program-kit-0.3.0.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "requires": {
         "speckit_version": ">=1.0.1,<2.0.0"
@@ -22,7 +22,7 @@
         "steps": 0,
         "workflows": 1
       },
-      "tags": ["architecture", "adr", "governance", "bootstrap", "sdd"],
+      "tags": ["architecture", "adr", "governance", "bootstrap", "sdd", "vertical-slicing", "modularity"],
       "verified": false
     }
   }

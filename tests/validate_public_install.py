@@ -20,11 +20,27 @@ BUNDLE_CATALOG = (
     "main/catalogs/bundles.json"
 )
 EXPECTED_HOOKS = {
+    "before_specify",
     "after_specify",
     "after_plan",
     "before_implement",
     "after_implement",
 }
+
+EXPECTED_STEPS = [
+    "intake",
+    "research",
+    "review-assessment",
+    "constitution-begin",
+    "constitution-draft",
+    "review-constitution",
+    "constitution-ratify",
+    "architecture",
+    "tooling",
+    "specification-roadmap",
+    "review-bootstrap",
+    "readiness",
+]
 
 
 def run(*args: str, cwd: Path) -> None:
@@ -100,8 +116,16 @@ def main() -> int:
                 / ".specify/workflows/program-kit-bootstrap/workflow.yml"
             ).read_text(encoding="utf-8")
         )
-        if len(workflow.get("steps", [])) != 7:
-            raise AssertionError("Installed bootstrap workflow must contain seven steps")
+        step_ids = [step["id"] for step in workflow.get("steps", [])]
+        if step_ids != EXPECTED_STEPS:
+            raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
+
+        deployed_extension = project / ".specify/extensions/program-kit-governance"
+        if not (deployed_extension / "scripts/governance_state.py").is_file():
+            raise AssertionError("Installed governance-state validator is missing")
+        for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
+            if not (deployed_extension / "references" / reference).is_file():
+                raise AssertionError(f"Installed extension is missing {reference}")
 
     print("Live public-catalog installation test passed.")
     return 0

@@ -12,6 +12,11 @@ Use current research rather than memory for version-sensitive claims. Prefer off
 
 Revalidate generic advice against the detected languages, frameworks, architecture style, team constraints, deployment environment, and risk. A popular tool is not automatically a suitable tool.
 
+Research whether the proposed module and slice boundaries can be enforced with the detected build
+system and language toolchain. Distinguish compile-time project or package edges, runtime activation
+dependencies, public contracts, and data access. Do not treat framework-supported feature
+dependencies or inheritance as evidence that a cross-feature reference is architecturally valid.
+
 ## Output
 
 Create or update `docs/architecture/tooling-evaluation.md` with:
@@ -29,3 +34,6 @@ Always evaluate architecture documentation, ADR management, dependency/architect
 
 Evaluate API Evolve when the project introduces a versioned external API, event, RPC, or schema contract. Evaluate Reqnroll BDD when multistep externally observable behavior benefits from executable examples. Evaluate ArchUnitNET when .NET assembly dependency rules are present. These are evaluation triggers, not automatic acceptance.
 
+When .NET modularity or multi-tenancy is present, evaluate CShells and CShells.AspNetCore against the
+triggers and risks in the .NET technology profile. When ASP.NET Core HTTP endpoints are present,
+evaluate built-in Minimal APIs and OpenAPI support before adding an endpoint framework.

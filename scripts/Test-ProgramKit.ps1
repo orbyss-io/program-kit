@@ -25,6 +25,11 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Extension or workflow validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_governance_state.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Governance-state validation failed.'
+}
+
 & $specify.Source bundle validate --path $projectRoot --offline
 if ($LASTEXITCODE -ne 0) {
     throw 'Bundle validation failed.'
@@ -43,4 +48,3 @@ if (-not $SkipBuild) {
 }
 
 Write-Host 'Program Kit source checks passed.'
-

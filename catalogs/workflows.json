@@ -6,10 +6,10 @@
     "program-kit-bootstrap": {
       "id": "program-kit-bootstrap",
       "name": "Architecture-Governed Repository Bootstrap",
-      "description": "Turns an initial design into a researched architecture baseline, ADR backlog, and staged quality system.",
+      "description": "Ratifies project governance, then builds architecture, quality, and the candidate specification portfolio.",
       "author": "Orbyss",
-      "version": "0.2.0",
-      "url": "https://raw.githubusercontent.com/orbyss-io/program-kit/v0.2.0/workflows/program-kit-bootstrap/workflow.yml",
+      "version": "0.3.0",
+      "url": "https://raw.githubusercontent.com/orbyss-io/program-kit/v0.3.0/workflows/program-kit-bootstrap/workflow.yml",
       "repository": "https://github.com/orbyss-io/program-kit",
       "documentation": "https://github.com/orbyss-io/program-kit/blob/main/README.md",
       "changelog": "https://github.com/orbyss-io/program-kit/blob/main/CHANGELOG.md",
@@ -17,7 +17,7 @@
       "requires": {
         "speckit_version": ">=1.0.1,<2.0.0"
       },
-      "tags": ["architecture", "adr", "governance", "bootstrap", "sdd"]
+      "tags": ["architecture", "adr", "governance", "bootstrap", "sdd", "vertical-slicing", "modularity"]
     }
   }
 }

@@ -6,13 +6,37 @@ description: Determine whether the repository is ready to begin feature specific
 
 `$ARGUMENTS` identifies the bootstrap scope.
 
+## Constitutional and portfolio prerequisites
+
+Run the governance-state validator with both portfolio requirements:
+
+```text
+python .specify/extensions/program-kit-governance/scripts/governance_state.py validate --require-roadmap --require-ready
+```
+
+`NOT READY` is mandatory when the constitution is missing, Draft, unratified, hash-mismatched,
+contains placeholders or TODOs, lacks semantic version/ratification/amendment governance, or when the
+specification roadmap is missing, invalid, or has no Ready entry. Do not repair or ratify either
+artifact while evaluating readiness.
+
 ## Readiness gate
 
-Inspect the initial design, architecture baseline, decision backlog, ADRs, technology radar, tooling evaluation, quality system, and traceability model. Report `READY`, `CONDITIONALLY READY`, or `NOT READY`.
+Inspect the ratified constitution, initial design, architecture baseline, decision backlog, ADRs,
+technology radar, tooling evaluation, quality system, specification roadmap, and traceability model.
+Report `READY`, `CONDITIONALLY READY`, or `NOT READY`.
 
 `READY` requires that implementation-blocking architecture decisions are Accepted, significant risks have owners and verification, technology statuses are honest, architecture views are internally consistent, and the first specification can be written without smuggling in an unreviewed architecture choice.
 
+The first specification must be a viable vertical slice with an actor, trigger or intent, owner,
+observable outcome, contracts, material failure paths, and verification, or it must carry a justified
+proportional exception. Its module and feature dependencies must fit the accepted graph. A plan that
+must first build broad controller, service, repository, database, frontend, or infrastructure layers
+is not ready.
+
 Unresolved decisions may remain only when they do not block the proposed first specification. List each remaining decision with the earliest lifecycle point at which it must be resolved.
 
-Do not change an ADR status while evaluating readiness.
+A roadmap entry cannot be Ready while any required ADR is unresolved. At least one Ready entry must
+be suitable for the first feature specification without introducing an unreviewed architecture
+choice. Design tasks are never reported as feature specifications or implementation-ready work.
 
+Do not change an ADR status while evaluating readiness.

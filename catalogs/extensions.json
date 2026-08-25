@@ -6,10 +6,10 @@
     "program-kit-governance": {
       "name": "Program Kit Governance",
       "id": "program-kit-governance",
-      "description": "Bootstraps and enforces architecture-aware Spec Kit delivery.",
+      "description": "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery.",
       "author": "Orbyss",
-      "version": "0.2.0",
-      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.2.0/program-kit-governance-0.2.0.zip",
+      "version": "0.3.0",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.3.0/program-kit-governance-0.3.0.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "homepage": "https://github.com/orbyss-io/program-kit",
       "documentation": "https://github.com/orbyss-io/program-kit/blob/main/README.md",
@@ -21,10 +21,10 @@
         "speckit_version": ">=1.0.1,<2.0.0"
       },
       "provides": {
-        "commands": 7,
-        "hooks": 4
+        "commands": 10,
+        "hooks": 5
       },
-      "tags": ["architecture", "adr", "governance", "quality", "bootstrap"],
+      "tags": ["architecture", "adr", "governance", "quality", "bootstrap", "vertical-slicing", "modularity"],
       "verified": false
     }
   }

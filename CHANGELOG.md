@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 - 2026-08-25
+
+- Make vertical slices the default outcome-oriented delivery decomposition.
+- Add bounded-context, module, feature, contract, data-ownership, and dependency governance.
+- Reject peer feature implementation references by default and tightly govern feature-family inheritance exceptions.
+- Expand the .NET profile with modular DDD topology, CShells abstraction/runtime boundaries, Minimal API slice contracts, and executable dependency checks.
+- Make the project constitution the highest bootstrap authority with Draft/Ratified state, a dedicated human gate, and SHA-256-bound ratification evidence.
+- Add the required project-level specification roadmap and block feature specifications until at least one entry is Ready without unresolved ADRs.
+- Keep architecture design tasks separate from feature specification and implementation work.
+- Add deterministic governance-state, package-content, workflow-order, and negative readiness tests.
+
 ## 0.2.0 - 2026-08-25
 
 - Model Program Kit as the root product and installable bundle (`program-kit`).

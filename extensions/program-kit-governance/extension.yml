@@ -3,8 +3,8 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.2.0"
-  description: "Bootstraps and enforces architecture-aware Spec Kit delivery."
+  version: "0.3.0"
+  description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
   license: "MIT"
@@ -20,12 +20,21 @@ provides:
     - name: "speckit.program-kit-governance.research"
       file: "commands/speckit.program-kit-governance.research.md"
       description: "Research current tools and validate generic guidance against project context."
+    - name: "speckit.program-kit-governance.constitution-begin"
+      file: "commands/speckit.program-kit-governance.constitution-begin.md"
+      description: "Revoke stale ratification evidence before constitution drafting."
+    - name: "speckit.program-kit-governance.constitution-ratify"
+      file: "commands/speckit.program-kit-governance.constitution-ratify.md"
+      description: "Validate and hash-bind constitution ratification after the human gate."
     - name: "speckit.program-kit-governance.architecture"
       file: "commands/speckit.program-kit-governance.architecture.md"
       description: "Create or update the architecture baseline and ADR system."
     - name: "speckit.program-kit-governance.tooling"
       file: "commands/speckit.program-kit-governance.tooling.md"
       description: "Create a context-sensitive tooling and quality-gate proposal."
+    - name: "speckit.program-kit-governance.roadmap"
+      file: "commands/speckit.program-kit-governance.roadmap.md"
+      description: "Create the governed portfolio of candidate feature specifications."
     - name: "speckit.program-kit-governance.readiness"
       file: "commands/speckit.program-kit-governance.readiness.md"
       description: "Evaluate whether architecture bootstrap is ready for specifications."
@@ -42,6 +51,11 @@ provides:
       required: false
 
 hooks:
+  before_specify:
+    command: "speckit.program-kit-governance.architecture-check"
+    priority: 5
+    optional: false
+    description: "Require a ratified constitution and a Ready specification-roadmap entry before feature specification."
   after_specify:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
@@ -69,3 +83,5 @@ tags:
   - "governance"
   - "quality"
   - "bootstrap"
+  - "vertical-slicing"
+  - "modularity"

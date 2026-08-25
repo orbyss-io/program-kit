@@ -1,6 +1,10 @@
 # Program Kit
 
-Program Kit supplies reusable Spec Kit workflows and governance components for architecture-governed software delivery. Its first workflow turns an initial design into an architecture-governed Spec Kit project. Program Kit is maintained independently from the application repositories that consume it.
+Program Kit supplies reusable Spec Kit workflows and governance components for constitution-first,
+architecture-governed software delivery. Its first workflow turns an initial design into a ratified
+project constitution, modular architecture baseline, ADR system, quality system, and governed roadmap
+of vertical feature specifications. Program Kit is maintained independently from the application
+repositories that consume it.
 
 The executable behavior lives in a Spec Kit workflow. The bundle is the versioned distribution layer around that workflow and its governance extension.
 
@@ -50,11 +54,12 @@ specify workflow run program-kit-bootstrap `
   --input integration=auto
 ```
 
-The workflow pauses twice for human review. Continue a paused run after reviewing its generated artifacts:
+The workflow pauses three times for human review. Continue a paused run after reviewing its generated artifacts:
 
 ```powershell
 specify workflow status
 specify workflow resume <run-id> --input assessment_verdict=approve
+specify workflow resume <run-id> --input constitution_verdict=ratify
 specify workflow resume <run-id> --input bootstrap_verdict=approve
 ```
 
@@ -62,17 +67,54 @@ In a new Codex session, you can simply provide this README and your initial desi
 
 ## What it installs
 
-- `program-kit-bootstrap` workflow: inventories the design, performs current research, creates the architecture baseline and decision backlog, evaluates tooling, and pauses at human review gates.
+- `program-kit-bootstrap` workflow: inventories the design, performs current research, drafts the
+  project constitution with the core Spec Kit command, records human ratification as hash-bound
+  evidence, creates the architecture baseline and decision backlog, evaluates tooling, creates the
+  specification roadmap, and pauses at human review gates.
 - `program-kit-governance` extension: supplies reusable bootstrap and validation commands.
-- Mandatory hooks after `speckit.specify` and `speckit.plan`, before `speckit.implement`, and after implementation to detect architecture drift.
+- Mandatory hooks before and after `speckit.specify`, after `speckit.plan`, before
+  `speckit.implement`, and after implementation to prevent unauthorized specification and detect
+  architecture drift.
 
 ## Governance model
 
+- The project constitution is the highest governance artifact. It is not a feature specification.
+  Drafting revokes stale ratification; only the dedicated human gate and a matching SHA-256 marker
+  make it authoritative.
 - Project-specific architecture decisions require a human-approved ADR before becoming `Accepted`.
 - Technologies discovered in an initial design begin as `Proposed`; mentioning a technology does not accept it.
 - Generic engineering guardrails apply by default and are revalidated against current primary sources and project context during every bootstrap.
 - The reusable software language is `Identity + Intent + Context -> Policies -> Decision -> Transition -> Effects -> Admission -> Outcome`.
 - Required admission and optional observation are separate contracts. Invisible fire-and-forget behavior and ambiguous empty policy results are forbidden.
+- `docs/architecture/specification-roadmap.md` is the governed portfolio of candidate feature
+  specifications, not application work. At least one entry must be Ready before `speckit.specify`.
+- Design tasks resolve architecture gaps and unlock roadmap entries; they do not enter
+  `speckit.implement` as feature work.
+
+## Vertical slices and modularity
+
+- Deliver meaningful behavior as an actor, trigger, or intent carried to an observable verified
+  outcome rather than as controller/service/repository/frontend phases.
+- Bounded contexts and modules own language, contracts, data, and dependency boundaries. Features
+  are runtime composition units; shells are runtime isolation contexts; endpoints are transport
+  adapters.
+- Peer module and feature implementations do not reference one another. Collaboration uses owned
+  contracts, ports, events, or query APIs.
+- Concrete inheritance is not an automatic feature-reference exception. A genuine feature-family
+  extension requires the same owner and release lifecycle, an explicitly designed extension
+  contract, an Accepted ADR, and an architecture-test allowlist.
+
+### .NET profile
+
+The .NET profile maps these generic rules to project and assembly boundaries. It evaluates CShells
+and CShells.AspNetCore when runtime feature composition, per-shell or per-tenant isolation,
+configuration-driven feature sets, or dynamic activation are required. Feature projects reference
+the abstraction packages; only the host references the full runtime.
+
+ASP.NET Core Minimal APIs are the default built-in HTTP candidate. Each public operation owns stable
+route and operation identity, authorization, wire contracts, validation, status/error schemas,
+cancellation behavior, OpenAPI compatibility evidence, and traceability to its vertical slice.
+Technology adoption remains Proposed in each consuming repository until its ADR is accepted.
 
 ## Development and release
 
@@ -92,8 +134,8 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 Pushing a SemVer tag matching `VERSION` creates a GitHub release:
 
 ```powershell
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -108,8 +150,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.2.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.2.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.3.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.3.0.zip -Algorithm SHA256
 ```
 
 ## License

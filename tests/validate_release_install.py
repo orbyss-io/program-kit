@@ -9,11 +9,27 @@ import yaml
 
 
 EXPECTED_HOOKS = {
+    "before_specify",
     "after_specify",
     "after_plan",
     "before_implement",
     "after_implement",
 }
+
+EXPECTED_STEPS = [
+    "intake",
+    "research",
+    "review-assessment",
+    "constitution-begin",
+    "constitution-draft",
+    "review-constitution",
+    "constitution-ratify",
+    "architecture",
+    "tooling",
+    "specification-roadmap",
+    "review-bootstrap",
+    "readiness",
+]
 
 
 def run(*args: str, cwd: Path) -> None:
@@ -35,6 +51,11 @@ def main() -> int:
             archive.extractall(extracted_extension)
         if not (extracted_extension / "extension.yml").is_file():
             raise AssertionError("Extension release ZIP must contain extension.yml at its root")
+        if not (extracted_extension / "scripts/governance_state.py").is_file():
+            raise AssertionError("Extension release ZIP must contain the governance-state validator")
+        for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
+            if not (extracted_extension / "references" / reference).is_file():
+                raise AssertionError(f"Extension release ZIP is missing {reference}")
 
         run(
             "specify",
@@ -47,6 +68,10 @@ def main() -> int:
             "--ignore-agent-tools",
             cwd=project,
         )
+        if not (project / ".agents/skills/speckit-constitution/SKILL.md").is_file():
+            raise AssertionError(
+                "Spec Kit 1.0.1 did not install the core speckit.constitution command"
+            )
         run(
             "specify",
             "extension",
@@ -77,8 +102,9 @@ def main() -> int:
             ).read_text(encoding="utf-8")
         )
         steps = installed_workflow.get("steps", [])
-        if len(steps) != 7:
-            raise AssertionError(f"Installed workflow has {len(steps)} steps, expected 7")
+        step_ids = [step["id"] for step in steps]
+        if step_ids != EXPECTED_STEPS:
+            raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
 
     print("Packaged extension and workflow install test passed.")
     return 0

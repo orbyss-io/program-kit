@@ -24,7 +24,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Local workflow installation failed.' }
 
     $extensionConfig = Get-Content -Raw -LiteralPath '.specify\extensions.yml'
-    foreach ($expected in @('after_specify', 'after_plan', 'before_implement', 'after_implement')) {
+    foreach ($expected in @('before_specify', 'after_specify', 'after_plan', 'before_implement', 'after_implement')) {
         if ($extensionConfig -notmatch [regex]::Escape($expected)) {
             throw "Expected hook '$expected' was not registered."
         }
@@ -35,8 +35,13 @@ try {
         throw 'Installed workflow definition was not found.'
     }
     $stepCount = @(Select-String -LiteralPath $installedWorkflow -Pattern '^  - id:').Count
-    if ($stepCount -ne 7) {
-        throw "Installed workflow exposes $stepCount steps; expected 7."
+    if ($stepCount -ne 12) {
+        throw "Installed workflow exposes $stepCount steps; expected 12."
+    }
+
+    $validator = '.specify\extensions\program-kit-governance\scripts\governance_state.py'
+    if (-not (Test-Path -LiteralPath $validator -PathType Leaf)) {
+        throw 'Installed governance-state validator was not found.'
     }
 } finally {
     if ((Get-Location).Path -eq $testRoot) {

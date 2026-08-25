@@ -18,6 +18,10 @@ Authorization is a policy evaluated before protected effects. Authentication est
 
 Commands, queries, triggers, and messages enter a guarded path. Every path ends with an explicit outcome: success, rejection, failure, cancellation, or durable asynchronous acceptance with an operation identity. Unexpected exceptions are defects or infrastructure failures, not a control-flow language.
 
+This guarded path is the semantic spine of a vertical slice. The slice owns the boundary adaptation,
+policies, decision, transition, effects, admissions, outcome, and verification needed for that intent.
+Framework handlers and endpoints expose the path; they do not replace its domain language.
+
 ## Lifecycle
 
 A lifecycle is the durable map of states, invariants, legal transitions, terminal states, and externally visible consequences across one or many requests. APIs move identified subjects through that map; endpoints are not the lifecycle itself.
@@ -33,3 +37,6 @@ Every admission declares requirement level, consistency, acknowledgement, idempo
 
 Cross-domain process managers consume published contracts or events. They do not coordinate by reaching into multiple domain stores. A multi-domain database transaction requires an explicit ADR.
 
+Interfaces and schemas live at owned boundaries. Consumer-owned ports express required capabilities;
+provider-owned published contracts express offered capabilities. Domain entities are not transport,
+persistence, configuration, or event schemas.

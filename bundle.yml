@@ -3,9 +3,9 @@ schema_version: "1.0"
 bundle:
   id: "program-kit"
   name: "Program Kit"
-  version: "0.2.0"
+  version: "0.3.0"
   role: "architecture-governed-development"
-  description: "Bootstraps architecture-governed, specification-driven repositories from an initial design."
+  description: "Bootstraps constitution-first, modular, vertically sliced Spec Kit repositories from an initial design."
   author: "Orbyss"
   license: "MIT"
 
@@ -15,10 +15,10 @@ requires:
 provides:
   extensions:
     - id: "program-kit-governance"
-      version: "0.2.0"
+      version: "0.3.0"
   workflows:
     - id: "program-kit-bootstrap"
-      version: "0.2.0"
+      version: "0.3.0"
 
 tags:
   - "architecture"
@@ -26,3 +26,5 @@ tags:
   - "governance"
   - "bootstrap"
   - "spec-driven-development"
+  - "vertical-slicing"
+  - "modularity"

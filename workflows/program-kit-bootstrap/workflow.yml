@@ -3,9 +3,9 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.2.0"
+  version: "0.3.0"
   author: "Orbyss"
-  description: "Turns an initial design into a researched architecture baseline, ADR backlog, and staged quality system."
+  description: "Ratifies project governance, then builds architecture, quality, and the candidate specification portfolio."
 
 requires:
   speckit_version: ">=1.0.1,<2.0.0"
@@ -20,6 +20,9 @@ inputs:
     default: "auto"
     prompt: "Integration to use; auto inherits the initialized project integration"
   assessment_verdict:
+    type: string
+    default: ""
+  constitution_verdict:
     type: string
     default: ""
   bootstrap_verdict:
@@ -43,11 +46,40 @@ steps:
 
   - id: review-assessment
     type: gate
-    message: "Review the design inventory, unresolved decisions, and researched capability recommendations. Approve before architecture bootstrap."
+    message: "Review the design inventory, unresolved decisions, and researched capability recommendations. Approve before constitution drafting."
     show_file: "docs/architecture/bootstrap-assessment.md"
     options: [approve, reject]
     on_reject: abort
     verdict_input: "assessment_verdict"
+
+  - id: constitution-begin
+    type: command
+    command: "speckit.program-kit-governance.constitution-begin"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
+  - id: constitution-draft
+    type: command
+    command: "speckit.constitution"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "Draft or update the project constitution from {{ inputs.initial_design }} and docs/architecture/bootstrap-assessment.md. Treat it as the highest project governance artifact, not a feature specification. Preserve applicable amendments and produce explicit semantic version, ratification date, last-amended date, amendment procedure, and compliance governance. Do not claim human ratification."
+
+  - id: review-constitution
+    type: gate
+    message: "Review the complete project constitution. Ratify only when it contains no template placeholders or TODOs and its principles, semantic version, dates, amendment procedure, and compliance governance are acceptable."
+    show_file: ".specify/memory/constitution.md"
+    options: [ratify, reject]
+    on_reject: abort
+    verdict_input: "constitution_verdict"
+
+  - id: constitution-ratify
+    type: command
+    command: "speckit.program-kit-governance.constitution-ratify"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.constitution_verdict }}"
 
   - id: architecture
     type: command
@@ -63,9 +95,16 @@ steps:
     input:
       args: "{{ inputs.initial_design }}"
 
+  - id: specification-roadmap
+    type: command
+    command: "speckit.program-kit-governance.roadmap"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
   - id: review-bootstrap
     type: gate
-    message: "Review the architecture baseline, Proposed ADRs, technology statuses, quality system, and first design-task sequence."
+    message: "Review the ratified constitution evidence, architecture baseline, Proposed ADRs, technology statuses, quality system, candidate specification roadmap, and first design-task sequence."
     show_file: "docs/architecture/architecture.md"
     options: [approve, reject]
     on_reject: abort
