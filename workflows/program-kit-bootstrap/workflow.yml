@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.1.2"
+  version: "0.2.0"
   author: "Orbyss"
   description: "Turns an initial design into a researched architecture baseline, ADR backlog, and staged quality system."
 
@@ -29,14 +29,14 @@ inputs:
 steps:
   - id: intake
     type: command
-    command: "speckit.program-kit.intake"
+    command: "speckit.program-kit-governance.intake"
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"
 
   - id: research
     type: command
-    command: "speckit.program-kit.research"
+    command: "speckit.program-kit-governance.research"
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"
@@ -51,14 +51,14 @@ steps:
 
   - id: architecture
     type: command
-    command: "speckit.program-kit.architecture"
+    command: "speckit.program-kit-governance.architecture"
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"
 
   - id: tooling
     type: command
-    command: "speckit.program-kit.tooling"
+    command: "speckit.program-kit-governance.tooling"
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"
@@ -73,7 +73,7 @@ steps:
 
   - id: readiness
     type: command
-    command: "speckit.program-kit.readiness"
+    command: "speckit.program-kit-governance.readiness"
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"

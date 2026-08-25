@@ -62,7 +62,7 @@ jobs:
             artifacts/*.zip \
             artifacts/SHA256SUMS \
             --verify-tag \
-            --title "Program Kit Bootstrap $GITHUB_REF_NAME" \
+            --title "Program Kit $GITHUB_REF_NAME" \
             --generate-notes
 
       - name: Test live public catalog installation

@@ -1,4 +1,4 @@
-# Program Kit Bootstrap architecture
+# Program Kit architecture
 
 ## Purpose
 
@@ -24,4 +24,3 @@ Third-party extensions are evaluated by the workflow and recorded in the consumi
 ## Trust boundary
 
 Workflow prompts and initial-design content are untrusted inputs. They never flow into a shell step. This project currently contains no workflow shell steps and no executable extension hooks; hooks invoke agent commands whose instructions require explicit approval for destructive or externally publishing actions.
-

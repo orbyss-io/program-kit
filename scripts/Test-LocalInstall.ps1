@@ -17,7 +17,7 @@ New-Item -ItemType Directory -Path $testRoot | Out-Null
 try {
     Push-Location $testRoot
     specify init . --force --non-interactive --integration codex --ignore-agent-tools `
-        --extension (Join-Path $sourceRoot 'extensions\program-kit')
+        --extension (Join-Path $sourceRoot 'extensions\program-kit-governance')
     if ($LASTEXITCODE -ne 0) { throw 'Disposable Spec Kit initialization failed.' }
 
     specify workflow add (Join-Path $sourceRoot 'workflows\program-kit-bootstrap') --dev

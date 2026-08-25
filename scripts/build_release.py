@@ -59,7 +59,7 @@ def sha256(path: Path) -> str:
 
 def validate_metadata(root: Path, version: str) -> None:
     bundle = load_yaml(root / "bundle.yml")
-    extension = load_yaml(root / "extensions/program-kit/extension.yml")
+    extension = load_yaml(root / "extensions/program-kit-governance/extension.yml")
     workflow = load_yaml(root / "workflows/program-kit-bootstrap/workflow.yml")
     extensions_catalog = load_json(root / "catalogs/extensions.json")
     workflows_catalog = load_json(root / "catalogs/workflows.json")
@@ -72,9 +72,9 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal("bundle license", bundle["bundle"]["license"], "MIT")
     require_equal("extension license", extension["extension"]["license"], "MIT")
 
-    extension_entry = extensions_catalog["extensions"]["program-kit"]
+    extension_entry = extensions_catalog["extensions"]["program-kit-governance"]
     workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
-    bundle_entry = bundles_catalog["bundles"]["program-kit-bootstrap"]
+    bundle_entry = bundles_catalog["bundles"]["program-kit"]
     require_equal("extension catalog version", extension_entry["version"], version)
     require_equal("workflow catalog version", workflow_entry["version"], version)
     require_equal("bundle catalog version", bundle_entry["version"], version)
@@ -86,7 +86,7 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal(
         "extension release URL",
         extension_entry["download_url"],
-        f"{REPOSITORY}/releases/download/{tag}/program-kit-extension-{version}.zip",
+        f"{REPOSITORY}/releases/download/{tag}/program-kit-governance-{version}.zip",
     )
     require_equal(
         "workflow source URL",
@@ -96,7 +96,7 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal(
         "bundle release URL",
         bundle_entry["download_url"],
-        f"{REPOSITORY}/releases/download/{tag}/program-kit-bootstrap-{version}.zip",
+        f"{REPOSITORY}/releases/download/{tag}/program-kit-{version}.zip",
     )
 
 
@@ -119,16 +119,16 @@ def main() -> int:
 
     output.mkdir(parents=True, exist_ok=True)
     expected = [
-        output / f"program-kit-extension-{version}.zip",
-        output / f"program-kit-workflow-{version}.zip",
+        output / f"program-kit-governance-{version}.zip",
         output / f"program-kit-bootstrap-{version}.zip",
+        output / f"program-kit-{version}.zip",
         output / "SHA256SUMS",
     ]
     for path in expected:
         if path.exists() and path.is_file():
             path.unlink()
 
-    deterministic_zip(root / "extensions/program-kit", expected[0])
+    deterministic_zip(root / "extensions/program-kit-governance", expected[0])
     deterministic_zip(root / "workflows/program-kit-bootstrap", expected[1])
 
     subprocess.run(

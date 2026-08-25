@@ -4,7 +4,7 @@ description: Verify implementation plans obey generic programming and lifecycle 
 
 ## Required checks
 
-Apply `.specify/extensions/program-kit/references/programming-guardrails.md`, `software-language.md`, and any detected technology profiles.
+Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`, `software-language.md`, and any detected technology profiles.
 
 Confirm:
 
@@ -22,4 +22,3 @@ Confirm:
 Pure functions, trivial adapters, generated code, and presentation-only code may use a documented proportional exception. An exception cannot bypass security, public-contract, data-integrity, or lifecycle invariants.
 
 Return blocking findings and the exact plan/task changes required. Do not implement code in this check.
-

@@ -33,7 +33,7 @@ specify bundle catalog add `
 
 # Spec Kit 1.0.1 workaround: preinstall the catalog workflow before the bundle.
 specify workflow add program-kit-bootstrap
-specify bundle install program-kit-bootstrap
+specify bundle install program-kit
 ```
 
 Replace `codex` with the integration you use. The bundle itself is integration-agnostic.
@@ -63,7 +63,7 @@ In a new Codex session, you can simply provide this README and your initial desi
 ## What it installs
 
 - `program-kit-bootstrap` workflow: inventories the design, performs current research, creates the architecture baseline and decision backlog, evaluates tooling, and pauses at human review gates.
-- `program-kit` extension: supplies reusable bootstrap and validation commands.
+- `program-kit-governance` extension: supplies reusable bootstrap and validation commands.
 - Mandatory hooks after `speckit.specify` and `speckit.plan`, before `speckit.implement`, and after implementation to detect architecture drift.
 
 ## Governance model
@@ -92,24 +92,24 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 Pushing a SemVer tag matching `VERSION` creates a GitHub release:
 
 ```powershell
-git tag v0.1.2
-git push origin v0.1.2
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
 
 ## Release assets
 
-- `program-kit-bootstrap-<version>.zip`: installable Spec Kit bundle.
-- `program-kit-extension-<version>.zip`: standalone extension package.
-- `program-kit-workflow-<version>.zip`: standalone workflow package.
+- `program-kit-<version>.zip`: installable Program Kit bundle.
+- `program-kit-governance-<version>.zip`: standalone governance extension package.
+- `program-kit-bootstrap-<version>.zip`: standalone bootstrap workflow package.
 - `SHA256SUMS`: exact artifact digests.
 
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-bootstrap-0.1.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-bootstrap-0.1.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.2.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.2.0.zip -Algorithm SHA256
 ```
 
 ## License

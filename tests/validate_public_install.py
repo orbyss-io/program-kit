@@ -83,7 +83,7 @@ def main() -> int:
         # local-dev installer. Preinstalling the catalog workflow avoids that
         # defect while preserving the bundle's pinned workflow reference.
         run("specify", "workflow", "add", "program-kit-bootstrap", cwd=project)
-        run("specify", "bundle", "install", "program-kit-bootstrap", cwd=project)
+        run("specify", "bundle", "install", "program-kit", cwd=project)
 
         extensions = yaml.safe_load(
             (project / ".specify/extensions.yml").read_text(encoding="utf-8")
@@ -91,8 +91,8 @@ def main() -> int:
         hooks = set(extensions.get("hooks", {}))
         if hooks != EXPECTED_HOOKS:
             raise AssertionError(f"Installed hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
-        if "program-kit" not in extensions.get("installed", []):
-            raise AssertionError("Program Kit extension was not registered")
+        if "program-kit-governance" not in extensions.get("installed", []):
+            raise AssertionError("Program Kit Governance extension was not registered")
 
         workflow = yaml.safe_load(
             (

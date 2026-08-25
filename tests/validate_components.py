@@ -9,7 +9,7 @@ from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    extension_path = root / "extensions" / "program-kit" / "extension.yml"
+    extension_path = root / "extensions" / "program-kit-governance" / "extension.yml"
     workflow_path = root / "workflows" / "program-kit-bootstrap" / "workflow.yml"
 
     ExtensionManifest(extension_path)
@@ -26,4 +26,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

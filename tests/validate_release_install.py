@@ -23,8 +23,8 @@ def run(*args: str, cwd: Path) -> None:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
-    extension_zip = root / "artifacts" / f"program-kit-extension-{version}.zip"
-    workflow_zip = root / "artifacts" / f"program-kit-workflow-{version}.zip"
+    extension_zip = root / "artifacts" / f"program-kit-governance-{version}.zip"
+    workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
     if not extension_zip.is_file() or not workflow_zip.is_file():
         raise FileNotFoundError("Build release assets before running the install test")
 
@@ -62,7 +62,7 @@ def main() -> int:
         )
         deployed_config = (
             project
-            / ".specify/extensions/program-kit/program-kit-config.yml"
+            / ".specify/extensions/program-kit-governance/program-kit-config.yml"
         )
         if not deployed_config.is_file():
             raise AssertionError("Program Kit configuration template was not scaffolded")

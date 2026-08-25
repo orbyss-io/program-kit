@@ -8,7 +8,7 @@ Treat `$ARGUMENTS` as the path to the user-provided initial design. If the path 
 
 ## Required reading
 
-Read the entire initial design and every file under `.specify/extensions/program-kit/references/`. Also read existing repository guidance and architecture artifacts without overwriting user-authored work.
+Read the entire initial design and every file under `.specify/extensions/program-kit-governance/references/`. Also read existing repository guidance and architecture artifacts without overwriting user-authored work.
 
 ## Work
 
@@ -23,4 +23,3 @@ Create or update `docs/architecture/bootstrap-assessment.md` with:
 Create `docs/architecture/decision-backlog.md`. Each item must have a stable ID, question, why it matters, decision owner, dependencies, evidence needed, status, and the artifact that will close it.
 
 Do not accept decisions, select final tools, initialize application code, or modify the initial design during intake.
-

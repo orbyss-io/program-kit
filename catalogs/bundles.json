@@ -3,15 +3,15 @@
   "updated_at": "2026-08-25T00:00:00Z",
   "catalog_url": "https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json",
   "bundles": {
-    "program-kit-bootstrap": {
-      "name": "Program Kit Bootstrap",
-      "id": "program-kit-bootstrap",
-      "version": "0.1.2",
+    "program-kit": {
+      "name": "Program Kit",
+      "id": "program-kit",
+      "version": "0.2.0",
       "role": "architecture-governed-development",
       "description": "Bootstraps architecture-governed, specification-driven repositories from an initial design.",
       "author": "Orbyss",
       "license": "MIT",
-      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.1.2/program-kit-bootstrap-0.1.2.zip",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.2.0/program-kit-0.2.0.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "requires": {
         "speckit_version": ">=1.0.1,<2.0.0"

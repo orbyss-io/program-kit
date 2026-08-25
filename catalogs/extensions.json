@@ -3,13 +3,13 @@
   "updated_at": "2026-08-25T00:00:00Z",
   "catalog_url": "https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json",
   "extensions": {
-    "program-kit": {
-      "name": "Program Kit Architecture Governance",
-      "id": "program-kit",
+    "program-kit-governance": {
+      "name": "Program Kit Governance",
+      "id": "program-kit-governance",
       "description": "Bootstraps and enforces architecture-aware Spec Kit delivery.",
       "author": "Orbyss",
-      "version": "0.1.2",
-      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.1.2/program-kit-extension-0.1.2.zip",
+      "version": "0.2.0",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.2.0/program-kit-governance-0.2.0.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "homepage": "https://github.com/orbyss-io/program-kit",
       "documentation": "https://github.com/orbyss-io/program-kit/blob/main/README.md",

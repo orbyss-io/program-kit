@@ -1,9 +1,9 @@
 schema_version: "1.0"
 
 bundle:
-  id: "program-kit-bootstrap"
-  name: "Program Kit Bootstrap"
-  version: "0.1.2"
+  id: "program-kit"
+  name: "Program Kit"
+  version: "0.2.0"
   role: "architecture-governed-development"
   description: "Bootstraps architecture-governed, specification-driven repositories from an initial design."
   author: "Orbyss"
@@ -14,11 +14,11 @@ requires:
 
 provides:
   extensions:
-    - id: "program-kit"
-      version: "0.1.2"
+    - id: "program-kit-governance"
+      version: "0.2.0"
   workflows:
     - id: "program-kit-bootstrap"
-      version: "0.1.2"
+      version: "0.2.0"
 
 tags:
   - "architecture"
