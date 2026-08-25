@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 - 2026-08-25
+
+- Promote the project to the canonical `orbyss-io/program-kit` repository.
+- Preserve the bootstrap bundle and workflow IDs for consumer compatibility.
+- Update all catalog, release, documentation, and provenance URLs to the canonical repository.
+
 ## 0.1.1 - 2026-08-25
 
 - Document and test the Spec Kit 1.0.1 workflow-preinstallation workaround.

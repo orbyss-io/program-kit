@@ -11,7 +11,7 @@ import yaml
 
 
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
-REPOSITORY = "https://github.com/orbyss-io/program-kit-bootstrap"
+REPOSITORY = "https://github.com/orbyss-io/program-kit"
 
 
 def load_yaml(path: Path) -> dict:
@@ -91,7 +91,7 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal(
         "workflow source URL",
         workflow_entry["url"],
-        f"https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/{tag}/workflows/program-kit-bootstrap/workflow.yml",
+        f"https://raw.githubusercontent.com/orbyss-io/program-kit/{tag}/workflows/program-kit-bootstrap/workflow.yml",
     )
     require_equal(
         "bundle release URL",

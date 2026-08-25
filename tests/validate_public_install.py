@@ -8,15 +8,15 @@ import yaml
 
 
 EXTENSION_CATALOG = (
-    "https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/"
+    "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     "main/catalogs/extensions.json"
 )
 WORKFLOW_CATALOG = (
-    "https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/"
+    "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     "main/catalogs/workflows.json"
 )
 BUNDLE_CATALOG = (
-    "https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/"
+    "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     "main/catalogs/bundles.json"
 )
 EXPECTED_HOOKS = {
@@ -109,4 +109,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

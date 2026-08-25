@@ -1,6 +1,6 @@
-# Program Kit Bootstrap
+# Program Kit
 
-Program Kit Bootstrap turns an initial design into an architecture-governed Spec Kit project. It is maintained independently from the application repositories that consume it.
+Program Kit supplies reusable Spec Kit workflows and governance components for architecture-governed software delivery. Its first workflow turns an initial design into an architecture-governed Spec Kit project. Program Kit is maintained independently from the application repositories that consume it.
 
 The executable behavior lives in a Spec Kit workflow. The bundle is the versioned distribution layer around that workflow and its governance extension.
 
@@ -18,16 +18,16 @@ From the root of a new repository, initialize Spec Kit and register the three Pr
 specify init . --integration codex --non-interactive
 
 specify extension catalog add `
-  https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/main/catalogs/extensions.json `
+  https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json `
   --name program-kit `
   --install-allowed
 
 specify workflow catalog add `
-  https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/main/catalogs/workflows.json `
+  https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json `
   --name program-kit
 
 specify bundle catalog add `
-  https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/main/catalogs/bundles.json `
+  https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json `
   --id program-kit `
   --policy install-allowed
 
@@ -92,8 +92,8 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 Pushing a SemVer tag matching `VERSION` creates a GitHub release:
 
 ```powershell
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -108,10 +108,10 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-bootstrap-0.1.1.zip --repo orbyss-io/program-kit-bootstrap
-Get-FileHash program-kit-bootstrap-0.1.1.zip -Algorithm SHA256
+gh attestation verify program-kit-bootstrap-0.1.2.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-bootstrap-0.1.2.zip -Algorithm SHA256
 ```
 
 ## License
 
-Program Kit Bootstrap is open source under the [MIT License](LICENSE).
+Program Kit is open source under the [MIT License](LICENSE).
