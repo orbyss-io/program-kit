@@ -6,12 +6,12 @@
     "program-kit-bootstrap": {
       "name": "Program Kit Bootstrap",
       "id": "program-kit-bootstrap",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "role": "architecture-governed-development",
       "description": "Bootstraps architecture-governed, specification-driven repositories from an initial design.",
       "author": "Orbyss",
       "license": "MIT",
-      "download_url": "https://github.com/orbyss-io/program-kit-bootstrap/releases/download/v0.1.0/program-kit-bootstrap-0.1.0.zip",
+      "download_url": "https://github.com/orbyss-io/program-kit-bootstrap/releases/download/v0.1.1/program-kit-bootstrap-0.1.1.zip",
       "repository": "https://github.com/orbyss-io/program-kit-bootstrap",
       "requires": {
         "speckit_version": ">=1.0.1,<2.0.0"

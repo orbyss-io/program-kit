@@ -31,10 +31,16 @@ specify bundle catalog add `
   --id program-kit `
   --policy install-allowed
 
+# Spec Kit 1.0.1 workaround: preinstall the catalog workflow before the bundle.
+specify workflow add program-kit-bootstrap
 specify bundle install program-kit-bootstrap
 ```
 
 Replace `codex` with the integration you use. The bundle itself is integration-agnostic.
+
+### Spec Kit 1.0.1 compatibility note
+
+Spec Kit 1.0.1's bundle adapter incorrectly routes a catalog workflow ID through its local-development installer. Preinstalling `program-kit-bootstrap` as shown above is the tested workaround: the bundle then recognizes the pinned workflow and installs the governance extension. Until Spec Kit fixes the adapter, remove the workflow separately with `specify workflow remove program-kit-bootstrap` if you uninstall the bundle.
 
 Run the architecture bootstrap with the path to your initial design:
 
@@ -86,8 +92,8 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 Pushing a SemVer tag matching `VERSION` creates a GitHub release:
 
 ```powershell
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -102,8 +108,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-bootstrap-0.1.0.zip --repo orbyss-io/program-kit-bootstrap
-Get-FileHash program-kit-bootstrap-0.1.0.zip -Algorithm SHA256
+gh attestation verify program-kit-bootstrap-0.1.1.zip --repo orbyss-io/program-kit-bootstrap
+Get-FileHash program-kit-bootstrap-0.1.1.zip -Algorithm SHA256
 ```
 
 ## License

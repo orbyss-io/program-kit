@@ -64,3 +64,6 @@ jobs:
             --verify-tag \
             --title "Program Kit Bootstrap $GITHUB_REF_NAME" \
             --generate-notes
+
+      - name: Test live public catalog installation
+        run: python tests/validate_public_install.py

@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit"
   name: "Program Kit Architecture Governance"
-  version: "0.1.0"
+  version: "0.1.1"
   description: "Bootstraps and enforces architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit-bootstrap"

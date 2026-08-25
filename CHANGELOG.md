@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-08-25
+
+- Document and test the Spec Kit 1.0.1 workflow-preinstallation workaround.
+- Add a live public-catalog consumer test to the release pipeline.
+
 ## 0.1.0 - 2026-08-25
 
 - Add workflow-first repository bootstrap.
@@ -8,4 +13,3 @@
 - Add source, packaged-install, and reproducible bundle build checks.
 - Add catalog-driven installation and automated GitHub releases.
 - Release under the MIT License.
-

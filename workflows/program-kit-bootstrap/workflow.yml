@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.1.0"
+  version: "0.1.1"
   author: "Orbyss"
   description: "Turns an initial design into a researched architecture baseline, ADR backlog, and staged quality system."
 
@@ -77,4 +77,3 @@ steps:
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"
-
