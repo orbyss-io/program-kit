@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-08-25T00:00:00Z",
+  "catalog_url": "https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/main/catalogs/bundles.json",
+  "bundles": {
+    "program-kit-bootstrap": {
+      "name": "Program Kit Bootstrap",
+      "id": "program-kit-bootstrap",
+      "version": "0.1.0",
+      "role": "architecture-governed-development",
+      "description": "Bootstraps architecture-governed, specification-driven repositories from an initial design.",
+      "author": "Orbyss",
+      "license": "UNLICENSED",
+      "download_url": "https://github.com/orbyss-io/program-kit-bootstrap/releases/download/v0.1.0/program-kit-bootstrap-0.1.0.zip",
+      "repository": "https://github.com/orbyss-io/program-kit-bootstrap",
+      "requires": {
+        "speckit_version": ">=1.0.1,<2.0.0"
+      },
+      "provides": {
+        "extensions": 1,
+        "presets": 0,
+        "steps": 0,
+        "workflows": 1
+      },
+      "tags": ["architecture", "adr", "governance", "bootstrap", "sdd"],
+      "verified": false
+    }
+  }
+}
+

@@ -1,0 +1,5 @@
+artifacts/
+.specify/
+tests/.lifecycle/
+__pycache__/
+*.pyc

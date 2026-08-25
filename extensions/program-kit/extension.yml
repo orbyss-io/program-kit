@@ -1,0 +1,71 @@
+schema_version: "1.0"
+
+extension:
+  id: "program-kit"
+  name: "Program Kit Architecture Governance"
+  version: "0.1.0"
+  description: "Bootstraps and enforces architecture-aware Spec Kit delivery."
+  author: "Orbyss"
+  repository: "https://github.com/orbyss-io/program-kit-bootstrap"
+  license: "UNLICENSED"
+
+requires:
+  speckit_version: ">=1.0.1,<2.0.0"
+
+provides:
+  commands:
+    - name: "speckit.program-kit.intake"
+      file: "commands/speckit.program-kit.intake.md"
+      description: "Inventory an initial design and create the bootstrap assessment."
+    - name: "speckit.program-kit.research"
+      file: "commands/speckit.program-kit.research.md"
+      description: "Research current tools and validate generic guidance against project context."
+    - name: "speckit.program-kit.architecture"
+      file: "commands/speckit.program-kit.architecture.md"
+      description: "Create or update the architecture baseline and ADR system."
+    - name: "speckit.program-kit.tooling"
+      file: "commands/speckit.program-kit.tooling.md"
+      description: "Create a context-sensitive tooling and quality-gate proposal."
+    - name: "speckit.program-kit.readiness"
+      file: "commands/speckit.program-kit.readiness.md"
+      description: "Evaluate whether architecture bootstrap is ready for specifications."
+    - name: "speckit.program-kit.architecture-check"
+      file: "commands/speckit.program-kit.architecture-check.md"
+      description: "Check a specification, plan, or implementation for architecture and ADR drift."
+    - name: "speckit.program-kit.implementation-check"
+      file: "commands/speckit.program-kit.implementation-check.md"
+      description: "Apply programming and lifecycle guardrails before implementation."
+  config:
+    - name: "program-kit-config.yml"
+      template: "config/program-kit.template.yml"
+      description: "Project paths and governance behavior for Program Kit."
+      required: false
+
+hooks:
+  after_specify:
+    command: "speckit.program-kit.architecture-check"
+    priority: 5
+    optional: false
+    description: "Refuse specifications that conflict with accepted architecture or conceal new decisions."
+  after_plan:
+    command: "speckit.program-kit.architecture-check"
+    priority: 5
+    optional: false
+    description: "Refuse plans that conflict with accepted architecture or unapproved technology choices."
+  before_implement:
+    command: "speckit.program-kit.implementation-check"
+    priority: 5
+    optional: false
+    description: "Verify programming, lifecycle, testing, and architecture guardrails before implementation."
+  after_implement:
+    command: "speckit.program-kit.architecture-check"
+    priority: 5
+    optional: false
+    description: "Detect implementation drift and require architecture/ADR updates when choices changed."
+
+tags:
+  - "architecture"
+  - "adr"
+  - "governance"
+  - "quality"
+  - "bootstrap"

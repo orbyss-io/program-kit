@@ -1,0 +1,80 @@
+schema_version: "1.0"
+
+workflow:
+  id: "program-kit-bootstrap"
+  name: "Architecture-Governed Repository Bootstrap"
+  version: "0.1.0"
+  author: "Orbyss"
+  description: "Turns an initial design into a researched architecture baseline, ADR backlog, and staged quality system."
+
+requires:
+  speckit_version: ">=1.0.1,<2.0.0"
+
+inputs:
+  initial_design:
+    type: string
+    required: true
+    prompt: "Path to the user-provided initial design"
+  integration:
+    type: string
+    default: "auto"
+    prompt: "Integration to use; auto inherits the initialized project integration"
+  assessment_verdict:
+    type: string
+    default: ""
+  bootstrap_verdict:
+    type: string
+    default: ""
+
+steps:
+  - id: intake
+    type: command
+    command: "speckit.program-kit.intake"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
+  - id: research
+    type: command
+    command: "speckit.program-kit.research"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
+  - id: review-assessment
+    type: gate
+    message: "Review the design inventory, unresolved decisions, and researched capability recommendations. Approve before architecture bootstrap."
+    show_file: "docs/architecture/bootstrap-assessment.md"
+    options: [approve, reject]
+    on_reject: abort
+    verdict_input: "assessment_verdict"
+
+  - id: architecture
+    type: command
+    command: "speckit.program-kit.architecture"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
+  - id: tooling
+    type: command
+    command: "speckit.program-kit.tooling"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
+  - id: review-bootstrap
+    type: gate
+    message: "Review the architecture baseline, Proposed ADRs, technology statuses, quality system, and first design-task sequence."
+    show_file: "docs/architecture/architecture.md"
+    options: [approve, reject]
+    on_reject: abort
+    verdict_input: "bootstrap_verdict"
+
+  - id: readiness
+    type: command
+    command: "speckit.program-kit.readiness"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+

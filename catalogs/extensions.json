@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-08-25T00:00:00Z",
+  "catalog_url": "https://raw.githubusercontent.com/orbyss-io/program-kit-bootstrap/main/catalogs/extensions.json",
+  "extensions": {
+    "program-kit": {
+      "name": "Program Kit Architecture Governance",
+      "id": "program-kit",
+      "description": "Bootstraps and enforces architecture-aware Spec Kit delivery.",
+      "author": "Orbyss",
+      "version": "0.1.0",
+      "download_url": "https://github.com/orbyss-io/program-kit-bootstrap/releases/download/v0.1.0/program-kit-extension-0.1.0.zip",
+      "repository": "https://github.com/orbyss-io/program-kit-bootstrap",
+      "homepage": "https://github.com/orbyss-io/program-kit-bootstrap",
+      "documentation": "https://github.com/orbyss-io/program-kit-bootstrap/blob/main/README.md",
+      "changelog": "https://github.com/orbyss-io/program-kit-bootstrap/blob/main/CHANGELOG.md",
+      "license": "UNLICENSED",
+      "category": "process",
+      "effect": "read-write",
+      "requires": {
+        "speckit_version": ">=1.0.1,<2.0.0"
+      },
+      "provides": {
+        "commands": 7,
+        "hooks": 4
+      },
+      "tags": ["architecture", "adr", "governance", "quality", "bootstrap"],
+      "verified": false
+    }
+  }
+}
+

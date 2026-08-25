@@ -1,0 +1,29 @@
+schema_version: "1.0"
+
+bundle:
+  id: "program-kit-bootstrap"
+  name: "Program Kit Bootstrap"
+  version: "0.1.0"
+  role: "architecture-governed-development"
+  description: "Bootstraps architecture-governed, specification-driven repositories from an initial design."
+  author: "Orbyss"
+  license: "UNLICENSED"
+
+requires:
+  speckit_version: ">=1.0.1,<2.0.0"
+
+provides:
+  extensions:
+    - id: "program-kit"
+      version: "0.1.0"
+  workflows:
+    - id: "program-kit-bootstrap"
+      version: "0.1.0"
+
+tags:
+  - "architecture"
+  - "adr"
+  - "governance"
+  - "bootstrap"
+  - "spec-driven-development"
+

@@ -1,0 +1,19 @@
+schema_version: "1.0"
+architecture:
+  root: "docs/architecture"
+  baseline: "docs/architecture/architecture.md"
+  decisions: "docs/architecture/decisions"
+  decision_backlog: "docs/architecture/decision-backlog.md"
+  technology_radar: "docs/architecture/technology-radar.md"
+governance:
+  accepted_decisions_require_human_approval: true
+  initial_technology_status: "Proposed"
+  architecture_check_after_specify: true
+  architecture_check_after_plan: true
+  implementation_check_before_implement: true
+  architecture_check_after_implement: true
+research:
+  require_current_verification: true
+  prefer_primary_sources: true
+  record_access_date: true
+
