@@ -39,15 +39,17 @@ jobs:
         with:
           subject-path: artifacts/nuget/*.nupkg
 
-      - name: Publish packages when authentication is configured
+      - name: Authenticate with NuGet.org
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish packages
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         shell: bash
         run: |
-          if [[ -z "$NUGET_API_KEY" ]]; then
-            echo "NUGET_API_KEY is not configured; packages were built and attested but not published."
-            exit 0
-          fi
           for package in artifacts/nuget/*.nupkg; do
             dotnet nuget push "$package" \
               --source https://api.nuget.org/v3/index.json \

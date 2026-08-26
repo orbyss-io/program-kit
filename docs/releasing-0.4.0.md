@@ -11,16 +11,17 @@ release are intentionally preview artifacts at `0.4.0-preview.1`.
 3. In **Settings → Environments**, create `nuget-production` and `host-production`:
    - add the maintainers who may approve registry publication as required reviewers to both;
    - restrict deployment tags to `v*.*.*` in both;
-   - add the environment secret `NUGET_API_KEY` to `nuget-production` after creating the scoped NuGet.org API key.
-4. Scope the NuGet.org API key to new package IDs `ProgramKit.Tasks.Abstractions`, `ProgramKit.Tasks`, and
-   `ProgramKit.Analyzers`, with push permission and the shortest practical expiry. Do not give it unlist or
-   ownership-management permissions.
+   - add the environment variable `NUGET_USER` to `nuget-production`, set to the NuGet.org username that owns
+     the trusted-publishing policy. This is a variable, not a secret or email address.
+4. On NuGet.org, configure a trusted-publishing policy for the `orbyss-io/program-kit` repository, workflow
+   file `publish-nuget.yml`, and environment `nuget-production`. Do not create or store a long-lived NuGet API
+   key. The workflow exchanges its GitHub OIDC token for a short-lived key at release time.
 5. Confirm the organization permits this repository to create packages in GitHub Container Registry. The
    host workflow uses the repository `GITHUB_TOKEN`; no personal access token is required.
 
-The NuGet workflow deliberately builds and attests packages but skips the push when `NUGET_API_KEY` is absent.
-This makes it safe to merge before the authentication policy is supplied, but the first release is not complete
-until the secret is configured and all three package IDs are visible on NuGet.org.
+The NuGet workflow fails at its authentication step when `NUGET_USER` or the matching trusted-publishing policy
+is absent or incorrect. This prevents a tag workflow from appearing successful without publishing its packages.
+The temporary `NUGET_API_KEY` output exists only for the workflow run and is never stored in GitHub.
 
 ## Pre-release verification
 
