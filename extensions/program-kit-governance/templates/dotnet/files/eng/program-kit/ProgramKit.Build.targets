@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="ProgramKitValidatePackageVersion" BeforeTargets="Pack" Condition="'$(IsPackable)' == 'true'">
+    <Error Condition="'$(Version)' == '0.0.0-local'" Text="A release package requires an explicit application Version." />
+  </Target>
+</Project>

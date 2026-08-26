@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="CShells.Abstractions" Version="0.0.29-preview.147" />
+    <PackageVersion Include="CShells.AspNetCore" Version="0.0.29-preview.147" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Nuplane" Version="0.0.9-preview.61" />
+    <PackageVersion Include="Nuplane.Loading" Version="0.0.9-preview.61" />
+    <PackageVersion Include="Nuplane.Sources.Directory" Version="0.0.9-preview.61" />
+  </ItemGroup>
+</Project>

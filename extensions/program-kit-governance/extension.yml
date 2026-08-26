@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.3.1"
+  version: "0.4.0"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -44,6 +44,9 @@ provides:
     - name: "speckit.program-kit-governance.implementation-check"
       file: "commands/speckit.program-kit-governance.implementation-check.md"
       description: "Apply programming and lifecycle guardrails before implementation."
+    - name: "speckit.program-kit-governance.dotnet-sync"
+      file: "commands/speckit.program-kit-governance.dotnet-sync.md"
+      description: "Install or safely update the Program Kit managed .NET repository baseline."
   config:
     - name: "program-kit-config.yml"
       template: "config/program-kit.template.yml"

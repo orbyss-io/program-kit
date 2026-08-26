@@ -1,0 +1,21 @@
+{
+  "ProgramKit": {
+    "Boot": {
+      "EagerShellActivation": true,
+      "FailOnShellActivationError": true
+    }
+  },
+  "Nuplane": {
+    "Setup": {
+      "AutomaticReconciliation": false,
+      "Feeds": [
+        {
+          "Name": "application-bundle",
+          "Directory": {
+            "Watch": false
+          }
+        }
+      ]
+    }
+  }
+}

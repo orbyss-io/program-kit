@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/application-bundle.schema.json",
+  "title": "Program Kit application bundle manifest",
+  "type": "object",
+  "required": [ "schemaVersion", "bundleId", "version", "hostApi", "files", "packages" ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "bundleId": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "hostApi": { "const": 1 },
+    "programKitVersion": { "type": "string" },
+    "sourceCommit": { "type": "string" },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "path", "sha256" ],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "version", "path", "sha256" ],
+        "properties": {
+          "id": { "type": "string" },
+          "version": { "type": "string" },
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

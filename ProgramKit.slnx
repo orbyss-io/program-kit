@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/dotnet/ProgramKit.Analyzers/ProgramKit.Analyzers.csproj" />
+    <Project Path="src/dotnet/ProgramKit.Host/ProgramKit.Host.csproj" />
+    <Project Path="src/dotnet/ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
+    <Project Path="src/dotnet/ProgramKit.Tasks/ProgramKit.Tasks.csproj" />
+  </Folder>
+</Solution>

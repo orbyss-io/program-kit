@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    { "path": ".editorconfig", "ownership": "managed" },
+    { "path": "global.json", "ownership": "managed" },
+    { "path": "VERSION", "ownership": "scaffold" },
+    { "path": "Directory.Build.props", "ownership": "scaffold" },
+    { "path": "Directory.Build.targets", "ownership": "scaffold" },
+    { "path": "Directory.Packages.props", "ownership": "scaffold" },
+    { "path": "NuGet.config", "ownership": "managed" },
+    { "path": "shells.json", "ownership": "scaffold" },
+    { "path": "hostsettings.json", "ownership": "scaffold" },
+    { "path": ".dockerignore", "ownership": "managed" },
+    { "path": "Dockerfile", "ownership": "managed" },
+    { "path": ".program-kit/application-bundle.schema.json", "ownership": "managed" },
+    { "path": "eng/program-kit/ProgramKit.Build.props", "ownership": "managed" },
+    { "path": "eng/program-kit/ProgramKit.Build.targets", "ownership": "managed" },
+    { "path": "eng/program-kit/ProgramKit.Packages.props", "ownership": "managed" },
+    { "path": "eng/program-kit/Build.ps1", "ownership": "managed" },
+    { "path": "eng/program-kit/create_application_bundle.py", "ownership": "managed" },
+    { "path": ".github/workflows/application-ci.yml", "ownership": "managed" },
+    { "path": ".github/workflows/application-release.yml", "ownership": "managed" }
+  ]
+}

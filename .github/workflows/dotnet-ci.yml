@@ -1,0 +1,45 @@
+name: .NET Runtime CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+
+      - name: Validate runtime version coherence
+        run: python tests/validate_dotnet_runtime.py
+
+      - name: Restore
+        run: dotnet restore ProgramKit.slnx --locked-mode
+
+      - name: Build
+        run: dotnet build ProgramKit.slnx -c Release --no-restore
+
+      - name: Validate Program Kit analyzer policies
+        run: python tests/validate_analyzer.py
+
+      - name: Pack Program Kit NuGet packages
+        run: dotnet pack ProgramKit.slnx -c Release --no-build -p:PackageOutputPath="$PWD/artifacts/nuget"
+
+      - name: Upload packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: program-kit-nuget-${{ github.sha }}
+          path: artifacts/nuget/*.nupkg
+          if-no-files-found: error
+          retention-days: 14

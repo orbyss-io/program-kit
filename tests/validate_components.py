@@ -48,8 +48,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 10:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 10")
+    if len(command_names) != 11:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 11")
     hooks = set(extension.get("hooks", {}))
     if hooks != EXPECTED_HOOKS:
         raise AssertionError(f"Extension hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
@@ -97,6 +97,23 @@ def main() -> int:
         "CShells.AspNetCore.Abstractions",
         "ASP.NET Core Minimal API slices",
         "ProjectReference",
+    )
+    require_text(
+        extension_root / "references/dotnet-engineering.md",
+        "Task`/`Task<T>`",
+        "SemaphoreSlim",
+        "Named-argument Policy B",
+    )
+    require_text(
+        extension_root / "references/dotnet-runtime-and-application-bundles.md",
+        "ProgramKit.Host",
+        "ProgramKit.Tasks",
+        "application bundle",
+    )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.dotnet-sync.md",
+        "--profile-selected",
+        "Never overwrite",
     )
     if "NativeEndpoints" in dotnet_profile.read_text(encoding="utf-8"):
         raise AssertionError("The .NET profile must use Minimal APIs, not NativeEndpoints")
