@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>CShells lifecycle integration for Program Kit shell-owned tasks.</Description>
+    <PackageId>ProgramKit.Tasks</PackageId>
+    <PackageTags>program-kit;cshells;tasks;background-services</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CShells.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

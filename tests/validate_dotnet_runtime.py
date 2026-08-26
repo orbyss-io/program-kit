@@ -1,0 +1,48 @@
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+
+def main() -> int:
+    root = Path(__file__).resolve().parents[1]
+    program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
+    runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
+    if program_version != "0.4.0":
+        raise AssertionError(f"Unexpected Program Kit version: {program_version}")
+    if runtime_version != "0.4.0-preview.1":
+        raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
+
+    version_props = (root / "eng/ProgramKit.Version.props").read_text(encoding="utf-8")
+    if f"<ProgramKitVersion>{runtime_version}</ProgramKitVersion>" not in version_props:
+        raise AssertionError("Runtime project version does not match RUNTIME_VERSION")
+
+    consumer_versions = (
+        root
+        / "extensions/program-kit-governance/templates/dotnet/files/eng/program-kit/ProgramKit.Packages.props"
+    ).read_text(encoding="utf-8")
+    for package in ("ProgramKit.Analyzers", "ProgramKit.Tasks.Abstractions", "ProgramKit.Tasks"):
+        pattern = rf'Include="{re.escape(package)}" Version="{re.escape(runtime_version)}"'
+        if re.search(pattern, consumer_versions) is None:
+            raise AssertionError(f"Consumer template does not pin {package} to {runtime_version}")
+
+    host_workflow = (root / ".github/workflows/publish-host-image.yml").read_text(encoding="utf-8")
+    if "< RUNTIME_VERSION" not in host_workflow or "steps.runtime_version.outputs.value" not in host_workflow:
+        raise AssertionError("Host workflow does not derive its image tag from RUNTIME_VERSION")
+
+    global_json = (root / "global.json").read_text(encoding="utf-8")
+    if '"version": "10.0.202"' not in global_json or '"rollForward": "latestPatch"' not in global_json:
+        raise AssertionError("The .NET SDK feature band and patch policy are not pinned")
+    dockerfile = (root / "src/dotnet/ProgramKit.Host/Dockerfile").read_text(encoding="utf-8")
+    if dockerfile.count("@sha256:") < 3 or "dotnet restore ProgramKit.slnx --locked-mode" not in dockerfile:
+        raise AssertionError("Host image inputs must be digest-pinned and restored in locked mode")
+    for project in ("ProgramKit.Host", "ProgramKit.Tasks", "ProgramKit.Tasks.Abstractions", "ProgramKit.Analyzers"):
+        if not (root / "src/dotnet" / project / "packages.lock.json").is_file():
+            raise AssertionError(f"Missing dependency lock for {project}")
+
+    print("Program Kit .NET runtime versions are coherent.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

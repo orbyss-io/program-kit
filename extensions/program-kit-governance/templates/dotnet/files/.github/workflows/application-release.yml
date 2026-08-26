@@ -1,0 +1,80 @@
+name: Application Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+
+      - name: Verify tag and host image policy
+        shell: bash
+        env:
+          PROGRAMKIT_HOST_IMAGE: ${{ vars.PROGRAMKIT_HOST_IMAGE }}
+        run: |
+          expected="v$(tr -d '\r\n' < VERSION)"
+          [[ "$GITHUB_REF_NAME" == "$expected" ]] || { echo "Tag must equal $expected" >&2; exit 1; }
+          if [[ -n "$PROGRAMKIT_HOST_IMAGE" && "$PROGRAMKIT_HOST_IMAGE" != *@sha256:* ]]; then
+            echo "PROGRAMKIT_HOST_IMAGE must be empty or pinned by digest." >&2
+            exit 1
+          fi
+
+      - name: Build application bundle
+        shell: pwsh
+        run: ./eng/program-kit/Build.ps1 -LockedMode
+
+      - name: Write checksum
+        shell: bash
+        run: sha256sum artifacts/application-bundle.zip > artifacts/application-bundle.zip.sha256
+
+      - name: Attest application bundle
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            artifacts/application-bundle.zip
+            artifacts/application-bundle.zip.sha256
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            artifacts/application-bundle.zip \
+            artifacts/application-bundle.zip.sha256 \
+            --verify-tag \
+            --title "Application $GITHUB_REF_NAME" \
+            --generate-notes
+
+      - name: Log in to GitHub Container Registry
+        if: ${{ vars.PROGRAMKIT_HOST_IMAGE != '' }}
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and publish layered application image
+        if: ${{ vars.PROGRAMKIT_HOST_IMAGE != '' }}
+        shell: bash
+        env:
+          PROGRAMKIT_HOST_IMAGE: ${{ vars.PROGRAMKIT_HOST_IMAGE }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker build --build-arg "PROGRAMKIT_HOST_IMAGE=$PROGRAMKIT_HOST_IMAGE" -t "$image:$GITHUB_REF_NAME" .
+          docker push "$image:$GITHUB_REF_NAME"

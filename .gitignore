@@ -3,3 +3,6 @@ artifacts/
 tests/.lifecycle/
 __pycache__/
 *.pyc
+**/bin/
+**/obj/
+.vs/

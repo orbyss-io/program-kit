@@ -40,6 +40,12 @@ jobs:
       - name: Validate governance-state transitions
         run: python tests/validate_governance_state.py
 
+      - name: Validate profile-gated .NET scaffold
+        run: python tests/validate_dotnet_scaffold.py
+
+      - name: Validate .NET runtime version coherence
+        run: python tests/validate_dotnet_runtime.py
+
       - name: Validate bundle manifest
         run: specify bundle validate --path . --offline
 

@@ -127,6 +127,11 @@ route and operation identity, authorization, wire contracts, validation, status/
 cancellation behavior, OpenAPI compatibility evidence, and traceability to its vertical slice.
 Technology adoption remains Proposed in each consuming repository until its ADR is accepted.
 
+Selecting the .NET profile unlocks the profile-gated `speckit.program-kit-governance.dotnet-sync`
+command. It scaffolds central build/package management, safe managed-file synchronization, application-bundle
+creation, and release workflows. Program Kit Host runs the resulting immutable ZIP in a digest-pinned layered
+container; installing Program Kit alone never creates .NET files. See `docs/dotnet-runtime.md`.
+
 ## Development and release
 
 Run the local source checks and disposable install test:
@@ -142,11 +147,11 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the one-time repository, NuGet, and GHCR setup, follow `docs/releasing-0.4.0.md`:
 
 ```powershell
-git tag v0.3.1
-git push origin v0.3.1
+git tag v0.4.0
+git push origin v0.4.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -161,8 +166,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.3.1.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.3.1.zip -Algorithm SHA256
+gh attestation verify program-kit-0.4.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.4.0.zip -Algorithm SHA256
 ```
 
 ## License

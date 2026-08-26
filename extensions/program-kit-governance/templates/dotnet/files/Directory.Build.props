@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="eng/program-kit/ProgramKit.Build.props" />
+  <!-- Consumer-owned overrides belong here, after the Program Kit import. -->
+</Project>

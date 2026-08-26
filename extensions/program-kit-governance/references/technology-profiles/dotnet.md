@@ -151,3 +151,12 @@ profile as a package-version pin. Primary sources accessed 2026-08-25:
 - [ASP.NET Core Minimal API route handlers and route groups](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/route-handlers);
 - [.NET DDD domain-model guidance](https://learn.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/net-core-microservice-domain-model)
   and [infrastructure dependency guidance](https://learn.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design).
+
+## Program Kit runtime and engineering companions
+
+When .NET is selected, `../dotnet-engineering.md` is the mandatory language/runtime profile and
+`../dotnet-runtime-and-application-bundles.md` is the mandatory CShells hosting and deployment profile.
+Installing Program Kit does not select .NET and does not scaffold these files. After an Accepted .NET technology
+decision, run the `speckit.program-kit-governance.dotnet-sync` extension command to install or update the
+hash-tracked repository baseline. The standard runtime is `ProgramKit.Host`; consuming repositories generate
+feature packages and an immutable application ZIP, not a custom host project.
