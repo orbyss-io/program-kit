@@ -4,13 +4,24 @@ using System.Text.Json;
 
 namespace ProgramKit.Host.Bundles;
 
+/// <summary>Loads, verifies, and extracts the immutable application bundle before host construction.</summary>
 internal static class ApplicationBundleBootstrap
 {
+    /// <summary>The application-bundle schema understood by this host.</summary>
     private const int SupportedSchemaVersion = 1;
+
+    /// <summary>The application-bundle host API understood by this host.</summary>
     private const int SupportedHostApi = 1;
+
+    /// <summary>The maximum number of ZIP entries accepted from a bundle.</summary>
     private const int MaximumEntryCount = 4096;
+
+    /// <summary>The maximum total uncompressed size accepted from a bundle.</summary>
     private const long MaximumExpandedBytes = 2L * 1024 * 1024 * 1024;
 
+    /// <summary>Prepares the configured immutable application bundle.</summary>
+    /// <param name="args">The host command-line arguments.</param>
+    /// <returns>The verified and extracted application bundle.</returns>
     public static ApplicationBundle Prepare(string[] args)
     {
         var path = ReadArgument(args, "--program-kit-bundle")
@@ -36,6 +47,8 @@ internal static class ApplicationBundleBootstrap
         return CreateBundle(destination, digest, manifest);
     }
 
+    /// <summary>Creates the file-backed bundle used when no deployment ZIP is configured.</summary>
+    /// <returns>The development application bundle.</returns>
     private static ApplicationBundle CreateDevelopmentBundle()
     {
         var root = AppContext.BaseDirectory;
@@ -51,6 +64,11 @@ internal static class ApplicationBundleBootstrap
         return CreateBundle(root, "development", manifest);
     }
 
+    /// <summary>Creates a bundle value from verified paths and metadata.</summary>
+    /// <param name="root">The extracted bundle root.</param>
+    /// <param name="digest">The source bundle digest.</param>
+    /// <param name="manifest">The verified manifest.</param>
+    /// <returns>The application bundle value.</returns>
     private static ApplicationBundle CreateBundle(
         string root,
         string digest,
@@ -63,6 +81,9 @@ internal static class ApplicationBundleBootstrap
             digest,
             manifest);
 
+    /// <summary>Extracts a ZIP into an isolated directory and verifies its complete manifest.</summary>
+    /// <param name="bundlePath">The source application ZIP.</param>
+    /// <param name="destination">The immutable digest-keyed destination.</param>
     private static void ExtractAndVerify(string bundlePath, string destination)
     {
         var parent = Directory.GetParent(destination)?.FullName
@@ -109,6 +130,9 @@ internal static class ApplicationBundleBootstrap
         }
     }
 
+    /// <summary>Loads an application-bundle manifest from disk.</summary>
+    /// <param name="path">The manifest path.</param>
+    /// <returns>The deserialized manifest.</returns>
     private static ApplicationBundleManifest LoadManifest(string path)
     {
         if (!File.Exists(path))
@@ -120,6 +144,9 @@ internal static class ApplicationBundleBootstrap
         return manifest ?? throw new InvalidDataException("Application bundle manifest is invalid.");
     }
 
+    /// <summary>Validates bundle identity, paths, digests, and the exact runtime package set.</summary>
+    /// <param name="manifest">The manifest to validate.</param>
+    /// <param name="root">The extracted bundle root.</param>
     private static void ValidateManifest(ApplicationBundleManifest manifest, string root)
     {
         if (manifest.SchemaVersion != SupportedSchemaVersion)
@@ -170,6 +197,10 @@ internal static class ApplicationBundleBootstrap
             throw new InvalidDataException("Application bundle package files do not match the packages manifest.");
     }
 
+    /// <summary>Resolves a bundle-relative path while preventing rooted paths and traversal.</summary>
+    /// <param name="root">The extraction root.</param>
+    /// <param name="relativePath">The bundle-relative path.</param>
+    /// <returns>The normalized path within the extraction root.</returns>
     private static string ResolveEntryPath(string root, string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath) || Path.IsPathRooted(relativePath))
@@ -182,15 +213,25 @@ internal static class ApplicationBundleBootstrap
         return target;
     }
 
+    /// <summary>Determines whether a ZIP entry declares a Unix symbolic-link file mode.</summary>
+    /// <param name="entry">The ZIP entry.</param>
+    /// <returns><see langword="true"/> for a symbolic link; otherwise, <see langword="false"/>.</returns>
     private static bool IsSymbolicLink(ZipArchiveEntry entry) =>
         ((entry.ExternalAttributes >> 16) & 0xF000) == 0xA000;
 
+    /// <summary>Computes the hexadecimal SHA-256 digest of a file.</summary>
+    /// <param name="path">The file path.</param>
+    /// <returns>The lowercase hexadecimal digest.</returns>
     private static string ComputeSha256(string path)
     {
         using var stream = File.OpenRead(path);
         return Convert.ToHexStringLower(SHA256.HashData(stream));
     }
 
+    /// <summary>Reads a named command-line option in separated or assignment form.</summary>
+    /// <param name="args">The command-line arguments.</param>
+    /// <param name="name">The option name.</param>
+    /// <returns>The option value, or <see langword="null"/> when absent.</returns>
     private static string? ReadArgument(IReadOnlyList<string> args, string name)
     {
         for (var index = 0; index < args.Count; index++)

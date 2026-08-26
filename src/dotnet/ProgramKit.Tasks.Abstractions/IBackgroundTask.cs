@@ -5,5 +5,8 @@ namespace ProgramKit.Tasks;
 /// </summary>
 public interface IBackgroundTask : IProgramKitTask
 {
+    /// <summary>Runs the background operation until completion or shell cancellation.</summary>
+    /// <param name="cancellationToken">Signals that the owning shell generation is stopping.</param>
+    /// <returns>A task that represents the complete background operation.</returns>
     Task ExecuteAsync(CancellationToken cancellationToken);
 }

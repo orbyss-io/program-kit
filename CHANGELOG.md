@@ -5,6 +5,7 @@
 - Publish Program Kit Host, Tasks, and Analyzers as runtime preview 0.4.0-preview.1 and add the Program Kit Host runtime for verified immutable application ZIP bundles over Nuplane and CShells.
 - Add shell-lifecycle Tasks abstractions and runtime packages derived from the Elsa Foundation lifecycle pattern.
 - Add Program Kit Roslyn analyzers for shell-hosted-service misuse and contextual named arguments.
+- Add C# method-body, extraction, one-type-per-file, private-helper ordering, and purposeful XML documentation governance with self-enforced analyzer rules.
 - Add profile-gated .NET repository scaffolding with hash-tracked managed files and conflict-safe synchronization.
 - Add deterministic application-bundle creation, runtime dependency collection, layered container deployment, and CI publication workflows.
 - Expand the .NET technology profile with async, synchronization, resource, LINQ, type, style, lifecycle, and deployment governance.

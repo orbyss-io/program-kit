@@ -3,8 +3,12 @@ using ProgramKit.Host.Bundles;
 
 namespace ProgramKit.Host.Health;
 
+/// <summary>Maps Program Kit liveness, readiness, and bundle-inspection endpoints.</summary>
 internal static class HealthEndpoints
 {
+    /// <summary>Maps the Program Kit operational endpoints.</summary>
+    /// <param name="endpoints">The endpoint route builder.</param>
+    /// <returns>The supplied endpoint route builder.</returns>
     public static IEndpointRouteBuilder MapProgramKitHealth(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/health/live", () => Results.Ok(new { status = "live" }));

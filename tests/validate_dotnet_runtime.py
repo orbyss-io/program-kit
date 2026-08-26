@@ -26,6 +26,23 @@ def main() -> int:
         if re.search(pattern, consumer_versions) is None:
             raise AssertionError(f"Consumer template does not pin {package} to {runtime_version}")
 
+    analyzer = (root / "src/dotnet/ProgramKit.Analyzers/ProgramKitAnalyzer.cs").read_text(encoding="utf-8")
+    for rule_id in ("PK1001", "PK1002", "PK1003", "PK1004", "PK1005"):
+        if rule_id not in analyzer:
+            raise AssertionError(f"Program Kit analyzer does not declare {rule_id}")
+    editorconfig = (
+        root / "extensions/program-kit-governance/templates/dotnet/files/.editorconfig"
+    ).read_text(encoding="utf-8")
+    for rule_id in ("PK1003", "PK1004", "PK1005"):
+        if f"dotnet_diagnostic.{rule_id}.severity = error" not in editorconfig:
+            raise AssertionError(f"Consumer template does not enforce {rule_id}")
+    engineering = (
+        root / "extensions/program-kit-governance/references/dotnet-engineering.md"
+    ).read_text(encoding="utf-8")
+    for phrase in ("Validate inputs", "Prepare the operation state", "one named type", "XML documentation"):
+        if phrase not in engineering:
+            raise AssertionError(f".NET engineering guidance is missing: {phrase}")
+
     host_workflow = (root / ".github/workflows/publish-host-image.yml").read_text(encoding="utf-8")
     if "< RUNTIME_VERSION" not in host_workflow or "steps.runtime_version.outputs.value" not in host_workflow:
         raise AssertionError("Host workflow does not derive its image tag from RUNTIME_VERSION")

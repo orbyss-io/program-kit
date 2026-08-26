@@ -2,11 +2,13 @@ using CShells.Lifecycle;
 
 namespace ProgramKit.Host.Shells;
 
+/// <summary>Activates configured shells before the host reports readiness.</summary>
 internal sealed class EagerShellActivationHostedService(
     IShellRegistry registry,
     IConfiguration configuration,
     ILogger<EagerShellActivationHostedService> logger) : IHostedService
 {
+    /// <inheritdoc />
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (configuration.GetValue("ProgramKit:Boot:EagerShellActivation", defaultValue: true) is false)
@@ -34,5 +36,6 @@ internal sealed class EagerShellActivationHostedService(
         }
     }
 
+    /// <inheritdoc />
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

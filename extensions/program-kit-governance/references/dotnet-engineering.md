@@ -62,6 +62,60 @@ ownership rules are profile requirements.
   create hidden mutable captures or obscure invariants.
 - Seal internal leaf types when there is no extension contract, but treat CA1852 as an opt-in repository policy.
 
+## Method bodies and extraction
+
+Write a non-trivial method as one coherent operation. Use this sequence when the phases apply; do not add empty
+sections, comments, temporary variables, or helper calls merely to make the shape visible:
+
+1. Validate inputs, authorization, preconditions, and other trust-boundary assumptions. Prefer guard clauses so
+   the valid path remains unindented. Do not repeat guarantees already established by the type system or caller's
+   accepted contract.
+2. Prepare the operation state. Compute derived values and acquire short-lived resources as close as practical to
+   their first use. Keep simple expressions inline when a local name adds no meaning.
+3. Perform the operation at one level of abstraction. Make state changes and external effects explicit, ordered,
+   cancellable, and owned.
+4. Validate the result and postconditions when the method establishes an invariant or crosses a trust boundary.
+   Do not defensively re-check values that were just produced by a trusted, strongly typed operation.
+5. Return the result on an explicit final line when there is a result. `void`, throwing, expression-bodied, and
+   `Try...` methods naturally omit or adapt phases that do not apply.
+
+Preparation or logic is complex enough to extract when it represents a nameable concept and any of these signals
+is present:
+
+- it mixes a lower-level algorithm, parsing, mapping, policy decision, I/O, or resource lifetime into a method
+  that otherwise reads at a higher level;
+- it introduces multiple branches, loops, exception paths, or intermediate values that must be understood
+  together;
+- it has an independent contract worth focused tests, is reused, or is likely to change for a different reason
+  than the calling operation;
+- its side effects, failure modes, cancellation, or ownership rules deserve a boundary of their own; or
+- the caller cannot describe the prepared value with one precise local name without also explaining how it is
+  built.
+
+Cyclomatic complexity is a warning signal, not the definition: review a method at 10 and normally refactor before
+it exceeds 15. Also refactor a low-branch method when it mixes abstraction levels or hides a resource boundary.
+Conversely, do not extract a transparent expression or create a pass-through helper solely to reduce line count.
+An extracted preparation helper returns the complete prepared value, preferably as an existing domain/value type;
+do not use a tuple as an unnamed parameter bag when the values form a durable concept.
+
+Order fields first, followed by constructors and the type's externally meaningful members. Put private helper
+methods at the bottom of the type, in the order in which the higher-level flow first uses them. A private method is
+not automatically justified: it must make the caller easier to read or own an independently meaningful contract.
+
+## Source files and documentation
+
+- A C# source file declares exactly one named type: class, record, struct, interface, enum, or delegate. Nested and
+  supporting type declarations use their own files as well. Anonymous types and tuples are expressions and do not
+  violate this rule. Generated code is excluded. Name the file after the declared type; partial declarations may
+  span multiple correctly named files when the split has a concrete purpose.
+- Give every declared type and member, including private members and enum values, an XML documentation comment.
+  Use a concise `<summary>` that states purpose or contract, and add `<param>`, `<typeparam>`, `<returns>`,
+  `<value>`, and `<exception>` only when applicable. Use `<inheritdoc />` when an inherited contract is unchanged.
+- XML documentation is consumer-facing contract documentation. It does not contain design history, rejected
+  alternatives, implementation diaries, or architectural justification. Put durable design decisions and their
+  substantiation in Architecture/ADRs; use a short inline comment only for a locally non-obvious mechanism. Code
+  that follows an accepted pattern should normally explain its mechanics through names and structure.
+
 ## Orbyss style overlay
 
 - Private fields use camelCase without an underscore; enforce through EditorConfig naming rules.
@@ -75,9 +129,23 @@ ownership rules are profile requirements.
 ## Enforcement classification
 
 - Universal: owned/observed async work, cancellation, bounded concurrency, lifecycle-safe teardown, explicit
-  resource ownership, immutable production composition, and no shell-level `AddHostedService`.
+  resource ownership, immutable production composition, no shell-level `AddHostedService`, coherent method
+  abstraction, one declared type per file, private helpers last, and purposeful XML documentation on every
+  declared type and member.
 - Conditional: `ValueTask`, PLINQ, structs, records, primary constructors, frozen collections, live unloading,
   and specialized synchronization.
 - Recommendation: line width, multiline layout, contextual named arguments, and sealing internal leaves.
 - Prohibited unless ADR: invisible work, sync-over-async, unbounded queues/fan-out, custom schedulers, runtime feed
   mutation, and live reload without drain/unload evidence.
+
+## Primary references
+
+- [Microsoft C# coding conventions](https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions)
+  for coherent structure and contract-focused comments.
+- [CA1502: Avoid excessive complexity](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1502)
+  for cyclomatic-complexity measurement and configurable thresholds.
+- [C# XML documentation](https://learn.microsoft.com/dotnet/csharp/language-reference/xmldoc/)
+  for compiler-validated API documentation.
+- [.NET runtime coding style](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md)
+  and [project guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/project-guidelines.md)
+  for member layout and source-file organization.
