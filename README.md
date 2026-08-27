@@ -161,11 +161,11 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.4.1.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.4.2.md`:
 
 ```powershell
-git tag v0.4.1
-git push origin v0.4.1
+git tag v0.4.2
+git push origin v0.4.2
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -180,8 +180,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.4.1.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.4.1.zip -Algorithm SHA256
+gh attestation verify program-kit-0.4.2.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.4.2.zip -Algorithm SHA256
 ```
 
 ## License
