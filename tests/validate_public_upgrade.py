@@ -20,6 +20,8 @@ EXPECTED_HOOKS = {
     "after_implement",
 }
 EXPECTED_STEPS = [
+    "codex-execution-preflight",
+    "codex-execution-boundary",
     "intake",
     "research",
     "review-assessment",
@@ -133,6 +135,8 @@ def installed_versions(project: Path) -> dict[str, str]:
 
 
 def main() -> int:
+    root = Path(__file__).resolve().parents[1]
+    current_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     with tempfile.TemporaryDirectory(prefix="program-kit-public-upgrade-") as directory:
         project = Path(directory)
         run(
@@ -172,7 +176,7 @@ def main() -> int:
             input_text="y\n",
         )
         mixed = installed_versions(project)
-        if mixed["workflow"] != "0.2.0" or mixed["extension"] != "0.4.0":
+        if mixed["workflow"] != "0.2.0" or mixed["extension"] != current_version:
             raise AssertionError(f"Regression did not reproduce the mixed installation: {mixed}")
 
         governance = (
@@ -216,8 +220,10 @@ def main() -> int:
             input_text="y\n",
         )
         repaired = installed_versions(project)
-        if set(repaired.values()) != {"0.4.0"}:
-            raise AssertionError(f"Upgrade repair did not converge on v0.4.0: {repaired}")
+        if set(repaired.values()) != {current_version}:
+            raise AssertionError(
+                f"Upgrade repair did not converge on v{current_version}: {repaired}"
+            )
         run(sys.executable, str(governance), "validate-installation", cwd=project)
 
         extensions = yaml.safe_load(
@@ -236,7 +242,7 @@ def main() -> int:
         if step_ids != EXPECTED_STEPS:
             raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
 
-    print("Live public-catalog v0.2.0 to v0.4.0 upgrade test passed.")
+    print(f"Live public-catalog v0.2.0 to v{current_version} upgrade test passed.")
     return 0
 
 

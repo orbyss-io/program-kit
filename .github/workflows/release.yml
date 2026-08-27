@@ -37,6 +37,9 @@ jobs:
       - name: Validate extension and workflow
         run: python tests/validate_components.py
 
+      - name: Validate Codex Desktop bootstrap boundary
+        run: python tests/validate_codex_bootstrap.py
+
       - name: Validate governance-state transitions
         run: python tests/validate_governance_state.py
 

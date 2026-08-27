@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.4.0"
+  version: "0.4.1"
   author: "Orbyss"
   description: "Ratifies project governance, then builds architecture, quality, and the candidate specification portfolio."
 
@@ -30,6 +30,21 @@ inputs:
     default: ""
 
 steps:
+  - id: codex-execution-preflight
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py --integration auto --json"
+    output_format: json
+
+  - id: codex-execution-boundary
+    type: switch
+    expression: "{{ steps.codex-execution-preflight.output.data.action }}"
+    cases:
+      blocked:
+        - id: nested-codex-unsupported
+          type: command
+          command: "PROGRAM_KIT_CODEX_NESTED_SANDBOX: Spec Kit 1.0.1 would start a nested Codex CLI inside Codex Desktop's native Windows elevated sandbox, where Codex home/state and app-server initialization are unavailable. Rerun the outer command outside the sandbox and approve only the exact prefix 'specify workflow run program-kit-bootstrap', or run it from ordinary PowerShell. Keep resume prompted for every human gate. Do not weaken the sandbox or expose .codex state. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
+          integration: "program-kit-preflight-diagnostic"
+
   - id: intake
     type: command
     command: "speckit.program-kit-governance.intake"

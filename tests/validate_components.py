@@ -9,6 +9,8 @@ from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
 
 EXPECTED_STEPS = [
+    "codex-execution-preflight",
+    "codex-execution-boundary",
     "intake",
     "research",
     "review-assessment",
@@ -48,8 +50,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 11:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 11")
+    if len(command_names) != 12:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 12")
     hooks = set(extension.get("hooks", {}))
     if hooks != EXPECTED_HOOKS:
         raise AssertionError(f"Extension hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
@@ -79,6 +81,12 @@ def main() -> int:
         )
 
     extension_root = extension_path.parent
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.bootstrap.md",
+        "Do not first attempt",
+        "outside the current task sandbox",
+        "Do not install a Codex rule silently",
+    )
     require_text(
         extension_root / "references/vertical-slicing.md",
         "Default delivery unit",

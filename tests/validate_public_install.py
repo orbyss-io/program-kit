@@ -29,6 +29,8 @@ EXPECTED_HOOKS = {
 }
 
 EXPECTED_STEPS = [
+    "codex-execution-preflight",
+    "codex-execution-boundary",
     "intake",
     "research",
     "review-assessment",
@@ -125,6 +127,13 @@ def main() -> int:
         governance = deployed_extension / "scripts/governance_state.py"
         if not governance.is_file():
             raise AssertionError("Installed governance-state validator is missing")
+        if not (deployed_extension / "scripts/codex_bootstrap_preflight.py").is_file():
+            raise AssertionError("Installed Codex bootstrap preflight is missing")
+        if not (
+            project
+            / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"
+        ).is_file():
+            raise AssertionError("Installed Codex-safe bootstrap skill is missing")
         run(sys.executable, str(governance), "validate-installation", cwd=project)
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
             if not (deployed_extension / "references" / reference).is_file():

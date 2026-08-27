@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.4.0"
+  version: "0.4.1"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -14,6 +14,9 @@ requires:
 
 provides:
   commands:
+    - name: "speckit.program-kit-governance.bootstrap"
+      file: "commands/speckit.program-kit-governance.bootstrap.md"
+      description: "Run Program Kit bootstrap with the supported Codex Desktop Windows execution boundary."
     - name: "speckit.program-kit-governance.intake"
       file: "commands/speckit.program-kit-governance.intake.md"
       description: "Inventory an initial design and create the bootstrap assessment."

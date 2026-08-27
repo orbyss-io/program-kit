@@ -17,6 +17,8 @@ EXPECTED_HOOKS = {
 }
 
 EXPECTED_STEPS = [
+    "codex-execution-preflight",
+    "codex-execution-boundary",
     "intake",
     "research",
     "review-assessment",
@@ -53,6 +55,13 @@ def main() -> int:
             raise AssertionError("Extension release ZIP must contain extension.yml at its root")
         if not (extracted_extension / "scripts/governance_state.py").is_file():
             raise AssertionError("Extension release ZIP must contain the governance-state validator")
+        for path in (
+            "scripts/codex_bootstrap_preflight.py",
+            "references/codex-desktop-windows.md",
+            "templates/codex/program-kit-bootstrap.rules",
+        ):
+            if not (extracted_extension / path).is_file():
+                raise AssertionError(f"Extension release ZIP is missing {path}")
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
             if not (extracted_extension / "references" / reference).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {reference}")
@@ -80,6 +89,14 @@ def main() -> int:
             "--dev",
             cwd=project,
         )
+        bootstrap_skill = (
+            project
+            / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"
+        )
+        if not bootstrap_skill.is_file():
+            raise AssertionError("Codex-safe Program Kit bootstrap skill was not installed")
+        if "Do not first attempt" not in bootstrap_skill.read_text(encoding="utf-8"):
+            raise AssertionError("Installed bootstrap skill lost its execution-boundary guidance")
         run("specify", "workflow", "add", str(workflow_zip), "--dev", cwd=project)
 
         extension_config = yaml.safe_load(

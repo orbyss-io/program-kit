@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - 2026-08-27
+
+- Detect native Windows elevated-sandbox recursion before Program Kit asks Spec Kit to start a nested Codex CLI, and report the supported outside-sandbox boundary instead of misleading home, SQLite, or app-server errors.
+- Install a Codex-facing bootstrap skill that requests escalation for only `specify workflow run program-kit-bootstrap` before the first attempt, while leaving all workflow resume gates prompted.
+- Ship a narrow, reviewable Codex rules template and ordinary PowerShell fallback without changing Codex state ACLs, copying credentials, weakening the preferred sandbox, or silently installing an allow rule.
+
 ## 0.4.0 - 2026-08-26
 
 - Publish Program Kit Host, Tasks, and Analyzers as runtime preview 0.4.0-preview.1 and add the Program Kit Host runtime for verified immutable application ZIP bundles over Nuplane and CShells.

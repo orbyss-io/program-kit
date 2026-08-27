@@ -65,6 +65,20 @@ specify workflow run program-kit-bootstrap `
   --input integration=auto
 ```
 
+### Codex Desktop on native Windows
+
+Spec Kit 1.0.1 runs every Codex workflow command step by starting a new `codex exec` process. If the outer `specify workflow run` command is first attempted inside Codex Desktop's preferred Windows `elevated` sandbox, that nested CLI cannot use its protected Codex home/state or initialize its app-server client.
+
+Keep the elevated sandbox enabled. Ask Codex to use the installed `speckit-program-kit-governance-bootstrap` skill, or explicitly ask it to run the outer Program Kit command outside the current task sandbox before the first attempt. Approve only this exact prefix:
+
+```text
+specify workflow run program-kit-bootstrap
+```
+
+You may select **Always allow** for that exact prefix after reviewing it. Do not allow the broader `specify workflow` prefix. Workflow resume is intentionally excluded so assessment, constitution, and bootstrap verdicts remain explicit human decisions.
+
+Program Kit includes a reviewable template at `.specify/extensions/program-kit-governance/templates/codex/program-kit-bootstrap.rules`; it never copies the template into your Codex configuration or enables it. If you manually add a rules file, restart Codex. The ordinary PowerShell fallback is to run the full workflow command above from a terminal in the repository root. WSL, other operating systems, non-Codex integrations, and direct terminal use do not require this exception. See [Codex Desktop on native Windows](docs/codex-desktop-windows.md) for diagnosis, setup, and unsafe non-solutions.
+
 The workflow pauses three times for human review. Continue a paused run after reviewing its generated artifacts:
 
 ```powershell
@@ -147,11 +161,11 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the one-time repository, NuGet, and GHCR setup, follow `docs/releasing-0.4.0.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.4.1.md`:
 
 ```powershell
-git tag v0.4.0
-git push origin v0.4.0
+git tag v0.4.1
+git push origin v0.4.1
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -166,8 +180,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.4.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.4.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.4.1.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.4.1.zip -Algorithm SHA256
 ```
 
 ## License

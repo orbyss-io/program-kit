@@ -35,13 +35,45 @@ try {
         throw 'Installed workflow definition was not found.'
     }
     $stepCount = @(Select-String -LiteralPath $installedWorkflow -Pattern '^  - id:').Count
-    if ($stepCount -ne 12) {
-        throw "Installed workflow exposes $stepCount steps; expected 12."
+    if ($stepCount -ne 14) {
+        throw "Installed workflow exposes $stepCount steps; expected 14."
     }
 
     $validator = '.specify\extensions\program-kit-governance\scripts\governance_state.py'
     if (-not (Test-Path -LiteralPath $validator -PathType Leaf)) {
         throw 'Installed governance-state validator was not found.'
+    }
+    $codexPreflight = '.specify\extensions\program-kit-governance\scripts\codex_bootstrap_preflight.py'
+    if (-not (Test-Path -LiteralPath $codexPreflight -PathType Leaf)) {
+        throw 'Installed Codex bootstrap preflight was not found.'
+    }
+    $bootstrapSkill = '.agents\skills\speckit-program-kit-governance-bootstrap\SKILL.md'
+    if (-not (Test-Path -LiteralPath $bootstrapSkill -PathType Leaf)) {
+        throw 'Installed Codex-safe bootstrap skill was not found.'
+    }
+
+    $tokenUser = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+        [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    } else {
+        ''
+    }
+    if ($tokenUser -match '\\CodexSandbox' -and $env:CODEX_SESSION_ID) {
+        $preflightOutput = (& specify workflow run program-kit-bootstrap `
+            --input initial_design=./DOES-NOT-EXIST.md `
+            --input integration=codex 2>&1 | Out-String)
+        if ($LASTEXITCODE -eq 0) {
+            throw 'Nested Codex preflight unexpectedly allowed an in-sandbox workflow run.'
+        }
+        foreach ($expected in @(
+            'PROGRAM_KIT_CODEX_NESTED_SANDBOX',
+            'outside the sandbox',
+            'specify workflow run program-kit-bootstrap',
+            'ordinary PowerShell'
+        )) {
+            if ($preflightOutput -notmatch [regex]::Escape($expected)) {
+                throw "Workflow-visible Codex diagnostic is missing '$expected': $preflightOutput"
+            }
+        }
     }
 } finally {
     if ((Get-Location).Path -eq $testRoot) {
