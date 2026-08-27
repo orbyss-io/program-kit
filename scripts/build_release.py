@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -37,7 +39,14 @@ def require_equal(label: str, actual: object, expected: object) -> None:
 
 def deterministic_zip(source: Path, destination: Path) -> None:
     files = sorted(
-        (path for path in source.rglob("*") if path.is_file() and not path.is_symlink()),
+        (
+            path
+            for path in source.rglob("*")
+            if path.is_file()
+            and not path.is_symlink()
+            and "__pycache__" not in path.parts
+            and path.suffix != ".pyc"
+        ),
         key=lambda path: path.relative_to(source).as_posix(),
     )
     with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -55,6 +64,59 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def repository_source_files(root: Path) -> list[Path]:
+    """Return tracked and intentional untracked source, excluding ignored build output."""
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "ls-files",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "-z",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    relative_paths = [
+        Path(value)
+        for value in result.stdout.decode("utf-8").split("\0")
+        if value
+    ]
+    return sorted(
+        (
+            relative
+            for relative in relative_paths
+            if (root / relative).is_file() and not (root / relative).is_symlink()
+        ),
+        key=lambda path: path.as_posix(),
+    )
+
+
+def build_bundle_from_source(root: Path, output: Path) -> None:
+    """Build the composite bundle from source files, never local caches or build output."""
+    with tempfile.TemporaryDirectory(prefix="program-kit-release-source-") as directory:
+        staging = Path(directory)
+        for relative in repository_source_files(root):
+            destination = staging / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(root / relative, destination)
+        subprocess.run(
+            [
+                "specify",
+                "bundle",
+                "build",
+                "--path",
+                str(staging),
+                "--output",
+                str(output),
+            ],
+            check=True,
+        )
 
 
 def validate_metadata(root: Path, version: str) -> None:
@@ -131,10 +193,7 @@ def main() -> int:
     deterministic_zip(root / "extensions/program-kit-governance", expected[0])
     deterministic_zip(root / "workflows/program-kit-bootstrap", expected[1])
 
-    subprocess.run(
-        ["specify", "bundle", "build", "--path", str(root), "--output", str(output)],
-        check=True,
-    )
+    build_bundle_from_source(root, output)
     if not expected[2].is_file():
         raise FileNotFoundError(f"Spec Kit did not create {expected[2]}")
 

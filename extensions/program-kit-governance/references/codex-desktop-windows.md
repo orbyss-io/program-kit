@@ -1,42 +1,61 @@
-# Codex Desktop on native Windows
+# Program Kit setup boundary for Codex on Windows
 
-## Why bootstrap needs one narrow exception
+Run `specify init`, Program Kit bundle or extension installation and updates, and
+`specify workflow run program-kit-bootstrap ...` yourself from a normal user-owned PowerShell or WSL
+terminal. Do not run them from a Codex Desktop task or an interactive Codex CLI agent.
 
-Spec Kit 1.0.1 implements a Codex workflow command step by starting `codex exec`. When `specify workflow run program-kit-bootstrap` is itself launched by a Codex Desktop task, this creates a nested Codex CLI.
+## Reason
 
-Codex Desktop's preferred native Windows `elevated` sandbox uses dedicated lower-privilege sandbox users and blocks writes outside the workspace. Codex state under the user's protected `.codex` directory is intentionally unavailable to that identity. The nested CLI may therefore report that it cannot find a home directory, cannot write `state_5.sqlite`, or cannot initialize its in-process app-server client. `CODEX_HOME`, `codex exec --ephemeral`, and redirecting only SQLite storage do not remove every state and app-server requirement.
+OpenAI documents that native Windows agent mode is sandboxed and that its preferred elevated mode
+uses dedicated lower-privilege users plus filesystem permission boundaries. OpenAI also documents
+that Codex under WSL runs inside the Linux environment. See
+[Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox) and
+[WSL](https://learn.chatgpt.com/docs/windows/wsl).
 
-Program Kit cannot attach Spec Kit's workflow steps to the already-running Desktop task. Codex App Server is an interface for products that host their own Codex client, while the Codex SDK starts automated Codex runs; neither is a child-process bridge into the current Desktop task. Until Spec Kit provides an in-process/current-task Codex dispatcher, the supported boundary is to run the outer trusted Program Kit workflow command outside the outer task sandbox. The nested Codex CLI can then use its normal state and apply its own configured sandbox.
+Program Kit has observed that initialization performed by the dedicated Windows sandbox identity
+can leave `.agents`, `.specify`, and related paths owned by that identity. A later elevated-sandbox
+refresh may fail to establish protective ACLs, including with `SetNamedSecurityInfoW ... error 5`.
+Separately, Spec Kit dispatches Codex workflow commands through `codex exec`, so starting the outer
+workflow from an existing Codex agent creates unsupported nested agent execution.
 
-## One-time Codex experience
+An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a normal shell.
 
-1. Keep `[windows] sandbox = "elevated"` enabled.
-2. Ask Codex to use the `speckit-program-kit-governance-bootstrap` skill, or ask it to run the Program Kit bootstrap outside the current task sandbox before the first attempt.
-3. Approve only the exact prefix `specify workflow run program-kit-bootstrap`.
-4. Optionally select **Always allow** for that exact prefix. Review the proposed prefix before accepting it.
-5. If you manually copy the provided `.rules` template to a trusted Codex rules layer such as `%USERPROFILE%\.codex\rules\program-kit-bootstrap.rules`, restart Codex. Program Kit never copies or enables the rule itself.
-6. Leave `specify workflow resume` outside the allow rule. Review the displayed assessment, constitution, or bootstrap artifact and explicitly approve each gate.
+## Safe workflow
 
-The shipped rules template contains `match` and `not_match` examples. Validate a copied file with:
+1. Open PowerShell directly, or WSL when the repository lives in WSL.
+2. Change to the repository root.
+3. Run Spec Kit initialization and Program Kit installation or update.
+4. Start the outer workflow yourself:
 
-```powershell
-codex execpolicy check --pretty `
-  --rules "$env:USERPROFILE\.codex\rules\program-kit-bootstrap.rules" `
-  -- specify workflow run program-kit-bootstrap --input initial_design=./INITIAL_DESIGN.md
-```
+   ```powershell
+   specify workflow run program-kit-bootstrap `
+     --input initial_design=./INITIAL_DESIGN.md `
+     --input integration=codex
+   ```
 
-## Ordinary PowerShell fallback
+5. Let Spec Kit launch the sandboxed `codex exec` workers.
+6. Review every generated artifact and run each `specify workflow resume ...` from the same normal
+   shell. The human supplies every verdict.
+7. Use Codex Desktop for ordinary repository work afterward.
 
-From the consuming repository root:
+When the bootstrap skill is invoked from Codex, it must only display the complete command. It must
+not execute it, request an exception, create an approval rule, or start another Codex agent.
 
-```powershell
-specify workflow run program-kit-bootstrap `
-  --input initial_design=./INITIAL_DESIGN.md `
-  --input integration=codex
-```
+## Existing affected repository
 
-This fallback is also the normal path for people who launch Program Kit directly instead of from a Codex task. WSL, other operating systems, and non-Codex integrations do not require the Windows-specific exception.
+Rerunning `specify init` alone does not repair ownership. Close Codex, back up `INITIAL_DESIGN.md`
+outside the repository, and inspect `git status`, `git log --oneline`, and `git remote -v` from a
+normal shell.
 
-## Unsafe non-solutions
+Prefer a new user-owned working copy while preserving history:
 
-Do not make `%USERPROFILE%\.codex` writable to the sandbox, copy Codex authentication or state into a project, globally enable `danger-full-access`, broadly allow `specify workflow`, or weaken every task to the unelevated sandbox.
+- Clone the remote with `--no-checkout`, or use `git clone --no-hardlinks --no-checkout` from the
+  affected local repository when it contains history not available remotely.
+- Copy only the backed-up `INITIAL_DESIGN.md` into the new working copy.
+- Confirm the normal user owns the new directory and `.git`, and review `git status` before any
+  commit.
+- Run initialization and Program Kit setup from that normal shell.
+
+If the existing directory must remain, ask its owner or an administrator to restore correct
+ownership and inherited DACLs before removing reviewed generated content. Do not grant `Everyone`
+write access. Preserve `.git` unless the human explicitly chooses a completely new repository.

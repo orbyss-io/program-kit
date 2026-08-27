@@ -16,6 +16,12 @@ Prerequisites:
 - A supported coding-agent integration.
 - Trust in this repository's catalog and release contents. Inspect them before marking the extension catalog install-allowed.
 
+> **Codex execution boundary:** Run every command in this installation section, every Program Kit
+> update, and the outer `specify workflow run program-kit-bootstrap ...` command yourself from a
+> normal user-owned PowerShell or WSL terminal. Do not ask a Codex Desktop task or an interactive
+> `codex` CLI agent to run them. Agent-run setup can create `.agents` and `.specify` under a sandbox
+> identity on Windows, and the outer workflow would also cause nested `codex exec` execution.
+
 From the root of a new repository, initialize Spec Kit and register the three Program Kit catalogs:
 
 ```powershell
@@ -65,19 +71,24 @@ specify workflow run program-kit-bootstrap `
   --input integration=auto
 ```
 
-### Codex Desktop on native Windows
+### Codex Desktop, CLI agents, and native Windows
 
-Spec Kit 1.0.1 runs every Codex workflow command step by starting a new `codex exec` process. If the outer `specify workflow run` command is first attempted inside Codex Desktop's preferred Windows `elevated` sandbox, that nested CLI cannot use its protected Codex home/state or initialize its app-server client.
+The outer lifecycle belongs to the human's normal shell. Spec Kit starts a new `codex exec` process
+for each Codex workflow command step; those workers remain sandboxed. Starting the outer workflow
+from an existing Desktop or interactive CLI agent instead nests Codex execution.
 
-Keep the elevated sandbox enabled. Ask Codex to use the installed `speckit-program-kit-governance-bootstrap` skill, or explicitly ask it to run the outer Program Kit command outside the current task sandbox before the first attempt. Approve only this exact prefix:
+On native Windows, there is an additional ownership risk. OpenAI documents that the preferred
+elevated sandbox uses dedicated lower-privilege users and filesystem permission boundaries. If that
+identity performs initialization or installation, it can own generated `.agents`, `.specify`, and
+related paths. A later sandbox refresh may then fail to apply its protective ACL boundary, including
+with `SetNamedSecurityInfoW ... error 5`. Rerunning init alone does not repair existing ownership.
 
-```text
-specify workflow run program-kit-bootstrap
-```
-
-You may select **Always allow** for that exact prefix after reviewing it. Do not allow the broader `specify workflow` prefix. Workflow resume is intentionally excluded so assessment, constitution, and bootstrap verdicts remain explicit human decisions.
-
-Program Kit includes a reviewable template at `.specify/extensions/program-kit-governance/templates/codex/program-kit-bootstrap.rules`; it never copies the template into your Codex configuration or enables it. If you manually add a rules file, restart Codex. The ordinary PowerShell fallback is to run the full workflow command above from a terminal in the repository root. WSL, other operating systems, non-Codex integrations, and direct terminal use do not require this exception. See [Codex Desktop on native Windows](docs/codex-desktop-windows.md) for diagnosis, setup, and unsafe non-solutions.
+The installed `speckit-program-kit-governance-bootstrap` skill is guidance-only: it displays the
+complete command for the user to copy into normal PowerShell or WSL, then stops. It never runs the
+outer workflow, requests an agent exception, or installs an approval rule. See
+[Program Kit bootstrap from Windows and Codex](docs/codex-desktop-windows.md) for official OpenAI
+background, the supported sequence, and a conservative clean start that preserves `.git` unless the
+human explicitly chooses a new repository.
 
 The workflow pauses three times for human review. Continue a paused run after reviewing its generated artifacts:
 
@@ -88,7 +99,9 @@ specify workflow resume <run-id> --input constitution_verdict=ratify
 specify workflow resume <run-id> --input bootstrap_verdict=approve
 ```
 
-In a new Codex session, you can simply provide this README and your initial design, then ask Codex to install the bundle and run `program-kit-bootstrap`.
+After normal-shell installation, Codex Desktop can use the installed skills for ordinary repository
+work. If asked about bootstrap, it should display the command for the human to run rather than
+orchestrating setup itself.
 
 ## What it installs
 
@@ -161,11 +174,11 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.4.2.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.4.3.md`:
 
 ```powershell
-git tag v0.4.2
-git push origin v0.4.2
+git tag v0.4.3
+git push origin v0.4.3
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -180,8 +193,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.4.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.4.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.4.3.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.4.3.zip -Algorithm SHA256
 ```
 
 ## License

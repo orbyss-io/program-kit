@@ -43,8 +43,29 @@ def main() -> int:
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
     extension_zip = root / "artifacts" / f"program-kit-governance-{version}.zip"
     workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
-    if not extension_zip.is_file() or not workflow_zip.is_file():
+    bundle_zip = root / "artifacts" / f"program-kit-{version}.zip"
+    if not extension_zip.is_file() or not workflow_zip.is_file() or not bundle_zip.is_file():
         raise FileNotFoundError("Build release assets before running the install test")
+
+    for release_zip in (extension_zip, workflow_zip, bundle_zip):
+        with zipfile.ZipFile(release_zip, "r") as archive:
+            forbidden_entries = []
+            for name in archive.namelist():
+                parts = Path(name).parts
+                if (
+                    name.endswith(".rules")
+                    or name.endswith(".pyc")
+                    or "__pycache__" in parts
+                    or "bin" in parts
+                    or "obj" in parts
+                    or name.endswith(".nupkg")
+                ):
+                    forbidden_entries.append(name)
+            if forbidden_entries:
+                raise AssertionError(
+                    f"{release_zip.name} contains generated output or approval rules: "
+                    f"{forbidden_entries}"
+                )
 
     with tempfile.TemporaryDirectory(prefix="program-kit-release-test-") as directory:
         project = Path(directory)
@@ -58,10 +79,41 @@ def main() -> int:
         for path in (
             "scripts/codex_bootstrap_preflight.py",
             "references/codex-desktop-windows.md",
-            "templates/codex/program-kit-bootstrap.rules",
         ):
             if not (extracted_extension / path).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {path}")
+        packaged_rule_files = list(extracted_extension.rglob("*.rules"))
+        if packaged_rule_files:
+            raise AssertionError(
+                f"Extension release ZIP must not contain approval rules: {packaged_rule_files}"
+            )
+        packaged_guidance = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (
+                extracted_extension
+                / "commands/speckit.program-kit-governance.bootstrap.md",
+                extracted_extension / "references/codex-desktop-windows.md",
+            )
+        )
+        for phrase in (
+            "Always allow",
+            "first four argument tokens",
+            "program-kit-bootstrap.rules",
+            "approve only this exact prefix",
+        ):
+            if phrase in packaged_guidance:
+                raise AssertionError(
+                    f"Extension release ZIP reintroduced escalation guidance: {phrase}"
+                )
+        for phrase in (
+            "normal user-owned PowerShell or WSL",
+            "Do not call a shell tool",
+            "git clone --no-hardlinks --no-checkout",
+        ):
+            if phrase not in packaged_guidance:
+                raise AssertionError(
+                    f"Extension release ZIP is missing safe boundary guidance: {phrase}"
+                )
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
             if not (extracted_extension / "references" / reference).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {reference}")
@@ -95,7 +147,8 @@ def main() -> int:
         )
         if not bootstrap_skill.is_file():
             raise AssertionError("Codex-safe Program Kit bootstrap skill was not installed")
-        if "Do not first attempt" not in bootstrap_skill.read_text(encoding="utf-8"):
+        installed_skill_text = bootstrap_skill.read_text(encoding="utf-8")
+        if "Stop. Do not call a shell tool" not in installed_skill_text:
             raise AssertionError("Installed bootstrap skill lost its execution-boundary guidance")
         run("specify", "workflow", "add", str(workflow_zip), "--dev", cwd=project)
 

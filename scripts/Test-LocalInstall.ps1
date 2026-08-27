@@ -52,25 +52,21 @@ try {
         throw 'Installed Codex-safe bootstrap skill was not found.'
     }
 
-    $tokenUser = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
-        [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-    } else {
-        ''
-    }
-    if ($tokenUser -match '\\CodexSandbox' -and $env:CODEX_SESSION_ID) {
+    if ($env:CODEX_SESSION_ID -or $env:CODEX_THREAD_ID -or $env:CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {
         $preflightOutput = (& specify workflow run program-kit-bootstrap `
             --input initial_design=./DOES-NOT-EXIST.md `
             --input integration=codex 2>&1 | Out-String)
         if ($LASTEXITCODE -eq 0) {
-            throw 'Nested Codex preflight unexpectedly allowed an in-sandbox workflow run.'
+            throw 'Codex agent preflight unexpectedly allowed outer workflow orchestration.'
         }
+        $normalizedPreflightOutput = $preflightOutput -replace '\s+', ' '
         foreach ($expected in @(
-            'PROGRAM_KIT_CODEX_NESTED_SANDBOX',
-            'outside the sandbox',
+            'PROGRAM_KIT_CODEX_AGENT_BOUNDARY',
+            'normal user-owned PowerShell or WSL terminal',
             'specify workflow run program-kit-bootstrap',
-            'ordinary PowerShell'
+            'Do not ask the agent'
         )) {
-            if ($preflightOutput -notmatch [regex]::Escape($expected)) {
+            if ($normalizedPreflightOutput -notmatch [regex]::Escape($expected)) {
                 throw "Workflow-visible Codex diagnostic is missing '$expected': $preflightOutput"
             }
         }

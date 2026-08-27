@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.4.2"
+  version: "0.4.3"
   author: "Orbyss"
   description: "Ratifies project governance, then builds architecture, quality, and the candidate specification portfolio."
 
@@ -42,7 +42,7 @@ steps:
       blocked:
         - id: nested-codex-unsupported
           type: command
-          command: "PROGRAM_KIT_CODEX_NESTED_SANDBOX: Spec Kit 1.0.1 would start a nested Codex CLI inside Codex Desktop's native Windows elevated sandbox, where Codex home/state and app-server initialization are unavailable. Rerun the outer command outside the sandbox and approve only the exact prefix 'specify workflow run program-kit-bootstrap', or run it from ordinary PowerShell. Keep resume prompted for every human gate. Do not weaken the sandbox or expose .codex state. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
+          command: "PROGRAM_KIT_CODEX_AGENT_BOUNDARY: Program Kit stopped because a Codex Desktop task or interactive Codex CLI agent started the outer workflow. Open a normal user-owned PowerShell or WSL terminal yourself and run 'specify workflow run program-kit-bootstrap ...' there. Do not ask the agent to execute it outside its sandbox or install an approval rule. If an agent performed initialization or setup, rerunning init alone may not repair ownership of .agents or .specify. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
           integration: "program-kit-preflight-diagnostic"
 
   - id: intake

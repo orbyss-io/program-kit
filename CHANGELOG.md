@@ -1,10 +1,20 @@
 # Changelog
 
+## 0.4.3 - 2026-08-27
+
+- Require humans to run Spec Kit initialization, Program Kit installation or update, and outer bootstrap orchestration from a normal user-owned PowerShell or WSL shell; Codex Desktop and interactive CLI agents stop with a copyable command instead.
+- Document the Windows sandbox-identity ownership failure that can prevent later protective ACL setup, alongside the independent nested `codex exec` problem.
+- Remove the escalation/approval-rule workaround and its packaged `.rules` template, and add release-asset regressions that prevent it from returning.
+- Add a conservative clean-start procedure that retains `INITIAL_DESIGN.md` and preserves `.git` history unless the human explicitly chooses a new repository.
+
 ## 0.4.2 - 2026-08-27
 
 - Define lifecycle as the model of a subject's existence and evolution, distinguish permitted trajectories from actual histories, and clarify execution path, lifetime, persistence, and API boundaries.
 
 ## 0.4.1 - 2026-08-27
+
+The escalation-based guidance introduced by this release was withdrawn in 0.4.3 after the underlying
+project-ownership failure was identified.
 
 - Detect native Windows elevated-sandbox recursion before Program Kit asks Spec Kit to start a nested Codex CLI, and report the supported outside-sandbox boundary instead of misleading home, SQLite, or app-server errors.
 - Install a Codex-facing bootstrap skill that requests escalation for only `specify workflow run program-kit-bootstrap` before the first attempt, while leaving all workflow resume gates prompted.

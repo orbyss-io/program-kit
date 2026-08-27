@@ -1,38 +1,50 @@
 ---
-description: Run Program Kit bootstrap safely, including Codex Desktop Windows sandbox escalation before nested Codex dispatch.
+description: Explain the safe normal-shell boundary for Program Kit bootstrap and provide a copyable command.
 ---
 
 ## Input
 
-Treat `$ARGUMENTS` as the initial-design path followed by any explicitly requested Program Kit workflow inputs. Require an initial-design path. Do not infer a different design file when multiple candidates exist.
+Treat `$ARGUMENTS` as the initial-design path followed by any explicitly requested Program Kit
+workflow inputs. Require an initial-design path. Do not infer a different design file when multiple
+candidates exist.
 
-## Execution boundary
+## Required execution boundary
 
-Program Kit's Spec Kit 1.0.1 workflow dispatches each Codex command step through a new `codex exec` process. On native Windows, that nested process cannot initialize from inside Codex Desktop's elevated sandbox because the sandbox identity has no usable writable Codex home/state or app-server client.
+This skill is guidance-only. Never run `specify init`, Program Kit bundle or extension installation
+or update commands, or `specify workflow run program-kit-bootstrap` from a Codex Desktop task or an
+interactive Codex CLI agent.
 
-When this skill is running in a Codex Desktop task on native Windows:
+Spec Kit dispatches Codex workflow command steps by starting `codex exec`. If a sandboxed Codex
+agent starts the outer workflow too, execution becomes nested. On native Windows, initialization or
+installation performed by the elevated sandbox's dedicated identity can also leave `.agents`,
+`.specify`, and related paths owned by that identity. A later sandbox refresh may then be unable to
+establish its protective ACL boundary.
 
-1. Do not first attempt the workflow command inside the task sandbox.
-2. Construct a direct command whose first four argument tokens are exactly:
+When this skill is invoked:
 
-   ```text
-   specify workflow run program-kit-bootstrap
-   ```
+1. Construct the complete command from the supplied initial-design path and inputs.
+2. Display it in a fenced code block for the user to copy.
+3. Tell the user to open a normal user-owned PowerShell or WSL terminal in the repository root and
+   run the command themselves.
+4. Stop. Do not call a shell tool for the command.
 
-3. Append only the requested `--input` arguments, including `initial_design` and normally `integration=codex` (or `integration=auto` when the initialized repository should decide).
-4. Request execution of that outer command outside the current task sandbox. Explain that the workflow starts a nested Codex CLI which must manage its normal state outside the outer sandbox.
-5. Ask the user to approve only that exact Program Kit prefix. They may choose **Always allow** for that exact prefix after review. Never propose `specify workflow`, a union of workflow IDs, a shell wrapper, an environment-variable assignment, or an arbitrary command prefix.
+The command normally has this form:
 
-Run the exact command directly; do not wrap it in `powershell -Command`, `cmd /c`, a script, a pipeline, or a compound command, because Codex rules compare argument prefixes and conservatively handle shell wrappers.
+```powershell
+specify workflow run program-kit-bootstrap `
+  --input initial_design=./INITIAL_DESIGN.md `
+  --input integration=codex
+```
 
-For WSL, macOS, Linux, other integrations, or an ordinary terminal, run the same workflow command normally. If Codex cannot request outside-sandbox execution, tell the user to run it in an ordinary PowerShell terminal from the repository root.
+Do not request outside-sandbox or escalated execution, propose an approval exception, create or
+install a Codex rule, wrap the command in another shell, or start a new interactive `codex` agent to
+run it. A Codex CLI agent is sandboxed too; it is not the normal shell boundary.
 
-## Guardrails
+If initialization or installation was already run by a Codex agent, warn that rerunning `specify
+init` alone may not repair existing ownership or ACLs. Direct the user to
+`.specify/extensions/program-kit-governance/references/codex-desktop-windows.md` for the conservative
+clean-start procedure.
 
-- Keep the preferred Windows elevated sandbox enabled.
-- Do not redirect or copy Codex authentication, configuration, SQLite state, or app-server state into the project.
-- Do not change `%USERPROFILE%\.codex` ACLs, enable global `danger-full-access`, or switch every workflow to the weaker unelevated sandbox.
-- Do not install a Codex rule silently. The reviewable optional template is `.specify/extensions/program-kit-governance/templates/codex/program-kit-bootstrap.rules`.
-- Do not auto-allow `specify workflow resume`. Assessment, constitution, and bootstrap resumes follow explicit human review gates and must remain prompted.
-
-After the outer command pauses, report the run ID, the artifact to review, and the exact `specify workflow resume <run-id> --input <verdict>=<choice>` command. Never supply a human verdict on the user's behalf.
+After a normal-shell workflow pauses, report the run ID, the artifact to review, and the exact
+`specify workflow resume <run-id> --input <verdict>=<choice>` command. The human must run resume from
+the same normal shell and choose every verdict themselves.

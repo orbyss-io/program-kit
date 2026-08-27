@@ -83,9 +83,9 @@ def main() -> int:
     extension_root = extension_path.parent
     require_text(
         extension_root / "commands/speckit.program-kit-governance.bootstrap.md",
-        "Do not first attempt",
-        "outside the current task sandbox",
-        "Do not install a Codex rule silently",
+        "This skill is guidance-only",
+        "normal user-owned PowerShell or WSL terminal",
+        "Stop. Do not call a shell tool",
     )
     require_text(
         extension_root / "references/vertical-slicing.md",
