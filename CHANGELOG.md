@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 - 2026-08-27
+
+- Define lifecycle as the model of a subject's existence and evolution, distinguish permitted trajectories from actual histories, and clarify execution path, lifetime, persistence, and API boundaries.
+
 ## 0.4.1 - 2026-08-27
 
 - Detect native Windows elevated-sandbox recursion before Program Kit asks Spec Kit to start a nested Codex CLI, and report the supported outside-sandbox boundary instead of misleading home, SQLite, or app-server errors.

@@ -24,7 +24,17 @@ Framework handlers and endpoints expose the path; they do not replace its domain
 
 ## Lifecycle
 
-A lifecycle is the durable map of states, invariants, legal transitions, terminal states, and externally visible consequences across one or many requests. APIs move identified subjects through that map; endpoints are not the lifecycle itself.
+A lifecycle is the model of a subject's existence and evolution: its inception or admission,
+possible states, governing invariants, legal transitions, observable effects and outcomes, and
+termination or retirement. A lifecycle definition describes every permitted trajectory; a
+lifecycle history records the trajectory actually taken by one identified subject. A lifecycle
+may be ephemeral within one execution or durable across many executions.
+
+An execution path is one traversal through a lifecycle or control-flow model, not the lifecycle
+itself. A lifetime is the interval between creation or acquisition and destruction or release.
+Persistence preserves identity, state, or history across execution boundaries; it does not create
+the lifecycle. APIs move identified subjects through lifecycle transitions, and endpoints merely
+expose those paths.
 
 ## Effects and admission
 
