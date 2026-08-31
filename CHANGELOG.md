@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.2 - 2026-09-01
+
+- Make the simulated Windows signing-policy regression self-contained on Linux release runners by
+  creating its PowerShell resolver fixture explicitly.
+
 ## 0.6.1 - 2026-08-31
 
 - Initialize Codex consumers with Spec Kit's Python script flavor and ship a copyable root command

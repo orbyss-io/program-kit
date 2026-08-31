@@ -94,10 +94,16 @@ def validate_python_consumer(module) -> None:
         integration = json.loads(integration_path.read_text(encoding="utf-8"))
         integration["integration_settings"]["codex"]["script"] = "ps"
         integration_path.write_text(json.dumps(integration), encoding="utf-8")
+        powershell_resolver = project / module.POWERSHELL_RESOLVER
+        powershell_resolver.parent.mkdir(parents=True, exist_ok=True)
+        powershell_resolver.write_text(
+            "# Cross-platform fixture; execution is replaced by blocked_runner.\n",
+            encoding="utf-8",
+        )
         skill.write_text(
             skill_text.replace(
-                "python .specify/scripts/python/resolve_template.py constitution-template --json",
-                ".specify/scripts/powershell/resolve-template.ps1 constitution-template -Json",
+                module.PYTHON_RESOLVER.as_posix(),
+                module.POWERSHELL_RESOLVER.as_posix(),
             ),
             encoding="utf-8",
         )
