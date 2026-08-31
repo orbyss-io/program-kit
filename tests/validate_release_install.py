@@ -23,16 +23,25 @@ EXPECTED_STEPS = [
     "codex-execution-boundary",
     "intake",
     "research",
+    "validate-assessment",
+    "write-assessment-review",
     "review-assessment",
+    "accept-assessment",
     "constitution-begin",
     "constitution-draft",
+    "validate-constitution-draft",
+    "write-constitution-review",
     "review-constitution",
     "constitution-ratify",
     "architecture",
     "tooling",
     "specification-roadmap",
+    "validate-bootstrap",
+    "write-bootstrap-review",
     "review-bootstrap",
+    "accept-bootstrap",
     "readiness",
+    "complete-bootstrap",
 ]
 
 
@@ -120,7 +129,7 @@ def main() -> int:
                 raise AssertionError(
                     f"Extension release ZIP is missing safe boundary guidance: {phrase}"
                 )
-        for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
+        for reference in ("vertical-slicing.md", "modularity-and-contracts.md", "default-adoption.md"):
             if not (extracted_extension / "references" / reference).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {reference}")
         with zipfile.ZipFile(dotnet_zip, "r") as archive:

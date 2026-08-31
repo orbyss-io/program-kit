@@ -22,12 +22,20 @@ If validation fails, stop immediately and report the exact repair commands. Run 
 
 Read the entire initial design and the generic references under `.specify/extensions/program-kit-governance/references/`, excluding technology profiles that are not selected. Read an installed technology extension's profile only when the assessment selects that technology. Also read existing repository guidance and architecture artifacts without overwriting user-authored work.
 
+Apply `references/default-adoption.md`. Distinguish explicit intent from examples and future options.
+Do not reopen an explicit intake selection or an applicable Program Kit default merely because its
+implementation details still need a specification. A valid question is not automatically a human
+decision or bootstrap blocker.
+
 ## Work
 
 Create or update `docs/architecture/bootstrap-assessment.md` with:
 
 1. Purpose, actors, primary journeys, domain concepts, bounded-context candidates, module and feature candidates, external systems, data classes, trust boundaries, quality attributes, deployment assumptions, and operational constraints found in the design.
-2. A technology inventory. Mark every detected or suggested technology `Proposed` unless an existing Accepted ADR explicitly accepts it.
+2. A technology inventory. Mark explicit intake choices and applicable Program Kit defaults as
+   provisionally adopted by the assessment gate, with their source. Mark examples, suggestions,
+   and project-specific choices outside that baseline `Proposed` unless an existing Accepted ADR
+   already accepts them.
 3. Contradictions, ambiguities, missing evidence, and risky assumptions with exact design references.
 4. A decision backlog grouped by architecture significance. Include security, tenancy, authorization, isolation, consistency, delivery semantics, versioning, reproducibility, supply chain, observability, operability, and recovery when applicable.
 5. Candidate vertical slices derived from actors, triggers, intents, commands, queries, messages, failure outcomes, and operational journeys. Mark them as discovery inputs rather than accepted decomposition.
@@ -36,4 +44,59 @@ Create or update `docs/architecture/bootstrap-assessment.md` with:
 
 Create `docs/architecture/decision-backlog.md`. Each item must have a stable ID, question, why it matters, decision owner, dependencies, evidence needed, status, and the artifact that will close it.
 
-Do not accept decisions, select final tools, initialize application code, or modify the initial design during intake.
+Classify backlog entries as one of: resolved by explicit intake, resolved by Program Kit default,
+resolved by a derived default, genuinely unresolved, or deferred until a named lifecycle trigger.
+Only genuinely unresolved decisions may block an affected roadmap entry. Specification details,
+acceptance criteria, and triggered production concerns are not foundation ADRs.
+
+Create `docs/architecture/bootstrap-decisions.json` with this exact shape:
+
+```json
+{
+  "schema_version": "1.0",
+  "default_profile": { "id": "program-kit-standard", "version": "<installed-version>" },
+  "selected_profiles": ["dotnet", "typescript-web"],
+  "dotnet": {
+    "host_runtime": "ProgramKit.Host",
+    "host_source": "program-kit-default",
+    "program_kit_host_opt_out": false,
+    "opt_out_reason": ""
+  },
+  "choices": [
+    {
+      "id": "stable-id",
+      "decision": "Concise adopted choice",
+      "source": "explicit-intake",
+      "rationale": "Why this source applies",
+      "override": "How the project can supersede it"
+    }
+  ],
+  "overrides": [
+    { "id": "stable-id", "decision": "Default replaced and chosen alternative" }
+  ],
+  "acknowledgements": [
+    { "id": "stable-id", "summary": "Consequential fact the reviewer must understand" }
+  ],
+  "unresolved": [
+    { "id": "stable-id", "question": "Decision only the human can safely answer", "blocks": "Affected roadmap item or gate" }
+  ],
+  "deferred": [
+    { "id": "stable-id", "question": "Decision that is not material yet", "trigger": "Lifecycle event that makes it material" }
+  ]
+}
+```
+
+Allowed choice sources are `explicit-intake`, `program-kit-default`, `derived-default`, and
+`override`. Use empty arrays when a category has no entries. Every object in the remaining lists
+has the exact fields shown plus concise review-packet text. Unresolved and deferred entries name
+the affected roadmap item or lifecycle trigger rather than becoming global blockers.
+
+When .NET is selected, set `ProgramKit.Host` automatically unless intake explicitly opts out. An
+opt-out requires a non-empty reason and alternate host. Without an opt-out, add acknowledgement ID
+`program-kit-preview-dependencies` explaining that the managed baseline uses pinned Program Kit,
+CShells, and Nuplane preview packages and preview package sources; assessment approval acknowledges
+this fact but does not restore packages or contact those feeds.
+
+Do not invent acceptance outside explicit intake, the versioned Program Kit defaults, safe derived
+defaults, or reviewed overrides. Record those sources as provisional baseline choices for the
+assessment gate. Do not initialize application code or modify the initial design during intake.

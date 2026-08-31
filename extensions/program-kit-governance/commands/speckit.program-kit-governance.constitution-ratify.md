@@ -22,6 +22,8 @@ Draft-free state, template placeholders, TODOs, invalid semantic version/date me
 amendment, versioning, or compliance governance. On success it writes a `Ratified` marker bound to
 the exact constitution SHA-256 and metadata.
 
-Do not modify the constitution to make validation pass. Return to the draft and human gate when it
-fails. Rejection, abandonment, or any later constitution content change must not unlock architecture
-or specifications.
+The script is the sole ratification finalizer. After the human gate it changes only the explicit
+Draft status and, for an initial constitution, the exact `PENDING_RATIFICATION` sentinel to the
+current date before hashing the final content. It never repairs principles, governance, or arbitrary
+validation failures. Return to the draft and human gate when any other validation fails. Rejection,
+abandonment, or any later constitution content change must not unlock architecture or specifications.

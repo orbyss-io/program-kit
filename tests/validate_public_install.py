@@ -39,16 +39,25 @@ EXPECTED_STEPS = [
     "codex-execution-boundary",
     "intake",
     "research",
+    "validate-assessment",
+    "write-assessment-review",
     "review-assessment",
+    "accept-assessment",
     "constitution-begin",
     "constitution-draft",
+    "validate-constitution-draft",
+    "write-constitution-review",
     "review-constitution",
     "constitution-ratify",
     "architecture",
     "tooling",
     "specification-roadmap",
+    "validate-bootstrap",
+    "write-bootstrap-review",
     "review-bootstrap",
+    "accept-bootstrap",
     "readiness",
+    "complete-bootstrap",
 ]
 
 
@@ -157,7 +166,7 @@ def main() -> int:
         ).is_file():
             raise AssertionError("Installed Codex-safe bootstrap skill is missing")
         run(sys.executable, str(governance), "validate-installation", cwd=project)
-        for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
+        for reference in ("vertical-slicing.md", "modularity-and-contracts.md", "default-adoption.md"):
             if not (deployed_extension / "references" / reference).is_file():
                 raise AssertionError(f"Installed extension is missing {reference}")
 

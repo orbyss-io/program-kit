@@ -12,5 +12,6 @@ When TypeScript or a browser UI is detected, evaluate and normally enforce:
 - bundle-size and performance budgets appropriate to the product;
 - safe rendering, CSP, CSRF/session/token treatment, and secret-free client configuration.
 
-Frameworks, state libraries, component systems, test runners, schema validators, and build tools remain Proposed until accepted in the project context.
-
+Adopt explicit intake choices and applicable versioned Program Kit defaults in the reviewed bootstrap
+baseline. Choices not supplied by either source remain Proposed until accepted in the project context;
+do not invent a framework merely to make the register look complete.

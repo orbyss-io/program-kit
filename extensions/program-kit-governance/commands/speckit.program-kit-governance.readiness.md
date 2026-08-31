@@ -27,6 +27,12 @@ Inspect the ratified constitution, initial design, architecture baseline, decisi
 technology radar, tooling evaluation, quality system, specification roadmap, and traceability model.
 Report `READY`, `CONDITIONALLY READY`, or `NOT READY`.
 
+Write `docs/architecture/readiness-report.md` with an exact first metadata line of
+`**Status**: READY`, `**Status**: CONDITIONALLY READY`, or `**Status**: NOT READY`, followed by the
+evidence, remaining triggered decisions, and next specification. The deterministic workflow
+completion step accepts only the exact READY status and independently validates ratification,
+bootstrap approval, artifact hashes, and a Ready roadmap entry.
+
 `READY` requires that implementation-blocking architecture decisions are Accepted, significant risks have owners and verification, technology statuses are honest, architecture views are internally consistent, and the first specification can be written without smuggling in an unreviewed architecture choice.
 
 The first specification must be a viable vertical slice with an actor, trigger or intent, owner,
@@ -36,6 +42,10 @@ must first build broad controller, service, repository, database, frontend, or i
 is not ready.
 
 Unresolved decisions may remain only when they do not block the proposed first specification. List each remaining decision with the earliest lifecycle point at which it must be resolved.
+
+Do not count an explicit intake choice, Program Kit default, derived default, or reviewed override
+from the approved bootstrap decision register as unresolved. Do not block early specifications on a
+decision explicitly deferred to production or another later trigger.
 
 A roadmap entry cannot be Ready while any required ADR is unresolved. At least one Ready entry must
 be suitable for the first feature specification without introducing an unreviewed architecture

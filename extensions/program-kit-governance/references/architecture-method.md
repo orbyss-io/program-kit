@@ -41,7 +41,14 @@ those ownership boundaries invisibly.
 
 ## Status discipline
 
-All technologies begin `Proposed`. Only an Accepted ADR promotes them to `Accepted`. Rejected, Deprecated, and Superseded items retain links to the decision history.
+Use `default-adoption.md` during bootstrap. Explicit intake choices, applicable Program Kit
+defaults, and safe derived defaults are adopted together by the hash-bound assessment gate and
+recorded in the Accepted bootstrap-baseline decision. An ordinary default does not require a
+separate approval ceremony.
+
+Choices outside that reviewed baseline begin `Proposed`. Only an Accepted ADR promotes those
+project-specific choices to `Accepted`. Rejected, Deprecated, and Superseded items retain links to
+the decision history.
 
 ## Living architecture
 

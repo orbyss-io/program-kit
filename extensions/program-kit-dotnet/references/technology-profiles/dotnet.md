@@ -16,8 +16,10 @@ When .NET is detected, evaluate and normally enforce:
 - ArchUnitNET or an equivalent deterministic check when project or assembly dependency rules need executable enforcement;
 - Reqnroll when business-critical multistep behavior benefits from executable examples.
 
-Framework choices, ORM use, source generators, serializers, test frameworks, analyzer packages, and
-modularity runtimes remain project-specific Proposed technologies until accepted by ADR.
+Explicit intake selections and the versioned Program Kit .NET defaults are adopted through the
+bootstrap assessment gate. Choices outside that reviewed baseline remain Proposed until accepted by
+ADR. ORM, serializer, and test-framework details use the baseline defaults when available rather
+than becoming mandatory human questions.
 
 ## Modular DDD topology
 
@@ -67,11 +69,17 @@ owned, versioned, and backed by an Accepted ADR.
 - CI validates the MSBuild project graph and compiled assembly dependencies. Exact Accepted
   exceptions are allowlisted; naming conventions alone are insufficient enforcement.
 
-## CShells profile mapping
+## Program Kit host and CShells profile mapping
 
-Evaluate CShells when runtime feature composition, per-shell or per-tenant service isolation,
-configuration-driven feature sets, or dynamic activation and reload are architecture requirements.
-Do not add it solely to obtain folders or dependency injection.
+When .NET is selected, adopt `ProgramKit.Host` and its application-bundle composition model as the
+automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
+runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
+Record the preview packages and package sources as a material acknowledgement in the assessment
+review packet. Do not download or restore them merely by approving architecture.
+
+An explicit opt-out may select a conventional ASP.NET Core host. Record why the Program Kit host is
+not suitable and which composition, packaging, task, and deployment responsibilities the project
+then owns.
 
 When accepted:
 

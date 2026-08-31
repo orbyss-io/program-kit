@@ -1,15 +1,16 @@
 # Program Kit .NET runtime and application bundles
 
 Program Kit's .NET profile uses a standard host and independently packaged CShells features. Selecting the
-.NET profile is an explicit architecture decision. Installing Program Kit alone never creates .NET files.
+.NET profile automatically adopts `ProgramKit.Host` unless intake explicitly opts out and records why.
+Installing Program Kit alone never creates .NET files.
 
 ## Repository baseline
 
 Run the installed `speckit.program-kit-dotnet.sync` extension command in write mode only after the repository
-has accepted the .NET profile, an Accepted ADR selects the Program Kit host/runtime, and a human explicitly
-approves adding the pinned preview packages plus the `CShells Preview` and `Nuplane Preview` NuGet sources.
-Selecting .NET alone does not authorize these runtime choices. A read-only `--check` remains safe before those
-write approvals. Root `Directory.*`, `VERSION`, `shells.json`, and `hostsettings.json` files are
+has an approved bootstrap baseline (or later Accepted override) selecting the .NET profile and
+`ProgramKit.Host`, and the human-reviewed baseline acknowledges the pinned preview packages plus the
+`CShells Preview` and `Nuplane Preview` NuGet sources. A read-only `--check` remains safe before those write
+approvals. Root `Directory.*`, `VERSION`, `shells.json`, and `hostsettings.json` files are
 scaffolded once and become consumer-owned. Program Kit hash-manages `global.json`, `NuGet.config`, the root
 `.editorconfig`, generated workflows, and distinct `ProgramKit.*` implementation files under `eng/program-kit`.
 All managed paths are tracked in `.program-kit/managed.json`; a consumer edit causes a reported conflict rather

@@ -1,6 +1,7 @@
 # .NET runtime and application-bundle profile
 
-Apply this reference only when .NET is selected by accepted project architecture evidence.
+Apply this reference automatically when .NET is selected, unless intake explicitly opts out of the
+Program Kit host/runtime default.
 
 - Generate features and contracts, not application hosts. `ProgramKit.Host` is the standard runtime appliance.
 - Feature projects reference CShells abstraction packages. Only the host owns CShells and Nuplane runtimes.

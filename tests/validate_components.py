@@ -14,16 +14,25 @@ EXPECTED_STEPS = [
     "codex-execution-boundary",
     "intake",
     "research",
+    "validate-assessment",
+    "write-assessment-review",
     "review-assessment",
+    "accept-assessment",
     "constitution-begin",
     "constitution-draft",
+    "validate-constitution-draft",
+    "write-constitution-review",
     "review-constitution",
     "constitution-ratify",
     "architecture",
     "tooling",
     "specification-roadmap",
+    "validate-bootstrap",
+    "write-bootstrap-review",
     "review-bootstrap",
+    "accept-bootstrap",
     "readiness",
+    "complete-bootstrap",
 ]
 EXPECTED_HOOKS = {
     "before_constitution",
@@ -107,12 +116,33 @@ def main() -> int:
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")
     constitution_gate = step_ids.index("review-constitution")
     if not (
-        step_ids.index("constitution-draft") + 1 == constitution_gate
+        step_ids.index("constitution-draft") < step_ids.index("validate-constitution-draft")
+        < step_ids.index("write-constitution-review") < constitution_gate
         < step_ids.index("constitution-ratify") < step_ids.index("architecture")
     ):
         raise AssertionError(
-            "The human gate must immediately follow constitution drafting, then ratification must precede architecture"
+            "Constitution validation and its review packet must precede the human gate, then ratification must precede architecture"
         )
+
+    for consumer_id, gate_id in (
+        ("accept-assessment", "review-assessment"),
+        ("constitution-ratify", "review-constitution"),
+        ("accept-bootstrap", "review-bootstrap"),
+    ):
+        consumer = next(step for step in steps if step["id"] == consumer_id)
+        expected_choice = f"steps.{gate_id}.output.choice"
+        if consumer.get("type") != "shell" or expected_choice not in consumer.get("run", ""):
+            raise AssertionError(
+                f"{consumer_id} must deterministically consume the recorded {gate_id} choice"
+            )
+    for gate_id, packet in (
+        ("review-assessment", "docs/architecture/reviews/assessment-review.md"),
+        ("review-constitution", "docs/architecture/reviews/constitution-review.md"),
+        ("review-bootstrap", "docs/architecture/reviews/bootstrap-review.md"),
+    ):
+        gate = next(step for step in steps if step["id"] == gate_id)
+        if gate.get("show_file") != packet or gate.get("on_reject") != "retry":
+            raise AssertionError(f"{gate_id} must show its concise packet and pause for revision")
 
     extension_root = extension_path.parent
     require_text(
@@ -126,6 +156,14 @@ def main() -> int:
         "Default delivery unit",
         "Horizontal enabling work",
         "Proportional exceptions",
+    )
+    require_text(
+        extension_root / "references/default-adoption.md",
+        "Bootstrap promise",
+        "Explicit intake",
+        "Program Kit default",
+        "ProgramKit.Host",
+        "preview packages",
     )
     require_text(
         extension_root / "references/modularity-and-contracts.md",
@@ -168,6 +206,8 @@ def main() -> int:
         "governance_state.py validate-installation",
         "Before reading the initial design or writing any project artifact",
         "Run those commands in the displayed order",
+        "bootstrap-decisions.json",
+        "program-kit-preview-dependencies",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.constitution-begin.md",
@@ -209,6 +249,9 @@ def main() -> int:
         "program-kit-governance-config.local.yml",
         "specify workflow update program-kit-bootstrap",
         "specify bundle update program-kit --integration",
+        "validate_bootstrap_decisions()",
+        "complete_bootstrap()",
+        "PENDING_RATIFICATION",
     )
     require_text(
         preset_path.parent / "templates/spec-governance.md",

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <ProgramKitVersion>0.5.1-preview.1</ProgramKitVersion>
+    <ProgramKitVersion>0.6.0-preview.1</ProgramKitVersion>
     <Version>$(ProgramKitVersion)</Version>
     <PackageVersion>$(ProgramKitVersion)</PackageVersion>
   </PropertyGroup>

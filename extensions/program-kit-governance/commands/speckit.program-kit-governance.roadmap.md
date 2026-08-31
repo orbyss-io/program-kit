@@ -15,6 +15,12 @@ Validate the ratified constitution before doing any work:
 Read the constitution, architecture baseline, ADRs, decision backlog, tooling evaluation, quality
 system, traceability model, and candidate vertical slices. Stop if ratification is missing or stale.
 
+Read the approved bootstrap decision register and Accepted bootstrap-baseline decision. Explicit
+intake choices and adopted Program Kit defaults do not appear as unresolved ADR prerequisites.
+Genuinely unresolved decisions block only the roadmap entries they materially affect. Deferred
+production, scale, retention, recovery, or long-running-operation choices do not block an unrelated
+first vertical slice before their named trigger.
+
 ## Output
 
 Create or update `docs/architecture/specification-roadmap.md`. This is a portfolio—the specification

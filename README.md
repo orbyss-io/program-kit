@@ -122,7 +122,8 @@ orchestrating setup itself.
   evidence, creates the architecture baseline and decision backlog, evaluates tooling, creates the
   specification roadmap, and pauses at human review gates.
 - `program-kit-governance` extension: supplies reusable bootstrap, ratification, and lifecycle-validation commands.
-- `program-kit-dotnet` extension: supplies the opt-in, profile-gated .NET repository baseline and sync command.
+- `program-kit-dotnet` extension: supplies the default .NET runtime baseline and its separately
+  invoked, reviewable repository sync command.
 - `program-kit-governance-preset`: appends governance traceability to Spec Kit's feature, plan, and task templates.
 - Mandatory hooks before and after `speckit.specify`, after `speckit.plan`, before
   `speckit.implement`, after `speckit.tasks`, and before constitution drafting to prevent unauthorized
@@ -138,8 +139,11 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 - The project constitution is the highest governance artifact. It is not a feature specification.
   Drafting revokes stale ratification; only the dedicated human gate and a matching SHA-256 marker
   make it authoritative.
-- Project-specific architecture decisions require a human-approved ADR before becoming `Accepted`.
-- Technologies discovered in an initial design begin as `Proposed`; mentioning a technology does not accept it.
+- Explicit intake choices, applicable versioned Program Kit defaults, safe derived defaults, and
+  reviewed overrides are adopted together by the hash-bound assessment gate and recorded in one
+  Accepted bootstrap-baseline decision. Examples and future options remain candidates.
+- Project-specific architecture decisions outside that reviewed baseline require a human-approved
+  ADR before becoming `Accepted`.
 - Generic engineering guardrails apply by default and are revalidated against current primary sources and project context during every bootstrap.
 - The reusable software language is `Identity + Intent + Context -> Policies -> Decision -> Transition -> Effects -> Admission -> Outcome`.
 - Required admission and optional observation are separate contracts. Invisible fire-and-forget behavior and ambiguous empty policy results are forbidden.
@@ -163,20 +167,23 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 
 ### .NET profile
 
-The .NET profile maps these generic rules to project and assembly boundaries. It evaluates CShells
-and CShells.AspNetCore when runtime feature composition, per-shell or per-tenant isolation,
-configuration-driven feature sets, or dynamic activation are required. Feature projects reference
-the abstraction packages; only the host references the full runtime.
+The .NET profile maps these generic rules to project and assembly boundaries. When .NET is selected,
+`ProgramKit.Host` and its application-bundle/CShells composition model are adopted automatically
+unless intake explicitly opts out. The assessment packet prominently discloses its pinned preview
+packages and preview sources; approval does not restore packages or contact feeds. Feature projects
+reference abstraction packages; only the host references the full runtime.
 
 ASP.NET Core Minimal APIs are the default built-in HTTP candidate. Each public operation owns stable
 route and operation identity, authorization, wire contracts, validation, status/error schemas,
 cancellation behavior, OpenAPI compatibility evidence, and traceability to its vertical slice.
-Technology adoption remains Proposed in each consuming repository until its ADR is accepted.
+Project-specific technology choices outside the approved bootstrap baseline remain Proposed until
+their ADR is accepted.
 
-Selecting the .NET profile unlocks the profile-gated `speckit.program-kit-dotnet.sync`
-command. It scaffolds central build/package management, safe managed-file synchronization, application-bundle
-creation, and release workflows. Program Kit Host runs the resulting immutable ZIP in a digest-pinned layered
-container. A write also requires an Accepted Program Kit host/runtime ADR and explicit approval for its preview
+Selecting the .NET profile adopts `ProgramKit.Host` by default and makes
+`speckit.program-kit-dotnet.sync` available. The sync command scaffolds central build/package management,
+safe managed-file synchronization, application-bundle creation, and release workflows. Program Kit Host
+runs the resulting immutable ZIP in a digest-pinned layered container. A write requires the approved,
+hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of its pinned preview
 packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
 never creates .NET files. See `docs/dotnet-runtime.md`.
@@ -196,11 +203,11 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.5.1.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.6.0.md`:
 
 ```powershell
-git tag v0.5.1
-git push origin v0.5.1
+git tag v0.6.0
+git push origin v0.6.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -217,8 +224,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.5.1.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.5.1.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.0.zip -Algorithm SHA256
 ```
 
 ## License

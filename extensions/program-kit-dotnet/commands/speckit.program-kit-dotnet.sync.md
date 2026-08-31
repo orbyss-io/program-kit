@@ -11,9 +11,11 @@ working directory unless an explicit target path is supplied.
 
 ## Work
 
-1. Confirm that the accepted technology profile selects .NET. For a write, also require both an Accepted ADR
-   selecting the Program Kit host/runtime and explicit human approval to add the pinned preview packages and
-   the `CShells Preview` and `Nuplane Preview` NuGet sources. Profile selection alone is insufficient.
+1. Confirm that the approved bootstrap decision register selects .NET and has not explicitly opted out
+   of `ProgramKit.Host`. The hash-bound assessment approval plus Accepted bootstrap-baseline decision
+   satisfy host/runtime selection and acknowledgement of the pinned preview packages and the
+   `CShells Preview` and `Nuplane Preview` NuGet sources. Outside bootstrap, equivalent Accepted ADR
+   and explicit acknowledgement evidence are required.
 2. For a write, run `{SCRIPT}` with `--target <repository-root> --profile-selected
    --host-runtime-accepted --preview-sources-approved`. Pass a confirmation flag only when its corresponding
    evidence exists. For a read-only drift report, pass `--check --profile-selected`; the two write approvals
@@ -23,9 +25,10 @@ working directory unless an explicit target path is supplied.
 5. After a successful write, report that `dotnet restore` and the generated
    `eng/program-kit/Build.ps1 -SkipBundle` access configured package sources. Do not run either command unless
    the user separately authorizes networked package restore and build verification.
-6. Make clear that this optional runtime sync is not a prerequisite for technology-neutral governance or
-   proposed quality gates. Remind the user that Program Kit bundle updates and repository-baseline sync are
-   separate, reviewable actions.
+6. Make clear that runtime selection is automatic for a .NET bootstrap, while applying the managed
+   repository files remains a separate, reviewable synchronization action and is not a prerequisite
+   for technology-neutral governance checks. Program Kit bundle updates and repository-baseline
+   sync are separate operations.
 
 The sync itself performs local, path-contained file operations and does not contact package feeds. The
 generated restore, build, CI, release, and application-bundle paths can access the configured NuGet sources.

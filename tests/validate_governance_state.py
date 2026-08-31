@@ -28,6 +28,15 @@ def expect_error(module, action, contains: str) -> None:
         raise AssertionError(f"Expected GovernanceStateError containing {contains!r}")
 
 
+def assert_review_packet(path: Path, stage: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    if len(text.splitlines()) > 200:
+        raise AssertionError(f"{stage} review packet exceeds the workflow gate display limit")
+    expected = f"write-review --stage {stage}"
+    if expected not in text:
+        raise AssertionError(f"{stage} review packet has no rejection recovery command")
+
+
 def write_installation(project: Path, version: str, *, workflow_version: str | None = None) -> None:
     workflow_version = workflow_version or version
     extension_manifest = project / ".specify/extensions/program-kit-governance/extension.yml"
@@ -101,9 +110,12 @@ def run_main(module, *arguments: str) -> int:
         sys.argv = original
 
 
-def constitution(*, placeholder: bool = False) -> str:
+def constitution(*, placeholder: bool = False, pending: bool = True) -> str:
     principle = "[PRINCIPLE_NAME]" if placeholder else "I. Outcome-Oriented Delivery"
+    ratified = "PENDING_RATIFICATION" if pending else "2026-08-25"
     return f"""# Example Constitution
+
+**Status**: Draft
 
 ## Core Principles
 
@@ -123,8 +135,83 @@ Specifications follow ratified governance and Accepted ADRs.
 Amendments require human approval and a migration note. Version changes follow semantic versioning.
 Compliance is reviewed before each lifecycle gate.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-08-25
+**Version**: 1.0.0 | **Ratified**: {ratified} | **Last Amended**: 2026-08-25
 """
+
+
+def decisions() -> dict:
+    return {
+        "schema_version": "1.0",
+        "default_profile": {"id": "program-kit-standard", "version": "0.3.1"},
+        "selected_profiles": ["dotnet", "typescript-web"],
+        "dotnet": {
+            "host_runtime": "ProgramKit.Host",
+            "host_source": "program-kit-default",
+            "program_kit_host_opt_out": False,
+            "opt_out_reason": "",
+        },
+        "choices": [
+            {
+                "id": "runtime-host",
+                "decision": "Use ProgramKit.Host as the .NET runtime",
+                "source": "program-kit-default",
+                "rationale": "It is the automatic Program Kit .NET baseline",
+                "override": "Record an explicit intake opt-out or superseding ADR",
+            }
+        ],
+        "overrides": [],
+        "acknowledgements": [
+            {
+                "id": "program-kit-preview-dependencies",
+                "summary": "The managed runtime uses pinned preview packages and sources",
+            }
+        ],
+        "unresolved": [],
+        "deferred": [],
+    }
+
+
+def write_assessment(module, project: Path) -> None:
+    for relative in (module.ASSESSMENT, module.DECISION_BACKLOG, module.TOOLING_EVALUATION):
+        path = project / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"# {path.stem}\n", encoding="utf-8")
+    decision_path = project / module.BOOTSTRAP_DECISIONS
+    decision_path.write_text(json.dumps(decisions()), encoding="utf-8")
+    module.write_review("assessment")
+    assert_review_packet(project / module.ASSESSMENT_REVIEW, "assessment")
+    assessment_path = project / module.ASSESSMENT
+    assessment_path.write_text("# bootstrap-assessment\n\nRevised after review.\n", encoding="utf-8")
+    expect_error(module, lambda: module.accept_assessment("approve"), "review packet is stale")
+    module.write_review("assessment")
+    assert_review_packet(project / module.ASSESSMENT_REVIEW, "assessment")
+    module.accept_assessment("approve")
+
+
+def write_bootstrap_artifacts(module, project: Path) -> None:
+    assessment_approval = json.loads(
+        (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
+    )
+    decision_hash = assessment_approval["artifacts"][module.BOOTSTRAP_DECISIONS.as_posix()]
+    contents = {
+        "docs/architecture/README.md": "# Architecture navigation\n",
+        "docs/architecture/architecture.md": "# Architecture\n\nProgramKit.Host is the accepted runtime.\n",
+        "docs/architecture/quality-attributes.md": "# Quality attributes\n",
+        "docs/architecture/technology-radar.md": "# Technology radar\n\nProgramKit.Host — Accepted\n",
+        "docs/architecture/traceability.md": "# Traceability\n",
+        "docs/architecture/quality-system.md": "# Quality system\n",
+        "docs/architecture/decisions/README.md": "# Decisions\n",
+        "docs/architecture/decisions/bootstrap-baseline.md": (
+            "# Bootstrap baseline\n\n- Status: Accepted\n\n"
+            f"Profile: program-kit-standard 0.3.1\n\nDecision register: {decision_hash}\n\n"
+            "runtime-host: ProgramKit.Host is adopted.\n\n"
+            "program-kit-preview-dependencies is acknowledged.\n"
+        ),
+    }
+    for relative, text in contents.items():
+        path = project / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
 
 
 def roadmap(required_adrs: str = "None", status: str = "Ready") -> str:
@@ -180,20 +267,53 @@ def main() -> int:
 
             expect_error(module, module.validate_ratification, "governance state file")
 
+            bootstrap_decisions = project / module.BOOTSTRAP_DECISIONS
+            bootstrap_decisions.parent.mkdir(parents=True, exist_ok=True)
+            alternate_without_opt_out = decisions()
+            alternate_without_opt_out["dotnet"]["host_runtime"] = "Custom.Host"
+            bootstrap_decisions.write_text(
+                json.dumps(alternate_without_opt_out), encoding="utf-8"
+            )
+            expect_error(
+                module,
+                module.validate_bootstrap_decisions,
+                "automatic .NET default",
+            )
+            explicit_opt_out = decisions()
+            explicit_opt_out["dotnet"] = {
+                "host_runtime": "Custom.Host",
+                "host_source": "override",
+                "program_kit_host_opt_out": True,
+                "opt_out_reason": "The initial design mandates an existing proprietary host",
+            }
+            module_choice = explicit_opt_out["choices"][0]
+            module_choice["decision"] = "Use the intake-mandated Custom.Host runtime"
+            module_choice["source"] = "override"
+            bootstrap_decisions.write_text(json.dumps(explicit_opt_out), encoding="utf-8")
+            module.validate_bootstrap_decisions()
+
+            write_assessment(module, project)
+
             constitution_path = project / module.CONSTITUTION
             constitution_path.parent.mkdir(parents=True)
             constitution_path.write_text(constitution(placeholder=True), encoding="utf-8")
             module.begin()
             expect_error(module, module.validate_ratification, "completed human ratification")
-            expect_error(module, lambda: module.ratify("ratify"), "template placeholders")
+            expect_error(module, module.validate_constitution_draft, "template placeholders")
 
             constitution_path.write_text(constitution(), encoding="utf-8")
+            module.validate_constitution_draft()
+            module.write_review("constitution")
+            assert_review_packet(project / module.CONSTITUTION_REVIEW, "constitution")
             module.ratify("ratify")
             module.validate_ratification()
+            finalized = constitution_path.read_text(encoding="utf-8")
+            if "**Status**: Ratified" not in finalized or "PENDING_RATIFICATION" in finalized:
+                raise AssertionError("Ratification did not finalize status and pending date")
 
             expect_error(module, lambda: module.validate_roadmap(True), "roadmap is missing")
             roadmap_path = project / module.ROADMAP
-            roadmap_path.parent.mkdir(parents=True)
+            roadmap_path.parent.mkdir(parents=True, exist_ok=True)
             roadmap_path.write_text(placeholder_roadmap(), encoding="utf-8")
             expect_error(module, lambda: module.validate_roadmap(True), "template placeholders")
             roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
@@ -204,11 +324,43 @@ def main() -> int:
             decision.write_text("# ADR-0042\n\n- Status: Accepted\n", encoding="utf-8")
             module.validate_roadmap(True)
 
+            write_bootstrap_artifacts(module, project)
+            baseline_path = project / "docs/architecture/decisions/bootstrap-baseline.md"
+            baseline_text = baseline_path.read_text(encoding="utf-8")
+            approval = json.loads(
+                (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
+            )
+            approved_hash = approval["artifacts"][module.BOOTSTRAP_DECISIONS.as_posix()]
+            baseline_path.write_text(
+                baseline_text.replace(approved_hash, "0" * 64), encoding="utf-8"
+            )
+            expect_error(
+                module,
+                lambda: module.validate_bootstrap(False, True),
+                "exact approved decision-register hash",
+            )
+            baseline_path.write_text(baseline_text, encoding="utf-8")
+            module.validate_bootstrap(False, True)
+            module.write_review("bootstrap")
+            assert_review_packet(project / module.BOOTSTRAP_REVIEW, "bootstrap")
+            module.accept_bootstrap("approve")
+            readiness = project / module.READINESS_REPORT
+            readiness.write_text("# Readiness\n\n**Status**: READY\n", encoding="utf-8")
+            module.complete_bootstrap()
+            completion = json.loads((project / module.BOOTSTRAP_COMPLETION).read_text(encoding="utf-8"))
+            if completion.get("status") != "Completed":
+                raise AssertionError("Bootstrap completion evidence was not written")
+
             roadmap_path.write_text(roadmap("ADR-0042", status="Active"), encoding="utf-8")
+            expect_error(
+                module,
+                lambda: module.validate_bootstrap(True, False),
+                "changed after human approval",
+            )
             module.validate_roadmap(False)
             expect_error(module, lambda: module.validate_roadmap(True), "no Ready entry")
 
-            constitution_path.write_text(constitution() + "\nAmended after gate.\n", encoding="utf-8")
+            constitution_path.write_text(finalized + "\nAmended after gate.\n", encoding="utf-8")
             expect_error(module, module.validate_ratification, "changed after ratification")
 
             configuration = project / ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
@@ -233,6 +385,11 @@ def main() -> int:
             module.configure_paths()
             if module.ROADMAP != Path("local/roadmap.md"):
                 raise AssertionError("Local governance configuration must override installed configuration")
+            configured_artifacts = module.bootstrap_artifacts()
+            if Path("local/roadmap.md") not in configured_artifacts:
+                raise AssertionError("Bootstrap validation did not adopt the configured roadmap path")
+            if Path("governance/decisions/bootstrap-baseline.md") not in configured_artifacts:
+                raise AssertionError("Bootstrap validation did not adopt the configured decisions path")
         finally:
             os.chdir(original)
 

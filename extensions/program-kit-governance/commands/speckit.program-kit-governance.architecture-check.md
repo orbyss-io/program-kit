@@ -20,16 +20,19 @@ specification. Later checks accept the selected entry after its honest transitio
 not require an unrelated entry to remain Ready.
 
 For later lifecycle checks, locate the current specification, plan, tasks, or implementation from
-the active Spec Kit context. Read the constitution, specification roadmap, architecture baseline,
-decision backlog, technology radar, traceability model, and all relevant ADRs. If required artifacts
-are missing, fail with an actionable bootstrap instruction.
+the active Spec Kit context. Read the constitution, approved bootstrap decision register and
+approval evidence, specification roadmap, architecture baseline, decision backlog, technology
+radar, traceability model, and all relevant ADRs. If required artifacts are missing, fail with an
+actionable bootstrap instruction.
 
 ## Checks
 
 - No statement conflicts with an Accepted ADR or architecture invariant.
 - No statement conflicts with the ratified constitution, and no lower artifact weakens its governance.
 - The work corresponds to a Ready or Active specification-roadmap entry with matching outcome, scope, ownership, contracts, lifecycle, data, quality, and dependency claims.
-- No Proposed technology is treated as accepted.
+- Explicit intake choices, Program Kit defaults, safe derived defaults, and reviewed overrides match
+  the approved bootstrap decision register and Accepted bootstrap-baseline decision.
+- No Proposed technology outside that reviewed baseline is treated as accepted.
 - New material choices have a Proposed ADR and are not implemented before approval.
 - Domain ownership and dependency direction remain valid.
 - Public APIs, events, schemas, persistence contracts, and security boundaries have compatibility and migration treatment.

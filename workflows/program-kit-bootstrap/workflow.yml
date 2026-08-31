@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.5.1"
+  version: "0.6.0"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -59,13 +59,25 @@ steps:
     input:
       args: "{{ inputs.initial_design }}"
 
+  - id: validate-assessment
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment"
+
+  - id: write-assessment-review
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage assessment"
+
   - id: review-assessment
     type: gate
-    message: "Review the design inventory, unresolved decisions, and researched capability recommendations. Approve before constitution drafting."
-    show_file: "docs/architecture/bootstrap-assessment.md"
+    message: "Review the concise packet listing every file and summarizing explicit intake choices, applied Program Kit defaults, overrides, acknowledgements, genuinely unresolved decisions, and deferred triggers. Approve to adopt this exact provisional baseline. Reject keeps the run paused so the artifacts and packet can be revised and regenerated."
+    show_file: "docs/architecture/reviews/assessment-review.md"
     options: [approve, reject]
-    on_reject: abort
+    on_reject: retry
     verdict_input: "assessment_verdict"
+
+  - id: accept-assessment
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-assessment --verdict \"{{ steps.review-assessment.output.choice }}\""
 
   - id: constitution-begin
     type: command
@@ -79,22 +91,27 @@ steps:
     command: "speckit.constitution"
     integration: "{{ inputs.integration }}"
     input:
-      args: "Draft or update the project constitution from {{ inputs.initial_design }} and docs/architecture/bootstrap-assessment.md. Treat it as the highest project governance artifact, not a feature specification. Preserve applicable amendments and produce explicit semantic version, ratification date, last-amended date, amendment procedure, and compliance governance. Do not claim human ratification."
+      args: "Draft or update the project constitution from {{ inputs.initial_design }}, docs/architecture/bootstrap-assessment.md, and the approved docs/architecture/bootstrap-decisions.json. Treat it as the highest project governance artifact, not a feature specification. Preserve applicable amendments. Explicit intake choices and reviewed Program Kit defaults are adopted baseline authority, not Proposed technologies. Use repository maintainers as the default governance owner unless intake names another owner. Produce an exact '**Status**: Draft' line, semantic version, last-amended date, amendment procedure, versioning policy, and compliance governance. For an initial constitution use the exact metadata value '**Ratified**: PENDING_RATIFICATION'; for an amendment preserve the original valid ratification date. Do not add TODOs or claim that the Draft is already human-ratified."
+
+  - id: validate-constitution-draft
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-constitution-draft"
+
+  - id: write-constitution-review
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage constitution"
 
   - id: review-constitution
     type: gate
-    message: "Review the complete project constitution. Ratify only when it contains no template placeholders or TODOs and its principles, semantic version, dates, amendment procedure, and compliance governance are acceptable."
-    show_file: ".specify/memory/constitution.md"
+    message: "Review the constitution file named in this concise packet. Ratification will deterministically change only Draft status and the initial pending ratification date, then hash-bind the exact final content. Reject keeps the run paused for revision and packet regeneration."
+    show_file: "docs/architecture/reviews/constitution-review.md"
     options: [ratify, reject]
-    on_reject: abort
+    on_reject: retry
     verdict_input: "constitution_verdict"
 
   - id: constitution-ratify
-    type: command
-    command: "speckit.program-kit-governance.constitution-ratify"
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.constitution_verdict }}"
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py ratify --verdict \"{{ steps.review-constitution.output.choice }}\""
 
   - id: architecture
     type: command
@@ -117,13 +134,25 @@ steps:
     input:
       args: "{{ inputs.initial_design }}"
 
+  - id: validate-bootstrap
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-bootstrap"
+
+  - id: write-bootstrap-review
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage bootstrap"
+
   - id: review-bootstrap
     type: gate
-    message: "Review the ratified constitution evidence, architecture baseline, Proposed ADRs, technology statuses, quality system, candidate specification roadmap, and first design-task sequence."
-    show_file: "docs/architecture/architecture.md"
+    message: "Review the concise packet and every listed artifact. Approval accepts the generated baseline and reviewed defaults but does not promote separately Proposed ADRs. Reject keeps the run paused for revision and packet regeneration."
+    show_file: "docs/architecture/reviews/bootstrap-review.md"
     options: [approve, reject]
-    on_reject: abort
+    on_reject: retry
     verdict_input: "bootstrap_verdict"
+
+  - id: accept-bootstrap
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-bootstrap --verdict \"{{ steps.review-bootstrap.output.choice }}\""
 
   - id: readiness
     type: command
@@ -131,3 +160,7 @@ steps:
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}"
+
+  - id: complete-bootstrap
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py complete-bootstrap"

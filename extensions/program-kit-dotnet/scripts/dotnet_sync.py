@@ -42,7 +42,7 @@ def main() -> int:
     parser.add_argument(
         "--host-runtime-accepted",
         action="store_true",
-        help="Confirms that the Program Kit host/runtime decision is recorded in an Accepted ADR",
+        help="Confirms that the approved bootstrap baseline or a later Accepted override selects ProgramKit.Host",
     )
     parser.add_argument(
         "--preview-sources-approved",
@@ -56,8 +56,8 @@ def main() -> int:
         return 3
     if not args.check and not args.host_runtime_accepted:
         print(
-            "Refusing to scaffold: the Program Kit host/runtime decision does not have an explicitly "
-            "confirmed Accepted ADR.",
+            "Refusing to scaffold: the Program Kit host/runtime choice is not confirmed by the approved "
+            "bootstrap baseline or a later Accepted override.",
             file=sys.stderr,
         )
         return 4

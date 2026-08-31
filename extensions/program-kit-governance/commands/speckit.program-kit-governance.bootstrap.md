@@ -45,6 +45,10 @@ init` alone may not repair existing ownership or ACLs. Direct the user to
 `.specify/extensions/program-kit-governance/references/codex-desktop-windows.md` for the conservative
 clean-start procedure.
 
-After a normal-shell workflow pauses, report the run ID, the artifact to review, and the exact
+After a normal-shell workflow pauses, report the run ID, the concise review-packet path, every
+artifact named by that packet, and the exact
 `specify workflow resume <run-id> --input <verdict>=<choice>` command. The human must run resume from
-the same normal shell and choose every verdict themselves.
+the same normal shell and choose every verdict themselves. If the human rejects, explain that the
+run remains paused for revision and that the packet's documented `write-review --stage ...` command
+must be run after editing and before resuming approval. Never describe rejection as approval failure
+or encourage approving a stale packet.

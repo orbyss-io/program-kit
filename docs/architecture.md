@@ -28,6 +28,11 @@ checks because the core command does not itself represent human ratification. Th
 constitution governs architecture, ADRs, the specification roadmap, feature specifications, plans,
 tasks, implementation, and verification.
 
+Bootstrap uses a source-aware default-adoption model. Explicit intake choices, versioned Program Kit
+defaults, safe derived defaults, and reviewed overrides are approved as one hash-bound assessment
+baseline. Ordinary defaults do not create repeated human decision chores. Genuinely unresolved and
+triggered future decisions remain scoped to the lifecycle work they materially affect.
+
 Vertical slices are the default delivery unit. Bounded contexts and modules own domain language,
 contracts, and data; features are runtime composition units; shells are runtime isolation contexts;
 and endpoints are transport adapters. The generic method defines those boundaries while technology

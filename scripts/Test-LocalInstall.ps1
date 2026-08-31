@@ -41,8 +41,8 @@ try {
         throw 'Installed workflow definition was not found.'
     }
     $stepCount = @(Select-String -LiteralPath $installedWorkflow -Pattern '^  - id:').Count
-    if ($stepCount -ne 14) {
-        throw "Installed workflow exposes $stepCount steps; expected 14."
+    if ($stepCount -ne 23) {
+        throw "Installed workflow exposes $stepCount steps; expected 23."
     }
 
     $validator = '.specify\extensions\program-kit-governance\scripts\governance_state.py'

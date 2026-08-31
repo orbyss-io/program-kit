@@ -1,6 +1,6 @@
 # Program Kit bootstrap from Windows and Codex
 
-Program Kit 0.5.1 requires the human to start repository initialization, Program Kit installation
+Program Kit 0.6.0 requires the human to start repository initialization, Program Kit installation
 or update, and outer workflow orchestration from a normal user-owned PowerShell or WSL shell. Do not
 ask a Codex Desktop task or an interactive Codex CLI agent to perform those operations.
 

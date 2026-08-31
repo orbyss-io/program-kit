@@ -2,6 +2,11 @@
 
 Select capabilities before products. Research current options at bootstrap time because ecosystems, compatibility, maintenance, and security change.
 
+Apply `default-adoption.md`: respect explicit intake selections and use the versioned Program Kit
+profile for ordinary choices when intake is silent. Research verifies compatibility and records
+exceptions; it does not reopen every explicit or default choice. Ask the human only about a genuine
+exception, material acknowledgement, or consequential decision without a safe default.
+
 For each candidate record:
 
 - capability and risk addressed;

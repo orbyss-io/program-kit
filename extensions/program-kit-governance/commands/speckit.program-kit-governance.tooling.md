@@ -9,6 +9,10 @@ description: Turn researched capabilities into a staged repository quality syste
 Validate and read the ratified constitution before producing the quality system. Stop when the
 constitution-ratification hash is missing or stale.
 
+Read the approved bootstrap decision register. Treat explicit intake choices and reviewed Program
+Kit or derived defaults as Accepted baseline inputs. Research may recommend a later override but
+must not silently demote or replace an approved default.
+
 ## Work
 
 Create or update `docs/architecture/quality-system.md` containing:
@@ -22,3 +26,7 @@ Create or update `docs/architecture/quality-system.md` containing:
 7. Slice-completeness evidence covering public schema compatibility, composition, authorization, observable outcomes, and architecture tests at the earliest reliable lifecycle stage.
 
 Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
+
+For .NET, build the staged quality system around the accepted `ProgramKit.Host` default unless the
+decision register contains an explicit opt-out. Keep actual repository synchronization and networked
+package restore as separate, reviewable actions.

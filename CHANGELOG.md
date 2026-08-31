@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 - 2026-08-31
+
+- Replace broad artifact prompts with concise, bounded review packets that identify every file,
+  summarize explicit choices, defaults, exceptions, acknowledgements, and unresolved decisions,
+  and document the revision path after rejection.
+- Adopt explicit intake choices and versioned Program Kit defaults as one hash-bound bootstrap
+  baseline; reserve human decisions for exceptions and consequential assumptions.
+- Adopt `ProgramKit.Host` automatically for .NET unless intake records a justified explicit opt-out,
+  while keeping repository synchronization and networked restore as separate actions.
+- Make assessment, constitution, architecture, readiness, and completion transitions fail closed on
+  missing, stale, malformed, or changed artifacts.
+- Finalize constitution status and the initial ratification date deterministically from the actual
+  gate result, eliminating the empty-verdict ratification loop.
+
 ## 0.5.1 - 2026-08-31
 
 - Gate .NET baseline writes on an Accepted Program Kit host/runtime ADR and explicit preview-source approval,
