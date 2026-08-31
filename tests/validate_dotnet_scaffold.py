@@ -23,7 +23,23 @@ def main() -> int:
         assert rejected.returncode == 3, rejected.stderr
         assert not (target / "global.json").exists(), "The .NET scaffold ran without profile selection."
 
-        installed = run("--target", str(target), "--profile-selected")
+        runtime_unaccepted = run("--target", str(target), "--profile-selected")
+        assert runtime_unaccepted.returncode == 4, runtime_unaccepted.stderr
+        assert not (target / "global.json").exists(), "The .NET scaffold ran without an accepted runtime ADR."
+
+        preview_unapproved = run(
+            "--target", str(target), "--profile-selected", "--host-runtime-accepted"
+        )
+        assert preview_unapproved.returncode == 5, preview_unapproved.stderr
+        assert not (target / "global.json").exists(), "The .NET scaffold ran without preview-source approval."
+
+        missing_target = target / "missing"
+        unchecked = run("--target", str(missing_target), "--profile-selected", "--check")
+        assert unchecked.returncode == 1, unchecked.stderr
+        assert not missing_target.exists(), "A read-only drift check changed the repository."
+
+        approvals = ("--profile-selected", "--host-runtime-accepted", "--preview-sources-approved")
+        installed = run("--target", str(target), *approvals)
         assert installed.returncode == 0, installed.stderr
         state = json.loads((target / ".program-kit/managed.json").read_text(encoding="utf-8"))
         assert state["programKitVersion"]
@@ -45,7 +61,7 @@ def main() -> int:
 
         managed = target / "eng/program-kit/ProgramKit.Build.props"
         managed.write_text(managed.read_text(encoding="utf-8") + "<!-- consumer edit -->\n", encoding="utf-8")
-        conflicted = run("--target", str(target), "--profile-selected")
+        conflicted = run("--target", str(target), *approvals)
         assert conflicted.returncode == 2, conflicted.stderr
         assert "consumer edit" in managed.read_text(encoding="utf-8")
 

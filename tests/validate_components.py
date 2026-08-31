@@ -156,6 +156,9 @@ def main() -> int:
     require_text(
         dotnet_root / "commands/speckit.program-kit-dotnet.sync.md",
         "--profile-selected",
+        "--host-runtime-accepted",
+        "--preview-sources-approved",
+        "not a prerequisite",
         "Never overwrite",
     )
     if "NativeEndpoints" in dotnet_profile.read_text(encoding="utf-8"):

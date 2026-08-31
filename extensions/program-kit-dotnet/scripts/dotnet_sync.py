@@ -39,11 +39,34 @@ def main() -> int:
         action="store_true",
         help="Confirms that the consuming repository accepted the .NET technology profile",
     )
+    parser.add_argument(
+        "--host-runtime-accepted",
+        action="store_true",
+        help="Confirms that the Program Kit host/runtime decision is recorded in an Accepted ADR",
+    )
+    parser.add_argument(
+        "--preview-sources-approved",
+        action="store_true",
+        help="Confirms explicit approval to add the Program Kit preview packages and NuGet sources",
+    )
     args = parser.parse_args()
 
     if not args.profile_selected:
         print("Refusing to scaffold: the .NET technology profile was not explicitly selected.", file=sys.stderr)
         return 3
+    if not args.check and not args.host_runtime_accepted:
+        print(
+            "Refusing to scaffold: the Program Kit host/runtime decision does not have an explicitly "
+            "confirmed Accepted ADR.",
+            file=sys.stderr,
+        )
+        return 4
+    if not args.check and not args.preview_sources_approved:
+        print(
+            "Refusing to scaffold: adding preview packages and NuGet sources was not explicitly approved.",
+            file=sys.stderr,
+        )
+        return 5
 
     extension_root = Path(__file__).resolve().parents[1]
     template_root = extension_root / "templates" / "dotnet"
@@ -53,7 +76,8 @@ def main() -> int:
         raise ValueError("The .NET template manifest has no files list.")
 
     target = Path(args.target).resolve()
-    target.mkdir(parents=True, exist_ok=True)
+    if not args.check:
+        target.mkdir(parents=True, exist_ok=True)
     state_path = target / ".program-kit" / "managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
     old_files = state.get("files")

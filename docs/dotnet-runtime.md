@@ -5,15 +5,21 @@ Program Kit's .NET profile uses a standard host and independently packaged CShel
 
 ## Repository baseline
 
-Run the installed `speckit.program-kit-dotnet.sync` extension command only after the repository has
-accepted the .NET profile. Root `Directory.*`, `VERSION`, `shells.json`, and `hostsettings.json` files are
+Run the installed `speckit.program-kit-dotnet.sync` extension command in write mode only after the repository
+has accepted the .NET profile, an Accepted ADR selects the Program Kit host/runtime, and a human explicitly
+approves adding the pinned preview packages plus the `CShells Preview` and `Nuplane Preview` NuGet sources.
+Selecting .NET alone does not authorize these runtime choices. A read-only `--check` remains safe before those
+write approvals. Root `Directory.*`, `VERSION`, `shells.json`, and `hostsettings.json` files are
 scaffolded once and become consumer-owned. Program Kit hash-manages `global.json`, `NuGet.config`, the root
 `.editorconfig`, generated workflows, and distinct `ProgramKit.*` implementation files under `eng/program-kit`.
 All managed paths are tracked in `.program-kit/managed.json`; a consumer edit causes a reported conflict rather
 than an overwrite.
 
 Updating the Program Kit bundle updates the extension and templates. It does not rewrite the repository.
-Run the sync command separately, review its report, and resolve conflicts explicitly.
+Run the sync command separately, review its report, and resolve conflicts explicitly. The sync performs only
+local, path-contained file operations. Subsequent restore, build, CI, release, and bundle creation can contact
+the configured NuGet sources and require their own execution authorization. The runtime sync is optional and
+is not a prerequisite for the technology-neutral governance workflow or its proposed quality gates.
 
 The first local `eng/program-kit/Build.ps1 -SkipBundle` restore creates `packages.lock.json` files. Commit those
 files. Generated CI and release workflows pass `-LockedMode`, so dependency changes must be reviewed and

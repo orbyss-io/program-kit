@@ -176,7 +176,10 @@ Technology adoption remains Proposed in each consuming repository until its ADR 
 Selecting the .NET profile unlocks the profile-gated `speckit.program-kit-dotnet.sync`
 command. It scaffolds central build/package management, safe managed-file synchronization, application-bundle
 creation, and release workflows. Program Kit Host runs the resulting immutable ZIP in a digest-pinned layered
-container; installing Program Kit alone never creates .NET files. See `docs/dotnet-runtime.md`.
+container. A write also requires an Accepted Program Kit host/runtime ADR and explicit approval for its preview
+packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
+prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
+never creates .NET files. See `docs/dotnet-runtime.md`.
 
 ## Development and release
 
@@ -193,11 +196,11 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.5.0.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.5.1.md`:
 
 ```powershell
-git tag v0.5.0
-git push origin v0.5.0
+git tag v0.5.1
+git push origin v0.5.1
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -214,8 +217,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.5.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.5.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.5.1.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.5.1.zip -Algorithm SHA256
 ```
 
 ## License

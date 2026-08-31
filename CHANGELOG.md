@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1 - 2026-08-31
+
+- Gate .NET baseline writes on an Accepted Program Kit host/runtime ADR and explicit preview-source approval,
+  keep drift checks read-only without those approvals, and require separate authorization before networked
+  restore/build verification.
+- Clarify that the optional .NET runtime sync is not a prerequisite for technology-neutral governance or
+  proposed quality gates.
+
 ## 0.5.0 - 2026-08-31
 
 - Split the profile-gated .NET guidance, templates, managed-file synchronizer, and command into the dedicated `program-kit-dotnet` extension; `program-kit-governance` remains the technology-neutral governance core.

@@ -11,15 +11,24 @@ working directory unless an explicit target path is supplied.
 
 ## Work
 
-1. Confirm that the accepted technology profile selects .NET and that repository-scaffolding work is authorized.
-2. Run `{SCRIPT}` with `--target <repository-root>
-   --profile-selected`. Pass `--check` when requested. Never pass `--profile-selected` unless the repository's
-   accepted technology-profile evidence selects .NET.
+1. Confirm that the accepted technology profile selects .NET. For a write, also require both an Accepted ADR
+   selecting the Program Kit host/runtime and explicit human approval to add the pinned preview packages and
+   the `CShells Preview` and `Nuplane Preview` NuGet sources. Profile selection alone is insufficient.
+2. For a write, run `{SCRIPT}` with `--target <repository-root> --profile-selected
+   --host-runtime-accepted --preview-sources-approved`. Pass a confirmation flag only when its corresponding
+   evidence exists. For a read-only drift report, pass `--check --profile-selected`; the two write approvals
+   are not required because check mode changes no files.
 3. Report created, updated, unchanged, and conflicted files exactly as emitted by the script.
 4. Stop on conflicts. Never overwrite a consumer-modified managed file or a scaffold-once consumer file.
-5. After a successful write, run `dotnet restore` and the generated
-   `eng/program-kit/Build.ps1 -SkipBundle` when the .NET SDK is available.
-6. Remind the user that Program Kit bundle updates and repository-baseline sync are separate, reviewable actions.
+5. After a successful write, report that `dotnet restore` and the generated
+   `eng/program-kit/Build.ps1 -SkipBundle` access configured package sources. Do not run either command unless
+   the user separately authorizes networked package restore and build verification.
+6. Make clear that this optional runtime sync is not a prerequisite for technology-neutral governance or
+   proposed quality gates. Remind the user that Program Kit bundle updates and repository-baseline sync are
+   separate, reviewable actions.
+
+The sync itself performs local, path-contained file operations and does not contact package feeds. The
+generated restore, build, CI, release, and application-bundle paths can access the configured NuGet sources.
 
 The ownership record is `.program-kit/managed.json`. Root MSBuild discovery extension points, application
 `VERSION`, and shell configuration are scaffolded once and remain consumer-owned. Program Kit owns the SDK,
