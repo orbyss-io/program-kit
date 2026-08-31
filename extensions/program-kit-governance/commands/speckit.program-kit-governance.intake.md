@@ -1,5 +1,7 @@
 ---
 description: Inventory an initial design and create an evidence-based bootstrap assessment.
+scripts:
+  py: scripts/governance_state.py validate-installation
 ---
 
 ## Input
@@ -11,14 +13,14 @@ Treat `$ARGUMENTS` as the path to the user-provided initial design. If the path 
 Before reading the initial design or writing any project artifact, run:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-installation
+{SCRIPT}
 ```
 
 If validation fails, stop immediately and report the exact repair commands. Run those commands in the displayed order, and never continue bootstrap between them.
 
 ## Required reading
 
-Read the entire initial design and every file under `.specify/extensions/program-kit-governance/references/`. Also read existing repository guidance and architecture artifacts without overwriting user-authored work.
+Read the entire initial design and the generic references under `.specify/extensions/program-kit-governance/references/`, excluding technology profiles that are not selected. Read an installed technology extension's profile only when the assessment selects that technology. Also read existing repository guidance and architecture artifacts without overwriting user-authored work.
 
 ## Work
 

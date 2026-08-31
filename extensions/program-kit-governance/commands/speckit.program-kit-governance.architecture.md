@@ -1,5 +1,7 @@
 ---
 description: Create or update the living architecture baseline and ADR system.
+scripts:
+  py: scripts/governance_state.py validate
 ---
 
 ## Input
@@ -11,7 +13,7 @@ description: Create or update the living architecture baseline and ADR system.
 Before reading or writing architecture, run:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate
+{SCRIPT}
 ```
 
 Read the ratified `.specify/memory/constitution.md` in full. The constitution governs architecture,

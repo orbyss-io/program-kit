@@ -20,11 +20,17 @@ try {
         --extension (Join-Path $sourceRoot 'extensions\program-kit-governance')
     if ($LASTEXITCODE -ne 0) { throw 'Disposable Spec Kit initialization failed.' }
 
+    specify extension add (Join-Path $sourceRoot 'extensions\program-kit-dotnet') --dev
+    if ($LASTEXITCODE -ne 0) { throw 'Local .NET extension installation failed.' }
+
+    specify preset add --dev (Join-Path $sourceRoot 'presets\program-kit-governance-preset')
+    if ($LASTEXITCODE -ne 0) { throw 'Local governance preset installation failed.' }
+
     specify workflow add (Join-Path $sourceRoot 'workflows\program-kit-bootstrap') --dev
     if ($LASTEXITCODE -ne 0) { throw 'Local workflow installation failed.' }
 
     $extensionConfig = Get-Content -Raw -LiteralPath '.specify\extensions.yml'
-    foreach ($expected in @('before_specify', 'after_specify', 'after_plan', 'before_implement', 'after_implement')) {
+    foreach ($expected in @('before_constitution', 'before_specify', 'after_specify', 'after_plan', 'after_tasks', 'before_implement', 'after_implement')) {
         if ($extensionConfig -notmatch [regex]::Escape($expected)) {
             throw "Expected hook '$expected' was not registered."
         }
@@ -50,6 +56,14 @@ try {
     $bootstrapSkill = '.agents\skills\speckit-program-kit-governance-bootstrap\SKILL.md'
     if (-not (Test-Path -LiteralPath $bootstrapSkill -PathType Leaf)) {
         throw 'Installed Codex-safe bootstrap skill was not found.'
+    }
+    $dotnetSync = '.specify\extensions\program-kit-dotnet\scripts\dotnet_sync.py'
+    if (-not (Test-Path -LiteralPath $dotnetSync -PathType Leaf)) {
+        throw 'Installed .NET sync extension was not found.'
+    }
+    $dotnetSkill = '.agents\skills\speckit-program-kit-dotnet-sync\SKILL.md'
+    if (-not (Test-Path -LiteralPath $dotnetSkill -PathType Leaf)) {
+        throw 'Installed .NET sync skill was not found.'
     }
 
     if ($env:CODEX_SESSION_ID -or $env:CODEX_THREAD_ID -or $env:CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {

@@ -5,7 +5,7 @@ Program Kit's .NET profile uses a standard host and independently packaged CShel
 
 ## Repository baseline
 
-Run the installed `speckit.program-kit-governance.dotnet-sync` extension command only after the repository has
+Run the installed `speckit.program-kit-dotnet.sync` extension command only after the repository has
 accepted the .NET profile. Root `Directory.*`, `VERSION`, `shells.json`, and `hostsettings.json` files are
 scaffolded once and become consumer-owned. Program Kit hash-manages `global.json`, `NuGet.config`, the root
 `.editorconfig`, generated workflows, and distinct `ProgramKit.*` implementation files under `eng/program-kit`.

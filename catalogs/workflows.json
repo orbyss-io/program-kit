@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-08-27T00:00:00Z",
+  "updated_at": "2026-08-31T00:00:00Z",
   "catalog_url": "https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json",
   "workflows": {
     "program-kit-bootstrap": {
       "id": "program-kit-bootstrap",
       "name": "Architecture-Governed Repository Bootstrap",
-      "description": "Ratifies project governance, then builds architecture, quality, and the candidate specification portfolio.",
+      "description": "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio.",
       "author": "Orbyss",
-      "version": "0.4.3",
-      "url": "https://raw.githubusercontent.com/orbyss-io/program-kit/v0.4.3/workflows/program-kit-bootstrap/workflow.yml",
+      "version": "0.5.0",
+      "url": "https://raw.githubusercontent.com/orbyss-io/program-kit/v0.5.0/workflows/program-kit-bootstrap/workflow.yml",
       "repository": "https://github.com/orbyss-io/program-kit",
       "documentation": "https://github.com/orbyss-io/program-kit/blob/main/README.md",
       "changelog": "https://github.com/orbyss-io/program-kit/blob/main/CHANGELOG.md",

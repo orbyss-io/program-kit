@@ -13,9 +13,11 @@ REPOSITORY = "https://raw.githubusercontent.com/orbyss-io/program-kit"
 V020 = f"{REPOSITORY}/v0.2.0/catalogs"
 CURRENT = f"{REPOSITORY}/main/catalogs"
 EXPECTED_HOOKS = {
+    "before_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
+    "after_tasks",
     "before_implement",
     "after_implement",
 }
@@ -84,6 +86,23 @@ def replace_catalogs(project: Path, base: str) -> None:
         ),
         encoding="utf-8",
     )
+    (specify / "preset-catalogs.yml").write_text(
+        yaml.safe_dump(
+            {
+                "catalogs": [
+                    {
+                        "name": "program-kit",
+                        "url": f"{base}/presets.json",
+                        "priority": 10,
+                        "install_allowed": True,
+                        "description": "Program Kit upgrade regression",
+                    }
+                ]
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
     (specify / "bundle-catalogs.yml").write_text(
         yaml.safe_dump(
             {
@@ -121,7 +140,16 @@ def installed_versions(project: Path) -> dict[str, str]:
         if component["kind"] == "extensions"
         and component["id"] == "program-kit-governance"
     )
-    return {
+    dotnet_extension_record = next(
+        component
+        for component in bundle["contributed_components"]
+        if component["kind"] == "extensions"
+        and component["id"] == "program-kit-dotnet"
+    ) if any(
+        component["kind"] == "extensions" and component["id"] == "program-kit-dotnet"
+        for component in bundle["contributed_components"]
+    ) else None
+    versions = {
         "extension": manifest_version(
             specify / "extensions/program-kit-governance/extension.yml", "extension"
         ),
@@ -132,6 +160,12 @@ def installed_versions(project: Path) -> dict[str, str]:
         "bundle record": bundle["version"],
         "bundle extension record": extension_record["version"],
     }
+    if dotnet_extension_record is not None:
+        versions["dotnet extension"] = manifest_version(
+            specify / "extensions/program-kit-dotnet/extension.yml", "extension"
+        )
+        versions["bundle .NET extension record"] = dotnet_extension_record["version"]
+    return versions
 
 
 def main() -> int:

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import yaml
 from specify_cli.extensions import ExtensionManifest
+from specify_cli.presets import PresetManifest
 from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
 
@@ -25,9 +26,11 @@ EXPECTED_STEPS = [
     "readiness",
 ]
 EXPECTED_HOOKS = {
+    "before_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
+    "after_tasks",
     "before_implement",
     "after_implement",
 }
@@ -43,18 +46,49 @@ def require_text(path: Path, *phrases: str) -> None:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     extension_path = root / "extensions" / "program-kit-governance" / "extension.yml"
+    dotnet_extension_path = root / "extensions" / "program-kit-dotnet" / "extension.yml"
+    preset_path = root / "presets" / "program-kit-governance-preset" / "preset.yml"
     workflow_path = root / "workflows" / "program-kit-bootstrap" / "workflow.yml"
+    bundle_path = root / "bundle.yml"
 
     ExtensionManifest(extension_path)
+    ExtensionManifest(dotnet_extension_path)
+    PresetManifest(preset_path)
     extension = yaml.safe_load(extension_path.read_text(encoding="utf-8"))
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 12:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 12")
+    if len(command_names) != 11:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 11")
     hooks = set(extension.get("hooks", {}))
     if hooks != EXPECTED_HOOKS:
         raise AssertionError(f"Extension hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
+    dotnet_extension = yaml.safe_load(dotnet_extension_path.read_text(encoding="utf-8"))
+    dotnet_commands = dotnet_extension["provides"]["commands"]
+    if [command["name"] for command in dotnet_commands] != ["speckit.program-kit-dotnet.sync"]:
+        raise AssertionError("The .NET extension must expose only its namespaced sync command")
+    preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
+    preset_templates = preset["provides"]["templates"]
+    if {template["name"] for template in preset_templates} != {
+        "spec-template",
+        "plan-template",
+        "tasks-template",
+    }:
+        raise AssertionError("The governance preset must augment the three core lifecycle templates")
+    if any(template.get("strategy") != "append" for template in preset_templates):
+        raise AssertionError("Governance template augmentation must compose through append")
+    bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
+    provided_extensions = {entry["id"] for entry in bundle["provides"]["extensions"]}
+    if provided_extensions != {"program-kit-governance", "program-kit-dotnet"}:
+        raise AssertionError("Program Kit must bundle governance and .NET as separate extensions")
+    provided_presets = bundle["provides"]["presets"]
+    if provided_presets != [{
+        "id": "program-kit-governance-preset",
+        "version": extension["extension"]["version"],
+        "priority": 10,
+        "strategy": "append",
+    }]:
+        raise AssertionError("Program Kit must bundle the governance template preset")
 
     workflow = WorkflowDefinition.from_yaml(workflow_path)
     errors = validate_workflow(workflow)
@@ -99,7 +133,8 @@ def main() -> int:
         "Features do not reference peer feature implementations",
         "Feature-reference policy",
     )
-    dotnet_profile = extension_root / "references/technology-profiles/dotnet.md"
+    dotnet_root = dotnet_extension_path.parent
+    dotnet_profile = dotnet_root / "references/technology-profiles/dotnet.md"
     require_text(
         dotnet_profile,
         "CShells.AspNetCore.Abstractions",
@@ -107,19 +142,19 @@ def main() -> int:
         "ProjectReference",
     )
     require_text(
-        extension_root / "references/dotnet-engineering.md",
+        dotnet_root / "references/dotnet-engineering.md",
         "Task`/`Task<T>`",
         "SemaphoreSlim",
         "Named-argument Policy B",
     )
     require_text(
-        extension_root / "references/dotnet-runtime-and-application-bundles.md",
+        dotnet_root / "references/dotnet-runtime-and-application-bundles.md",
         "ProgramKit.Host",
         "ProgramKit.Tasks",
         "application bundle",
     )
     require_text(
-        extension_root / "commands/speckit.program-kit-governance.dotnet-sync.md",
+        dotnet_root / "commands/speckit.program-kit-dotnet.sync.md",
         "--profile-selected",
         "Never overwrite",
     )
@@ -167,8 +202,25 @@ def main() -> int:
         governance_script,
         "validate_installation()",
         "version-incoherent",
+        "program-kit-dotnet",
+        "program-kit-governance-config.local.yml",
         "specify workflow update program-kit-bootstrap",
         "specify bundle update program-kit --integration",
+    )
+    require_text(
+        preset_path.parent / "templates/spec-governance.md",
+        "User-visible vertical outcome",
+        "Explicit non-goals",
+    )
+    require_text(
+        preset_path.parent / "templates/plan-governance.md",
+        "Accepted ADR",
+        "Vertical-slice",
+    )
+    require_text(
+        preset_path.parent / "templates/tasks-governance.md",
+        "vertical",
+        "Completion Evidence",
     )
 
     print("Extension and workflow manifests are valid.")

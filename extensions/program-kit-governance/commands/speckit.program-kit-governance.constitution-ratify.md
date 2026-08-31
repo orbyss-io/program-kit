@@ -1,5 +1,7 @@
 ---
 description: Finalize machine-checkable constitution ratification after the dedicated human gate.
+scripts:
+  py: scripts/governance_state.py
 ---
 
 ## Input
@@ -12,7 +14,7 @@ authorizes finalization.
 From the project root, run:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py ratify --verdict ratify
+{SCRIPT} ratify --verdict ratify
 ```
 
 Pass the actual workflow verdict, not a value inferred by the agent. The script rejects missing or

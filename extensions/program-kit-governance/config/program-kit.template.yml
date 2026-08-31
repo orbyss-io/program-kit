@@ -1,28 +1,10 @@
 schema_version: "1.0"
+# These paths are read by governance_state.py. Keep them project-relative.
+# Copy this file to program-kit-governance-config.local.yml for machine- or
+# repository-local overrides that must not be shared with other consumers.
 architecture:
-  root: "docs/architecture"
-  baseline: "docs/architecture/architecture.md"
   decisions: "docs/architecture/decisions"
-  decision_backlog: "docs/architecture/decision-backlog.md"
-  technology_radar: "docs/architecture/technology-radar.md"
   specification_roadmap: "docs/architecture/specification-roadmap.md"
 constitution:
   document: ".specify/memory/constitution.md"
   ratification: ".specify/memory/constitution-ratification.json"
-governance:
-  accepted_decisions_require_human_approval: true
-  initial_technology_status: "Proposed"
-  architecture_check_before_specify: true
-  architecture_check_after_specify: true
-  architecture_check_after_plan: true
-  implementation_check_before_implement: true
-  architecture_check_after_implement: true
-  constitution_required_before_architecture: true
-  constitution_required_before_specify: true
-  vertical_slices_required: true
-  module_dependency_map_required: true
-  feature_reference_policy: "deny-unless-accepted-exception"
-research:
-  require_current_verification: true
-  prefer_primary_sources: true
-  record_access_date: true

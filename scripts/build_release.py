@@ -121,34 +121,59 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
 
 def validate_metadata(root: Path, version: str) -> None:
     bundle = load_yaml(root / "bundle.yml")
-    extension = load_yaml(root / "extensions/program-kit-governance/extension.yml")
+    governance_extension = load_yaml(root / "extensions/program-kit-governance/extension.yml")
+    dotnet_extension = load_yaml(root / "extensions/program-kit-dotnet/extension.yml")
+    governance_preset = load_yaml(root / "presets/program-kit-governance-preset/preset.yml")
     workflow = load_yaml(root / "workflows/program-kit-bootstrap/workflow.yml")
     extensions_catalog = load_json(root / "catalogs/extensions.json")
+    presets_catalog = load_json(root / "catalogs/presets.json")
     workflows_catalog = load_json(root / "catalogs/workflows.json")
     bundles_catalog = load_json(root / "catalogs/bundles.json")
 
     require_equal("bundle version", bundle["bundle"]["version"], version)
-    require_equal("extension version", extension["extension"]["version"], version)
+    require_equal("governance extension version", governance_extension["extension"]["version"], version)
+    require_equal(".NET extension version", dotnet_extension["extension"]["version"], version)
+    require_equal("governance preset version", governance_preset["preset"]["version"], version)
     require_equal("workflow version", workflow["workflow"]["version"], version)
-    require_equal("extension repository", extension["extension"]["repository"], REPOSITORY)
+    require_equal("governance extension repository", governance_extension["extension"]["repository"], REPOSITORY)
+    require_equal(".NET extension repository", dotnet_extension["extension"]["repository"], REPOSITORY)
+    require_equal("governance preset repository", governance_preset["preset"]["repository"], REPOSITORY)
     require_equal("bundle license", bundle["bundle"]["license"], "MIT")
-    require_equal("extension license", extension["extension"]["license"], "MIT")
+    require_equal("governance extension license", governance_extension["extension"]["license"], "MIT")
+    require_equal(".NET extension license", dotnet_extension["extension"]["license"], "MIT")
+    require_equal("governance preset license", governance_preset["preset"]["license"], "MIT")
 
-    extension_entry = extensions_catalog["extensions"]["program-kit-governance"]
+    governance_extension_entry = extensions_catalog["extensions"]["program-kit-governance"]
+    dotnet_extension_entry = extensions_catalog["extensions"]["program-kit-dotnet"]
+    preset_entry = presets_catalog["presets"]["program-kit-governance-preset"]
     workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
     bundle_entry = bundles_catalog["bundles"]["program-kit"]
-    require_equal("extension catalog version", extension_entry["version"], version)
+    require_equal("governance extension catalog version", governance_extension_entry["version"], version)
+    require_equal(".NET extension catalog version", dotnet_extension_entry["version"], version)
+    require_equal("governance preset catalog version", preset_entry["version"], version)
     require_equal("workflow catalog version", workflow_entry["version"], version)
     require_equal("bundle catalog version", bundle_entry["version"], version)
-    require_equal("extension catalog license", extension_entry["license"], "MIT")
+    require_equal("governance extension catalog license", governance_extension_entry["license"], "MIT")
+    require_equal(".NET extension catalog license", dotnet_extension_entry["license"], "MIT")
+    require_equal("governance preset catalog license", preset_entry["license"], "MIT")
     require_equal("workflow catalog license", workflow_entry["license"], "MIT")
     require_equal("bundle catalog license", bundle_entry["license"], "MIT")
 
     tag = f"v{version}"
     require_equal(
-        "extension release URL",
-        extension_entry["download_url"],
+        "governance extension release URL",
+        governance_extension_entry["download_url"],
         f"{REPOSITORY}/releases/download/{tag}/program-kit-governance-{version}.zip",
+    )
+    require_equal(
+        ".NET extension release URL",
+        dotnet_extension_entry["download_url"],
+        f"{REPOSITORY}/releases/download/{tag}/program-kit-dotnet-{version}.zip",
+    )
+    require_equal(
+        "governance preset release URL",
+        preset_entry["download_url"],
+        f"{REPOSITORY}/releases/download/{tag}/program-kit-governance-preset-{version}.zip",
     )
     require_equal(
         "workflow source URL",
@@ -182,6 +207,8 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=True)
     expected = [
         output / f"program-kit-governance-{version}.zip",
+        output / f"program-kit-dotnet-{version}.zip",
+        output / f"program-kit-governance-preset-{version}.zip",
         output / f"program-kit-bootstrap-{version}.zip",
         output / f"program-kit-{version}.zip",
         output / "SHA256SUMS",
@@ -191,14 +218,16 @@ def main() -> int:
             path.unlink()
 
     deterministic_zip(root / "extensions/program-kit-governance", expected[0])
-    deterministic_zip(root / "workflows/program-kit-bootstrap", expected[1])
+    deterministic_zip(root / "extensions/program-kit-dotnet", expected[1])
+    deterministic_zip(root / "presets/program-kit-governance-preset", expected[2])
+    deterministic_zip(root / "workflows/program-kit-bootstrap", expected[3])
 
     build_bundle_from_source(root, output)
-    if not expected[2].is_file():
-        raise FileNotFoundError(f"Spec Kit did not create {expected[2]}")
+    if not expected[4].is_file():
+        raise FileNotFoundError(f"Spec Kit did not create {expected[4]}")
 
-    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:3]]
-    expected[3].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
+    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:5]]
+    expected[5].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")
     return 0

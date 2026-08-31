@@ -8,9 +8,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.4.3":
+    if program_version != "0.5.0":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.4.3-preview.1":
+    if runtime_version != "0.5.0-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     version_props = (root / "eng/ProgramKit.Version.props").read_text(encoding="utf-8")
@@ -19,7 +19,7 @@ def main() -> int:
 
     consumer_versions = (
         root
-        / "extensions/program-kit-governance/templates/dotnet/files/eng/program-kit/ProgramKit.Packages.props"
+        / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/ProgramKit.Packages.props"
     ).read_text(encoding="utf-8")
     for package in ("ProgramKit.Analyzers", "ProgramKit.Tasks.Abstractions", "ProgramKit.Tasks"):
         pattern = rf'Include="{re.escape(package)}" Version="{re.escape(runtime_version)}"'
@@ -31,13 +31,13 @@ def main() -> int:
         if rule_id not in analyzer:
             raise AssertionError(f"Program Kit analyzer does not declare {rule_id}")
     editorconfig = (
-        root / "extensions/program-kit-governance/templates/dotnet/files/.editorconfig"
+        root / "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig"
     ).read_text(encoding="utf-8")
     for rule_id in ("PK1003", "PK1004", "PK1005"):
         if f"dotnet_diagnostic.{rule_id}.severity = error" not in editorconfig:
             raise AssertionError(f"Consumer template does not enforce {rule_id}")
     engineering = (
-        root / "extensions/program-kit-governance/references/dotnet-engineering.md"
+        root / "extensions/program-kit-dotnet/references/dotnet-engineering.md"
     ).read_text(encoding="utf-8")
     for phrase in ("Validate inputs", "Prepare the operation state", "one named type", "XML documentation"):
         if phrase not in engineering:

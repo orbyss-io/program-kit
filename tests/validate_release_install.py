@@ -9,9 +9,11 @@ import yaml
 
 
 EXPECTED_HOOKS = {
+    "before_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
+    "after_tasks",
     "before_implement",
     "after_implement",
 }
@@ -42,12 +44,14 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
     extension_zip = root / "artifacts" / f"program-kit-governance-{version}.zip"
+    dotnet_zip = root / "artifacts" / f"program-kit-dotnet-{version}.zip"
+    preset_zip = root / "artifacts" / f"program-kit-governance-preset-{version}.zip"
     workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
     bundle_zip = root / "artifacts" / f"program-kit-{version}.zip"
-    if not extension_zip.is_file() or not workflow_zip.is_file() or not bundle_zip.is_file():
+    if not all(path.is_file() for path in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip)):
         raise FileNotFoundError("Build release assets before running the install test")
 
-    for release_zip in (extension_zip, workflow_zip, bundle_zip):
+    for release_zip in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:
             forbidden_entries = []
             for name in archive.namelist():
@@ -70,6 +74,8 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-release-test-") as directory:
         project = Path(directory)
         extracted_extension = project / "release-extension"
+        extracted_dotnet = project / "release-dotnet-extension"
+        extracted_preset = project / "release-governance-preset"
         with zipfile.ZipFile(extension_zip, "r") as archive:
             archive.extractall(extracted_extension)
         if not (extracted_extension / "extension.yml").is_file():
@@ -117,6 +123,28 @@ def main() -> int:
         for reference in ("vertical-slicing.md", "modularity-and-contracts.md"):
             if not (extracted_extension / "references" / reference).is_file():
                 raise AssertionError(f"Extension release ZIP is missing {reference}")
+        with zipfile.ZipFile(dotnet_zip, "r") as archive:
+            archive.extractall(extracted_dotnet)
+        if not (extracted_dotnet / "extension.yml").is_file():
+            raise AssertionError(".NET extension release ZIP must contain extension.yml at its root")
+        for path in (
+            "scripts/dotnet_sync.py",
+            "references/dotnet-engineering.md",
+            "templates/dotnet/files/.editorconfig",
+        ):
+            if not (extracted_dotnet / path).is_file():
+                raise AssertionError(f".NET extension release ZIP is missing {path}")
+        with zipfile.ZipFile(preset_zip, "r") as archive:
+            archive.extractall(extracted_preset)
+        if not (extracted_preset / "preset.yml").is_file():
+            raise AssertionError("Governance preset release ZIP must contain preset.yml at its root")
+        for path in (
+            "templates/spec-governance.md",
+            "templates/plan-governance.md",
+            "templates/tasks-governance.md",
+        ):
+            if not (extracted_preset / path).is_file():
+                raise AssertionError(f"Governance preset release ZIP is missing {path}")
 
         run(
             "specify",
@@ -127,6 +155,22 @@ def main() -> int:
             "--integration",
             "codex",
             "--ignore-agent-tools",
+            cwd=project,
+        )
+        run(
+            "specify",
+            "extension",
+            "add",
+            str(extracted_dotnet),
+            "--dev",
+            cwd=project,
+        )
+        run(
+            "specify",
+            "preset",
+            "add",
+            "--dev",
+            str(extracted_preset),
             cwd=project,
         )
         if not (project / ".agents/skills/speckit-constitution/SKILL.md").is_file():
@@ -157,13 +201,19 @@ def main() -> int:
         )
         deployed_config = (
             project
-            / ".specify/extensions/program-kit-governance/program-kit-config.yml"
+            / ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
         )
         if not deployed_config.is_file():
             raise AssertionError("Program Kit configuration template was not scaffolded")
         hooks = set(extension_config.get("hooks", {}))
         if hooks != EXPECTED_HOOKS:
             raise AssertionError(f"Registered hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
+        if "program-kit-dotnet" not in extension_config.get("installed", []):
+            raise AssertionError("Program Kit .NET extension was not registered")
+        if not (
+            project / ".agents/skills/speckit-program-kit-dotnet-sync/SKILL.md"
+        ).is_file():
+            raise AssertionError(".NET sync command was not installed as a namespaced skill")
 
         installed_workflow = yaml.safe_load(
             (
@@ -176,7 +226,26 @@ def main() -> int:
         if step_ids != EXPECTED_STEPS:
             raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
 
-    print("Packaged extension and workflow install test passed.")
+        # Spec Kit 1.0.1 resolves third-party primitives through their catalogs
+        # even when a bundle is installed from a local ZIP. The archive is
+        # therefore verified for its pinned component graph here; the live
+        # public-catalog test validates catalog-backed bundle installation.
+        with zipfile.ZipFile(bundle_zip, "r") as archive:
+            packaged_bundle = yaml.safe_load(archive.read("bundle.yml"))
+        component_graph = {
+            (kind, entry["id"])
+            for kind, entries in packaged_bundle["provides"].items()
+            for entry in entries
+        }
+        if component_graph != {
+            ("extensions", "program-kit-governance"),
+            ("extensions", "program-kit-dotnet"),
+            ("presets", "program-kit-governance-preset"),
+            ("workflows", "program-kit-bootstrap"),
+        }:
+            raise AssertionError(f"Unexpected packaged bundle component graph: {component_graph}")
+
+    print("Packaged component and bundle install test passed.")
     return 0
 
 

@@ -1,17 +1,18 @@
 ---
 description: Verify implementation plans obey generic programming and lifecycle guardrails.
+scripts:
+  py: scripts/governance_state.py validate --require-roadmap
 ---
 
 ## Required checks
 
-Run `python .specify/extensions/program-kit-governance/scripts/governance_state.py validate
---require-roadmap` and read the ratified constitution and active roadmap entry before checking the
+Run `{SCRIPT}` and read the ratified constitution and active roadmap entry before checking the
 plan. A stale constitution or non-Ready/non-Active roadmap entry blocks implementation. Do not
 require some other entry to remain Ready after the selected specification becomes Active.
 
 Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`,
 `software-language.md`, `vertical-slicing.md`, `modularity-and-contracts.md`, and any detected
-technology profiles.
+technology profiles from their installed technology extensions.
 
 Confirm:
 

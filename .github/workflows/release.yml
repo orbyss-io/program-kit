@@ -34,7 +34,7 @@ jobs:
       - name: Install pinned Spec Kit
         run: python -m pip install --disable-pip-version-check "specify-cli==1.0.1"
 
-      - name: Validate extension and workflow
+      - name: Validate Program Kit components
         run: python tests/validate_components.py
 
       - name: Validate Codex agent bootstrap boundary
@@ -55,7 +55,7 @@ jobs:
       - name: Build release assets
         run: python scripts/build_release.py
 
-      - name: Test packaged extension and workflow
+      - name: Test packaged components and bundle graph
         run: python tests/validate_release_install.py
 
       - name: Attest release assets

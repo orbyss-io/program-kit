@@ -1,5 +1,7 @@
 ---
 description: Create the governed project-level portfolio of candidate feature specifications.
+scripts:
+  py: scripts/governance_state.py
 ---
 
 ## Preconditions
@@ -7,7 +9,7 @@ description: Create the governed project-level portfolio of candidate feature sp
 Validate the ratified constitution before doing any work:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate
+{SCRIPT} validate
 ```
 
 Read the constitution, architecture baseline, ADRs, decision backlog, tooling evaluation, quality
@@ -45,7 +47,7 @@ unlocked roadmap entries; they are not feature specifications or application imp
 After writing the roadmap, run:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-roadmap
+{SCRIPT} validate-roadmap
 ```
 
 Report blocked records and the exact design task or ADR that can unlock each one.

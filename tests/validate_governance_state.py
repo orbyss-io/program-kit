@@ -36,6 +36,12 @@ def write_installation(project: Path, version: str, *, workflow_version: str | N
         f'schema_version: "1.0"\n\nextension:\n  id: "program-kit-governance"\n  version: "{version}"\n',
         encoding="utf-8",
     )
+    dotnet_manifest = project / ".specify/extensions/program-kit-dotnet/extension.yml"
+    dotnet_manifest.parent.mkdir(parents=True, exist_ok=True)
+    dotnet_manifest.write_text(
+        f'schema_version: "1.0"\n\nextension:\n  id: "program-kit-dotnet"\n  version: "{version}"\n',
+        encoding="utf-8",
+    )
     workflow_manifest = project / ".specify/workflows/program-kit-bootstrap/workflow.yml"
     workflow_manifest.parent.mkdir(parents=True, exist_ok=True)
     workflow_manifest.write_text(
@@ -64,6 +70,11 @@ def write_installation(project: Path, version: str, *, workflow_version: str | N
                     {
                         "kind": "extensions",
                         "id": "program-kit-governance",
+                        "version": version,
+                    },
+                    {
+                        "kind": "extensions",
+                        "id": "program-kit-dotnet",
                         "version": version,
                     }
                 ],
@@ -199,6 +210,29 @@ def main() -> int:
 
             constitution_path.write_text(constitution() + "\nAmended after gate.\n", encoding="utf-8")
             expect_error(module, module.validate_ratification, "changed after ratification")
+
+            configuration = project / ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
+            configuration.parent.mkdir(parents=True, exist_ok=True)
+            configuration.write_text(
+                "architecture:\n"
+                "  decisions: governance/decisions\n"
+                "  specification_roadmap: governance/roadmap.md\n"
+                "constitution:\n"
+                "  document: governance/constitution.md\n"
+                "  ratification: governance/ratification.json\n",
+                encoding="utf-8",
+            )
+            module.configure_paths()
+            if module.CONSTITUTION != Path("governance/constitution.md"):
+                raise AssertionError("Installed governance configuration did not set constitution path")
+            local_configuration = configuration.with_name("program-kit-governance-config.local.yml")
+            local_configuration.write_text(
+                "architecture:\n  specification_roadmap: local/roadmap.md\n",
+                encoding="utf-8",
+            )
+            module.configure_paths()
+            if module.ROADMAP != Path("local/roadmap.md"):
+                raise AssertionError("Local governance configuration must override installed configuration")
         finally:
             os.chdir(original)
 

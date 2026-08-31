@@ -157,6 +157,6 @@ profile as a package-version pin. Primary sources accessed 2026-08-25:
 When .NET is selected, `../dotnet-engineering.md` is the mandatory language/runtime profile and
 `../dotnet-runtime-and-application-bundles.md` is the mandatory CShells hosting and deployment profile.
 Installing Program Kit does not select .NET and does not scaffold these files. After an Accepted .NET technology
-decision, run the `speckit.program-kit-governance.dotnet-sync` extension command to install or update the
+decision, run the `speckit.program-kit-dotnet.sync` extension command to install or update the
 hash-tracked repository baseline. The standard runtime is `ProgramKit.Host`; consuming repositories generate
 feature packages and an immutable application ZIP, not a custom host project.

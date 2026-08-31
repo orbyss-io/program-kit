@@ -16,14 +16,20 @@ WORKFLOW_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     "main/catalogs/workflows.json"
 )
+PRESET_CATALOG = (
+    "https://raw.githubusercontent.com/orbyss-io/program-kit/"
+    "main/catalogs/presets.json"
+)
 BUNDLE_CATALOG = (
     "https://raw.githubusercontent.com/orbyss-io/program-kit/"
     "main/catalogs/bundles.json"
 )
 EXPECTED_HOOKS = {
+    "before_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
+    "after_tasks",
     "before_implement",
     "after_implement",
 }
@@ -77,6 +83,17 @@ def main() -> int:
         )
         run(
             "specify",
+            "preset",
+            "catalog",
+            "add",
+            PRESET_CATALOG,
+            "--name",
+            "program-kit",
+            "--install-allowed",
+            cwd=project,
+        )
+        run(
+            "specify",
             "workflow",
             "catalog",
             "add",
@@ -112,6 +129,8 @@ def main() -> int:
             raise AssertionError(f"Installed hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
         if "program-kit-governance" not in extensions.get("installed", []):
             raise AssertionError("Program Kit Governance extension was not registered")
+        if "program-kit-dotnet" not in extensions.get("installed", []):
+            raise AssertionError("Program Kit .NET extension was not registered")
 
         workflow = yaml.safe_load(
             (
@@ -129,6 +148,9 @@ def main() -> int:
             raise AssertionError("Installed governance-state validator is missing")
         if not (deployed_extension / "scripts/codex_bootstrap_preflight.py").is_file():
             raise AssertionError("Installed Codex bootstrap preflight is missing")
+        deployed_dotnet = project / ".specify/extensions/program-kit-dotnet"
+        if not (deployed_dotnet / "scripts/dotnet_sync.py").is_file():
+            raise AssertionError("Installed .NET sync extension is missing")
         if not (
             project
             / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"

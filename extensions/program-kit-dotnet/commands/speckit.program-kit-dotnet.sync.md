@@ -1,5 +1,7 @@
 ---
 description: Install or safely update the Program Kit managed .NET repository baseline.
+scripts:
+  py: scripts/dotnet_sync.py
 ---
 
 ## Input
@@ -10,7 +12,7 @@ working directory unless an explicit target path is supplied.
 ## Work
 
 1. Confirm that the accepted technology profile selects .NET and that repository-scaffolding work is authorized.
-2. Run the installed extension script `scripts/dotnet_sync.py` with `--target <repository-root>
+2. Run `{SCRIPT}` with `--target <repository-root>
    --profile-selected`. Pass `--check` when requested. Never pass `--profile-selected` unless the repository's
    accepted technology-profile evidence selects .NET.
 3. Report created, updated, unchanged, and conflicted files exactly as emitted by the script.

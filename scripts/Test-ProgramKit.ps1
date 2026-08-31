@@ -48,7 +48,7 @@ if (-not $SkipBuild) {
 
     & $python (Join-Path $projectRoot 'tests\validate_release_install.py')
     if ($LASTEXITCODE -ne 0) {
-        throw 'Packaged extension/workflow installation test failed.'
+        throw 'Packaged component and bundle-graph installation test failed.'
     }
 }
 

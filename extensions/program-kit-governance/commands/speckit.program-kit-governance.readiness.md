@@ -1,5 +1,7 @@
 ---
 description: Determine whether the repository is ready to begin feature specifications.
+scripts:
+  py: scripts/governance_state.py validate --require-roadmap --require-ready
 ---
 
 ## Input
@@ -11,7 +13,7 @@ description: Determine whether the repository is ready to begin feature specific
 Run the governance-state validator with both portfolio requirements:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate --require-roadmap --require-ready
+{SCRIPT}
 ```
 
 `NOT READY` is mandatory when the constitution is missing, Draft, unratified, hash-mismatched,

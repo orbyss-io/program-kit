@@ -1,0 +1,28 @@
+schema_version: "1.0"
+
+extension:
+  id: "program-kit-dotnet"
+  name: "Program Kit .NET"
+  version: "0.5.0"
+  description: "Provides the profile-gated .NET engineering baseline, runtime guidance, and managed-file synchronization."
+  author: "Orbyss"
+  repository: "https://github.com/orbyss-io/program-kit"
+  license: "MIT"
+  category: "process"
+  effect: "read-write"
+
+requires:
+  speckit_version: ">=1.0.1,<2.0.0"
+
+provides:
+  commands:
+    - name: "speckit.program-kit-dotnet.sync"
+      file: "commands/speckit.program-kit-dotnet.sync.md"
+      description: "Install or safely update the Program Kit managed .NET repository baseline."
+
+tags:
+  - "dotnet"
+  - "architecture"
+  - "runtime"
+  - "quality"
+  - "scaffolding"

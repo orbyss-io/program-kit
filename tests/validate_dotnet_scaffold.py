@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "extensions/program-kit-governance/scripts/dotnet_sync.py"
+SCRIPT = ROOT / "extensions/program-kit-dotnet/scripts/dotnet_sync.py"
 
 
 def run(*arguments: str) -> subprocess.CompletedProcess[str]:

@@ -1,9 +1,0 @@
-<Project>
-  <ItemGroup>
-    <PackageVersion Include="ProgramKit.Analyzers" Version="0.4.3-preview.1" />
-    <PackageVersion Include="ProgramKit.Tasks.Abstractions" Version="0.4.3-preview.1" />
-    <PackageVersion Include="ProgramKit.Tasks" Version="0.4.3-preview.1" />
-    <PackageVersion Include="CShells.Abstractions" Version="0.0.29-preview.147" />
-    <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" />
-  </ItemGroup>
-</Project>

@@ -13,7 +13,14 @@ CONSTITUTION = Path(".specify/memory/constitution.md")
 RATIFICATION = Path(".specify/memory/constitution-ratification.json")
 ROADMAP = Path("docs/architecture/specification-roadmap.md")
 DECISIONS = Path("docs/architecture/decisions")
+CONFIGURATION = Path(
+    ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
+)
+LOCAL_CONFIGURATION = Path(
+    ".specify/extensions/program-kit-governance/program-kit-governance-config.local.yml"
+)
 EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-governance/extension.yml")
+DOTNET_EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-dotnet/extension.yml")
 WORKFLOW_MANIFEST = Path(".specify/workflows/program-kit-bootstrap/workflow.yml")
 WORKFLOW_REGISTRY = Path(".specify/workflows/workflow-registry.json")
 BUNDLE_RECORDS = Path(".specify/bundle-records.json")
@@ -37,6 +44,87 @@ REQUIRED_RECORD_FIELDS = {
 
 class GovernanceStateError(ValueError):
     pass
+
+
+def _parse_scalar(value: str) -> str | bool:
+    value = value.strip()
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
+        return value[1:-1]
+    return value
+
+
+def _parse_simple_yaml(path: Path) -> dict[str, object]:
+    """Read the deliberately small mapping-only configuration without PyYAML."""
+    result: dict[str, object] = {}
+    current: dict[str, object] | None = None
+    for number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        line = raw_line.split("#", 1)[0].rstrip()
+        if not line:
+            continue
+        top = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):\s*", line)
+        nested = re.fullmatch(r"  ([A-Za-z][A-Za-z0-9_-]*):\s*(.+)", line)
+        if top:
+            current = {}
+            result[top.group(1)] = current
+        elif nested and current is not None:
+            current[nested.group(1)] = _parse_scalar(nested.group(2))
+        else:
+            raise GovernanceStateError(
+                f"Invalid Program Kit configuration at {path}:{number}; use the supplied mapping-only template"
+            )
+    return result
+
+
+def _load_configuration(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        return {}
+    try:
+        import yaml  # type: ignore[import-not-found]
+    except ModuleNotFoundError:
+        value = _parse_simple_yaml(path)
+    else:
+        try:
+            value = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as exc:
+            raise GovernanceStateError(f"Invalid Program Kit configuration {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise GovernanceStateError(f"Program Kit configuration must be a mapping: {path}")
+    return value
+
+
+def _configured_relative_path(value: object, label: str) -> Path:
+    if not isinstance(value, str) or not value.strip():
+        raise GovernanceStateError(f"Program Kit configuration {label} must be a non-empty relative path")
+    path = Path(value)
+    if path.is_absolute() or ".." in path.parts:
+        raise GovernanceStateError(f"Program Kit configuration {label} must stay within the project")
+    return path
+
+
+def configure_paths() -> None:
+    """Apply installed and local configuration before a CLI lifecycle operation."""
+    global CONSTITUTION, RATIFICATION, ROADMAP, DECISIONS
+    installed = _load_configuration(project_path(CONFIGURATION))
+    local = _load_configuration(project_path(LOCAL_CONFIGURATION))
+
+    def configured(section: str, key: str, default: Path) -> Path:
+        value: object = default.as_posix()
+        for document in (installed, local):
+            candidate = document.get(section)
+            if isinstance(candidate, dict) and key in candidate:
+                value = candidate[key]
+        return _configured_relative_path(value, f"{section}.{key}")
+
+    CONSTITUTION = configured("constitution", "document", CONSTITUTION)
+    RATIFICATION = configured("constitution", "ratification", RATIFICATION)
+    ROADMAP = configured("architecture", "specification_roadmap", ROADMAP)
+    DECISIONS = configured("architecture", "decisions", DECISIONS)
 
 
 def manifest_version(path: Path, component: str) -> str:
@@ -70,6 +158,9 @@ def validate_installation() -> dict[str, str]:
     versions = {
         "extension": manifest_version(
             project_path(EXTENSION_MANIFEST), "Program Kit Governance extension"
+        ),
+        "dotnet extension": manifest_version(
+            project_path(DOTNET_EXTENSION_MANIFEST), "Program Kit .NET extension"
         ),
         "workflow": manifest_version(
             project_path(WORKFLOW_MANIFEST), "Program Kit Bootstrap workflow"
@@ -114,7 +205,7 @@ def validate_installation() -> dict[str, str]:
         )
     versions["bundle record"] = bundle["version"]
     components = bundle.get("contributed_components")
-    extension = next(
+    governance_extension = next(
         (
             component
             for component in components or []
@@ -124,12 +215,28 @@ def validate_installation() -> dict[str, str]:
         ),
         None,
     )
-    if not isinstance(extension, dict) or not isinstance(extension.get("version"), str):
+    if not isinstance(governance_extension, dict) or not isinstance(governance_extension.get("version"), str):
         raise GovernanceStateError(
             "Program Kit Governance is absent from the Program Kit bundle record.\n"
             f"Repair the installation, in this order:\n{repair_commands()}"
         )
-    versions["bundle extension record"] = extension["version"]
+    versions["bundle governance extension record"] = governance_extension["version"]
+    dotnet_extension = next(
+        (
+            component
+            for component in components or []
+            if isinstance(component, dict)
+            and component.get("kind") == "extensions"
+            and component.get("id") == "program-kit-dotnet"
+        ),
+        None,
+    )
+    if not isinstance(dotnet_extension, dict) or not isinstance(dotnet_extension.get("version"), str):
+        raise GovernanceStateError(
+            "Program Kit .NET is absent from the Program Kit bundle record.\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    versions["bundle .NET extension record"] = dotnet_extension["version"]
 
     if len(set(versions.values())) != 1:
         details = ", ".join(f"{name}={version}" for name, version in versions.items())
@@ -370,6 +477,7 @@ def main() -> int:
     roadmap_parser.add_argument("--require-ready", action="store_true")
     args = parser.parse_args()
     try:
+        configure_paths()
         if args.command == "validate-installation":
             versions = validate_installation()
             print(f"Program Kit installation is version-coherent: {next(iter(versions.values()))}")

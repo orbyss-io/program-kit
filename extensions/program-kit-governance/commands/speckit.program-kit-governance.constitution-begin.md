@@ -1,5 +1,7 @@
 ---
 description: Revoke stale ratification evidence before drafting or amending the constitution.
+scripts:
+  py: scripts/governance_state.py begin
 ---
 
 ## Purpose
@@ -20,7 +22,7 @@ From the project root, run the installed Program Kit governance-state script wit
 Python 3 interpreter:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py begin
+{SCRIPT}
 ```
 
 This must complete before `speckit.constitution` drafts or amends the constitution. It changes only

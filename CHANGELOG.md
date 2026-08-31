@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 - 2026-08-31
+
+- Split the profile-gated .NET guidance, templates, managed-file synchronizer, and command into the dedicated `program-kit-dotnet` extension; `program-kit-governance` remains the technology-neutral governance core.
+- Add `program-kit-governance-preset`, which appends architecture-governance evidence to the core feature, plan, and task templates while leaving consumer-owned template overrides highest priority.
+- Make the `program-kit` bundle explicitly compose the two extensions, the preset, and the bootstrap workflow; release, catalog, installation, and upgrade checks now verify every component.
+- Register constitution drafting and task-decomposition lifecycle hooks, and make the governance validator confirm the installed .NET component and bundle record before lifecycle work.
+- Activate the governance configuration template with installed and local project-relative path overrides for constitution ratification, ADR discovery, and specification-roadmap validation.
+
 ## 0.4.3 - 2026-08-27
 
 - Require humans to run Spec Kit initialization, Program Kit installation or update, and outer bootstrap orchestration from a normal user-owned PowerShell or WSL shell; Codex Desktop and interactive CLI agents stop with a copyable command instead.

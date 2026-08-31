@@ -1,5 +1,7 @@
 ---
 description: Validate Spec Kit artifacts and implementation against accepted architecture.
+scripts:
+  py: scripts/governance_state.py validate --require-roadmap
 ---
 
 ## Scope discovery
@@ -7,7 +9,7 @@ description: Validate Spec Kit artifacts and implementation against accepted arc
 Always validate the ratified constitution and roadmap:
 
 ```text
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate --require-roadmap
+{SCRIPT}
 ```
 
 This prerequisite check runs before `speckit.specify` as well as after later lifecycle steps. It

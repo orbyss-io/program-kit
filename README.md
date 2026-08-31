@@ -6,7 +6,9 @@ project constitution, modular architecture baseline, ADR system, quality system,
 of vertical feature specifications. Program Kit is maintained independently from the application
 repositories that consume it.
 
-The executable behavior lives in a Spec Kit workflow. The bundle is the versioned distribution layer around that workflow and its governance extension.
+The executable behavior lives in Spec Kit extensions and a workflow. `program-kit` is only the
+versioned distribution layer: it installs the governance extension, the .NET extension, the
+governance template preset, and the bootstrap workflow as separate components.
 
 ## Install in a new repository
 
@@ -22,13 +24,18 @@ Prerequisites:
 > `codex` CLI agent to run them. Agent-run setup can create `.agents` and `.specify` under a sandbox
 > identity on Windows, and the outer workflow would also cause nested `codex exec` execution.
 
-From the root of a new repository, initialize Spec Kit and register the three Program Kit catalogs:
+From the root of a new repository, initialize Spec Kit and register the four Program Kit catalogs:
 
 ```powershell
 specify init . --integration codex --non-interactive
 
 specify extension catalog add `
   https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json `
+  --name program-kit `
+  --install-allowed
+
+specify preset catalog add `
+  https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/presets.json `
   --name program-kit `
   --install-allowed
 
@@ -47,6 +54,11 @@ specify bundle install program-kit
 ```
 
 Replace `codex` with the integration you use. The bundle itself is integration-agnostic.
+
+Keep all four catalogs registered. In Spec Kit 1.0.1, even a locally supplied third-party bundle
+archive resolves its extension, preset, and workflow primitives through their catalogs; the bundle
+is the pinned composition record, not a self-contained primitive installer. The standalone ZIP
+assets remain useful for inspecting or installing one component deliberately.
 
 ### Spec Kit 1.0.1 compatibility note
 
@@ -109,10 +121,17 @@ orchestrating setup itself.
   project constitution with the core Spec Kit command, records human ratification as hash-bound
   evidence, creates the architecture baseline and decision backlog, evaluates tooling, creates the
   specification roadmap, and pauses at human review gates.
-- `program-kit-governance` extension: supplies reusable bootstrap and validation commands.
+- `program-kit-governance` extension: supplies reusable bootstrap, ratification, and lifecycle-validation commands.
+- `program-kit-dotnet` extension: supplies the opt-in, profile-gated .NET repository baseline and sync command.
+- `program-kit-governance-preset`: appends governance traceability to Spec Kit's feature, plan, and task templates.
 - Mandatory hooks before and after `speckit.specify`, after `speckit.plan`, before
-  `speckit.implement`, and after implementation to prevent unauthorized specification and detect
-  architecture drift.
+  `speckit.implement`, after `speckit.tasks`, and before constitution drafting to prevent unauthorized
+  specification and detect architecture drift.
+
+The preset deliberately uses the Spec Kit `append` strategy, so it augments rather than replaces
+the core templates. If a consumer needs a durable project-specific template, use the project's
+`.specify/templates/overrides/` layer; it has higher precedence and is not managed by Program Kit
+updates. Workflow overlays remain the appropriate mechanism for changing a workflow's steps locally.
 
 ## Governance model
 
@@ -154,7 +173,7 @@ route and operation identity, authorization, wire contracts, validation, status/
 cancellation behavior, OpenAPI compatibility evidence, and traceability to its vertical slice.
 Technology adoption remains Proposed in each consuming repository until its ADR is accepted.
 
-Selecting the .NET profile unlocks the profile-gated `speckit.program-kit-governance.dotnet-sync`
+Selecting the .NET profile unlocks the profile-gated `speckit.program-kit-dotnet.sync`
 command. It scaffolds central build/package management, safe managed-file synchronization, application-bundle
 creation, and release workflows. Program Kit Host runs the resulting immutable ZIP in a digest-pinned layered
 container; installing Program Kit alone never creates .NET files. See `docs/dotnet-runtime.md`.
@@ -174,27 +193,29 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.4.3.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.5.0.md`:
 
 ```powershell
-git tag v0.4.3
-git push origin v0.4.3
+git tag v0.5.0
+git push origin v0.5.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
 
 ## Release assets
 
-- `program-kit-<version>.zip`: installable Program Kit bundle.
+- `program-kit-<version>.zip`: Program Kit's catalog-backed, pinned bundle manifest.
 - `program-kit-governance-<version>.zip`: standalone governance extension package.
+- `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.
+- `program-kit-governance-preset-<version>.zip`: standalone governance template preset.
 - `program-kit-bootstrap-<version>.zip`: standalone bootstrap workflow package.
 - `SHA256SUMS`: exact artifact digests.
 
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.4.3.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.4.3.zip -Algorithm SHA256
+gh attestation verify program-kit-0.5.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.5.0.zip -Algorithm SHA256
 ```
 
 ## License
