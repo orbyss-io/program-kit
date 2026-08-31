@@ -30,7 +30,6 @@ EXPECTED_STEPS = [
     "write-assessment-review",
     "review-assessment",
     "accept-assessment",
-    "constitution-begin",
     "constitution-draft",
     "validate-constitution-draft",
     "write-constitution-review",

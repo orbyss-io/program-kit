@@ -1,6 +1,6 @@
 # Program Kit bootstrap from Windows and Codex
 
-Program Kit 0.6.0 requires the human to start repository initialization, Program Kit installation
+Program Kit requires the human to start repository initialization, Program Kit installation
 or update, and outer workflow orchestration from a normal user-owned PowerShell or WSL shell. Do not
 ask a Codex Desktop task or an interactive Codex CLI agent to perform those operations.
 
@@ -33,7 +33,16 @@ Use a normal terminal owned by the human account:
 
 1. Open PowerShell directly, or open a WSL shell when the repository and toolchain live in WSL.
 2. Change to the repository root.
-3. Run `specify init`, catalog registration, and Program Kit installation or update there.
+3. In a new repository, copy `Initialize-ProgramKit.cmd` to the root and run it there. The command
+   script works without changing PowerShell execution policy and performs the complete installation.
+   Its Spec Kit initialization is equivalent to:
+
+   ```powershell
+   specify init . --force --non-interactive --integration codex --script py
+   ```
+
+   For a manual installation, use the same `--script py` option before catalog registration and
+   Program Kit installation. Program Kit requires Python and uses this resolver consistently.
 4. Run `specify workflow run program-kit-bootstrap ...` there.
 5. Let Spec Kit launch its `codex exec` workflow workers. Those workers remain sandboxed.
 6. Run each human-reviewed `specify workflow resume ...` command from the same normal shell.
@@ -50,6 +59,14 @@ specify workflow run program-kit-bootstrap `
 If the installed bootstrap skill is invoked inside Codex, it only formats this command and tells the
 user where to run it. It must not execute the command, request an agent exception, or create a
 persistent approval rule.
+
+Before intake or research, Program Kit reads `.agents/skills/speckit-constitution/SKILL.md` to
+identify the installed Spec Kit resolver. On native Windows it verifies that the referenced file
+exists and can execute. A blocked PowerShell resolver stops the workflow immediately. Cleanly
+regenerate the Codex integration with `specify init . --force --non-interactive --integration codex
+--script py`, then verify that `.specify/scripts/python/resolve_template.py` exists and is referenced
+by the constitution skill. Do not weaken execution policy, broadly unblock repository files, or
+grant unrestricted execution.
 
 ## Clean start after agent-owned initialization
 

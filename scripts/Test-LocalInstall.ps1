@@ -16,7 +16,7 @@ if (Test-Path -LiteralPath $testRoot) {
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 try {
     Push-Location $testRoot
-    specify init . --force --non-interactive --integration codex --ignore-agent-tools `
+    specify init . --force --non-interactive --integration codex --script py --ignore-agent-tools `
         --extension (Join-Path $sourceRoot 'extensions\program-kit-governance')
     if ($LASTEXITCODE -ne 0) { throw 'Disposable Spec Kit initialization failed.' }
 
@@ -41,8 +41,17 @@ try {
         throw 'Installed workflow definition was not found.'
     }
     $stepCount = @(Select-String -LiteralPath $installedWorkflow -Pattern '^  - id:').Count
-    if ($stepCount -ne 23) {
-        throw "Installed workflow exposes $stepCount steps; expected 23."
+    if ($stepCount -ne 22) {
+        throw "Installed workflow exposes $stepCount steps; expected 22."
+    }
+
+    $constitutionSkill = '.agents\skills\speckit-constitution\SKILL.md'
+    $pythonResolver = '.specify\scripts\python\resolve_template.py'
+    if (-not (Test-Path -LiteralPath $pythonResolver -PathType Leaf)) {
+        throw 'Python-flavor Spec Kit resolver was not installed.'
+    }
+    if ((Get-Content -Raw -LiteralPath $constitutionSkill) -notmatch [regex]::Escape('.specify/scripts/python/resolve_template.py')) {
+        throw 'The generated constitution skill does not reference the Python resolver.'
     }
 
     $validator = '.specify\extensions\program-kit-governance\scripts\governance_state.py'

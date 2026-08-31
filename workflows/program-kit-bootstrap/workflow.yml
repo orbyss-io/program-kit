@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.6.0"
+  version: "0.6.1"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -39,10 +39,15 @@ steps:
     type: switch
     expression: "{{ steps.codex-execution-preflight.output.data.action }}"
     cases:
-      blocked:
+      agent-boundary-blocked:
         - id: nested-codex-unsupported
           type: command
           command: "PROGRAM_KIT_CODEX_AGENT_BOUNDARY: Program Kit stopped because a Codex Desktop task or interactive Codex CLI agent started the outer workflow. Open a normal user-owned PowerShell or WSL terminal yourself and run 'specify workflow run program-kit-bootstrap ...' there. Do not ask the agent to execute it outside its sandbox or install an approval rule. If an agent performed initialization or setup, rerunning init alone may not repair ownership of .agents or .specify. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
+          integration: "program-kit-preflight-diagnostic"
+      script-runtime-blocked:
+        - id: unusable-spec-kit-script-runtime
+          type: command
+          command: "PROGRAM_KIT_SPEC_KIT_SCRIPT_RUNTIME: Program Kit stopped before intake or research because the resolver referenced by .agents/skills/speckit-constitution/SKILL.md is missing or cannot execute on Windows. From a normal user-owned PowerShell terminal, run 'specify init . --force --non-interactive --integration codex --script py', then confirm .specify/scripts/python/resolve_template.py exists and the constitution skill references it. Do not weaken execution policy, broadly unblock repository files, or grant unrestricted execution. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
           integration: "program-kit-preflight-diagnostic"
 
   - id: intake
@@ -69,7 +74,7 @@ steps:
 
   - id: review-assessment
     type: gate
-    message: "Review the concise packet listing every file and summarizing explicit intake choices, applied Program Kit defaults, overrides, acknowledgements, genuinely unresolved decisions, and deferred triggers. Approve to adopt this exact provisional baseline. Reject keeps the run paused so the artifacts and packet can be revised and regenerated."
+    message: "Gate 1/3 — Assessment approval. Review the concise packet listing every file and summarizing explicit intake choices, applied Program Kit defaults, overrides, acknowledgements, genuinely unresolved decisions, and deferred triggers. Approve to adopt this exact provisional baseline. Reject keeps the run paused so the artifacts and packet can be revised and regenerated."
     show_file: "docs/architecture/reviews/assessment-review.md"
     options: [approve, reject]
     on_reject: retry
@@ -78,13 +83,6 @@ steps:
   - id: accept-assessment
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-assessment --verdict \"{{ steps.review-assessment.output.choice }}\""
-
-  - id: constitution-begin
-    type: command
-    command: "speckit.program-kit-governance.constitution-begin"
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.initial_design }}"
 
   - id: constitution-draft
     type: command
@@ -103,7 +101,7 @@ steps:
 
   - id: review-constitution
     type: gate
-    message: "Review the constitution file named in this concise packet. Ratification will deterministically change only Draft status and the initial pending ratification date, then hash-bind the exact final content. Reject keeps the run paused for revision and packet regeneration."
+    message: "Gate 2/3 — Constitution ratification. Review the constitution file named in this concise packet. Ratification will deterministically change only Draft status and the initial pending ratification date, then hash-bind the exact final content. Reject keeps the run paused for revision and packet regeneration."
     show_file: "docs/architecture/reviews/constitution-review.md"
     options: [ratify, reject]
     on_reject: retry
@@ -144,7 +142,7 @@ steps:
 
   - id: review-bootstrap
     type: gate
-    message: "Review the concise packet and every listed artifact. Approval accepts the generated baseline and reviewed defaults but does not promote separately Proposed ADRs. Reject keeps the run paused for revision and packet regeneration."
+    message: "Gate 3/3 — Final bootstrap approval. Review the concise packet and every listed artifact. Approval accepts the generated baseline and reviewed defaults but does not promote separately Proposed ADRs. Reject keeps the run paused for revision and packet regeneration."
     show_file: "docs/architecture/reviews/bootstrap-review.md"
     options: [approve, reject]
     on_reject: retry

@@ -27,7 +27,6 @@ EXPECTED_STEPS = [
     "write-assessment-review",
     "review-assessment",
     "accept-assessment",
-    "constitution-begin",
     "constitution-draft",
     "validate-constitution-draft",
     "write-constitution-review",
@@ -57,8 +56,14 @@ def main() -> int:
     preset_zip = root / "artifacts" / f"program-kit-governance-preset-{version}.zip"
     workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
     bundle_zip = root / "artifacts" / f"program-kit-{version}.zip"
-    if not all(path.is_file() for path in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip)):
+    initializer = root / "artifacts" / f"Initialize-ProgramKit-{version}.cmd"
+    if not all(
+        path.is_file()
+        for path in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip, initializer)
+    ):
         raise FileNotFoundError("Build release assets before running the install test")
+    if initializer.read_bytes() != (root / "Initialize-ProgramKit.cmd").read_bytes():
+        raise AssertionError("Versioned consumer initializer differs from the root template")
 
     for release_zip in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:
@@ -163,6 +168,8 @@ def main() -> int:
             "--non-interactive",
             "--integration",
             "codex",
+            "--script",
+            "py",
             "--ignore-agent-tools",
             cwd=project,
         )
@@ -186,6 +193,14 @@ def main() -> int:
             raise AssertionError(
                 "Spec Kit 1.0.1 did not install the core speckit.constitution command"
             )
+        python_resolver = project / ".specify/scripts/python/resolve_template.py"
+        if not python_resolver.is_file():
+            raise AssertionError("Python-flavor consumer is missing resolve_template.py")
+        constitution_skill_text = (
+            project / ".agents/skills/speckit-constitution/SKILL.md"
+        ).read_text(encoding="utf-8")
+        if ".specify/scripts/python/resolve_template.py" not in constitution_skill_text:
+            raise AssertionError("Constitution skill does not reference the Python resolver")
         run(
             "specify",
             "extension",

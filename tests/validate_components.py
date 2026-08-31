@@ -18,7 +18,6 @@ EXPECTED_STEPS = [
     "write-assessment-review",
     "review-assessment",
     "accept-assessment",
-    "constitution-begin",
     "constitution-draft",
     "validate-constitution-draft",
     "write-constitution-review",
@@ -114,6 +113,10 @@ def main() -> int:
     constitution_step = next(step for step in steps if step["id"] == "constitution-draft")
     if constitution_step.get("command") != "speckit.constitution":
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")
+    if "constitution-begin" in step_ids:
+        raise AssertionError(
+            "The workflow must rely on the mandatory before_constitution hook instead of invoking constitution-begin twice"
+        )
     constitution_gate = step_ids.index("review-constitution")
     if not (
         step_ids.index("constitution-draft") < step_ids.index("validate-constitution-draft")
@@ -143,6 +146,22 @@ def main() -> int:
         gate = next(step for step in steps if step["id"] == gate_id)
         if gate.get("show_file") != packet or gate.get("on_reject") != "retry":
             raise AssertionError(f"{gate_id} must show its concise packet and pause for revision")
+    for gate_id, label in (
+        ("review-assessment", "Gate 1/3 — Assessment approval"),
+        ("review-constitution", "Gate 2/3 — Constitution ratification"),
+        ("review-bootstrap", "Gate 3/3 — Final bootstrap approval"),
+    ):
+        gate = next(step for step in steps if step["id"] == gate_id)
+        if not gate.get("message", "").startswith(label):
+            raise AssertionError(f"{gate_id} must be visibly labeled {label!r}")
+
+    before_constitution = extension.get("hooks", {}).get("before_constitution", {})
+    if (
+        before_constitution.get("command")
+        != "speckit.program-kit-governance.constitution-begin"
+        or before_constitution.get("optional") is not False
+    ):
+        raise AssertionError("Constitution begin must run exactly once through the mandatory core-command pre-hook")
 
     extension_root = extension_path.parent
     require_text(

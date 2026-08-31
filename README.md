@@ -26,8 +26,24 @@ Prerequisites:
 
 From the root of a new repository, initialize Spec Kit and register the four Program Kit catalogs:
 
+The shortest supported Windows path is the root initializer. Copy `Initialize-ProgramKit.cmd` into
+an otherwise empty repository (a pre-existing `.git` directory is allowed) and run it from a normal
+user-owned PowerShell prompt:
+
 ```powershell
-specify init . --integration codex --non-interactive
+.\Initialize-ProgramKit.cmd
+```
+
+The command script is intentionally not a PowerShell script, so an organization-wide PowerShell
+script-signing policy does not have to be weakened to run it. It initializes the Codex integration
+with Spec Kit's Python runtime, registers all four catalogs, applies the Spec Kit 1.0.1 workflow
+workaround, and installs Program Kit. It does not require or create the initial design; write
+`INITIAL_DESIGN.md` after initialization when you are ready for intake.
+
+The equivalent manual sequence is:
+
+```powershell
+specify init . --integration codex --script py --non-interactive
 
 specify extension catalog add `
   https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json `
@@ -103,6 +119,10 @@ background, the supported sequence, and a conservative clean start that preserve
 human explicitly chooses a new repository.
 
 The workflow pauses three times for human review. Continue a paused run after reviewing its generated artifacts:
+
+- Gate 1/3: assessment approval (`approve`)
+- Gate 2/3: constitution ratification (`ratify`)
+- Gate 3/3: final bootstrap approval (`approve`)
 
 ```powershell
 specify workflow status
@@ -203,11 +223,12 @@ Build all release artifacts:
 uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
-Pushing a SemVer tag matching `VERSION` creates a GitHub release. For the repository, NuGet, and GHCR release checklist, follow `docs/releasing-0.6.0.md`:
+Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
+[`docs/releasing-0.6.1.md`](docs/releasing-0.6.1.md).
 
 ```powershell
-git tag v0.6.0
-git push origin v0.6.0
+git tag v0.6.1
+git push origin v0.6.1
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -219,13 +240,14 @@ The release workflow validates all manifests and catalog metadata, creates deter
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.
 - `program-kit-governance-preset-<version>.zip`: standalone governance template preset.
 - `program-kit-bootstrap-<version>.zip`: standalone bootstrap workflow package.
+- `Initialize-ProgramKit-<version>.cmd`: copyable Windows consumer initializer that selects the Python Spec Kit runtime.
 - `SHA256SUMS`: exact artifact digests.
 
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.1.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.1.zip -Algorithm SHA256
 ```
 
 ## License

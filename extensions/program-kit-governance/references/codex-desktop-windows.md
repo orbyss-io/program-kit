@@ -24,7 +24,10 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 
 1. Open PowerShell directly, or WSL when the repository lives in WSL.
 2. Change to the repository root.
-3. Run Spec Kit initialization and Program Kit installation or update.
+3. For a new repository, run the copied `Initialize-ProgramKit.cmd` root initializer. It selects the
+   Python Spec Kit runtime and performs catalog registration and Program Kit installation without an
+   initial design. The equivalent initialization command is `specify init . --force
+   --non-interactive --integration codex --script py`.
 4. Start the outer workflow yourself:
 
    ```powershell
@@ -40,6 +43,14 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 
 When the bootstrap skill is invoked from Codex, it must only display the complete command. It must
 not execute it, request an exception, create an approval rule, or start another Codex agent.
+
+Before intake or research, Program Kit inspects the resolver referenced by
+`.agents/skills/speckit-constitution/SKILL.md`. On native Windows the resolver must exist and execute.
+If the PowerShell flavor is blocked by local signing policy, stop and cleanly regenerate the Codex
+integration with `specify init . --force --non-interactive --integration codex --script py`. Confirm
+that `.specify/scripts/python/resolve_template.py` exists and that the constitution skill references
+it. Do not weaken execution policy, broadly unblock repository files, or grant unrestricted
+execution.
 
 ## Existing affected repository
 

@@ -135,6 +135,9 @@ def validate_metadata(root: Path, version: str) -> None:
     require_equal(".NET extension version", dotnet_extension["extension"]["version"], version)
     require_equal("governance preset version", governance_preset["preset"]["version"], version)
     require_equal("workflow version", workflow["workflow"]["version"], version)
+    initializer = (root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8")
+    if f'set "PROGRAM_KIT_REF=v{version}"' not in initializer:
+        raise ValueError("Consumer initializer does not pin the current Program Kit release tag")
     require_equal("governance extension repository", governance_extension["extension"]["repository"], REPOSITORY)
     require_equal(".NET extension repository", dotnet_extension["extension"]["repository"], REPOSITORY)
     require_equal("governance preset repository", governance_preset["preset"]["repository"], REPOSITORY)
@@ -211,6 +214,7 @@ def main() -> int:
         output / f"program-kit-governance-preset-{version}.zip",
         output / f"program-kit-bootstrap-{version}.zip",
         output / f"program-kit-{version}.zip",
+        output / f"Initialize-ProgramKit-{version}.cmd",
         output / "SHA256SUMS",
     ]
     for path in expected:
@@ -225,9 +229,10 @@ def main() -> int:
     build_bundle_from_source(root, output)
     if not expected[4].is_file():
         raise FileNotFoundError(f"Spec Kit did not create {expected[4]}")
+    shutil.copyfile(root / "Initialize-ProgramKit.cmd", expected[5])
 
-    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:5]]
-    expected[5].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
+    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:6]]
+    expected[6].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")
     return 0

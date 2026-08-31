@@ -300,11 +300,25 @@ def main() -> int:
             module.begin()
             expect_error(module, module.validate_ratification, "completed human ratification")
             expect_error(module, module.validate_constitution_draft, "template placeholders")
+            expect_error(
+                module,
+                lambda: module.write_review("constitution"),
+                "template placeholders",
+            )
+            if (project / module.CONSTITUTION_REVIEW).exists():
+                raise AssertionError("Constitution gate packet appeared before a valid draft")
 
             constitution_path.write_text(constitution(), encoding="utf-8")
             module.validate_constitution_draft()
             module.write_review("constitution")
             assert_review_packet(project / module.CONSTITUTION_REVIEW, "constitution")
+            expect_error(
+                module,
+                lambda: module.ratify("approve"),
+                "verdict 'ratify'",
+            )
+            if "**Status**: Draft" not in constitution_path.read_text(encoding="utf-8"):
+                raise AssertionError("A non-ratify verdict changed the constitution draft")
             module.ratify("ratify")
             module.validate_ratification()
             finalized = constitution_path.read_text(encoding="utf-8")

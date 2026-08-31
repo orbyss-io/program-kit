@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.1 - 2026-08-31
+
+- Initialize Codex consumers with Spec Kit's Python script flavor and ship a copyable root command
+  script as a versioned release asset.
+- Validate the resolver referenced by the installed constitution skill before intake or research;
+  native Windows now stops immediately when a PowerShell resolver is missing or blocked.
+- Label all three human gates distinctly, rely on the mandatory constitution pre-hook exactly once,
+  and strengthen draft and exact-ratification-verdict regressions.
+
 ## 0.6.0 - 2026-08-31
 
 - Replace broad artifact prompts with concise, bounded review packets that identify every file,
