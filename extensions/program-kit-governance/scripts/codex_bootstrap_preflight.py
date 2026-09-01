@@ -188,6 +188,30 @@ def verify_windows_resolver(
         raise RuntimeError("Resolver execution did not return the expected template payload")
 
 
+def verify_git_worktree(
+    project_root: Path,
+    *,
+    runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+) -> None:
+    """Require the Git work tree that Codex exec uses as its trust boundary."""
+    try:
+        result = runner(
+            ["git", "-C", str(project_root), "rev-parse", "--is-inside-work-tree"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(f"Git work-tree validation could not start: {exc}") from exc
+    if result.returncode != 0 or (result.stdout or "").strip().lower() != "true":
+        detail = (result.stderr or result.stdout or "not a Git work tree").strip()
+        detail = " ".join(detail.split())[:600]
+        raise RuntimeError(detail)
+
+
 def diagnostic() -> str:
     return """PROGRAM_KIT_CODEX_AGENT_BOUNDARY
 
@@ -260,6 +284,25 @@ the conservative clean-start guidance instead:
 """
 
 
+def git_worktree_diagnostic(problem: str) -> str:
+    return f"""PROGRAM_KIT_CODEX_GIT_WORKTREE
+
+Program Kit stopped before intake or research because Codex workflow workers
+require the repository root to be inside a Git work tree.
+
+{problem}
+
+From a normal user-owned PowerShell terminal in the repository root, initialize
+Git and verify the work tree before starting a new Program Kit workflow run:
+
+  git init
+  git status
+
+This preserves existing project files. Do not bypass Codex's repository check
+with `--skip-git-repo-check`.
+"""
+
+
 def evaluate_preflight(
     integration: str,
     project_root: Path,
@@ -273,6 +316,14 @@ def evaluate_preflight(
         return {"action": "agent-boundary-blocked", "diagnostic": diagnostic()}
     if resolved != "codex":
         return {"action": "continue", "script_flavor": "not-applicable"}
+
+    try:
+        verify_git_worktree(project_root, runner=runner)
+    except RuntimeError as exc:
+        return {
+            "action": "git-worktree-blocked",
+            "diagnostic": git_worktree_diagnostic(str(exc)),
+        }
 
     try:
         flavor, resolver = inspect_script_runtime(project_root, resolved)

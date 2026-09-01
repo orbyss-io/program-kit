@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.6.6"
+set "PROGRAM_KIT_REF=v0.6.7"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
@@ -81,6 +81,25 @@ if errorlevel 1 (
   if errorlevel 1 goto :dependency_failed
 )
 
+where git >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: Git must be available as `git` because coding-agent workflows run inside a Git work tree. 1>&2
+  exit /b 2
+)
+call git --version >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: The `git` command was found but could not execute successfully. Repair Git and rerun the initializer. 1>&2
+  exit /b 2
+)
+call git rev-parse --is-inside-work-tree >nul 2>nul
+if errorlevel 1 (
+  echo Initializing a Git repository for coding-agent workflow trust...
+  call git init
+  if errorlevel 1 goto :git_failed
+  call git rev-parse --is-inside-work-tree >nul 2>nul
+  if errorlevel 1 goto :git_failed
+)
+
 echo [1/7] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
 call specify init . --force --non-interactive --integration %PROGRAM_KIT_INTEGRATION% --script py
 if errorlevel 1 goto :failed
@@ -132,6 +151,10 @@ exit /b 2
 
 :pip_missing
 echo ERROR: PyYAML is missing and `python -m pip` is unavailable. Install pip for this Python interpreter, then install "PyYAML^>=6,^<7" and rerun the initializer. 1>&2
+exit /b 2
+
+:git_failed
+echo ERROR: The directory could not be initialized as a Git work tree. Repair Git or initialize the repository manually, then rerun the initializer. 1>&2
 exit /b 2
 
 :failed

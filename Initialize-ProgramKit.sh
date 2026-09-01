@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROGRAM_KIT_REF="v0.6.6"
+PROGRAM_KIT_REF="v0.6.7"
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -85,6 +85,25 @@ if ! python -c 'import yaml' >/dev/null 2>&1; then
   fi
   if ! python -c 'import yaml' >/dev/null 2>&1; then
     printf 'ERROR: PyYAML is still unavailable to the python command after installation.\n' >&2
+    exit 2
+  fi
+fi
+if ! command -v git >/dev/null 2>&1; then
+  printf 'ERROR: Git must be available as git because coding-agent workflows run inside a Git work tree.\n' >&2
+  exit 2
+fi
+if ! git --version >/dev/null 2>&1; then
+  printf 'ERROR: The git command was found but could not execute successfully. Repair Git and rerun the initializer.\n' >&2
+  exit 2
+fi
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  printf 'Initializing a Git repository for coding-agent workflow trust...\n'
+  if ! git init; then
+    printf 'ERROR: The directory could not be initialized as a Git work tree. Repair Git or initialize the repository manually, then rerun the initializer.\n' >&2
+    exit 2
+  fi
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    printf 'ERROR: Git initialization completed without producing a usable work tree.\n' >&2
     exit 2
   fi
 fi

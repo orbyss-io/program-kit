@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.6.6"
+  version: "0.6.7"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -47,6 +47,12 @@ steps:
           on_reject: abort
       script-runtime-blocked:
         - id: confirm-script-runtime-stop
+          type: gate
+          message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
+          options: [abort]
+          on_reject: abort
+      git-worktree-blocked:
+        - id: confirm-git-worktree-stop
           type: gate
           message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
           options: [abort]

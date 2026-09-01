@@ -41,8 +41,9 @@ Use a normal terminal owned by the human account:
 
    The required argument is the Spec Kit integration ID; for example, pass `claude` for Claude
    Code. The command launcher works without changing PowerShell execution policy. Both variants
-   verify that `specify` and `python` can execute. Spec Kit validates the selected integration's
-   coding-agent tooling. They also verify that the exact `python` used by the workflow can import
+   verify that `specify`, `python`, and Git can execute. Spec Kit validates the selected integration's
+   coding-agent tooling. If the directory is not already in a Git work tree, the initializer runs
+   `git init` without deleting existing files. It also verifies that the exact `python` used by the workflow can import
    PyYAML, installing `PyYAML>=6,<7` through that interpreter's pip only when it is missing. A
    missing or unusable dependency stops initialization before repository setup. Both variants then
    perform the complete installation without deleting unrelated project files, and their Codex
@@ -70,6 +71,17 @@ specify workflow run program-kit-bootstrap `
 ```
 
 The design filename and location are user-chosen; pass the actual path through `initial_design`.
+
+Codex workflow workers require the repository root to be in a Git work tree. If an older Program
+Kit initializer was used in a directory without Git, repair it from the repository root before
+starting a new workflow run:
+
+```powershell
+git init
+git status
+```
+
+Do not pass `--skip-git-repo-check`; initialize the repository cleanly instead.
 
 If the installed bootstrap skill is invoked inside Codex, it only formats this command and tells the
 user where to run it. It must not execute the command, request an agent exception, or create a

@@ -86,6 +86,35 @@ def validate_python_consumer(module) -> None:
         flavor, referenced = module.inspect_script_runtime(project, "codex")
         if flavor != "py" or referenced != resolver:
             raise AssertionError("Preflight did not resolve the generated Python runtime")
+
+        missing_git = module.evaluate_preflight(
+            "codex", project, environ={}, platform_name="nt"
+        )
+        if missing_git.get("action") != "git-worktree-blocked":
+            raise AssertionError(f"Non-Git Codex consumer was not rejected: {missing_git}")
+        require_phrases(
+            "Missing Git work-tree diagnostic",
+            missing_git["diagnostic"],
+            (
+                "PROGRAM_KIT_CODEX_GIT_WORKTREE",
+                "before intake or research",
+                "git init",
+                "git status",
+                "preserves existing project files",
+                "Do not bypass",
+                "--skip-git-repo-check",
+            ),
+        )
+
+        subprocess.run(
+            ["git", "init"],
+            cwd=project,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
         result = module.evaluate_preflight(
             "codex", project, environ={}, platform_name="nt"
         )
@@ -111,8 +140,16 @@ def validate_python_consumer(module) -> None:
         )
 
         def blocked_runner(*args, **kwargs):
+            command = args[0]
+            if command and Path(command[0]).name.lower().startswith("git"):
+                return subprocess.CompletedProcess(
+                    args=command,
+                    returncode=0,
+                    stdout="true\n",
+                    stderr="",
+                )
             return subprocess.CompletedProcess(
-                args=args[0],
+                args=command,
                 returncode=1,
                 stdout="",
                 stderr="PSSecurityException: the resolver is not digitally signed",
@@ -309,6 +346,8 @@ def validate_populated_repository_initializer(root: Path) -> None:
             raise AssertionError("Initializer test stub changed the existing core Spec Kit skill")
         if not pyyaml_marker.is_file():
             raise AssertionError("Initializer did not install missing PyYAML before Spec Kit")
+        if not (project / ".git").exists():
+            raise AssertionError("Initializer did not initialize the populated directory as Git")
         commands = command_log.read_text(encoding="utf-8")
         require_phrases(
             f"Executed {suffix} initializer",
@@ -420,11 +459,13 @@ def main() -> int:
     cases = boundary.get("cases", {})
     agent_blocked = cases.get("agent-boundary-blocked", [])
     runtime_blocked = cases.get("script-runtime-blocked", [])
-    if len(agent_blocked) != 1 or len(runtime_blocked) != 1:
+    git_blocked = cases.get("git-worktree-blocked", [])
+    if len(agent_blocked) != 1 or len(runtime_blocked) != 1 or len(git_blocked) != 1:
         raise AssertionError("Each Codex preflight failure must have one diagnostic step")
     for label, blocked_step in (
         ("agent", agent_blocked[0]),
         ("runtime", runtime_blocked[0]),
+        ("git", git_blocked[0]),
     ):
         if blocked_step.get("type") != "gate":
             raise AssertionError(f"Workflow-visible {label} stop must be a non-agent gate")
@@ -478,6 +519,9 @@ def main() -> int:
                 "python -m pip --version",
                 "python -m pip install --disable-pip-version-check",
                 "PyYAML>=6,<7",
+                "git --version",
+                "git rev-parse --is-inside-work-tree",
+                "git init",
             ),
         )
         for noisy_post_install_phrase in (

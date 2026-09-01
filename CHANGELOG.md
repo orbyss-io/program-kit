@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.7 - 2026-09-01
+
+- Require a working Git command during consumer initialization and run `git init` when the target
+  directory is not already inside a work tree, preserving arbitrary existing project files.
+- Reject Codex bootstrap before intake when its repository trust boundary is unavailable, with
+  clean `git init` guidance instead of recommending `--skip-git-repo-check`.
+
 ## 0.6.6 - 2026-09-01
 
 - Require an explicit Spec Kit integration ID instead of assuming Codex, let Spec Kit validate that

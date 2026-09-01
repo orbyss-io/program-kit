@@ -29,8 +29,9 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
    Spec Kit integration ID: `Initialize-ProgramKit.sh codex` from Bash in WSL, or
    `Initialize-ProgramKit.cmd codex` from PowerShell on Windows, including under `AllSigned`.
    Pass `claude` instead for Claude Code. The command launcher requires no execution-policy change.
-   Every variant verifies that `specify` and `python` can execute; Spec Kit validates the selected
-   integration's coding-agent tooling. The launcher ensures the exact workflow interpreter can
+   Every variant verifies that `specify`, `python`, and Git can execute; Spec Kit validates the selected
+   integration's coding-agent tooling. When the directory is not already in a Git work tree, the
+   launcher runs `git init` without deleting existing files. It ensures the exact workflow interpreter can
    import `PyYAML>=6,<7` before repository setup. It selects the Python Spec Kit runtime and
    performs catalog registration and Program Kit installation without an initial design. The Codex
    equivalent
@@ -46,6 +47,10 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
    ```
 
    The design filename and location are user-chosen; pass the actual path through `initial_design`.
+
+   Codex workers require a Git work tree. For a directory initialized by an older Program Kit
+   release without Git, run `git init` and `git status` from the repository root before starting a
+   new workflow run. Do not pass `--skip-git-repo-check`.
 
 5. Let Spec Kit launch the sandboxed `codex exec` workers.
 6. Review every generated artifact and run each `specify workflow resume ...` from the same normal
