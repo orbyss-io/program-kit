@@ -147,6 +147,119 @@ def validate_python_consumer(module) -> None:
         reject_workaround("PowerShell resolver diagnostic", blocked["diagnostic"])
 
 
+def validate_populated_repository_initializer(root: Path) -> None:
+    suffix = "cmd" if os.name == "nt" else "sh"
+    source = root / f"Initialize-ProgramKit.{suffix}"
+    with tempfile.TemporaryDirectory(prefix="program-kit-initializer-test-") as temp:
+        project = Path(temp)
+        initializer = project / source.name
+        shutil.copyfile(source, initializer)
+        if suffix == "sh":
+            initializer.chmod(0o755)
+
+        design = project / "INITIAL_DESIGN.md"
+        application_file = project / "src" / "application.txt"
+        integration_file = project / ".specify" / "integration.json"
+        core_skill = project / ".agents/skills/speckit-constitution/SKILL.md"
+        design.write_text("Existing initial design\n", encoding="utf-8")
+        application_file.parent.mkdir()
+        application_file.write_text("Existing application content\n", encoding="utf-8")
+        integration_file.parent.mkdir()
+        integration_file.write_text(
+            '{"default_integration":"codex"}\n', encoding="utf-8"
+        )
+        core_skill.parent.mkdir(parents=True)
+        core_skill.write_text("Existing core Spec Kit skill\n", encoding="utf-8")
+
+        tool_dir = project / ".test-tools"
+        tool_dir.mkdir()
+        command_log = project / ".initializer-commands.log"
+        if suffix == "cmd":
+            stub = tool_dir / "specify.cmd"
+            stub.write_text(
+                '@echo off\n>>"%PROGRAM_KIT_TEST_LOG%" echo %*\nexit /b 0\n',
+                encoding="utf-8",
+            )
+            command = [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", initializer.name]
+        else:
+            stub = tool_dir / "specify"
+            stub.write_text(
+                '#!/usr/bin/env sh\nprintf \'%s\\n\' "$*" >> "$PROGRAM_KIT_TEST_LOG"\n',
+                encoding="utf-8",
+            )
+            stub.chmod(0o755)
+            bash = shutil.which("bash")
+            if not bash:
+                raise AssertionError("A Bash runner is required to validate the Bash initializer")
+            command = [bash, initializer.name]
+
+        environment = os.environ.copy()
+        for key in ("CODEX_SESSION_ID", "CODEX_THREAD_ID", "CODEX_INTERNAL_ORIGINATOR_OVERRIDE"):
+            environment.pop(key, None)
+        environment["PATH"] = str(tool_dir) + os.pathsep + environment.get("PATH", "")
+        environment["PROGRAM_KIT_TEST_LOG"] = str(command_log)
+
+        completed = subprocess.run(
+            command,
+            cwd=project,
+            env=environment,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if completed.returncode != 0:
+            raise AssertionError(
+                f"{suffix} initializer rejected a populated repository: "
+                f"{completed.stdout}{completed.stderr}"
+            )
+        if design.read_text(encoding="utf-8") != "Existing initial design\n":
+            raise AssertionError("Initializer changed the existing initial design")
+        if application_file.read_text(encoding="utf-8") != "Existing application content\n":
+            raise AssertionError("Initializer changed an unrelated existing project file")
+        if integration_file.read_text(encoding="utf-8") != '{"default_integration":"codex"}\n':
+            raise AssertionError("Initializer test stub changed existing Spec Kit configuration")
+        if core_skill.read_text(encoding="utf-8") != "Existing core Spec Kit skill\n":
+            raise AssertionError("Initializer test stub changed the existing core Spec Kit skill")
+        commands = command_log.read_text(encoding="utf-8")
+        require_phrases(
+            f"Executed {suffix} initializer",
+            commands,
+            (
+                "init . --force --non-interactive --integration codex --script py",
+                "workflow add program-kit-bootstrap",
+                "bundle install program-kit --integration codex",
+            ),
+        )
+
+        command_log.unlink()
+        partial_marker = project / ".specify/workflow-catalogs.yml"
+        partial_marker.write_text(
+            "catalogs:\n  - name: program-kit\n", encoding="utf-8"
+        )
+        rejected = subprocess.run(
+            command,
+            cwd=project,
+            env=environment,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if rejected.returncode != 2:
+            raise AssertionError(
+                f"{suffix} initializer did not reject existing Program Kit: "
+                f"{rejected.stdout}{rejected.stderr}"
+            )
+        require_phrases(
+            f"Existing Program Kit {suffix} diagnostic",
+            rejected.stdout + rejected.stderr,
+            ("Program Kit is already installed", "update commands"),
+        )
+        if command_log.exists():
+            raise AssertionError("Initializer invoked specify after detecting Program Kit")
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     extension_root = root / "extensions/program-kit-governance"
@@ -274,13 +387,17 @@ def main() -> int:
                 "No initial design was required",
                 "INITIAL_DESIGN.md",
                 "not from a Codex Desktop task or interactive Codex CLI agent",
+                "Program Kit is already installed",
             ),
         )
+        if "not empty" in initializer.lower():
+            raise AssertionError(f"{label} still rejects populated repositories")
         reject_workaround(label, initializer)
 
     bash = shutil.which("bash") if os.name != "nt" else None
     if bash:
         subprocess.run([bash, "-n", str(root / "Initialize-ProgramKit.sh")], check=True)
+    validate_populated_repository_initializer(root)
 
     skill = (
         extension_root / "commands/speckit.program-kit-governance.bootstrap.md"
@@ -332,6 +449,25 @@ def main() -> int:
         ),
     )
     reject_workaround("Root Windows guide", root_guidance)
+
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    require_phrases(
+        "Root installation instructions",
+        readme,
+        (
+            "The repository does not need to be empty",
+            "Existing source, documentation, an initial design",
+            "existing Spec Kit initialization are allowed",
+            "existing or partial Program Kit installation",
+            "Invoke-WebRequest",
+            f"releases/download/v{version}/Initialize-ProgramKit-{version}.cmd",
+            ".\\Initialize-ProgramKit.cmd",
+            "curl -fL",
+            f"releases/download/v{version}/Initialize-ProgramKit-{version}.sh",
+            "bash ./Initialize-ProgramKit.sh",
+        ),
+    )
+    reject_workaround("Root installation instructions", readme)
 
     print("Codex bootstrap boundary, Python resolver, and packaged guidance are valid.")
     return 0

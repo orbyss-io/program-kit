@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.4 - 2026-09-01
+
+- Allow the Windows and Bash initializers to run in populated repositories, including repositories
+  that already have Spec Kit, while preserving unrelated project files.
+- Stop before mutation when an existing or partial Program Kit installation is detected, and add
+  native-platform regression coverage for both populated-repository success and repeat-install
+  rejection.
+- Document concrete download and execution commands for both release initializer assets.
+
 ## 0.6.3 - 2026-09-01
 
 - Add a versioned Bash consumer initializer for Linux, macOS, and WSL alongside the Windows command

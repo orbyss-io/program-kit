@@ -10,7 +10,7 @@ The executable behavior lives in Spec Kit extensions and a workflow. `program-ki
 versioned distribution layer: it installs the governance extension, the .NET extension, the
 governance template preset, and the bootstrap workflow as separate components.
 
-## Install in a new repository
+## Install in a repository
 
 Prerequisites:
 
@@ -24,33 +24,59 @@ Prerequisites:
 > `codex` CLI agent to run them. Agent-run setup can create `.agents` and `.specify` under a sandbox
 > identity on Windows, and the outer workflow would also cause nested `codex exec` execution.
 
-From the root of a new repository, copy the initializer for your shell into the otherwise empty
-repository (a pre-existing `.git` directory is allowed), then run it yourself:
+The repository does not need to be empty. Existing source, documentation, an initial design, and an
+existing Spec Kit initialization are allowed. The initializer refreshes Spec Kit's Codex integration
+with the Python script flavor but does not delete unrelated project files; Spec Kit may refresh files
+that it owns or scaffolds. If the initializer detects an existing or partial Program Kit
+installation, it stops before running `specify`; use the update commands instead.
 
-- Windows, including environments that enforce PowerShell `AllSigned`: `Initialize-ProgramKit.cmd`
-- Bash on Linux, macOS, or WSL: `Initialize-ProgramKit.sh`
+Run these steps from the repository root.
 
-```bash
-bash ./Initialize-ProgramKit.sh
-```
+### Windows
 
-On Windows, use the command launcher from a normal PowerShell prompt:
+1. Download the Windows command initializer:
 
-```powershell
-.\Initialize-ProgramKit.cmd
-```
+   ```powershell
+   Invoke-WebRequest `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.4/Initialize-ProgramKit-0.6.4.cmd `
+     -OutFile Initialize-ProgramKit.cmd
+   ```
+
+2. Execute it from a normal user-owned PowerShell prompt:
+
+   ```powershell
+   .\Initialize-ProgramKit.cmd
+   ```
+
+The command script works in Windows environments that enforce PowerShell `AllSigned` because it is
+not a PowerShell script.
+
+### Bash on Linux, macOS, or WSL
+
+1. Download the Bash initializer:
+
+   ```bash
+   curl -fL \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.4/Initialize-ProgramKit-0.6.4.sh \
+     -o Initialize-ProgramKit.sh
+   ```
+
+2. Execute it:
+
+   ```bash
+   bash ./Initialize-ProgramKit.sh
+   ```
 
 Both launchers initialize the Codex integration with Spec Kit's Python runtime, register all
 four catalogs, apply the Spec Kit 1.0.1 workflow workaround, and install Program Kit. They do not
-require or create the initial design; write `INITIAL_DESIGN.md` after initialization when you are
-ready for intake. The Windows launcher is intentionally `.cmd`, so an unsigned PowerShell script
-does not have to run under `AllSigned`. Do not bypass or lower execution policy, broadly unblock
-repository files, or grant unrestricted execution.
+require or create the initial design. If one already exists, it remains in place; otherwise write it
+after initialization when you are ready for intake. Do not bypass or lower execution policy,
+broadly unblock repository files, or grant unrestricted execution.
 
 The equivalent manual sequence is:
 
 ```powershell
-specify init . --integration codex --script py --non-interactive
+specify init . --force --non-interactive --integration codex --script py
 
 specify extension catalog add `
   https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json `
@@ -231,11 +257,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.3.md`](docs/releasing-0.6.3.md).
+[`docs/releasing-0.6.4.md`](docs/releasing-0.6.4.md).
 
 ```powershell
-git tag v0.6.3
-git push origin v0.6.3
+git tag v0.6.4
+git push origin v0.6.4
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -255,8 +281,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.3.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.3.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.4.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.4.zip -Algorithm SHA256
 ```
 
 ## License

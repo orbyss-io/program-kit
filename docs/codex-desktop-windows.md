@@ -32,14 +32,16 @@ shell alternative. The CLI agent is sandboxed too.
 Use a normal terminal owned by the human account:
 
 1. Open PowerShell directly, or open a WSL shell when the repository and toolchain live in WSL.
-2. Change to the repository root.
-3. In a new repository, copy the appropriate root initializer and run it there:
+2. Change to the repository root. Existing project files and an existing Spec Kit initialization
+   are allowed; the initializer stops if Program Kit itself is already or partially installed.
+3. Download the appropriate root initializer from the matching GitHub release and run it there:
 
    - `Initialize-ProgramKit.sh` from Bash in WSL; or
    - `Initialize-ProgramKit.cmd` from PowerShell on Windows, including under `AllSigned`.
 
-   The command launcher works without changing PowerShell execution policy. All variants perform
-   the complete installation, and their Spec Kit initialization is equivalent to:
+   The command launcher works without changing PowerShell execution policy. Both variants perform
+   the complete installation without deleting unrelated repository files, and their Spec Kit
+   initialization is equivalent to:
 
    ```powershell
    specify init . --force --non-interactive --integration codex --script py
