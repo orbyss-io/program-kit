@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -245,21 +247,40 @@ def main() -> int:
     reject_workaround("Workflow-visible agent diagnostic", error_command)
     reject_workaround("Workflow-visible runtime diagnostic", runtime_command)
 
-    initializer = (root / "Initialize-ProgramKit.cmd").read_text(encoding="utf-8")
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
-    require_phrases(
-        "Consumer initializer",
-        initializer,
-        (
+    initializer_expectations = {
+        "cmd": (
             "specify init . --force --non-interactive --integration codex --script py",
             f'set "PROGRAM_KIT_REF=v{version}"',
             "specify workflow add program-kit-bootstrap",
             "specify bundle install program-kit --integration codex",
-            "No initial design was required",
-            "INITIAL_DESIGN.md",
         ),
-    )
-    reject_workaround("Consumer initializer", initializer)
+        "sh": (
+            "specify init . --force --non-interactive --integration codex --script py",
+            f'PROGRAM_KIT_REF="v{version}"',
+            "specify workflow add program-kit-bootstrap",
+            "specify bundle install program-kit --integration codex",
+        ),
+    }
+    for suffix, expected in initializer_expectations.items():
+        label = f"{suffix} consumer initializer"
+        initializer_path = root / f"Initialize-ProgramKit.{suffix}"
+        initializer = initializer_path.read_text(encoding="utf-8")
+        require_phrases(
+            label,
+            initializer,
+            expected
+            + (
+                "No initial design was required",
+                "INITIAL_DESIGN.md",
+                "not from a Codex Desktop task or interactive Codex CLI agent",
+            ),
+        )
+        reject_workaround(label, initializer)
+
+    bash = shutil.which("bash") if os.name != "nt" else None
+    if bash:
+        subprocess.run([bash, "-n", str(root / "Initialize-ProgramKit.sh")], check=True)
 
     skill = (
         extension_root / "commands/speckit.program-kit-governance.bootstrap.md"
@@ -306,6 +327,7 @@ def main() -> int:
             "Copy only the backed-up `INITIAL_DESIGN.md`",
             "Preserve `.git`",
             "Initialize-ProgramKit.cmd",
+            "Initialize-ProgramKit.sh",
             "--script py",
         ),
     )

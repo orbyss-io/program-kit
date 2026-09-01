@@ -64,6 +64,7 @@ jobs:
           subject-path: |
             artifacts/*.zip
             artifacts/*.cmd
+            artifacts/*.sh
             artifacts/SHA256SUMS
 
       - name: Publish GitHub release
@@ -74,6 +75,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             artifacts/*.zip \
             artifacts/*.cmd \
+            artifacts/*.sh \
             artifacts/SHA256SUMS \
             --verify-tag \
             --title "Program Kit $GITHUB_REF_NAME" \

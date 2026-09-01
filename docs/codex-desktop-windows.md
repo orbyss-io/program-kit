@@ -33,16 +33,22 @@ Use a normal terminal owned by the human account:
 
 1. Open PowerShell directly, or open a WSL shell when the repository and toolchain live in WSL.
 2. Change to the repository root.
-3. In a new repository, copy `Initialize-ProgramKit.cmd` to the root and run it there. The command
-   script works without changing PowerShell execution policy and performs the complete installation.
-   Its Spec Kit initialization is equivalent to:
+3. In a new repository, copy the appropriate root initializer and run it there:
+
+   - `Initialize-ProgramKit.sh` from Bash in WSL; or
+   - `Initialize-ProgramKit.cmd` from PowerShell on Windows, including under `AllSigned`.
+
+   The command launcher works without changing PowerShell execution policy. All variants perform
+   the complete installation, and their Spec Kit initialization is equivalent to:
 
    ```powershell
    specify init . --force --non-interactive --integration codex --script py
    ```
 
    For a manual installation, use the same `--script py` option before catalog registration and
-   Program Kit installation. Program Kit requires Python and uses this resolver consistently.
+   Program Kit installation. Program Kit requires Python and uses this resolver consistently. Do
+   not bypass or lower `AllSigned`, broadly unblock repository files, or grant unrestricted
+   execution.
 4. Run `specify workflow run program-kit-bootstrap ...` there.
 5. Let Spec Kit launch its `codex exec` workflow workers. Those workers remain sandboxed.
 6. Run each human-reviewed `specify workflow resume ...` command from the same normal shell.

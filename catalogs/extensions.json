@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-08-31T00:00:00Z",
+  "updated_at": "2026-09-01T00:00:00Z",
   "catalog_url": "https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json",
   "extensions": {
     "program-kit-governance": {
@@ -8,8 +8,8 @@
       "id": "program-kit-governance",
       "description": "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery.",
       "author": "Orbyss",
-      "version": "0.6.2",
-      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.6.2/program-kit-governance-0.6.2.zip",
+      "version": "0.6.3",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.6.3/program-kit-governance-0.6.3.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "homepage": "https://github.com/orbyss-io/program-kit",
       "documentation": "https://github.com/orbyss-io/program-kit/blob/main/README.md",
@@ -32,8 +32,8 @@
       "id": "program-kit-dotnet",
       "description": "Provides the default .NET engineering baseline, runtime guidance, and reviewable managed-file synchronization.",
       "author": "Orbyss",
-      "version": "0.6.2",
-      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.6.2/program-kit-dotnet-0.6.2.zip",
+      "version": "0.6.3",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.6.3/program-kit-dotnet-0.6.3.zip",
       "repository": "https://github.com/orbyss-io/program-kit",
       "homepage": "https://github.com/orbyss-io/program-kit",
       "documentation": "https://github.com/orbyss-io/program-kit/blob/main/docs/dotnet-runtime.md",

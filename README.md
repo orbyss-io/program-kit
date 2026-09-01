@@ -24,21 +24,28 @@ Prerequisites:
 > `codex` CLI agent to run them. Agent-run setup can create `.agents` and `.specify` under a sandbox
 > identity on Windows, and the outer workflow would also cause nested `codex exec` execution.
 
-From the root of a new repository, initialize Spec Kit and register the four Program Kit catalogs:
+From the root of a new repository, copy the initializer for your shell into the otherwise empty
+repository (a pre-existing `.git` directory is allowed), then run it yourself:
 
-The shortest supported Windows path is the root initializer. Copy `Initialize-ProgramKit.cmd` into
-an otherwise empty repository (a pre-existing `.git` directory is allowed) and run it from a normal
-user-owned PowerShell prompt:
+- Windows, including environments that enforce PowerShell `AllSigned`: `Initialize-ProgramKit.cmd`
+- Bash on Linux, macOS, or WSL: `Initialize-ProgramKit.sh`
+
+```bash
+bash ./Initialize-ProgramKit.sh
+```
+
+On Windows, use the command launcher from a normal PowerShell prompt:
 
 ```powershell
 .\Initialize-ProgramKit.cmd
 ```
 
-The command script is intentionally not a PowerShell script, so an organization-wide PowerShell
-script-signing policy does not have to be weakened to run it. It initializes the Codex integration
-with Spec Kit's Python runtime, registers all four catalogs, applies the Spec Kit 1.0.1 workflow
-workaround, and installs Program Kit. It does not require or create the initial design; write
-`INITIAL_DESIGN.md` after initialization when you are ready for intake.
+Both launchers initialize the Codex integration with Spec Kit's Python runtime, register all
+four catalogs, apply the Spec Kit 1.0.1 workflow workaround, and install Program Kit. They do not
+require or create the initial design; write `INITIAL_DESIGN.md` after initialization when you are
+ready for intake. The Windows launcher is intentionally `.cmd`, so an unsigned PowerShell script
+does not have to run under `AllSigned`. Do not bypass or lower execution policy, broadly unblock
+repository files, or grant unrestricted execution.
 
 The equivalent manual sequence is:
 
@@ -224,11 +231,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.2.md`](docs/releasing-0.6.2.md).
+[`docs/releasing-0.6.3.md`](docs/releasing-0.6.3.md).
 
 ```powershell
-git tag v0.6.2
-git push origin v0.6.2
+git tag v0.6.3
+git push origin v0.6.3
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -240,14 +247,16 @@ The release workflow validates all manifests and catalog metadata, creates deter
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.
 - `program-kit-governance-preset-<version>.zip`: standalone governance template preset.
 - `program-kit-bootstrap-<version>.zip`: standalone bootstrap workflow package.
-- `Initialize-ProgramKit-<version>.cmd`: copyable Windows consumer initializer that selects the Python Spec Kit runtime.
+- `Initialize-ProgramKit-<version>.sh`: copyable Bash initializer for Linux, macOS, and WSL.
+- `Initialize-ProgramKit-<version>.cmd`: Windows initializer compatible with PowerShell
+  `AllSigned` environments because it is a command script, not a PowerShell script.
 - `SHA256SUMS`: exact artifact digests.
 
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.3.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.3.zip -Algorithm SHA256
 ```
 
 ## License

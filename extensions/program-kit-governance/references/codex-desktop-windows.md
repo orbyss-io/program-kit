@@ -24,10 +24,14 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 
 1. Open PowerShell directly, or WSL when the repository lives in WSL.
 2. Change to the repository root.
-3. For a new repository, run the copied `Initialize-ProgramKit.cmd` root initializer. It selects the
-   Python Spec Kit runtime and performs catalog registration and Program Kit installation without an
-   initial design. The equivalent initialization command is `specify init . --force
-   --non-interactive --integration codex --script py`.
+3. For a new repository, run the copied root initializer: `Initialize-ProgramKit.sh` from Bash in
+   WSL, or `Initialize-ProgramKit.cmd` from PowerShell on Windows, including under `AllSigned`. The
+   command launcher requires no
+   execution-policy change. Every variant selects the Python Spec Kit runtime and performs catalog
+   registration and Program Kit installation without an initial design. The equivalent
+   initialization command is `specify init . --force --non-interactive --integration codex
+   --script py`. Never bypass or lower `AllSigned`, broadly unblock repository files, or grant
+   unrestricted execution.
 4. Start the outer workflow yourself:
 
    ```powershell

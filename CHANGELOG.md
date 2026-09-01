@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.3 - 2026-09-01
+
+- Add a versioned Bash consumer initializer for Linux, macOS, and WSL alongside the Windows command
+  launcher, which remains compatible with environments that enforce PowerShell `AllSigned`.
+- Package, attest, checksum, document, and regression-test both initializer variants as part
+  of every release.
+
 ## 0.6.2 - 2026-09-01
 
 - Make the simulated Windows signing-policy regression self-contained on Linux release runners by

@@ -56,14 +56,27 @@ def main() -> int:
     preset_zip = root / "artifacts" / f"program-kit-governance-preset-{version}.zip"
     workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
     bundle_zip = root / "artifacts" / f"program-kit-{version}.zip"
-    initializer = root / "artifacts" / f"Initialize-ProgramKit-{version}.cmd"
+    initializers = {
+        suffix: root / "artifacts" / f"Initialize-ProgramKit-{version}.{suffix}"
+        for suffix in ("cmd", "sh")
+    }
     if not all(
         path.is_file()
-        for path in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip, initializer)
+        for path in (
+            extension_zip,
+            dotnet_zip,
+            preset_zip,
+            workflow_zip,
+            bundle_zip,
+            *initializers.values(),
+        )
     ):
         raise FileNotFoundError("Build release assets before running the install test")
-    if initializer.read_bytes() != (root / "Initialize-ProgramKit.cmd").read_bytes():
-        raise AssertionError("Versioned consumer initializer differs from the root template")
+    for suffix, initializer in initializers.items():
+        if initializer.read_bytes() != (root / f"Initialize-ProgramKit.{suffix}").read_bytes():
+            raise AssertionError(
+                f"Versioned {suffix} consumer initializer differs from the root template"
+            )
 
     for release_zip in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:

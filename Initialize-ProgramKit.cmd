@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.6.2"
+set "PROGRAM_KIT_REF=v0.6.3"
 
 rem Program Kit consumer bootstrap for a new repository.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
