@@ -51,12 +51,15 @@ EXPECTED_STEPS = [
     "architecture",
     "tooling",
     "specification-roadmap",
+    "synchronize-roadmap",
+    "validate-bootstrap-consistency",
     "validate-bootstrap",
     "write-bootstrap-review",
     "review-bootstrap",
     "accept-bootstrap",
     "readiness",
     "complete-bootstrap",
+    "report-completion-result",
 ]
 
 

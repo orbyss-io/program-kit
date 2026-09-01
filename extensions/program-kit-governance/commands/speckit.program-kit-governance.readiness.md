@@ -27,13 +27,17 @@ Inspect the ratified constitution, initial design, architecture baseline, decisi
 technology radar, tooling evaluation, quality system, specification roadmap, and traceability model.
 Report `READY`, `CONDITIONALLY READY`, or `NOT READY`.
 
-Write `docs/architecture/readiness-report.md` with an exact first metadata line of
+Write `docs/architecture/readiness-report.md` beginning at byte zero with an exact first line of
 `**Status**: READY`, `**Status**: CONDITIONALLY READY`, or `**Status**: NOT READY`, followed by the
 evidence, remaining triggered decisions, and next specification. The deterministic workflow
 completion step accepts only the exact READY status and independently validates ratification,
 bootstrap approval, artifact hashes, and a Ready roadmap entry.
 
 `READY` requires that implementation-blocking architecture decisions are Accepted, significant risks have owners and verification, technology statuses are honest, architecture views are internally consistent, and the first specification can be written without smuggling in an unreviewed architecture choice.
+
+Treat `docs/architecture/specification-roadmap.md` as the sole authority for roadmap-entry status.
+The marked roadmap views in architecture and traceability are deterministic derived navigation;
+report anything else that copies or contradicts roadmap status as not ready.
 
 The first specification must be a viable vertical slice with an actor, trigger or intent, owner,
 observable outcome, contracts, material failure paths, and verification, or it must carry a justified

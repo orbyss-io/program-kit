@@ -41,8 +41,8 @@ try {
         throw 'Installed workflow definition was not found.'
     }
     $stepCount = @(Select-String -LiteralPath $installedWorkflow -Pattern '^  - id:').Count
-    if ($stepCount -ne 22) {
-        throw "Installed workflow exposes $stepCount steps; expected 22."
+    if ($stepCount -ne 25) {
+        throw "Installed workflow exposes $stepCount steps; expected 25."
     }
 
     $constitutionSkill = '.agents\skills\speckit-constitution\SKILL.md'

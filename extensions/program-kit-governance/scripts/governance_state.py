@@ -12,6 +12,8 @@ from pathlib import Path
 CONSTITUTION = Path(".specify/memory/constitution.md")
 RATIFICATION = Path(".specify/memory/constitution-ratification.json")
 ROADMAP = Path("docs/architecture/specification-roadmap.md")
+ARCHITECTURE = Path("docs/architecture/architecture.md")
+TRACEABILITY = Path("docs/architecture/traceability.md")
 DECISIONS = Path("docs/architecture/decisions")
 ASSESSMENT = Path("docs/architecture/bootstrap-assessment.md")
 DECISION_BACKLOG = Path("docs/architecture/decision-backlog.md")
@@ -37,6 +39,8 @@ WORKFLOW_REGISTRY = Path(".specify/workflows/workflow-registry.json")
 BUNDLE_RECORDS = Path(".specify/bundle-records.json")
 INTEGRATION_STATE = Path(".specify/integration.json")
 STATUSES = {"Candidate", "Blocked", "Ready", "Active", "Delivered", "Superseded"}
+ROADMAP_VIEW_START = "<!-- PROGRAM-KIT:ROADMAP-VIEW:START -->"
+ROADMAP_VIEW_END = "<!-- PROGRAM-KIT:ROADMAP-VIEW:END -->"
 REQUIRED_RECORD_FIELDS = {
     "User-visible outcome",
     "Scope",
@@ -72,10 +76,10 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
     """Resolve configurable roadmap and decision paths at operation time."""
     return (
         Path("docs/architecture/README.md"),
-        Path("docs/architecture/architecture.md"),
+        ARCHITECTURE,
         Path("docs/architecture/quality-attributes.md"),
         Path("docs/architecture/technology-radar.md"),
-        Path("docs/architecture/traceability.md"),
+        TRACEABILITY,
         DECISION_BACKLOG,
         TOOLING_EVALUATION,
         Path("docs/architecture/quality-system.md"),
@@ -931,6 +935,7 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
                     "The accepted .NET baseline must adopt ProgramKit.Host unless intake explicitly opts out"
                 )
     validate_roadmap(require_ready)
+    validate_bootstrap_consistency()
     if require_approval:
         path = project_path(BOOTSTRAP_APPROVAL)
         record = read_json(path)
@@ -969,8 +974,8 @@ def complete_bootstrap() -> None:
     if not report.is_file():
         raise GovernanceStateError(f"Readiness report is missing: {report}")
     text = report.read_text(encoding="utf-8")
-    if not re.search(r"^\*\*Status\*\*:\s*READY\s*$", text, re.MULTILINE):
-        raise GovernanceStateError("Readiness report must declare '**Status**: READY'")
+    if not text.startswith("**Status**: READY\n"):
+        raise GovernanceStateError("Readiness report must begin with '**Status**: READY'")
     write_json(
         project_path(BOOTSTRAP_COMPLETION),
         {
@@ -985,6 +990,31 @@ def complete_bootstrap() -> None:
         },
     )
     print(f"Program Kit bootstrap is deterministically complete: {project_path(BOOTSTRAP_COMPLETION)}")
+
+
+def validate_completion() -> None:
+    """Validate the completion record against the current approved artifacts."""
+    validate_bootstrap(True, True)
+    report = project_path(READINESS_REPORT)
+    if not report.is_file() or not report.read_text(encoding="utf-8").startswith(
+        "**Status**: READY\n"
+    ):
+        raise GovernanceStateError("Readiness report must begin with '**Status**: READY'")
+    record = read_json(project_path(BOOTSTRAP_COMPLETION))
+    expected = {
+        "schema_version": "1.0",
+        "status": "Completed",
+        "constitution_sha256": sha256(project_path(CONSTITUTION)),
+        "bootstrap_approval_sha256": sha256(project_path(BOOTSTRAP_APPROVAL)),
+        "readiness_report": {
+            "path": READINESS_REPORT.as_posix(),
+            "sha256": sha256(report),
+        },
+    }
+    if record != expected:
+        raise GovernanceStateError(
+            "Bootstrap completion record does not match the current constitution, approval, and readiness report"
+        )
 
 
 def accepted_adr(adr_id: str) -> bool:
@@ -1061,6 +1091,111 @@ def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
     return records
 
 
+def _roadmap_view(records: list[dict[str, str]]) -> str:
+    lines = [
+        ROADMAP_VIEW_START,
+        "## Specification roadmap view",
+        "",
+        (
+            "> Derived navigation view only. "
+            f"`{ROADMAP.as_posix()}` is the authoritative source for roadmap-entry status."
+        ),
+        "",
+        "| Roadmap entry | Title | Authoritative status |",
+        "| --- | --- | --- |",
+    ]
+    for record in records:
+        title = record["title"].replace("|", "\\|").replace("`", "'")
+        lines.append(f"| `{record['id']}` | {title} | `{record['Status']}` |")
+    lines.extend([ROADMAP_VIEW_END, ""])
+    return "\n".join(lines)
+
+
+def _replace_roadmap_view(text: str, view: str, path: Path) -> str:
+    starts = [match.start() for match in re.finditer(re.escape(ROADMAP_VIEW_START), text)]
+    ends = [match.end() for match in re.finditer(re.escape(ROADMAP_VIEW_END), text)]
+    if len(starts) != len(ends) or len(starts) > 1:
+        raise GovernanceStateError(f"{path} has malformed Program Kit roadmap-view markers")
+    if starts:
+        if starts[0] >= ends[0]:
+            raise GovernanceStateError(f"{path} has out-of-order Program Kit roadmap-view markers")
+        before = text[: starts[0]].rstrip()
+        after = text[ends[0] :].strip()
+        return before + "\n\n" + view + ("\n" + after + "\n" if after else "")
+    return text.rstrip() + "\n\n" + view
+
+
+def synchronize_roadmap_views() -> None:
+    """Refresh non-authoritative roadmap navigation in architecture documents."""
+    records = validate_roadmap(False)
+    _require_files((ARCHITECTURE, TRACEABILITY), "Roadmap synchronization")
+    view = _roadmap_view(records)
+    updates: list[tuple[Path, str]] = []
+    for relative in (ARCHITECTURE, TRACEABILITY):
+        path = project_path(relative)
+        updates.append(
+            (path, _replace_roadmap_view(path.read_text(encoding="utf-8"), view, relative))
+        )
+    for path, updated in updates:
+        write_text(path, updated)
+    print(
+        "Synchronized derived roadmap views in "
+        f"{ARCHITECTURE.as_posix()} and {TRACEABILITY.as_posix()}"
+    )
+
+
+def _without_roadmap_view(text: str, path: Path) -> tuple[str, str]:
+    start = text.find(ROADMAP_VIEW_START)
+    end = text.find(ROADMAP_VIEW_END)
+    if start < 0 or end < 0 or end < start:
+        raise GovernanceStateError(f"{path} has no valid synchronized roadmap view")
+    if text.find(ROADMAP_VIEW_START, start + 1) >= 0 or text.find(ROADMAP_VIEW_END, end + 1) >= 0:
+        raise GovernanceStateError(f"{path} has duplicate synchronized roadmap views")
+    end += len(ROADMAP_VIEW_END)
+    return text[:start] + text[end:], text[start:end] + "\n"
+
+
+def validate_bootstrap_consistency() -> None:
+    """Prove that roadmap authority and its two derived architecture views agree."""
+    records = validate_roadmap(False)
+    expected_view = _roadmap_view(records)
+    stale_claims = re.compile(
+        r"(?:created\s+later\s+by\s+(?:the\s+)?roadmap|no\s+roadmap\s+record\s+exists)",
+        re.IGNORECASE,
+    )
+    for relative in (ARCHITECTURE, TRACEABILITY):
+        path = project_path(relative)
+        if not path.is_file():
+            raise GovernanceStateError(f"Cross-artifact consistency file is missing: {path}")
+        outside, actual_view = _without_roadmap_view(
+            path.read_text(encoding="utf-8"), relative
+        )
+        if actual_view != expected_view:
+            raise GovernanceStateError(
+                f"{relative} roadmap view is stale; run synchronize-roadmap after roadmap generation"
+            )
+        if stale_claims.search(outside):
+            raise GovernanceStateError(
+                f"{relative} still claims the generated specification roadmap does not exist"
+            )
+        for number, line in enumerate(outside.splitlines(), 1):
+            for record in records:
+                if record["id"] not in line:
+                    continue
+                copied_status = re.search(
+                    r"(?:\*\*Status\*\*\s*:|\bstatus\s*[:=]|\|)\s*"
+                    r"(Candidate|Blocked|Ready|Active|Delivered|Superseded)\b",
+                    line,
+                    re.IGNORECASE,
+                )
+                if copied_status:
+                    raise GovernanceStateError(
+                        f"{relative}:{number} duplicates authoritative status for {record['id']}; "
+                        f"keep status only in {ROADMAP.as_posix()} and the synchronized derived view"
+                    )
+    print("Architecture, roadmap, and traceability roadmap views are consistent")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate Program Kit governance state")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1077,6 +1212,8 @@ def main() -> int:
     validate_parser.add_argument("--require-ready", action="store_true")
     roadmap_parser = subparsers.add_parser("validate-roadmap")
     roadmap_parser.add_argument("--require-ready", action="store_true")
+    subparsers.add_parser("synchronize-roadmap")
+    subparsers.add_parser("validate-bootstrap-consistency")
     review_parser = subparsers.add_parser("write-review")
     review_parser.add_argument(
         "--stage", required=True, choices=("assessment", "constitution", "bootstrap")
@@ -1087,6 +1224,7 @@ def main() -> int:
     accept_bootstrap_parser = subparsers.add_parser("accept-bootstrap")
     accept_bootstrap_parser.add_argument("--verdict", required=True)
     subparsers.add_parser("complete-bootstrap")
+    subparsers.add_parser("validate-completion")
     args = parser.parse_args()
     try:
         configure_paths()
@@ -1118,6 +1256,10 @@ def main() -> int:
             elif args.command == "validate-roadmap":
                 validate_roadmap(args.require_ready)
                 print("Specification roadmap is valid")
+            elif args.command == "synchronize-roadmap":
+                synchronize_roadmap_views()
+            elif args.command == "validate-bootstrap-consistency":
+                validate_bootstrap_consistency()
             elif args.command == "write-review":
                 write_review(args.stage)
             elif args.command == "validate-bootstrap":
@@ -1127,6 +1269,8 @@ def main() -> int:
                 accept_bootstrap(args.verdict)
             elif args.command == "complete-bootstrap":
                 complete_bootstrap()
+            elif args.command == "validate-completion":
+                validate_completion()
     except GovernanceStateError as exc:
         print(f"governance state error: {exc}", file=sys.stderr)
         return 1

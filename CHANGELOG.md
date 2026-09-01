@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.6.9 - 2026-09-01
+
+- Make `docs/architecture/specification-roadmap.md` the sole authority for roadmap-entry lifecycle
+  status and prohibit copied status fields in architecture and traceability prose or tables.
+- Synchronize marked derived roadmap views into `architecture.md` and `traceability.md`, then run a
+  deterministic cross-artifact consistency validator before generating the final bootstrap review
+  packet or hash-bound approval.
+- Preserve blocked and unresolved roadmap entries: synchronization copies justified roadmap status
+  and never promotes an entry.
+- Require the readiness report to begin with the exact `**Status**: READY` line before deterministic
+  completion, and add validation for completion-record hashes.
+- Surface captured `complete-bootstrap` stderr through the workflow failure gate instead of losing
+  the governance diagnostic behind Spec Kit 1.0.1's generic shell-exit summary.
+- Add a packaged clean-consumer regression covering a legitimate Ready slice, synchronized views,
+  READY reporting, successful completion evidence, and completion hash verification.
+- Document safe recovery for approved 0.6.8 runs: update Program Kit, start a new workflow run over
+  the existing repository, and obtain fresh review and approval rather than editing or resuming the
+  persisted old workflow.
+
 ## 0.6.8 - 2026-09-01
 
 - Make both consumer initializers fail before dependency installation or repository setup when Git

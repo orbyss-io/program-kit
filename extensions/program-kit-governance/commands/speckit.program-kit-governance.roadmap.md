@@ -27,6 +27,12 @@ Create or update `docs/architecture/specification-roadmap.md`. This is a portfol
 of candidate specifications—not an implementable feature specification and never an input to
 `speckit.implement`.
 
+This file is the sole authoritative source for roadmap-entry lifecycle status. After writing it,
+update `docs/architecture/architecture.md` and `docs/architecture/traceability.md` so they contain no
+copied status fields or tables for roadmap entries and no stale claims that a roadmap record does not
+yet exist. Preserve their design, decision, ownership, and verification traceability. Do not write or
+edit the marked `PROGRAM-KIT:ROADMAP-VIEW` section; the deterministic synchronization step owns it.
+
 For each record use the heading `### <ID>: <Title>` and include exactly these bold fields:
 
 - **User-visible outcome**
@@ -55,5 +61,10 @@ After writing the roadmap, run:
 ```text
 {SCRIPT} validate-roadmap
 ```
+
+Do not promote a record merely to make bootstrap pass. Keep a record `Candidate` or `Blocked` when
+its required ADR, dependency, ownership, contract, lifecycle, data, quality, or verification evidence
+is unresolved. The later synchronization step only copies the status already justified here; it
+never chooses or promotes a status.
 
 Report blocked records and the exact design task or ADR that can unlock each one.

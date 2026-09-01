@@ -35,7 +35,8 @@ create the remaining missing artifacts under `docs/architecture/`:
 - `quality-attributes.md`: measurable scenarios and verification methods.
 - `technology-radar.md`: proposed, accepted, deprecated, and rejected technologies with ADR links.
 - `traceability.md`: design -> decision -> specification -> plan -> implementation -> verification.
-- `specification-roadmap.md`: created later by the roadmap command after tooling; architecture establishes the candidate slice and decision evidence it consumes.
+- `specification-roadmap.md`: created later by the roadmap command after tooling; architecture establishes
+  slice identity and decision evidence, but never owns or copies roadmap-entry lifecycle status.
 - `decisions/README.md` and an ADR template.
 
 Create `decisions/bootstrap-baseline.md` as a consolidated Accepted decision recording the exact
@@ -61,6 +62,13 @@ The architecture baseline must also define:
 - the distinction between compile-time modules, runtime features, shells, and endpoints;
 - shared-kernel and feature-family extension policies, including exact Accepted exceptions;
 - how the first specification delivers an observable vertical slice rather than technical layers.
+
+`docs/architecture/specification-roadmap.md` is the sole authority for `Candidate`, `Blocked`,
+`Ready`, `Active`, `Delivered`, and `Superseded` roadmap-entry status. Before roadmap generation,
+architecture and traceability may describe provisional slice identity, scope, dependencies, and
+decision evidence, but must not assign a roadmap status or claim that a future roadmap record is an
+authoritative current state. The deterministic post-roadmap synchronization step owns the marked
+derived navigation view in both files.
 
 ## Decision policy
 

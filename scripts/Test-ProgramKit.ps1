@@ -46,6 +46,11 @@ if (-not $SkipBuild) {
         throw 'Release build failed.'
     }
 
+    & $python (Join-Path $projectRoot 'tests\validate_bootstrap_consistency_e2e.py')
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Clean-consumer bootstrap consistency validation failed.'
+    }
+
     & $python (Join-Path $projectRoot 'tests\validate_release_install.py')
     if ($LASTEXITCODE -ne 0) {
         throw 'Packaged component and bundle-graph installation test failed.'

@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.6.8"
+  version: "0.6.9"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -140,6 +140,14 @@ steps:
     input:
       args: "{{ inputs.initial_design }}"
 
+  - id: synchronize-roadmap
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py synchronize-roadmap"
+
+  - id: validate-bootstrap-consistency
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-bootstrap-consistency"
+
   - id: validate-bootstrap
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-bootstrap"
@@ -170,3 +178,16 @@ steps:
   - id: complete-bootstrap
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py complete-bootstrap"
+    continue_on_error: true
+
+  - id: report-completion-result
+    type: switch
+    expression: "{{ steps.complete-bootstrap.output.exit_code }}"
+    cases:
+      "0": []
+    default:
+      - id: confirm-completion-failure
+        type: gate
+        message: "Bootstrap completion failed. complete-bootstrap stderr: {{ steps.complete-bootstrap.output.stderr }}"
+        options: [abort]
+        on_reject: abort

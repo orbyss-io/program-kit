@@ -354,18 +354,45 @@ def main() -> int:
                 "exact approved decision-register hash",
             )
             baseline_path.write_text(baseline_text, encoding="utf-8")
+            architecture_path = project / module.ARCHITECTURE
+            traceability_path = project / module.TRACEABILITY
+            architecture_path.write_text(
+                architecture_path.read_text(encoding="utf-8")
+                + "\n| Slice | Status |\n| --- | --- |\n| SPEC-001 | Candidate |\n",
+                encoding="utf-8",
+            )
+            traceability_path.write_text(
+                traceability_path.read_text(encoding="utf-8")
+                + "\nSPEC-001: no roadmap record exists; Created later by roadmap.\n",
+                encoding="utf-8",
+            )
+            module.synchronize_roadmap_views()
+            expect_error(
+                module,
+                module.validate_bootstrap_consistency,
+                "duplicates authoritative status",
+            )
+            architecture_path.write_text(
+                "# Architecture\n\nProgramKit.Host is the accepted runtime.\n",
+                encoding="utf-8",
+            )
+            traceability_path.write_text("# Traceability\n", encoding="utf-8")
+            module.synchronize_roadmap_views()
+            module.validate_bootstrap_consistency()
             module.validate_bootstrap(False, True)
             module.write_review("bootstrap")
             assert_review_packet(project / module.BOOTSTRAP_REVIEW, "bootstrap")
             module.accept_bootstrap("approve")
             readiness = project / module.READINESS_REPORT
-            readiness.write_text("# Readiness\n\n**Status**: READY\n", encoding="utf-8")
+            readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")
             module.complete_bootstrap()
+            module.validate_completion()
             completion = json.loads((project / module.BOOTSTRAP_COMPLETION).read_text(encoding="utf-8"))
             if completion.get("status") != "Completed":
                 raise AssertionError("Bootstrap completion evidence was not written")
 
             roadmap_path.write_text(roadmap("ADR-0042", status="Active"), encoding="utf-8")
+            module.synchronize_roadmap_views()
             expect_error(
                 module,
                 lambda: module.validate_bootstrap(True, False),

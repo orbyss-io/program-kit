@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.8/Initialize-ProgramKit-0.6.8.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.9/Initialize-ProgramKit-0.6.9.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.8/Initialize-ProgramKit-0.6.8.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.9/Initialize-ProgramKit-0.6.9.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -148,6 +148,12 @@ specify workflow run program-kit-bootstrap `
   --input initial_design=./path/to/your-design.md `
   --input integration=auto
 ```
+
+If a Program Kit 0.6.8 run reached final approval but failed completion because architecture,
+roadmap, and traceability disagree, do not edit approved files or resume that run's persisted old
+workflow. Follow the fresh hash-bound recovery procedure in
+[`docs/bootstrap-recovery.md`](docs/bootstrap-recovery.md); it updates Program Kit and starts a new
+workflow run over the existing repository, so cleaning or reinitializing is unnecessary.
 
 ### Codex Desktop, CLI agents, and native Windows
 
@@ -274,11 +280,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.8.md`](docs/releasing-0.6.8.md).
+[`docs/releasing-0.6.9.md`](docs/releasing-0.6.9.md).
 
 ```powershell
-git tag v0.6.8
-git push origin v0.6.8
+git tag v0.6.9
+git push origin v0.6.9
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -298,8 +304,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.8.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.8.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.9.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.9.zip -Algorithm SHA256
 ```
 
 ## License

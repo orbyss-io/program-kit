@@ -45,6 +45,9 @@ jobs:
       - name: Build release assets
         run: python scripts/build_release.py
 
+      - name: Validate clean-consumer bootstrap consistency
+        run: python tests/validate_bootstrap_consistency_e2e.py
+
       - name: Test packaged components and bundle graph
         run: python tests/validate_release_install.py
 

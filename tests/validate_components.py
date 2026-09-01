@@ -26,12 +26,15 @@ EXPECTED_STEPS = [
     "architecture",
     "tooling",
     "specification-roadmap",
+    "synchronize-roadmap",
+    "validate-bootstrap-consistency",
     "validate-bootstrap",
     "write-bootstrap-review",
     "review-bootstrap",
     "accept-bootstrap",
     "readiness",
     "complete-bootstrap",
+    "report-completion-result",
 ]
 EXPECTED_HOOKS = {
     "before_constitution",
@@ -243,6 +246,8 @@ def main() -> int:
     require_text(
         extension_root / "commands/speckit.program-kit-governance.roadmap.md",
         "docs/architecture/specification-roadmap.md",
+        "sole authoritative source",
+        "PROGRAM-KIT:ROADMAP-VIEW",
         "Required Accepted ADRs",
         "Design tasks remain separate",
     )
@@ -270,8 +275,37 @@ def main() -> int:
         "specify bundle update program-kit --integration",
         "validate_bootstrap_decisions()",
         "complete_bootstrap()",
+        "synchronize_roadmap_views()",
+        "validate_bootstrap_consistency()",
+        "validate_completion()",
         "PENDING_RATIFICATION",
     )
+
+    roadmap_step = next(step for step in steps if step["id"] == "specification-roadmap")
+    sync_step = next(step for step in steps if step["id"] == "synchronize-roadmap")
+    consistency_step = next(
+        step for step in steps if step["id"] == "validate-bootstrap-consistency"
+    )
+    final_review = step_ids.index("write-bootstrap-review")
+    if not (
+        step_ids.index(roadmap_step["id"])
+        < step_ids.index(sync_step["id"])
+        < step_ids.index(consistency_step["id"])
+        < final_review
+    ):
+        raise AssertionError(
+            "Roadmap synchronization and consistency validation must precede the final review packet"
+        )
+    completion = next(step for step in steps if step["id"] == "complete-bootstrap")
+    completion_result = next(
+        step for step in steps if step["id"] == "report-completion-result"
+    )
+    failure_gate = completion_result.get("default", [{}])[0]
+    if (
+        completion.get("continue_on_error") is not True
+        or "steps.complete-bootstrap.output.stderr" not in failure_gate.get("message", "")
+    ):
+        raise AssertionError("Completion failure routing must display complete-bootstrap stderr")
     require_text(
         preset_path.parent / "templates/spec-governance.md",
         "User-visible vertical outcome",
