@@ -37,9 +37,11 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 
    ```powershell
    specify workflow run program-kit-bootstrap `
-     --input initial_design=./INITIAL_DESIGN.md `
+     --input initial_design=./path/to/your-design.md `
      --input integration=codex
    ```
+
+   The design filename and location are user-chosen; pass the actual path through `initial_design`.
 
 5. Let Spec Kit launch the sandboxed `codex exec` workers.
 6. Review every generated artifact and run each `specify workflow resume ...` from the same normal
@@ -59,15 +61,15 @@ execution.
 
 ## Existing affected repository
 
-Rerunning `specify init` alone does not repair ownership. Close Codex, back up `INITIAL_DESIGN.md`
-outside the repository, and inspect `git status`, `git log --oneline`, and `git remote -v` from a
-normal shell.
+Rerunning `specify init` alone does not repair ownership. Close Codex, back up the user-selected
+initial-design file and any other uncommitted work outside the repository, and inspect `git status`,
+`git log --oneline`, and `git remote -v` from a normal shell.
 
 Prefer a new user-owned working copy while preserving history:
 
 - Clone the remote with `--no-checkout`, or use `git clone --no-hardlinks --no-checkout` from the
   affected local repository when it contains history not available remotely.
-- Copy only the backed-up `INITIAL_DESIGN.md` into the new working copy.
+- Copy only the backed-up design file and other reviewed uncommitted work into the new working copy.
 - Confirm the normal user owns the new directory and `.git`, and review `git status` before any
   commit.
 - Run initialization and Program Kit setup from that normal shell.

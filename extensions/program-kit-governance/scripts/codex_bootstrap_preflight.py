@@ -208,7 +208,7 @@ independent reason not to start the outer workflow from an agent.
 Open a normal PowerShell or WSL terminal yourself, change to the repository
 root, and run the full command there, for example:
 
-  specify workflow run program-kit-bootstrap --input initial_design=./INITIAL_DESIGN.md --input integration=codex
+  specify workflow run program-kit-bootstrap --input initial_design=./path/to/your-design.md --input integration=codex
 
 Do not ask this agent to run that command outside its sandbox, approve an
 escalation exception, install an approval rule, or start another interactive

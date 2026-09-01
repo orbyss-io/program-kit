@@ -32,9 +32,12 @@ The command normally has this form:
 
 ```powershell
 specify workflow run program-kit-bootstrap `
-  --input initial_design=./INITIAL_DESIGN.md `
+  --input initial_design=./path/to/your-design.md `
   --input integration=codex
 ```
+
+The example path is illustrative. Always substitute the exact path supplied by the user; do not
+assume a filename or search for a conventionally named design file.
 
 Do not request outside-sandbox or escalated execution, propose an approval exception, create or
 install a Codex rule, wrap the command in another shell, or start a new interactive `codex` agent to

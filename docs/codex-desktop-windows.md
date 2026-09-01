@@ -60,9 +60,11 @@ Example outer command:
 
 ```powershell
 specify workflow run program-kit-bootstrap `
-  --input initial_design=./INITIAL_DESIGN.md `
+  --input initial_design=./path/to/your-design.md `
   --input integration=codex
 ```
+
+The design filename and location are user-chosen; pass the actual path through `initial_design`.
 
 If the installed bootstrap skill is invoked inside Codex, it only formats this command and tells the
 user where to run it. It must not execute the command, request an agent exception, or create a
@@ -85,7 +87,8 @@ recreate the working copy under the normal user account.
 Before changing anything:
 
 1. Close Codex tasks using the repository.
-2. Copy `INITIAL_DESIGN.md` to a safe location outside the affected tree.
+2. Copy the user-selected initial-design file and any other uncommitted work to a safe location
+   outside the affected tree.
 3. From a normal PowerShell terminal, record `git status`, `git log --oneline`, and
    `git remote -v`.
 4. Preserve `.git` unless the human explicitly chooses to discard all repository history.
@@ -96,7 +99,7 @@ The conservative option is a clean user-owned working copy:
 2. If the history is available from a remote, clone that remote with `--no-checkout`. If the only
    copy of the history is local, clone the affected repository with `--no-hardlinks --no-checkout`.
    Both approaches preserve Git history while avoiding a checkout of agent-created files.
-3. Copy only the backed-up `INITIAL_DESIGN.md` into the new working copy.
+3. Copy only the backed-up design file and other reviewed uncommitted work into the new working copy.
 4. Confirm the new directory, `.git`, and design file are owned by the normal user. Review `git
    status`; do not commit any reported deletions until they are intentional and understood.
 5. Run initialization and Program Kit setup from that same normal shell.
@@ -104,7 +107,7 @@ The conservative option is a clean user-owned working copy:
 If the existing directory must be retained, have the owner or an administrator restore ownership
 and appropriate inherited permissions for the repository before removing generated paths. ACL
 requirements vary by machine and enterprise policy, so do not apply a blanket `Everyone` grant or
-copy an ACL recipe without review. After repair, retain `.git` and `INITIAL_DESIGN.md`, remove only
+copy an ACL recipe without review. After repair, retain `.git` and the user-selected design file, remove only
 the generated content the human has reviewed, and restart setup from the normal shell.
 
 Creating an entirely new Git repository is a separate, destructive choice. Do that only when the

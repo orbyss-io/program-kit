@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.5 - 2026-09-01
+
+- End both consumer initializers with a concise completion message and remove redundant
+  `INITIAL_DESIGN.md` detection and bootstrap-command narration.
+
 ## 0.6.4 - 2026-09-01
 
 - Allow the Windows and Bash initializers to run in populated repositories, including repositories

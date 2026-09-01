@@ -157,7 +157,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
         if suffix == "sh":
             initializer.chmod(0o755)
 
-        design = project / "INITIAL_DESIGN.md"
+        design = project / "product-vision.notes.md"
         application_file = project / "src" / "application.txt"
         integration_file = project / ".specify" / "integration.json"
         core_skill = project / ".agents/skills/speckit-constitution/SKILL.md"
@@ -384,12 +384,21 @@ def main() -> int:
             initializer,
             expected
             + (
-                "No initial design was required",
-                "INITIAL_DESIGN.md",
+                "Program Kit initialization is complete",
                 "not from a Codex Desktop task or interactive Codex CLI agent",
                 "Program Kit is already installed",
             ),
         )
+        for noisy_post_install_phrase in (
+            "detected. Start the bootstrap",
+            "when ready, then start the bootstrap",
+            "Start the bootstrap from this same normal shell",
+        ):
+            if noisy_post_install_phrase in initializer:
+                raise AssertionError(
+                    f"{label} contains noisy post-install guidance: "
+                    f"{noisy_post_install_phrase}"
+                )
         if "not empty" in initializer.lower():
             raise AssertionError(f"{label} still rejects populated repositories")
         reject_workaround(label, initializer)
@@ -441,7 +450,7 @@ def main() -> int:
             "normal user-owned PowerShell or WSL shell",
             "SetNamedSecurityInfoW ... error 5",
             "Rerunning `specify init` is not an ownership repair",
-            "Copy only the backed-up `INITIAL_DESIGN.md`",
+            "user-selected initial-design file",
             "Preserve `.git`",
             "Initialize-ProgramKit.cmd",
             "Initialize-ProgramKit.sh",

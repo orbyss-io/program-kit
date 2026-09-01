@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.6.4"
+set "PROGRAM_KIT_REF=v0.6.5"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
@@ -84,14 +84,7 @@ call specify bundle install program-kit --integration codex
 if errorlevel 1 goto :failed
 
 echo.
-echo Program Kit initialization is complete. No initial design was required.
-if exist "INITIAL_DESIGN.md" (
-  echo Existing INITIAL_DESIGN.md detected. Start the bootstrap from this same normal shell:
-) else (
-  echo Create INITIAL_DESIGN.md when ready, then start the bootstrap from this same normal shell:
-)
-echo.
-echo   specify workflow run program-kit-bootstrap --input initial_design=./INITIAL_DESIGN.md --input integration=codex
+echo Program Kit initialization is complete.
 exit /b 0
 
 :agent_environment

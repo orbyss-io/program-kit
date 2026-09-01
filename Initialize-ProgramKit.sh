@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROGRAM_KIT_REF="v0.6.4"
+PROGRAM_KIT_REF="v0.6.5"
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -83,10 +83,4 @@ specify workflow add program-kit-bootstrap
 printf '[7/7] Installing Program Kit...\n'
 specify bundle install program-kit --integration codex
 
-printf '\nProgram Kit initialization is complete. No initial design was required.\n'
-if [[ -f "INITIAL_DESIGN.md" ]]; then
-  printf 'Existing INITIAL_DESIGN.md detected. Start the bootstrap from this same normal shell:\n\n'
-else
-  printf 'Create INITIAL_DESIGN.md when ready, then start the bootstrap from this same normal shell:\n\n'
-fi
-printf '  specify workflow run program-kit-bootstrap --input initial_design=./INITIAL_DESIGN.md --input integration=codex\n'
+printf '\nProgram Kit initialization is complete.\n'

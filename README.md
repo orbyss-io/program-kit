@@ -38,7 +38,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.4/Initialize-ProgramKit-0.6.4.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.5/Initialize-ProgramKit-0.6.5.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -57,7 +57,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.4/Initialize-ProgramKit-0.6.4.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.5/Initialize-ProgramKit-0.6.5.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -69,9 +69,9 @@ not a PowerShell script.
 
 Both launchers initialize the Codex integration with Spec Kit's Python runtime, register all
 four catalogs, apply the Spec Kit 1.0.1 workflow workaround, and install Program Kit. They do not
-require or create the initial design. If one already exists, it remains in place; otherwise write it
-after initialization when you are ready for intake. Do not bypass or lower execution policy,
-broadly unblock repository files, or grant unrestricted execution.
+require, create, locate, or assume a filename for the initial design. When starting the bootstrap,
+pass the user-chosen design path through `--input initial_design=...`. Do not bypass or lower
+execution policy, broadly unblock repository files, or grant unrestricted execution.
 
 The equivalent manual sequence is:
 
@@ -128,7 +128,7 @@ Run the architecture bootstrap with the path to your initial design:
 
 ```powershell
 specify workflow run program-kit-bootstrap `
-  --input initial_design=./initial-design.md `
+  --input initial_design=./path/to/your-design.md `
   --input integration=auto
 ```
 
@@ -257,11 +257,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.4.md`](docs/releasing-0.6.4.md).
+[`docs/releasing-0.6.5.md`](docs/releasing-0.6.5.md).
 
 ```powershell
-git tag v0.6.4
-git push origin v0.6.4
+git tag v0.6.5
+git push origin v0.6.5
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -281,8 +281,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.4.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.4.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.5.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.5.zip -Algorithm SHA256
 ```
 
 ## License
