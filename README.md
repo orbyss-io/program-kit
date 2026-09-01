@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.9/Initialize-ProgramKit-0.6.9.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.10/Initialize-ProgramKit-0.6.10.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.9/Initialize-ProgramKit-0.6.9.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.10/Initialize-ProgramKit-0.6.10.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -78,6 +78,11 @@ four catalogs, apply the Spec Kit 1.0.1 workflow workaround, and install Program
 require, create, locate, or assume a filename for the initial design. When starting the bootstrap,
 pass the user-chosen design path through `--input initial_design=...`. Do not bypass or lower
 execution policy, broadly unblock repository files, or grant unrestricted execution.
+
+Initialization resolves the advertised release through immutable tag catalogs, then switches all
+four registrations to the trusted `main` update channel. Catalog entries continue to pin component
+downloads to immutable release tags, while later `workflow update` and `bundle update` commands can
+discover newer Program Kit releases.
 
 Before changing repository-managed files, each launcher verifies that `specify`, `python`, and Git can
 execute. Spec Kit validates the coding-agent tooling for the selected integration. The launcher
@@ -137,6 +142,21 @@ With Spec Kit 1.0.1, the catalog workflow is installed separately from the bundl
 ```powershell
 specify workflow update program-kit-bootstrap
 specify bundle update program-kit --integration codex
+```
+
+Installations created by Program Kit 0.6.9 or earlier used immutable release-tag catalog
+registrations. Before their first upgrade, replace those four registrations once:
+
+```powershell
+$catalogRoot = 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs'
+specify extension catalog remove program-kit
+specify preset catalog remove program-kit
+specify workflow catalog remove 0
+specify bundle catalog remove program-kit
+specify extension catalog add "$catalogRoot/extensions.json" --name program-kit --install-allowed
+specify preset catalog add "$catalogRoot/presets.json" --name program-kit --install-allowed
+specify workflow catalog add "$catalogRoot/workflows.json" --name program-kit
+specify bundle catalog add "$catalogRoot/bundles.json" --id program-kit --policy install-allowed
 ```
 
 Replace `codex` with the repository's installed integration. Do not run the bootstrap or any Program Kit governance command between these two updates. Program Kit validates the installed workflow registry, workflow manifest, extension manifest, and bundle records before governance work; a mixed-version installation stops with these repair commands before reading the initial design or mutating governance state.
@@ -280,11 +300,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.9.md`](docs/releasing-0.6.9.md).
+[`docs/releasing-0.6.10.md`](docs/releasing-0.6.10.md).
 
 ```powershell
-git tag v0.6.9
-git push origin v0.6.9
+git tag v0.6.10
+git push origin v0.6.10
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -304,8 +324,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.9.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.9.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.10.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.10.zip -Algorithm SHA256
 ```
 
 ## License

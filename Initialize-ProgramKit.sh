@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROGRAM_KIT_REF="v0.6.9"
+PROGRAM_KIT_REF="v0.6.10"
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -105,25 +105,35 @@ if ! python -c 'import yaml' >/dev/null 2>&1; then
 fi
 catalog_root="https://raw.githubusercontent.com/orbyss-io/program-kit/${PROGRAM_KIT_REF}/catalogs"
 
-printf '[1/7] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
+printf '[1/8] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
 specify init . --force --non-interactive --integration "$program_kit_integration" --script py
 
-printf '[2/7] Registering the Program Kit extension catalog...\n'
+printf '[2/8] Registering the Program Kit extension catalog...\n'
 specify extension catalog add "${catalog_root}/extensions.json" --name program-kit --install-allowed
 
-printf '[3/7] Registering the Program Kit preset catalog...\n'
+printf '[3/8] Registering the Program Kit preset catalog...\n'
 specify preset catalog add "${catalog_root}/presets.json" --name program-kit --install-allowed
 
-printf '[4/7] Registering the Program Kit workflow catalog...\n'
+printf '[4/8] Registering the Program Kit workflow catalog...\n'
 specify workflow catalog add "${catalog_root}/workflows.json" --name program-kit
 
-printf '[5/7] Registering the Program Kit bundle catalog...\n'
+printf '[5/8] Registering the Program Kit bundle catalog...\n'
 specify bundle catalog add "${catalog_root}/bundles.json" --id program-kit --policy install-allowed
 
-printf '[6/7] Installing the bootstrap workflow required by Spec Kit 1.0.1...\n'
+printf '[6/8] Installing the bootstrap workflow required by Spec Kit 1.0.1...\n'
 specify workflow add program-kit-bootstrap
 
-printf '[7/7] Installing Program Kit...\n'
+printf '[7/8] Installing Program Kit...\n'
 specify bundle install program-kit --integration "$program_kit_integration"
+
+printf '[8/8] Switching Program Kit catalogs to the update channel...\n'
+specify extension catalog remove program-kit
+specify preset catalog remove program-kit
+specify workflow catalog remove 0
+specify bundle catalog remove program-kit
+specify extension catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json' --name program-kit --install-allowed
+specify preset catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/presets.json' --name program-kit --install-allowed
+specify workflow catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json' --name program-kit
+specify bundle catalog add 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json' --id program-kit --policy install-allowed
 
 printf '\nProgram Kit initialization is complete.\n'

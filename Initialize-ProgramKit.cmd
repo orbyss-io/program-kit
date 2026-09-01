@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.6.9"
+set "PROGRAM_KIT_REF=v0.6.10"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
@@ -103,32 +103,50 @@ if errorlevel 1 (
   if errorlevel 1 goto :dependency_failed
 )
 
-echo [1/7] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
+echo [1/8] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
 call specify init . --force --non-interactive --integration %PROGRAM_KIT_INTEGRATION% --script py
 if errorlevel 1 goto :failed
 
-echo [2/7] Registering the Program Kit extension catalog...
+echo [2/8] Registering the Program Kit extension catalog...
 call specify extension catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/extensions.json --name program-kit --install-allowed
 if errorlevel 1 goto :failed
 
-echo [3/7] Registering the Program Kit preset catalog...
+echo [3/8] Registering the Program Kit preset catalog...
 call specify preset catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/presets.json --name program-kit --install-allowed
 if errorlevel 1 goto :failed
 
-echo [4/7] Registering the Program Kit workflow catalog...
+echo [4/8] Registering the Program Kit workflow catalog...
 call specify workflow catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/workflows.json --name program-kit
 if errorlevel 1 goto :failed
 
-echo [5/7] Registering the Program Kit bundle catalog...
+echo [5/8] Registering the Program Kit bundle catalog...
 call specify bundle catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/%PROGRAM_KIT_REF%/catalogs/bundles.json --id program-kit --policy install-allowed
 if errorlevel 1 goto :failed
 
-echo [6/7] Installing the bootstrap workflow required by Spec Kit 1.0.1...
+echo [6/8] Installing the bootstrap workflow required by Spec Kit 1.0.1...
 call specify workflow add program-kit-bootstrap
 if errorlevel 1 goto :failed
 
-echo [7/7] Installing Program Kit...
+echo [7/8] Installing Program Kit...
 call specify bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
+if errorlevel 1 goto :failed
+
+echo [8/8] Switching Program Kit catalogs to the update channel...
+call specify extension catalog remove program-kit
+if errorlevel 1 goto :failed
+call specify preset catalog remove program-kit
+if errorlevel 1 goto :failed
+call specify workflow catalog remove 0
+if errorlevel 1 goto :failed
+call specify bundle catalog remove program-kit
+if errorlevel 1 goto :failed
+call specify extension catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/extensions.json --name program-kit --install-allowed
+if errorlevel 1 goto :failed
+call specify preset catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/presets.json --name program-kit --install-allowed
+if errorlevel 1 goto :failed
+call specify workflow catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/workflows.json --name program-kit
+if errorlevel 1 goto :failed
+call specify bundle catalog add https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs/bundles.json --id program-kit --policy install-allowed
 if errorlevel 1 goto :failed
 
 echo.

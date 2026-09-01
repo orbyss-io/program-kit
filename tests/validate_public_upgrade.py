@@ -205,7 +205,28 @@ def main() -> int:
         if set(initial.values()) != {"0.2.0"}:
             raise AssertionError(f"Expected a coherent v0.2.0 installation, got {initial}")
 
-        replace_catalogs(project, CURRENT)
+        # Older initializers registered immutable release-tag catalogs. Replace
+        # them through the public CLI before updating so "latest" can advance.
+        run("specify", "extension", "catalog", "remove", "program-kit", cwd=project)
+        run("specify", "preset", "catalog", "remove", "program-kit", cwd=project)
+        run("specify", "workflow", "catalog", "remove", "0", cwd=project)
+        run("specify", "bundle", "catalog", "remove", "program-kit", cwd=project)
+        run(
+            "specify", "extension", "catalog", "add", f"{CURRENT}/extensions.json",
+            "--name", "program-kit", "--install-allowed", cwd=project,
+        )
+        run(
+            "specify", "preset", "catalog", "add", f"{CURRENT}/presets.json",
+            "--name", "program-kit", "--install-allowed", cwd=project,
+        )
+        run(
+            "specify", "workflow", "catalog", "add", f"{CURRENT}/workflows.json",
+            "--name", "program-kit", cwd=project,
+        )
+        run(
+            "specify", "bundle", "catalog", "add", f"{CURRENT}/bundles.json",
+            "--id", "program-kit", "--policy", "install-allowed", cwd=project,
+        )
 
         # Capture the historical unsafe order. Bundle update refreshes the
         # extension and bundle record, but cannot refresh the separately owned

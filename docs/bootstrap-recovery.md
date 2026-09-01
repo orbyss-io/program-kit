@@ -1,12 +1,12 @@
 # Recovering a hash-approved bootstrap after roadmap drift
 
-Program Kit 0.6.9 supports recovery without cleaning or reinitializing the consumer repository.
+Program Kit 0.6.10 supports recovery without cleaning or reinitializing the consumer repository.
 The failed run itself must not be resumed: Spec Kit persists the workflow definition with each run,
 so resuming a 0.6.8 run would retry its old final step without the new synchronization and
 cross-artifact validation steps.
 
 Do not edit `architecture.md`, `traceability.md`, the bootstrap review packet, or approval JSON by
-hand. Those artifacts are hash-bound. Recovery uses a new 0.6.9 workflow run over the existing
+hand. Those artifacts are hash-bound. Recovery uses a new 0.6.10 workflow run over the existing
 repository. It regenerates architecture and roadmap artifacts, synchronizes the derived roadmap
 views, validates them before review, regenerates the final review packet, requires fresh human
 approval, replaces `bootstrap-approval.json` with hashes for the newly approved content, reruns
@@ -26,6 +26,27 @@ $integration = [string]$integrationState.default_integration
 if ([string]::IsNullOrWhiteSpace($integration)) {
     $integration = [string]$integrationState.integration
 }
+
+# Program Kit 0.6.9 and earlier registered immutable release catalogs. Replace
+# those registrations with the update channel before asking Spec Kit to update.
+$catalogRoot = 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs'
+specify extension catalog remove program-kit
+if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned extension catalog.' }
+specify preset catalog remove program-kit
+if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned preset catalog.' }
+specify workflow catalog remove 0
+if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned workflow catalog.' }
+specify bundle catalog remove program-kit
+if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned bundle catalog.' }
+
+specify extension catalog add "$catalogRoot/extensions.json" --name program-kit --install-allowed
+if ($LASTEXITCODE -ne 0) { throw 'Could not register the extension update catalog.' }
+specify preset catalog add "$catalogRoot/presets.json" --name program-kit --install-allowed
+if ($LASTEXITCODE -ne 0) { throw 'Could not register the preset update catalog.' }
+specify workflow catalog add "$catalogRoot/workflows.json" --name program-kit
+if ($LASTEXITCODE -ne 0) { throw 'Could not register the workflow update catalog.' }
+specify bundle catalog add "$catalogRoot/bundles.json" --id program-kit --policy install-allowed
+if ($LASTEXITCODE -ne 0) { throw 'Could not register the bundle update catalog.' }
 
 specify workflow update program-kit-bootstrap
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit workflow update failed.' }

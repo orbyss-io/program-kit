@@ -392,6 +392,14 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 f"init . --force --non-interactive --integration {integration} --script py",
                 "workflow add program-kit-bootstrap",
                 f"bundle install program-kit --integration {integration}",
+                "extension catalog remove program-kit",
+                "preset catalog remove program-kit",
+                "workflow catalog remove 0",
+                "bundle catalog remove program-kit",
+                "program-kit/main/catalogs/extensions.json",
+                "program-kit/main/catalogs/presets.json",
+                "program-kit/main/catalogs/workflows.json",
+                "program-kit/main/catalogs/bundles.json",
             ),
         )
 
@@ -556,6 +564,14 @@ def main() -> int:
                 "git --version",
                 "git rev-parse --is-inside-work-tree",
                 "git init",
+                "extension catalog remove program-kit",
+                "preset catalog remove program-kit",
+                "workflow catalog remove 0",
+                "bundle catalog remove program-kit",
+                "program-kit/main/catalogs/extensions.json",
+                "program-kit/main/catalogs/presets.json",
+                "program-kit/main/catalogs/workflows.json",
+                "program-kit/main/catalogs/bundles.json",
             ),
         )
         for noisy_post_install_phrase in (

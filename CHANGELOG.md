@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.10 - 2026-09-01
+
+- Preserve immutable tag-catalog resolution during initial installation, then switch all four
+  project catalog registrations to the trusted `main` update channel so later updates can discover
+  new Program Kit versions.
+- Correct the approved-bootstrap recovery procedure for consumers initialized by 0.6.9 or earlier:
+  replace pinned catalog registrations before updating the workflow and bundle.
+- Make the live public upgrade regression perform the catalog transition through Spec Kit's CLI,
+  and assert that both Windows and Bash initializers execute the pinned-install/update-channel
+  handoff.
+
 ## 0.6.9 - 2026-09-01
 
 - Make `docs/architecture/specification-roadmap.md` the sole authority for roadmap-entry lifecycle
