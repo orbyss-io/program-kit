@@ -69,3 +69,26 @@ if ($LASTEXITCODE -ne 0) { throw 'Bootstrap completion hashes are invalid.' }
 Review and decide every displayed gate in the new run. In particular, the final bootstrap gate must
 show the regenerated packet before approval. Do not run `specify workflow resume bf551b86`; retain
 that failed run as historical evidence.
+
+## Recovering an abandoned run still marked running
+
+Program Kit 0.6.11 adds explicit recovery for this condition.
+
+Spec Kit records a normal interruption as a terminal workflow state, but a hard process termination
+can leave its last persisted state as `running`. Program Kit blocks a replacement bootstrap before
+intake when it finds such a record because concurrent bootstrap runs would mutate the same governed
+artifacts.
+
+First verify that the listed run has no live `specify workflow` process. Then use the exact command
+printed by the preflight diagnostic, from the same normal user-owned shell:
+
+```powershell
+python .specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py `
+  --abandon-run <run-id>
+```
+
+The command accepts only a validated `program-kit-bootstrap` run whose current status is `running`.
+It atomically changes that run to `aborted`, records the explicit operator action in `log.jsonl`, and
+leaves the workflow snapshot, inputs, step results, and prior log evidence intact. It refuses other
+workflow types and already-terminal runs. Start a new bootstrap afterward; do not edit or delete the
+run directory by hand.

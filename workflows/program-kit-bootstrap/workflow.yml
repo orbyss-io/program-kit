@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.6.10"
+  version: "0.6.11"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -32,7 +32,7 @@ inputs:
 steps:
   - id: codex-execution-preflight
     type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py --integration auto --json"
+    run: "python .specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py --integration auto --run-id {{ context.run_id }} --json"
     output_format: json
 
   - id: codex-execution-boundary
@@ -53,6 +53,18 @@ steps:
           on_reject: abort
       git-worktree-blocked:
         - id: confirm-git-worktree-stop
+          type: gate
+          message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
+          options: [abort]
+          on_reject: abort
+      concurrent-run-blocked:
+        - id: confirm-concurrent-run-stop
+          type: gate
+          message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
+          options: [abort]
+          on_reject: abort
+      run-state-blocked:
+        - id: confirm-run-state-stop
           type: gate
           message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
           options: [abort]

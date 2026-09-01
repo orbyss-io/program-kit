@@ -7,6 +7,8 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Mapping
 
@@ -25,6 +27,8 @@ SUPPORTED_RESOLVERS = {
     "ps": POWERSHELL_RESOLVER,
     "sh": SHELL_RESOLVER,
 }
+RUN_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")
+BOOTSTRAP_WORKFLOW_ID = "program-kit-bootstrap"
 
 
 def resolve_integration(requested: str, project_root: Path) -> str:
@@ -69,6 +73,115 @@ def _read_json_object(path: Path) -> dict:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return {}
     return payload if isinstance(payload, dict) else {}
+
+
+def _validated_run_state(project_root: Path, run_id: str) -> tuple[Path, dict]:
+    if not RUN_ID_PATTERN.fullmatch(run_id):
+        raise RuntimeError(f"Invalid workflow run ID: {run_id!r}")
+    runs_root = (project_root / ".specify" / "workflows" / "runs").resolve()
+    run_dir = (runs_root / run_id).resolve()
+    if run_dir.parent != runs_root:
+        raise RuntimeError(f"Workflow run path escapes the project run directory: {run_id!r}")
+    state_path = run_dir / "state.json"
+    state = _read_json_object(state_path)
+    if not state:
+        raise RuntimeError(f"Workflow run state is missing or invalid: {state_path}")
+    if state.get("run_id") != run_id:
+        raise RuntimeError(f"Workflow run state does not match run ID {run_id!r}")
+    return state_path, state
+
+
+def competing_bootstrap_runs(project_root: Path, current_run_id: str) -> list[str]:
+    """Return other Program Kit bootstrap runs still persisted as running."""
+    if not RUN_ID_PATTERN.fullmatch(current_run_id):
+        raise RuntimeError(f"Invalid current workflow run ID: {current_run_id!r}")
+    runs_root = project_root / ".specify" / "workflows" / "runs"
+    competing: list[str] = []
+    if not runs_root.is_dir():
+        return competing
+    for state_path in runs_root.glob("*/state.json"):
+        run_id = state_path.parent.name
+        if run_id == current_run_id or not RUN_ID_PATTERN.fullmatch(run_id):
+            continue
+        try:
+            _, state = _validated_run_state(project_root, run_id)
+        except RuntimeError:
+            continue
+        if state.get("run_id") != run_id or state.get("status") != "running":
+            continue
+        workflow_id = state.get("installed_workflow_id") or state.get("workflow_id")
+        if workflow_id == BOOTSTRAP_WORKFLOW_ID:
+            competing.append(run_id)
+    return sorted(competing)
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2)
+        os.replace(temporary_name, path)
+    except BaseException:
+        try:
+            os.unlink(temporary_name)
+        except OSError:
+            pass
+        raise
+
+
+def abandon_bootstrap_run(project_root: Path, run_id: str) -> None:
+    """Explicitly terminate one persisted running Program Kit bootstrap run."""
+    state_path, state = _validated_run_state(project_root, run_id)
+    workflow_id = state.get("installed_workflow_id") or state.get("workflow_id")
+    if workflow_id != BOOTSTRAP_WORKFLOW_ID:
+        raise RuntimeError(f"Run {run_id!r} is not a Program Kit bootstrap run")
+    if state.get("status") != "running":
+        raise RuntimeError(
+            f"Run {run_id!r} has status {state.get('status')!r}; only a running run can be abandoned"
+        )
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+    reason = "Explicitly abandoned by the operator before starting a replacement Program Kit bootstrap run."
+    state["status"] = "aborted"
+    state["updated_at"] = timestamp
+    state["error"] = reason
+    _atomic_write_json(state_path, state)
+
+    log_path = state_path.with_name("log.jsonl")
+    event = {
+        "event": "workflow_abandoned",
+        "status": "aborted",
+        "reason": reason,
+        "timestamp": timestamp,
+    }
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event) + "\n")
+
+
+def concurrent_run_diagnostic(run_ids: list[str]) -> str:
+    identifiers = ", ".join(run_ids)
+    example = run_ids[0]
+    return f"""PROGRAM_KIT_CONCURRENT_BOOTSTRAP_RUN
+
+Program Kit stopped before intake or research because another bootstrap run is
+still recorded as running: {identifiers}
+
+Do not run two governance bootstraps concurrently; they write the same
+constitution, approvals, architecture, and roadmap artifacts.
+
+If the listed run still has a live `specify workflow` process, return to that
+terminal and let it finish or stop it first. If the process is gone and the run
+is an abandoned stale record, preserve its history and explicitly terminate it
+from a normal user-owned shell:
+
+  python .specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py --abandon-run {example}
+
+Then start a new Program Kit bootstrap run. Do not edit or delete workflow state
+JSON by hand.
+"""
 
 
 def declared_script_flavor(project_root: Path, integration: str) -> str:
@@ -307,10 +420,21 @@ def evaluate_preflight(
     integration: str,
     project_root: Path,
     *,
+    current_run_id: str = "",
     environ: Mapping[str, str] | None = None,
     platform_name: str | None = None,
     runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
 ) -> dict[str, str]:
+    if current_run_id:
+        try:
+            competing = competing_bootstrap_runs(project_root, current_run_id)
+        except RuntimeError as exc:
+            return {"action": "run-state-blocked", "diagnostic": str(exc)}
+        if competing:
+            return {
+                "action": "concurrent-run-blocked",
+                "diagnostic": concurrent_run_diagnostic(competing),
+            }
     resolved = resolve_integration(integration, project_root)
     if is_codex_agent_invocation(integration=resolved, environ=environ):
         return {"action": "agent-boundary-blocked", "diagnostic": diagnostic()}
@@ -338,8 +462,10 @@ def evaluate_preflight(
     return {"action": "continue", "script_flavor": flavor}
 
 
-def run_preflight(integration: str, project_root: Path) -> int:
-    result = evaluate_preflight(integration, project_root)
+def run_preflight(integration: str, project_root: Path, current_run_id: str = "") -> int:
+    result = evaluate_preflight(
+        integration, project_root, current_run_id=current_run_id
+    )
     if result["action"] == "continue":
         return 0
     print(result["diagnostic"], file=sys.stderr)
@@ -352,6 +478,8 @@ def main() -> int:
     )
     parser.add_argument("--integration", default="auto")
     parser.add_argument("--project-root", default=".")
+    parser.add_argument("--run-id", default="")
+    parser.add_argument("--abandon-run", default="")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -359,7 +487,17 @@ def main() -> int:
     )
     args = parser.parse_args()
     project_root = Path(args.project_root).resolve()
-    result = evaluate_preflight(args.integration, project_root)
+    if args.abandon_run:
+        try:
+            abandon_bootstrap_run(project_root, args.abandon_run)
+        except RuntimeError as exc:
+            print(f"Program Kit run recovery failed: {exc}", file=sys.stderr)
+            return 2
+        print(f"Program Kit bootstrap run {args.abandon_run} is marked aborted.")
+        return 0
+    result = evaluate_preflight(
+        args.integration, project_root, current_run_id=args.run_id
+    )
     if args.json:
         print(json.dumps(result))
         return 0

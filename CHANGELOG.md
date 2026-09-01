@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.11 - 2026-09-01
+
+- Exclude ADR support files such as `README.md` and `template.md` from Accepted and Proposed
+  decision totals in the final bootstrap review packet.
+- Detect an older Program Kit bootstrap run still persisted as `running` before intake, prevent
+  concurrent governance mutation, and provide an explicit audited `--abandon-run` recovery for a
+  hard-terminated stale record.
+- Preserve abandoned workflow history by recording an `aborted` terminal state and appending a
+  `workflow_abandoned` event instead of deleting or hand-editing Spec Kit run state.
+
 ## 0.6.10 - 2026-09-01
 
 - Preserve immutable tag-catalog resolution during initial installation, then switch all four

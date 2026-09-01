@@ -675,6 +675,8 @@ def write_review(stage: str) -> None:
         accepted = 0
         proposed = 0
         for path in project_path(DECISIONS).glob("*.md"):
+            if path.name.lower() in {"readme.md", "template.md"}:
+                continue
             text = path.read_text(encoding="utf-8")
             if re.search(r"(?:^|[-*]\s*)Status:\s*Accepted\s*$", text, re.MULTILINE | re.IGNORECASE):
                 accepted += 1

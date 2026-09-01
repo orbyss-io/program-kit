@@ -48,6 +48,13 @@ init` alone may not repair existing ownership or ACLs. Direct the user to
 `.specify/extensions/program-kit-governance/references/codex-desktop-windows.md` for the conservative
 clean-start procedure.
 
+If preflight reports `PROGRAM_KIT_CONCURRENT_BOOTSTRAP_RUN`, tell the user to verify whether the
+listed run still has a live normal-shell `specify workflow` process. Never abandon a live run. If it
+is a stale record from a hard-terminated process, display the diagnostic's exact
+`codex_bootstrap_preflight.py --abandon-run <run-id>` command for the human to run in the normal
+shell. Explain that it preserves the run history while recording an explicit `aborted` terminal
+state. Do not run the recovery command from this skill or suggest editing state JSON directly.
+
 After a normal-shell workflow pauses, report the run ID, the concise review-packet path, every
 artifact named by that packet, and the exact
 `specify workflow resume <run-id> --input <verdict>=<choice>` command. The human must run resume from

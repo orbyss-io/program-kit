@@ -201,6 +201,9 @@ def write_bootstrap_artifacts(module, project: Path) -> None:
         "docs/architecture/traceability.md": "# Traceability\n",
         "docs/architecture/quality-system.md": "# Quality system\n",
         "docs/architecture/decisions/README.md": "# Decisions\n",
+        "docs/architecture/decisions/template.md": (
+            "# ADR-TITLE: Decision title\n\n- Status: Proposed\n"
+        ),
         "docs/architecture/decisions/bootstrap-baseline.md": (
             "# Bootstrap baseline\n\n- Status: Accepted\n\n"
             f"Profile: program-kit-standard 0.3.1\n\nDecision register: {decision_hash}\n\n"
@@ -382,6 +385,11 @@ def main() -> int:
             module.validate_bootstrap(False, True)
             module.write_review("bootstrap")
             assert_review_packet(project / module.BOOTSTRAP_REVIEW, "bootstrap")
+            review_text = (project / module.BOOTSTRAP_REVIEW).read_text(encoding="utf-8")
+            if "- Accepted ADRs: 2" not in review_text:
+                raise AssertionError("Bootstrap review did not count actual Accepted ADRs")
+            if "- Proposed ADRs requiring separate later decisions: 0" not in review_text:
+                raise AssertionError("Bootstrap review counted the ADR template as a decision")
             module.accept_bootstrap("approve")
             readiness = project / module.READINESS_REPORT
             readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")

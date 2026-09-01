@@ -202,6 +202,92 @@ def validate_python_consumer(module) -> None:
         reject_workaround("Missing PyYAML diagnostic", missing_pyyaml)
 
 
+def write_run_state(
+    project: Path,
+    run_id: str,
+    *,
+    workflow_id: str = "program-kit-bootstrap",
+    status: str = "running",
+) -> Path:
+    run_dir = project / ".specify" / "workflows" / "runs" / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    state_path = run_dir / "state.json"
+    state_path.write_text(
+        json.dumps(
+            {
+                "run_id": run_id,
+                "workflow_id": workflow_id,
+                "installed_workflow_id": workflow_id,
+                "installed_registry_root": None,
+                "status": status,
+                "current_step_index": 2,
+                "current_step_id": "intake",
+                "step_results": {},
+                "workflow_dir": str(project / ".specify/workflows/program-kit-bootstrap"),
+                "created_at": "2026-09-01T12:00:00+00:00",
+                "updated_at": "2026-09-01T12:00:01+00:00",
+                "error": None,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return state_path
+
+
+def validate_abandoned_run_recovery(module) -> None:
+    with tempfile.TemporaryDirectory(prefix="program-kit-run-recovery-") as temp:
+        project = Path(temp)
+        write_run_state(project, "current1")
+        stale_path = write_run_state(project, "stale001")
+        write_run_state(project, "done0001", status="completed")
+        unrelated = write_run_state(project, "other001", workflow_id="other-workflow")
+
+        competing = module.competing_bootstrap_runs(project, "current1")
+        if competing != ["stale001"]:
+            raise AssertionError(f"Unexpected competing bootstrap runs: {competing}")
+        blocked = module.evaluate_preflight(
+            "claude", project, current_run_id="current1", environ={}
+        )
+        if blocked.get("action") != "concurrent-run-blocked":
+            raise AssertionError(f"Competing bootstrap run was not blocked: {blocked}")
+        require_phrases(
+            "Concurrent bootstrap diagnostic",
+            blocked["diagnostic"],
+            (
+                "PROGRAM_KIT_CONCURRENT_BOOTSTRAP_RUN",
+                "stale001",
+                "Do not run two governance bootstraps concurrently",
+                "--abandon-run stale001",
+                "Do not edit or delete workflow state JSON by hand",
+            ),
+        )
+
+        module.abandon_bootstrap_run(project, "stale001")
+        stale_state = json.loads(stale_path.read_text(encoding="utf-8"))
+        if stale_state.get("status") != "aborted" or not stale_state.get("error"):
+            raise AssertionError("Explicit run abandonment did not persist terminal evidence")
+        log_text = stale_path.with_name("log.jsonl").read_text(encoding="utf-8")
+        if '"event": "workflow_abandoned"' not in log_text:
+            raise AssertionError("Explicit run abandonment did not append historical evidence")
+        if json.loads(unrelated.read_text(encoding="utf-8"))["status"] != "running":
+            raise AssertionError("Run recovery changed an unrelated workflow")
+        for rejected_run_id in ("../escape", "done0001", "other001"):
+            try:
+                module.abandon_bootstrap_run(project, rejected_run_id)
+            except RuntimeError:
+                pass
+            else:
+                raise AssertionError(
+                    f"Run recovery unexpectedly abandoned {rejected_run_id!r}"
+                )
+
+        result = module.evaluate_preflight(
+            "claude", project, current_run_id="current1", environ={}
+        )
+        if result != {"action": "continue", "script_flavor": "not-applicable"}:
+            raise AssertionError(f"Recovered workflow state was unexpectedly rejected: {result}")
+
+
 def validate_populated_repository_initializer(root: Path) -> None:
     suffix = "cmd" if os.name == "nt" else "sh"
     integration = "claude"
@@ -477,6 +563,7 @@ def main() -> int:
     )
     reject_workaround("Preflight diagnostic", message)
     validate_python_consumer(module)
+    validate_abandoned_run_recovery(module)
 
     rule_files = list(extension_root.rglob("*.rules"))
     if rule_files:
@@ -490,7 +577,9 @@ def main() -> int:
         raise AssertionError("Codex preflight must run before every agent-dispatched step")
     if "codex_bootstrap_preflight.py" not in first.get("run", ""):
         raise AssertionError("Workflow preflight does not invoke its diagnostic")
-    if "{{" in first.get("run", ""):
+    if "--run-id {{ context.run_id }}" not in first.get("run", ""):
+        raise AssertionError("Workflow preflight must identify its own validated run ID")
+    if "inputs." in first.get("run", ""):
         raise AssertionError("Workflow preflight must not interpolate user input into a shell")
     if first.get("output_format") != "json" or "--json" not in first.get("run", ""):
         raise AssertionError("Workflow preflight must expose a structured switch action")
@@ -502,12 +591,25 @@ def main() -> int:
     agent_blocked = cases.get("agent-boundary-blocked", [])
     runtime_blocked = cases.get("script-runtime-blocked", [])
     git_blocked = cases.get("git-worktree-blocked", [])
-    if len(agent_blocked) != 1 or len(runtime_blocked) != 1 or len(git_blocked) != 1:
+    concurrent_blocked = cases.get("concurrent-run-blocked", [])
+    run_state_blocked = cases.get("run-state-blocked", [])
+    if any(
+        len(steps) != 1
+        for steps in (
+            agent_blocked,
+            runtime_blocked,
+            git_blocked,
+            concurrent_blocked,
+            run_state_blocked,
+        )
+    ):
         raise AssertionError("Each Codex preflight failure must have one diagnostic step")
     for label, blocked_step in (
         ("agent", agent_blocked[0]),
         ("runtime", runtime_blocked[0]),
         ("git", git_blocked[0]),
+        ("concurrent run", concurrent_blocked[0]),
+        ("run state", run_state_blocked[0]),
     ):
         if blocked_step.get("type") != "gate":
             raise AssertionError(f"Workflow-visible {label} stop must be a non-agent gate")
