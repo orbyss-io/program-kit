@@ -79,19 +79,20 @@ try {
         $preflightOutput = (& specify workflow run program-kit-bootstrap `
             --input initial_design=./DOES-NOT-EXIST.md `
             --input integration=codex 2>&1 | Out-String)
-        if ($LASTEXITCODE -eq 0) {
-            throw 'Codex agent preflight unexpectedly allowed outer workflow orchestration.'
+        if ($LASTEXITCODE -ne 0) {
+            throw "Codex agent preflight did not pause cleanly: $preflightOutput"
         }
         $normalizedPreflightOutput = $preflightOutput -replace '\s+', ' '
         foreach ($expected in @(
-            'PROGRAM_KIT_CODEX_AGENT_BOUNDARY',
-            'normal user-owned PowerShell or WSL terminal',
-            'specify workflow run program-kit-bootstrap',
-            'Do not ask the agent'
+            'Status: paused',
+            'confirm-agent-boundary-stop'
         )) {
             if ($normalizedPreflightOutput -notmatch [regex]::Escape($expected)) {
-                throw "Workflow-visible Codex diagnostic is missing '$expected': $preflightOutput"
+                throw "Workflow-visible Codex preflight stop is missing '$expected': $preflightOutput"
             }
+        }
+        if ($normalizedPreflightOutput -match '\[intake\]') {
+            throw "Codex preflight dispatched intake before stopping: $preflightOutput"
         }
     }
 } finally {

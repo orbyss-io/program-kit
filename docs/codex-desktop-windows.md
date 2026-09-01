@@ -36,11 +36,16 @@ Use a normal terminal owned by the human account:
    are allowed; the initializer stops if Program Kit itself is already or partially installed.
 3. Download the appropriate root initializer from the matching GitHub release and run it there:
 
-   - `Initialize-ProgramKit.sh` from Bash in WSL; or
-   - `Initialize-ProgramKit.cmd` from PowerShell on Windows, including under `AllSigned`.
+   - `Initialize-ProgramKit.sh codex` from Bash in WSL; or
+   - `Initialize-ProgramKit.cmd codex` from PowerShell on Windows, including under `AllSigned`.
 
-   The command launcher works without changing PowerShell execution policy. Both variants perform
-   the complete installation without deleting unrelated repository files, and their Spec Kit
+   The required argument is the Spec Kit integration ID; for example, pass `claude` for Claude
+   Code. The command launcher works without changing PowerShell execution policy. Both variants
+   verify that `specify` and `python` can execute. Spec Kit validates the selected integration's
+   coding-agent tooling. They also verify that the exact `python` used by the workflow can import
+   PyYAML, installing `PyYAML>=6,<7` through that interpreter's pip only when it is missing. A
+   missing or unusable dependency stops initialization before repository setup. Both variants then
+   perform the complete installation without deleting unrelated project files, and their Codex
    initialization is equivalent to:
 
    ```powershell
@@ -77,6 +82,14 @@ regenerate the Codex integration with `specify init . --force --non-interactive 
 --script py`, then verify that `.specify/scripts/python/resolve_template.py` exists and is referenced
 by the constitution skill. Do not weaken execution policy, broadly unblock repository files, or
 grant unrestricted execution.
+
+If the referenced Python resolver exists but reports that PyYAML is required, do not reinitialize
+Spec Kit. Install the dependency into the exact interpreter used by the workflow and verify it:
+
+```powershell
+python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+python .specify/scripts/python/resolve_template.py constitution-template --json
+```
 
 ## Clean start after agent-owned initialization
 

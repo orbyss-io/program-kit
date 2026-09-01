@@ -1,9 +1,14 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.6.5"
+set "PROGRAM_KIT_REF=v0.6.6"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
+
+if "%~1"=="" goto :usage
+if not "%~2"=="" goto :usage
+set "PROGRAM_KIT_INTEGRATION=%~1"
+for /f "delims=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" %%A in ("%PROGRAM_KIT_INTEGRATION%") do goto :usage
 
 for %%I in ("%~dp0.") do set "PROGRAM_KIT_SCRIPT_DIR=%%~fI"
 if /I not "%CD%"=="%PROGRAM_KIT_SCRIPT_DIR%" (
@@ -48,15 +53,36 @@ if errorlevel 1 (
   echo ERROR: Spec Kit 1.0.1 or a compatible 1.x `specify` command is required. 1>&2
   exit /b 2
 )
+call specify --version >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: The `specify` command was found but could not execute successfully. Repair Spec Kit and rerun the initializer. 1>&2
+  exit /b 2
+)
 
 where python >nul 2>nul
 if errorlevel 1 (
   echo ERROR: Python must be available as `python` because Program Kit uses the Python Spec Kit runtime. 1>&2
   exit /b 2
 )
+call python --version >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: The `python` command was found but could not execute successfully. Repair Python and rerun the initializer. 1>&2
+  exit /b 2
+)
 
-echo [1/7] Initializing Spec Kit for Codex with the Python script flavor...
-call specify init . --force --non-interactive --integration codex --script py
+call python -c "import yaml" >nul 2>nul
+if errorlevel 1 (
+  call python -m pip --version >nul 2>nul
+  if errorlevel 1 goto :pip_missing
+  echo Installing the PyYAML dependency required by the Spec Kit Python resolver...
+  call python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+  if errorlevel 1 goto :dependency_failed
+  call python -c "import yaml" >nul 2>nul
+  if errorlevel 1 goto :dependency_failed
+)
+
+echo [1/7] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
+call specify init . --force --non-interactive --integration %PROGRAM_KIT_INTEGRATION% --script py
 if errorlevel 1 goto :failed
 
 echo [2/7] Registering the Program Kit extension catalog...
@@ -80,7 +106,7 @@ call specify workflow add program-kit-bootstrap
 if errorlevel 1 goto :failed
 
 echo [7/7] Installing Program Kit...
-call specify bundle install program-kit --integration codex
+call specify bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
 if errorlevel 1 goto :failed
 
 echo.
@@ -91,9 +117,21 @@ exit /b 0
 echo ERROR: Run %~nx0 yourself from a normal user-owned PowerShell prompt, not from a Codex Desktop task or interactive Codex CLI agent. 1>&2
 exit /b 2
 
+:usage
+echo ERROR: Supply exactly one Spec Kit integration ID, for example: %~nx0 codex 1>&2
+exit /b 2
+
 :already_initialized
 echo ERROR: Program Kit is already installed, or a partial Program Kit installation exists in %CD%. 1>&2
 echo Use the documented Program Kit update commands instead of running the initializer again. 1>&2
+exit /b 2
+
+:dependency_failed
+echo ERROR: PyYAML could not be installed for the `python` command. Install "PyYAML^>=6,^<7" for that interpreter and rerun the initializer. 1>&2
+exit /b 2
+
+:pip_missing
+echo ERROR: PyYAML is missing and `python -m pip` is unavailable. Install pip for this Python interpreter, then install "PyYAML^>=6,^<7" and rerun the initializer. 1>&2
 exit /b 2
 
 :failed

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.6 - 2026-09-01
+
+- Require an explicit Spec Kit integration ID instead of assuming Codex, let Spec Kit validate that
+  integration's agent tooling, and validate executable Spec Kit and Python commands before consumer
+  repository setup. Install `PyYAML>=6,<7` into the exact workflow interpreter when it is missing
+  and fail early when that dependency cannot be made usable.
+- Distinguish a missing PyYAML dependency from a wrong or blocked Spec Kit script flavor in the
+  bootstrap preflight, with an exact repair command that does not recommend unnecessary
+  reinitialization.
+- Replace the nonexistent `program-kit-preflight-diagnostic` integration dispatch with a
+  non-agent preflight stop, preserving the diagnostic before any intake or research work begins.
+
 ## 0.6.5 - 2026-09-01
 
 - End both consumer initializers with a concise completion message and remove redundant

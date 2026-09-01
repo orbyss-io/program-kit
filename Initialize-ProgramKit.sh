@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROGRAM_KIT_REF="v0.6.5"
+PROGRAM_KIT_REF="v0.6.6"
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 current_root="$(pwd -P)"
 script_name="$(basename -- "${BASH_SOURCE[0]}")"
+
+if [[ $# -ne 1 || ! "$1" =~ ^[A-Za-z0-9_-]+$ ]]; then
+  printf 'ERROR: Supply exactly one Spec Kit integration ID, for example: %s codex\n' "$script_name" >&2
+  exit 2
+fi
+program_kit_integration="$1"
 
 if [[ "$current_root" != "$script_dir" ]]; then
   printf 'ERROR: Change to the repository root containing %s before running it.\n' "$script_name" >&2
@@ -55,15 +61,38 @@ if ! command -v specify >/dev/null 2>&1; then
   printf 'ERROR: Spec Kit 1.0.1 or a compatible 1.x specify command is required.\n' >&2
   exit 2
 fi
+if ! specify --version >/dev/null 2>&1; then
+  printf 'ERROR: The specify command was found but could not execute successfully. Repair Spec Kit and rerun the initializer.\n' >&2
+  exit 2
+fi
 if ! command -v python >/dev/null 2>&1; then
   printf 'ERROR: Python must be available as python because Program Kit uses the Python Spec Kit runtime.\n' >&2
   exit 2
 fi
+if ! python --version >/dev/null 2>&1; then
+  printf 'ERROR: The python command was found but could not execute successfully. Repair Python and rerun the initializer.\n' >&2
+  exit 2
+fi
+if ! python -c 'import yaml' >/dev/null 2>&1; then
+  if ! python -m pip --version >/dev/null 2>&1; then
+    printf 'ERROR: PyYAML is missing and python -m pip is unavailable. Install pip for this Python interpreter, then install PyYAML>=6,<7 and rerun the initializer.\n' >&2
+    exit 2
+  fi
+  printf 'Installing the PyYAML dependency required by the Spec Kit Python resolver...\n'
+  if ! python -m pip install --disable-pip-version-check 'PyYAML>=6,<7'; then
+    printf 'ERROR: PyYAML could not be installed for the python command. Install PyYAML>=6,<7 for that interpreter and rerun the initializer.\n' >&2
+    exit 2
+  fi
+  if ! python -c 'import yaml' >/dev/null 2>&1; then
+    printf 'ERROR: PyYAML is still unavailable to the python command after installation.\n' >&2
+    exit 2
+  fi
+fi
 
 catalog_root="https://raw.githubusercontent.com/orbyss-io/program-kit/${PROGRAM_KIT_REF}/catalogs"
 
-printf '[1/7] Initializing Spec Kit for Codex with the Python script flavor...\n'
-specify init . --force --non-interactive --integration codex --script py
+printf '[1/7] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"
+specify init . --force --non-interactive --integration "$program_kit_integration" --script py
 
 printf '[2/7] Registering the Program Kit extension catalog...\n'
 specify extension catalog add "${catalog_root}/extensions.json" --name program-kit --install-allowed
@@ -81,6 +110,6 @@ printf '[6/7] Installing the bootstrap workflow required by Spec Kit 1.0.1...\n'
 specify workflow add program-kit-bootstrap
 
 printf '[7/7] Installing Program Kit...\n'
-specify bundle install program-kit --integration codex
+specify bundle install program-kit --integration "$program_kit_integration"
 
 printf '\nProgram Kit initialization is complete.\n'

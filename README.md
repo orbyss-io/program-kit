@@ -15,7 +15,10 @@ governance template preset, and the bootstrap workflow as separate components.
 Prerequisites:
 
 - Spec Kit `1.0.1` or a compatible `1.x` release.
-- A supported coding-agent integration.
+- The coding-agent tooling required by the selected Spec Kit integration; `specify init` validates
+  it (for example, `codex` for Codex or `claude` for Claude).
+- Python, available as the `python` command. The Python Spec Kit resolver also requires
+  `PyYAML>=6,<7` in that exact interpreter.
 - Trust in this repository's catalog and release contents. Inspect them before marking the extension catalog install-allowed.
 
 > **Codex execution boundary:** Run every command in this installation section, every Program Kit
@@ -38,14 +41,14 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.5/Initialize-ProgramKit-0.6.5.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.6/Initialize-ProgramKit-0.6.6.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
 2. Execute it from a normal user-owned PowerShell prompt:
 
    ```powershell
-   .\Initialize-ProgramKit.cmd
+   .\Initialize-ProgramKit.cmd codex
    ```
 
 The command script works in Windows environments that enforce PowerShell `AllSigned` because it is
@@ -57,21 +60,28 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.5/Initialize-ProgramKit-0.6.5.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.6/Initialize-ProgramKit-0.6.6.sh \
      -o Initialize-ProgramKit.sh
    ```
 
 2. Execute it:
 
    ```bash
-   bash ./Initialize-ProgramKit.sh
+   bash ./Initialize-ProgramKit.sh codex
    ```
 
-Both launchers initialize the Codex integration with Spec Kit's Python runtime, register all
+The required argument is the Spec Kit integration ID. For example, use `claude` instead of `codex`
+for Claude Code. Both launchers initialize the selected integration with Spec Kit's Python runtime, register all
 four catalogs, apply the Spec Kit 1.0.1 workflow workaround, and install Program Kit. They do not
 require, create, locate, or assume a filename for the initial design. When starting the bootstrap,
 pass the user-chosen design path through `--input initial_design=...`. Do not bypass or lower
 execution policy, broadly unblock repository files, or grant unrestricted execution.
+
+Before changing repository-managed files, each launcher verifies that `specify` and `python` can
+execute. Spec Kit validates the coding-agent tooling for the selected integration. The launcher
+checks whether that same `python` can import PyYAML and, only when needed,
+uses `python -m pip` to install `PyYAML>=6,<7`. If pip is unavailable or the import still fails, the
+initializer stops with a dependency-specific error.
 
 The equivalent manual sequence is:
 
@@ -99,10 +109,11 @@ specify bundle catalog add `
 
 # Spec Kit 1.0.1 workaround: preinstall the catalog workflow before the bundle.
 specify workflow add program-kit-bootstrap
-specify bundle install program-kit
+specify bundle install program-kit --integration codex
 ```
 
-Replace `codex` with the integration you use. The bundle itself is integration-agnostic.
+Replace `codex` with the integration you use in both initialization and bundle installation. The
+bundle itself is integration-agnostic.
 
 Keep all four catalogs registered. In Spec Kit 1.0.1, even a locally supplied third-party bundle
 archive resolves its extension, preset, and workflow primitives through their catalogs; the bundle
@@ -257,11 +268,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.5.md`](docs/releasing-0.6.5.md).
+[`docs/releasing-0.6.6.md`](docs/releasing-0.6.6.md).
 
 ```powershell
-git tag v0.6.5
-git push origin v0.6.5
+git tag v0.6.6
+git push origin v0.6.6
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -281,8 +292,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.5.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.5.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.6.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.6.zip -Algorithm SHA256
 ```
 
 ## License

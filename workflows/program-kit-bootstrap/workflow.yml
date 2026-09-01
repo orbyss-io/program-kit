@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.6.5"
+  version: "0.6.6"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -40,15 +40,17 @@ steps:
     expression: "{{ steps.codex-execution-preflight.output.data.action }}"
     cases:
       agent-boundary-blocked:
-        - id: nested-codex-unsupported
-          type: command
-          command: "PROGRAM_KIT_CODEX_AGENT_BOUNDARY: Program Kit stopped because a Codex Desktop task or interactive Codex CLI agent started the outer workflow. Open a normal user-owned PowerShell or WSL terminal yourself and run 'specify workflow run program-kit-bootstrap ...' there. Do not ask the agent to execute it outside its sandbox or install an approval rule. If an agent performed initialization or setup, rerunning init alone may not repair ownership of .agents or .specify. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
-          integration: "program-kit-preflight-diagnostic"
+        - id: confirm-agent-boundary-stop
+          type: gate
+          message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
+          options: [abort]
+          on_reject: abort
       script-runtime-blocked:
-        - id: unusable-spec-kit-script-runtime
-          type: command
-          command: "PROGRAM_KIT_SPEC_KIT_SCRIPT_RUNTIME: Program Kit stopped before intake or research because the resolver referenced by .agents/skills/speckit-constitution/SKILL.md is missing or cannot execute on Windows. From a normal user-owned PowerShell terminal, run 'specify init . --force --non-interactive --integration codex --script py', then confirm .specify/scripts/python/resolve_template.py exists and the constitution skill references it. Do not weaken execution policy, broadly unblock repository files, or grant unrestricted execution. See .specify/extensions/program-kit-governance/references/codex-desktop-windows.md"
-          integration: "program-kit-preflight-diagnostic"
+        - id: confirm-script-runtime-stop
+          type: gate
+          message: "Preflight stop (not a review gate). {{ steps.codex-execution-preflight.output.data.diagnostic }}"
+          options: [abort]
+          on_reject: abort
 
   - id: intake
     type: command

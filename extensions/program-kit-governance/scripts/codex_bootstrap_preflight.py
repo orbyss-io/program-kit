@@ -222,6 +222,25 @@ alone may not repair ownership. Review the clean-start and ownership guidance:
 
 
 def script_runtime_diagnostic(problem: str) -> str:
+    if "PyYAML is required" in problem or "No module named 'yaml'" in problem:
+        remediation = """Install the resolver's missing dependency into the exact Python interpreter
+used by the workflow, then verify the resolver directly:
+
+  python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+  python .specify/scripts/python/resolve_template.py constitution-template --json
+
+Do not rerun Spec Kit initialization for this dependency error; reinitialization
+does not install packages into the `python` interpreter."""
+    else:
+        remediation = """Cleanly regenerate Spec Kit's integration files with the Python flavor:
+
+  specify init . --force --non-interactive --integration codex --script py
+
+Then confirm that `.specify/scripts/python/resolve_template.py` exists and that
+`.agents/skills/speckit-constitution/SKILL.md` references it before restarting
+the Program Kit workflow. This merge-style reinitialization preserves installed
+Program Kit extension registration, but review `git status` before continuing."""
+
     return f"""PROGRAM_KIT_SPEC_KIT_SCRIPT_RUNTIME
 
 Program Kit stopped before intake or research because the installed Codex
@@ -230,15 +249,9 @@ Windows.
 
 {problem}
 
-From a normal user-owned PowerShell terminal in the repository root, cleanly
-regenerate Spec Kit's integration files with the Python flavor:
+From a normal user-owned PowerShell terminal in the repository root:
 
-  specify init . --force --non-interactive --integration codex --script py
-
-Then confirm that `.specify/scripts/python/resolve_template.py` exists and that
-`.agents/skills/speckit-constitution/SKILL.md` references it before restarting
-the Program Kit workflow. This merge-style reinitialization preserves installed
-Program Kit extension registration, but review `git status` before continuing.
+{remediation}
 
 Do not weaken the machine or user execution policy, broadly unblock repository
 files, or grant unrestricted execution. If ownership is already wrong, follow

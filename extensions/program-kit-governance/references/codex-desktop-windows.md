@@ -25,11 +25,15 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 1. Open PowerShell directly, or WSL when the repository lives in WSL.
 2. Change to the repository root. Existing project files and an existing Spec Kit initialization
    are allowed; the initializer stops if Program Kit itself is already or partially installed.
-3. Download the root initializer from the matching GitHub release and run it:
-   `Initialize-ProgramKit.sh` from Bash in WSL, or `Initialize-ProgramKit.cmd` from PowerShell on
-   Windows, including under `AllSigned`. The command launcher requires no
-   execution-policy change. Every variant selects the Python Spec Kit runtime and performs catalog
-   registration and Program Kit installation without an initial design. The equivalent
+3. Download the root initializer from the matching GitHub release and run it with the required
+   Spec Kit integration ID: `Initialize-ProgramKit.sh codex` from Bash in WSL, or
+   `Initialize-ProgramKit.cmd codex` from PowerShell on Windows, including under `AllSigned`.
+   Pass `claude` instead for Claude Code. The command launcher requires no execution-policy change.
+   Every variant verifies that `specify` and `python` can execute; Spec Kit validates the selected
+   integration's coding-agent tooling. The launcher ensures the exact workflow interpreter can
+   import `PyYAML>=6,<7` before repository setup. It selects the Python Spec Kit runtime and
+   performs catalog registration and Program Kit installation without an initial design. The Codex
+   equivalent
    initialization command is `specify init . --force --non-interactive --integration codex
    --script py`. Never bypass or lower `AllSigned`, broadly unblock repository files, or grant
    unrestricted execution.
@@ -58,6 +62,15 @@ integration with `specify init . --force --non-interactive --integration codex -
 that `.specify/scripts/python/resolve_template.py` exists and that the constitution skill references
 it. Do not weaken execution policy, broadly unblock repository files, or grant unrestricted
 execution.
+
+If the Python resolver exists but reports that PyYAML is required, install the dependency into the
+exact workflow interpreter and verify the resolver directly; do not reinitialize Spec Kit for a
+package dependency:
+
+```powershell
+python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+python .specify/scripts/python/resolve_template.py constitution-template --json
+```
 
 ## Existing affected repository
 
