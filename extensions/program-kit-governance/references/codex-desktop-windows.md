@@ -31,7 +31,8 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
    Pass `claude` instead for Claude Code. The command launcher requires no execution-policy change.
    Every variant verifies that `specify`, `python`, and Git can execute; Spec Kit validates the selected
    integration's coding-agent tooling. When the directory is not already in a Git work tree, the
-   launcher runs `git init` without deleting existing files. It ensures the exact workflow interpreter can
+   launcher stops before package installation or repository setup and prints `git init` and
+   `git status` for the user to run. It ensures the exact workflow interpreter can
    import `PyYAML>=6,<7` before repository setup. It selects the Python Spec Kit runtime and
    performs catalog registration and Program Kit installation without an initial design. The Codex
    equivalent

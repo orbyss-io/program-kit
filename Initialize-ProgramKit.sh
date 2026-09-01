@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROGRAM_KIT_REF="v0.6.7"
+PROGRAM_KIT_REF="v0.6.8"
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -65,6 +65,21 @@ if ! specify --version >/dev/null 2>&1; then
   printf 'ERROR: The specify command was found but could not execute successfully. Repair Spec Kit and rerun the initializer.\n' >&2
   exit 2
 fi
+if ! command -v git >/dev/null 2>&1; then
+  printf 'ERROR: Git must be available as git because coding-agent workflows run inside a Git work tree.\n' >&2
+  exit 2
+fi
+if ! git --version >/dev/null 2>&1; then
+  printf 'ERROR: The git command was found but could not execute successfully. Repair Git and rerun the initializer.\n' >&2
+  exit 2
+fi
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  printf 'ERROR: This directory is not inside an initialized Git work tree.\n' >&2
+  printf 'Run these commands from %s, then rerun %s %s:\n\n' "$current_root" "$script_name" "$program_kit_integration" >&2
+  printf '  git init\n' >&2
+  printf '  git status\n' >&2
+  exit 2
+fi
 if ! command -v python >/dev/null 2>&1; then
   printf 'ERROR: Python must be available as python because Program Kit uses the Python Spec Kit runtime.\n' >&2
   exit 2
@@ -88,26 +103,6 @@ if ! python -c 'import yaml' >/dev/null 2>&1; then
     exit 2
   fi
 fi
-if ! command -v git >/dev/null 2>&1; then
-  printf 'ERROR: Git must be available as git because coding-agent workflows run inside a Git work tree.\n' >&2
-  exit 2
-fi
-if ! git --version >/dev/null 2>&1; then
-  printf 'ERROR: The git command was found but could not execute successfully. Repair Git and rerun the initializer.\n' >&2
-  exit 2
-fi
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  printf 'Initializing a Git repository for coding-agent workflow trust...\n'
-  if ! git init; then
-    printf 'ERROR: The directory could not be initialized as a Git work tree. Repair Git or initialize the repository manually, then rerun the initializer.\n' >&2
-    exit 2
-  fi
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    printf 'ERROR: Git initialization completed without producing a usable work tree.\n' >&2
-    exit 2
-  fi
-fi
-
 catalog_root="https://raw.githubusercontent.com/orbyss-io/program-kit/${PROGRAM_KIT_REF}/catalogs"
 
 printf '[1/7] Initializing Spec Kit for %s with the Python script flavor...\n' "$program_kit_integration"

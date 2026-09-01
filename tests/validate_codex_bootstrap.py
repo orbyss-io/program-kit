@@ -322,6 +322,40 @@ def validate_populated_repository_initializer(root: Path) -> None:
         if command_log.exists():
             raise AssertionError("Initializer invoked a tool without an integration ID")
 
+        missing_git = subprocess.run(
+            command,
+            cwd=project,
+            env=environment,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if missing_git.returncode != 2:
+            raise AssertionError(f"{suffix} initializer did not reject a non-Git directory")
+        require_phrases(
+            f"Missing Git {suffix} diagnostic",
+            missing_git.stdout + missing_git.stderr,
+            (
+                "not inside an initialized Git work tree",
+                "git init",
+                "git status",
+                "then rerun",
+            ),
+        )
+        if command_log.exists() or pyyaml_marker.exists():
+            raise AssertionError("Initializer performed setup before rejecting missing Git")
+
+        subprocess.run(
+            ["git", "init"],
+            cwd=project,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
         completed = subprocess.run(
             command,
             cwd=project,
@@ -347,7 +381,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
         if not pyyaml_marker.is_file():
             raise AssertionError("Initializer did not install missing PyYAML before Spec Kit")
         if not (project / ".git").exists():
-            raise AssertionError("Initializer did not initialize the populated directory as Git")
+            raise AssertionError("Initializer test lost the user-initialized Git repository")
         commands = command_log.read_text(encoding="utf-8")
         require_phrases(
             f"Executed {suffix} initializer",

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.8 - 2026-09-01
+
+- Make both consumer initializers fail before dependency installation or repository setup when Git
+  is not initialized, and print copyable `git init` and `git status` recovery commands.
+- Keep Git initialization an explicit user action while retaining the bootstrap preflight guard
+  against Codex repository-check failures.
+
 ## 0.6.7 - 2026-09-01
 
 - Require a working Git command during consumer initialization and run `git init` when the target

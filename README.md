@@ -30,9 +30,9 @@ Prerequisites:
 
 The repository does not need to be empty. Existing source, documentation, an initial design, and an
 existing Spec Kit initialization are allowed. The initializer refreshes Spec Kit's Codex integration
-with the Python script flavor but does not delete unrelated project files. If the directory is not
-already inside a Git work tree, the initializer runs `git init`; existing project files are
-preserved. Spec Kit may refresh files that it owns or scaffolds. If the initializer detects an existing or partial Program Kit
+with the Python script flavor but does not delete unrelated project files. The directory must
+already be inside an initialized Git work tree. Otherwise, the initializer stops before dependency
+installation or repository setup and prints `git init` and `git status` for the user to run. Spec Kit may refresh files that it owns or scaffolds. If the initializer detects an existing or partial Program Kit
 installation, it stops before running `specify`; use the update commands instead.
 
 Run these steps from the repository root.
@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.7/Initialize-ProgramKit-0.6.7.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.8/Initialize-ProgramKit-0.6.8.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.7/Initialize-ProgramKit-0.6.7.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.6.8/Initialize-ProgramKit-0.6.8.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -85,8 +85,9 @@ checks whether that same `python` can import PyYAML and, only when needed,
 uses `python -m pip` to install `PyYAML>=6,<7`. If pip is unavailable or the import still fails, the
 initializer stops with a dependency-specific error.
 
-Codex workers require a Git work tree. Program Kit intentionally initializes Git when it is absent
-instead of passing `--skip-git-repo-check` to Codex.
+Codex workers require a Git work tree. Program Kit intentionally fails early when Git is not
+initialized instead of changing repository history implicitly or passing `--skip-git-repo-check`
+to Codex.
 
 The equivalent manual sequence is:
 
@@ -273,11 +274,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.7.md`](docs/releasing-0.6.7.md).
+[`docs/releasing-0.6.8.md`](docs/releasing-0.6.8.md).
 
 ```powershell
-git tag v0.6.7
-git push origin v0.6.7
+git tag v0.6.8
+git push origin v0.6.8
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -297,8 +298,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.7.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.7.zip -Algorithm SHA256
+gh attestation verify program-kit-0.6.8.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.6.8.zip -Algorithm SHA256
 ```
 
 ## License

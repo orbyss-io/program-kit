@@ -1,14 +1,23 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.6.7"
+set "PROGRAM_KIT_REF=v0.6.8"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
 
-if "%~1"=="" goto :usage
-if not "%~2"=="" goto :usage
+if "%~1"=="" (
+  echo ERROR: Supply exactly one Spec Kit integration ID, for example: %~nx0 codex 1>&2
+  exit /b 2
+)
+if not "%~2"=="" (
+  echo ERROR: Supply exactly one Spec Kit integration ID, for example: %~nx0 codex 1>&2
+  exit /b 2
+)
 set "PROGRAM_KIT_INTEGRATION=%~1"
-for /f "delims=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" %%A in ("%PROGRAM_KIT_INTEGRATION%") do goto :usage
+for /f "delims=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" %%A in ("%PROGRAM_KIT_INTEGRATION%") do (
+  echo ERROR: Supply exactly one Spec Kit integration ID, for example: %~nx0 codex 1>&2
+  exit /b 2
+)
 
 for %%I in ("%~dp0.") do set "PROGRAM_KIT_SCRIPT_DIR=%%~fI"
 if /I not "%CD%"=="%PROGRAM_KIT_SCRIPT_DIR%" (
@@ -59,6 +68,19 @@ if errorlevel 1 (
   exit /b 2
 )
 
+where git >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: Git must be available as `git` because coding-agent workflows run inside a Git work tree. 1>&2
+  exit /b 2
+)
+call git --version >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: The `git` command was found but could not execute successfully. Repair Git and rerun the initializer. 1>&2
+  exit /b 2
+)
+call git rev-parse --is-inside-work-tree >nul 2>nul
+if errorlevel 1 goto :git_not_initialized
+
 where python >nul 2>nul
 if errorlevel 1 (
   echo ERROR: Python must be available as `python` because Program Kit uses the Python Spec Kit runtime. 1>&2
@@ -79,25 +101,6 @@ if errorlevel 1 (
   if errorlevel 1 goto :dependency_failed
   call python -c "import yaml" >nul 2>nul
   if errorlevel 1 goto :dependency_failed
-)
-
-where git >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: Git must be available as `git` because coding-agent workflows run inside a Git work tree. 1>&2
-  exit /b 2
-)
-call git --version >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: The `git` command was found but could not execute successfully. Repair Git and rerun the initializer. 1>&2
-  exit /b 2
-)
-call git rev-parse --is-inside-work-tree >nul 2>nul
-if errorlevel 1 (
-  echo Initializing a Git repository for coding-agent workflow trust...
-  call git init
-  if errorlevel 1 goto :git_failed
-  call git rev-parse --is-inside-work-tree >nul 2>nul
-  if errorlevel 1 goto :git_failed
 )
 
 echo [1/7] Initializing Spec Kit for %PROGRAM_KIT_INTEGRATION% with the Python script flavor...
@@ -136,10 +139,6 @@ exit /b 0
 echo ERROR: Run %~nx0 yourself from a normal user-owned PowerShell prompt, not from a Codex Desktop task or interactive Codex CLI agent. 1>&2
 exit /b 2
 
-:usage
-echo ERROR: Supply exactly one Spec Kit integration ID, for example: %~nx0 codex 1>&2
-exit /b 2
-
 :already_initialized
 echo ERROR: Program Kit is already installed, or a partial Program Kit installation exists in %CD%. 1>&2
 echo Use the documented Program Kit update commands instead of running the initializer again. 1>&2
@@ -153,8 +152,12 @@ exit /b 2
 echo ERROR: PyYAML is missing and `python -m pip` is unavailable. Install pip for this Python interpreter, then install "PyYAML^>=6,^<7" and rerun the initializer. 1>&2
 exit /b 2
 
-:git_failed
-echo ERROR: The directory could not be initialized as a Git work tree. Repair Git or initialize the repository manually, then rerun the initializer. 1>&2
+:git_not_initialized
+echo ERROR: This directory is not inside an initialized Git work tree. 1>&2
+echo Run these commands from %CD%, then rerun %~nx0 %PROGRAM_KIT_INTEGRATION%: 1>&2
+echo. 1>&2
+echo   git init 1>&2
+echo   git status 1>&2
 exit /b 2
 
 :failed

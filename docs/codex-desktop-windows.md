@@ -42,8 +42,9 @@ Use a normal terminal owned by the human account:
    The required argument is the Spec Kit integration ID; for example, pass `claude` for Claude
    Code. The command launcher works without changing PowerShell execution policy. Both variants
    verify that `specify`, `python`, and Git can execute. Spec Kit validates the selected integration's
-   coding-agent tooling. If the directory is not already in a Git work tree, the initializer runs
-   `git init` without deleting existing files. It also verifies that the exact `python` used by the workflow can import
+   coding-agent tooling. If the directory is not already in a Git work tree, the initializer stops
+   before package installation or repository setup and prints `git init` and `git status` for the
+   user to run. It also verifies that the exact `python` used by the workflow can import
    PyYAML, installing `PyYAML>=6,<7` through that interpreter's pip only when it is missing. A
    missing or unusable dependency stops initialization before repository setup. Both variants then
    perform the complete installation without deleting unrelated project files, and their Codex
