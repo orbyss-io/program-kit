@@ -45,6 +45,20 @@ proportional exception. Its module and feature dependencies must fit the accepte
 must first build broad controller, service, repository, database, frontend, or infrastructure layers
 is not ready.
 
+For an authenticated browser/API slice, require a selected, versioned secure web profile with an
+executable runtime/configuration contract and identity-provider test fixture. Do not report the
+slice as blocked merely because it omits authority, client, claims, middleware, CORS, CSP, session,
+refresh, logout, health, or browser-test details already owned by that profile. Report it as not
+ready when no profile is selected or when the slice contradicts the selected profile without an
+Accepted override.
+
+For that browser boundary, `READY` also requires the accepted architecture to inherit
+`program-kit-web-threat-model-v1` and `program-kit-web-security-evidence-v1`. Confirm that any
+project-specific assumption, residual-risk acceptance, CSP/session/time-budget change, provider or
+deployment change is owned and backed by an Accepted ADR and regression evidence. Browser tests are
+behavioral evidence, not a security certification; the readiness report must not claim absence of
+vulnerabilities or treat local development configuration as production approval.
+
 Unresolved decisions may remain only when they do not block the proposed first specification. List each remaining decision with the earliest lifecycle point at which it must be resolved.
 
 Do not count an explicit intake choice, Program Kit default, derived default, or reviewed override

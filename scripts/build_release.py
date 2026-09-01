@@ -45,6 +45,10 @@ def deterministic_zip(source: Path, destination: Path) -> None:
             if path.is_file()
             and not path.is_symlink()
             and "__pycache__" not in path.parts
+            and "node_modules" not in path.parts
+            and "playwright-report" not in path.parts
+            and "test-results" not in path.parts
+            and ".auth" not in path.parts
             and path.suffix != ".pyc"
         ),
         key=lambda path: path.relative_to(source).as_posix(),

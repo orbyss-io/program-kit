@@ -15,7 +15,7 @@ from xml.etree import ElementTree
 
 
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
-PROGRAM_KIT_VERSION = "0.6.11"
+PROGRAM_KIT_VERSION = "0.7.0"
 
 
 def sha256(path: Path) -> str:

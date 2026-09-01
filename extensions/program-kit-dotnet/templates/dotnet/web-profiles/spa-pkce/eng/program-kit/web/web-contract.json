@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "profile": "spa-pkce-v1",
+  "assurance": {
+    "threatModel": "program-kit-web-threat-model-v1",
+    "evidenceProfile": "program-kit-web-security-evidence-v1"
+  },
+  "origins": {
+    "application": "http://localhost:5173",
+    "api": "http://localhost:5000",
+    "identity": "http://localhost:8080"
+  },
+  "client": {
+    "flow": "authorization-code-pkce-s256",
+    "tokenStorage": "memory-only",
+    "browserRefreshBehavior": "locally-signed-out-unless-provider-session-reestablishes-login"
+  },
+  "errors": {
+    "mediaType": "application/problem+json",
+    "authentication": "authentication_required",
+    "authorization": "authorization_denied"
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "supportedLocales": [ "en", "nl", "fr", "de", "es" ],
+    "missingKeyBehavior": "fail-tests"
+  },
+  "budgetsSeconds": {
+    "identityDiscovery": 3,
+    "applicationControlledOutcome": 5,
+    "remoteAuthentication": 10
+  }
+}

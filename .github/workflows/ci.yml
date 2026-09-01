@@ -27,6 +27,9 @@ jobs:
       - name: Validate Program Kit components
         run: python tests/validate_components.py
 
+      - name: Validate web security assurance evidence
+        run: python tests/validate_web_security_assurance.py
+
       - name: Validate Codex agent bootstrap boundary
         run: python tests/validate_codex_bootstrap.py
 

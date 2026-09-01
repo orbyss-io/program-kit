@@ -5,6 +5,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CShells.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Nuplane" />
     <PackageReference Include="Nuplane.Loading" />
     <PackageReference Include="Nuplane.Sources.Directory" />

@@ -12,6 +12,12 @@ When TypeScript or a browser UI is detected, evaluate and normally enforce:
 - bundle-size and performance budgets appropriate to the product;
 - safe rendering, CSP, CSRF/session/token treatment, and secret-free client configuration.
 
+For an authenticated browser UI, adopt the versioned secure web profile selected by the bootstrap.
+The default is a same-origin BFF even when the UI is a React or other single-page application. The
+browser calls `/bff/user`, obtains an in-memory antiforgery token from `/bff/antiforgery`, and sends
+same-origin requests; it does not implement OIDC or persist bearer tokens. Direct SPA PKCE/bearer
+authentication is an explicit deployment-profile choice, not a frontend-framework default.
+
 Adopt explicit intake choices and applicable versioned Program Kit defaults in the reviewed bootstrap
 baseline. Choices not supplied by either source remain Proposed until accepted in the project context;
 do not invent a framework merely to make the register look complete.

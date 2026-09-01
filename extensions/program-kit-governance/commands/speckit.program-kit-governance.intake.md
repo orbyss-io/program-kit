@@ -62,6 +62,14 @@ Create `docs/architecture/bootstrap-decisions.json` with this exact shape:
     "program_kit_host_opt_out": false,
     "opt_out_reason": ""
   },
+  "web": {
+    "secure_profile": "bff-cookie-v1",
+    "profile_source": "program-kit-default",
+    "browser_ui": true,
+    "override_reason": "",
+    "threat_model": "program-kit-web-threat-model-v1",
+    "security_evidence": "program-kit-web-security-evidence-v1"
+  },
   "choices": [
     {
       "id": "stable-id",
@@ -96,6 +104,18 @@ opt-out requires a non-empty reason and alternate host. Without an opt-out, add 
 `program-kit-preview-dependencies` explaining that the managed baseline uses pinned Program Kit,
 CShells, and Nuplane preview packages and preview package sources; assessment approval acknowledges
 this fact but does not restore packages or contact those feeds.
+
+When a browser UI is selected, include the `web` block and set `secure_profile` to
+`bff-cookie-v1` unless explicit intake requires a separately hosted browser OAuth client or records
+another profile. “SPA” alone does not select direct browser authentication. `spa-pkce-v1` requires
+`profile_source` `explicit-intake` or `override` and a non-empty `override_reason` describing the
+deployment need and accepted browser-token consequences. Add choice ID `secure-web-profile` so the
+review packet and consolidated baseline adopt the exact profile. Every authenticated browser choice
+also records `threat_model` as `program-kit-web-threat-model-v1` and `security_evidence` as
+`program-kit-web-security-evidence-v1`. Those IDs inherit the versioned attacker model, source-
+classified decision evidence, configurable-default rationale, residual risks, verification levels,
+and review triggers; do not recreate them as unresolved project questions. For a non-browser
+project, set `browser_ui` to false and `secure_profile` to `none-v1`.
 
 Do not invent acceptance outside explicit intake, the versioned Program Kit defaults, safe derived
 defaults, or reviewed overrides. Record those sources as provisional baseline choices for the

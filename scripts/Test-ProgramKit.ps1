@@ -25,6 +25,11 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Extension or workflow validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_web_security_assurance.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Web security assurance validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_governance_state.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Governance-state validation failed.'

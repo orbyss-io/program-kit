@@ -43,6 +43,9 @@ actionable bootstrap instruction.
 - Module and feature references match the accepted dependency graph; peer implementations and stores are not accessed directly.
 - Shared abstractions, kernels, runtime feature dependencies, and feature-family extension or inheritance edges have explicit ownership and any required Accepted ADR and allowlist.
 - Public endpoint, event, configuration, and schema types are distinct from domain entities and have compatibility evidence.
+- Authenticated browser boundaries inherit `program-kit-web-threat-model-v1` and
+  `program-kit-web-security-evidence-v1`; overrides identify the affected `WEB-Cxx`, `WEB-Dxx`, or
+  residual-risk control, an owner, review condition, and executable evidence.
 - A roadmap entry is not Ready when a required ADR is unresolved, and a design task is not presented as a feature specification or application implementation task.
 
 Return a structured report of errors, warnings, new decisions, and required artifact updates. Errors block the lifecycle step. Never silently edit an Accepted ADR to make a conflict disappear.

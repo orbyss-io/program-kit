@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.0 - 2026-09-01
+
+- Add versioned `bff-cookie-v1` and `spa-pkce-v1` secure web boundary profiles, selecting the
+  same-origin BFF with server-held tokens as the default for detected browser applications.
+- Make the standard host own validated OIDC/bearer configuration, fallback authorization, dynamic
+  role policies, server-side session tickets, antiforgery, exact CORS, security headers, correlation,
+  Problem Details, localization, safe identity readiness, and protected OpenAPI generation.
+- Scaffold a digest-pinned Keycloak realm with confidential BFF and public PKCE clients, normalized
+  roles, deterministic user/admin/wrong-role personas, and profile-specific configuration contracts.
+- Add one-command identity startup and a pinned Playwright contract harness covering real provider
+  login, session refresh, local-first logout, role denial, and SPA boundary checks.
+- Teach governance readiness and implementation review to treat the selected profile as bootstrap
+  authority so feature specifications do not reopen platform implementation decisions.
+- Add the versioned `program-kit-web-threat-model-v1` and machine-validated
+  `program-kit-web-security-evidence-v1`: sources are classified by authority, every enumerated
+  threat maps to controls and negative evidence, configurable defaults carry override criteria,
+  residual risks and non-claims stay visible, and standards/incidents/overrides/time trigger review.
+- Ship the assurance snapshot into every authenticated web scaffold and require accepted browser
+  architectures to inherit its exact IDs; security-sensitive deviations require an owner, evidence,
+  review condition, and regression coverage.
+- Move ASP.NET Core authentication and OpenAPI packages to the 10.0.11 servicing line after package
+  auditing rejected the older vulnerable OpenAPI dependency.
+
 ## 0.6.11 - 2026-09-01
 
 - Exclude ADR support files such as `README.md` and `template.md` from Accepted and Proposed

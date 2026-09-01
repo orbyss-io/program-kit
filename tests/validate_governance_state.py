@@ -150,6 +150,14 @@ def decisions() -> dict:
             "program_kit_host_opt_out": False,
             "opt_out_reason": "",
         },
+        "web": {
+            "secure_profile": "bff-cookie-v1",
+            "profile_source": "program-kit-default",
+            "browser_ui": True,
+            "override_reason": "",
+            "threat_model": "program-kit-web-threat-model-v1",
+            "security_evidence": "program-kit-web-security-evidence-v1",
+        },
         "choices": [
             {
                 "id": "runtime-host",
@@ -157,6 +165,13 @@ def decisions() -> dict:
                 "source": "program-kit-default",
                 "rationale": "It is the automatic Program Kit .NET baseline",
                 "override": "Record an explicit intake opt-out or superseding ADR",
+            },
+            {
+                "id": "secure-web-profile",
+                "decision": "Use bff-cookie-v1 for the authenticated browser boundary",
+                "source": "program-kit-default",
+                "rationale": "It is the secure Program Kit browser baseline",
+                "override": "Record explicit intake or a superseding ADR",
             }
         ],
         "overrides": [],
@@ -195,7 +210,11 @@ def write_bootstrap_artifacts(module, project: Path) -> None:
     decision_hash = assessment_approval["artifacts"][module.BOOTSTRAP_DECISIONS.as_posix()]
     contents = {
         "docs/architecture/README.md": "# Architecture navigation\n",
-        "docs/architecture/architecture.md": "# Architecture\n\nProgramKit.Host is the accepted runtime.\n",
+        "docs/architecture/architecture.md": (
+            "# Architecture\n\nProgramKit.Host is the accepted runtime.\n\n"
+            "The browser boundary inherits program-kit-web-threat-model-v1 and "
+            "program-kit-web-security-evidence-v1.\n"
+        ),
         "docs/architecture/quality-attributes.md": "# Quality attributes\n",
         "docs/architecture/technology-radar.md": "# Technology radar\n\nProgramKit.Host — Accepted\n",
         "docs/architecture/traceability.md": "# Traceability\n",
@@ -208,6 +227,9 @@ def write_bootstrap_artifacts(module, project: Path) -> None:
             "# Bootstrap baseline\n\n- Status: Accepted\n\n"
             f"Profile: program-kit-standard 0.3.1\n\nDecision register: {decision_hash}\n\n"
             "runtime-host: ProgramKit.Host is adopted.\n\n"
+            "secure-web-profile: bff-cookie-v1 is adopted.\n\n"
+            "Security assurance: program-kit-web-threat-model-v1 and "
+            "program-kit-web-security-evidence-v1 are inherited.\n\n"
             "program-kit-preview-dependencies is acknowledged.\n"
         ),
     }
@@ -295,6 +317,15 @@ def main() -> int:
             bootstrap_decisions.write_text(json.dumps(explicit_opt_out), encoding="utf-8")
             module.validate_bootstrap_decisions()
 
+            missing_assurance = decisions()
+            del missing_assurance["web"]["security_evidence"]
+            bootstrap_decisions.write_text(json.dumps(missing_assurance), encoding="utf-8")
+            expect_error(
+                module,
+                module.validate_bootstrap_decisions,
+                "web.security_evidence",
+            )
+
             write_assessment(module, project)
 
             constitution_path = project / module.CONSTITUTION
@@ -376,7 +407,9 @@ def main() -> int:
                 "duplicates authoritative status",
             )
             architecture_path.write_text(
-                "# Architecture\n\nProgramKit.Host is the accepted runtime.\n",
+                "# Architecture\n\nProgramKit.Host is the accepted runtime.\n\n"
+                "The browser boundary inherits program-kit-web-threat-model-v1 and "
+                "program-kit-web-security-evidence-v1.\n",
                 encoding="utf-8",
             )
             traceability_path.write_text("# Traceability\n", encoding="utf-8")

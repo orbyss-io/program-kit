@@ -85,3 +85,15 @@ Architecture documents must clearly distinguish facts found in the initial desig
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
 bootstrap-baseline decision must adopt `ProgramKit.Host` and the application-bundle model as
 Accepted. Do not scaffold or restore packages during this command.
+
+When the decision register selects a browser UI, the architecture runtime, deployment,
+cross-cutting, and verification views must adopt the exact `web.secure_profile` and reference its
+versioned Program Kit contract. Do not restate its configuration and middleware decisions as open
+questions. Show the same-origin BFF boundary and server-held tokens for `bff-cookie-v1`, or the
+separate public client, exact CORS boundary, and browser token exposure for `spa-pkce-v1`.
+The baseline and relevant views must also inherit `program-kit-web-threat-model-v1` and
+`program-kit-web-security-evidence-v1` by exact ID. Record project additions and deviations in a
+small security-assurance section: additional assets/threats/assumptions, overridden defaults,
+accepted residual risks, owner, review condition, and verification. Do not call a working-group
+draft final, a platform recommendation normative, or a Program Kit operational default
+scientifically proven.

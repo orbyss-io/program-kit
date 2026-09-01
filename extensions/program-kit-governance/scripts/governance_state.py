@@ -61,6 +61,8 @@ DECISION_SOURCES = {
     "derived-default",
     "override",
 }
+WEB_THREAT_MODEL = "program-kit-web-threat-model-v1"
+WEB_SECURITY_EVIDENCE = "program-kit-web-security-evidence-v1"
 ASSESSMENT_ARTIFACTS = (
     ASSESSMENT,
     DECISION_BACKLOG,
@@ -497,7 +499,8 @@ def validate_bootstrap_decisions() -> dict:
         raise GovernanceStateError("Bootstrap decisions selected_profiles must be a list of strings")
     if len({item.lower() for item in selected_profiles}) != len(selected_profiles):
         raise GovernanceStateError("Bootstrap decisions selected_profiles contains duplicates")
-    if "dotnet" in {item.lower() for item in selected_profiles}:
+    normalized_profiles = {item.lower() for item in selected_profiles}
+    if "dotnet" in normalized_profiles:
         dotnet = value.get("dotnet")
         if not isinstance(dotnet, dict):
             raise GovernanceStateError("A selected .NET profile requires a dotnet decision block")
@@ -535,6 +538,50 @@ def validate_bootstrap_decisions() -> dict:
                 raise GovernanceStateError(
                     "ProgramKit.Host selection must disclose the pinned preview packages and package sources"
                 )
+    browser_selected = "typescript-web" in normalized_profiles or "browser-web" in normalized_profiles
+    web = value.get("web")
+    if browser_selected:
+        if not isinstance(web, dict):
+            raise GovernanceStateError("A selected browser profile requires a web decision block")
+        if web.get("browser_ui") is not True:
+            raise GovernanceStateError("A selected browser profile requires web.browser_ui true")
+        secure_profile = _require_string(web.get("secure_profile"), "Bootstrap web.secure_profile")
+        if secure_profile not in {"bff-cookie-v1", "spa-pkce-v1"}:
+            raise GovernanceStateError(
+                "Bootstrap web.secure_profile must be bff-cookie-v1 or spa-pkce-v1 for a browser UI"
+            )
+        profile_source = _require_string(web.get("profile_source"), "Bootstrap web.profile_source")
+        if profile_source not in DECISION_SOURCES:
+            raise GovernanceStateError(
+                f"Bootstrap web.profile_source has invalid source {profile_source!r}; "
+                f"expected one of {sorted(DECISION_SOURCES)}"
+            )
+        threat_model = _require_string(web.get("threat_model"), "Bootstrap web.threat_model")
+        if threat_model != WEB_THREAT_MODEL:
+            raise GovernanceStateError(
+                f"Bootstrap web.threat_model must be {WEB_THREAT_MODEL}"
+            )
+        security_evidence = _require_string(
+            web.get("security_evidence"), "Bootstrap web.security_evidence"
+        )
+        if security_evidence != WEB_SECURITY_EVIDENCE:
+            raise GovernanceStateError(
+                f"Bootstrap web.security_evidence must be {WEB_SECURITY_EVIDENCE}"
+            )
+        if secure_profile == "spa-pkce-v1":
+            if profile_source not in {"explicit-intake", "override"}:
+                raise GovernanceStateError(
+                    "spa-pkce-v1 requires explicit intake or an override; BFF is the secure browser default"
+                )
+            _require_string(web.get("override_reason"), "Bootstrap web.override_reason")
+        choice_ids = {item.get("id") for item in choices if isinstance(item, dict)}
+        if "secure-web-profile" not in choice_ids:
+            raise GovernanceStateError(
+                "A selected browser profile requires the secure-web-profile adopted choice"
+            )
+    elif isinstance(web, dict) and web.get("browser_ui") is False:
+        if web.get("secure_profile") != "none-v1":
+            raise GovernanceStateError("A non-browser web decision block must select none-v1")
     return value
 
 
@@ -936,6 +983,30 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
                 raise GovernanceStateError(
                     "The accepted .NET baseline must adopt ProgramKit.Host unless intake explicitly opts out"
                 )
+    web = decisions.get("web")
+    if isinstance(web, dict) and web.get("browser_ui") is True:
+        secure_profile = str(web.get("secure_profile", ""))
+        architecture_text = (
+            project_path(Path("docs/architecture/architecture.md")).read_text(encoding="utf-8")
+            + "\n"
+            + project_path(Path("docs/architecture/technology-radar.md")).read_text(encoding="utf-8")
+            + "\n"
+            + baseline_text
+        )
+        if secure_profile not in architecture_text:
+            raise GovernanceStateError(
+                "The accepted browser baseline must name the selected versioned secure web profile"
+            )
+        missing_assurance = [
+            assurance_id
+            for assurance_id in (WEB_THREAT_MODEL, WEB_SECURITY_EVIDENCE)
+            if assurance_id not in architecture_text
+        ]
+        if missing_assurance:
+            raise GovernanceStateError(
+                "The accepted browser baseline must inherit the versioned web security assurance: "
+                + ", ".join(missing_assurance)
+            )
     validate_roadmap(require_ready)
     validate_bootstrap_consistency()
     if require_approval:

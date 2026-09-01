@@ -30,10 +30,47 @@ def load_json(path: Path, default: dict) -> dict:
     return value
 
 
+def selected_web_profile(target: Path, requested: str) -> str:
+    """Resolve an explicit profile or derive the secure default from reviewed bootstrap evidence."""
+    if requested != "auto":
+        return requested
+
+    decision_path = target / "docs" / "architecture" / "bootstrap-decisions.json"
+    if decision_path.is_file():
+        decisions = load_json(decision_path, {})
+        web = decisions.get("web")
+        if isinstance(web, dict):
+            selected = web.get("secure_profile")
+            approved_profiles = {
+                "none-v1": "none",
+                "bff-cookie-v1": "bff-cookie",
+                "spa-pkce-v1": "spa-pkce",
+            }
+            if selected in approved_profiles:
+                return approved_profiles[selected]
+
+    evidence_paths = [
+        target / "docs" / "initial-design.md",
+        target / "INITIAL_DESIGN.md",
+        target / "initial_design.md",
+    ]
+    evidence = "\n".join(
+        path.read_text(encoding="utf-8").lower() for path in evidence_paths if path.is_file()
+    )
+    browser_markers = ("browser", "react", "single-page", "single page", "spa", "typescript")
+    return "bff-cookie" if any(marker in evidence for marker in browser_markers) else "none"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Synchronize the Program Kit .NET repository baseline.")
     parser.add_argument("--target", default=".", help="Consuming repository root")
     parser.add_argument("--check", action="store_true", help="Report drift without writing")
+    parser.add_argument(
+        "--web-profile",
+        choices=("auto", "none", "bff-cookie", "spa-pkce"),
+        default="auto",
+        help="Secure web boundary profile; auto adopts BFF for a detected browser UI",
+    )
     parser.add_argument(
         "--profile-selected",
         action="store_true",
@@ -76,6 +113,17 @@ def main() -> int:
         raise ValueError("The .NET template manifest has no files list.")
 
     target = Path(args.target).resolve()
+    web_profile = selected_web_profile(target, args.web_profile)
+    print(f"selected web profile: {web_profile}")
+    profile_manifest_path = template_root / "web-profiles" / web_profile / "managed-files.json"
+    if profile_manifest_path.is_file():
+        profile_manifest = load_json(profile_manifest_path, {})
+        profile_entries = profile_manifest.get("files")
+        if not isinstance(profile_entries, list):
+            raise ValueError(f"The {web_profile} profile manifest has no files list.")
+        profile_destinations = {entry["path"] for entry in profile_entries}
+        entries = [entry for entry in entries if entry["path"] not in profile_destinations]
+        entries.extend(profile_entries)
     if not args.check:
         target.mkdir(parents=True, exist_ok=True)
     state_path = target / ".program-kit" / "managed.json"
@@ -93,7 +141,8 @@ def main() -> int:
     for entry in entries:
         relative = entry["path"]
         ownership = entry["ownership"]
-        source = template_root / "files" / relative
+        source_root = template_root / entry.get("sourceRoot", "files")
+        source = source_root / entry.get("source", relative)
         destination = target / relative
         desired = source.read_bytes()
         desired_hash = sha256_bytes(desired)
@@ -148,6 +197,14 @@ def main() -> int:
             {
                 "schemaVersion": 1,
                 "programKitVersion": extension_version(extension_root),
+                "webProfile": web_profile,
+                "webProfileContract": f"{web_profile}-v1",
+                "webThreatModel": (
+                    "program-kit-web-threat-model-v1" if web_profile != "none" else "none"
+                ),
+                "webSecurityEvidence": (
+                    "program-kit-web-security-evidence-v1" if web_profile != "none" else "none"
+                ),
                 "files": next_files,
             },
             indent=2,

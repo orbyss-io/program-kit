@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "profile": "bff-cookie-v1",
+  "assurance": {
+    "threatModel": "program-kit-web-threat-model-v1",
+    "evidenceProfile": "program-kit-web-security-evidence-v1"
+  },
+  "origins": {
+    "application": "http://localhost:5000",
+    "identity": "http://localhost:8080"
+  },
+  "endpoints": {
+    "login": "/bff/login",
+    "user": "/bff/user",
+    "antiforgery": "/bff/antiforgery",
+    "logout": "/bff/logout",
+    "liveness": "/health/live",
+    "readiness": "/health/ready"
+  },
+  "errors": {
+    "mediaType": "application/problem+json",
+    "authentication": "authentication_required",
+    "authorization": "authorization_denied",
+    "antiforgery": "invalid_antiforgery_token"
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "supportedLocales": [ "en", "nl", "fr", "de", "es" ],
+    "missingKeyBehavior": "fail-tests"
+  },
+  "budgetsSeconds": {
+    "identityDiscovery": 3,
+    "applicationControlledOutcome": 5,
+    "remoteAuthentication": 10
+  }
+}

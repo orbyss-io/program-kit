@@ -230,6 +230,8 @@ def main() -> int:
         "Run those commands in the displayed order",
         "bootstrap-decisions.json",
         "program-kit-preview-dependencies",
+        "program-kit-web-threat-model-v1",
+        "program-kit-web-security-evidence-v1",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.constitution-begin.md",
@@ -255,6 +257,7 @@ def main() -> int:
         extension_root / "commands/speckit.program-kit-governance.readiness.md",
         "--require-roadmap --require-ready",
         "first feature specification",
+        "program-kit-web-security-evidence-v1",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",
@@ -279,6 +282,7 @@ def main() -> int:
         "validate_bootstrap_consistency()",
         "validate_completion()",
         "PENDING_RATIFICATION",
+        "WEB_SECURITY_EVIDENCE",
     )
 
     roadmap_step = next(step for step in steps if step["id"] == "specification-roadmap")

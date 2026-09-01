@@ -1,0 +1,35 @@
+{
+  "ProgramKit": {
+    "Boot": {
+      "EagerShellActivation": true,
+      "FailOnShellActivationError": true
+    },
+    "Web": {
+      "Profile": "SpaPkce",
+      "Authority": "http://localhost:8080/realms/program-kit",
+      "ClientId": "program-kit-spa",
+      "Audience": "program-kit-api",
+      "Scopes": [ "openid", "profile", "program-kit-api" ],
+      "RoleClaim": "roles",
+      "AllowedOrigins": [ "http://localhost:5173" ],
+      "DiscoveryTimeoutSeconds": 3,
+      "RemoteAuthenticationTimeoutSeconds": 10,
+      "SessionIdleMinutes": 30,
+      "SessionAbsoluteMinutes": 480,
+      "AllowHttpForLocalDevelopment": true,
+      "DefaultLocale": "en",
+      "SupportedLocales": [ "en", "nl", "fr", "de", "es" ]
+    }
+  },
+  "Nuplane": {
+    "Setup": {
+      "AutomaticReconciliation": false,
+      "Feeds": [
+        {
+          "Name": "application-bundle",
+          "Directory": { "Watch": false }
+        }
+      ]
+    }
+  }
+}

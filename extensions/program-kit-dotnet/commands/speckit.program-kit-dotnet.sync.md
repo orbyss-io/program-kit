@@ -6,8 +6,10 @@ scripts:
 
 ## Input
 
-`$ARGUMENTS` may contain `--check` to report drift without changing files. The repository root is the current
-working directory unless an explicit target path is supplied.
+`$ARGUMENTS` may contain `--check` to report drift without changing files and `--web-profile`
+with `auto`, `none`, `bff-cookie`, or `spa-pkce`. The repository root is the current working directory
+unless an explicit target path is supplied. `auto` reads the approved bootstrap evidence and adopts
+`bff-cookie` when it detects a browser UI and no profile override.
 
 ## Work
 
@@ -20,6 +22,8 @@ working directory unless an explicit target path is supplied.
    --host-runtime-accepted --preview-sources-approved`. Pass a confirmation flag only when its corresponding
    evidence exists. For a read-only drift report, pass `--check --profile-selected`; the two write approvals
    are not required because check mode changes no files.
+   Pass `--web-profile spa-pkce` only when explicit intake or an Accepted ADR requires a direct
+   browser OAuth client. Do not ask the user to choose merely because the UI is an SPA.
 3. Report created, updated, unchanged, and conflicted files exactly as emitted by the script.
 4. Stop on conflicts. Never overwrite a consumer-modified managed file or a scaffold-once consumer file.
 5. After a successful write, report that `dotnet restore` and the generated
@@ -36,3 +40,7 @@ generated restore, build, CI, release, and application-bundle paths can access t
 The ownership record is `.program-kit/managed.json`. Root MSBuild discovery extension points, application
 `VERSION`, and shell configuration are scaffolded once and remain consumer-owned. Program Kit owns the SDK,
 NuGet source, analyzer policy, `eng/program-kit`, container, schema, and generated workflow baselines.
+The selected secure web profile additionally owns its identity Compose/realm fixture, web contract,
+and Playwright harness. `hostsettings.json` remains scaffold-once because deployment identifiers and
+secrets are consumer configuration; the generated version starts with safe local identifiers and an
+empty BFF secret that must be supplied through `ProgramKit__Web__ClientSecret`.

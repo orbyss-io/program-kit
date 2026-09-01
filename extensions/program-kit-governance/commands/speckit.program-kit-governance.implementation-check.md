@@ -31,6 +31,16 @@ Confirm:
 - interfaces and schemas live at their owned boundaries rather than in speculative shared projects;
 - inheritance or typed feature dependencies do not bypass the accepted feature-family exception policy;
 - dependency injection is confined to composition and endpoints or handlers declare explicit dependencies.
+- authenticated web tasks consume the selected secure web profile rather than inventing schemes,
+  claims mapping, session/refresh/logout behavior, runtime keys, CORS/CSP, denial bodies, or identity
+  test fixtures inside a feature slice;
+- role-protected endpoints have provider-backed contract evidence for anonymous `401`, wrong-role
+  `403`, and authorized success, plus the profile's mandatory Playwright journey.
+- security-sensitive web work traces its affected `WEB-C01` through `WEB-C13` controls and does not
+  exceed the claims of `program-kit-web-threat-model-v1` or
+  `program-kit-web-security-evidence-v1`;
+- configurable security-default changes cite the matching `WEB-Dxx` rationale, Accepted risk owner,
+  review condition, and negative regression evidence;
 
 Pure functions, trivial adapters, generated code, and presentation-only code may use a documented proportional exception. An exception cannot bypass security, public-contract, data-integrity, or lifecycle invariants.
 

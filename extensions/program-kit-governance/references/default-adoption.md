@@ -56,10 +56,28 @@ and the configured preview package sources. The assessment review packet must di
 supply-chain fact. Approving the assessment records the human acknowledgement; it does not download
 packages or run restore. Repository synchronization and networked restore remain separate actions.
 
+## Secure browser default
+
+When a browser UI and authenticated HTTP boundary are detected, adopt the Program Kit
+`bff-cookie-v1` secure web profile unless explicit intake or an Accepted ADR selects another
+deployment shape. “SPA” describes the client UI and does not by itself select browser-held bearer
+tokens. The same-origin BFF remains the default for React and other SPA frontends.
+
+Select `spa-pkce-v1` only for an independently hosted static client that must call APIs directly, or
+when an explicit decision accepts browser token exposure and the profile's renewal, storage, CORS,
+and logout consequences. Record the profile and version in the bootstrap decision register. Feature
+specifications inherit the chosen profile and must not reopen its ordinary implementation details.
+
+Every authenticated browser adoption also inherits threat model
+`program-kit-web-threat-model-v1` and evidence profile
+`program-kit-web-security-evidence-v1`. These own the attacker model, source authority/status,
+control traceability, configurable-default rationale, residual risks, assurance levels, and review
+triggers. A consumer records only its additions and overrides; an override is incomplete without an
+owner, affected control/default, evidence, review condition, and regression test.
+
 ## Proportional decisions
 
 Do not turn every valid question into an ADR or bootstrap blocker. Close ordinary details through
 the applicable default, feature specification, acceptance criteria, or deterministic test. Defer
 production topology, workload objectives, legal retention, and recovery objectives until their
 lifecycle gates when they do not block the first vertical slice.
-

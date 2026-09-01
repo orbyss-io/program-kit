@@ -8,6 +8,7 @@ using ProgramKit.Host.Bundles;
 using ProgramKit.Host.Feed;
 using ProgramKit.Host.Health;
 using ProgramKit.Host.Shells;
+using ProgramKit.Host.Web;
 
 var bootstrap = ApplicationBundleBootstrap.Prepare(args);
 var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
@@ -57,12 +58,16 @@ builder.Services.AddCShellsAspNetCore(shells => shells
     .WithWebRouting(options =>
     {
         options.EnablePathRouting = true;
-        options.ExcludePaths = ["/health/live", "/health/ready", "/_program-kit/bundle"];
+        options.ExcludePaths = ["/health/live", "/health/ready", "/_program-kit/bundle", "/_program-kit/openapi"];
     }));
 
 builder.Services.AddHostedService<EagerShellActivationHostedService>();
+builder.Services.AddProgramKitWebBoundary(configuration, builder.Environment);
 
 var app = builder.Build();
+app.UseProgramKitWebBoundary();
 app.MapProgramKitHealth();
+app.MapProgramKitWebBoundary();
+app.MapOpenApi("/_program-kit/openapi/{documentName}.json");
 app.MapShells();
 app.Run();

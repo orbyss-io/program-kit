@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.11/Initialize-ProgramKit-0.6.11.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.7.0/Initialize-ProgramKit-0.7.0.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.6.11/Initialize-ProgramKit-0.6.11.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.7.0/Initialize-ProgramKit-0.7.0.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -291,6 +291,13 @@ packages and NuGet sources; restore/build execution is separately authorized. Th
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
 never creates .NET files. See `docs/dotnet-runtime.md`.
 
+Authenticated browser applications adopt `bff-cookie-v1` by default and inherit the versioned
+`program-kit-web-threat-model-v1` plus `program-kit-web-security-evidence-v1`. That assurance
+baseline maps explicit attackers and threats to controls, classifies standards, drafts, formal
+research, platform guidance, and local policy honestly, and identifies configurable defaults and
+residual risks that still require project judgement. Governance rejects a browser baseline that
+does not inherit those exact IDs.
+
 ## Development and release
 
 Run the local source checks and disposable install test:
@@ -307,11 +314,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.6.11.md`](docs/releasing-0.6.11.md).
+[`docs/releasing-0.7.0.md`](docs/releasing-0.7.0.md).
 
 ```powershell
-git tag v0.6.11
-git push origin v0.6.11
+git tag v0.7.0
+git push origin v0.7.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -331,8 +338,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.6.11.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.6.11.zip -Algorithm SHA256
+gh attestation verify program-kit-0.7.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.7.0.zip -Algorithm SHA256
 ```
 
 ## License

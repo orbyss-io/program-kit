@@ -134,6 +134,13 @@ implementations, validators, policies, and translators through the feature compo
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
 
+When the application has an authenticated browser boundary, the host also owns the selected
+versioned contract in `../secure-web-profiles.md`. It registers authentication and authorization,
+claims normalization, antiforgery, CORS, Problem Details, correlation, security headers, identity
+readiness, and middleware ordering exactly once. Feature endpoints declare a named policy or
+explicit anonymous access; they do not select schemes, parse provider claims, implement login or
+logout, or return tokens.
+
 ## Domain and persistence rules
 
 - Model aggregates and rich domain behavior only where business complexity warrants them; simple

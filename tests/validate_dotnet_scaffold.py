@@ -65,6 +65,49 @@ def main() -> int:
         assert conflicted.returncode == 2, conflicted.stderr
         assert "consumer edit" in managed.read_text(encoding="utf-8")
 
+        browser_target = target / "browser-consumer"
+        design = browser_target / "docs/initial-design.md"
+        design.parent.mkdir(parents=True)
+        design.write_text("# Design\n\nA React browser UI calls authenticated HTTP features.\n", encoding="utf-8")
+        browser_installed = run("--target", str(browser_target), *approvals)
+        assert browser_installed.returncode == 0, browser_installed.stderr
+        browser_state = json.loads((browser_target / ".program-kit/managed.json").read_text(encoding="utf-8"))
+        assert browser_state["webProfile"] == "bff-cookie"
+        assert browser_state["webProfileContract"] == "bff-cookie-v1"
+        assert browser_state["webThreatModel"] == "program-kit-web-threat-model-v1"
+        assert browser_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
+        bff_settings = json.loads((browser_target / "hostsettings.json").read_text(encoding="utf-8"))
+        assert bff_settings["ProgramKit"]["Web"]["Profile"] == "BffCookie"
+        assert (browser_target / "deploy/keycloak/program-kit-realm.json").is_file()
+        assert (browser_target / "eng/program-kit/web/package-lock.json").is_file()
+        assert (browser_target / ".program-kit/security/web-security-evidence.json").is_file()
+        assert (browser_target / "docs/architecture/program-kit/web-security-threat-model.md").is_file()
+
+        mentioned_alternative = target / "mentioned-spa-alternative"
+        alternative_design = mentioned_alternative / "INITIAL_DESIGN.md"
+        alternative_design.parent.mkdir(parents=True)
+        alternative_design.write_text(
+            "# Design\n\nA React browser UI; spa-pkce-v1 is an alternative, not the selected design.\n",
+            encoding="utf-8",
+        )
+        alternative_installed = run("--target", str(mentioned_alternative), *approvals)
+        assert alternative_installed.returncode == 0, alternative_installed.stderr
+        alternative_state = json.loads(
+            (mentioned_alternative / ".program-kit/managed.json").read_text(encoding="utf-8")
+        )
+        assert alternative_state["webProfile"] == "bff-cookie"
+
+        spa_target = target / "explicit-spa-consumer"
+        spa_installed = run("--target", str(spa_target), *approvals, "--web-profile", "spa-pkce")
+        assert spa_installed.returncode == 0, spa_installed.stderr
+        spa_state = json.loads((spa_target / ".program-kit/managed.json").read_text(encoding="utf-8"))
+        assert spa_state["webProfile"] == "spa-pkce"
+        assert spa_state["webThreatModel"] == "program-kit-web-threat-model-v1"
+        assert spa_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
+        spa_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
+        assert spa_settings["ProgramKit"]["Web"]["Profile"] == "SpaPkce"
+        assert spa_settings["ProgramKit"]["Web"]["AllowedOrigins"] == ["http://localhost:5173"]
+
     print("Program Kit .NET scaffold lifecycle passed.")
     return 0
 

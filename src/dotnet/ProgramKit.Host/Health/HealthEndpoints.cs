@@ -1,5 +1,6 @@
 using CShells.Lifecycle;
 using ProgramKit.Host.Bundles;
+using ProgramKit.Host.Web;
 
 namespace ProgramKit.Host.Health;
 
@@ -11,7 +12,7 @@ internal static class HealthEndpoints
     /// <returns>The supplied endpoint route builder.</returns>
     public static IEndpointRouteBuilder MapProgramKitHealth(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/health/live", () => Results.Ok(new { status = "live" }));
+        endpoints.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
         endpoints.MapGet("/_program-kit/bundle", (ApplicationBundle bundle) => Results.Ok(new
         {
             id = bundle.Manifest.BundleId,
@@ -19,7 +20,7 @@ internal static class HealthEndpoints
             digest = bundle.Digest,
             hostApi = bundle.Manifest.HostApi
         }));
-        endpoints.MapGet("/health/ready", (IShellRegistry registry, IConfiguration configuration, ApplicationBundle bundle) =>
+        endpoints.MapGet("/health/ready", (IShellRegistry registry, IConfiguration configuration, IdentityReadinessState identity) =>
         {
             var shells = configuration.GetSection("CShells:Shells").GetChildren()
                 .Select(child => child.Key)
@@ -36,16 +37,20 @@ internal static class HealthEndpoints
                     };
                 })
                 .ToArray();
-            var ready = shells.Length > 0 && shells.All(shell => shell.active);
+            var shellsReady = shells.Length > 0 && shells.All(shell => shell.active);
+            var ready = shellsReady && identity.IsReady;
             return Results.Json(
                 new
                 {
                     status = ready ? "ready" : "not-ready",
-                    bundle = new { id = bundle.Manifest.BundleId, version = bundle.Manifest.Version, digest = bundle.Digest },
-                    shells
+                    checks = new
+                    {
+                        runtime = shellsReady ? "ready" : "not-ready",
+                        identity = identity.IsReady ? "ready" : "not-ready"
+                    }
                 },
                 statusCode: ready ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
-        });
+        }).AllowAnonymous();
         return endpoints;
     }
 }

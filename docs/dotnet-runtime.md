@@ -26,6 +26,28 @@ The first local `eng/program-kit/Build.ps1 -SkipBundle` restore creates `package
 files. Generated CI and release workflows pass `-LockedMode`, so dependency changes must be reviewed and
 regenerated deliberately.
 
+## Secure web profiles
+
+Pass `--web-profile auto` (the default) to repository sync. Reviewed bootstrap evidence selecting a
+browser UI adopts `bff-cookie-v1`: the browser receives only an opaque `HttpOnly` session cookie while
+OIDC access and refresh tokens remain in the host's server-side ticket store. `spa-pkce-v1` remains an
+explicit option for a separately hosted static browser client that must call the API directly. A UI
+described as an SPA does not by itself select browser-held tokens.
+
+The selected profile scaffolds validated `ProgramKit:Web` configuration, a digest-pinned Keycloak
+realm and deterministic personas, local startup commands, a web contract, and Playwright tests. The
+host owns authentication/authorization middleware, role normalization, antiforgery or exact CORS,
+Problem Details, correlation and security headers, localization defaults, identity readiness, and
+OpenAPI. Features declare named policies such as `role:admin`; they do not configure schemes or parse
+provider claims. See the extension's `references/secure-web-profiles.md` for the complete contract.
+
+Authenticated profiles also copy the managed `program-kit-web-threat-model-v1` and
+`program-kit-web-security-evidence-v1` snapshots into the consumer. The latter is a machine-readable
+map of threats, controls, classified primary evidence, risk-based configurable defaults, residual
+risks, assurance levels, and review triggers. The architecture inherits these IDs and records only
+project-specific additions or Accepted deviations; Playwright evidence demonstrates behavior but is
+not a security certification.
+
 ## Application deployment bundle
 
 `eng/program-kit/Build.ps1` restores, builds, tests, packs, resolves the runtime NuGet closure, and creates
@@ -38,7 +60,10 @@ variables, then command-line arguments. Environment variables therefore override
 
 ## Runtime administration
 
-The preview host exposes read-only `/health/live`, `/health/ready`, and `/_program-kit/bundle` endpoints. It deliberately does not
+The preview host exposes anonymous `/health/live` and `/health/ready` endpoints. Bundle inspection and
+the generated `/_program-kit/openapi/v1.json` contract inherit the authenticated fallback policy when
+a secure web profile is selected. Readiness reports fixed check names only and does not disclose
+identity-provider configuration. The host deliberately does not
 expose an unauthenticated package or shell refresh mutation. A bundle digest is immutable for one process;
 updating an application means publishing and deploying a new layered image. A future refresh endpoint requires
 an accepted authentication, authorization, quiescence, rollback, and audit contract.

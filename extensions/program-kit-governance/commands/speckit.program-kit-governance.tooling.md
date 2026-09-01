@@ -30,3 +30,15 @@ Generic programming guardrails apply automatically. Project-specific tool select
 For .NET, build the staged quality system around the accepted `ProgramKit.Host` default unless the
 decision register contains an explicit opt-out. Keep actual repository synchronization and networked
 package restore as separate, reviewable actions.
+
+For a selected secure web profile, include the Program Kit provider-backed contract suite and its
+pinned Playwright browser journey at the first-code gate. Require anonymous, wrong-role, authorized,
+expiry, refresh, logout/provider-outage, antiforgery-or-CORS, security-header, readiness, correlation,
+Problem Details, locale-fallback, and token-leak evidence owned by the profile. A feature adds its
+meaningful policy path and outcomes; it does not select another authentication library or fixture.
+
+Map the secure-web checks to control IDs `WEB-C01` through `WEB-C13` and assurance levels `WEB-V1`
+through `WEB-V4` from `program-kit-web-security-evidence-v1`. Tool output must distinguish source and
+configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
+assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
+remains visible; it cannot be converted into passing evidence by a unit mock.
