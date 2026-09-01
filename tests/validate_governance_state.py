@@ -110,9 +110,25 @@ def run_main(module, *arguments: str) -> int:
         sys.argv = original
 
 
-def constitution(*, placeholder: bool = False, pending: bool = True) -> str:
+def constitution(
+    *,
+    placeholder: bool = False,
+    pending: bool = True,
+    multiline_metadata: bool = False,
+) -> str:
     principle = "[PRINCIPLE_NAME]" if placeholder else "I. Outcome-Oriented Delivery"
     ratified = "PENDING_RATIFICATION" if pending else "2026-08-25"
+    if multiline_metadata:
+        metadata = (
+            "**Version**: 1.0.0\n"
+            f"**Ratified**: {ratified}\n"
+            "**Last Amended**: 2026-08-25"
+        )
+    else:
+        metadata = (
+            f"**Version**: 1.0.0 | **Ratified**: {ratified} | "
+            "**Last Amended**: 2026-08-25"
+        )
     return f"""# Example Constitution
 
 **Status**: Draft
@@ -135,7 +151,7 @@ Specifications follow ratified governance and Accepted ADRs.
 Amendments require human approval and a migration note. Version changes follow semantic versioning.
 Compliance is reviewed before each lifecycle gate.
 
-**Version**: 1.0.0 | **Ratified**: {ratified} | **Last Amended**: 2026-08-25
+{metadata}
 """
 
 
@@ -342,6 +358,10 @@ def main() -> int:
             if (project / module.CONSTITUTION_REVIEW).exists():
                 raise AssertionError("Constitution gate packet appeared before a valid draft")
 
+            constitution_path.write_text(
+                constitution(multiline_metadata=True), encoding="utf-8"
+            )
+            module.validate_constitution_draft()
             constitution_path.write_text(constitution(), encoding="utf-8")
             module.validate_constitution_draft()
             module.write_review("constitution")

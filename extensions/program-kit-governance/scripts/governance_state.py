@@ -354,10 +354,11 @@ def constitution_metadata(path: Path, *, allow_pending: bool = False) -> tuple[s
                 f"Constitution governance does not define {term} policy"
             )
     ratified_pattern = r"(?:\d{4}-\d{2}-\d{2}|PENDING_RATIFICATION)" if allow_pending else r"\d{4}-\d{2}-\d{2}"
+    metadata_separator = r"(?:[ \t]*\|[ \t]*|[ \t]*\r?\n[ \t]*)"
     match = re.search(
-        r"\*\*Version\*\*:\s*([^|\s]+)\s*\|\s*"
-        rf"\*\*Ratified\*\*:\s*({ratified_pattern})\s*\|\s*"
-        r"\*\*Last Amended\*\*:\s*(\d{4}-\d{2}-\d{2})",
+        rf"(?m)^\*\*Version\*\*:[ \t]*([^|\s]+){metadata_separator}"
+        rf"\*\*Ratified\*\*:[ \t]*({ratified_pattern}){metadata_separator}"
+        r"\*\*Last Amended\*\*:[ \t]*(\d{4}-\d{2}-\d{2})[ \t]*$",
         text,
     )
     if not match:

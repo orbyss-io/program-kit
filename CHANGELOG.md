@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.1 - 2026-09-01
+
+- Accept constitution version, ratification, and last-amended metadata either as the canonical
+  pipe-separated row or as three adjacent Markdown lines, while preserving strict field order and
+  semantic/date validation.
+- Add regression coverage for the multiline constitution metadata emitted during a real Codex
+  bootstrap, preventing a valid Draft from failing before its human ratification gate.
+
 ## 0.7.0 - 2026-09-01
 
 - Add versioned `bff-cookie-v1` and `spa-pkce-v1` secure web boundary profiles, selecting the
