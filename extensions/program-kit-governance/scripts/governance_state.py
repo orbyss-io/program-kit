@@ -354,18 +354,30 @@ def constitution_metadata(path: Path, *, allow_pending: bool = False) -> tuple[s
                 f"Constitution governance does not define {term} policy"
             )
     ratified_pattern = r"(?:\d{4}-\d{2}-\d{2}|PENDING_RATIFICATION)" if allow_pending else r"\d{4}-\d{2}-\d{2}"
-    metadata_separator = r"(?:[ \t]*\|[ \t]*|[ \t]*\r?\n[ \t]*)"
-    match = re.search(
-        rf"(?m)^\*\*Version\*\*:[ \t]*([^|\s]+){metadata_separator}"
-        rf"\*\*Ratified\*\*:[ \t]*({ratified_pattern}){metadata_separator}"
-        r"\*\*Last Amended\*\*:[ \t]*(\d{4}-\d{2}-\d{2})[ \t]*$",
-        text,
+    metadata_fields = (
+        ("Version", r"[^|\s]+"),
+        ("Ratified", ratified_pattern),
+        ("Last Amended", r"\d{4}-\d{2}-\d{2}"),
     )
-    if not match:
-        raise GovernanceStateError(
-            "Constitution must declare Version, Ratified, and Last Amended metadata"
+    matches: list[re.Match[str]] = []
+    for label, value_pattern in metadata_fields:
+        field_matches = list(
+            re.finditer(
+                rf"(?m)(?:^|\|[ \t]*)\*\*{re.escape(label)}\*\*:"
+                rf"[ \t]*({value_pattern})(?=[ \t]*(?:\||$))",
+                governance,
+            )
         )
-    version, ratified, amended = match.groups()
+        if len(field_matches) != 1:
+            raise GovernanceStateError(
+                "Constitution must declare Version, Ratified, and Last Amended metadata"
+            )
+        matches.append(field_matches[0])
+    if [match.start() for match in matches] != sorted(match.start() for match in matches):
+        raise GovernanceStateError(
+            "Constitution metadata must appear in Version, Ratified, Last Amended order"
+        )
+    version, ratified, amended = (match.group(1) for match in matches)
     if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", version):
         raise GovernanceStateError(f"Constitution version is not semantic: {version}")
     for label, value in (("Ratified", ratified), ("Last Amended", amended)):

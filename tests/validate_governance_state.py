@@ -114,21 +114,26 @@ def constitution(
     *,
     placeholder: bool = False,
     pending: bool = True,
-    multiline_metadata: bool = False,
+    metadata_layout: str = "row",
 ) -> str:
     principle = "[PRINCIPLE_NAME]" if placeholder else "I. Outcome-Oriented Delivery"
     ratified = "PENDING_RATIFICATION" if pending else "2026-08-25"
-    if multiline_metadata:
-        metadata = (
-            "**Version**: 1.0.0\n"
-            f"**Ratified**: {ratified}\n"
-            "**Last Amended**: 2026-08-25"
-        )
-    else:
+    if metadata_layout == "row":
         metadata = (
             f"**Version**: 1.0.0 | **Ratified**: {ratified} | "
             "**Last Amended**: 2026-08-25"
         )
+    elif metadata_layout in {"lines", "spaced-lines"}:
+        separator = "\n" if metadata_layout == "lines" else "\n\n"
+        metadata = separator.join(
+            (
+                "**Version**: 1.0.0",
+                f"**Ratified**: {ratified}",
+                "**Last Amended**: 2026-08-25",
+            )
+        )
+    else:
+        raise ValueError(f"Unknown constitution metadata layout: {metadata_layout}")
     return f"""# Example Constitution
 
 **Status**: Draft
@@ -359,7 +364,11 @@ def main() -> int:
                 raise AssertionError("Constitution gate packet appeared before a valid draft")
 
             constitution_path.write_text(
-                constitution(multiline_metadata=True), encoding="utf-8"
+                constitution(metadata_layout="lines"), encoding="utf-8"
+            )
+            module.validate_constitution_draft()
+            constitution_path.write_text(
+                constitution(metadata_layout="spaced-lines"), encoding="utf-8"
             )
             module.validate_constitution_draft()
             constitution_path.write_text(constitution(), encoding="utf-8")

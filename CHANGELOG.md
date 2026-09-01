@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2 - 2026-09-01
+
+- Parse the three unique constitution metadata fields independently within the Governance section,
+  retaining required order and strict value validation without depending on Markdown whitespace.
+- Cover pipe-separated rows, adjacent lines, and blank-line-separated fields, including the exact
+  format emitted by the affected Codex bootstrap.
+
 ## 0.7.1 - 2026-09-01
 
 - Accept constitution version, ratification, and last-amended metadata either as the canonical
