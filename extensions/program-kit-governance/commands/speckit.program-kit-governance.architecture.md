@@ -83,7 +83,7 @@ Resolve the decision backlog through focused design tasks before implementation 
 Architecture documents must clearly distinguish facts found in the initial design, derived constraints, proposals, accepted decisions, and unresolved questions.
 
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
-bootstrap-baseline decision must adopt `ProgramKit.Host` and the application-bundle model as
+bootstrap-baseline decision must adopt the shallow `ProgramKit.Host` and runnable-host release model as
 Accepted. Do not scaffold or restore packages during this command.
 
 When the decision register selects a browser UI, the architecture runtime, deployment,

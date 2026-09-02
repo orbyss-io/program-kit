@@ -10,9 +10,3 @@ services:
       - "localhost:host-gateway"
     ports:
       - "5000:8080"
-    healthcheck:
-      test: [ "CMD", "dotnet", "ProgramKit.Host.dll", "--program-kit-healthcheck", "http://127.0.0.1:8080/health/ready" ]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 10s

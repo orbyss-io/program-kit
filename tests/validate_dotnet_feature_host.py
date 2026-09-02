@@ -8,8 +8,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 
@@ -111,25 +109,57 @@ public sealed class ConsumerOrdersInitializer : IShellInitializer
         encoding="utf-8",
         newline="\n",
     )
-    (repository / "hostsettings.json").write_text("{}\n", encoding="utf-8", newline="\n")
+    (repository / "hostsettings.json").write_text(
+        json.dumps(
+            {
+                "ProgramKit": {"Boot": {"EagerShellActivation": True, "FailOnShellActivationError": True}},
+                "Nuplane": {
+                    "Setup": {
+                        "AutomaticReconciliation": True,
+                        "Feeds": [
+                            {
+                                "Name": "runtime-packages",
+                                "DirectoryPath": "packages",
+                                "IncludePatterns": ["*"],
+                                "Directory": {"Watch": False},
+                            }
+                        ],
+                    },
+                    "Loading": {
+                        "Enabled": True,
+                        "DefaultLoadMode": "HostIntegrated",
+                        "LoadModeSelectionPolicy": "ExplicitOnly",
+                        "SharedAssemblies": [
+                            {"Name": "CShells.Abstractions", "PublicKeyToken": None, "MajorVersion": 0},
+                            {
+                                "Name": "CShells.AspNetCore.Abstractions",
+                                "PublicKeyToken": None,
+                                "MajorVersion": 0,
+                            },
+                        ],
+                    },
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
-def wait_for_ready(process: subprocess.Popen[str], uri: str) -> dict:
+def wait_for_activation(process: subprocess.Popen[str], marker: Path) -> None:
     deadline = time.monotonic() + 45
-    last_error = "host did not answer"
     while time.monotonic() < deadline:
         if process.poll() is not None:
             stdout, stderr = process.communicate()
             raise AssertionError(f"ProgramKit.Host exited before readiness.\n{stdout}\n{stderr}")
-        try:
-            with urllib.request.urlopen(uri, timeout=2) as response:
-                return json.load(response)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
-            last_error = str(error)
-            time.sleep(0.25)
+        if marker.is_file() and marker.read_text(encoding="utf-8") == "ConsumerOrders activated":
+            return
+        time.sleep(0.25)
     process.terminate()
     stdout, stderr = process.communicate(timeout=10)
-    raise AssertionError(f"ProgramKit.Host did not become ready: {last_error}\n{stdout}\n{stderr}")
+    raise AssertionError(f"ProgramKit.Host did not eagerly activate the consumer feature.\n{stdout}\n{stderr}")
 
 
 def main() -> int:
@@ -140,8 +170,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-feature-host-", ignore_cleanup_errors=True) as value:
         repository = Path(value) / "consumer"
         packages = repository / "artifacts/packages"
-        bundle = repository / "artifacts/application-bundle.zip"
-        cache = repository / ".bundle-cache"
+        staged = repository / "artifacts/runnable-host"
         create_consumer_feature(repository)
         run(
             [
@@ -169,14 +198,15 @@ def main() -> int:
                 sys.executable,
                 str(
                     ROOT
-                    / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/create_application_bundle.py"
+                    / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/runnable_host.py"
                 ),
+                "stage",
                 "--repository",
                 str(repository),
                 "--packages",
                 str(packages),
                 "--output",
-                str(bundle),
+                str(staged),
             ],
             repository,
             environment,
@@ -184,31 +214,25 @@ def main() -> int:
 
         port = free_port()
         host_environment = os.environ.copy()
-        host_environment["PROGRAMKIT_BUNDLE_PATH"] = str(bundle)
-        host_environment["PROGRAMKIT_BUNDLE_CACHE"] = str(cache)
         activation_marker = repository / "consumer-orders.activated"
         host_environment["PROGRAMKIT_TEST_FEATURE_MARKER"] = str(activation_marker)
         host_environment["ASPNETCORE_URLS"] = f"http://127.0.0.1:{port}"
         host_environment["DOTNET_ENVIRONMENT"] = "Production"
         host_environment["Logging__LogLevel__Default"] = "Warning"
+        shutil.copyfile(
+            ROOT / "src/dotnet/ProgramKit.Host/appsettings.json",
+            staged / "appsettings.json",
+        )
         process = subprocess.Popen(
             ["dotnet", str(host)],
-            cwd=repository,
+            cwd=staged,
             env=host_environment,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
         try:
-            readiness = wait_for_ready(process, f"http://127.0.0.1:{port}/health/ready")
-            if readiness.get("status") != "ready":
-                raise AssertionError(f"host returned unexpected readiness: {readiness}")
-            if not activation_marker.is_file() or activation_marker.read_text(encoding="utf-8") != "ConsumerOrders activated":
-                process.terminate()
-                stdout, stderr = process.communicate(timeout=10)
-                raise AssertionError(
-                    f"consumer feature shell was not eagerly activated: {readiness}\n{stdout}\n{stderr}"
-                )
+            wait_for_activation(process, activation_marker)
         finally:
             if process.poll() is None:
                 process.terminate()
@@ -218,7 +242,7 @@ def main() -> int:
                     process.kill()
                     process.wait(timeout=10)
 
-    print("Consumer feature package, bundle closure, and eager ProgramKit.Host activation passed.")
+    print("Consumer feature package, release closure, and shallow-host activation passed.")
     return 0
 
 

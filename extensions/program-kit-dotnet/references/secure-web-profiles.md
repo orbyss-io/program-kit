@@ -78,7 +78,8 @@ must be tightened or minimally adapted to the actual frontend resource model.
 - provider roles are normalized into the configured role claim and then the platform role claim.
 - policies use named requirements such as `role:admin`; features do not parse provider token shapes.
 - endpoints require authenticated users by fallback policy unless they explicitly opt into anonymous
-  access. Health, login initiation, and protocol callback endpoints are the standard anonymous set.
+  access. Login initiation and protocol callback endpoints are the standard anonymous set; any health
+  endpoint needs a separately owned contract.
 - authentication failures use `401`; authenticated policy failures use `403`. API failures are
   `application/problem+json` with stable `code`, `traceId`, and no provider internals.
 
@@ -90,10 +91,8 @@ must be tightened or minimally adapted to the actual frontend resource model.
   and a profile-appropriate CSP. HSTS is enabled outside local development.
 - CORS is disabled for the same-origin BFF. SPA PKCE permits only configured exact origins, headers,
   and methods; credentials are not combined with wildcard origins.
-- `/health/live` proves only that the process can answer.
-- `/health/ready` reports fixed component names and status only. It checks activated shells and, for a
-  selected identity profile, cached OIDC discovery/JWKS availability within the configured budget.
-  It never exposes authority URLs, client identifiers, tokens, exception text, or topology.
+- `ProgramKit.Host` does not expose or aggregate application health. Until CShells defines a feature-health
+  contribution interface, selected features own any liveness/readiness surface and its redaction contract.
 - identity-provider navigation is outside app-controlled response budgets. Product SLOs for
   discovery, JWKS, callback, API, and session operations are feature/deployment decisions and are
   not inferred from Program Kit's separate five-second local preflight default.
@@ -107,7 +106,7 @@ credentials are local-test data and are never reused in deployed environments.
 
 ## `bff-cookie-v1`
 
-- The host is a confidential OIDC client using authorization code flow and PKCE.
+- The selected web-boundary feature is a confidential OIDC client using authorization code flow and PKCE.
 - Access and refresh tokens remain in a server-side `ITicketStore`; the browser cookie contains only
   an opaque protected session key.
 - Cookie defaults are `HttpOnly=true`, `Secure=Always`, `SameSite=Lax`, a `__Host-` name, no domain,
@@ -177,8 +176,8 @@ The shared contract suite plus profile-specific browser suite verifies:
    separately from that provider-controlled failure.
 7. BFF unsafe requests without or with an invalid antiforgery token fail; valid same-origin requests
    succeed. SPA preflight and disallowed-origin cases are tested instead.
-8. Security headers, correlation IDs, Problem Details, liveness, readiness degradation, and recovery
-   are asserted.
+8. Security headers, correlation IDs, and Problem Details are asserted. Feature-owned operational probes
+   require their own degradation/recovery contract and tests when selected.
 9. Playwright runs the real local Keycloak login for the authorized, administrator, and wrong-role
    personas. Authentication state files are generated under test artifacts, treated as secrets, and
    never committed.

@@ -1,24 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <Description>Immutable Nuplane and CShells runtime for Program Kit application bundles.</Description>
+    <Description>Feature-free Nuplane and CShells runtime host for Program Kit applications.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CShells.AspNetCore" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Nuplane" />
     <PackageReference Include="Nuplane.Loading" />
     <PackageReference Include="Nuplane.Sources.Directory" />
-    <PackageReference Include="Npgsql" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Update="hostsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Update="shells.json" CopyToOutputDirectory="PreserveNewest" />
+    <Folder Include="packages\" />
   </ItemGroup>
 </Project>

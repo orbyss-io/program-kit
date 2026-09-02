@@ -1,4 +1,5 @@
 ARG PROGRAMKIT_HOST_IMAGE
 FROM ${PROGRAMKIT_HOST_IMAGE}
-COPY artifacts/application-bundle.zip /opt/program-kit/application-bundle.zip
-ENV PROGRAMKIT_BUNDLE_PATH=/opt/program-kit/application-bundle.zip
+COPY artifacts/runnable-host/packages/ /app/packages/
+COPY artifacts/runnable-host/hostsettings.json /app/hostsettings.json
+COPY artifacts/runnable-host/shells.json /app/shells.json

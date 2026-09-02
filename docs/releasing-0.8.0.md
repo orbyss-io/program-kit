@@ -1,5 +1,8 @@
 # Releasing Program Kit 0.8.0
 
+> Withdrawn: do not publish these artifacts. Use the corrective 0.8.1
+> [release runbook](releasing-0.8.1.md).
+
 This minor release adds executable lifecycle, API-contract, feature-activation, SPA-security,
 preflight/readiness, toolchain, persistence-profile, ownership, and UTF-8 capabilities. The Program
 Kit components are `0.8.0`; changed runtime packages and host image are `0.8.0-preview.1`.

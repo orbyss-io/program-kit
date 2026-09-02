@@ -210,8 +210,8 @@ def main() -> int:
     require_text(
         dotnet_root / "references/dotnet-runtime-and-application-bundles.md",
         "ProgramKit.Host",
-        "ProgramKit.Tasks",
-        "application bundle",
+        "feature-free plumbing",
+        "runnable-host.json",
     )
     require_text(
         dotnet_root / "commands/speckit.program-kit-dotnet.sync.md",

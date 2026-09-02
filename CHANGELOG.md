@@ -1,6 +1,23 @@
 # Changelog
 
+## 0.8.1 - 2026-09-02
+
+- Correct `ProgramKit.Host` to the feature-free Elsa Foundation shape: only Nuplane loading,
+  the Nuplane-to-CShells assembly bridge, CShells configuration/routing, and CShells-only eager activation.
+- Remove bundle/manifest parsing, package and feature policy, web/authentication/OpenAPI behavior,
+  PostgreSQL access, dependency readiness, and Program Kit task contracts from the host and its image.
+- Move closure validation fully into release staging. Application releases now layer staged packages plus
+  `hostsettings.json` and `shells.json` onto a digest-pinned shallow host, then publish a secret-free
+  `runnable-host.json` descriptor containing the resulting image repository, tag, digest, and settings.
+- Teach managed synchronization to remove the obsolete bundle builder/schema only when their installed
+  hashes are unchanged, preserving consumer edits as explicit conflicts.
+- Withdraw 0.8.0 before adoption; its runtime publication jobs were cancelled and its GitHub release was
+  returned to draft after the incorrect host boundary was identified.
+
 ## 0.8.0 - 2026-09-02
+
+> Withdrawn before adoption. Superseded by 0.8.1 because this version incorrectly placed application,
+> release, and dependency-readiness concerns in `ProgramKit.Host`.
 
 - Make `speckit.clarify` and `speckit.analyze` mandatory ordered lifecycle hooks, preserve unrelated
   hooks across idempotent upgrades, and add resumable/reentrancy-safe hash evidence that blocks

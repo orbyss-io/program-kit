@@ -7,10 +7,11 @@
   },
   "Nuplane": {
     "Setup": {
-      "AutomaticReconciliation": false,
+      "AutomaticReconciliation": true,
       "Feeds": [
         {
-          "Name": "application-bundle",
+          "Name": "runtime-packages",
+          "DirectoryPath": "packages",
           "Directory": {
             "Watch": false
           }

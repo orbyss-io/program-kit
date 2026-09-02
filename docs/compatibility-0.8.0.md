@@ -1,5 +1,8 @@
 # Program Kit 0.8.0 compatibility report
 
+> Withdrawn: 0.8.0 encoded an incorrect host boundary. Use the corrective 0.8.1 release and
+> [compatibility report](compatibility-0.8.1.md).
+
 Program Kit 0.8.0 keeps the technology-neutral governance path and application-bundle schema version
 1 compatible with existing consumers. The runtime package and host image version advances to
 `0.8.0-preview.1` because host validation and readiness behavior changed.

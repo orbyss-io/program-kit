@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />

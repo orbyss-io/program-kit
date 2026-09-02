@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.0/Initialize-ProgramKit-0.8.0.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.1/Initialize-ProgramKit-0.8.1.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.0/Initialize-ProgramKit-0.8.0.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.1/Initialize-ProgramKit-0.8.1.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -272,10 +272,11 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 ### .NET profile
 
 The .NET profile maps these generic rules to project and assembly boundaries. When .NET is selected,
-`ProgramKit.Host` and its application-bundle/CShells composition model are adopted automatically
+the shallow `ProgramKit.Host` and its CShells/Nuplane composition model are adopted automatically
 unless intake explicitly opts out. The assessment packet prominently discloses its pinned preview
 packages and preview sources; approval does not restore packages or contact feeds. Feature projects
-reference abstraction packages; only the host references the full runtime.
+reference abstraction packages; only the host references the CShells and Nuplane runtimes. HTTP,
+identity, persistence, tasks, and health behavior remains feature-owned.
 
 ASP.NET Core Minimal APIs are the default built-in HTTP candidate. Each public operation owns stable
 route and operation identity, authorization, wire contracts, validation, status/error schemas,
@@ -285,8 +286,9 @@ their ADR is accepted.
 
 Selecting the .NET profile adopts `ProgramKit.Host` by default and makes
 `speckit.program-kit-dotnet.sync` available. The sync command scaffolds central build/package management,
-safe managed-file synchronization, application-bundle creation, and release workflows. Program Kit Host
-runs the resulting immutable ZIP in a digest-pinned layered container. A write requires the approved,
+safe managed-file synchronization, runnable-image staging, and release workflows. The generated application
+image layers packages and configuration onto a digest-pinned shallow host; the host never parses release
+metadata. A write requires the approved,
 hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of its pinned preview
 packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
@@ -315,11 +317,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.8.0.md`](docs/releasing-0.8.0.md).
+[`docs/releasing-0.8.1.md`](docs/releasing-0.8.1.md).
 
 ```powershell
-git tag v0.8.0
-git push origin v0.8.0
+git tag v0.8.1
+git push origin v0.8.1
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -339,8 +341,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.8.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.8.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.8.1.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.8.1.zip -Algorithm SHA256
 ```
 
 ## License

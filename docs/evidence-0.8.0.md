@@ -1,5 +1,8 @@
 # Program Kit 0.8.0 design evidence
 
+> Withdrawn: 0.8.0 encoded an incorrect host boundary. Use the corrective 0.8.1 release and
+> [architecture evidence](evidence-0.8.1.md).
+
 Primary documentation and release metadata reviewed on 2026-09-02 ground the release decisions:
 
 - Spec Kit 1.0.1's installed extension implementation accepts hook lists, stable-sorts ascending

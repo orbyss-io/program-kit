@@ -23,7 +23,7 @@ jobs:
 
       - name: Build, test, and pack
         shell: pwsh
-        run: ./eng/program-kit/Build.ps1 -SkipBundle -LockedMode
+        run: ./eng/program-kit/Build.ps1 -SkipRunnableHost -LockedMode
 
       - name: Upload packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -1,120 +1,78 @@
-# Program Kit .NET runtime and application bundles
+# Program Kit .NET runtime and runnable-host releases
 
-Program Kit's .NET profile uses a standard host and independently packaged CShells features. Selecting the
-.NET profile automatically adopts `ProgramKit.Host` unless intake explicitly opts out and records why.
-Installing Program Kit alone never creates .NET files.
+Program Kit's .NET profile uses independently packaged CShells features and a deliberately shallow
+`ProgramKit.Host`. Selecting .NET adopts that host unless intake records an explicit opt-out. Installing
+Program Kit alone never creates .NET files.
+
+## The shallow-host invariant
+
+`ProgramKit.Host` compiles only the CShells and Nuplane runtime packages. Its code is limited to:
+
+- loading standard ASP.NET Core configuration plus consumer-owned `hostsettings.json` and `shells.json`;
+- configuring Nuplane's package source and runtime loader;
+- bridging Nuplane-loaded assemblies into CShells discovery;
+- configuring and mapping CShells; and
+- optionally triggering shell activation through `IShellRegistry`.
+
+It does not parse a Program Kit release descriptor, inspect package or feature metadata, own application
+authentication/OpenAPI, connect to a database, or define feature dependency readiness. HTTP, identity,
+persistence, tasks, and similar behavior arrive as packages through Nuplane and activate through CShells.
+This follows the feature-free plumbing boundary documented by the upstream
+[`Elsa.Foundation.Host`](https://github.com/elsa-workflows/elsa-foundation/tree/main/src/Apps/Elsa.Foundation.Host).
+
+Until CShells defines a feature-health contribution contract, Program Kit does not pretend to aggregate
+feature dependencies into host readiness. Container health policy belongs to the application deployment
+that knows its selected features and operational dependencies.
 
 ## Repository baseline
 
-Run the installed `speckit.program-kit-dotnet.sync` extension command in write mode only after the repository
-has an approved bootstrap baseline (or later Accepted override) selecting the .NET profile and
-`ProgramKit.Host`, and the human-reviewed baseline acknowledges the pinned preview packages plus the
-`CShells Preview` and `Nuplane Preview` NuGet sources. A read-only `--check` remains safe before those write
-approvals. Root `Directory.*`, `VERSION`, `shells.json`, and `hostsettings.json` files are
-scaffolded once and become consumer-owned. Program Kit hash-manages `global.json`, `NuGet.config`, the root
-`.editorconfig`, generated workflows, and distinct `ProgramKit.*` implementation files under `eng/program-kit`.
-All managed paths are tracked in `.program-kit/managed.json`; a consumer edit causes a reported conflict rather
-than an overwrite.
+Run `speckit.program-kit-dotnet.sync` in write mode only after Accepted evidence selects .NET,
+`ProgramKit.Host`, and the disclosed preview feeds. Root `Directory.*`, `VERSION`, `shells.json`, and
+`hostsettings.json` are scaffold-once, consumer-owned files. Program Kit hash-manages `global.json`,
+`NuGet.config`, `.editorconfig`, generated workflows, and `eng/program-kit`. A changed managed file is a
+reported conflict, never an overwrite.
 
-The managed baseline also pins the .NET SDK and Node LTS version. `eng/program-kit/toolchain.py`
-reports exact installed/pinned versions, obtains explicit approval before any system or network
-change, uses the selected Node version manager, and rechecks the pins after installation. The sync
-records the selected persistence profile but never infers a production database from framework use.
+The managed toolchain checker reads the exact SDK and Node pins, asks before system or network changes,
+installs side-by-side where supported, and rechecks afterward. Persistence remains separately opt-in; a
+Nuplane package source or host setting does not select a database technology.
 
-Updating the Program Kit bundle updates the extension and templates. It does not rewrite the repository.
-Run the sync command separately, review its report, and resolve conflicts explicitly. The sync performs only
-local, path-contained file operations. Subsequent restore, build, CI, release, and bundle creation can contact
-the configured NuGet sources and require their own execution authorization. The runtime sync is optional and
-is not a prerequisite for the technology-neutral governance workflow or its proposed quality gates.
+## Feature creation and release-time closure
 
-The first local `eng/program-kit/Build.ps1 -SkipBundle` restore creates `packages.lock.json` files. Commit those
-files. Generated CI and release workflows pass `-LockedMode`, so dependency changes must be reviewed and
-regenerated deliberately.
+The authoritative activation shape remains `CShells:Shells:<shell>:Features:<feature>` in consumer-owned
+`shells.json`. No runtime package is activated merely because it exists. A managed feature build emits
+`program-kit/feature.json`; its package ID equals its assembly name and its host-supplied CShells/framework
+abstractions are compile-time-private.
 
-## Secure web profiles
+`eng/program-kit/Build.ps1` restores, builds, tests, and packs the application, then stages
+`artifacts/runnable-host/` for an application image. The staging directory contains the validated runtime
+NuGet closure plus `hostsettings.json` and `shells.json`. Closure, duplicate version/identity, missing
+dependency, inactive feature, and route-collision failures are release-pipeline concerns. The shallow host
+does not repeat them.
 
-Pass `--web-profile auto` (the default) to repository sync. Reviewed bootstrap evidence selecting a
-browser UI adopts `bff-cookie-v1`: the browser receives only an opaque `HttpOnly` session cookie while
-OIDC access and refresh tokens remain in the host's server-side ticket store. `spa-pkce-v1` remains an
-explicit option for a separately hosted static browser client that must call the API directly. A UI
-described as an SPA does not by itself select browser-held tokens.
+The generated application Dockerfile derives from an approved digest-pinned `ProgramKit.Host`, copies the
+staged packages into `/app/packages`, and copies the two configuration files. The generated release workflow
+publishes that fully runnable image, obtains its registry digest, and emits `runnable-host.json`. That
+descriptor contains only application/version provenance, image repository/tag/digest, and the exact
+secret-free Nuplane/CShells configuration with hashes. `ProgramKit.Host` never consumes it.
 
-The selected profile scaffolds validated `ProgramKit:Web` configuration, a digest-pinned Keycloak
-realm and deterministic personas, local startup commands, a web contract, and Playwright tests. The
-host owns authentication/authorization middleware, role normalization, antiforgery or exact CORS,
-Problem Details, correlation and security headers, localization defaults, identity readiness, and
-OpenAPI. Features declare named policies such as `role:admin`; they do not configure schemes or parse
-provider claims. See the extension's `references/secure-web-profiles.md` for the complete contract.
+Managed OpenAPI verification separately remains a build concern. Consumer-owned MSBuild properties select
+deterministic generation, canonical output, an explicit first baseline, pinned `oasdiff`, and hash-bound
+approval for an intentional breaking change.
 
-Authenticated profiles also copy the managed `program-kit-web-threat-model-v1` and
-`program-kit-web-security-evidence-v1` snapshots into the consumer. The latter is a machine-readable
-map of threats, controls, classified primary evidence, risk-based configurable defaults, residual
-risks, assurance levels, and review triggers. The architecture inherits these IDs and records only
-project-specific additions or Accepted deviations; Playwright evidence demonstrates behavior but is
-not a security certification.
+## Secure web and persistence profiles
 
-For `spa-pkce-v1`, `vite.security.mjs` is the shared development/preview security-header adapter and
-`spa-security.json` is its reviewed input. Production must translate the same CSP, framing, MIME,
-referrer, and permissions policies into the selected static server or edge platform; only the
-production TLS terminator owns HSTS. The verification script and Playwright WEB-V3 contract detect
-missing or weakened headers.
+SPA serving headers remain in the Vite/static-server adapter. Server-side authentication, authorization,
+OpenAPI, and operational health must be supplied by explicitly selected runtime features; they are not
+compiled into `ProgramKit.Host`. Production HSTS belongs to the TLS terminator.
 
-`eng/program-kit/preflight.py` runs before Compose, distinguishes a missing Docker CLI from a stopped
-or unresponsive daemon, redacts command output, and fails on the first prerequisite. Compose then
-waits for the application readiness healthcheck instead of treating container creation as readiness.
+Persistence is opt-in through `--persistence-profile`. Provider packages belong to feature-owned
+infrastructure adapters, never the host. Domain projects remain free of EF/provider types, migrations are
+governed deployment artifacts rather than startup behavior, and PostgreSQL/SQL Server correctness requires
+provider-representative evidence.
 
-## Persistence profiles
+## Upgrade note
 
-Persistence is opt-in through `--persistence-profile`. The managed provider property files pin EF
-Core SQL Server, PostgreSQL, or SQLite independently; PostgreSQL integration tests pin Testcontainers.
-Feature code owns domain-facing persistence ports and provider adapters while the domain remains free
-of EF types. DbContext instances are short-lived units of work, never shared across threads; queries
-default to projections/no tracking and lazy loading is not enabled. Production schema changes use
-reviewed scripts or migration bundles, not application-startup migration. See
-`references/persistence-profiles.md` in the installed .NET extension for the full admission policy.
-
-## Application deployment bundle
-
-`eng/program-kit/Build.ps1` restores, builds, tests, packs, resolves the runtime NuGet closure, and creates
-`artifacts/application-bundle.zip`. The ZIP contains a manifest, digests, shell and host configuration,
-deployment instructions, and every required `.nupkg`. It contains no secrets and is not a self-contained host.
-
-Packable feature projects emit `program-kit/feature.json` metadata. Bundle creation requires every
-activated CShells feature to resolve to exactly one package, verifies package and feature dependencies,
-rejects conflicting package versions and route ownership, and rejects packaged-but-inactive features
-unless they are explicitly dormant. The host repeats the closure checks before activation. Managed
-feature builds require `AssemblyName` to equal `PackageId`, which is Nuplane's deterministic main-
-assembly identity. Host-supplied abstraction references are compile-time-private so the package graph
-cannot load a second, incompatible contract identity.
-
-Managed OpenAPI verification separately requires stable unique operation IDs, canonical committed output, an
-explicit first baseline, pinned `oasdiff`, and a content-bound approval for intentional breaking changes.
-
-ProgramKit.Host verifies and safely extracts the ZIP before constructing configuration. Configuration order is
-host defaults, environment-specific defaults, bundle host settings, bundle shell structure, environment
-variables, then command-line arguments. Environment variables therefore override bundled structure.
-
-## Runtime administration
-
-The preview host exposes anonymous `/health/live` and `/health/ready` endpoints. Bundle inspection and
-the generated `/_program-kit/openapi/v1.json` contract inherit the authenticated fallback policy when
-a secure web profile is selected. Readiness reports fixed check names only and does not disclose
-identity-provider configuration. The host deliberately does not
-expose an unauthenticated package or shell refresh mutation. A bundle digest is immutable for one process;
-updating an application means publishing and deploying a new layered image. A future refresh endpoint requires
-an accepted authentication, authorization, quiescence, rollback, and audit contract.
-
-PostgreSQL readiness is optional and configuration-driven. When enabled it validates the connection
-configuration, retries transient startup failures in a background service, reports only the fixed
-`postgresql` component name, and recovers automatically when the dependency returns. Liveness remains
-process-only so an external database outage does not trigger restart loops.
-
-## Containers
-
-The first deployment format is a layered container image. Set the consuming repository's
-`PROGRAMKIT_HOST_IMAGE` GitHub Actions variable to a digest-pinned host image such as
-`ghcr.io/orbyss-io/program-kit-host@sha256:<digest>`. The generated release workflow publishes the ZIP and,
-when that variable is configured, builds and pushes an application image containing only the ZIP layer.
-
-Docker, Kubernetes, and Azure Web App for Containers run the same application image. Runtime package feeds,
-directory watching, and automatic reconciliation are disabled by default.
+The 0.8.1 sync removes the obsolete managed application-bundle schema and builder only when their recorded
+installed hashes are unchanged. A consumer-modified copy is preserved as a conflict. Existing scaffold-once
+`hostsettings.json` needs review because a shallow host no longer injects a package path; its Nuplane feed
+must name `packages` (or another deployment-owned path) explicitly.

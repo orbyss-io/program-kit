@@ -47,7 +47,7 @@ Project-specific choices outside that reviewed baseline still require the normal
 
 ## .NET default
 
-When .NET is selected, `ProgramKit.Host` and the application-bundle model are the automatic runtime
+When .NET is selected, the shallow `ProgramKit.Host` and runnable-host release model are the automatic runtime
 default. Adopt them unless the initial design explicitly opts out. An opt-out records the alternate
 host, reason, consequences, and affected managed baseline.
 

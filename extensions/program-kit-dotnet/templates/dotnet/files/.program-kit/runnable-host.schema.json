@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/runnable-host.schema.json",
+  "title": "Program Kit runnable host release descriptor",
+  "type": "object",
+  "required": [ "schemaVersion", "application", "hostImage", "configuration" ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "application": {
+      "type": "object",
+      "required": [ "id", "version", "sourceCommit", "programKitVersion" ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "sourceCommit": { "type": "string", "minLength": 1 },
+        "programKitVersion": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "hostImage": {
+      "type": "object",
+      "required": [ "repository", "tag", "digest", "reference" ],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "reference": { "type": "string", "pattern": "@sha256:[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "configuration": {
+      "type": "object",
+      "required": [ "hostsettings", "hostsettingsSha256", "shells", "shellsSha256" ],
+      "properties": {
+        "hostsettings": { "type": "object" },
+        "hostsettingsSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "shells": { "type": "object", "required": [ "CShells" ] },
+        "shellsSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

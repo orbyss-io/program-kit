@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [switch]$SkipTests,
-    [switch]$SkipBundle,
+    [Alias('SkipBundle')]
+    [switch]$SkipRunnableHost,
     [switch]$LockedMode
 )
 
@@ -39,8 +40,8 @@ if (-not $SkipTests) {
 dotnet pack $solutions[0].FullName -c Release --no-build -p:Version=$version -p:PackageOutputPath=$packages
 if ($LASTEXITCODE -ne 0) { throw 'dotnet pack failed.' }
 
-if (-not $SkipBundle) {
-    python (Join-Path $PSScriptRoot 'create_application_bundle.py') --repository $root --packages $packages `
-        --output (Join-Path $artifacts 'application-bundle.zip')
-    if ($LASTEXITCODE -ne 0) { throw 'Application bundle creation failed.' }
+if (-not $SkipRunnableHost) {
+    python (Join-Path $PSScriptRoot 'runnable_host.py') stage --repository $root --packages $packages `
+        --output (Join-Path $artifacts 'runnable-host')
+    if ($LASTEXITCODE -ne 0) { throw 'Runnable-host staging failed.' }
 }

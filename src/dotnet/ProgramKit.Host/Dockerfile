@@ -7,14 +7,10 @@ RUN dotnet publish src/dotnet/ProgramKit.Host/ProgramKit.Host.csproj -c Release 
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:a4556ed033fa96f984bb7a8d348851cb2d36b1281dd2420070045f664fbb5f94 AS final
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:8080 \
-    PROGRAMKIT_BUNDLE_PATH=/opt/program-kit/application-bundle.zip \
-    PROGRAMKIT_BUNDLE_CACHE=/app/.program-kit/bundles
+ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 COPY --from=build /app/publish ./
-RUN mkdir -p /app/.program-kit/bundles /opt/program-kit \
-    && chown -R $APP_UID:$APP_UID /app /opt/program-kit
+RUN mkdir -p /app/packages \
+    && chown -R $APP_UID:$APP_UID /app
 USER $APP_UID
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
-    CMD ["dotnet", "ProgramKit.Host.dll", "--program-kit-healthcheck", "http://127.0.0.1:8080/health/ready"]
 ENTRYPOINT ["dotnet", "ProgramKit.Host.dll"]

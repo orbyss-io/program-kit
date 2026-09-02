@@ -74,7 +74,7 @@ owned, versioned, and backed by an Accepted ADR.
 
 ## Program Kit host and CShells profile mapping
 
-When .NET is selected, adopt `ProgramKit.Host` and its application-bundle composition model as the
+When .NET is selected, adopt the shallow `ProgramKit.Host` and its CShells/Nuplane composition model as the
 automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
 runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
 Record the preview packages and package sources as a material acknowledgement in the assessment
@@ -89,7 +89,7 @@ When accepted:
 - feature projects reference `CShells.Abstractions` or, for web composition,
   `CShells.AspNetCore.Abstractions`;
 - only the host/composition project references the full `CShells` and `CShells.AspNetCore` runtimes;
-- the host explicitly selects the discoverable feature assemblies and owns `AddShells`/`MapShells`;
+- the host bridges Nuplane-loaded feature assemblies into CShells and owns only its runtime configuration;
 - an `IShellFeature` or `IWebShellFeature` is a composition adapter, not the domain model;
 - `ConfigureServices` registers implementations of owned domain or contract interfaces and contains
   no business policy;
@@ -132,13 +132,14 @@ Endpoints remain thin transport adapters. They may coordinate a simple transacti
 application/domain behavior, but they do not own business invariants. Endpoint filters handle
 transport-cross-cutting concerns only and must not become a hidden domain pipeline.
 
-Register host-wide ASP.NET Core and OpenAPI services once in the host. Register feature-owned
-implementations, validators, policies, and translators through the feature composition adapter.
+Register application-wide ASP.NET Core and OpenAPI services through an explicitly selected platform feature,
+not `ProgramKit.Host`. Register feature-owned implementations, validators, policies, and translators through
+the feature composition adapter.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
 
-When the application has an authenticated browser boundary, the host also owns the selected
-versioned contract in `../secure-web-profiles.md`. It registers authentication and authorization,
+When the application has an authenticated browser boundary, an explicitly selected web-boundary feature owns
+the versioned contract in `../secure-web-profiles.md`. It registers authentication and authorization,
 claims normalization, antiforgery, CORS, Problem Details, correlation, security headers, identity
 readiness, and middleware ordering exactly once. Feature endpoints declare a named policy or
 explicit anonymous access; they do not select schemes, parse provider claims, implement login or
@@ -180,4 +181,4 @@ prerequisite for technology-neutral governance or proposed quality gates. Run
 ADR selecting the Program Kit host/runtime, and explicit human approval for the pinned preview packages and
 preview NuGet sources. The command installs or updates the hash-tracked repository baseline. The standard
 runtime is `ProgramKit.Host`; consuming repositories generate
-feature packages and an immutable application ZIP, not a custom host project.
+feature packages and a digest-identified runnable application image, not a custom host project.

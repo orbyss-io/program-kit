@@ -33,7 +33,7 @@ only after the owning capability's persistence admission record is complete.
 3. Report created, updated, unchanged, and conflicted files exactly as emitted by the script.
 4. Stop on conflicts. Never overwrite a consumer-modified managed file or a scaffold-once consumer file.
 5. After a successful write, report that `dotnet restore` and the generated
-   `eng/program-kit/Build.ps1 -SkipBundle` access configured package sources. Do not run either command unless
+   `eng/program-kit/Build.ps1 -SkipRunnableHost` access configured package sources. Do not run either command unless
    the user separately authorizes networked package restore and build verification.
 6. Make clear that runtime selection is automatic for a .NET bootstrap, while applying the managed
    repository files remains a separate, reviewable synchronization action and is not a prerequisite
@@ -41,7 +41,7 @@ only after the owning capability's persistence admission record is complete.
    sync are separate operations.
 
 The sync itself performs local, path-contained file operations and does not contact package feeds. The
-generated restore, build, CI, release, and application-bundle paths can access the configured NuGet sources.
+generated restore, build, CI, release, and runnable-host staging paths can access the configured NuGet sources.
 
 The ownership record is `.program-kit/managed.json`. Root MSBuild discovery extension points, application
 `VERSION`, and shell configuration are scaffolded once and remain consumer-owned. Program Kit owns the SDK,

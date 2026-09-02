@@ -120,6 +120,9 @@ def main() -> int:
     entries = template_manifest.get("files")
     if not isinstance(entries, list):
         raise ValueError("The .NET template manifest has no files list.")
+    obsolete_files = template_manifest.get("obsoleteFiles", [])
+    if not isinstance(obsolete_files, list) or not all(isinstance(path, str) for path in obsolete_files):
+        raise ValueError("The .NET template manifest has an invalid obsoleteFiles list.")
 
     target = Path(args.target).resolve()
     web_profile = selected_web_profile(target, args.web_profile)
@@ -146,6 +149,7 @@ def main() -> int:
     updated: list[str] = []
     unchanged: list[str] = []
     conflicts: list[str] = []
+    removed: list[str] = []
     next_files: dict[str, dict[str, str]] = {}
 
     for entry in entries:
@@ -183,6 +187,19 @@ def main() -> int:
             "installedHash": current_hash,
         }
 
+    for relative in obsolete_files:
+        destination = target / relative
+        previous = old_files.get(relative)
+        if not destination.exists():
+            continue
+        current_hash = sha256_bytes(destination.read_bytes())
+        if isinstance(previous, dict) and current_hash == previous.get("installedHash"):
+            removed.append(relative)
+            if not args.check:
+                destination.unlink()
+        else:
+            conflicts.append(relative)
+
     print(f"created: {len(created)}")
     for path in created:
         print(f"  + {path}")
@@ -193,13 +210,16 @@ def main() -> int:
     print(f"conflicts: {len(conflicts)}")
     for path in conflicts:
         print(f"  ! {path}")
+    print(f"removed obsolete managed files: {len(removed)}")
+    for path in removed:
+        print(f"  - {path}")
 
     if conflicts:
         print("Resolve conflicts explicitly; no conflicted file was overwritten.", file=sys.stderr)
         return 2
 
     if args.check:
-        return 1 if created or updated else 0
+        return 1 if created or updated or removed else 0
 
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(

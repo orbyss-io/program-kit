@@ -33,5 +33,5 @@ $applicationImage = 'program-kit-consumer:local'
 docker build --build-arg "PROGRAMKIT_HOST_IMAGE=$($env:PROGRAMKIT_HOST_IMAGE)" -t $applicationImage $repository
 if ($LASTEXITCODE -ne 0) { throw 'The local application image build failed.' }
 
-docker compose -f $applicationCompose up -d --wait
-if ($LASTEXITCODE -ne 0) { throw 'The local application did not become ready.' }
+docker compose -f $applicationCompose up -d
+if ($LASTEXITCODE -ne 0) { throw 'The local runnable host did not start.' }

@@ -125,10 +125,10 @@ def validate_feature_activation() -> None:
             raise AssertionError("CShells feature activation shape drifted")
 
 
-def validate_bundle_feature_closure() -> None:
-    bundle = module(
-        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/create_application_bundle.py",
-        "create_application_bundle",
+def validate_release_feature_closure() -> None:
+    release = module(
+        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/runnable_host.py",
+        "runnable_host",
     )
     with tempfile.TemporaryDirectory(prefix="program-kit-bundle-features-") as value:
         root = Path(value)
@@ -162,9 +162,7 @@ def validate_bundle_feature_closure() -> None:
             json.dumps({"CShells": {"Shells": {"default": {"Features": {"ProgramKitTasks": {}, "Orders": {}}}}}}),
             encoding="utf-8",
         )
-        descriptors = bundle.validate_feature_closure(shells, identities)
-        if [item["identity"] for item in descriptors] != ["Orders"]:
-            raise AssertionError("valid feature closure did not resolve exactly once")
+        release.validate_feature_closure(shells, identities)
 
         missing_shells = root / "missing.json"
         missing_shells.write_text(
@@ -172,18 +170,18 @@ def validate_bundle_feature_closure() -> None:
             encoding="utf-8",
         )
         try:
-            bundle.validate_feature_closure(missing_shells, identities)
+            release.validate_feature_closure(missing_shells, identities)
         except ValueError as error:
-            if "PKB009" not in str(error) or "default" not in str(error) or "Missing" not in str(error):
+            if "PKR009" not in str(error) or "default" not in str(error) or "Missing" not in str(error):
                 raise
         else:
             raise AssertionError("missing activated feature did not fail actionably")
 
         duplicate = package("Orders.Other", "Orders")
         try:
-            bundle.validate_feature_closure(shells, {**identities, ("Orders.Other", "1.0.0"): duplicate})
+            release.validate_feature_closure(shells, {**identities, ("Orders.Other", "1.0.0"): duplicate})
         except ValueError as error:
-            if "PKB007" not in str(error):
+            if "PKR007" not in str(error):
                 raise
         else:
             raise AssertionError("duplicate feature identity was accepted")
@@ -197,12 +195,12 @@ def validate_bundle_feature_closure() -> None:
             encoding="utf-8",
         )
         try:
-            bundle.validate_feature_closure(
+            release.validate_feature_closure(
                 dependency_shells,
                 {("Dependent.Feature", "1.0.0"): dependent},
             )
         except ValueError as error:
-            if "PKB010" not in str(error) or "Missing.Runtime" not in str(error):
+            if "PKR010" not in str(error) or "Missing.Runtime" not in str(error):
                 raise
         else:
             raise AssertionError("missing runtime dependency was accepted")
@@ -214,15 +212,64 @@ def validate_bundle_feature_closure() -> None:
             encoding="utf-8",
         )
         try:
-            bundle.validate_feature_closure(
+            release.validate_feature_closure(
                 collision_shells,
                 {**identities, ("Payments.Feature", "1.0.0"): payments},
             )
         except ValueError as error:
-            if "PKB012" not in str(error):
+            if "PKR012" not in str(error):
                 raise
         else:
             raise AssertionError("route collision was accepted")
+
+        staged = root / "staged"
+        staged.mkdir()
+        hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
+        shells_value = {"CShells": {"Shells": {"default": {"Features": {}}}}}
+        (staged / "hostsettings.json").write_text(json.dumps(hostsettings), encoding="utf-8")
+        (staged / "shells.json").write_text(json.dumps(shells_value), encoding="utf-8")
+        repository = root / "repository"
+        repository.mkdir()
+        (repository / "VERSION").write_text("1.2.3\n", encoding="utf-8")
+        output = root / "runnable-host.json"
+        previous_sha = os.environ.get("GITHUB_SHA")
+        os.environ["GITHUB_SHA"] = "a" * 40
+        try:
+            release.describe(
+                repository,
+                staged,
+                "ghcr.io/example/application",
+                "v1.2.3",
+                "sha256:" + "b" * 64,
+                output,
+            )
+            descriptor = json.loads(output.read_text(encoding="utf-8"))
+            if descriptor["hostImage"]["reference"] != "ghcr.io/example/application@sha256:" + "b" * 64:
+                raise AssertionError("runnable-host descriptor did not bind the immutable image")
+            if descriptor["configuration"]["shells"] != shells_value:
+                raise AssertionError("runnable-host descriptor did not capture CShells settings")
+            (staged / "hostsettings.json").write_text(
+                json.dumps({"ConnectionStrings": {"Password": "do-not-publish"}}), encoding="utf-8"
+            )
+            try:
+                release.describe(
+                    repository,
+                    staged,
+                    "ghcr.io/example/application",
+                    "v1.2.3",
+                    "sha256:" + "b" * 64,
+                    output,
+                )
+            except ValueError as error:
+                if "PKR017" not in str(error):
+                    raise
+            else:
+                raise AssertionError("runnable-host descriptor embedded a secret")
+        finally:
+            if previous_sha is None:
+                os.environ.pop("GITHUB_SHA", None)
+            else:
+                os.environ["GITHUB_SHA"] = previous_sha
 
 
 def validate_preflight_seams() -> None:
@@ -351,15 +398,15 @@ def validate_managed_sources() -> None:
     for phrase in ("ProgramKitApiContracts", "1.29.1", "ProgramKitFeatureMetadata", "PKF101", "openapi_contracts.py", "feature_metadata.py"):
         if phrase not in targets:
             raise AssertionError(f"managed build target is missing {phrase}")
-    bundle_schema = json.loads(
-        (template / "files/.program-kit/application-bundle.schema.json").read_text(encoding="utf-8")
+    runnable_schema = json.loads(
+        (template / "files/.program-kit/runnable-host.schema.json").read_text(encoding="utf-8")
     )
-    feature_schema = bundle_schema["properties"].get("features", {}).get("items", {})
-    if feature_schema.get("additionalProperties") is not False:
-        raise AssertionError("application-bundle feature metadata is not closed by the JSON Schema")
-    for field in ("identity", "packageId", "featureDependencies", "runtimeDependencies", "routes", "dormant"):
-        if field not in feature_schema.get("required", []):
-            raise AssertionError(f"application-bundle feature schema does not require {field}")
+    required = set(runnable_schema.get("required", []))
+    if required != {"schemaVersion", "application", "hostImage", "configuration"}:
+        raise AssertionError("runnable-host schema does not close over image identity and configuration")
+    host_image = runnable_schema["properties"]["hostImage"]
+    if "digest" not in host_image.get("required", []) or "reference" not in host_image.get("required", []):
+        raise AssertionError("runnable-host schema does not require immutable image identity")
     persistence = ROOT / "extensions/program-kit-dotnet/references/persistence-profiles.md"
     text = persistence.read_text(encoding="utf-8")
     for phrase in ("ef-postgresql", "ef-sqlserver", "ef-sqlite", "IEntityTypeConfiguration", "Testcontainers", "generic repository", "lazy-loading"):
@@ -503,7 +550,7 @@ def main() -> int:
     validate_lifecycle()
     validate_utf8()
     validate_feature_activation()
-    validate_bundle_feature_closure()
+    validate_release_feature_closure()
     validate_preflight_seams()
     validate_toolchain_workflow()
     validate_managed_sources()
