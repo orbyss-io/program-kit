@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "scenario": "clean-bootstrap",
+  "required_files": [
+    ".specify/memory/constitution.md",
+    ".specify/memory/constitution-ratification.json",
+    ".specify/governance/bootstrap-assessment-approval.json",
+    ".specify/governance/bootstrap-approval.json",
+    "docs/architecture/bootstrap-brief.json",
+    "docs/architecture/bootstrap-assessment.md",
+    "docs/architecture/bootstrap-decisions.json",
+    "docs/architecture/architecture.md",
+    "docs/architecture/quality-system.md",
+    "docs/architecture/specification-roadmap.md",
+    "docs/architecture/readiness-report.md"
+  ],
+  "required_context_stages": [
+    "research",
+    "architecture",
+    "tooling",
+    "roadmap",
+    "readiness"
+  ],
+  "readiness_first_line": "**Status**: READY",
+  "advisory_budgets": {
+    "agent_tokens_total": 300000,
+    "workflow_stderr_bytes": 1500000,
+    "stage_brief_bytes": 20000,
+    "artifact_bytes": {
+      "docs/architecture/tooling-evaluation.md": 8192,
+      "docs/architecture/architecture.md": 12288,
+      "docs/architecture/quality-system.md": 12288,
+      "docs/architecture/readiness-report.md": 4096
+    }
+  }
+}

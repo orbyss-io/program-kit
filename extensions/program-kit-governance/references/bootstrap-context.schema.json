@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/bootstrap-context.schema.json",
+  "title": "Program Kit compact bootstrap stage brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "stage",
+    "stage_focus",
+    "initial_design",
+    "normalized_brief",
+    "authorities",
+    "decisions",
+    "governance",
+    "output_contract",
+    "evidence_index",
+    "reading_policy"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "run_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "stage": { "enum": ["research", "architecture", "tooling", "roadmap", "readiness"] },
+    "stage_focus": { "type": "string", "minLength": 1 },
+    "initial_design": { "$ref": "#/$defs/file" },
+    "normalized_brief": { "$ref": "bootstrap-brief.schema.json" },
+    "authorities": { "type": "object", "additionalProperties": { "type": "object" } },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "title", "status"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "title": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paths", "configuration_sources"],
+      "properties": {
+        "paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decisions", "specification_roadmap", "constitution_document", "constitution_ratification"],
+          "properties": {
+            "decisions": { "type": "string", "minLength": 1 },
+            "specification_roadmap": { "type": "string", "minLength": 1 },
+            "constitution_document": { "type": "string", "minLength": 1 },
+            "constitution_ratification": { "type": "string", "minLength": 1 }
+          }
+        },
+        "configuration_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "exists"],
+            "properties": {
+              "path": { "type": "string" },
+              "exists": { "type": "boolean" },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        }
+      }
+    },
+    "output_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["write_paths", "contract_references", "validation_commands", "artifact_byte_budgets"],
+      "properties": {
+        "write_paths": { "$ref": "#/$defs/string_list" },
+        "contract_references": { "$ref": "#/$defs/string_list" },
+        "validation_commands": { "$ref": "#/$defs/string_list" },
+        "artifact_byte_budgets": {
+          "type": "object",
+          "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "evidence_index": { "$ref": "#/$defs/file" },
+    "reading_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "required_full_reads", "allowed_sources", "rules", "provenance"],
+      "properties": {
+        "mode": { "const": "deny-by-default" },
+        "required_full_reads": { "$ref": "#/$defs/string_list" },
+        "allowed_sources": { "$ref": "#/$defs/string_list" },
+        "rules": { "$ref": "#/$defs/string_list" },
+        "provenance": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "string_list": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    }
+  }
+}

@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased
+
+## 0.8.2 - 2026-09-02
+
+- Normalize the initial design into a validated, provenance-bound brief before intake, then pass
+  compact run-scoped stage briefs plus separate hash-indexed evidence maps between research,
+  architecture, tooling, roadmap, and readiness. Fresh agents can reason from explicit routing and
+  query only relevant source sections instead of rereading every unchanged artifact.
+- Add an opt-in, local-only live bootstrap acceptance suite with a minimal application fixture,
+  explicit paid-run approval, CI refusal, packaged-candidate installation, streamed output capture,
+  workflow monitoring, retained diagnostics, advisory performance budgets, and final readiness
+  validation. Windows workers retain `workspace-write`, use command-scoped Git safe-directory
+  exceptions, and run Python output as UTF-8 without global Git changes or sandbox bypasses.
+- Require research to preserve the reviewed decision-register item contract and self-run the
+  deterministic assessment validator, preventing a semantically useful enrichment from aborting
+  the workflow at the following step. Failed live reports now emphasize the causal step instead of
+  cascading expected downstream-missing artifacts.
+- Keep the extension catalog's advertised command count synchronized with the manifest and verify
+  that relationship deterministically.
+- Report per-artifact proportionality budgets as advisory live-acceptance observations alongside
+  token, stream, duration, and stage-context metrics.
+- Publish the decision-register schema and embed resolved configurable governance paths, intended
+  writes, contract references, and validation commands in every compact stage brief so workers do
+  not need repository-wide searches or validator-source inspection to discover their contract.
+- Carry proportional byte budgets in stage output contracts so downstream roadmap link edits cannot
+  silently push an earlier architecture artifact over its final budget. Disposable Windows workers
+  also suppress inaccessible user-ignore warnings with a process- and command-scoped null exclude
+  file while retaining the safe-directory fallback and unchanged global Git configuration.
+- Direct initial constitution drafting to replace its scaffold in one whole-file edit, avoiding the
+  recurring recoverable error caused by multiple patch operations targeting the same file.
+- Give intake a fixed generic-reference routing map and forbid guessed technology-profile or
+  installation-manifest probes when no exact installed profile path is supplied.
+- Require the maintenance agent to ask whether to run the paid live suite before publication and to
+  report an explicit user-approved skip when it is declined.
+
 ## 0.8.1 - 2026-09-02
 
 - Correct `ProgramKit.Host` to the feature-free Elsa Foundation shape: only Nuplane loading,

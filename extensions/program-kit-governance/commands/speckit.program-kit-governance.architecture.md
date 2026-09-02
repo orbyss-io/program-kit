@@ -6,7 +6,17 @@ scripts:
 
 ## Input
 
-`$ARGUMENTS` identifies the initial design and bootstrap assessment.
+`$ARGUMENTS` identifies the initial design and the workflow-generated bootstrap context path.
+
+Read the compact bootstrap stage brief first. It contains the normalized design, compact approved
+decisions and ratification records, and a link to a separate hash-bound evidence index. Read the
+ratified constitution in full. Do not print or read the evidence index in full; query one artifact
+and heading range only when the brief lacks a fact required for an architecture decision. Do not
+bulk-read every unchanged assessment or research artifact or enumerate installed files.
+Use `governance.paths` and `output_contract` as the resolved path and validation authority. Do not
+search `.specify`, unrelated extensions, catalogs, or validator implementation to rediscover them.
+Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
+trade away required architecture evidence merely to reach a target.
 
 ## Constitutional authority
 
@@ -46,6 +56,14 @@ SHA-256 from `.specify/governance/bootstrap-assessment-approval.json`; include t
 choice, override, and acknowledgement so validation can prove traceability. Ordinary reviewed
 defaults do not need one ADR each. Project-specific choices outside that baseline remain Proposed
 until their own human approval.
+
+Scale the detail to the system. A one-module local process does not need speculative multi-module,
+deployment, persistence, or operations prose. State a not-applicable boundary once, keep catalogs
+to existing elements, and avoid inventing identifiers that do not improve traceability. For a
+single-interface, dependency-free local application, use the byte target supplied by
+`output_contract` for `architecture.md`.
+After writing, report paths, sizes, and validation counts only; do not print complete artifacts or
+repository-wide diffs.
 
 Do not rewrite `bootstrap-assessment.md`, `decision-backlog.md`, `tooling-evaluation.md`, or
 `bootstrap-decisions.json` after their approval. If one is wrong, stop and direct the user back to

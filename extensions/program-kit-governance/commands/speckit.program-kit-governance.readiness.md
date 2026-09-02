@@ -6,7 +6,18 @@ scripts:
 
 ## Input
 
-`$ARGUMENTS` identifies the bootstrap scope.
+`$ARGUMENTS` identifies the bootstrap scope and the workflow-generated bootstrap context path.
+
+Read the compact bootstrap stage brief first. It contains normalized journeys, compact approved
+authority records, decision statuses, and a link to a separate hash-bound evidence index. Read the
+ratified constitution in full. Do not print or read the evidence index in full; query one artifact
+and heading range only when the brief lacks decisive evidence for a readiness condition. Do not
+bulk-read every unchanged artifact, grep every status in the repository, or enumerate installed
+files.
+Use `governance.paths` and `output_contract` directly. Do not search `.specify`, unrelated
+extensions, catalogs, or validator implementation to rediscover paths or validation rules.
+Honor `output_contract.artifact_byte_budgets` after writing the report and report its final byte
+count; do not omit decisive evidence merely to reach a target.
 
 ## Constitutional and portfolio prerequisites
 
@@ -70,3 +81,8 @@ be suitable for the first feature specification without introducing an unreviewe
 choice. Design tasks are never reported as feature specifications or implementation-ready work.
 
 Do not change an ADR status while evaluating readiness.
+
+Keep the report decision-oriented: status, blocking evidence, remaining triggered decisions, and
+the next specification. For a single Ready entry with no blockers, use the byte target supplied by
+`output_contract`. Report the
+path, status, and validation counts only; do not print the complete report or repository-wide diffs.

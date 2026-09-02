@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.1/Initialize-ProgramKit-0.8.1.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.2/Initialize-ProgramKit-0.8.2.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.1/Initialize-ProgramKit-0.8.1.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.2/Initialize-ProgramKit-0.8.2.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -310,6 +310,21 @@ Run the local source checks and disposable install test:
 ./scripts/Test-LocalInstall.ps1
 ```
 
+Before publishing, the maintenance agent must ask whether to run the paid, local-only live bootstrap
+acceptance suite. It is never a CI requirement. After an explicit yes, run:
+
+```powershell
+./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
+```
+
+An explicit no permits publication but must be recorded in the release handoff. The suite builds
+the candidate packages, executes a clean bootstrap against a minimal application design, preserves
+both workflow output streams and the disposable repository, reports advisory performance metrics,
+and validates final readiness. On Windows, its disposable Codex guidance keeps `workspace-write`
+enabled and handles Git ownership with command-scoped `git -c safe.directory=...` calls—never a
+global Git change or sandbox bypass. See
+[`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md).
+
 Build all release artifacts:
 
 ```powershell
@@ -317,11 +332,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.8.1.md`](docs/releasing-0.8.1.md).
+[`docs/releasing-0.8.2.md`](docs/releasing-0.8.2.md).
 
 ```powershell
-git tag v0.8.1
-git push origin v0.8.1
+git tag v0.8.2
+git push origin v0.8.2
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -341,8 +356,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.8.1.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.8.1.zip -Algorithm SHA256
+gh attestation verify program-kit-0.8.2.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.8.2.zip -Algorithm SHA256
 ```
 
 ## License

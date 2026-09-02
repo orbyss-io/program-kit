@@ -1,7 +1,8 @@
-# Releasing Program Kit 0.8.1
+# Releasing Program Kit 0.8.2
 
-This patch release corrects the runtime boundary of the withdrawn 0.8.0 release. Components are `0.8.1`;
-runtime packages and the shallow host image are `0.8.1-preview.1`.
+This patch release adds a validated normalized-design intake, compact hash-bound bootstrap context,
+proportional artifact budgets, and the explicitly approved local-only live bootstrap acceptance
+suite. Components are `0.8.2`; runtime packages and the shallow host image are `0.8.2-preview.1`.
 
 Before tagging:
 
@@ -27,9 +28,9 @@ configuration or bypass the sandbox. The harness also establishes UTF-8 and pres
 output in the evidence directory while showing concise progress. See
 [`live-bootstrap-acceptance.md`](live-bootstrap-acceptance.md) for the complete operating contract.
 
-Verify that host source/package references contain only Nuplane/CShells plumbing, all seven release
-checksums pass, and the disposable consumer feature activates from a staged runnable-host directory without
-a bundle parser or host health endpoint.
+Verify that all release checksums pass and that a clean disposable consumer installs the normalized
+brief command, context schemas, workflow, validators, and runtime components from the packaged
+candidate. The live suite is an explicit pre-publication choice rather than a CI job.
 
 Existing consumers upgrade and synchronize in this order:
 
@@ -41,9 +42,10 @@ python .specify/extensions/program-kit-dotnet/scripts/dotnet_sync.py --target . 
 ```
 
 Replace `codex` with the repository integration. Add web/persistence profile flags only when Accepted
-evidence selects them. Review consumer-owned `hostsettings.json`, `shells.json`, and customized Dockerfiles.
+evidence selects them. Review consumer-owned `hostsettings.json`, `shells.json`, and customized
+Dockerfiles.
 
 ```powershell
-git tag v0.8.1
-git push origin main v0.8.1
+git tag v0.8.2
+git push origin main v0.8.2
 ```

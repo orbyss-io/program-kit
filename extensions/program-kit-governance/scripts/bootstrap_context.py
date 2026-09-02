@@ -1,0 +1,596 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import sys
+from pathlib import Path
+
+
+SCHEMA_VERSION = "2.0"
+BRIEF_SCHEMA_VERSION = "1.0"
+BRIEF_PATH = Path("docs/architecture/bootstrap-brief.json")
+BRIEF_MAX_BYTES = 16 * 1024
+CONTEXT_DIRECTORY = Path(".specify/workflows/runs")
+
+STAGE_ARTIFACTS: dict[str, tuple[str, ...]] = {
+    "research": (
+        "docs/architecture/bootstrap-assessment.md",
+        "docs/architecture/bootstrap-decisions.json",
+        "docs/architecture/decision-backlog.md",
+    ),
+    "architecture": (
+        ".specify/memory/constitution.md",
+        ".specify/memory/constitution-ratification.json",
+        ".specify/governance/bootstrap-assessment-approval.json",
+        "docs/architecture/bootstrap-assessment.md",
+        "docs/architecture/bootstrap-decisions.json",
+        "docs/architecture/decision-backlog.md",
+        "docs/architecture/tooling-evaluation.md",
+    ),
+    "tooling": (
+        ".specify/memory/constitution.md",
+        ".specify/memory/constitution-ratification.json",
+        ".specify/governance/bootstrap-assessment-approval.json",
+        "docs/architecture/bootstrap-decisions.json",
+        "docs/architecture/decision-backlog.md",
+        "docs/architecture/tooling-evaluation.md",
+        "docs/architecture/architecture.md",
+        "docs/architecture/quality-attributes.md",
+        "docs/architecture/technology-radar.md",
+        "docs/architecture/traceability.md",
+        "docs/architecture/decisions/bootstrap-baseline.md",
+    ),
+    "roadmap": (
+        ".specify/memory/constitution.md",
+        ".specify/memory/constitution-ratification.json",
+        ".specify/governance/bootstrap-assessment-approval.json",
+        "docs/architecture/bootstrap-decisions.json",
+        "docs/architecture/decision-backlog.md",
+        "docs/architecture/tooling-evaluation.md",
+        "docs/architecture/architecture.md",
+        "docs/architecture/quality-attributes.md",
+        "docs/architecture/quality-system.md",
+        "docs/architecture/technology-radar.md",
+        "docs/architecture/traceability.md",
+        "docs/architecture/decisions/bootstrap-baseline.md",
+    ),
+    "readiness": (
+        ".specify/memory/constitution.md",
+        ".specify/memory/constitution-ratification.json",
+        ".specify/governance/bootstrap-assessment-approval.json",
+        ".specify/governance/bootstrap-approval.json",
+        "docs/architecture/bootstrap-decisions.json",
+        "docs/architecture/decision-backlog.md",
+        "docs/architecture/tooling-evaluation.md",
+        "docs/architecture/architecture.md",
+        "docs/architecture/quality-attributes.md",
+        "docs/architecture/quality-system.md",
+        "docs/architecture/specification-roadmap.md",
+        "docs/architecture/technology-radar.md",
+        "docs/architecture/traceability.md",
+        "docs/architecture/decisions/bootstrap-baseline.md",
+    ),
+}
+
+STAGE_FULL_READS = {
+    "research": (),
+    "architecture": (".specify/memory/constitution.md",),
+    "tooling": (".specify/memory/constitution.md",),
+    "roadmap": (".specify/memory/constitution.md",),
+    "readiness": (".specify/memory/constitution.md",),
+}
+
+STAGE_FOCUS = {
+    "research": "Verify only selected technologies and capabilities; excluded surfaces are out of scope.",
+    "architecture": "Define the smallest governed architecture that realizes the normalized journeys.",
+    "tooling": "Adopt only controls required by selected capabilities and accepted boundaries.",
+    "roadmap": "Create outcome-oriented specification entries from normalized journeys and accepted decisions.",
+    "readiness": "Prove the first Ready entry has accepted authority, owned risks, and sufficient evidence.",
+}
+
+GOVERNANCE_CONFIGS = (
+    Path(".specify/extensions/program-kit-governance/program-kit-governance-config.yml"),
+    Path(".specify/extensions/program-kit-governance/program-kit-governance-config.local.yml"),
+)
+
+OUTPUT_CONTRACTS = {
+    "research": {
+        "write_paths": [
+            "docs/architecture/tooling-evaluation.md",
+            "docs/architecture/bootstrap-decisions.json",
+        ],
+        "contract_references": [
+            ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
+        ],
+        "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment"
+        ],
+    },
+    "architecture": {
+        "write_paths": [
+            "docs/architecture/README.md",
+            "docs/architecture/architecture.md",
+            "docs/architecture/quality-attributes.md",
+            "docs/architecture/technology-radar.md",
+            "docs/architecture/traceability.md",
+            "docs/architecture/decisions/README.md",
+            "docs/architecture/decisions/bootstrap-baseline.md",
+        ],
+        "contract_references": [],
+        "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate"
+        ],
+    },
+    "tooling": {
+        "write_paths": ["docs/architecture/quality-system.md"],
+        "contract_references": [],
+        "validation_commands": [],
+    },
+    "roadmap": {
+        "write_paths": [
+            "docs/architecture/specification-roadmap.md",
+            "docs/architecture/architecture.md",
+            "docs/architecture/traceability.md",
+        ],
+        "contract_references": [],
+        "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-roadmap"
+        ],
+    },
+    "readiness": {
+        "write_paths": ["docs/architecture/readiness-report.md"],
+        "contract_references": [],
+        "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate --require-roadmap --require-ready"
+        ],
+    },
+}
+
+ARTIFACT_BYTE_BUDGETS = {
+    "docs/architecture/tooling-evaluation.md": 8 * 1024,
+    "docs/architecture/architecture.md": 12 * 1024,
+    "docs/architecture/quality-system.md": 12 * 1024,
+    "docs/architecture/readiness-report.md": 4 * 1024,
+}
+
+AUTHORITY_JSON = {
+    "docs/architecture/bootstrap-decisions.json": "assessment_decisions",
+    ".specify/governance/bootstrap-assessment-approval.json": "assessment_approval",
+    ".specify/memory/constitution-ratification.json": "constitution_ratification",
+    ".specify/governance/bootstrap-approval.json": "bootstrap_approval",
+}
+
+HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
+SIGNAL = re.compile(
+    r"(^\s*[-*]\s+\*\*|^\s*\*\*[^*]+\*\*\s*:|^\s*\|.*\|\s*$|"
+    r"\b(?:Accepted|Proposed|Unresolved|Deferred|Blocked|Ready|Candidate)\b|"
+    r"\b(?:ADR|SPC|SPEC|QA|WEB-C|WEB-V)-?[A-Z0-9-]*\b)",
+    re.IGNORECASE,
+)
+EVIDENCE = re.compile(r"^([^:\r\n]+):([1-9][0-9]*)(?:-([1-9][0-9]*))?$")
+ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+
+
+class ContextError(RuntimeError):
+    pass
+
+
+def sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def sha256_file(path: Path) -> str:
+    return sha256_bytes(path.read_bytes())
+
+
+def load_json(path: Path) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ContextError(f"Cannot read JSON object {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ContextError(f"Expected a JSON object in {path}")
+    return value
+
+
+def safe_run_directory(project_root: Path, run_id: str) -> Path:
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", run_id):
+        raise ContextError("Workflow run ID must contain only letters, digits, '-' or '_'")
+    runs_root = (project_root / CONTEXT_DIRECTORY).resolve()
+    run_directory = (runs_root / run_id).resolve()
+    try:
+        run_directory.relative_to(runs_root)
+    except ValueError as exc:
+        raise ContextError("Workflow run directory escaped the project") from exc
+    return run_directory
+
+
+def initial_design_record(project_root: Path, run_directory: Path) -> dict:
+    envelope = load_json(run_directory / "inputs.json")
+    inputs = envelope.get("inputs")
+    if not isinstance(inputs, dict):
+        raise ContextError("Workflow inputs.json does not contain the Spec Kit inputs object")
+    value = inputs.get("initial_design")
+    if not isinstance(value, str) or not value.strip():
+        raise ContextError("Workflow inputs do not contain a non-empty initial_design path")
+    candidate = Path(value)
+    resolved = (project_root / candidate).resolve() if not candidate.is_absolute() else candidate.resolve()
+    try:
+        relative = resolved.relative_to(project_root)
+    except ValueError as exc:
+        raise ContextError("The live bootstrap initial design must stay inside the project") from exc
+    if not resolved.is_file():
+        raise ContextError(f"Initial design is missing: {relative.as_posix()}")
+    return {
+        "path": relative.as_posix(),
+        "sha256": sha256_file(resolved),
+        "bytes": resolved.stat().st_size,
+    }
+
+
+def _require_string(value: object, label: str, maximum: int) -> str:
+    if not isinstance(value, str) or not value.strip() or len(value) > maximum:
+        raise ContextError(f"Bootstrap brief {label} must be a non-empty string of at most {maximum} characters")
+    return value.strip()
+
+
+def validate_brief(project_root: Path, run_id: str) -> dict:
+    run_directory = safe_run_directory(project_root, run_id)
+    design = initial_design_record(project_root, run_directory)
+    path = project_root / BRIEF_PATH
+    if not path.is_file():
+        raise ContextError(f"Normalized bootstrap brief is missing: {BRIEF_PATH.as_posix()}")
+    if path.stat().st_size > BRIEF_MAX_BYTES:
+        raise ContextError(f"Normalized bootstrap brief exceeds {BRIEF_MAX_BYTES} bytes")
+    brief = load_json(path)
+    required = {
+        "schema_version", "source", "project", "facts", "explicit_boundaries",
+        "actors", "journeys", "quality_requirements", "ambiguities", "routing",
+    }
+    if set(brief) != required or brief.get("schema_version") != BRIEF_SCHEMA_VERSION:
+        raise ContextError("Normalized bootstrap brief has an invalid top-level shape or schema version")
+    source = brief.get("source")
+    if not isinstance(source, dict) or set(source) != {"path", "sha256"}:
+        raise ContextError("Bootstrap brief source must contain only path and sha256")
+    if source != {"path": design["path"], "sha256": design["sha256"]}:
+        raise ContextError("Bootstrap brief source does not match the workflow initial design")
+    project = brief.get("project")
+    if not isinstance(project, dict) or set(project) != {"name", "summary"}:
+        raise ContextError("Bootstrap brief project must contain only name and summary")
+    _require_string(project.get("name"), "project.name", 120)
+    _require_string(project.get("summary"), "project.summary", 500)
+
+    design_lines = (project_root / design["path"]).read_text(encoding="utf-8").splitlines()
+    seen_ids: set[str] = set()
+    for collection_name, text_field, maximum_items in (
+        ("facts", "statement", 64),
+        ("explicit_boundaries", "statement", 64),
+        ("actors", "statement", 64),
+        ("journeys", "statement", 64),
+        ("quality_requirements", "statement", 64),
+        ("ambiguities", "question", 32),
+    ):
+        collection = brief.get(collection_name)
+        if not isinstance(collection, list) or len(collection) > maximum_items:
+            raise ContextError(
+                f"Bootstrap brief {collection_name} must be a list of at most {maximum_items} items"
+            )
+        for index, item in enumerate(collection, 1):
+            if not isinstance(item, dict) or set(item) != {"id", text_field, "evidence"}:
+                raise ContextError(f"Bootstrap brief {collection_name} item {index} has an invalid shape")
+            item_id = _require_string(item.get("id"), f"{collection_name}[{index}].id", 64)
+            if not ID.fullmatch(item_id) or item_id in seen_ids:
+                raise ContextError(f"Bootstrap brief ID is invalid or duplicated: {item_id}")
+            seen_ids.add(item_id)
+            _require_string(item.get(text_field), f"{collection_name}[{index}].{text_field}", 500)
+            evidence = _require_string(item.get("evidence"), f"{collection_name}[{index}].evidence", 260)
+            match = EVIDENCE.fullmatch(evidence)
+            if not match or Path(match.group(1)).as_posix() != design["path"]:
+                raise ContextError(f"Bootstrap brief evidence must cite the initial design: {evidence}")
+            start = int(match.group(2))
+            end = int(match.group(3) or start)
+            if end < start or end > len(design_lines):
+                raise ContextError(f"Bootstrap brief evidence line range is invalid: {evidence}")
+
+    routing = brief.get("routing")
+    routing_keys = {"languages", "frameworks", "interfaces", "included_surfaces", "excluded_surfaces"}
+    if not isinstance(routing, dict) or set(routing) != routing_keys:
+        raise ContextError("Bootstrap brief routing has an invalid shape")
+    for key in routing_keys:
+        values = routing[key]
+        if (
+            not isinstance(values, list)
+            or len(values) > 32
+            or any(not isinstance(value, str) or not value.strip() or len(value) > 120 for value in values)
+            or len({value.casefold() for value in values}) != len(values)
+        ):
+            raise ContextError(f"Bootstrap brief routing.{key} must contain unique concise strings")
+    return brief
+
+
+def markdown_index(text: str) -> tuple[list[dict], list[dict]]:
+    headings: list[dict] = []
+    signals: list[dict] = []
+    for line_number, raw_line in enumerate(text.splitlines(), 1):
+        line = raw_line.strip()
+        match = HEADING.match(line)
+        if match and len(headings) < 64:
+            headings.append({"line": line_number, "level": len(match.group(1)), "title": match.group(2)})
+            continue
+        if line and SIGNAL.search(line) and len(signals) < 24:
+            signals.append({"line": line_number, "text": line[:320]})
+    return headings, signals
+
+
+def artifact_record(
+    project_root: Path, relative_path: str, authority_name: str | None = None
+) -> tuple[dict, tuple[str, dict] | None]:
+    path = project_root / relative_path
+    if not path.is_file():
+        raise ContextError(f"Required {relative_path} is missing")
+    data = path.read_bytes()
+    record: dict = {"path": relative_path, "sha256": sha256_bytes(data), "bytes": len(data)}
+    authority: tuple[str, dict] | None = None
+    if path.suffix.lower() == ".json":
+        payload = load_json(path)
+        record["kind"] = "json"
+        record["keys"] = sorted(payload)
+        authority_name = authority_name or AUTHORITY_JSON.get(relative_path)
+        if authority_name:
+            authority = authority_name, payload
+    else:
+        headings, signals = markdown_index(data.decode("utf-8"))
+        record.update({"kind": "markdown", "headings": headings, "signals": signals})
+    return record, authority
+
+
+def compact_authority(name: str, payload: dict) -> dict:
+    if name == "assessment_decisions":
+        keys = (
+            "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
+            "choices", "overrides", "acknowledgements", "unresolved", "deferred",
+        )
+        return {key: payload[key] for key in keys if key in payload}
+    keys = ("schema_version", "status", "constitution", "gate_verdict", "artifacts", "approval_source")
+    return {key: payload[key] for key in keys if key in payload}
+
+
+def replace_governance_path(relative_path: str, paths: dict[str, str]) -> str:
+    exact = {
+        "docs/architecture/specification-roadmap.md": paths["specification_roadmap"],
+        ".specify/memory/constitution.md": paths["constitution_document"],
+        ".specify/memory/constitution-ratification.json": paths["constitution_ratification"],
+    }
+    if relative_path in exact:
+        return exact[relative_path]
+    default_decisions = "docs/architecture/decisions"
+    if relative_path == default_decisions or relative_path.startswith(default_decisions + "/"):
+        suffix = relative_path[len(default_decisions) :]
+        return paths["decisions"].rstrip("/") + suffix
+    return relative_path
+
+
+def decision_records(project_root: Path, decisions_path: str) -> list[dict]:
+    directory = project_root / decisions_path
+    if not directory.is_dir():
+        return []
+    result: list[dict] = []
+    for path in sorted(directory.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        title = next((match.group(2) for line in text.splitlines() if (match := HEADING.match(line))), path.stem)
+        status_match = re.search(r"(?im)^\s*(?:[-*]\s+)?(?:\*\*)?Status(?:\*\*)?\s*:\s*(.+?)\s*$", text)
+        result.append({
+            "path": path.relative_to(project_root).as_posix(),
+            "sha256": sha256_file(path),
+            "title": title,
+            "status": status_match.group(1).strip() if status_match else "Unspecified",
+        })
+    return result
+
+
+def governance_contract(project_root: Path) -> dict:
+    values = {
+        "decisions": "docs/architecture/decisions",
+        "specification_roadmap": "docs/architecture/specification-roadmap.md",
+        "constitution_document": ".specify/memory/constitution.md",
+        "constitution_ratification": ".specify/memory/constitution-ratification.json",
+    }
+    sources: list[dict] = []
+    key_map = {
+        ("architecture", "decisions"): "decisions",
+        ("architecture", "specification_roadmap"): "specification_roadmap",
+        ("constitution", "document"): "constitution_document",
+        ("constitution", "ratification"): "constitution_ratification",
+    }
+    for relative in GOVERNANCE_CONFIGS:
+        path = project_root / relative
+        record: dict = {"path": relative.as_posix(), "exists": path.is_file()}
+        if path.is_file():
+            record["sha256"] = sha256_file(path)
+            section: str | None = None
+            for number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                line = raw_line.split("#", 1)[0].rstrip()
+                if not line:
+                    continue
+                top = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):\s*", line)
+                nested = re.fullmatch(r"  ([A-Za-z][A-Za-z0-9_-]*):\s*['\"]?([^'\"]+)['\"]?\s*", line)
+                if top:
+                    section = top.group(1)
+                elif nested and section:
+                    destination = key_map.get((section, nested.group(1)))
+                    if destination:
+                        candidate = Path(nested.group(2).strip())
+                        if candidate.is_absolute() or ".." in candidate.parts:
+                            raise ContextError(
+                                f"Unsafe governance path in {relative.as_posix()}:{number}"
+                            )
+                        values[destination] = candidate.as_posix()
+        sources.append(record)
+    return {"paths": values, "configuration_sources": sources}
+
+
+def resolved_output_contract(stage: str, paths: dict[str, str]) -> dict:
+    contract = OUTPUT_CONTRACTS[stage]
+    write_paths = [replace_governance_path(path, paths) for path in contract["write_paths"]]
+    return {
+        "write_paths": write_paths,
+        "contract_references": list(contract["contract_references"]),
+        "validation_commands": list(contract["validation_commands"]),
+        "artifact_byte_budgets": {
+            replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
+            for path in contract["write_paths"]
+            if path in ARTIFACT_BYTE_BUDGETS
+        },
+    }
+
+
+def context_path(run_directory: Path, stage: str) -> Path:
+    return run_directory / "program-kit-context" / f"{stage}.json"
+
+
+def evidence_path(run_directory: Path, stage: str) -> Path:
+    return run_directory / "program-kit-context" / f"{stage}.evidence.json"
+
+
+def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict, Path, dict]:
+    run_directory = safe_run_directory(project_root, run_id)
+    if not (run_directory / "inputs.json").is_file():
+        raise ContextError(f"Spec Kit workflow inputs are missing for run {run_id}")
+    brief = validate_brief(project_root, run_id)
+    governance = governance_contract(project_root)
+    governance_paths = governance["paths"]
+    stage_artifacts = tuple(
+        replace_governance_path(path, governance_paths) for path in STAGE_ARTIFACTS[stage]
+    )
+    artifacts: list[dict] = []
+    authorities: dict[str, dict] = {}
+    authority_paths = dict(AUTHORITY_JSON)
+    authority_paths[governance_paths["constitution_ratification"]] = "constitution_ratification"
+    for relative_path in stage_artifacts:
+        record, authority = artifact_record(
+            project_root, relative_path, authority_paths.get(relative_path)
+        )
+        artifacts.append(record)
+        if authority:
+            authorities[authority[0]] = compact_authority(authority[0], authority[1])
+    evidence = {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": run_id,
+        "stage": stage,
+        "artifacts": artifacts,
+    }
+    evidence_destination = evidence_path(run_directory, stage)
+    evidence_bytes = (json.dumps(evidence, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": run_id,
+        "stage": stage,
+        "stage_focus": STAGE_FOCUS[stage],
+        "initial_design": initial_design_record(project_root, run_directory),
+        "normalized_brief": brief,
+        "authorities": authorities,
+        "decisions": decision_records(project_root, governance_paths["decisions"]),
+        "governance": governance,
+        "output_contract": resolved_output_contract(stage, governance_paths),
+        "evidence_index": {
+            "path": evidence_destination.relative_to(project_root).as_posix(),
+            "sha256": sha256_bytes(evidence_bytes),
+            "bytes": len(evidence_bytes),
+        },
+        "reading_policy": {
+            "mode": "deny-by-default",
+            "required_full_reads": [
+                replace_governance_path(path, governance_paths) for path in STAGE_FULL_READS[stage]
+            ],
+            "allowed_sources": list(stage_artifacts),
+            "rules": [
+                "Read this stage brief in full.",
+                "Do not print or read the evidence index in full; query one artifact and heading range at a time.",
+                "Do not open an allowed source unless this brief lacks a fact required for the current output.",
+                "Excluded routing surfaces are out of scope unless contradictory evidence is cited.",
+                "Report counts and paths after writes; do not print complete generated artifacts or repository-wide diffs.",
+            ],
+            "provenance": "The evidence index binds optional source sections to paths and SHA-256 values.",
+        },
+    }
+    return context_path(run_directory, stage), payload, evidence_destination, evidence
+
+
+def build_context(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict]:
+    destination, payload, evidence_destination, evidence = create_documents(project_root, run_id, stage)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    evidence_destination.write_text(json.dumps(evidence, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    destination.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return destination, payload
+
+
+def validate_context(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict]:
+    run_directory = safe_run_directory(project_root, run_id)
+    destination = context_path(run_directory, stage)
+    evidence_destination = evidence_path(run_directory, stage)
+    actual = load_json(destination)
+    actual_evidence = load_json(evidence_destination)
+    _, expected, _, expected_evidence = create_documents(project_root, run_id, stage)
+    if actual != expected or actual_evidence != expected_evidence:
+        raise ContextError(f"Bootstrap context is stale or invalid: {destination}")
+    return destination, actual
+
+
+def result_payload(project_root: Path, path: Path, payload: dict) -> dict:
+    index = payload["evidence_index"]
+    return {
+        "path": path.relative_to(project_root).as_posix(),
+        "sha256": sha256_file(path),
+        "stage": payload["stage"],
+        "bytes": path.stat().st_size,
+        "evidence_path": index["path"],
+        "evidence_bytes": index["bytes"],
+    }
+
+
+def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+    parser = argparse.ArgumentParser(description="Build compact Program Kit bootstrap stage handoffs.")
+    parser.add_argument("command", choices=("build", "validate", "validate-brief"))
+    parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
+    parser.add_argument("--run-id", required=True)
+    parser.add_argument("--project-root", default=".")
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+    project_root = Path(args.project_root).resolve()
+    try:
+        if args.command == "validate-brief":
+            payload = validate_brief(project_root, args.run_id)
+            result = {
+                "path": BRIEF_PATH.as_posix(),
+                "bytes": (project_root / BRIEF_PATH).stat().st_size,
+                "fact_count": len(payload["facts"]),
+                "boundary_count": len(payload["explicit_boundaries"]),
+                "ambiguity_count": len(payload["ambiguities"]),
+            }
+        else:
+            if not args.stage:
+                raise ContextError(f"--stage is required for {args.command}")
+            if args.command == "build":
+                path, payload = build_context(project_root, args.run_id, args.stage)
+            else:
+                path, payload = validate_context(project_root, args.run_id, args.stage)
+            result = result_payload(project_root, path, payload)
+    except (ContextError, OSError, UnicodeError) as exc:
+        print(f"Program Kit bootstrap context failed: {exc}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(result))
+    elif args.command == "validate-brief":
+        print(f"Program Kit normalized bootstrap brief is valid: {result['path']}")
+    else:
+        print(f"Program Kit {args.stage} context is valid: {result['path']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

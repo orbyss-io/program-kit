@@ -6,14 +6,26 @@ scripts:
 
 ## Preconditions
 
+`$ARGUMENTS` identifies the initial design and the workflow-generated bootstrap context path.
+Read the compact bootstrap stage brief first. It contains normalized journeys, compact ratified
+authority records, and a link to a separate hash-bound evidence index. Read the ratified
+constitution in full. Do not print or read the evidence index in full; query one artifact and
+heading range only when the brief lacks a fact required to define an entry. Do not bulk-read every
+unchanged bootstrap artifact, search other artifact directories, or enumerate installed files.
+Use `governance.paths` and the exact writes and validation command in `output_contract`. The roadmap
+field contract is stated below. Do not search `.specify` or inspect `governance_state.py` to
+rediscover either contract; run the supplied validator and respond only to a specific diagnostic.
+Honor `output_contract.artifact_byte_budgets` after every write, including edits to existing files.
+
 Validate the ratified constitution before doing any work:
 
 ```text
 {SCRIPT} validate
 ```
 
-Read the constitution, architecture baseline, ADRs, decision backlog, tooling evaluation, quality
-system, traceability model, and candidate vertical slices. Stop if ratification is missing or stale.
+Use the validated context to cover the architecture baseline, ADRs, decision backlog, tooling
+evaluation, quality system, traceability model, and candidate vertical slices. Stop if ratification
+is missing or stale.
 
 Read the approved bootstrap decision register and Accepted bootstrap-baseline decision. Explicit
 intake choices and adopted Program Kit defaults do not appear as unresolved ADR prerequisites.
@@ -32,6 +44,8 @@ update `docs/architecture/architecture.md` and `docs/architecture/traceability.m
 copied status fields or tables for roadmap entries and no stale claims that a roadmap record does not
 yet exist. Preserve their design, decision, ownership, and verification traceability. Do not write or
 edit the marked `PROGRAM-KIT:ROADMAP-VIEW` section; the deterministic synchronization step owns it.
+Make the smallest link-only edits needed outside the new roadmap, do not restate roadmap fields, and
+check the final byte count of each edited file against `output_contract.artifact_byte_budgets`.
 
 For each record use the heading `### <ID>: <Title>` and include exactly these bold fields:
 
@@ -68,3 +82,9 @@ is unresolved. The later synchronization step only copies the status already jus
 never chooses or promotes a status.
 
 Report blocked records and the exact design task or ADR that can unlock each one.
+
+Start with one roadmap entry per normalized user-visible journey unless accepted architecture
+requires a split. Reuse the compact authority and normalized brief rather than reconstructing the
+design from every downstream document. Report entry IDs, statuses, final byte counts, and validation
+counts only; do
+not print the complete roadmap or repository-wide diffs.

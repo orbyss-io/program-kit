@@ -433,6 +433,18 @@ def _require_string(value: object, label: str) -> str:
 def validate_bootstrap_decisions() -> dict:
     path = project_path(BOOTSTRAP_DECISIONS)
     value = read_json(path)
+    required_fields = {
+        "schema_version", "default_profile", "selected_profiles", "choices", "overrides",
+        "acknowledgements", "unresolved", "deferred",
+    }
+    allowed_fields = required_fields | {"dotnet", "web"}
+    missing_fields = required_fields - set(value)
+    extra_fields = set(value) - allowed_fields
+    if missing_fields or extra_fields:
+        raise GovernanceStateError(
+            "Bootstrap decisions have invalid top-level fields "
+            f"(missing={sorted(missing_fields)}, unexpected={sorted(extra_fields)})"
+        )
     if value.get("schema_version") != "1.0":
         raise GovernanceStateError("Bootstrap decisions must use schema_version 1.0")
     profile = value.get("default_profile")
@@ -462,6 +474,12 @@ def validate_bootstrap_decisions() -> dict:
     for index, choice in enumerate(choices):
         if not isinstance(choice, dict):
             raise GovernanceStateError(f"Bootstrap choice {index + 1} must be an object")
+        expected_choice_fields = {"id", "decision", "source", "rationale", "override"}
+        if set(choice) != expected_choice_fields:
+            raise GovernanceStateError(
+                f"Bootstrap choice {index + 1} has unexpected fields; "
+                f"expected {sorted(expected_choice_fields)}"
+            )
         choice_id = _require_string(choice.get("id"), f"Bootstrap choice {index + 1}.id")
         if choice_id in seen:
             raise GovernanceStateError(f"Duplicate bootstrap choice id: {choice_id}")
@@ -487,7 +505,17 @@ def validate_bootstrap_decisions() -> dict:
         if not isinstance(collection, list) or not all(isinstance(item, dict) for item in collection):
             raise GovernanceStateError(f"Bootstrap decisions {collection_name} must be a list of objects")
         collection_ids: set[str] = set()
+        expected_item_fields = {"id", text_field}
+        if collection_name == "unresolved":
+            expected_item_fields.add("blocks")
+        elif collection_name == "deferred":
+            expected_item_fields.add("trigger")
         for index, item in enumerate(collection):
+            if set(item) != expected_item_fields:
+                raise GovernanceStateError(
+                    f"Bootstrap {collection_name} item {index + 1} has unexpected fields; "
+                    f"expected {sorted(expected_item_fields)}"
+                )
             item_id = _require_string(
                 item.get("id"), f"Bootstrap {collection_name} item {index + 1}.id"
             )
@@ -517,6 +545,13 @@ def validate_bootstrap_decisions() -> dict:
         dotnet = value.get("dotnet")
         if not isinstance(dotnet, dict):
             raise GovernanceStateError("A selected .NET profile requires a dotnet decision block")
+        expected_dotnet_fields = {
+            "host_runtime", "host_source", "program_kit_host_opt_out", "opt_out_reason"
+        }
+        if set(dotnet) != expected_dotnet_fields:
+            raise GovernanceStateError(
+                f"Bootstrap dotnet has unexpected fields; expected {sorted(expected_dotnet_fields)}"
+            )
         opt_out_value = dotnet.get("program_kit_host_opt_out")
         if not isinstance(opt_out_value, bool):
             raise GovernanceStateError(
@@ -553,6 +588,22 @@ def validate_bootstrap_decisions() -> dict:
                 )
     browser_selected = "typescript-web" in normalized_profiles or "browser-web" in normalized_profiles
     web = value.get("web")
+    if isinstance(web, dict):
+        expected_web_fields = {
+            "secure_profile", "profile_source", "browser_ui", "override_reason",
+            "threat_model", "security_evidence",
+        }
+        missing_web_fields = expected_web_fields - set(web)
+        extra_web_fields = set(web) - expected_web_fields
+        if missing_web_fields:
+            labels = [f"web.{field}" for field in sorted(missing_web_fields)]
+            raise GovernanceStateError(
+                f"Bootstrap web is missing required fields: {labels}"
+            )
+        if extra_web_fields:
+            raise GovernanceStateError(
+                f"Bootstrap web has unexpected fields: {sorted(extra_web_fields)}"
+            )
     if browser_selected:
         if not isinstance(web, dict):
             raise GovernanceStateError("A selected browser profile requires a web decision block")

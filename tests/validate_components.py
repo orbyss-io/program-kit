@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -12,7 +13,11 @@ from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
 EXPECTED_STEPS = [
     "codex-execution-preflight",
     "codex-execution-boundary",
+    "prepare-utf8-runtime",
+    "normalize-design",
+    "validate-design-brief",
     "intake",
+    "prepare-research-context",
     "research",
     "validate-assessment",
     "write-assessment-review",
@@ -23,8 +28,11 @@ EXPECTED_STEPS = [
     "write-constitution-review",
     "review-constitution",
     "constitution-ratify",
+    "prepare-architecture-context",
     "architecture",
+    "prepare-tooling-context",
     "tooling",
+    "prepare-roadmap-context",
     "specification-roadmap",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
@@ -32,6 +40,7 @@ EXPECTED_STEPS = [
     "write-bootstrap-review",
     "review-bootstrap",
     "accept-bootstrap",
+    "prepare-readiness-context",
     "readiness",
     "complete-bootstrap",
     "report-completion-result",
@@ -69,8 +78,17 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 11:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 11")
+    if len(command_names) != 12:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 12")
+    extension_catalog = yaml.safe_load(
+        (root / "catalogs/extensions.json").read_text(encoding="utf-8")
+    )
+    advertised_commands = extension_catalog["extensions"]["program-kit-governance"]["provides"]["commands"]
+    if advertised_commands != len(command_names):
+        raise AssertionError(
+            "Extension catalog command count "
+            f"{advertised_commands} != manifest command count {len(command_names)}"
+        )
     hooks = set(extension.get("hooks", {}))
     if hooks != EXPECTED_HOOKS:
         raise AssertionError(f"Extension hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
@@ -113,6 +131,44 @@ def main() -> int:
     step_ids = [step["id"] for step in steps]
     if step_ids != EXPECTED_STEPS:
         raise AssertionError(f"Workflow order {step_ids} != {EXPECTED_STEPS}")
+    utf8_step = next(step for step in steps if step["id"] == "prepare-utf8-runtime")
+    if "ensure_utf8.py --target ." not in utf8_step.get("run", ""):
+        raise AssertionError("Bootstrap must harden installed Python entry points before agent commands")
+    normalize = next(step for step in steps if step["id"] == "normalize-design")
+    brief_validation = next(step for step in steps if step["id"] == "validate-design-brief")
+    intake = next(step for step in steps if step["id"] == "intake")
+    if normalize.get("command") != "speckit.program-kit-governance.normalize-design":
+        raise AssertionError("The workflow must normalize the design before governance intake")
+    if (
+        brief_validation.get("type") != "shell"
+        or "bootstrap_context.py validate-brief" not in brief_validation.get("run", "")
+        or brief_validation.get("output_format") != "json"
+    ):
+        raise AssertionError("The normalized design brief must be deterministically validated")
+    if "steps.validate-design-brief.output.data.path" not in intake.get("input", {}).get("args", ""):
+        raise AssertionError("Governance intake must consume the validated normalized brief")
+    context_stages = ("research", "architecture", "tooling", "roadmap", "readiness")
+    for stage in context_stages:
+        context_id = f"prepare-{stage}-context"
+        context_step = next(step for step in steps if step["id"] == context_id)
+        if context_step.get("type") != "shell" or context_step.get("output_format") != "json":
+            raise AssertionError(f"{context_id} must produce structured shell output")
+        context_command = context_step.get("run", "")
+        if "bootstrap_context.py build" not in context_command or f"--stage {stage}" not in context_command:
+            raise AssertionError(f"{context_id} does not build the {stage} context")
+        if "--run-id {{ context.run_id }}" not in context_command or "inputs." in context_command:
+            raise AssertionError(f"{context_id} must use only the engine-owned run id in its shell command")
+    for command_id, stage in (
+        ("research", "research"),
+        ("architecture", "architecture"),
+        ("tooling", "tooling"),
+        ("specification-roadmap", "roadmap"),
+        ("readiness", "readiness"),
+    ):
+        command_step = next(step for step in steps if step["id"] == command_id)
+        expected_context = f"steps.prepare-{stage}-context.output.data.path"
+        if expected_context not in command_step.get("input", {}).get("args", ""):
+            raise AssertionError(f"{command_id} does not consume its generated bootstrap context")
     constitution_step = next(step for step in steps if step["id"] == "constitution-draft")
     if constitution_step.get("command") != "speckit.constitution":
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")
@@ -243,7 +299,30 @@ def main() -> int:
         extension_root / "commands/speckit.program-kit-governance.architecture.md",
         "constitution",
         "governance_state.py validate",
+        "Read the compact bootstrap stage brief first",
         "specification-roadmap.md",
+    )
+    for command_name in ("research", "tooling", "roadmap", "readiness"):
+        require_text(
+            extension_root
+            / f"commands/speckit.program-kit-governance.{command_name}.md",
+            "Read the compact bootstrap stage brief first",
+            "evidence index in full",
+            "`governance.paths`",
+            "`output_contract`",
+            "`output_contract.artifact_byte_budgets`",
+        )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.research.md",
+        "an acknowledgement contains only `id` and `summary`",
+        "governance_state.py validate-assessment",
+        "next deterministic workflow step is known to fail",
+    )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.intake.md",
+        "fixed routing map",
+        "not evidence that its technology extension is installed",
+        "do not probe guessed paths",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.roadmap.md",
@@ -283,6 +362,51 @@ def main() -> int:
         "validate_completion()",
         "PENDING_RATIFICATION",
         "WEB_SECURITY_EVIDENCE",
+    )
+    context_script = extension_root / "scripts/bootstrap_context.py"
+    context_schema = extension_root / "references/bootstrap-context.schema.json"
+    brief_schema = extension_root / "references/bootstrap-brief.schema.json"
+    decisions_schema = extension_root / "references/bootstrap-decisions.schema.json"
+    normalize_command = extension_root / "commands/speckit.program-kit-governance.normalize-design.md"
+    if not all(
+        path.is_file()
+        for path in (context_script, context_schema, brief_schema, decisions_schema, normalize_command)
+    ):
+        raise AssertionError("Bootstrap brief/context generator, command, or schema is missing")
+    for schema_path in (context_schema, brief_schema, decisions_schema):
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        if schema.get("$schema") != "https://json-schema.org/draft/2020-12/schema":
+            raise AssertionError(f"Bootstrap schema has the wrong dialect: {schema_path}")
+    acknowledgement = json.loads(decisions_schema.read_text(encoding="utf-8"))[
+        "properties"
+    ]["acknowledgements"]["items"]
+    if set(acknowledgement["required"]) != {"id", "summary"} or acknowledgement.get(
+        "additionalProperties"
+    ) is not False:
+        raise AssertionError("Bootstrap acknowledgement schema must remain concise and closed")
+    require_text(
+        context_script,
+        "STAGE_ARTIFACTS",
+        "safe_run_directory",
+        "validate_brief",
+        "evidence_index",
+        "deny-by-default",
+        "reading_policy",
+        "governance_contract",
+        "OUTPUT_CONTRACTS",
+        "stale or invalid",
+    )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.intake.md",
+        "bootstrap-decisions.schema.json",
+        "Do not inspect `governance_state.py`",
+    )
+    require_text(
+        normalize_command,
+        "bootstrap-brief.json",
+        "does not apply Program Kit defaults",
+        "under 16 KiB",
+        "do not print the full JSON",
     )
 
     roadmap_step = next(step for step in steps if step["id"] == "specification-roadmap")

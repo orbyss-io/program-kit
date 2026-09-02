@@ -4,7 +4,17 @@ description: Research current architecture, delivery, and quality tooling for th
 
 ## Input
 
-`$ARGUMENTS` identifies the initial design and may include the bootstrap assessment path.
+`$ARGUMENTS` identifies the initial design and the workflow-generated bootstrap context path.
+
+Read the compact bootstrap stage brief first. Its normalized routing signals and compact authority
+records define the research scope. Do not print or read the linked evidence index in full. Query one
+indexed artifact and heading range only when the brief lacks a fact required for a current research
+claim. Do not bulk-read every unchanged bootstrap artifact or enumerate installed files. The source
+artifacts remain authoritative when the stage brief identifies missing detail or a hash mismatch.
+Use the brief's `governance.paths` and `output_contract` directly. Do not search `.specify`, dump
+catalogs, or inspect `governance_state.py` to rediscover paths or contracts already supplied there.
+Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
+trade away required evidence merely to reach a target.
 
 ## Rules
 
@@ -35,12 +45,19 @@ Create or update `docs/architecture/tooling-evaluation.md` with:
 - version pin and upgrade-validation policy;
 - explicit review of workflow/extension scripts and permissions before installation.
 
-Always evaluate architecture documentation, ADR management, dependency/architecture tests, linters/analyzers, unit/integration/contract/acceptance testing, API/schema compatibility, security scanning, dependency and secret scanning, SBOM/provenance, observability validation, documentation drift, and repository hygiene when relevant.
+Evaluate only capability families selected by the normalized brief or required by an accepted
+boundary. Do not survey API/schema, web security, secrets, SBOM/provenance, observability,
+deployment, or ecosystem-specific tools when their surfaces are explicitly excluded. Record a
+single not-applicable statement for excluded families instead of researching individual products.
 
 After research, update the decision register with verified defaults, overrides, material
-acknowledgements, genuinely unresolved decisions, and deferred triggers. Keep the human-facing
-decision set small. Move implementation details into later specifications and adoption triggers
-rather than creating a separate blocking ADR for every tool.
+acknowledgements, genuinely unresolved decisions, and deferred triggers. Validate it against the
+standalone bootstrap-decisions schema named by `output_contract`. Preserve its exact item
+shapes: an acknowledgement contains only `id` and `summary`; put research evidence, risk detail,
+and triggers in `tooling-evaluation.md`, not extra acknowledgement fields. Preserve the exact fields
+defined by intake for every other collection. Keep the human-facing decision set small. Move
+implementation details into later specifications and adoption triggers rather than creating a
+separate blocking ADR for every tool.
 
 Evaluate API Evolve when the project introduces a versioned external API, event, RPC, or schema contract. Evaluate Reqnroll BDD when multistep externally observable behavior benefits from executable examples. Evaluate ArchUnitNET when .NET assembly dependency rules are present. These are evaluation triggers, not automatic acceptance.
 
@@ -51,3 +68,13 @@ evaluate built-in Minimal APIs and OpenAPI support before adding an endpoint fra
 For a selected .NET profile, `ProgramKit.Host` is already the Program Kit default unless intake
 explicitly opted out. Evaluate compatibility and disclose the preview dependency/source risk; do
 not replace that default with a conventional host merely because runtime multitenancy is absent.
+
+Keep research proportional. For a single-language, single-interface, dependency-free local
+application, target at most 8 KiB and research only the runtime plus the accepted verification
+mechanism. Report sources and counts after writing; do not print the complete artifact or a
+repository-wide diff.
+
+Before reporting completion, run
+`python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment`.
+Repair any contract error in the artifacts you changed and rerun it; do not return success while the
+next deterministic workflow step is known to fail.

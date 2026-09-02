@@ -4,7 +4,17 @@ description: Turn researched capabilities into a staged repository quality syste
 
 ## Input
 
-`$ARGUMENTS` identifies the initial design, assessment, and tooling evaluation.
+`$ARGUMENTS` identifies the initial design and the workflow-generated bootstrap context path.
+
+Read the compact bootstrap stage brief first. It contains normalized routing signals, compact
+authority records, and a link to a separate hash-bound evidence index. Read the ratified
+constitution in full. Do not print or read the evidence index in full; query one artifact and
+heading range only when the brief lacks a fact required by a quality-system decision. Do not
+bulk-read every unchanged architecture artifact or enumerate installed files.
+Use `governance.paths` and `output_contract` directly; do not search `.specify`, unrelated
+extensions, catalogs, or validator implementation for already supplied metadata.
+Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
+trade away a required control merely to reach a target.
 
 Validate and read the ratified constitution before producing the quality system. Stop when the
 constitution-ratification hash is missing or stale.
@@ -26,6 +36,13 @@ Create or update `docs/architecture/quality-system.md` containing:
 7. Slice-completeness evidence covering public schema compatibility, composition, authorization, observable outcomes, and architecture tests at the earliest reliable lifecycle stage.
 
 Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
+
+Omit control families for explicitly excluded surfaces rather than designing future gates for
+them. For a single-interface, dependency-free local application, use the byte target supplied by
+`output_contract`, use one
+compact capability matrix, and defer future controls by lifecycle trigger without product-by-product
+surveys. Report paths, sizes, and validation counts only; do not print complete artifacts or a
+repository-wide diff.
 
 For .NET, build the staged quality system around the accepted `ProgramKit.Host` default unless the
 decision register contains an explicit opt-out. Keep actual repository synchronization and networked

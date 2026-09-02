@@ -6,7 +6,10 @@ scripts:
 
 ## Input
 
-Treat `$ARGUMENTS` as the path to the user-provided initial design. If the path is absent or unreadable, stop and report the exact problem. Do not infer a different design file when multiple candidates exist.
+`$ARGUMENTS` identifies the user-provided initial design and the deterministically validated
+`docs/architecture/bootstrap-brief.json`. Read the normalized brief first. If either path is absent,
+unreadable, or hash-inconsistent, stop and report the exact problem. Do not infer a different design
+file when multiple candidates exist.
 
 ## Installation preflight
 
@@ -20,7 +23,20 @@ If validation fails, stop immediately and report the exact repair commands. Run 
 
 ## Required reading
 
-Read the entire initial design and the generic references under `.specify/extensions/program-kit-governance/references/`, excluding technology profiles that are not selected. Read an installed technology extension's profile only when the assessment selects that technology. Also read existing repository guidance and architecture artifacts without overwriting user-authored work.
+Treat the normalized brief as the routing authority for this stage. Verify only cited initial-design
+lines when a fact is ambiguous or contradictory; do not reread or print the design by default. Read
+`references/default-adoption.md`, then use this fixed routing map rather than searching the
+references tree: languages and interfaces use `references/software-language.md`; module, ownership,
+and contract boundaries use `references/modularity-and-contracts.md`; normalized journeys use
+`references/vertical-slicing.md`; explicit generic code-quality concerns use
+`references/programming-guardrails.md`. Do not read `architecture-method.md`, `tool-selection.md`,
+or `codex-desktop-windows.md` during intake. An explicitly excluded surface is out of scope. A
+language or framework name is not evidence that its technology extension is installed. Read a
+technology profile only when the normalized brief or installed skill guidance supplies its exact
+path; otherwise treat it as absent and do not probe guessed paths, manifests, catalogs, or the
+installed-extension tree. Never enumerate or bulk-read either references or installed extensions.
+Read existing repository guidance and architecture artifacts only when they predate this bootstrap
+and could conflict with the normalized brief; do not overwrite user-authored work.
 
 Apply `references/default-adoption.md`. Distinguish explicit intent from examples and future options.
 Do not reopen an explicit intake selection or an applicable Program Kit default merely because its
@@ -49,7 +65,10 @@ resolved by a derived default, genuinely unresolved, or deferred until a named l
 Only genuinely unresolved decisions may block an affected roadmap entry. Specification details,
 acceptance criteria, and triggered production concerns are not foundation ADRs.
 
-Create `docs/architecture/bootstrap-decisions.json` with this exact shape:
+Create `docs/architecture/bootstrap-decisions.json` with this exact shape and the standalone
+`.specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json` contract.
+Do not inspect `governance_state.py` to rediscover a contract already supplied here; run its
+validator after writing and use a specific diagnostic only if repair is needed.
 
 ```json
 {
@@ -120,3 +139,8 @@ project, set `browser_ui` to false and `secure_profile` to `none-v1`.
 Do not invent acceptance outside explicit intake, the versioned Program Kit defaults, safe derived
 defaults, or reviewed overrides. Record those sources as provisional baseline choices for the
 assessment gate. Do not initialize application code or modify the initial design during intake.
+
+Keep the result proportional to the normalized design. Prefer compact tables over repeated prose,
+and do not document excluded capability categories one by one. After writing, report file paths,
+byte sizes, and decision counts only; do not print complete generated artifacts or repository-wide
+diffs.

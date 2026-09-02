@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.8.1"
+  version: "0.8.2"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -70,19 +70,40 @@ steps:
           options: [abort]
           on_reject: abort
 
+  - id: prepare-utf8-runtime
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target ."
+
+  - id: normalize-design
+    type: command
+    command: "speckit.program-kit-governance.normalize-design"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.initial_design }}"
+
+  - id: validate-design-brief
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-brief --run-id {{ context.run_id }} --json"
+    output_format: json
+
   - id: intake
     type: command
     command: "speckit.program-kit-governance.intake"
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.initial_design }}"
+      args: "{{ inputs.initial_design }}; normalized brief: {{ steps.validate-design-brief.output.data.path }}"
+
+  - id: prepare-research-context
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage research --run-id {{ context.run_id }} --json"
+    output_format: json
 
   - id: research
     type: command
     command: "speckit.program-kit-governance.research"
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.initial_design }}"
+      args: "{{ inputs.initial_design }}; bootstrap context: {{ steps.prepare-research-context.output.data.path }}"
 
   - id: validate-assessment
     type: shell
@@ -109,7 +130,7 @@ steps:
     command: "speckit.constitution"
     integration: "{{ inputs.integration }}"
     input:
-      args: "Draft or update the project constitution from {{ inputs.initial_design }}, docs/architecture/bootstrap-assessment.md, and the approved docs/architecture/bootstrap-decisions.json. Treat it as the highest project governance artifact, not a feature specification. Preserve applicable amendments. Explicit intake choices and reviewed Program Kit defaults are adopted baseline authority, not Proposed technologies. Use repository maintainers as the default governance owner unless intake names another owner. Produce an exact '**Status**: Draft' line, semantic version, last-amended date, amendment procedure, versioning policy, and compliance governance. For an initial constitution use the exact metadata value '**Ratified**: PENDING_RATIFICATION'; for an amendment preserve the original valid ratification date. Do not add TODOs or claim that the Draft is already human-ratified."
+      args: "Draft or update the project constitution from {{ inputs.initial_design }}, docs/architecture/bootstrap-assessment.md, and the approved docs/architecture/bootstrap-decisions.json. Treat it as the highest project governance artifact, not a feature specification. Preserve applicable amendments. Explicit intake choices and reviewed Program Kit defaults are adopted baseline authority, not Proposed technologies. Use repository maintainers as the default governance owner unless intake names another owner. Produce an exact '**Status**: Draft' line, semantic version, last-amended date, amendment procedure, versioning policy, and compliance governance. For an initial constitution use the exact metadata value '**Ratified**: PENDING_RATIFICATION'; for an amendment preserve the original valid ratification date. When replacing the initial scaffold, use one whole-file edit and never submit multiple patch operations targeting constitution.md in the same tool call. Do not add TODOs or claim that the Draft is already human-ratified."
 
   - id: validate-constitution-draft
     type: shell
@@ -131,26 +152,41 @@ steps:
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py ratify --verdict \"{{ steps.review-constitution.output.choice }}\""
 
+  - id: prepare-architecture-context
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage architecture --run-id {{ context.run_id }} --json"
+    output_format: json
+
   - id: architecture
     type: command
     command: "speckit.program-kit-governance.architecture"
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.initial_design }}"
+      args: "{{ inputs.initial_design }}; bootstrap context: {{ steps.prepare-architecture-context.output.data.path }}"
+
+  - id: prepare-tooling-context
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage tooling --run-id {{ context.run_id }} --json"
+    output_format: json
 
   - id: tooling
     type: command
     command: "speckit.program-kit-governance.tooling"
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.initial_design }}"
+      args: "{{ inputs.initial_design }}; bootstrap context: {{ steps.prepare-tooling-context.output.data.path }}"
+
+  - id: prepare-roadmap-context
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage roadmap --run-id {{ context.run_id }} --json"
+    output_format: json
 
   - id: specification-roadmap
     type: command
     command: "speckit.program-kit-governance.roadmap"
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.initial_design }}"
+      args: "{{ inputs.initial_design }}; bootstrap context: {{ steps.prepare-roadmap-context.output.data.path }}"
 
   - id: synchronize-roadmap
     type: shell
@@ -180,12 +216,17 @@ steps:
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-bootstrap --verdict \"{{ steps.review-bootstrap.output.choice }}\""
 
+  - id: prepare-readiness-context
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage readiness --run-id {{ context.run_id }} --json"
+    output_format: json
+
   - id: readiness
     type: command
     command: "speckit.program-kit-governance.readiness"
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.initial_design }}"
+      args: "{{ inputs.initial_design }}; bootstrap context: {{ steps.prepare-readiness-context.output.data.path }}"
 
   - id: complete-bootstrap
     type: shell

@@ -338,6 +338,17 @@ def main() -> int:
             bootstrap_decisions.write_text(json.dumps(explicit_opt_out), encoding="utf-8")
             module.validate_bootstrap_decisions()
 
+            acknowledgement_with_extra_field = decisions()
+            acknowledgement_with_extra_field["acknowledgements"][0]["risk"] = "Extra prose"
+            bootstrap_decisions.write_text(
+                json.dumps(acknowledgement_with_extra_field), encoding="utf-8"
+            )
+            expect_error(
+                module,
+                module.validate_bootstrap_decisions,
+                "unexpected fields",
+            )
+
             missing_assurance = decisions()
             del missing_assurance["web"]["security_evidence"]
             bootstrap_decisions.write_text(json.dumps(missing_assurance), encoding="utf-8")

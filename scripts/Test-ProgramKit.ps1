@@ -35,6 +35,16 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Governance-state validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_bootstrap_context.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Bootstrap-context validation failed.'
+}
+
+& $python (Join-Path $projectRoot 'tests\validate_live_bootstrap_acceptance.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Live-bootstrap acceptance contract validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_lifecycle_profiles.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Lifecycle and profile validation failed.'

@@ -21,7 +21,11 @@ EXPECTED_HOOKS = {
 EXPECTED_STEPS = [
     "codex-execution-preflight",
     "codex-execution-boundary",
+    "prepare-utf8-runtime",
+    "normalize-design",
+    "validate-design-brief",
     "intake",
+    "prepare-research-context",
     "research",
     "validate-assessment",
     "write-assessment-review",
@@ -32,8 +36,11 @@ EXPECTED_STEPS = [
     "write-constitution-review",
     "review-constitution",
     "constitution-ratify",
+    "prepare-architecture-context",
     "architecture",
+    "prepare-tooling-context",
     "tooling",
+    "prepare-roadmap-context",
     "specification-roadmap",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
@@ -41,6 +48,7 @@ EXPECTED_STEPS = [
     "write-bootstrap-review",
     "review-bootstrap",
     "accept-bootstrap",
+    "prepare-readiness-context",
     "readiness",
     "complete-bootstrap",
     "report-completion-result",
@@ -114,6 +122,11 @@ def main() -> int:
             raise AssertionError("Extension release ZIP must contain the governance-state validator")
         for path in (
             "scripts/codex_bootstrap_preflight.py",
+            "scripts/bootstrap_context.py",
+            "commands/speckit.program-kit-governance.normalize-design.md",
+            "references/bootstrap-brief.schema.json",
+            "references/bootstrap-decisions.schema.json",
+            "references/bootstrap-context.schema.json",
             "references/codex-desktop-windows.md",
         ):
             if not (extracted_extension / path).is_file():
