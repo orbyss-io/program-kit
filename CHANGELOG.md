@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.8.3 - 2026-09-02
+
+- Derive live public-install and upgrade expectations from the tagged source workflow, so
+  post-publication verification cannot retain an obsolete duplicated step list when the bootstrap
+  expands.
+
 ## 0.8.2 - 2026-09-02
 
 - Normalize the initial design into a validated, provenance-bound brief before intake, then pass

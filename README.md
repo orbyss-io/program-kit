@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.2/Initialize-ProgramKit-0.8.2.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.3/Initialize-ProgramKit-0.8.3.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.2/Initialize-ProgramKit-0.8.2.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.3/Initialize-ProgramKit-0.8.3.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -332,11 +332,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.8.2.md`](docs/releasing-0.8.2.md).
+[`docs/releasing-0.8.3.md`](docs/releasing-0.8.3.md).
 
 ```powershell
-git tag v0.8.2
-git push origin v0.8.2
+git tag v0.8.3
+git push origin v0.8.3
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -356,8 +356,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.8.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.8.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.8.3.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.8.3.zip -Algorithm SHA256
 ```
 
 ## License

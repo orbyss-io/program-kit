@@ -21,35 +21,6 @@ EXPECTED_HOOKS = {
     "before_implement",
     "after_implement",
 }
-EXPECTED_STEPS = [
-    "codex-execution-preflight",
-    "codex-execution-boundary",
-    "intake",
-    "research",
-    "validate-assessment",
-    "write-assessment-review",
-    "review-assessment",
-    "accept-assessment",
-    "constitution-draft",
-    "validate-constitution-draft",
-    "write-constitution-review",
-    "review-constitution",
-    "constitution-ratify",
-    "architecture",
-    "tooling",
-    "specification-roadmap",
-    "synchronize-roadmap",
-    "validate-bootstrap-consistency",
-    "validate-bootstrap",
-    "write-bootstrap-review",
-    "review-bootstrap",
-    "accept-bootstrap",
-    "readiness",
-    "complete-bootstrap",
-    "report-completion-result",
-]
-
-
 def run(*args: str, cwd: Path, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args,
@@ -182,6 +153,12 @@ def installed_versions(project: Path) -> dict[str, str]:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     current_version = (root / "VERSION").read_text(encoding="utf-8").strip()
+    source_workflow = yaml.safe_load(
+        (root / "workflows/program-kit-bootstrap/workflow.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    expected_steps = [step["id"] for step in source_workflow.get("steps", [])]
     with tempfile.TemporaryDirectory(prefix="program-kit-public-upgrade-") as directory:
         project = Path(directory)
         run(
@@ -305,8 +282,8 @@ def main() -> int:
             ).read_text(encoding="utf-8")
         )
         step_ids = [step["id"] for step in workflow.get("steps", [])]
-        if step_ids != EXPECTED_STEPS:
-            raise AssertionError(f"Installed workflow steps {step_ids} != {EXPECTED_STEPS}")
+        if step_ids != expected_steps:
+            raise AssertionError(f"Installed workflow steps {step_ids} != {expected_steps}")
 
     print(f"Live public-catalog v0.2.0 to v{current_version} upgrade test passed.")
     return 0
