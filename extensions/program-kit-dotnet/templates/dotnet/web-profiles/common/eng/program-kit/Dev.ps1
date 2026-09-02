@@ -7,6 +7,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $compose = Join-Path $repository 'deploy\compose.identity.yml'
+$applicationCompose = Join-Path $repository 'deploy\compose.application.yml'
+
+python (Join-Path $PSScriptRoot 'preflight.py')
+if ($LASTEXITCODE -ne 0) { throw 'Program Kit pre-host prerequisites failed.' }
 
 docker compose -f $compose up -d --wait
 if ($LASTEXITCODE -ne 0) { throw 'The pinned local Keycloak service did not become ready.' }
@@ -29,10 +33,5 @@ $applicationImage = 'program-kit-consumer:local'
 docker build --build-arg "PROGRAMKIT_HOST_IMAGE=$($env:PROGRAMKIT_HOST_IMAGE)" -t $applicationImage $repository
 if ($LASTEXITCODE -ne 0) { throw 'The local application image build failed.' }
 
-docker rm -f program-kit-consumer-local 2>$null | Out-Null
-docker run --name program-kit-consumer-local --add-host localhost:host-gateway `
-    -p 5000:8080 `
-    -e ASPNETCORE_ENVIRONMENT=Development `
-    -e ProgramKit__Web__ClientSecret=local-program-kit-secret `
-    $applicationImage
-if ($LASTEXITCODE -ne 0) { throw 'The local application host failed.' }
+docker compose -f $applicationCompose up -d --wait
+if ($LASTEXITCODE -ne 0) { throw 'The local application did not become ready.' }

@@ -5,4 +5,7 @@
     <Project Path="src/dotnet/ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
     <Project Path="src/dotnet/ProgramKit.Tasks/ProgramKit.Tasks.csproj" />
   </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/dotnet/ProgramKit.Host.Tests/ProgramKit.Host.Tests.csproj" />
+  </Folder>
 </Solution>

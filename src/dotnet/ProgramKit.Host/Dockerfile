@@ -15,4 +15,6 @@ COPY --from=build /app/publish ./
 RUN mkdir -p /app/.program-kit/bundles /opt/program-kit \
     && chown -R $APP_UID:$APP_UID /app /opt/program-kit
 USER $APP_UID
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+    CMD ["dotnet", "ProgramKit.Host.dll", "--program-kit-healthcheck", "http://127.0.0.1:8080/health/ready"]
 ENTRYPOINT ["dotnet", "ProgramKit.Host.dll"]

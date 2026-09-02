@@ -36,6 +36,35 @@
         },
         "additionalProperties": false
       }
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "schemaVersion", "identity", "packageId", "featureDependencies", "runtimeDependencies", "routes", "dormant" ],
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "identity": { "type": "string", "minLength": 1 },
+          "packageId": { "type": "string", "minLength": 1 },
+          "featureDependencies": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+          },
+          "runtimeDependencies": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+          },
+          "routes": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^/" },
+            "uniqueItems": true
+          },
+          "dormant": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

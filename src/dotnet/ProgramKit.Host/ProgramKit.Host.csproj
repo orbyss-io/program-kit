@@ -11,6 +11,10 @@
     <PackageReference Include="Nuplane" />
     <PackageReference Include="Nuplane.Loading" />
     <PackageReference Include="Nuplane.Sources.Directory" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />

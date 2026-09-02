@@ -22,6 +22,11 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+
       - name: Verify tag matches VERSION
         shell: bash
         run: |
@@ -46,11 +51,23 @@ jobs:
       - name: Validate governance-state transitions
         run: python tests/validate_governance_state.py
 
+      - name: Validate lifecycle and managed profile contracts
+        run: python tests/validate_lifecycle_profiles.py
+
       - name: Validate profile-gated .NET scaffold
         run: python tests/validate_dotnet_scaffold.py
 
       - name: Validate .NET runtime version coherence
         run: python tests/validate_dotnet_runtime.py
+
+      - name: Build .NET runtime in locked mode
+        run: |
+          dotnet restore ProgramKit.slnx --locked-mode
+          dotnet build ProgramKit.slnx -c Release --no-restore
+          dotnet test ProgramKit.slnx -c Release --no-build --no-restore
+
+      - name: Start host with a newly packed consumer feature
+        run: python tests/validate_dotnet_feature_host.py
 
       - name: Validate bundle manifest
         run: specify bundle validate --path . --offline

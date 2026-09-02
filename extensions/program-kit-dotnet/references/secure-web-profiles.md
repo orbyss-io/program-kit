@@ -94,8 +94,9 @@ must be tightened or minimally adapted to the actual frontend resource model.
 - `/health/ready` reports fixed component names and status only. It checks activated shells and, for a
   selected identity profile, cached OIDC discovery/JWKS availability within the configured budget.
   It never exposes authority URLs, client identifiers, tokens, exception text, or topology.
-- identity-provider navigation is outside the application's five-second response guarantee. The
-  guarantee applies to app-controlled discovery, JWKS, callback, API, and session operations.
+- identity-provider navigation is outside app-controlled response budgets. Product SLOs for
+  discovery, JWKS, callback, API, and session operations are feature/deployment decisions and are
+  not inferred from Program Kit's separate five-second local preflight default.
 
 ### Identity provider fixture
 
@@ -138,6 +139,24 @@ credentials are local-test data and are never reused in deployed environments.
 - logout clears all local authentication state before RP-initiated provider logout.
 - exact API origin, allowed browser origins, redirect URIs, logout URIs, scopes, and renewal timeouts
   are part of the selected profile configuration.
+- `eng/program-kit/web/vite.security.mjs` owns browser-response headers for local Vite development
+  and preview. Consumer-owned `vite.config` imports `programKitSpaSecurity` with exact API and
+  identity origins. A production static server or edge must translate the checked
+  `spa-security.json` contract; the production TLS terminator separately owns HTTPS and HSTS, so
+  local HTTP never claims them.
+- The production CSP permits self-hosted scripts/styles by default. Add an exact source, nonce, or
+  hash only after resource review; do not add `unsafe-inline` or wildcard sources. Keycloak
+  top-level navigation needs no CSP source, while browser discovery/token calls need its exact
+  origin in `connect-src`. Another approved SPA server must implement the same header contract and
+  pass WEB-V1 configuration and WEB-V3 browser assertions.
+
+## Local preflight ownership
+
+`eng/program-kit/preflight.py` runs before any host or Compose command. It checks the Docker CLI,
+then calls the daemon directly with a bounded five-second Program Kit development default. The
+timeout is configurable through `PROGRAMKIT_PREFLIGHT_TIMEOUT_SECONDS`; it is a tooling hang budget,
+not a product SLO. `PKP001` through `PKP004` stop on the first invalid setting, missing CLI, timeout,
+or stopped daemon without cascading commands or echoing daemon error details.
 
 ## Mandatory verification
 

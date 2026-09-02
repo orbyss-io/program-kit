@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROGRAM_KIT_REF="v0.7.2"
+PROGRAM_KIT_REF="v0.8.0"
 
 # Run from a normal user-owned Bash shell in Linux, macOS, or WSL.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -125,6 +125,7 @@ specify workflow add program-kit-bootstrap
 
 printf '[7/8] Installing Program Kit...\n'
 specify bundle install program-kit --integration "$program_kit_integration"
+python .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
 
 printf '[8/8] Switching Program Kit catalogs to the update channel...\n'
 specify extension catalog remove program-kit

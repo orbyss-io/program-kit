@@ -20,4 +20,7 @@ public sealed record ApplicationBundleManifest
 
     /// <summary>Gets the runtime NuGet packages carried by the bundle.</summary>
     public required IReadOnlyList<ApplicationBundlePackage> Packages { get; init; }
+
+    /// <summary>Gets packaged application features and their activation metadata.</summary>
+    public IReadOnlyList<ApplicationBundleFeature> Features { get; init; } = [];
 }

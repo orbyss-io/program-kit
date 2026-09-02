@@ -8,9 +8,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.7.2":
+    if program_version != "0.8.0":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.7.0-preview.1":
+    if runtime_version != "0.8.0-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     version_props = (root / "eng/ProgramKit.Version.props").read_text(encoding="utf-8")
@@ -53,9 +53,14 @@ def main() -> int:
     dockerfile = (root / "src/dotnet/ProgramKit.Host/Dockerfile").read_text(encoding="utf-8")
     if dockerfile.count("@sha256:") < 3 or "dotnet restore ProgramKit.slnx --locked-mode" not in dockerfile:
         raise AssertionError("Host image inputs must be digest-pinned and restored in locked mode")
+    health = (root / "src/dotnet/ProgramKit.Host/Health/HealthEndpoints.cs").read_text(encoding="utf-8")
+    if "activation.IsComplete && shellsReady" not in health or "postgresql = postgreSql.Status" not in health:
+        raise AssertionError("Readiness must wait for eager activation and report fixed PostgreSQL state")
     for project in ("ProgramKit.Host", "ProgramKit.Tasks", "ProgramKit.Tasks.Abstractions", "ProgramKit.Analyzers"):
         if not (root / "src/dotnet" / project / "packages.lock.json").is_file():
             raise AssertionError(f"Missing dependency lock for {project}")
+    if not (root / "test/dotnet/ProgramKit.Host.Tests/packages.lock.json").is_file():
+        raise AssertionError("Missing dependency lock for ProgramKit.Host.Tests")
 
     print("Program Kit .NET runtime versions are coherent.")
     return 0

@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import urllib.error
 import urllib.request
@@ -15,7 +16,8 @@ from xml.etree import ElementTree
 
 
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
-PROGRAM_KIT_VERSION = "0.7.2"
+PROGRAM_KIT_VERSION = "0.8.0"
+BUILT_IN_FEATURE_PACKAGES = {"ProgramKitTasks": "ProgramKit.Tasks"}
 
 
 def sha256(path: Path) -> str:
@@ -77,6 +79,108 @@ def is_runtime_package(path: Path) -> bool:
         return not bool(package_types & excluded_types)
 
 
+def package_feature(path: Path) -> dict | None:
+    """Read the deterministic Program Kit feature descriptor embedded by the managed build."""
+    with zipfile.ZipFile(path) as archive:
+        matches = [name for name in archive.namelist() if name == "program-kit/feature.json"]
+        if not matches:
+            return None
+        value = json.loads(archive.read(matches[0]).decode("utf-8"))
+    if not isinstance(value, dict) or value.get("schemaVersion") != 1:
+        raise ValueError(f"PKB001 invalid feature metadata in package {path.name}.")
+    package_id, _ = package_identity(path)
+    if value.get("packageId", "").lower() != package_id.lower():
+        raise ValueError(
+            f"PKB002 feature metadata packageId '{value.get('packageId')}' does not match package '{package_id}'."
+        )
+    return value
+
+
+def activated_features(shells_path: Path) -> dict[str, set[str]]:
+    value = json.loads(shells_path.read_text(encoding="utf-8"))
+    try:
+        shells = value["CShells"]["Shells"]
+    except (KeyError, TypeError) as error:
+        raise ValueError("PKB003 shells.json must use the CShells:Shells schema.") from error
+    if not isinstance(shells, dict) or not shells:
+        raise ValueError("PKB004 shells.json must declare at least one named shell.")
+    result: dict[str, set[str]] = {}
+    for shell_name, shell in shells.items():
+        features = shell.get("Features") if isinstance(shell, dict) else None
+        if not isinstance(features, dict):
+            raise ValueError(f"PKB005 shell '{shell_name}' must declare a Features object.")
+        result[shell_name] = set(features)
+    return result
+
+
+def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str], Path]) -> list[dict]:
+    package_ids = {package_id.lower() for package_id, _ in identities}
+    descriptors: dict[str, tuple[dict, str]] = {}
+    for (package_id, _), package_path in identities.items():
+        descriptor = package_feature(package_path)
+        if descriptor is None:
+            continue
+        identity = descriptor.get("identity")
+        if not isinstance(identity, str) or not identity:
+            raise ValueError(f"PKB006 feature identity is missing in package '{package_id}'.")
+        if identity in descriptors:
+            previous = descriptors[identity][1]
+            raise ValueError(
+                f"PKB007 feature '{identity}' resolves to multiple runtime packages: '{previous}' and '{package_id}'."
+            )
+        descriptors[identity] = (descriptor, package_id)
+
+    shells = activated_features(shells_path)
+    activated_anywhere = set().union(*shells.values())
+    for shell_name, active in shells.items():
+        routes: dict[str, str] = {}
+        for identity in sorted(active, key=str.casefold):
+            built_in_package = BUILT_IN_FEATURE_PACKAGES.get(identity)
+            if built_in_package:
+                if built_in_package.lower() not in package_ids:
+                    raise ValueError(
+                        f"PKB008 shell '{shell_name}' activates feature '{identity}', but package "
+                        f"'{built_in_package}' is missing from the application bundle."
+                    )
+                continue
+            resolved = descriptors.get(identity)
+            if resolved is None:
+                raise ValueError(
+                    f"PKB009 shell '{shell_name}' activates feature '{identity}', but exactly one packaged "
+                    "runtime feature with that identity is required."
+                )
+            descriptor, package_id = resolved
+            for dependency in descriptor.get("runtimeDependencies", []):
+                if str(dependency).lower() not in package_ids:
+                    raise ValueError(
+                        f"PKB010 shell '{shell_name}', feature '{identity}', package '{package_id}' requires "
+                        f"missing runtime package '{dependency}'."
+                    )
+            for dependency in descriptor.get("featureDependencies", []):
+                if dependency not in active:
+                    raise ValueError(
+                        f"PKB011 shell '{shell_name}', feature '{identity}' requires inactive feature '{dependency}'."
+                    )
+            for route in descriptor.get("routes", []):
+                previous = routes.setdefault(str(route).casefold(), identity)
+                if previous != identity:
+                    raise ValueError(
+                        f"PKB012 shell '{shell_name}' has route collision '{route}' between features "
+                        f"'{previous}' and '{identity}'."
+                    )
+
+    for identity, (descriptor, package_id) in descriptors.items():
+        if identity not in activated_anywhere and descriptor.get("dormant") is not True:
+            raise ValueError(
+                f"PKB013 packaged application feature '{identity}' from '{package_id}' is not activated in "
+                "shells.json and is not explicitly marked dormant."
+            )
+    return [
+        {"identity": identity, "packageId": package_id, **descriptor}
+        for identity, (descriptor, package_id) in sorted(descriptors.items())
+    ]
+
+
 def register_package(identities: dict[tuple[str, str], Path], path: Path) -> None:
     identity = package_identity(path)
     conflicting = next(
@@ -123,16 +227,33 @@ def runtime_dependencies(repository: Path, application_package_ids: set[str]) ->
         if package_id.lower() not in application_package_ids:
             continue
         libraries = assets.get("libraries", {})
-        runtime_keys: set[str] = set()
+        direct_dependencies: set[str] = set()
+        for framework in assets.get("project", {}).get("frameworks", {}).values():
+            for dependency_id, dependency in framework.get("dependencies", {}).items():
+                if str(dependency.get("suppressParent", "")).casefold() != "all":
+                    direct_dependencies.add(dependency_id.casefold())
+
         for target in assets.get("targets", {}).values():
-            for key, value in target.items():
+            keys_by_id = {
+                key.rsplit("/", 1)[0].casefold(): key
+                for key in target
+                if "/" in key and libraries.get(key, {}).get("type") == "package"
+            }
+            pending = list(direct_dependencies)
+            visited: set[str] = set()
+            while pending:
+                dependency_id = pending.pop()
+                if dependency_id in visited:
+                    continue
+                visited.add(dependency_id)
+                key = keys_by_id.get(dependency_id)
+                if key is None:
+                    continue
+                value = target[key]
                 if value.get("runtime") or value.get("runtimeTargets"):
-                    runtime_keys.add(key)
-        for key in runtime_keys:
-            if libraries.get(key, {}).get("type") != "package" or "/" not in key:
-                continue
-            package_id, version = key.rsplit("/", 1)
-            result.add((package_id, version))
+                    resolved_id, resolved_version = key.rsplit("/", 1)
+                    result.add((resolved_id, resolved_version))
+                pending.extend(str(item).casefold() for item in value.get("dependencies", {}))
     return result
 
 
@@ -185,6 +306,9 @@ def deterministic_zip(source: Path, destination: Path) -> None:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Create a deterministic Program Kit application bundle.")
     parser.add_argument("--repository", default=".")
     parser.add_argument("--packages", required=True)
@@ -229,6 +353,8 @@ def main() -> int:
                 raise FileNotFoundError(f"Required application configuration is missing: {source}")
             shutil.copyfile(source, staging / name)
 
+        feature_descriptors = validate_feature_closure(staging / "shells.json", identities)
+
         deployment = staging / "DEPLOYMENT.md"
         deployment.write_text(
             "# Deploy this application bundle\n\n"
@@ -262,6 +388,7 @@ def main() -> int:
             "sourceCommit": source_commit(repository),
             "files": files,
             "packages": packages,
+            "features": feature_descriptors,
         }
         (staging / "manifest.json").write_text(
             json.dumps(manifest, indent=2, sort_keys=True) + "\n",

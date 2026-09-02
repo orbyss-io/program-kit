@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.8.0 - 2026-09-02
+
+- Make `speckit.clarify` and `speckit.analyze` mandatory ordered lifecycle hooks, preserve unrelated
+  hooks across idempotent upgrades, and add resumable/reentrancy-safe hash evidence that blocks
+  implementation on stale inputs or HIGH/CRITICAL findings.
+- Add managed OpenAPI normalization and pinned oasdiff 1.29.1 compatibility gates through
+  consumer-owned MSBuild properties, including first-baseline and approved-breaking-change flows.
+- Make the real CShells `shells.json` shape authoritative for explicit feature activation, embed
+  deterministic feature metadata during pack, and validate missing/duplicate/dependency/route and
+  dormant-feature closure in both bundle generation and the host. Require deterministic package/main-
+  assembly identity and host-private abstraction references, refresh discovery after reconciliation,
+  and exercise real consumer feature initialization in a disposable host fixture.
+- Add an independently hosted SPA Vite serving adapter with WEB-V1/WEB-V3 coverage for CSP, framing,
+  referrer, permissions, MIME, and related policies without making local HTTP HSTS claims.
+- Separate bounded Docker CLI/daemon preflight from host readiness, wait for application health in
+  Compose, retain eager fail-fast shell activation, and report redacted shell, identity, and optional
+  operational PostgreSQL readiness with tested degradation recovery.
+- Add approval-gated exact .NET/Node toolchain remediation and separately selectable EF Core
+  PostgreSQL, SQL Server, and SQLite profiles with provider-real test and governed migration rules.
+- Add a machine-checkable artifact ownership/path manifest and protect managed build files by naming
+  consumer-owned extension points in planning, task generation, analysis, and implementation review.
+- Install an idempotent UTF-8 Python startup beside Spec Kit entry points so Windows cp1252 consoles
+  can emit Unicode task templates without requiring users to discover `python -X utf8`.
+
 ## 0.7.2 - 2026-09-01
 
 - Parse the three unique constitution metadata fields independently within the Governance section,

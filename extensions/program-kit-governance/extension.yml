@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.7.2"
+  version: "0.8.0"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -65,20 +65,36 @@ hooks:
     optional: false
     description: "Require a ratified constitution and a Ready specification-roadmap entry before feature specification."
   after_specify:
-    command: "speckit.program-kit-governance.architecture-check"
-    priority: 5
-    optional: false
-    description: "Refuse specifications that conflict with accepted architecture or conceal new decisions."
+    - command: "speckit.clarify"
+      priority: 5
+      enabled: true
+      optional: false
+      condition: null
+      description: "Resolve material specification ambiguity; pause for answers and resume before later hooks."
+    - command: "speckit.program-kit-governance.architecture-check"
+      priority: 10
+      enabled: true
+      optional: false
+      condition: null
+      description: "Refuse clarified specifications that conflict with accepted architecture or conceal new decisions."
   after_plan:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5
     optional: false
     description: "Refuse plans that conflict with accepted architecture or unapproved technology choices."
   after_tasks:
-    command: "speckit.program-kit-governance.architecture-check"
-    priority: 5
-    optional: false
-    description: "Detect task decompositions that abandon vertical outcomes or accepted architecture."
+    - command: "speckit.analyze"
+      priority: 5
+      enabled: true
+      optional: false
+      condition: null
+      description: "Analyze the current specification, plan, and tasks after successful task generation."
+    - command: "speckit.program-kit-governance.architecture-check"
+      priority: 10
+      enabled: true
+      optional: false
+      condition: null
+      description: "Hash-bind analysis evidence and detect task decomposition, path, ownership, or architecture drift."
   before_implement:
     command: "speckit.program-kit-governance.implementation-check"
     priority: 5

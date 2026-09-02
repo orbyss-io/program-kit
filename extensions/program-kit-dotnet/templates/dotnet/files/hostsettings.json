@@ -16,6 +16,11 @@
           }
         }
       ]
+    },
+    "Loading": {
+      "Enabled": true,
+      "DefaultLoadMode": "HostIntegrated",
+      "LoadModeSelectionPolicy": "ExplicitOnly"
     }
   }
 }

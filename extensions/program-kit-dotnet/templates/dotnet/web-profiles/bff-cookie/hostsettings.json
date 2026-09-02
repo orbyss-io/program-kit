@@ -36,6 +36,11 @@
           "Directory": { "Watch": false }
         }
       ]
+    },
+    "Loading": {
+      "Enabled": true,
+      "DefaultLoadMode": "HostIntegrated",
+      "LoadModeSelectionPolicy": "ExplicitOnly"
     }
   }
 }

@@ -25,6 +25,17 @@ approval evidence, specification roadmap, architecture baseline, decision backlo
 radar, traceability model, and all relevant ADRs. If required artifacts are missing, fail with an
 actionable bootstrap instruction.
 
+For `after_specify`, use `scripts/lifecycle_state.py begin clarify` before clarification. If
+`speckit.clarify` asks questions, leave that operation active while paused and resume it explicitly;
+only complete with `questions-answered` after answers update the spec. If it asks nothing, complete
+with `no-questions` and continue automatically. Do not re-enter an active operation.
+
+For `after_tasks`, save the complete `speckit.analyze` result at
+`.program-kit/evidence/after-tasks-analysis.md`, run `scripts/lifecycle_state.py begin analyze`, and
+complete analysis against that report. HIGH or CRITICAL findings block readiness. Then run
+`scripts/artifact_ownership.py` against the feature's manifest, plan, and tasks; unknown paths,
+managed-path edits, or ownership drift are errors.
+
 ## Checks
 
 - No statement conflicts with an Accepted ADR or architecture invariant.
@@ -47,5 +58,8 @@ actionable bootstrap instruction.
   `program-kit-web-security-evidence-v1`; overrides identify the affected `WEB-Cxx`, `WEB-Dxx`, or
   residual-risk control, an owner, review condition, and executable evidence.
 - A roadmap entry is not Ready when a required ADR is unresolved, and a design task is not presented as a feature specification or application implementation task.
+- Managed `eng/program-kit/**` files are never implementation targets. OpenAPI, feature metadata,
+  SPA serving security, toolchain, and persistence are configured only from their documented
+  consumer-owned MSBuild, Vite, feature-adapter, or deployment extension points.
 
 Return a structured report of errors, warnings, new decisions, and required artifact updates. Errors block the lifecycle step. Never silently edit an Accepted ADR to make a conflict disappear.

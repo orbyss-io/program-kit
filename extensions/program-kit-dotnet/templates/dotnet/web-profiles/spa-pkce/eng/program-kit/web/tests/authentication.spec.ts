@@ -2,6 +2,17 @@ import { expect, test } from '@playwright/test';
 
 const apiPath = process.env.PROGRAMKIT_ROLE_PROBE_PATH ?? '/api/auth-contract';
 
+test('WEB-V3 independently hosted SPA response has the governed browser headers', async ({ request }) => {
+  const spaUrl = process.env.PROGRAMKIT_SPA_URL;
+  test.skip(!spaUrl, 'Set PROGRAMKIT_SPA_URL to the independently served SPA root.');
+  const response = await request.get(spaUrl!);
+  expect(response.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(response.headers()['x-frame-options']).toBe('DENY');
+  expect(response.headers()['referrer-policy']).toBe('no-referrer');
+  expect(response.headers()['permissions-policy']).toContain('camera=()');
+  expect(response.headers()['x-content-type-options']).toBe('nosniff');
+});
+
 test('anonymous API request is a stable 401 problem', async ({ request }) => {
   const response = await request.get(apiPath);
   expect(response.status()).toBe(401);

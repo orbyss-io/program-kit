@@ -62,6 +62,9 @@ def selected_web_profile(target: Path, requested: str) -> str:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Synchronize the Program Kit .NET repository baseline.")
     parser.add_argument("--target", default=".", help="Consuming repository root")
     parser.add_argument("--check", action="store_true", help="Report drift without writing")
@@ -85,6 +88,12 @@ def main() -> int:
         "--preview-sources-approved",
         action="store_true",
         help="Confirms explicit approval to add the Program Kit preview packages and NuGet sources",
+    )
+    parser.add_argument(
+        "--persistence-profile",
+        choices=("none", "ef-postgresql", "ef-sqlserver", "ef-sqlite"),
+        default="none",
+        help="Explicit governed persistence profile; none keeps all providers inactive",
     )
     args = parser.parse_args()
 
@@ -115,6 +124,7 @@ def main() -> int:
     target = Path(args.target).resolve()
     web_profile = selected_web_profile(target, args.web_profile)
     print(f"selected web profile: {web_profile}")
+    print(f"selected persistence profile: {args.persistence_profile}")
     profile_manifest_path = template_root / "web-profiles" / web_profile / "managed-files.json"
     if profile_manifest_path.is_file():
         profile_manifest = load_json(profile_manifest_path, {})
@@ -205,6 +215,7 @@ def main() -> int:
                 "webSecurityEvidence": (
                     "program-kit-web-security-evidence-v1" if web_profile != "none" else "none"
                 ),
+                "persistenceProfile": args.persistence_profile,
                 "files": next_files,
             },
             indent=2,

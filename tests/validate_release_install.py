@@ -217,12 +217,37 @@ def main() -> int:
         ).read_text(encoding="utf-8")
         if ".specify/scripts/python/resolve_template.py" not in constitution_skill_text:
             raise AssertionError("Constitution skill does not reference the Python resolver")
+        preexisting_config_path = project / ".specify/extensions.yml"
+        preexisting_config = yaml.safe_load(preexisting_config_path.read_text(encoding="utf-8"))
+        preexisting_config.setdefault("hooks", {}).setdefault("after_specify", []).append(
+            {
+                "extension": "consumer-extension",
+                "command": "speckit.consumer.audit",
+                "enabled": True,
+                "optional": True,
+                "priority": 50,
+                "condition": None,
+            }
+        )
+        preexisting_config_path.write_text(
+            yaml.safe_dump(preexisting_config, sort_keys=False), encoding="utf-8"
+        )
         run(
             "specify",
             "extension",
             "add",
             str(extracted_extension),
             "--dev",
+            "--force",
+            cwd=project,
+        )
+        run(
+            "specify",
+            "extension",
+            "add",
+            str(extracted_extension),
+            "--dev",
+            "--force",
             cwd=project,
         )
         bootstrap_skill = (
@@ -248,6 +273,32 @@ def main() -> int:
         hooks = set(extension_config.get("hooks", {}))
         if hooks != EXPECTED_HOOKS:
             raise AssertionError(f"Registered hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
+        if extension_config.get("settings", {}).get("auto_execute_hooks") is not True:
+            raise AssertionError("Program Kit requires auto_execute_hooks=true")
+        expected_order = {
+            "after_specify": ["speckit.clarify", "speckit.program-kit-governance.architecture-check"],
+            "after_tasks": ["speckit.analyze", "speckit.program-kit-governance.architecture-check"],
+        }
+        for event, commands in expected_order.items():
+            program_kit_hooks = [
+                hook for hook in extension_config["hooks"][event]
+                if hook.get("extension") == "program-kit-governance"
+            ]
+            if [hook.get("command") for hook in program_kit_hooks] != commands:
+                raise AssertionError(f"{event} hooks are not ordered deterministically: {program_kit_hooks}")
+            if any(
+                hook.get("enabled") is not True
+                or hook.get("optional") is not False
+                or hook.get("condition") is not None
+                for hook in program_kit_hooks
+            ):
+                raise AssertionError(f"{event} hooks are not mandatory and unconditional")
+        consumer_hooks = [
+            hook for hook in extension_config["hooks"]["after_specify"]
+            if hook.get("extension") == "consumer-extension"
+        ]
+        if len(consumer_hooks) != 1:
+            raise AssertionError("repeated Program Kit installation lost or duplicated unrelated hooks")
         if "program-kit-dotnet" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
         if not (

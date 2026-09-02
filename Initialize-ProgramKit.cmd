@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set "PROGRAM_KIT_REF=v0.7.2"
+set "PROGRAM_KIT_REF=v0.8.0"
 
 rem Program Kit consumer bootstrap for a repository that does not already contain Program Kit.
 rem Run this file from a normal user-owned PowerShell prompt in the repository root.
@@ -129,6 +129,8 @@ if errorlevel 1 goto :failed
 
 echo [7/8] Installing Program Kit...
 call specify bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
+if errorlevel 1 goto :failed
+call python ".specify\extensions\program-kit-governance\scripts\ensure_utf8.py" --target .
 if errorlevel 1 goto :failed
 
 echo [8/8] Switching Program Kit catalogs to the update channel...

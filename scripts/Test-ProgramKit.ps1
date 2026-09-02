@@ -35,6 +35,11 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Governance-state validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_lifecycle_profiles.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Lifecycle and profile validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_codex_bootstrap.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Codex Desktop bootstrap validation failed.'

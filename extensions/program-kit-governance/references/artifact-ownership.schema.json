@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/artifact-ownership.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "feature", "profiles", "artifacts"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "feature": { "type": "string", "minLength": 1 },
+    "profiles": { "type": "array", "items": { "enum": ["program-kit", "dotnet", "typescript-vite", "ef-postgresql", "ef-sqlserver", "ef-sqlite"] }, "uniqueItems": true },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ownership", "classification", "lifecycle"],
+        "oneOf": [{ "required": ["path"] }, { "required": ["pattern"] }],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "pattern": { "type": "string", "minLength": 1 },
+          "ownership": { "enum": ["managed", "scaffold-once", "consumer-owned", "generated", "evidence"] },
+          "classification": { "enum": ["public", "internal", "confidential", "restricted", "secret"] },
+          "lifecycle": { "enum": ["source", "generated", "ephemeral", "retained", "replaced", "deployment"] },
+          "owner": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1283,6 +1283,9 @@ def validate_bootstrap_consistency() -> None:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Validate Program Kit governance state")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("validate-installation")

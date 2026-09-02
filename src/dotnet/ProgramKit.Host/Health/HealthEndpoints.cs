@@ -1,5 +1,6 @@
 using CShells.Lifecycle;
 using ProgramKit.Host.Bundles;
+using ProgramKit.Host.Shells;
 using ProgramKit.Host.Web;
 
 namespace ProgramKit.Host.Health;
@@ -20,7 +21,7 @@ internal static class HealthEndpoints
             digest = bundle.Digest,
             hostApi = bundle.Manifest.HostApi
         }));
-        endpoints.MapGet("/health/ready", (IShellRegistry registry, IConfiguration configuration, IdentityReadinessState identity) =>
+        endpoints.MapGet("/health/ready", (IShellRegistry registry, IConfiguration configuration, EagerShellActivationState activation, IdentityReadinessState identity, PostgreSqlReadinessState postgreSql) =>
         {
             var shells = configuration.GetSection("CShells:Shells").GetChildren()
                 .Select(child => child.Key)
@@ -38,15 +39,18 @@ internal static class HealthEndpoints
                 })
                 .ToArray();
             var shellsReady = shells.Length > 0 && shells.All(shell => shell.active);
-            var ready = shellsReady && identity.IsReady;
+            var runtimeReady = activation.IsComplete && shellsReady;
+            var ready = runtimeReady && identity.IsReady && postgreSql.IsReady;
             return Results.Json(
                 new
                 {
                     status = ready ? "ready" : "not-ready",
                     checks = new
                     {
-                        runtime = shellsReady ? "ready" : "not-ready",
-                        identity = identity.IsReady ? "ready" : "not-ready"
+                        runtime = runtimeReady ? "ready" : "not-ready",
+                        activation = activation.IsComplete ? "ready" : "not-ready",
+                        identity = identity.IsReady ? "ready" : "not-ready",
+                        postgresql = postgreSql.Status
                     }
                 },
                 statusCode: ready ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);

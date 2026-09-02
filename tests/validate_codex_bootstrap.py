@@ -340,6 +340,10 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "  >>\"%PROGRAM_KIT_TEST_LOG%\" echo python %*\n"
                 "  exit /b 0\n"
                 ")\n"
+                "if \"%~nx1\"==\"ensure_utf8.py\" (\n"
+                "  >>\"%PROGRAM_KIT_TEST_LOG%\" echo python %*\n"
+                "  exit /b 0\n"
+                ")\n"
                 "exit /b 1\n",
                 encoding="utf-8",
             )
@@ -373,6 +377,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "  printf 'python %s\\n' \"$*\" >> \"$PROGRAM_KIT_TEST_LOG\"\n"
                 "  exit 0\n"
                 "fi\n"
+                "case \"${1:-}\" in *ensure_utf8.py) printf 'python %s\\n' \"$*\" >> \"$PROGRAM_KIT_TEST_LOG\"; exit 0;; esac\n"
                 "exit 1\n",
                 encoding="utf-8",
             )
@@ -478,6 +483,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 f"init . --force --non-interactive --integration {integration} --script py",
                 "workflow add program-kit-bootstrap",
                 f"bundle install program-kit --integration {integration}",
+                "ensure_utf8.py",
                 "extension catalog remove program-kit",
                 "preset catalog remove program-kit",
                 "workflow catalog remove 0",

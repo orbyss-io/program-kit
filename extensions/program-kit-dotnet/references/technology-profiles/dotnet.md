@@ -1,5 +1,8 @@
 # .NET profile
 
+Persistence is separately admitted through `../persistence-profiles.md`; no provider is selected by
+this general .NET profile or by an operational database health probe.
+
 ## Baseline
 
 When .NET is detected, evaluate and normally enforce:

@@ -59,7 +59,8 @@ internal static class ApplicationBundleBootstrap
             BundleId = "development",
             Version = "0.0.0-local",
             Files = [],
-            Packages = []
+            Packages = [],
+            Features = []
         };
         return CreateBundle(root, "development", manifest);
     }
@@ -175,6 +176,7 @@ internal static class ApplicationBundleBootstrap
         var packagesRoot = Path.GetFullPath(Path.Combine(root, "packages"));
         Directory.CreateDirectory(packagesRoot);
         var declaredPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var packageVersions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var package in manifest.Packages)
         {
             if (string.IsNullOrWhiteSpace(package.Id) || string.IsNullOrWhiteSpace(package.Version))
@@ -185,6 +187,11 @@ internal static class ApplicationBundleBootstrap
                 throw new InvalidDataException($"Package '{package.Path}' must be a direct .nupkg child of packages/.");
             if (!declaredPackages.Add(path))
                 throw new InvalidDataException($"Bundle package '{package.Path}' is declared more than once.");
+            if (packageVersions.TryGetValue(package.Id, out var existingVersion)
+                && !string.Equals(existingVersion, package.Version, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException(
+                    $"Bundle contains conflicting versions of package '{package.Id}': '{existingVersion}' and '{package.Version}'.");
+            packageVersions[package.Id] = package.Version;
             if (!declaredFiles.TryGetValue(path, out var fileDigest)
                 || !fileDigest.Equals(package.Sha256, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException($"Package '{package.Path}' is not hash-bound by the files manifest.");
@@ -195,6 +202,76 @@ internal static class ApplicationBundleBootstrap
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (!actualPackages.SetEquals(declaredPackages))
             throw new InvalidDataException("Application bundle package files do not match the packages manifest.");
+
+        ValidateFeatureClosure(manifest, root, packageVersions);
+    }
+
+    /// <summary>Validates CShells activation against the packaged feature and dependency closure.</summary>
+    private static void ValidateFeatureClosure(
+        ApplicationBundleManifest manifest,
+        string root,
+        IReadOnlyDictionary<string, string> packageVersions)
+    {
+        var descriptors = new Dictionary<string, ApplicationBundleFeature>(StringComparer.Ordinal);
+        foreach (var feature in manifest.Features)
+        {
+            if (string.IsNullOrWhiteSpace(feature.Identity) || string.IsNullOrWhiteSpace(feature.PackageId))
+                throw new InvalidDataException("Application bundle feature identity or package id is incomplete.");
+            if (!descriptors.TryAdd(feature.Identity, feature))
+                throw new InvalidDataException($"Application feature '{feature.Identity}' is packaged more than once.");
+            if (!packageVersions.ContainsKey(feature.PackageId))
+                throw new InvalidDataException(
+                    $"Application feature '{feature.Identity}' resolves to missing package '{feature.PackageId}'.");
+        }
+
+        using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "shells.json")));
+        if (!document.RootElement.TryGetProperty("CShells", out var cshells)
+            || !cshells.TryGetProperty("Shells", out var shells)
+            || shells.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("shells.json must use the CShells:Shells object schema.");
+
+        var activatedAnywhere = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var shell in shells.EnumerateObject())
+        {
+            if (!shell.Value.TryGetProperty("Features", out var features)
+                || features.ValueKind != JsonValueKind.Object)
+                throw new InvalidDataException($"Shell '{shell.Name}' must declare a Features object.");
+            var active = features.EnumerateObject().Select(item => item.Name).ToHashSet(StringComparer.Ordinal);
+            activatedAnywhere.UnionWith(active);
+            var routes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var identity in active)
+            {
+                if (identity == "ProgramKitTasks")
+                {
+                    if (!packageVersions.ContainsKey("ProgramKit.Tasks"))
+                        throw new InvalidDataException(
+                            $"Shell '{shell.Name}' activates feature 'ProgramKitTasks', but package 'ProgramKit.Tasks' is missing.");
+                    continue;
+                }
+                if (!descriptors.TryGetValue(identity, out var descriptor))
+                    throw new InvalidDataException(
+                        $"Shell '{shell.Name}' activates feature '{identity}', but exactly one packaged runtime feature is required.");
+                foreach (var dependency in descriptor.RuntimeDependencies)
+                    if (!packageVersions.ContainsKey(dependency))
+                        throw new InvalidDataException(
+                            $"Shell '{shell.Name}', feature '{identity}' requires missing package '{dependency}'.");
+                foreach (var dependency in descriptor.FeatureDependencies)
+                    if (!active.Contains(dependency))
+                        throw new InvalidDataException(
+                            $"Shell '{shell.Name}', feature '{identity}' requires inactive feature '{dependency}'.");
+                foreach (var route in descriptor.Routes)
+                    if (routes.TryGetValue(route, out var owner) && owner != identity)
+                        throw new InvalidDataException(
+                            $"Shell '{shell.Name}' has route collision '{route}' between features '{owner}' and '{identity}'.");
+                    else
+                        routes[route] = identity;
+            }
+        }
+
+        foreach (var descriptor in descriptors.Values)
+            if (!descriptor.Dormant && !activatedAnywhere.Contains(descriptor.Identity))
+                throw new InvalidDataException(
+                    $"Packaged feature '{descriptor.Identity}' from '{descriptor.PackageId}' is not activated and is not dormant.");
     }
 
     /// <summary>Resolves a bundle-relative path while preventing rooted paths and traversal.</summary>

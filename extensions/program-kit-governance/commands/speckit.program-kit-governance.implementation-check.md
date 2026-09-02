@@ -10,6 +10,11 @@ Run `{SCRIPT}` and read the ratified constitution and active roadmap entry befor
 plan. A stale constitution or non-Ready/non-Active roadmap entry blocks implementation. Do not
 require some other entry to remain Ready after the selected specification becomes Active.
 
+Run `scripts/lifecycle_state.py verify-before-implement` for the active feature. It must prove that
+the canonical after_tasks analysis report is unchanged, contains no HIGH/CRITICAL readiness block,
+and was computed from the current byte hashes of `spec.md`, `plan.md`, and `tasks.md`. Missing,
+interrupted, or stale evidence blocks implementation.
+
 Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`,
 `software-language.md`, `vertical-slicing.md`, `modularity-and-contracts.md`, and any detected
 technology profiles from their installed technology extensions.

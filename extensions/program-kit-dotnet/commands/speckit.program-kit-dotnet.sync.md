@@ -10,6 +10,8 @@ scripts:
 with `auto`, `none`, `bff-cookie`, or `spa-pkce`. The repository root is the current working directory
 unless an explicit target path is supplied. `auto` reads the approved bootstrap evidence and adopts
 `bff-cookie` when it detects a browser UI and no profile override.
+`--persistence-profile` accepts `none` (default), `ef-postgresql`, `ef-sqlserver`, or `ef-sqlite`
+only after the owning capability's persistence admission record is complete.
 
 ## Work
 
@@ -24,6 +26,10 @@ unless an explicit target path is supplied. `auto` reads the approved bootstrap 
    are not required because check mode changes no files.
    Pass `--web-profile spa-pkce` only when explicit intake or an Accepted ADR requires a direct
    browser OAuth client. Do not ask the user to choose merely because the UI is an SPA.
+   Pass a non-`none` persistence profile only when planning resolved ownership, aggregate/transaction
+   boundaries, consistency/concurrency/idempotency/isolation, migrations, authorization predicates,
+   data governance, deployment constraints, and real-provider evidence from
+   `references/persistence-profiles.md`.
 3. Report created, updated, unchanged, and conflicted files exactly as emitted by the script.
 4. Stop on conflicts. Never overwrite a consumer-modified managed file or a scaffold-once consumer file.
 5. After a successful write, report that `dotnet restore` and the generated
