@@ -16,10 +16,11 @@ python tests/validate_public_install.py
 python tests/validate_public_upgrade.py
 ```
 
-Before publishing, ask the user whether to run the paid live bootstrap acceptance suite. If the
-answer is yes, run `./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved`, inspect its
-preserved report and both output streams, and stop the release if it fails. If the answer is no,
-record that explicit skip in the release handoff. Never run this suite in CI.
+The paid live bootstrap acceptance suite is optional and user-invoked. Do not prompt for it during
+publication or record it as skipped. If the user explicitly requests the run, use
+`./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved`, inspect its preserved report and
+both output streams, and repair any in-scope failure before reporting the result. Never run this
+suite in CI.
 
 The 0.8.2 assets installed correctly, but its release job failed after publication because the
 post-publication assertion still listed the older 25-step workflow. Do not move or replace that

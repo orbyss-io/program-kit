@@ -19,8 +19,8 @@ if (-not $Approved) {
 LIVE_ACCEPTANCE_APPROVAL_REQUIRED
 
 This suite starts paid coding-agent sessions and can run for a long time.
-Before publishing, ask the user whether to run the live bootstrap acceptance suite.
-Run this script with -Approved only after the user explicitly answers yes.
+Run it only when the user explicitly requests a live bootstrap acceptance run.
+Pass -Approved to acknowledge that request; publication must not prompt for this suite automatically.
 '@
 }
 

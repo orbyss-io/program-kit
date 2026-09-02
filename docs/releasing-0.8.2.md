@@ -14,10 +14,11 @@ dotnet build ProgramKit.slnx -c Release --no-restore
 python tests/validate_dotnet_feature_host.py
 ```
 
-Before publishing, ask the user whether to run the paid live bootstrap acceptance suite. If the
-answer is yes, run `./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved`, inspect its
-preserved report and both output streams, and stop the release if it fails. If the answer is no,
-record that explicit skip in the release handoff. Never run this suite in CI.
+The paid live bootstrap acceptance suite is optional and user-invoked. Do not prompt for it during
+publication or record it as skipped. If the user explicitly requests the run, use
+`./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved`, inspect its preserved report and
+both output streams, and repair any in-scope failure before reporting the result. Never run this
+suite in CI.
 
 For Codex on Windows, the harness supplies `workspace-write` and disposable worker instructions.
 If Git reports dubious ownership, use the command-scoped
@@ -30,7 +31,7 @@ output in the evidence directory while showing concise progress. See
 
 Verify that all release checksums pass and that a clean disposable consumer installs the normalized
 brief command, context schemas, workflow, validators, and runtime components from the packaged
-candidate. The live suite is an explicit pre-publication choice rather than a CI job.
+candidate. The live suite is an explicit-request test rather than a publication or CI requirement.
 
 Existing consumers upgrade and synchronize in this order:
 

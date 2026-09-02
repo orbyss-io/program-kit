@@ -4,16 +4,16 @@ The live bootstrap acceptance suite proves that a packaged Program Kit candidate
 real agentic workflow from initialization through final readiness. It is intentionally separate
 from deterministic source, packaging, and simulated lifecycle tests.
 
-## Cost and approval boundary
+## Cost and request boundary
 
 The suite launches paid coding-agent sessions, may run for more than an hour, and is never executed
-by CI. Before publishing a version, the maintenance agent must ask whether the user wants to run it
-and wait for an explicit yes or no. Publication is allowed after an explicit no, but the release
-handoff must say that live acceptance was skipped.
+by CI. It is entirely user-invoked: publication must not prompt for it, require it, or record its
+absence as a skip. An explicit user request for a live bootstrap acceptance run in the current
+conversation authorizes one run.
 
 The runner refuses to start without `-Approved` and refuses known CI environments. `-Approved` is
-an assertion that the current user explicitly authorized this particular pre-publish run; it is not
-a persistent preference.
+an assertion that the current user explicitly requested this particular run; it is not a persistent
+preference and must not be inferred from an earlier run.
 
 ## Current scenario
 
@@ -31,7 +31,7 @@ third-party runtime concerns. This keeps the acceptance target unambiguous while
 7. bootstrap-context handoffs;
 8. final readiness and deterministic governance validation.
 
-Run it only after explicit approval:
+Run it only after an explicit user request:
 
 ```powershell
 ./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
@@ -62,7 +62,7 @@ artifacts before changing the workflow.
 
 Normal consumer initialization and outer bootstrap orchestration must still be launched by the
 human from a normal user-owned terminal. The live runner is a source-repository test harness: after
-explicit approval it creates a disposable repository and removes Codex parent-session markers only
+an explicit user request it creates a disposable repository and removes Codex parent-session markers only
 from the owned workflow subprocess so the candidate's real nested command steps can execute.
 Codex workers receive a `workspace-write` sandbox. The parent workflow also receives a
 process-scoped `GIT_CONFIG_*` safe-directory value as a best-effort convenience, but Windows worker
@@ -100,5 +100,5 @@ use these instead of searching `.specify`, dumping catalogs, or reading validato
 merely to rediscover an output format, and must recheck budgets after downstream link updates.
 
 This exception must not be generalized. Future scenarios such as mid-bootstrap and mid-spec upgrade
-tests belong under `tests/live/scenarios/` and must reuse the same approval, isolation, logging, and
-CI-refusal boundary.
+tests belong under `tests/live/scenarios/` and must reuse the same explicit-request, isolation,
+logging, and CI-refusal boundary.

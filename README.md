@@ -310,19 +310,19 @@ Run the local source checks and disposable install test:
 ./scripts/Test-LocalInstall.ps1
 ```
 
-Before publishing, the maintenance agent must ask whether to run the paid, local-only live bootstrap
-acceptance suite. It is never a CI requirement. After an explicit yes, run:
+The paid, local-only live bootstrap acceptance suite is completely optional and user-invoked.
+Publishing must not prompt for it or record it as skipped. When the user explicitly requests a live
+bootstrap acceptance run, use:
 
 ```powershell
 ./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
 ```
 
-An explicit no permits publication but must be recorded in the release handoff. The suite builds
-the candidate packages, executes a clean bootstrap against a minimal application design, preserves
-both workflow output streams and the disposable repository, reports advisory performance metrics,
-and validates final readiness. On Windows, its disposable Codex guidance keeps `workspace-write`
-enabled and handles Git ownership with command-scoped `git -c safe.directory=...` calls—never a
-global Git change or sandbox bypass. See
+The suite builds the candidate packages, executes a clean bootstrap against a minimal application
+design, preserves both workflow output streams and the disposable repository, reports advisory
+performance metrics, and validates final readiness. On Windows, its disposable Codex guidance
+keeps `workspace-write` enabled and handles Git ownership with command-scoped
+`git -c safe.directory=...` calls—never a global Git change or sandbox bypass. See
 [`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md).
 
 Build all release artifacts:

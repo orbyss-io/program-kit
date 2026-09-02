@@ -779,7 +779,7 @@ def main() -> int:
     parser.add_argument(
         "--approved",
         action="store_true",
-        help="Confirm that the user explicitly approved this paid live agent run.",
+        help="Confirm that the user explicitly requested this paid live agent run.",
     )
     parser.add_argument("--timeout-seconds", type=int, default=7200)
     parser.add_argument("--output-root", default="artifacts/live-acceptance")
@@ -787,8 +787,8 @@ def main() -> int:
 
     if not args.approved:
         print(
-            "LIVE_ACCEPTANCE_APPROVAL_REQUIRED: Ask the user whether to run the paid live "
-            "bootstrap acceptance suite. Re-run with --approved only after an explicit yes.",
+            "LIVE_ACCEPTANCE_APPROVAL_REQUIRED: Run the paid live bootstrap acceptance suite only "
+            "after an explicit user request. Re-run with --approved to acknowledge that request.",
             file=sys.stderr,
         )
         return 3

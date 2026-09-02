@@ -138,14 +138,45 @@ def main() -> int:
 
     require(
         root / "AGENTS.md",
-        "ask the user",
-        "explicit yes",
-        "explicitly skipped",
+        "entirely user-invoked",
+        "Do not ask",
+        "do not report it as skipped",
         "Never add the paid live suite to CI",
-        "Never pass `-Approved`",
+        "Never pass `-Approved` without an explicit user request",
+    )
+    policy_files = (
+        root / "AGENTS.md",
+        root / "README.md",
+        root / "docs/live-bootstrap-acceptance.md",
+        root / "docs/releasing-0.8.1.md",
+        root / "docs/releasing-0.8.2.md",
+        root / "docs/releasing-0.8.3.md",
+        wrapper,
+        runner,
+    )
+    forbidden_policy = (
+        "Do you want me to run the paid live bootstrap acceptance suite before publishing",
+        "Before publishing, ask the user",
+        "If the user answers no",
+        "explicitly skipped",
+        "record that explicit skip",
+    )
+    for policy_file in policy_files:
+        policy_text = policy_file.read_text(encoding="utf-8")
+        for forbidden in forbidden_policy:
+            if forbidden in policy_text:
+                raise AssertionError(
+                    f"{policy_file} restores a forbidden publication prompt: {forbidden}"
+                )
+    require(
+        root / "README.md",
+        "completely optional and user-invoked",
+        "Publishing must not prompt for it or record it as skipped",
     )
     require(
         root / "docs/live-bootstrap-acceptance.md",
+        "entirely user-invoked",
+        "publication must not prompt for it",
         "clean-bootstrap",
         "real bundle provenance machinery",
         "workflow.stdout.log",
@@ -165,11 +196,14 @@ def main() -> int:
     require(
         wrapper,
         "LIVE_ACCEPTANCE_APPROVAL_REQUIRED",
+        "only when the user explicitly requests",
+        "publication must not prompt",
         "LIVE_ACCEPTANCE_CI_FORBIDDEN",
         "--approved",
     )
     require(
         runner,
+        "after an explicit user request",
         "127.0.0.1",
         "bundle",
         "install",
@@ -183,7 +217,7 @@ def main() -> int:
         ".evidence.json",
         "server.shutdown()",
     )
-    print("Live bootstrap acceptance approval, CI, fixture, and evidence contracts passed.")
+    print("Live bootstrap acceptance request, CI, fixture, and evidence contracts passed.")
     return 0
 
 

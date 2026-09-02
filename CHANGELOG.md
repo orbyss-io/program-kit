@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Make paid live bootstrap acceptance entirely user-invoked. Publication no longer prompts for the
+  suite or records its absence as a skip; an explicit request authorizes a single local run.
+
 ## 0.8.3 - 2026-09-02
 
 - Derive live public-install and upgrade expectations from the tagged source workflow, so
@@ -38,8 +41,8 @@
   recurring recoverable error caused by multiple patch operations targeting the same file.
 - Give intake a fixed generic-reference routing map and forbid guessed technology-profile or
   installation-manifest probes when no exact installed profile path is supplied.
-- Require the maintenance agent to ask whether to run the paid live suite before publication and to
-  report an explicit user-approved skip when it is declined.
+- Initially introduced a pre-publication live-suite approval prompt; the Unreleased policy above
+  supersedes that behavior with explicit user-invoked execution.
 
 ## 0.8.1 - 2026-09-02
 

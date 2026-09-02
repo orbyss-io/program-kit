@@ -1,23 +1,19 @@
 # Program Kit contributor instructions
 
-## Publishing
+## Optional live acceptance
 
-Before creating or pushing a release tag, publishing release assets, or otherwise making a Program
-Kit version public, ask the user this explicit question and wait for the answer:
+The paid live bootstrap acceptance suite is entirely user-invoked. Do not ask whether to run it
+during publication, and do not report it as skipped when it was not requested. Deterministic local
+and CI-compatible release tests remain mandatory.
 
-> Do you want me to run the paid live bootstrap acceptance suite before publishing this version?
-
-Do not infer approval from a request to publish, from earlier test approval, or from a previously
-successful run.
-
-- If the user gives an explicit yes, run `./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved`
-  (or the explicitly requested installed integration), wait for completion, inspect the generated
-  report and output streams, and block publication if it fails.
-- If the user answers no, state clearly in the release handoff that the live suite was explicitly
-  skipped. The deterministic local and CI-compatible tests remain mandatory.
+- Run `./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved` (or the explicitly requested
+  installed integration) only when the user explicitly requests a live bootstrap acceptance run in
+  the current conversation. That request authorizes that run.
+- Wait for completion, inspect the generated report and output streams, repair in-scope defects,
+  and rerun when needed before reporting the result.
 - Never add the paid live suite to CI or run it from an unattended hook.
-- Never pass `-Approved` unless the current publishing conversation contains the user's explicit
-  approval.
+- Never pass `-Approved` without an explicit user request for the live run in the current
+  conversation.
 
 The live harness is the sole exception to the normal rule against agent-started outer Codex
 bootstrap orchestration. It may exercise that exception only for its generated disposable test
