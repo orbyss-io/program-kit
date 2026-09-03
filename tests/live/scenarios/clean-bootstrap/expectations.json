@@ -22,6 +22,7 @@
     "readiness"
   ],
   "readiness_first_line": "**Status**: READY",
+  "approval_mode": "automatic",
   "first_slice": {
     "feature_description": "Deliver the first Ready entry in docs/architecture/specification-roadmap.md as a complete vertical slice. Use INITIAL_DESIGN.md and the approved governance and architecture artifacts as authoritative context.",
     "required_feature_files": [

@@ -537,7 +537,10 @@ def compact_authority(name: str, payload: dict) -> dict:
             "toolchain", "choices", "overrides", "acknowledgements", "unresolved", "deferred",
         )
         return {key: payload[key] for key in keys if key in payload}
-    keys = ("schema_version", "status", "constitution", "gate_verdict", "artifacts", "approval_source")
+    keys = (
+        "schema_version", "status", "constitution", "gate_verdict", "approval_mode",
+        "artifacts", "approval_source",
+    )
     return {key: payload[key] for key in keys if key in payload}
 
 

@@ -415,11 +415,7 @@ def run_workflow(
             "--input",
             f"integration={integration}",
             "--input",
-            "assessment_verdict=approve",
-            "--input",
-            "constitution_verdict=ratify",
-            "--input",
-            "bootstrap_verdict=approve",
+            "auto_approve_and_ratify=true",
             "--json",
         ]
     environment = os.environ.copy()
@@ -726,6 +722,23 @@ def validate_result(
             failures.append(
                 f"Readiness first line is {first_line!r}, expected {expectations['readiness_first_line']!r}"
             )
+
+    expected_approval_mode = expectations.get("approval_mode")
+    if workflow_completed and expected_approval_mode:
+        for relative in (
+            ".specify/governance/bootstrap-assessment-approval.json",
+            ".specify/memory/constitution-ratification.json",
+            ".specify/governance/bootstrap-approval.json",
+        ):
+            path = project / relative
+            if not path.is_file():
+                continue
+            record = json.loads(path.read_text(encoding="utf-8"))
+            if record.get("approval_mode") != expected_approval_mode:
+                failures.append(
+                    f"{relative} approval mode is {record.get('approval_mode')!r}, "
+                    f"expected {expected_approval_mode!r}"
+                )
 
     if run_id:
         context_root = project / ".specify/workflows/runs" / run_id / "program-kit-context"

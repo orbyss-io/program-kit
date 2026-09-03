@@ -170,6 +170,21 @@ specify workflow run program-kit-bootstrap `
   --input integration=auto
 ```
 
+For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
+ratification:
+
+```powershell
+specify workflow run program-kit-bootstrap `
+  --input initial_design=./path/to/your-design.md `
+  --input integration=auto `
+  --input auto_approve_and_ratify=true
+```
+
+This option applies to all three review decisions. The workflow still generates and validates each
+hash-bound review packet, then records `approval_mode: automatic` in the assessment, constitution,
+and final bootstrap evidence. Review those packets and their listed artifacts after completion. The
+default remains `false`; omit the option when you want the workflow to pause at every gate.
+
 If a Program Kit 0.6.8 run reached final approval but failed completion because architecture,
 roadmap, and traceability disagree, do not edit approved files or resume that run's persisted old
 workflow. Follow the fresh hash-bound recovery procedure in
@@ -202,7 +217,8 @@ outer workflow, requests an agent exception, or installs an approval rule. See
 background, the supported sequence, and a conservative clean start that preserves `.git` unless the
 human explicitly chooses a new repository.
 
-The workflow pauses three times for human review. Continue a paused run after reviewing its generated artifacts:
+Unless automatic approval and ratification was explicitly enabled at startup, the workflow pauses
+three times for human review. Continue a paused run after reviewing its generated artifacts:
 
 - Gate 1/3: assessment approval (`approve`)
 - Gate 2/3: constitution ratification (`ratify`)

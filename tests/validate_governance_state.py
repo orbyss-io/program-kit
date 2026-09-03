@@ -409,12 +409,17 @@ def main() -> int:
             module.validate_bootstrap_decisions()
 
             write_assessment(module, project)
+            assessment_record = json.loads(
+                (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
+            )
+            if assessment_record.get("approval_mode") != "interactive":
+                raise AssertionError("Interactive assessment approval was not recorded")
 
             constitution_path = project / module.CONSTITUTION
             constitution_path.parent.mkdir(parents=True)
             constitution_path.write_text(constitution(placeholder=True), encoding="utf-8")
             module.begin()
-            expect_error(module, module.validate_ratification, "completed human ratification")
+            expect_error(module, module.validate_ratification, "completed ratification")
             expect_error(module, module.validate_constitution_draft, "template placeholders")
             expect_error(
                 module,
@@ -443,8 +448,22 @@ def main() -> int:
             )
             if "**Status**: Draft" not in constitution_path.read_text(encoding="utf-8"):
                 raise AssertionError("A non-ratify verdict changed the constitution draft")
-            module.ratify("ratify")
+            module.ratify("ratify", "automatic")
             module.validate_ratification()
+            ratification_record = json.loads(
+                (project / module.RATIFICATION).read_text(encoding="utf-8")
+            )
+            if ratification_record.get("approval_mode") != "automatic":
+                raise AssertionError("Automatic constitution ratification was not recorded")
+            ratification_record["approval_mode"] = "unknown"
+            (project / module.RATIFICATION).write_text(
+                json.dumps(ratification_record), encoding="utf-8"
+            )
+            expect_error(module, module.validate_ratification, "invalid approval mode")
+            ratification_record["approval_mode"] = "automatic"
+            (project / module.RATIFICATION).write_text(
+                json.dumps(ratification_record), encoding="utf-8"
+            )
             finalized = constitution_path.read_text(encoding="utf-8")
             if "**Status**: Ratified" not in finalized or "PENDING_RATIFICATION" in finalized:
                 raise AssertionError("Ratification did not finalize status and pending date")
@@ -525,7 +544,12 @@ def main() -> int:
                 raise AssertionError("Bootstrap review did not count actual Accepted ADRs")
             if "- Proposed ADRs requiring separate later decisions: 0" not in review_text:
                 raise AssertionError("Bootstrap review counted the ADR template as a decision")
-            module.accept_bootstrap("approve")
+            module.accept_bootstrap("approve", "automatic")
+            bootstrap_approval = json.loads(
+                (project / module.BOOTSTRAP_APPROVAL).read_text(encoding="utf-8")
+            )
+            if bootstrap_approval.get("approval_mode") != "automatic":
+                raise AssertionError("Automatic bootstrap approval was not recorded")
             readiness = project / module.READINESS_REPORT
             readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")
             module.complete_bootstrap()

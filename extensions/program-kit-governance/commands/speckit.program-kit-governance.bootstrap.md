@@ -39,6 +39,18 @@ specify workflow run program-kit-bootstrap `
 The example path is illustrative. Always substitute the exact path supplied by the user; do not
 assume a filename or search for a conventionally named design file.
 
+If the user explicitly requests one uninterrupted development run with automatic approval and
+ratification, append the following workflow input to the command:
+
+```powershell
+  --input auto_approve_and_ratify=true
+```
+
+Explain that this opts into all three decisions: assessment approval, constitution ratification,
+and final bootstrap approval. The workflow still generates and validates every review packet and
+records automatic approval provenance so the user can review the complete result afterward.
+Never add this input unless the user explicitly requests automatic approval and ratification.
+
 Do not request outside-sandbox or escalated execution, propose an approval exception, create or
 install a Codex rule, wrap the command in another shell, or start a new interactive `codex` agent to
 run it. A Codex CLI agent is sandboxed too; it is not the normal shell boundary.
@@ -57,8 +69,9 @@ state. Do not run the recovery command from this skill or suggest editing state 
 
 After a normal-shell workflow pauses, report the run ID, the concise review-packet path, every
 artifact named by that packet, and the exact
-`specify workflow resume <run-id> --input <verdict>=<choice>` command. The human must run resume from
-the same normal shell and choose every verdict themselves. If the human rejects, explain that the
-run remains paused for revision and that the packet's documented `write-review --stage ...` command
-must be run after editing and before resuming approval. Never describe rejection as approval failure
-or encourage approving a stale packet.
+`specify workflow resume <run-id> --input <verdict>=<choice>` command. Unless the explicit automatic
+option was supplied at startup, the human must run resume from the same normal shell and choose every
+verdict themselves. If the human rejects, explain that the run remains paused for revision and that
+the packet's documented `write-review --stage ...` command must be run after editing and before
+resuming approval. Never describe rejection as approval failure or encourage approving a stale
+packet.

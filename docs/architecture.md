@@ -8,7 +8,7 @@ This project owns the reusable method for turning a user-provided initial design
 
 | Component | Responsibility |
 |---|---|
-| Workflow | Orders bootstrap activities and human approval gates. |
+| Workflow | Orders bootstrap activities and approval gates, with explicit opt-in automatic routing for uninterrupted development runs. |
 | Extension commands | Give agents deterministic responsibilities and output contracts. |
 | Extension hooks | Make architecture validation part of the normal Spec Kit lifecycle. |
 | References | Define generic policies and technology-triggered guardrails. |
@@ -32,6 +32,12 @@ Bootstrap uses a source-aware default-adoption model. Explicit intake choices, v
 defaults, safe derived defaults, and reviewed overrides are approved as one hash-bound assessment
 baseline. Ordinary defaults do not create repeated human decision chores. Genuinely unresolved and
 triggered future decisions remain scoped to the lifecycle work they materially affect.
+
+Interactive approval remains the default. The `auto_approve_and_ratify` workflow input is a single,
+explicit opt-in that routes assessment approval, constitution ratification, and final bootstrap
+approval through their fixed deterministic verdicts. Every review packet is generated and
+hash-validated before its automatic transition, and governance evidence records whether the
+transition was interactive or automatic so a completed development bootstrap remains reviewable.
 
 Vertical slices are the default delivery unit. Domain-specific Core packages own stable semantics
 and cohesive capability contracts. Domain-named, protocol, provider, bridge, helper, and composition

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add the explicit `auto_approve_and_ratify` bootstrap input for uninterrupted development runs.
+  It keeps all three review packets and hash validations, bypasses their pauses only when opted in,
+  and records automatic versus interactive approval provenance in governance evidence.
+
 ## 0.8.8 - 2026-09-03
 
 - Replace the conventional `Domain`/`Contracts`/`Application`/`Infrastructure`/`Feature.*` topology

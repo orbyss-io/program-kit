@@ -7,7 +7,9 @@ from pathlib import Path
 import yaml
 from specify_cli.extensions import ExtensionManifest
 from specify_cli.presets import PresetManifest
+from specify_cli.workflows.base import StepContext
 from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+from specify_cli.workflows.steps.switch import SwitchStep
 
 
 EXPECTED_STEPS = [
@@ -22,13 +24,11 @@ EXPECTED_STEPS = [
     "validate-profile-pins",
     "validate-assessment",
     "write-assessment-review",
-    "review-assessment",
-    "accept-assessment",
+    "route-assessment-approval",
     "constitution-draft",
     "validate-constitution-draft",
     "write-constitution-review",
-    "review-constitution",
-    "constitution-ratify",
+    "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture",
     "prepare-tooling-context",
@@ -39,8 +39,7 @@ EXPECTED_STEPS = [
     "validate-bootstrap-consistency",
     "validate-bootstrap",
     "write-bootstrap-review",
-    "review-bootstrap",
-    "accept-bootstrap",
+    "route-bootstrap-approval",
     "prepare-readiness-context",
     "readiness",
     "complete-bootstrap",
@@ -132,6 +131,9 @@ def main() -> int:
     step_ids = [step["id"] for step in steps]
     if step_ids != EXPECTED_STEPS:
         raise AssertionError(f"Workflow order {step_ids} != {EXPECTED_STEPS}")
+    auto_input = workflow_yaml.get("inputs", {}).get("auto_approve_and_ratify", {})
+    if auto_input.get("type") != "boolean" or auto_input.get("default") is not False:
+        raise AssertionError("Automatic bootstrap approval must be an explicit opt-in boolean")
     utf8_step = next(step for step in steps if step["id"] == "prepare-utf8-runtime")
     if "ensure_utf8.py --target ." not in utf8_step.get("run", ""):
         raise AssertionError("Bootstrap must harden installed Python entry points before agent commands")
@@ -184,41 +186,80 @@ def main() -> int:
         raise AssertionError(
             "The workflow must rely on the mandatory before_constitution hook instead of invoking constitution-begin twice"
         )
-    constitution_gate = step_ids.index("review-constitution")
+    constitution_route = step_ids.index("route-constitution-ratification")
     if not (
         step_ids.index("constitution-draft") < step_ids.index("validate-constitution-draft")
-        < step_ids.index("write-constitution-review") < constitution_gate
-        < step_ids.index("constitution-ratify") < step_ids.index("architecture")
+        < step_ids.index("write-constitution-review") < constitution_route
+        < step_ids.index("architecture")
     ):
         raise AssertionError(
-            "Constitution validation and its review packet must precede the human gate, then ratification must precede architecture"
+            "Constitution validation and its review packet must precede ratification, which must precede architecture"
         )
 
-    for consumer_id, gate_id in (
-        ("accept-assessment", "review-assessment"),
-        ("constitution-ratify", "review-constitution"),
-        ("accept-bootstrap", "review-bootstrap"),
+    for route_id, gate_id, consumer_id, automatic_id, packet, label in (
+        (
+            "route-assessment-approval",
+            "review-assessment",
+            "accept-assessment",
+            "auto-accept-assessment",
+            "docs/architecture/reviews/assessment-review.md",
+            "Gate 1/3 — Assessment approval",
+        ),
+        (
+            "route-constitution-ratification",
+            "review-constitution",
+            "constitution-ratify",
+            "auto-ratify-constitution",
+            "docs/architecture/reviews/constitution-review.md",
+            "Gate 2/3 — Constitution ratification",
+        ),
+        (
+            "route-bootstrap-approval",
+            "review-bootstrap",
+            "accept-bootstrap",
+            "auto-accept-bootstrap",
+            "docs/architecture/reviews/bootstrap-review.md",
+            "Gate 3/3 — Final bootstrap approval",
+        ),
     ):
-        consumer = next(step for step in steps if step["id"] == consumer_id)
+        route = next(step for step in steps if step["id"] == route_id)
+        if (
+            route.get("type") != "switch"
+            or route.get("expression") != "{{ inputs.auto_approve_and_ratify }}"
+        ):
+            raise AssertionError(f"{route_id} must route only on the explicit automatic option")
+        automatic_steps = route.get("cases", {}).get(True, [])
+        normal_steps = route.get("default", [])
+        if [step.get("id") for step in automatic_steps] != [automatic_id]:
+            raise AssertionError(f"{route_id} has an invalid automatic branch")
+        if [step.get("id") for step in normal_steps] != [gate_id, consumer_id]:
+            raise AssertionError(f"{route_id} must preserve the interactive gate path")
+        automatic_result = SwitchStep().execute(
+            route, StepContext(inputs={"auto_approve_and_ratify": True})
+        )
+        interactive_result = SwitchStep().execute(
+            route, StepContext(inputs={"auto_approve_and_ratify": False})
+        )
+        if [step.get("id") for step in automatic_result.next_steps] != [automatic_id]:
+            raise AssertionError(f"{route_id} does not select its automatic branch for true")
+        if [step.get("id") for step in interactive_result.next_steps] != [gate_id, consumer_id]:
+            raise AssertionError(f"{route_id} does not preserve its default branch for false")
+        automatic = automatic_steps[0]
+        if (
+            automatic.get("type") != "shell"
+            or "--approval-mode automatic" not in automatic.get("run", "")
+        ):
+            raise AssertionError(f"{automatic_id} must record automatic approval evidence")
+        gate, consumer = normal_steps
         expected_choice = f"steps.{gate_id}.output.choice"
         if consumer.get("type") != "shell" or expected_choice not in consumer.get("run", ""):
             raise AssertionError(
                 f"{consumer_id} must deterministically consume the recorded {gate_id} choice"
             )
-    for gate_id, packet in (
-        ("review-assessment", "docs/architecture/reviews/assessment-review.md"),
-        ("review-constitution", "docs/architecture/reviews/constitution-review.md"),
-        ("review-bootstrap", "docs/architecture/reviews/bootstrap-review.md"),
-    ):
-        gate = next(step for step in steps if step["id"] == gate_id)
+        if "--approval-mode interactive" not in consumer.get("run", ""):
+            raise AssertionError(f"{consumer_id} must record interactive approval evidence")
         if gate.get("show_file") != packet or gate.get("on_reject") != "retry":
             raise AssertionError(f"{gate_id} must show its concise packet and pause for revision")
-    for gate_id, label in (
-        ("review-assessment", "Gate 1/3 — Assessment approval"),
-        ("review-constitution", "Gate 2/3 — Constitution ratification"),
-        ("review-bootstrap", "Gate 3/3 — Final bootstrap approval"),
-    ):
-        gate = next(step for step in steps if step["id"] == gate_id)
         if not gate.get("message", "").startswith(label):
             raise AssertionError(f"{gate_id} must be visibly labeled {label!r}")
 
@@ -235,6 +276,8 @@ def main() -> int:
         extension_root / "commands/speckit.program-kit-governance.bootstrap.md",
         "This skill is guidance-only",
         "normal user-owned PowerShell or WSL terminal",
+        "auto_approve_and_ratify=true",
+        "Never add this input unless the user explicitly requests",
         "Stop. Do not call a shell tool",
     )
     require_text(

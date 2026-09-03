@@ -60,6 +60,19 @@ def main() -> int:
         if not path.is_file():
             raise AssertionError(f"Live bootstrap acceptance component is missing: {path}")
 
+    runner_text = runner.read_text(encoding="utf-8")
+    if "auto_approve_and_ratify=true" not in runner_text:
+        raise AssertionError("Live bootstrap must exercise the public automatic approval option")
+    for legacy_input in (
+        "assessment_verdict=approve",
+        "constitution_verdict=ratify",
+        "bootstrap_verdict=approve",
+    ):
+        if legacy_input in runner_text:
+            raise AssertionError(
+                f"Live bootstrap still bypasses the public option with {legacy_input}"
+            )
+
     original_run = subprocess.run
     expected_excludes = "" if os.name == "nt" else os.devnull
     if git_excludes_override() != expected_excludes:

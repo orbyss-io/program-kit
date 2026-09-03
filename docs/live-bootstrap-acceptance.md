@@ -25,7 +25,7 @@ third-party runtime concerns. This keeps the acceptance target unambiguous while
 2. clean Spec Kit initialization and candidate installation through temporary loopback catalogs
    and the real bundle provenance machinery;
 3. design normalization, intake, and research;
-4. all three review gates using disposable test verdicts;
+4. the explicit automatic approval and ratification route across all three generated review packets;
 5. constitution drafting and ratification;
 6. architecture, quality-system, and roadmap generation;
 7. bootstrap-context handoffs;

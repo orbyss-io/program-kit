@@ -63,6 +63,7 @@ DECISION_SOURCES = {
 }
 WEB_THREAT_MODEL = "program-kit-web-threat-model-v1"
 WEB_SECURITY_EVIDENCE = "program-kit-web-security-evidence-v1"
+APPROVAL_MODES = {"interactive", "automatic"}
 ASSESSMENT_ARTIFACTS = (
     ASSESSMENT,
     DECISION_BACKLOG,
@@ -70,8 +71,27 @@ ASSESSMENT_ARTIFACTS = (
     BOOTSTRAP_DECISIONS,
     ASSESSMENT_REVIEW,
 )
+
+
 class GovernanceStateError(ValueError):
     pass
+
+
+def validate_approval_mode(mode: str) -> str:
+    if mode not in APPROVAL_MODES:
+        raise GovernanceStateError(
+            f"Approval mode must be one of {sorted(APPROVAL_MODES)}, got {mode!r}"
+        )
+    return mode
+
+
+def recorded_approval_mode(record: dict, label: str) -> str:
+    # Records created before approval-mode evidence was introduced represent
+    # the original interactive gate path.
+    mode = record.get("approval_mode", "interactive")
+    if not isinstance(mode, str) or mode not in APPROVAL_MODES:
+        raise GovernanceStateError(f"{label} has an invalid approval mode")
+    return mode
 
 
 def bootstrap_artifacts() -> tuple[Path, ...]:
@@ -748,6 +768,8 @@ def write_review(stage: str) -> None:
             "",
             "Approve the explicit intake choices and Program Kit defaults below as the provisional bootstrap baseline. Reject to keep the run paused for revision.",
             "",
+            "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the approval evidence is marked automatic.",
+            "",
             "## Files under review",
             "",
             *[f"- `{path.as_posix()}`" for path in required],
@@ -806,6 +828,8 @@ def write_review(stage: str) -> None:
             "## Decision requested",
             "",
             "Ratify the complete constitution. Approval deterministically changes only its Draft status and an initial `PENDING_RATIFICATION` date before hash-binding the final content. Reject keeps the run paused for revision.",
+            "",
+            "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the ratification evidence is marked automatic.",
             "",
             "## File under review",
             "",
@@ -869,6 +893,8 @@ def write_review(stage: str) -> None:
             "",
             "Approve the generated architecture baseline and its adoption of explicit intake choices and Program Kit defaults. Approval does not accept separately Proposed ADRs. Reject keeps the run paused for revision.",
             "",
+            "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the approval evidence is marked automatic.",
+            "",
             "## Files under review",
             "",
             *rows,
@@ -912,9 +938,10 @@ def validate_assessment() -> dict:
     return validate_bootstrap_decisions()
 
 
-def accept_assessment(verdict: str) -> None:
+def accept_assessment(verdict: str, approval_mode: str = "interactive") -> None:
     if verdict != "approve":
-        raise GovernanceStateError("Assessment acceptance requires the human gate verdict 'approve'")
+        raise GovernanceStateError("Assessment acceptance requires the verdict 'approve'")
+    approval_mode = validate_approval_mode(approval_mode)
     validate_assessment()
     _require_files(ASSESSMENT_ARTIFACTS, "Assessment review")
     _require_review_basis(
@@ -928,6 +955,7 @@ def accept_assessment(verdict: str) -> None:
             "schema_version": "1.0",
             "status": "Approved",
             "gate_verdict": verdict,
+            "approval_mode": approval_mode,
             "artifacts": _artifact_hashes(ASSESSMENT_ARTIFACTS),
         },
     )
@@ -938,7 +966,8 @@ def validate_assessment_approval() -> dict:
     path = project_path(ASSESSMENT_APPROVAL)
     record = read_json(path)
     if record.get("status") != "Approved" or record.get("gate_verdict") != "approve":
-        raise GovernanceStateError("Bootstrap assessment has no completed human approval")
+        raise GovernanceStateError("Bootstrap assessment has no completed approval")
+    recorded_approval_mode(record, "Bootstrap assessment approval")
     validate_assessment()
     _require_files(ASSESSMENT_ARTIFACTS, "Assessment review")
     _verify_artifact_hashes(record, ASSESSMENT_ARTIFACTS, "Bootstrap assessment")
@@ -996,9 +1025,10 @@ def begin() -> None:
     print(f"Constitution state is Draft: {marker}")
 
 
-def ratify(verdict: str) -> None:
+def ratify(verdict: str, approval_mode: str = "interactive") -> None:
     if verdict != "ratify":
-        raise GovernanceStateError("Ratification requires the human gate verdict 'ratify'")
+        raise GovernanceStateError("Ratification requires the verdict 'ratify'")
+    approval_mode = validate_approval_mode(approval_mode)
     constitution = project_path(CONSTITUTION)
     marker = project_path(RATIFICATION)
     if not marker.is_file() or read_json(marker).get("status") != "Draft":
@@ -1024,6 +1054,7 @@ def ratify(verdict: str) -> None:
                 "last_amended": amended,
             },
             "gate_verdict": verdict,
+            "approval_mode": approval_mode,
             "approval_source": CONSTITUTION_REVIEW.as_posix(),
         },
     )
@@ -1035,7 +1066,8 @@ def validate_ratification() -> dict:
     marker = project_path(RATIFICATION)
     record = read_json(marker)
     if record.get("status") != "Ratified" or record.get("gate_verdict") != "ratify":
-        raise GovernanceStateError("Constitution has no completed human ratification")
+        raise GovernanceStateError("Constitution has no completed ratification")
+    recorded_approval_mode(record, "Constitution ratification")
     version, ratified, amended = constitution_metadata(constitution)
     if not re.search(
         r"^\*\*Status\*\*:\s*Ratified\s*$",
@@ -1137,14 +1169,16 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
         path = project_path(BOOTSTRAP_APPROVAL)
         record = read_json(path)
         if record.get("status") != "Approved" or record.get("gate_verdict") != "approve":
-            raise GovernanceStateError("Architecture bootstrap has no completed human approval")
+            raise GovernanceStateError("Architecture bootstrap has no completed approval")
+        recorded_approval_mode(record, "Architecture bootstrap approval")
         _require_files(artifacts, "Bootstrap review")
         _verify_artifact_hashes(record, artifacts, "Architecture bootstrap")
 
 
-def accept_bootstrap(verdict: str) -> None:
+def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
     if verdict != "approve":
-        raise GovernanceStateError("Bootstrap acceptance requires the human gate verdict 'approve'")
+        raise GovernanceStateError("Bootstrap acceptance requires the verdict 'approve'")
+    approval_mode = validate_approval_mode(approval_mode)
     validate_bootstrap(False, False)
     artifacts = bootstrap_artifacts()
     _require_files(artifacts, "Bootstrap review")
@@ -1159,6 +1193,7 @@ def accept_bootstrap(verdict: str) -> None:
             "schema_version": "1.0",
             "status": "Approved",
             "gate_verdict": verdict,
+            "approval_mode": approval_mode,
             "artifacts": _artifact_hashes(artifacts),
         },
     )
@@ -1436,10 +1471,16 @@ def main() -> int:
     subparsers.add_parser("validate-assessment")
     assessment_parser = subparsers.add_parser("accept-assessment")
     assessment_parser.add_argument("--verdict", required=True)
+    assessment_parser.add_argument(
+        "--approval-mode", choices=sorted(APPROVAL_MODES), default="interactive"
+    )
     subparsers.add_parser("begin")
     subparsers.add_parser("validate-constitution-draft")
     ratify_parser = subparsers.add_parser("ratify")
     ratify_parser.add_argument("--verdict", required=True)
+    ratify_parser.add_argument(
+        "--approval-mode", choices=sorted(APPROVAL_MODES), default="interactive"
+    )
     validate_parser = subparsers.add_parser("validate")
     validate_parser.add_argument("--require-roadmap", action="store_true")
     validate_parser.add_argument("--require-ready", action="store_true")
@@ -1456,6 +1497,9 @@ def main() -> int:
     bootstrap_parser.add_argument("--require-ready", action="store_true")
     accept_bootstrap_parser = subparsers.add_parser("accept-bootstrap")
     accept_bootstrap_parser.add_argument("--verdict", required=True)
+    accept_bootstrap_parser.add_argument(
+        "--approval-mode", choices=sorted(APPROVAL_MODES), default="interactive"
+    )
     subparsers.add_parser("complete-bootstrap")
     subparsers.add_parser("validate-completion")
     args = parser.parse_args()
@@ -1475,12 +1519,12 @@ def main() -> int:
                 validate_assessment()
                 print("Bootstrap assessment and default decisions are valid")
             elif args.command == "accept-assessment":
-                accept_assessment(args.verdict)
+                accept_assessment(args.verdict, args.approval_mode)
             elif args.command == "validate-constitution-draft":
                 validate_constitution_draft()
                 print("Constitution draft is ready for human review")
             elif args.command == "ratify":
-                ratify(args.verdict)
+                ratify(args.verdict, args.approval_mode)
             elif args.command == "validate":
                 validate_ratification()
                 if args.require_roadmap or args.require_ready:
@@ -1499,7 +1543,7 @@ def main() -> int:
                 validate_bootstrap(args.require_approval, args.require_ready)
                 print("Architecture bootstrap artifacts are valid")
             elif args.command == "accept-bootstrap":
-                accept_bootstrap(args.verdict)
+                accept_bootstrap(args.verdict, args.approval_mode)
             elif args.command == "complete-bootstrap":
                 complete_bootstrap()
             elif args.command == "validate-completion":

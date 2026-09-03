@@ -19,6 +19,10 @@ inputs:
     type: string
     default: "auto"
     prompt: "Integration to use; auto inherits the initialized project integration"
+  auto_approve_and_ratify:
+    type: boolean
+    default: false
+    prompt: "Automatically approve all generated review packets and ratify the constitution"
   assessment_verdict:
     type: string
     default: ""
@@ -118,17 +122,25 @@ steps:
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage assessment"
 
-  - id: review-assessment
-    type: gate
-    message: "Gate 1/3 — Assessment approval. Review the concise packet listing every file and summarizing explicit intake choices, applied Program Kit defaults, overrides, acknowledgements, genuinely unresolved decisions, and deferred triggers. Approve to adopt this exact provisional baseline. Reject keeps the run paused so the artifacts and packet can be revised and regenerated."
-    show_file: "docs/architecture/reviews/assessment-review.md"
-    options: [approve, reject]
-    on_reject: retry
-    verdict_input: "assessment_verdict"
-
-  - id: accept-assessment
-    type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-assessment --verdict \"{{ steps.review-assessment.output.choice }}\""
+  - id: route-assessment-approval
+    type: switch
+    expression: "{{ inputs.auto_approve_and_ratify }}"
+    cases:
+      true:
+        - id: auto-accept-assessment
+          type: shell
+          run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-assessment --verdict approve --approval-mode automatic"
+    default:
+      - id: review-assessment
+        type: gate
+        message: "Gate 1/3 — Assessment approval. Review the concise packet listing every file and summarizing explicit intake choices, applied Program Kit defaults, overrides, acknowledgements, genuinely unresolved decisions, and deferred triggers. Approve to adopt this exact provisional baseline. Reject keeps the run paused so the artifacts and packet can be revised and regenerated."
+        show_file: "docs/architecture/reviews/assessment-review.md"
+        options: [approve, reject]
+        on_reject: retry
+        verdict_input: "assessment_verdict"
+      - id: accept-assessment
+        type: shell
+        run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-assessment --verdict \"{{ steps.review-assessment.output.choice }}\" --approval-mode interactive"
 
   - id: constitution-draft
     type: command
@@ -145,17 +157,25 @@ steps:
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage constitution"
 
-  - id: review-constitution
-    type: gate
-    message: "Gate 2/3 — Constitution ratification. Review the constitution file named in this concise packet. Ratification will deterministically change only Draft status and the initial pending ratification date, then hash-bind the exact final content. Reject keeps the run paused for revision and packet regeneration."
-    show_file: "docs/architecture/reviews/constitution-review.md"
-    options: [ratify, reject]
-    on_reject: retry
-    verdict_input: "constitution_verdict"
-
-  - id: constitution-ratify
-    type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py ratify --verdict \"{{ steps.review-constitution.output.choice }}\""
+  - id: route-constitution-ratification
+    type: switch
+    expression: "{{ inputs.auto_approve_and_ratify }}"
+    cases:
+      true:
+        - id: auto-ratify-constitution
+          type: shell
+          run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py ratify --verdict ratify --approval-mode automatic"
+    default:
+      - id: review-constitution
+        type: gate
+        message: "Gate 2/3 — Constitution ratification. Review the constitution file named in this concise packet. Ratification will deterministically change only Draft status and the initial pending ratification date, then hash-bind the exact final content. Reject keeps the run paused for revision and packet regeneration."
+        show_file: "docs/architecture/reviews/constitution-review.md"
+        options: [ratify, reject]
+        on_reject: retry
+        verdict_input: "constitution_verdict"
+      - id: constitution-ratify
+        type: shell
+        run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py ratify --verdict \"{{ steps.review-constitution.output.choice }}\" --approval-mode interactive"
 
   - id: prepare-architecture-context
     type: shell
@@ -209,17 +229,25 @@ steps:
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py write-review --stage bootstrap"
 
-  - id: review-bootstrap
-    type: gate
-    message: "Gate 3/3 — Final bootstrap approval. Review the concise packet and every listed artifact. Approval accepts the generated baseline and reviewed defaults but does not promote separately Proposed ADRs. Reject keeps the run paused for revision and packet regeneration."
-    show_file: "docs/architecture/reviews/bootstrap-review.md"
-    options: [approve, reject]
-    on_reject: retry
-    verdict_input: "bootstrap_verdict"
-
-  - id: accept-bootstrap
-    type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-bootstrap --verdict \"{{ steps.review-bootstrap.output.choice }}\""
+  - id: route-bootstrap-approval
+    type: switch
+    expression: "{{ inputs.auto_approve_and_ratify }}"
+    cases:
+      true:
+        - id: auto-accept-bootstrap
+          type: shell
+          run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-bootstrap --verdict approve --approval-mode automatic"
+    default:
+      - id: review-bootstrap
+        type: gate
+        message: "Gate 3/3 — Final bootstrap approval. Review the concise packet and every listed artifact. Approval accepts the generated baseline and reviewed defaults but does not promote separately Proposed ADRs. Reject keeps the run paused for revision and packet regeneration."
+        show_file: "docs/architecture/reviews/bootstrap-review.md"
+        options: [approve, reject]
+        on_reject: retry
+        verdict_input: "bootstrap_verdict"
+      - id: accept-bootstrap
+        type: shell
+        run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py accept-bootstrap --verdict \"{{ steps.review-bootstrap.output.choice }}\" --approval-mode interactive"
 
   - id: prepare-readiness-context
     type: shell

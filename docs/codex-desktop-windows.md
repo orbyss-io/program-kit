@@ -72,6 +72,10 @@ specify workflow run program-kit-bootstrap `
 ```
 
 The design filename and location are user-chosen; pass the actual path through `initial_design`.
+Developers who review the complete result after the run can explicitly add
+`--input auto_approve_and_ratify=true`. This bypasses all three pauses but still writes and validates
+their review packets and marks the resulting governance evidence as automatic. The option defaults
+to `false`; without it, run each human-reviewed `specify workflow resume ...` command as usual.
 
 Codex workflow workers require the repository root to be in a Git work tree. If an older Program
 Kit initializer was used in a directory without Git, repair it from the repository root before
