@@ -162,6 +162,34 @@ def main() -> int:
         profile_record = load_object(profile_root / ".program-kit/web-profile.json")
         if profile_record.get("threatModel") != THREAT_MODEL_ID or profile_record.get("securityEvidence") != EVIDENCE_ID:
             raise AssertionError(f"{profile_directory} profile record does not bind exact assurance IDs")
+        host_settings = load_object(profile_root / "hostsettings.json")["ProgramKit"]["Web"]
+        if host_settings.get("PermissionClaim") != "permissions":
+            raise AssertionError(f"{profile_directory} does not name the canonical permission claim")
+        if host_settings.get("RolePermissions") != {} or host_settings.get("ScopePermissions") != {}:
+            raise AssertionError(
+                f"{profile_directory} must not invent application-specific provider mappings"
+            )
+
+    host_web_root = root / "src/dotnet/ProgramKit.Host/Web"
+    host_web = "\n".join(path.read_text(encoding="utf-8") for path in host_web_root.glob("*.cs"))
+    for required in (
+        "PermissionClaimsTransformation",
+        "PermissionPolicyProvider",
+        'RequireClaim(webOptions.Value.PermissionClaim, permission)',
+        "settings.RolePermissions",
+        "settings.ScopePermissions",
+        "permissions",
+    ):
+        if required not in host_web:
+            raise AssertionError(f"ProgramKit.Host does not implement permission contract: {required}")
+    web_profiles_root = root / "extensions/program-kit-dotnet/templates/dotnet/web-profiles"
+    browser_contract = "\n".join(
+        path.read_text(encoding="utf-8")
+        for pattern in ("*.ts", "*.ps1")
+        for path in web_profiles_root.rglob(pattern)
+    )
+    if "PROGRAMKIT_PERMISSION_PROBE_PATH" not in browser_contract or "PROGRAMKIT_ROLE_PROBE_PATH" in browser_contract:
+        raise AssertionError("The browser contract must probe application permissions, not provider roles")
 
     adr = (root / "docs/decisions/0005-secure-web-boundary-profiles.md").read_text(encoding="utf-8")
     contract = (references / "secure-web-profiles.md").read_text(encoding="utf-8")

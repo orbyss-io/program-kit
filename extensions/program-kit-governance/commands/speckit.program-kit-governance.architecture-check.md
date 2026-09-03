@@ -56,17 +56,41 @@ contract checks the mandatory governance sections and selected runtime profile; 
 - Architecture and traceability artifacts were updated when a decision changed.
 - Specifications, plans, and tasks are organized around complete vertical outcomes rather than technical-layer phases.
 - Every slice identifies its owner, intent, contracts, policies, effects, material failures, operational concerns, and verification in proportion to risk.
-- Module and feature references match the accepted dependency graph; peer implementations and stores are not accessed directly.
+- Core/helper/implementation/provider/bridge/composition references match the accepted dependency
+  graph; peer implementations and provider-private persistence are not accessed directly.
 - For an external-host .NET slice, `artifact-ownership.json.runtimeComposition` identifies the
   accepted graph authorities, inventories every planned project's exact direct project/package
-  references, and assigns every application-port/runtime-adapter binding to an activated feature.
+  references and semantic role, and assigns every capability implementation to a feature identity
+  owned by and activated from the implementing project.
   Compare that inventory with both the authority artifacts and every existing `.csproj`. Inspect
   declared MSBuild references even when no CLR type currently uses them; an unused forbidden edge
-  is still an architecture error. An adapter with no activated composition owner blocks readiness.
-  Never choose between endpoint-owned composition and a separate runtime feature on the consumer's
-  behalf when the accepted architecture has not made that material choice.
+  is still an architecture error. A provider or bridge with no activated capability binding blocks
+  readiness. Reject endpoint-to-provider references; the external host and `shells.json` compose
+  independent API and provider packages.
+- Project/package names use domain language. Reject a generic `.Feature` segment and default
+  `Domain`, `Contracts`, `Application`, or `Infrastructure` layer projects. A runtime feature class
+  may retain the `Feature` suffix inside its named implementation package.
+- Core contains stable domain semantics and capability contracts only. Reject DI/runtime feature
+  registration, transport DTOs, middleware, persistence records/mappings, ORM/provider types,
+  migrations, serializers, and vendor SDKs from Core.
+- Capability interfaces describe cohesive domain intent. Reject generic repository/store/unit-of-work
+  or CRUD surfaces and one-interface-per-method proliferation; require grouping/splitting evidence
+  from consumer, consistency, security, availability, lifecycle, and replacement boundaries.
+- Provider persistence records never cross provider APIs. Directly mapped domain POCOs remain valid
+  only when storage concerns do not shape or escape through them.
+- Cross-context collaboration follows the accepted decision rule: consumer-owned bridge for
+  synchronous translation, event for independent observers, orchestrator for owned workflow state,
+  or an explicitly accepted and tested Core-to-Core subdomain/published-language/shared-kernel edge.
+  Require every direct Core-to-Core graph edge to have an exact `runtimeComposition.coreReferences`
+  entry naming its Accepted authority and owned architecture-test evidence; reject stale entries too.
+- Domain events are immutable, awaited in-process facts and never claim durable post-commit or
+  cross-process delivery. Such a claim triggers the Integration Events design backlog and blocks
+  implementation until its outbox/delivery contract is accepted.
 - Shared abstractions, kernels, runtime feature dependencies, and feature-family extension or inheritance edges have explicit ownership and any required Accepted ADR and allowlist.
 - Public endpoint, event, configuration, and schema types are distinct from domain entities and have compatibility evidence.
+- Authenticated `.Api` implementations own permission/policy metadata on their actual endpoint
+  groups. Reject consumer-root `Administration.Api`/`Platform.WebBoundary` packages that merely
+  duplicate selected Program Kit host web plumbing.
 - Authenticated browser boundaries inherit `program-kit-web-threat-model-v1` and
   `program-kit-web-security-evidence-v1`; overrides identify the affected `WEB-Cxx`, `WEB-Dxx`, or
   residual-risk control, an owner, review condition, and executable evidence.

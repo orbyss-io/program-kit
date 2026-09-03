@@ -256,8 +256,9 @@ def main() -> int:
     require_text(
         extension_root / "references/modularity-and-contracts.md",
         "Concrete inheritance is not an automatic exception",
-        "Features do not reference peer feature implementations",
-        "Feature-reference policy",
+        "never add `.Feature`",
+        "Semantic capability contracts",
+        "A direct Core-to-Core reference is appropriate only when",
     )
     dotnet_root = dotnet_extension_path.parent
     dotnet_profile = dotnet_root / "references/technology-profiles/dotnet.md"
@@ -278,7 +279,7 @@ def main() -> int:
     require_text(
         dotnet_root / "references/dotnet-runtime-and-application-bundles.md",
         "ProgramKit.Host",
-        "feature-free plumbing",
+        "application-neutral plumbing",
         "runnable-host.json",
     )
     require_text(

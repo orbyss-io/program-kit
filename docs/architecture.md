@@ -33,10 +33,16 @@ defaults, safe derived defaults, and reviewed overrides are approved as one hash
 baseline. Ordinary defaults do not create repeated human decision chores. Genuinely unresolved and
 triggered future decisions remain scoped to the lifecycle work they materially affect.
 
-Vertical slices are the default delivery unit. Bounded contexts and modules own domain language,
-contracts, and data; features are runtime composition units; shells are runtime isolation contexts;
-and endpoints are transport adapters. The generic method defines those boundaries while technology
-profiles map them to language and framework mechanisms.
+Vertical slices are the default delivery unit. Domain-specific Core packages own stable semantics
+and cohesive capability contracts. Domain-named, protocol, provider, bridge, helper, and composition
+packages implement them; features are runtime identities and activation types rather than project
+layers. Shells are runtime isolation contexts and endpoints are transport adapters. Provider-private
+persistence never becomes a cross-context model. The generic method defines these boundaries while
+technology profiles map them to language and framework mechanisms.
+
+Program Kit supplies lightweight abstractions and a default non-durable in-process dispatcher for
+domain events. Durable post-commit or cross-process delivery is a separately governed Integration
+Events concern and is blocked on the architecture backlog before first use.
 
 Third-party extensions are evaluated by the workflow and recorded in the consuming project's tooling decision record. They are not dependencies of this source project unless a later ADR accepts them as universally required.
 

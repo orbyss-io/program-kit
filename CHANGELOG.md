@@ -2,10 +2,22 @@
 
 ## Unreleased
 
-- Require external-host .NET plans to declare the accepted runtime composition owner for every
-  application-port/runtime-adapter binding and an exact direct project/package reference graph.
-  `PKA015` now rejects unactivated adapters, missing composition paths, and declared MSBuild edges
-  that differ from the plan even when no compiled CLR type currently exposes the dependency.
+## 0.8.8 - 2026-09-03
+
+- Replace the conventional `Domain`/`Contracts`/`Application`/`Infrastructure`/`Feature.*` topology
+  with semantic `.Core`, named implementation, protocol, provider, bridge, helper, and composition
+  packages. Capability contracts use domain intent rather than generic repositories/stores/units of
+  work, may group naturally cohesive operations, and keep provider persistence models private.
+- Correct `PKA015` so capability implementations are owned and activated by their provider/bridge
+  projects. It now rejects layer-marker names, endpoint-to-provider references, forbidden role
+  edges, unactivated implementations, missing Core capability paths, and exact MSBuild graph drift.
+- Add `ProgramKit.DomainEvents.Abstractions` plus the default `ProgramKit.DomainEvents` CShells
+  feature for awaited, scoped, sequential, bounded, observable in-process dispatch. Record durable
+  Integration Events and transactional outbox semantics as an explicit blocking architecture item
+  rather than overstating domain-event reliability.
+- Assign generic authentication/HTTP runtime plumbing to the selected Program Kit host web profile;
+  `.Api` implementations own actual endpoints, wire mappings, canonical permission requirements,
+  and protocol metadata without a consumer-root `Administration.Api`/`Platform.WebBoundary` layer.
 - Exercise the managed .NET 10 Microsoft Testing Platform selection against a real
   MSTest.Sdk 4.3.3 consumer solution, including the required `dotnet test --solution` invocation.
 - Converge `Microsoft.Extensions.DependencyInjection.Abstractions` and

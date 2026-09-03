@@ -15,8 +15,11 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-PROGRAM_KIT_VERSION = "0.8.7"
-BUILT_IN_FEATURE_PACKAGES = {"ProgramKitTasks": "ProgramKit.Tasks"}
+PROGRAM_KIT_VERSION = "0.8.8"
+BUILT_IN_FEATURE_PACKAGES = {
+    "ProgramKit.DomainEvents": "ProgramKit.DomainEvents",
+    "ProgramKitTasks": "ProgramKit.Tasks",
+}
 
 
 def sha256(path: Path) -> str:

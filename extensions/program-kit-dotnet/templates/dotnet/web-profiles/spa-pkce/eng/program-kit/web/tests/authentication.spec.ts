@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const apiPath = process.env.PROGRAMKIT_ROLE_PROBE_PATH ?? '/api/auth-contract';
+const apiPath = process.env.PROGRAMKIT_PERMISSION_PROBE_PATH ?? '/api/auth-contract';
 
 test('WEB-V3 independently hosted SPA response has the governed browser headers', async ({ request }) => {
   const spaUrl = process.env.PROGRAMKIT_SPA_URL;

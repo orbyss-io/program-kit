@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.7/Initialize-ProgramKit-0.8.7.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.8/Initialize-ProgramKit-0.8.8.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.7/Initialize-ProgramKit-0.8.7.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.8/Initialize-ProgramKit-0.8.8.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -272,7 +272,7 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 ### .NET profile
 
 The .NET profile maps these generic rules to project and assembly boundaries. When .NET is selected,
-the shallow `ProgramKit.Host` and its CShells/Nuplane composition model are adopted automatically
+the application-neutral `ProgramKit.Host` and its CShells/Nuplane composition model are adopted automatically
 unless intake explicitly opts out. The assessment packet prominently discloses its pinned preview
 packages and preview sources; approval does not restore packages or contact feeds. Feature projects
 reference abstraction packages; only the host references the CShells and Nuplane runtimes. HTTP,
@@ -287,7 +287,7 @@ their ADR is accepted.
 Selecting the .NET profile adopts `ProgramKit.Host` by default and makes
 `speckit.program-kit-dotnet.sync` available. The sync command scaffolds central build/package management,
 safe managed-file synchronization, runnable-image staging, and release workflows. The generated application
-image layers packages and configuration onto a digest-pinned shallow host; the host never parses release
+image layers packages and configuration onto a digest-pinned application-neutral host; the host never parses release
 metadata. A write requires the approved,
 hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of its pinned preview
 packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
@@ -341,11 +341,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.8.7.md`](docs/releasing-0.8.7.md).
+[`docs/releasing-0.8.8.md`](docs/releasing-0.8.8.md).
 
 ```powershell
-git tag v0.8.7
-git push origin v0.8.7
+git tag v0.8.8
+git push origin v0.8.8
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -365,8 +365,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.8.7.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.8.7.zip -Algorithm SHA256
+gh attestation verify program-kit-0.8.8.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.8.8.zip -Algorithm SHA256
 ```
 
 ## License

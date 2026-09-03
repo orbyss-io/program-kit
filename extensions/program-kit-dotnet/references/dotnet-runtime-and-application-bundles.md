@@ -4,12 +4,14 @@ Apply this reference when .NET is selected unless intake explicitly opts out of 
 
 ## Host boundary
 
-- `ProgramKit.Host` is feature-free plumbing: Nuplane package loading, the Nuplane-to-CShells assembly
-  provider, CShells configuration/routing, and CShells-only eager activation.
-- It has no application-bundle parser, package/feature policy, database client, authentication, OpenAPI,
-  business endpoint, or feature-health aggregation.
-- Actual behavior arrives as runtime packages. HTTP, identity, persistence, tasks, and health implementations
-  belong to explicit features and their owned contracts.
+- `ProgramKit.Host` is application-neutral plumbing: Nuplane package loading, the
+  Nuplane-to-CShells assembly provider, CShells configuration/routing, CShells-only eager activation,
+  and the versioned Program Kit secure-web profile selected from host configuration.
+- It has no application-bundle parser, package/feature policy, database client, business endpoint,
+  application permission identity, or feature-health aggregation.
+- Actual business behavior arrives as runtime packages. Standard authenticated web plumbing is
+  configured by the host's accepted Program Kit web profile; persistence, business endpoints,
+  tasks, and health implementations remain explicit capabilities.
 - Until a feature-health contribution interface exists, do not invent a host dependency-readiness model.
 
 ## Feature creation and activation closure
@@ -21,9 +23,9 @@ consumer-owned `shells.json`. Add a reviewed selection deterministically with:
 python eng/program-kit/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
 ```
 
-A feature project is packable, belongs to the solution, sets `ProgramKitFeatureIdentity`, and sets
+An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `ProgramKitFeatureIdentity`, and sets
 `AssemblyName` equal to `PackageId`. It references host-supplied CShells/framework abstractions with
-`PrivateAssets=all`; it does not reference the host, Nuplane runtime, or peer feature implementations.
+`PrivateAssets=all`; it does not reference the host, Nuplane runtime, or peer runtime implementations.
 Optional dependency, route, and dormant metadata is embedded during pack.
 
 Tasks cover the project, solution inclusion, explicit identity, `shells.json` activation, runnable-image
@@ -51,6 +53,6 @@ Container health is also selected by the application once its feature-health con
 - Managed OpenAPI production runs after package-closure staging through
   `eng/program-kit/openapi_pipeline.py`. Consumers register complete producer, compatibility,
   isolated client-generation, and application-compile contracts in
-  `.program-kit/openapi-contracts.json`; the external host remains feature-free.
-- Domain and persistence guidance remains feature-owned. No shared `DbContext`, generic repository, provider,
-  or readiness probe belongs in the host.
+  `.program-kit/openapi-contracts.json`; the external host remains application-neutral.
+- Core and persistence guidance remains context-owned. No provider-private model, shared `DbContext`,
+  generic repository/store/unit-of-work contract, provider, or readiness probe belongs in the host.

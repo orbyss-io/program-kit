@@ -6,6 +6,7 @@ using Nuplane.Loading.Hosting.Builder;
 using Nuplane.Sources.Directory.Configuration;
 using ProgramKit.Host.Feed;
 using ProgramKit.Host.Shells;
+using ProgramKit.Host.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -32,7 +33,11 @@ builder.Services.AddCShellsAspNetCore(shells => shells
     }));
 
 builder.Services.AddHostedService<EagerShellActivationHostedService>();
+builder.Services.AddProgramKitWebBoundary(configuration, builder.Environment);
 
 var app = builder.Build();
+app.UseProgramKitWebBoundary();
+app.MapProgramKitWebBoundary();
+app.MapOpenApi("/_program-kit/openapi/{documentName}.json");
 app.MapShells();
 app.Run();

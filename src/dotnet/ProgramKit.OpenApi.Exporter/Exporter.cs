@@ -15,11 +15,11 @@ namespace ProgramKit.OpenApiExport;
 internal static class Exporter
 {
     /// <summary>Identifies the exact managed exporter contract implemented by this binary.</summary>
-    private const string ToolVersion = "0.8.6-preview.1";
+    private const string ToolVersion = "0.8.8-preview.1";
 
     /// <summary>Identifies host-owned features that intentionally have no consumer package descriptor.</summary>
     private static readonly IReadOnlySet<string> HostFeatures =
-        new HashSet<string>(["ProgramKitTasks"], StringComparer.Ordinal);
+        new HashSet<string>(["ProgramKitTasks", "ProgramKit.DomainEvents"], StringComparer.Ordinal);
 
     /// <summary>Runs one export and converts deterministic contract failures to PKO200 diagnostics.</summary>
     public static async Task<int> RunAsync(string[] args)

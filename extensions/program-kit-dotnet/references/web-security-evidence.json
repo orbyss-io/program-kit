@@ -192,11 +192,11 @@
     },
     {
       "id": "WEB-C05",
-      "decision": "Validate issuer, audience, signature, lifetime, state, nonce, local return paths, and normalized role claims.",
+      "decision": "Validate issuer, audience, signature, lifetime, state, nonce, local return paths, and normalize provider claims into canonical application permissions.",
       "classification": "normative-protocol-control",
       "threats": ["WEB-T02", "WEB-T04", "WEB-T05"],
       "sources": ["SRC-IETF-RFC9700", "SRC-OIDC-CORE", "SRC-FKS-OAUTH", "SRC-FKS-OIDC"],
-      "verification": ["invalid identity and role inputs grant nothing", "external return URLs are rejected"]
+      "verification": ["invalid identity and unmapped provider inputs grant no permissions", "external return URLs are rejected"]
     },
     {
       "id": "WEB-C06",
@@ -204,7 +204,7 @@
       "classification": "program-kit-secure-default",
       "threats": ["WEB-T05", "WEB-T13"],
       "sources": ["SRC-PK-LOCAL-POLICY"],
-      "verification": ["anonymous request is 401", "wrong-role request is 403", "authorized role succeeds"]
+      "verification": ["anonymous request is 401", "missing-permission request is 403", "authorized permission succeeds"]
     },
     {
       "id": "WEB-C07",
@@ -252,7 +252,7 @@
       "classification": "industry-informed-assurance-control",
       "threats": ["WEB-T12", "WEB-T13"],
       "sources": ["SRC-SLSA", "SRC-PK-LOCAL-POLICY"],
-      "verification": ["pinned assets and lock files are present", "generated authentication state is ignored", "real Keycloak role journeys execute"]
+      "verification": ["pinned assets and lock files are present", "generated authentication state is ignored", "real Keycloak permission-mapping journeys execute"]
     },
     {
       "id": "WEB-C13",
@@ -380,7 +380,7 @@
     {
       "id": "WEB-V2",
       "level": "protocol-and-boundary",
-      "required": ["401/403/authorized contract cases", "issuer/audience/role negative cases", "antiforgery or CORS negative cases", "expiry and logout failure cases"]
+      "required": ["401/403/authorized contract cases", "issuer/audience/permission-mapping negative cases", "antiforgery or CORS negative cases", "expiry and logout failure cases"]
     },
     {
       "id": "WEB-V3",

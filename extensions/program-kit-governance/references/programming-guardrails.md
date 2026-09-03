@@ -12,9 +12,15 @@ These defaults apply unless a narrower rule is justified and documented:
 - Pin tool and dependency versions according to ecosystem practice; automate update discovery but require verification before promotion.
 - Generate SBOM/provenance and perform dependency, secret, static security, and license checks when artifacts are distributed or deployed.
 - Do not use invisible fire-and-forget work. Durable asynchronous work has identity, ownership, observability, retry semantics, and a terminal state.
-- Avoid framework-shaped domain models and generic repository/unit-of-work abstractions that erase domain language.
+- Avoid framework-shaped domain models and generic repository/store/unit-of-work abstractions that
+  erase domain language. Model the smallest cohesive semantic capability; group naturally related
+  methods and split only at real consumer, consistency, security, lifecycle, or replacement boundaries.
 - Organize meaningful changes as complete vertical slices and avoid technical-layer delivery phases.
-- Keep peer modules and features independent; collaborate through owned contracts rather than implementation references or shared stores.
+- Keep peer runtime implementations independent; collaborate through Core-owned semantic
+  capabilities, consumer-owned bridges, immutable events, or accepted published-language Core edges
+  rather than implementation references or shared persistence.
+- Treat in-process domain events as awaited and non-durable. Durable asynchronous delivery requires
+  an explicitly accepted integration-event/outbox design; fire-and-forget is not a bridge.
 - Treat concrete inheritance across feature boundaries as stronger coupling, not an automatic exception. Require an Accepted ADR and an architecture-test allowlist for a genuine feature-family extension.
 - Keep dependency injection and service location at composition boundaries. Business behavior declares explicit constructor dependencies and does not resolve arbitrary services from a container.
 

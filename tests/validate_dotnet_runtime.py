@@ -26,9 +26,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.8.7":
+    if program_version != "0.8.8":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.8.6-preview.1":
+    if runtime_version != "0.8.8-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     validate_package_source_routing(root / "NuGet.config")
@@ -67,6 +67,8 @@ def main() -> int:
     ).read_text(encoding="utf-8")
     managed_versions = {
         "ProgramKit.Analyzers": runtime_version,
+        "ProgramKit.DomainEvents.Abstractions": runtime_version,
+        "ProgramKit.DomainEvents": runtime_version,
         "ProgramKit.Tasks.Abstractions": runtime_version,
         "ProgramKit.Tasks": runtime_version,
         "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11",
@@ -108,26 +110,64 @@ def main() -> int:
     ):
         raise AssertionError("Host image inputs must be digest-pinned and restored in locked mode")
     if "HEALTHCHECK" in dockerfile or "PROGRAMKIT_BUNDLE" in dockerfile:
-        raise AssertionError("The shallow host image must not own application health or release-bundle policy")
+        raise AssertionError("The application-neutral host image must not own application health or release-bundle policy")
     host_root = root / "src/dotnet/ProgramKit.Host"
     project = ElementTree.parse(host_root / "ProgramKit.Host.csproj")
     packages = {item.attrib["Include"] for item in project.iter() if item.tag.endswith("PackageReference")}
-    allowed = {"CShells.AspNetCore", "Nuplane", "Nuplane.Loading", "Nuplane.Sources.Directory"}
+    allowed = {
+        "CShells.AspNetCore",
+        "Microsoft.AspNetCore.Authentication.JwtBearer",
+        "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+        "Microsoft.AspNetCore.OpenApi",
+        "Nuplane",
+        "Nuplane.Loading",
+        "Nuplane.Sources.Directory",
+    }
     if packages != allowed:
-        raise AssertionError(f"ProgramKit.Host is not feature-free: {sorted(packages - allowed)}")
+        raise AssertionError(f"ProgramKit.Host has an unexpected runtime dependency set: {sorted(packages - allowed)}")
     source = "\n".join(
         path.read_text(encoding="utf-8")
         for path in host_root.rglob("*.cs")
         if "obj" not in path.parts
     )
-    for forbidden in ("Npgsql", "ApplicationBundle", "ProgramKitWeb", "MapOpenApi", "health/ready"):
+    for forbidden in ("Npgsql", "ApplicationBundle", "health/ready"):
         if forbidden in source:
             raise AssertionError(f"ProgramKit.Host contains application/release concern: {forbidden}")
-    for required in ("AddNuplane", "AutoloadPackages", "AddCShellsAspNetCore", "MapShells"):
+    for required in (
+        "AddNuplane",
+        "AutoloadPackages",
+        "AddCShellsAspNetCore",
+        "AddProgramKitWebBoundary",
+        "UseProgramKitWebBoundary",
+        "PermissionClaimsTransformation",
+        "PermissionPolicyProvider",
+        'RequireClaim(webOptions.Value.PermissionClaim, permission)',
+        "MapShells",
+    ):
         if required not in source:
-            raise AssertionError(f"ProgramKit.Host is missing shallow-host plumbing: {required}")
+            raise AssertionError(f"ProgramKit.Host is missing application-neutral runtime plumbing: {required}")
+    domain_event_abstractions = ElementTree.parse(
+        root
+        / "src/dotnet/ProgramKit.DomainEvents.Abstractions/ProgramKit.DomainEvents.Abstractions.csproj"
+    )
+    abstraction_packages = {
+        item.attrib["Include"]
+        for item in domain_event_abstractions.iter()
+        if item.tag.endswith("PackageReference")
+    }
+    if abstraction_packages:
+        raise AssertionError(
+            "ProgramKit.DomainEvents.Abstractions must stay free of runtime, DI, transport, and broker dependencies"
+        )
+    abstraction_readme = (
+        root / "src/dotnet/ProgramKit.DomainEvents.Abstractions/README.md"
+    ).read_text(encoding="utf-8")
+    if "do not reference the concrete dispatcher package" not in abstraction_readme:
+        raise AssertionError("Domain-event handlers must remain independent of the concrete dispatcher package")
     for project in (
         "ProgramKit.Host",
+        "ProgramKit.DomainEvents",
+        "ProgramKit.DomainEvents.Abstractions",
         "ProgramKit.Tasks",
         "ProgramKit.Tasks.Abstractions",
         "ProgramKit.Analyzers",

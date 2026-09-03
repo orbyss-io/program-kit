@@ -2,9 +2,9 @@
 
 Persistence is admitted per domain capability and data owner; it is not inferred from a PostgreSQL
 readiness probe or from the presence of a provider props file. The consuming repository selects
-exactly one profile for an owning infrastructure adapter by importing the matching managed props
+exactly one profile for an owning provider package by importing the matching managed props
 file from consumer-owned `Directory.Packages.props` and adding package references only to that
-adapter and its real-provider test project. `none` is the default.
+provider and its real-provider test project. `none` is the default.
 
 | Profile | Stable pins reviewed 2026-09-02 | Selection rule |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ Before plan completion, record all of the following in the feature plan and arti
 manifest. Unresolved answers block tasks and architecture-check:
 
 1. The domain capability that owns the data and why persistence is required.
-2. Aggregate, invariant, unit-of-work, and transaction boundaries.
+2. Aggregate, invariant, semantic atomic-operation, and transaction boundaries.
 3. Consistency, concurrency-token, idempotency, retry, commit-ambiguity, and isolation semantics.
 4. Provider-specific types, collation, case sensitivity, locking, indexing, generated-key, and failure behavior.
 5. Schema/table/migration owner and the production deployment/rollback/forward policy.
@@ -39,12 +39,18 @@ manifest. Unresolved answers block tasks and architecture-check:
 
 ## Architecture and implementation contract
 
-- Domain projects are POCO-only: no EF Core, provider, `DbContext`, migrations, DI, or vendor references.
-- Domain/application-owned ports state the capability needed. The owning feature's infrastructure
-  adapter implements them; do not introduce a generic repository or solution-wide shared `DbContext`.
+- Core projects are POCO-only: no EF Core, provider, `DbContext`, migrations, DI, or vendor references.
+- Core-owned interfaces state cohesive semantic capabilities. One interface may contain multiple
+  naturally related operations, but split it when consumers, consistency, security, optionality,
+  availability, lifecycle, or replacement differs. Do not introduce repositories, stores, units of
+  work, generic CRUD, one-interface-per-method proliferation, or a solution-wide shared `DbContext`.
 - One data owner declares its schema/table and migrations. Cross-owner writes require an Accepted
   transaction/integration decision rather than a shared context.
-- Put every mapping in `IEntityTypeConfiguration<T>` in the infrastructure adapter. Map aggregate
+- Provider-specific persistence records never appear in Core, peer projects, transport contracts,
+  or integration contracts. Map them to business-semantic domain/boundary models inside the provider.
+  Direct mapping of a persistence-ignorant Core POCO is permitted when provider concerns do not shape
+  or escape through it.
+- Put every EF mapping in `IEntityTypeConfiguration<T>` in the provider package. Map aggregate
   roots and owned/value objects deliberately: explicit stable keys, value converters/comparers,
   concurrency tokens, constraints, indexes, column types/lengths, and provider behavior.
 - Register `DbContext` as scoped for a request/unit of work. It is not thread-safe. Pool only after

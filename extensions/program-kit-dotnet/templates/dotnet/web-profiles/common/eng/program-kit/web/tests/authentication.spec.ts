@@ -53,10 +53,10 @@ test('real provider login, refresh, and local logout use the BFF contract', asyn
   await context.close();
 });
 
-test('configured role endpoint distinguishes authorized and wrong-role users', async ({ browser, baseURL }) => {
-  test.skip(!process.env.PROGRAMKIT_ROLE_PROBE_PATH, 'Set PROGRAMKIT_ROLE_PROBE_PATH when the first protected slice is mapped.');
+test('configured permission endpoint distinguishes authorized and unauthorized users', async ({ browser, baseURL }) => {
+  test.skip(!process.env.PROGRAMKIT_PERMISSION_PROBE_PATH, 'Set PROGRAMKIT_PERMISSION_PROBE_PATH when the first protected slice is mapped.');
   if (!baseURL) throw new Error('Playwright baseURL is required.');
-  const path = process.env.PROGRAMKIT_ROLE_PROBE_PATH!;
+  const path = process.env.PROGRAMKIT_PERMISSION_PROBE_PATH!;
   const authorized = await authenticatedContext(browser, baseURL, personas.admin);
   expect((await authorized.request.get(path)).status()).toBe(200);
   await authorized.close();

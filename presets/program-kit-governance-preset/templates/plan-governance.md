@@ -19,12 +19,16 @@ consumer `.Host` project or application `Program.cs`. It must instead name packa
 projects and `ProgramKitFeatureIdentity`, `shells.json` activation, consumer `hostsettings.json`,
 validated `runnable_host.py stage` package closure, and digest-bound external-host release evidence.
 Its `artifact-ownership.json` MUST also contain `runtimeComposition`: accepted architecture
-authority paths, every planned project's exact direct `ProjectReference` and `PackageReference`
-sets, and a binding for every project classified as `runtime-adapter`. Each binding names the
-application-owned port, adapter, registration entry point, and activated feature/project that owns
-composition. Do not infer whether an endpoint feature owns that composition or whether the adapter
-is a separately activated runtime feature; if the accepted dependency graph does not decide, stop
-for an architecture decision before tasks are approved.
+authority paths, every planned project's role and exact direct `ProjectReference` and
+`PackageReference` sets, selected feature identities, and a binding for every provider or bridge.
+Each binding names the semantic capability, its owning Core project, concrete implementation,
+implementing project, registration entry point, and that project's activated feature identity.
+The required `coreReferences` array is empty by default. Every direct Core-to-Core edge needs one
+exact entry naming its `subdomain`, `published-language`, or `shared-kernel` relationship, an
+Accepted decision included among the authorities, and owned architecture-test evidence.
+Do not create `.Feature`, generic `Domain`, `Contracts`, `Application`, or `Infrastructure` layer
+projects. Never make an endpoint implementation reference a persistence provider to manufacture a
+composition path; the external host activates both implementations through `shells.json`.
 Exact npm dependencies require a repository-contained candidate package manifest and current
 `.program-kit/evidence/npm-graph.json` from the strict isolated lockfile-only resolver before the
 plan is implementation-ready.

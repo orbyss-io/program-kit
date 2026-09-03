@@ -242,7 +242,7 @@ def main() -> int:
                     process.kill()
                     process.wait(timeout=10)
 
-    print("Consumer feature package, release closure, and shallow-host activation passed.")
+    print("Consumer feature package, release closure, and application-neutral host activation passed.")
     return 0
 
 

@@ -1,9 +1,14 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/dotnet/ProgramKit.Analyzers/ProgramKit.Analyzers.csproj" />
+    <Project Path="src/dotnet/ProgramKit.DomainEvents.Abstractions/ProgramKit.DomainEvents.Abstractions.csproj" />
+    <Project Path="src/dotnet/ProgramKit.DomainEvents/ProgramKit.DomainEvents.csproj" />
     <Project Path="src/dotnet/ProgramKit.Host/ProgramKit.Host.csproj" />
     <Project Path="src/dotnet/ProgramKit.OpenApi.Exporter/ProgramKit.OpenApi.Exporter.csproj" />
     <Project Path="src/dotnet/ProgramKit.Tasks.Abstractions/ProgramKit.Tasks.Abstractions.csproj" />
     <Project Path="src/dotnet/ProgramKit.Tasks/ProgramKit.Tasks.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/dotnet/ProgramKit.DomainEvents.Probe/ProgramKit.DomainEvents.Probe.csproj" />
   </Folder>
 </Solution>

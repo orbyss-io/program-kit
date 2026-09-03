@@ -9,7 +9,7 @@
     "profiles": { "type": "array", "items": { "enum": ["program-kit", "dotnet", "typescript-vite", "ef-postgresql", "ef-sqlserver", "ef-sqlite"] }, "uniqueItems": true },
     "runtimeComposition": {
       "type": "object",
-      "required": ["authorities", "projects", "bindings"],
+      "required": ["authorities", "projects", "bindings", "coreReferences"],
       "properties": {
         "authorities": {
           "type": "array",
@@ -24,8 +24,12 @@
             "required": ["path", "role", "projectReferences", "packageReferences"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
-              "role": { "enum": ["feature", "application", "domain", "contracts", "runtime-adapter", "test", "other"] },
-              "featureIdentity": { "type": "string", "minLength": 1 },
+              "role": { "enum": ["core", "helper", "implementation", "provider", "bridge", "composition", "test"] },
+              "featureIdentities": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1 }
+              },
               "projectReferences": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
               "packageReferences": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
             },
@@ -36,15 +40,29 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["port", "portProject", "adapter", "adapterProject", "ownerFeature", "ownerProject", "registration"],
+            "required": ["capability", "capabilityProject", "implementation", "implementationProject", "featureIdentity", "registration"],
             "properties": {
-              "port": { "type": "string", "minLength": 1 },
-              "portProject": { "type": "string", "minLength": 1 },
-              "adapter": { "type": "string", "minLength": 1 },
-              "adapterProject": { "type": "string", "minLength": 1 },
-              "ownerFeature": { "type": "string", "minLength": 1 },
-              "ownerProject": { "type": "string", "minLength": 1 },
+              "capability": { "type": "string", "minLength": 1 },
+              "capabilityProject": { "type": "string", "minLength": 1 },
+              "implementation": { "type": "string", "minLength": 1 },
+              "implementationProject": { "type": "string", "minLength": 1 },
+              "featureIdentity": { "type": "string", "minLength": 1 },
               "registration": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "coreReferences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["fromProject", "toProject", "relationship", "decision", "verification"],
+            "properties": {
+              "fromProject": { "type": "string", "minLength": 1 },
+              "toProject": { "type": "string", "minLength": 1 },
+              "relationship": { "enum": ["subdomain", "published-language", "shared-kernel"] },
+              "decision": { "type": "string", "minLength": 1 },
+              "verification": { "type": "string", "minLength": 1 }
             },
             "additionalProperties": false
           }

@@ -35,7 +35,7 @@ jobs:
           expected="v$(tr -d '\r\n' < VERSION)"
           [[ "$GITHUB_REF_NAME" == "$expected" ]] || { echo "Tag must equal $expected" >&2; exit 1; }
           if [[ "$PROGRAMKIT_HOST_IMAGE" != *@sha256:* ]]; then
-            echo "PROGRAMKIT_HOST_IMAGE must name the approved shallow host by digest." >&2
+            echo "PROGRAMKIT_HOST_IMAGE must name the approved application-neutral host by digest." >&2
             exit 1
           fi
 

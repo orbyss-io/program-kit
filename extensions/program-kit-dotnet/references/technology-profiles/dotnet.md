@@ -36,40 +36,58 @@ Apply `modularity-and-contracts.md` and `vertical-slicing.md`. A default solutio
 
 ```text
 external ProgramKit.Host
-  -> packaged Context.Feature.* selected by shells.json
-  -> accepted runtime composition packages
+  -> packaged activatable implementations selected by shells.json
 
-Context.Domain
-  -> .NET and a deliberately accepted SharedKernel only
+Application.Context.Core
+  -> .NET, lightweight framework abstractions, and explicitly accepted Core dependencies only
 
-Context.Contracts
-  -> .NET and a deliberately accepted SharedKernel only
+Application.Context
+Application.Context.Api
+Application.Context.PostgreSql
+Application.Context.Import.Excel
+  -> Application.Context.Core
+  -> capability-specific helper packages when needed
 
-Context.Feature.Name
-  -> Context.Domain
-  -> Context.Contracts
-  -> framework abstraction packages
-  -> feature-local adapters when split into internal projects
+Application.Consumer.Provider
+  -> Application.Consumer.Core
+  -> Application.Provider.Core
+
+Application.Persistence.PostgreSql
+  -> selected per-context PostgreSQL providers as an optional composition preset
 ```
 
 The external host is the composition root and loads the selected feature package closure; the
 consumer repository does not create a host project unless an explicit accepted opt-out selects a
-custom runtime. Peer feature roots do not reference one another. Domain and contracts projects do not reference hosts, features,
-transports, persistence, dependency-injection frameworks, or vendor SDKs.
+custom runtime. A runtime feature is an activation type and stable identity, not a project-name
+layer. Project, package, and namespace names MUST NOT contain a generic `.Feature` segment. Use
+domain language and name an implementation by the behavior, protocol, provider, consumer/provider
+bridge, helper, or composition preset it contributes. A class such as `CatalogFeature` remains
+appropriate inside `PriceCalculator.Catalog`.
 
-For a complex feature family, application, infrastructure, HTTP, and composition projects may be
-split beneath one owned feature boundary. Those are internal parts of that feature, not peer
-features. Record the internal graph and keep infrastructure dependencies pointed toward domain or
-application-owned ports.
+`Application.Context.Core` defines the context's deliberately stable semantic surface: aggregates,
+entities, value objects, domain commands and queries, business result models, invariants, policies,
+evaluators, lifecycle states and transitions, domain events, contributor contracts, registry
+descriptors, and semantic capability interfaces. It excludes CShells activation, DI registration,
+ASP.NET wire types, middleware, EF/provider types, persistence records, migrations, serializers,
+vendor SDKs, and private implementation interfaces. Core must not become a catalogue of every type
+that could possibly be shared.
+
+Do not create `Domain`, `Contracts`, `Application`, or `Infrastructure` projects as generic
+horizontal layers. Create a `.Core` only for an identified context or cohesive subdomain. Put the
+default activatable implementation in the domain-named project, HTTP adaptation in `.Api`, and
+technology/provider behavior in packages such as `.PostgreSql`, `.Import.Excel`, or `.Import.Json`.
+Use `Application.Consumer.Provider` for a consumer-owned cross-context bridge, such as
+`PriceCalculator.Forms.Catalog`, which implements a Forms capability using a Catalog-published
+capability while translating between their semantic models.
 
 Do not create a solution-wide `Core`, `Common`, or `Shared` project as a default dependency sink.
-Prefer bounded-context-specific domain and contracts projects. Keep a SharedKernel small, jointly
-owned, versioned, and backed by an Accepted ADR.
+Keep a genuinely shared semantic kernel small, jointly owned, versioned, and backed by an Accepted
+ADR. Name it for the business language it owns rather than `Shared`.
 
 ## Feature references and inheritance
 
-- Implementations of a shared interface depend on its neutral Domain, Contracts, or Abstractions
-  project; they do not depend on each other.
+- Implementations of a semantic capability depend on its owning `.Core`; they do not depend on each
+  other.
 - A concrete feature-to-feature `ProjectReference` is forbidden by default.
 - Concrete inheritance does not create an exception merely for code reuse.
 - A feature-family extension may reference an explicitly designed abstraction or abstract base only
@@ -83,7 +101,7 @@ owned, versioned, and backed by an Accepted ADR.
 
 ## Program Kit host and CShells profile mapping
 
-When .NET is selected, adopt the shallow `ProgramKit.Host` and its CShells/Nuplane composition model as the
+When .NET is selected, adopt the application-neutral `ProgramKit.Host` and its CShells/Nuplane composition model as the
 automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
 runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
 Record the preview packages and package sources as a material acknowledgement in the assessment
@@ -148,12 +166,18 @@ Endpoints remain thin transport adapters. They may coordinate a simple transacti
 application/domain behavior, but they do not own business invariants. Endpoint filters handle
 transport-cross-cutting concerns only and must not become a hidden domain pipeline.
 
-Register application-wide ASP.NET Core and OpenAPI services through an explicitly selected platform feature,
-not `ProgramKit.Host`. Register feature-owned implementations, validators, policies, and translators through
-the feature composition adapter. Before implementation, record each application-port/runtime-adapter
-binding and its activated composition owner in `artifact-ownership.json.runtimeComposition`. The owner
-may be an endpoint feature or a separate runtime feature only when the accepted capability graph says
-so; Program Kit must surface an undecided ownership path rather than selecting one implicitly.
+The selected Program Kit web runtime configures authentication schemes, middleware ordering, common
+Problem Details, correlation, standard security headers, CORS, and OpenAPI infrastructure from
+host/deployment configuration. Consumer `.Api` packages
+own route groups, wire contracts, mapping, endpoint-specific bounds, OpenAPI metadata, stable
+application permission identities, and authorization/rate-policy requirements. They do not create a
+root `Administration.Api` or `Platform.WebBoundary` package merely to repeat host plumbing.
+
+Register each semantic capability implementation in the activatable package that implements it.
+Before implementation, record the capability, its owning Core project, concrete implementation,
+implementing project, registration entry point, and the implementation project's activated feature
+identity in `artifact-ownership.json.runtimeComposition`. Endpoint implementations never reference
+persistence providers merely to make the external host aware of both packages.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
 
@@ -167,25 +191,51 @@ The exporter tool is restored only when the registry is non-empty; its dependenc
 projects or the application. Generator dependencies remain consumer-selected inside the isolated generator
 package, subject to strict peer/engine resolution evidence.
 
-When the application has an authenticated browser boundary, an explicitly selected web-boundary feature owns
-the versioned contract in `../secure-web-profiles.md`. It registers authentication and authorization,
-claims normalization, antiforgery, CORS, Problem Details, correlation, security headers, identity
-readiness, and middleware ordering exactly once. Feature endpoints declare a named policy or
-explicit anonymous access; they do not select schemes, parse provider claims, implement login or
-logout, or return tokens.
+When the application has an authenticated browser boundary, the selected Program Kit host web
+profile owns the versioned runtime contract in `../secure-web-profiles.md`. Feature endpoints declare
+a stable application permission/policy or explicit anonymous access; they do not select schemes,
+parse provider token shapes, implement login/logout, or return tokens. Deployment configuration maps
+provider roles, scopes, or claims to canonical application permissions. Resource-specific
+authorization handlers stay with the owning `.Api` implementation when generic permission metadata
+cannot express the rule.
 
 ## Domain and persistence rules
 
 - Model aggregates and rich domain behavior only where business complexity warrants them; simple
   slices may use transaction scripts without bypassing ownership and contract rules.
-- Domain types are POCOs and do not depend on ASP.NET Core, CShells, EF Core, serializers, or DI.
-- Persistence mappings and migrations belong to the owning feature/module adapter.
-- A feature does not expose its `DbContext`, repository implementation, entity, or database schema to
-  a peer feature.
-- Generic repository and unit-of-work abstractions are rejected when they erase aggregate or domain
-  language.
-- Cross-module reads use an owned query contract, read model, published event projection, or API.
+- Core domain types are POCOs and do not depend on ASP.NET Core, CShells, EF Core, serializers, or DI.
+- Core declares the smallest cohesive semantic capabilities its consumers need. One interface may
+  contain multiple naturally related methods when they share purpose, consumers, consistency,
+  security, availability, ownership, lifecycle, and replacement. Do not create one interface per
+  method, table, or aggregate.
+- Split a capability when consumers, optionality, security, consistency, performance, evolution, or
+  credible provider support differs. A single provider class may implement multiple capability
+  interfaces.
+- Name capabilities for business intent, such as `IActiveCatalogItemLookup`,
+  `ICatalogRevisionLifecycle`, or `IPriceDashboardQueries`; do not prescribe repositories, stores,
+  units of work, generic CRUD, `DbSet`, or `IQueryable` boundaries.
+- Provider-specific persistence records, mappings, migrations, `DbContext`, SQL/query expressions,
+  cursors, and schema details remain private to the provider package. A provider may instead map a
+  persistence-ignorant Core POCO directly when no storage concern shapes or escapes through it.
+- Cross-context reads use a consumer-owned capability/bridge, an intentionally published Core
+  language, a read projection, or an API. Domains exchange business-semantic boundary models, never
+  persistence records or another context's internal aggregates.
 - Cross-module writes and shared transactions require an Accepted ADR.
+
+## Domain and integration events
+
+Domain-owned Core projects may reference `ProgramKit.DomainEvents.Abstractions` and declare immutable
+past-tense events. Activatable implementations register typed handlers; the selected
+`ProgramKit.DomainEvents` feature supplies awaited, scoped, sequential in-process dispatch. Handler
+order is not a workflow contract. Use an explicit orchestrator when reactions require ordering,
+results, retries, compensation, or lifecycle state.
+
+Use a synchronous capability when the caller needs an answer or must observe failure. Use a domain
+event for a fact with zero or more independent observers. Plain domain-event publication is not
+durable and MUST NOT be described as reliable post-commit, background, broker, or cross-process
+delivery. Those requirements trigger the separately tracked Integration Events design and its
+transactional outbox, at-least-once, idempotency, retry/dead-letter, ordering, versioning, replay,
+retention, security, and observability obligations.
 
 ## Profile evidence
 

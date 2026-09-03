@@ -37,7 +37,8 @@ for a detected browser UI.
 
 The complete executable contract is maintained in the .NET extension's
 `references/secure-web-profiles.md`. The contract owns configuration names and validation, identity
-provider fixtures, claims and role normalization, middleware ordering, response/error conventions,
+provider fixtures, provider-claim-to-application-permission normalization, middleware ordering,
+response/error conventions,
 safe health and telemetry, logout limitations, and the mandatory browser/contract test matrix.
 
 Security claims are governed by `program-kit-web-threat-model-v1` and
@@ -53,8 +54,9 @@ an Accepted ADR with an owner, evidence, risk treatment, and regression coverage
 2. A browser UI with no explicit choice adopts `bff-cookie-v1`.
 3. `spa-pkce-v1` is selected only when intake requires independent static hosting or direct browser
    API access, or an Accepted ADR records why browser-held tokens are justified.
-4. A feature specification may request roles and policies but cannot silently change the selected
-   profile.
+4. A feature specification defines stable application permissions and endpoint policies, but cannot
+   hard-code provider roles or silently change the selected profile. Deployment-owned mappings translate
+   provider roles or scopes into those permissions.
 5. Profile changes are architecture changes with migration and regression evidence, not feature
    implementation details.
 

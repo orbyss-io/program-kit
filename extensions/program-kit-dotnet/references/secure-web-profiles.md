@@ -3,9 +3,10 @@
 ## Purpose
 
 This is an implementation contract, not a menu of unanswered questions. Once a profile is selected,
-features inherit its authentication, authorization, HTTP, configuration, operational, and test
-behavior. A feature normally supplies only route ownership, wire contracts, a named policy or an
-explicit anonymous declaration, and its business outcomes.
+the Program Kit host web runtime supplies its authentication, common authorization, HTTP,
+configuration, operational, and test behavior. An application `.Api` implementation supplies route
+ownership, wire contracts, stable permission/policy metadata or an explicit anonymous declaration,
+and its business outcomes; it does not create an application-root web-boundary feature.
 
 The profile contract version is recorded in `docs/architecture/bootstrap-decisions.json` and
 `.program-kit/web-profile.json`. Program Kit upgrades may add capabilities compatibly; a breaking
@@ -54,7 +55,11 @@ environment or a secret provider and never from committed settings.
 - `Profile`: `None`, `BffCookie`, or `SpaPkce`.
 - `Authority`: HTTPS issuer URL; HTTP is permitted only by an explicit local-development setting.
 - `ClientId`; `ClientSecret` is required only for BFF.
-- `Audience`, `Scopes`, and `RoleClaim` (default `roles`).
+- `Audience`, `Scopes`, provider `RoleClaim` (default `roles`), and canonical `PermissionClaim`
+  (default `permissions`).
+- `RolePermissions` and `ScopePermissions`: deployment-owned exact mappings from provider values to
+  application permissions. Empty mappings grant nothing and are the scaffold default because Program
+  Kit cannot invent an application's permission vocabulary.
 - exact `AllowedOrigins`; wildcards and origin reflection are rejected.
 - callback, signed-out callback, remote-signout, and access-denied paths.
 - discovery/JWKS, remote-authentication, and back-channel time budgets.
@@ -75,8 +80,11 @@ must be tightened or minimally adapted to the actual frontend resource model.
 
 - Issuer, audience, signature, and token lifetime are validated.
 - The stable application subject is the issuer plus `sub`; email and display name are not keys.
-- provider roles are normalized into the configured role claim and then the platform role claim.
-- policies use named requirements such as `role:admin`; features do not parse provider token shapes.
+- provider roles/scopes/claims are normalized into canonical application permissions using
+  deployment-owned mappings; unknown inputs grant nothing. An identity provider may alternatively
+  issue the configured canonical permission claim directly.
+- policies use stable application requirements such as `permission:catalog.administer`; endpoint
+  implementations do not parse provider token shapes or hard-code provider role names.
 - endpoints require authenticated users by fallback policy unless they explicitly opt into anonymous
   access. Login initiation and protocol callback endpoints are the standard anonymous set; any health
   endpoint needs a separately owned contract.
@@ -101,12 +109,14 @@ must be tightened or minimally adapted to the actual frontend resource model.
 
 The local profile supplies a pinned Keycloak container, imported realm, confidential BFF client,
 public SPA-PKCE client, API audience/scope, redirect and post-logout URIs, and three non-production
-personas: authorized user, administrator, and authenticated user without the requested role. Fixture
+personas: authorized user, administrator, and authenticated user without the provider role that maps
+to the requested application permission. Fixture
 credentials are local-test data and are never reused in deployed environments.
 
 ## `bff-cookie-v1`
 
-- The selected web-boundary feature is a confidential OIDC client using authorization code flow and PKCE.
+- The selected Program Kit host web runtime is a confidential OIDC client using authorization code
+  flow and PKCE.
 - Access and refresh tokens remain in a server-side `ITicketStore`; the browser cookie contains only
   an opaque protected session key.
 - Cookie defaults are `HttpOnly=true`, `Secure=Always`, `SameSite=Lax`, a `__Host-` name, no domain,
@@ -114,7 +124,7 @@ credentials are local-test data and are never reused in deployed environments.
   development-only cookie names because browsers reject `__Host-` cookies without `Secure`.
 - `GET /bff/login?returnUrl=/safe/path` starts login. Return URLs must be local and relative.
 - `GET /bff/user` returns a minimal session projection (authentication state, subject, display name,
-  roles, and expiry) and never returns tokens or the raw claims principal.
+  and canonical permissions) and never returns tokens, provider roles, or the raw claims principal.
 - `GET /bff/antiforgery` issues an antiforgery request token for in-memory use by the UI.
 - unsafe same-origin `/api` and `POST /bff/logout` requests require the token in
   `X-CSRF-TOKEN`. Cross-site navigation cannot perform logout.
@@ -166,8 +176,10 @@ not security evidence by itself.
 
 The shared contract suite plus profile-specific browser suite verifies:
 
-1. Anonymous API call is `401`; wrong-role call is `403`; authorized role succeeds.
-2. Roles are derived from the configured provider claim and unknown/missing claims grant nothing.
+1. Anonymous API call is `401`; a principal without the requested application permission receives
+   `403`; a principal with it succeeds.
+2. Permissions are derived from the configured canonical claim or exact provider-role/scope mappings;
+   unknown or missing values grant nothing.
 3. Login returns only to a validated local path.
 4. Browser refresh follows the selected session contract without leaking tokens to persistent
    storage, URLs, logs, or rendered output.

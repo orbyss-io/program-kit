@@ -34,15 +34,28 @@ Confirm:
 - tests are assigned at the cheapest reliable level and include architecture/contract checks when applicable;
 - no implementation task depends on an unresolved blocking ADR;
 - tasks complete thin end-to-end slices before broad horizontal expansion and name the observable outcome they enable;
-- peer modules and features do not reference one another's implementations, persistence, or internal models;
-- interfaces and schemas live at their owned boundaries rather than in speculative shared projects;
+- Core/helper/implementation/provider/bridge/composition edges match the accepted graph; endpoints
+  and peer implementations do not reference providers or internal models;
+- semantic capability interfaces and schemas live at their owned boundaries rather than in
+  speculative shared projects; generic repositories/stores/units of work and automatic
+  one-interface-per-method decomposition are rejected;
+- provider-specific persistence types remain private, and cross-context mappings use published
+  business-semantic boundary models rather than persistence records or internal aggregates;
 - inheritance or typed feature dependencies do not bypass the accepted feature-family exception policy;
 - dependency injection is confined to composition and endpoints or handlers declare explicit dependencies.
-- for external-host .NET work, every selected runtime adapter has an explicitly accepted and
-  `shells.json`-activated composition owner; the exact direct `ProjectReference` and
+- for external-host .NET work, every selected provider or bridge owns an explicitly accepted and
+  `shells.json`-activated capability implementation; the exact direct `ProjectReference` and
   `PackageReference` sets in `artifact-ownership.json.runtimeComposition` match each existing
   project before source work continues. Treat unused declared references as real edges rather than
   relying only on compiled CLR type-dependency tests;
+- activatable project names describe the domain/provider/protocol/bridge/composition capability and
+  never contain `.Feature` or generic horizontal layer markers;
+- direct Core-to-Core dependencies cite the Accepted Context Map/ADR and are used only for stable
+  published language, cohesive subdomains, or a deliberately jointly owned semantic kernel; each
+  exact edge appears in `runtimeComposition.coreReferences` with owned architecture-test evidence;
+- domain-event handlers are awaited and independent; required results/order use a semantic
+  capability or orchestrator. Reliable post-commit/background/cross-process event requirements are
+  blocked on the tracked Integration Events/outbox design;
 - a selected external `ProgramKit.Host` profile has no repository-owned `.Host` project or
   application `Program.cs`; feature identity metadata, `shells.json`, `hostsettings.json`, package
   closure staging, and digest-bound external-host evidence are planned instead;
@@ -52,11 +65,13 @@ Confirm:
   implementation: the managed exporter composes the validated staged feature closure without
   listening or running shell initializers, then normalization/compatibility, an isolated generator
   lockfile, and the application TypeScript compile run in that order;
-- authenticated web tasks consume the selected secure web profile rather than inventing schemes,
+- authenticated web tasks consume the selected Program Kit host web profile rather than inventing schemes,
   claims mapping, session/refresh/logout behavior, runtime keys, CORS/CSP, denial bodies, or identity
-  test fixtures inside a feature slice;
-- role-protected endpoints have provider-backed contract evidence for anonymous `401`, wrong-role
-  `403`, and authorized success, plus the profile's mandatory Playwright journey.
+  test fixtures inside a feature slice. Each `.Api` project puts stable application
+  permission/policy metadata on the endpoints it owns;
+- permission-protected endpoints have provider-backed contract evidence for anonymous `401`,
+  missing-permission `403`, and authorized success, including negative provider-role/scope mapping
+  cases and the profile's mandatory Playwright journey.
 - security-sensitive web work traces its affected `WEB-C01` through `WEB-C13` controls and does not
   exceed the claims of `program-kit-web-threat-model-v1` or
   `program-kit-web-security-evidence-v1`;

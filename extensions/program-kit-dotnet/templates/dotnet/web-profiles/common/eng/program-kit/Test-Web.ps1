@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$BaseUrl = 'http://localhost:5000',
-    [string]$RoleProbePath = $env:PROGRAMKIT_ROLE_PROBE_PATH
+    [string]$PermissionProbePath = $env:PROGRAMKIT_PERMISSION_PROBE_PATH
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,7 +18,7 @@ try {
     python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 600 npm -- exec -- playwright install --with-deps chromium
     if ($LASTEXITCODE -ne 0) { throw 'Playwright browser installation failed.' }
     $env:PROGRAMKIT_BASE_URL = $BaseUrl
-    $env:PROGRAMKIT_ROLE_PROBE_PATH = $RoleProbePath
+    $env:PROGRAMKIT_PERMISSION_PROBE_PATH = $PermissionProbePath
     $viteConfig = $env:PROGRAMKIT_VITE_CONFIG
     if ($viteConfig) {
         python (Join-Path $suite 'verify_spa_security.py') --vite-config $viteConfig

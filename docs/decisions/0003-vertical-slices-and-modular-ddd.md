@@ -14,8 +14,12 @@ governance hooks without delivering an end-to-end outcome.
 
 Use vertical slices as the default delivery decomposition. Each meaningful slice follows an actor,
 trigger, or intent to an observable verified outcome. Strategic DDD defines bounded contexts and
-language ownership proportionally; modules own contracts and data; runtime features compose
-implementations without direct peer implementation references.
+language ownership proportionally; semantic Core packages own stable language and capabilities;
+runtime features activate named implementations without direct peer implementation references.
+
+ADR-0006 supersedes the earlier technology-profile interpretation that permitted generic
+`Domain`/`Contracts`/`Application`/`Infrastructure`/`Feature.*` project layers. It preserves this
+decision's vertical-slice and dependency principles while making the package model explicit.
 
 Concrete inheritance is not an automatic feature-reference exception. A genuine feature-family
 extension requires shared ownership and release lifecycle, an explicitly designed extension

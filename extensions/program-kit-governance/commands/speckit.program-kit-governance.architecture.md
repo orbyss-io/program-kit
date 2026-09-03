@@ -78,9 +78,17 @@ The architecture baseline must also define:
 
 - the bounded-context map and ubiquitous language boundaries;
 - module and feature ownership, public contracts, data ownership, and allowed dependency graph;
+- Core/helper/implementation/provider/bridge/composition roles, semantic capability ownership, and
+  selected runtime feature identities without layer-marker project names;
 - a candidate slice catalog using the contract in `references/vertical-slicing.md`;
 - the distinction between compile-time modules, runtime features, shells, and endpoints;
 - shared-kernel and feature-family extension policies, including exact Accepted exceptions;
+- the cross-context decision rule for bridges, events, orchestrators, and deliberate Core-to-Core
+  published-language/subdomain/shared-kernel edges;
+- domain-event ownership and delivery semantics, plus an explicit Integration Events/outbox gate for
+  every durable post-commit, background, broker, or cross-process requirement;
+- host web-runtime versus `.Api` endpoint ownership, including canonical permission identities and
+  provider-claim mapping boundaries;
 - how the first specification delivers an observable vertical slice rather than technical layers.
 
 `docs/architecture/specification-roadmap.md` is the sole authority for `Candidate`, `Blocked`,
@@ -103,7 +111,7 @@ Resolve the decision backlog through focused design tasks before implementation 
 Architecture documents must clearly distinguish facts found in the initial design, derived constraints, proposals, accepted decisions, and unresolved questions.
 
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
-bootstrap-baseline decision must adopt the shallow `ProgramKit.Host` and runnable-host release model as
+bootstrap-baseline decision must adopt the application-neutral `ProgramKit.Host` and runnable-host release model as
 Accepted. Do not scaffold or restore packages during this command.
 
 When the decision register selects a browser UI, the architecture runtime, deployment,

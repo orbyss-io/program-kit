@@ -68,7 +68,7 @@ activation is not valid immediate verification evidence.
 
 ## .NET default
 
-When .NET is selected, the external shallow `ProgramKit.Host` and runnable-host release model are the
+When .NET is selected, the external application-neutral `ProgramKit.Host` and runnable-host release model are the
 automatic runtime default. Consumer repositories create packable feature projects and activation,
 configuration, package-closure, and release evidence—not a custom `.Host` project or application
 `Program.cs`. Adopt this model unless the initial design explicitly opts out. An opt-out records the alternate

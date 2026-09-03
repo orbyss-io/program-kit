@@ -13,7 +13,30 @@ from pathlib import Path, PurePosixPath
 OWNERSHIP = {"managed", "scaffold-once", "consumer-owned", "generated", "evidence"}
 CLASSIFICATION = {"public", "internal", "confidential", "restricted", "secret"}
 LIFECYCLE = {"source", "generated", "ephemeral", "retained", "replaced", "deployment"}
-RUNTIME_PROJECT_ROLES = {"feature", "application", "domain", "contracts", "runtime-adapter", "test", "other"}
+RUNTIME_PROJECT_ROLES = {"core", "helper", "implementation", "provider", "bridge", "composition", "test"}
+ACTIVATABLE_PROJECT_ROLES = {"implementation", "provider", "bridge", "composition"}
+CAPABILITY_IMPLEMENTATION_ROLES = {"implementation", "provider", "bridge"}
+ALLOWED_ROLE_REFERENCES = {
+    "core": {"core"},
+    "helper": {"core", "helper"},
+    "implementation": {"core", "helper"},
+    "provider": {"core", "helper"},
+    "bridge": {"core", "helper"},
+    "composition": {"core", "helper", "implementation", "provider", "bridge", "composition"},
+    "test": RUNTIME_PROJECT_ROLES,
+}
+LEGACY_PROJECT_MARKERS = {"feature", "domain", "contracts", "application", "infrastructure"}
+FORBIDDEN_CORE_PACKAGE_PREFIXES = (
+    "cshells",
+    "nuplane",
+    "microsoft.aspnetcore",
+    "microsoft.entityframeworkcore",
+    "microsoft.extensions.dependencyinjection",
+    "newtonsoft.json",
+    "npgsql",
+    "microsoft.data.sqlclient",
+    "system.text.json",
+)
 CONVENTIONS = {
     "program-kit": {"spec.md", "plan.md", "tasks.md", "research.md", "data-model.md", "quickstart.md"},
     "dotnet": {"*.sln", "*.slnx", "src/**/*.csproj", "tests/**/*.csproj", "Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props"},
@@ -330,16 +353,27 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
         raise ValueError(
             "PKA015 external-host .NET planning must declare runtimeComposition in "
             "artifact-ownership.json; name the accepted authority, direct project/package graph, "
-            "and the activated owner of every runtime-adapter binding."
+            "and the activated implementation of every semantic capability binding."
         )
     authorities = composition.get("authorities")
     projects = composition.get("projects")
     bindings = composition.get("bindings")
-    if not isinstance(authorities, list) or not authorities or not isinstance(projects, list) or not isinstance(bindings, list):
-        raise ValueError("PKA015 runtimeComposition requires non-empty authorities plus projects and bindings arrays")
+    core_references = composition.get("coreReferences")
+    if (
+        not isinstance(authorities, list)
+        or not authorities
+        or not isinstance(projects, list)
+        or not isinstance(bindings, list)
+        or not isinstance(core_references, list)
+    ):
+        raise ValueError(
+            "PKA015 runtimeComposition requires non-empty authorities plus projects, bindings, "
+            "and coreReferences arrays"
+        )
 
     root = repository_root(feature_dir)
     errors: list[str] = []
+    normalized_authorities: set[str] = set()
     for authority in authorities:
         try:
             authority_path = normalize(str(authority))
@@ -348,6 +382,7 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
             continue
         if not (root / authority_path).is_file():
             errors.append(f"PKA015 runtime composition authority is missing: {authority_path}")
+        normalized_authorities.add(authority_path)
 
     declared_artifact_projects = {
         normalize(str(entry["path"]))
@@ -356,7 +391,7 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
     }
     declared_projects: dict[str, dict] = {}
     identities: dict[str, str] = {}
-    adapter_projects: set[str] = set()
+    capability_implementation_projects: set[str] = set()
     for project in projects:
         if not isinstance(project, dict):
             errors.append("PKA015 each runtimeComposition project must be an object")
@@ -373,6 +408,13 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
             errors.append(f"PKA015 runtime composition project is not owned by the manifest: {path}")
         if project.get("role") not in RUNTIME_PROJECT_ROLES:
             errors.append(f"PKA015 {path} has an invalid runtime composition role: {project.get('role')!r}")
+        project_name_parts = {part.lower() for part in Path(path).stem.split(".")}
+        legacy_parts = sorted(project_name_parts & LEGACY_PROJECT_MARKERS)
+        if legacy_parts:
+            errors.append(
+                f"PKA015 {path} uses layer-marker project name(s) {legacy_parts}; use a domain-specific "
+                ".Core project or name the implementation, provider, protocol, bridge, helper, or composition capability"
+            )
         project_refs = project.get("projectReferences")
         package_refs = project.get("packageReferences")
         if not isinstance(project_refs, list) or not isinstance(package_refs, list):
@@ -392,10 +434,34 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
             "packageReferences": {str(value) for value in package_refs},
         }
         declared_projects[path] = normalized_project
-        if project.get("role") == "runtime-adapter":
-            adapter_projects.add(path)
-        identity = project.get("featureIdentity")
-        if identity:
+        role = str(project.get("role", ""))
+        project_stem = Path(path).stem
+        if role == "core" and not project_stem.endswith(".Core"):
+            errors.append(f"PKA015 core project {path} must use the domain-specific .Core suffix")
+        if role != "core" and project_stem.endswith(".Core"):
+            errors.append(f"PKA015 non-core project {path} cannot use the .Core suffix")
+        if role == "core":
+            for package_reference in normalized_project["packageReferences"]:
+                package_id = package_reference.lower()
+                if package_id == "programkit.domainevents" or package_id.startswith(FORBIDDEN_CORE_PACKAGE_PREFIXES):
+                    errors.append(
+                        f"PKA015 Core project {path} references runtime/DI/transport/persistence/serialization "
+                        f"package {package_reference}; move that concern to a named implementation/provider "
+                        "and keep only deliberately lightweight abstractions in Core"
+                    )
+        if role in {"provider", "bridge"}:
+            capability_implementation_projects.add(path)
+        feature_identities = project.get("featureIdentities", [])
+        if not isinstance(feature_identities, list):
+            errors.append(f"PKA015 {path} featureIdentities must be an array")
+            feature_identities = []
+        if role in ACTIVATABLE_PROJECT_ROLES and not feature_identities:
+            errors.append(f"PKA015 activatable {role} project {path} must declare featureIdentities")
+        if role not in ACTIVATABLE_PROJECT_ROLES and feature_identities:
+            errors.append(f"PKA015 non-activatable {role} project {path} cannot declare featureIdentities")
+        if len({str(value) for value in feature_identities}) != len(feature_identities):
+            errors.append(f"PKA015 {path} contains duplicate feature identities")
+        for identity in feature_identities:
             identity_value = str(identity)
             if identity_value in identities:
                 errors.append(f"PKA015 duplicate ProgramKitFeatureIdentity owner: {identity_value}")
@@ -407,56 +473,119 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
             "PKA015 runtime composition omits planned project(s): " + ", ".join(missing_projects)
         )
 
-    bound_adapters: set[str] = set()
+    bound_implementations: set[str] = set()
     activated = activated_feature_identities(root)
     for binding in bindings:
         if not isinstance(binding, dict):
-            errors.append("PKA015 each runtime adapter binding must be an object")
+            errors.append("PKA015 each semantic capability binding must be an object")
             continue
         try:
-            port_project = normalize(str(binding.get("portProject", "")))
-            adapter_project = normalize(str(binding.get("adapterProject", "")))
-            owner_project = normalize(str(binding.get("ownerProject", "")))
+            capability_project = normalize(str(binding.get("capabilityProject", "")))
+            implementation_project = normalize(str(binding.get("implementationProject", "")))
         except ValueError as error:
             errors.append(str(error).replace("PKA001", "PKA015", 1))
             continue
-        owner_feature = str(binding.get("ownerFeature", ""))
-        if port_project not in declared_projects or adapter_project not in declared_projects or owner_project not in declared_projects:
+        feature_identity = str(binding.get("featureIdentity", ""))
+        if capability_project not in declared_projects or implementation_project not in declared_projects:
             errors.append(
                 "PKA015 binding projects must all exist in runtimeComposition.projects: "
-                f"{port_project}, {adapter_project}, {owner_project}"
+                f"{capability_project}, {implementation_project}"
             )
-        if adapter_project not in adapter_projects:
-            errors.append(f"PKA015 binding adapterProject is not classified runtime-adapter: {adapter_project}")
-        else:
-            bound_adapters.add(adapter_project)
-        if not owner_feature or identities.get(owner_feature) != owner_project:
+        capability = declared_projects.get(capability_project)
+        if capability is not None and capability.get("role") != "core":
             errors.append(
-                f"PKA015 binding ownerFeature {owner_feature!r} must identify ownerProject {owner_project}"
+                f"PKA015 semantic capability project {capability_project} must be classified core"
             )
-        if owner_feature and owner_feature not in activated:
+        implementation = declared_projects.get(implementation_project)
+        if implementation is not None and implementation.get("role") not in CAPABILITY_IMPLEMENTATION_ROLES:
             errors.append(
-                f"PKA015 runtime adapter binding has no activated owner in shells.json: {owner_feature}"
+                f"PKA015 capability implementation {implementation_project} must be classified "
+                "implementation, provider, or bridge"
             )
-        owner = declared_projects.get(owner_project)
-        if owner is not None and owner_project != adapter_project and adapter_project not in owner["projectReferences"]:
+        elif implementation is not None:
+            bound_implementations.add(implementation_project)
+        if not feature_identity or identities.get(feature_identity) != implementation_project:
             errors.append(
-                f"PKA015 composition owner {owner_project} has no declared direct path to runtime adapter {adapter_project}"
+                f"PKA015 binding featureIdentity {feature_identity!r} must be owned by "
+                f"implementationProject {implementation_project}"
             )
-        adapter = declared_projects.get(adapter_project)
-        if adapter is not None and adapter_project != port_project and port_project not in adapter["projectReferences"]:
+        if feature_identity and feature_identity not in activated:
             errors.append(
-                f"PKA015 runtime adapter {adapter_project} has no declared direct path to its owned port {port_project}"
+                f"PKA015 semantic capability binding has no activated implementation in shells.json: {feature_identity}"
             )
-        if not str(binding.get("port", "")).strip() or not str(binding.get("adapter", "")).strip() or not str(binding.get("registration", "")).strip():
-            errors.append("PKA015 each binding must name its port, adapter, and registration entry point")
+        if implementation is not None and implementation_project != capability_project and capability_project not in implementation["projectReferences"]:
+            errors.append(
+                f"PKA015 capability implementation {implementation_project} has no declared direct path "
+                f"to capability project {capability_project}"
+            )
+        if not str(binding.get("capability", "")).strip() or not str(binding.get("implementation", "")).strip() or not str(binding.get("registration", "")).strip():
+            errors.append("PKA015 each binding must name its capability, implementation, and registration entry point")
 
-    unbound = sorted(adapter_projects - bound_adapters)
+    unbound = sorted(capability_implementation_projects - bound_implementations)
     if unbound:
         errors.append(
-            "PKA015 selected runtime-adapter project(s) have no explicit activated composition owner: "
+            "PKA015 selected provider or bridge project(s) have no explicit activated capability binding: "
             + ", ".join(unbound)
         )
+
+    declared_core_edges: set[tuple[str, str]] = set()
+    for core_reference in core_references:
+        if not isinstance(core_reference, dict):
+            errors.append("PKA015 each direct Core reference decision must be an object")
+            continue
+        try:
+            source = normalize(str(core_reference.get("fromProject", "")))
+            target = normalize(str(core_reference.get("toProject", "")))
+            decision = normalize(str(core_reference.get("decision", "")))
+            verification = normalize(str(core_reference.get("verification", "")))
+        except ValueError as error:
+            errors.append(str(error).replace("PKA001", "PKA015", 1))
+            continue
+        edge = (source, target)
+        if edge in declared_core_edges:
+            errors.append(f"PKA015 duplicate direct Core reference decision: {source} -> {target}")
+        declared_core_edges.add(edge)
+        source_project = declared_projects.get(source)
+        target_project = declared_projects.get(target)
+        if source_project is None or target_project is None:
+            errors.append(f"PKA015 direct Core reference projects must be declared: {source}, {target}")
+            continue
+        if source_project.get("role") != "core" or target_project.get("role") != "core":
+            errors.append(f"PKA015 direct Core reference decision must connect two core projects: {source} -> {target}")
+        if target not in source_project["projectReferences"]:
+            errors.append(f"PKA015 direct Core reference decision has no matching ProjectReference: {source} -> {target}")
+        if decision not in normalized_authorities:
+            errors.append(f"PKA015 direct Core reference decision is not a runtime composition authority: {decision}")
+        if matches(verification, manifest) is None:
+            errors.append(f"PKA015 direct Core reference verification is not owned by the manifest: {verification}")
+
+    actual_core_edges: set[tuple[str, str]] = set()
+    for path, project in declared_projects.items():
+        role = str(project.get("role", ""))
+        allowed = ALLOWED_ROLE_REFERENCES.get(role, set())
+        for reference in project["projectReferences"]:
+            target = declared_projects.get(reference)
+            if target is None:
+                errors.append(f"PKA015 {path} references undeclared runtime composition project {reference}")
+                continue
+            target_role = str(target.get("role", ""))
+            if role == "core" and target_role == "core":
+                actual_core_edges.add((path, reference))
+            if target_role not in allowed:
+                errors.append(
+                    f"PKA015 forbidden {role}-to-{target_role} ProjectReference: {path} -> {reference}; "
+                    "only composition projects may reference runtime implementations/providers/bridges"
+                )
+
+    undecided_core_edges = sorted(actual_core_edges - declared_core_edges)
+    stale_core_decisions = sorted(declared_core_edges - actual_core_edges)
+    for source, target in undecided_core_edges:
+        errors.append(
+            f"PKA015 direct Core-to-Core reference requires an accepted subdomain, published-language, "
+            f"or shared-kernel decision and architecture-test evidence: {source} -> {target}"
+        )
+    for source, target in stale_core_decisions:
+        errors.append(f"PKA015 stale direct Core reference decision has no graph edge: {source} -> {target}")
 
     for path, project in declared_projects.items():
         project_path = root / path
