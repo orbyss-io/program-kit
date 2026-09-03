@@ -111,10 +111,12 @@ contract checks the mandatory governance sections and selected runtime profile; 
   .program-kit/evidence/npm-graph.json` before approving a plan or task set that adopts such a graph.
 - An externally consumed .NET OpenAPI contract is implementation-ready only when
   `.program-kit/openapi-contracts.json` registers a complete producer-first chain. Require the exact
-  managed `ProgramKit.OpenApi.Exporter` pin, the validated `artifacts/runnable-host/packages`
+  managed `ProgramKit.OpenApi.Exporter` and `.oasdiff-version` pins, the validated `artifacts/runnable-host/packages`
   feature closure, side-effect-free endpoint composition, raw and normalized/baseline artifacts,
   pinned compatibility checking, an isolated generator package/lockfile, generated types, and the
   consuming application's own TypeScript compile. A plan that merely names a presumed generated
   JSON file is incomplete and must be rejected before implementation.
+  `eng/program-kit/openapi_init.py` is the supported empty-registry transition; the managed defaults
+  do not require another tooling ADR unless the consumer proposes an override.
 
 Return a structured report of errors, warnings, new decisions, and required artifact updates. Errors block the lifecycle step. Never silently edit an Accepted ADR to make a conflict disappear.

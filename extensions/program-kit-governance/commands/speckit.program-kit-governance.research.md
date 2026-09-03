@@ -74,6 +74,9 @@ Evaluate API Evolve when the project introduces a versioned external API, event,
 When .NET modularity or multi-tenancy is present, evaluate CShells and CShells.AspNetCore against the
 triggers and risks in the .NET technology profile. When ASP.NET Core HTTP endpoints are present,
 evaluate built-in Minimal APIs and OpenAPI support before adding an endpoint framework.
+For the accepted Program Kit .NET OpenAPI chain, treat the managed exporter, `.oasdiff-version`, and
+isolated generator defaults as adopted; do not describe oasdiff as an unresolved candidate or create
+a tooling ADR unless the project proposes an override.
 
 For a selected .NET profile, `ProgramKit.Host` is already the Program Kit default unless intake
 explicitly opted out. Evaluate compatibility and disclose the preview dependency/source risk; do

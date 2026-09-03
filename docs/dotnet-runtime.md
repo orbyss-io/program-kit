@@ -87,10 +87,14 @@ secret-free Nuplane/CShells configuration with hashes. `ProgramKit.Host` never c
 
 Managed OpenAPI verification separately remains a build concern. A consumer registers contract files in
 `.program-kit/openapi-contracts.json`; an empty registry does nothing and restores no exporter or npm
-dependencies. Each registered contract selects the managed exporter version, shell and contributing feature
+dependencies. Initialize the first entry with `eng/program-kit/openapi_init.py`; it reads the managed
+exporter, oasdiff, and isolated TypeScript-generator defaults and creates the registry entry and contract
+paths without requiring a tooling ADR. Each registered contract selects the managed exporter version, shell and contributing feature
 identities, the validated `artifacts/runnable-host/packages` closure, raw/canonical/baseline outputs, pinned
 `oasdiff`, an isolated generator package/lock/script/output, and the consuming application package/lock/type
-check. `Build.ps1` executes that chain after staging and writes hash-bound evidence. Use
+check. The initializer creates the pinned generator `package.json` and prints the exact managed-npm command
+that creates its lockfile; it never edits the application package graph. `Build.ps1` executes the completed
+chain after staging and writes hash-bound evidence. Use
 `-InitializeOpenApiBaseline` only for the reviewed first baseline and `-UpdateOpenApiArtifact` only for a
 reviewed generated-contract revision.
 
@@ -98,10 +102,19 @@ reviewed generated-contract revision.
 `programkit-openapi-export` command). Consumers do not install it globally or invoke its project directly:
 the synchronized local tool manifest pins it, and `openapi_pipeline.py` restores and runs that exact local
 version only when at least one OpenAPI contract is registered.
+The managed `.oasdiff-version` pin is `1.29.1`. `toolchain.py --include-openapi` resolves that exact
+binary and records its absolute command. If it is not installed, pass a separately downloaded and
+reviewed official binary to `toolchain.py --remediate --approve --include-openapi
+--oasdiff-binary <path>`; Program Kit verifies its reported version and copies it into the
+repository-contained `.program-kit/tools` directory. Contracts cannot select a different comparator
+without a future managed-toolchain-version override/profile revision. The generator stays in its own
+package and lockfile, so its TypeScript peer range does not constrain the application TypeScript graph.
 
 ## Secure web and persistence profiles
 
-SPA serving headers remain in the Vite/static-server adapter. The accepted web profile configures
+SPA serving headers remain in the Vite/static-server adapter. The SPA process itself is consumer-owned
+and may be added through `Dev.ps1 -ComposeOverlay`; the managed application Compose file owns only the
+API host. The accepted web profile configures
 ProgramKit.Host authentication, common authorization, and HTTP plumbing from `hostsettings.json`;
 consumer `.Api` packages own endpoint permission metadata and custom protocol behavior. Production
 HSTS belongs to the TLS terminator.

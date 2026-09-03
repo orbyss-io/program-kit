@@ -665,6 +665,13 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
         ) from error
     if not isinstance(exporter_version, str) or not exporter_version:
         raise ValueError("PKA014 managed ProgramKit.OpenApi.Exporter version pin is invalid")
+    oasdiff_pin_path = root / ".oasdiff-version"
+    try:
+        oasdiff_version = oasdiff_pin_path.read_text(encoding="utf-8").strip().removeprefix("v")
+    except OSError as error:
+        raise ValueError(f"PKA014 managed oasdiff pin is missing at {oasdiff_pin_path}: {error}") from error
+    if not oasdiff_version:
+        raise ValueError("PKA014 managed oasdiff version pin is invalid")
     registry_path = root / ".program-kit/openapi-contracts.json"
     try:
         registry = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -739,10 +746,12 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
         if (
             not isinstance(compatibility, dict)
             or not isinstance(compatibility.get("oasdiffVersion"), str)
-            or not compatibility.get("oasdiffVersion")
+            or compatibility.get("oasdiffVersion") != oasdiff_version
             or "approval" not in compatibility
         ):
-            raise ValueError("PKA014 OpenAPI compatibility must pin oasdiff and an approval artifact")
+            raise ValueError(
+                f"PKA014 OpenAPI compatibility must use managed oasdiff {oasdiff_version} and an approval artifact"
+            )
 
 
 def main() -> int:

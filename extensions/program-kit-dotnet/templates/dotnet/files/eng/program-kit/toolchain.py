@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -16,18 +18,53 @@ def configure_utf8() -> None:
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
 
 
-def required_versions(repository: Path) -> dict[str, str]:
+def required_versions(repository: Path, include_openapi: bool = False) -> dict[str, str]:
     global_json = json.loads((repository / "global.json").read_text(encoding="utf-8"))
     dotnet = global_json.get("sdk", {}).get("version")
     node = (repository / ".nvmrc").read_text(encoding="utf-8").strip().removeprefix("v")
     npm = (repository / ".npm-version").read_text(encoding="utf-8").strip().removeprefix("v")
     if not isinstance(dotnet, str) or not dotnet or not node or not npm:
         raise ValueError("PKT001 managed global.json, .nvmrc, or .npm-version has no exact toolchain version.")
-    return {"dotnet": dotnet, "node": node, "npm": npm}
+    required = {"dotnet": dotnet, "node": node, "npm": npm}
+    if include_openapi:
+        oasdiff = (repository / ".oasdiff-version").read_text(encoding="utf-8").strip().removeprefix("v")
+        if not oasdiff:
+            raise ValueError("PKT001 managed .oasdiff-version has no exact tool version.")
+        required["oasdiff"] = oasdiff
+    return required
 
 
 def run_version(command: list[str], repository: Path) -> str | None:
     return js_toolchain.version(command, repository)
+
+
+def oasdiff_version(command: Path, repository: Path) -> str | None:
+    try:
+        result = subprocess.run(
+            [str(command), "version"], cwd=repository, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", check=False, timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    match = re.search(r"\bv?(\d+\.\d+\.\d+)\b", result.stdout + result.stderr)
+    return match.group(1) if match else None
+
+
+def resolve_oasdiff(repository: Path, required: str, requested: str) -> tuple[Path | None, str | None]:
+    names = ("oasdiff.exe", "oasdiff.cmd", "oasdiff.bat") if os.name == "nt" else ("oasdiff",)
+    candidates = [repository / ".program-kit/tools/oasdiff" / required / name for name in names]
+    requested_path = js_toolchain.executable(requested)
+    if requested_path:
+        candidates.append(requested_path)
+    actual: str | None = None
+    for candidate in candidates:
+        if candidate.is_file():
+            actual = oasdiff_version(candidate.resolve(), repository)
+            if actual == required:
+                return candidate.resolve(), actual
+    return None, actual
 
 
 def resolve(
@@ -37,6 +74,7 @@ def resolve(
     node_command: str,
     npm_command: str,
     manager: str,
+    oasdiff_command: str,
 ) -> tuple[dict[str, str | None], dict[str, list[str]]]:
     dotnet = js_toolchain.executable(dotnet_command)
     dotnet_version = run_version([str(dotnet)], repository) if dotnet else None
@@ -61,7 +99,17 @@ def resolve(
         candidates = js_toolchain.npm_candidates(node, npm_command)
         if candidates:
             commands["npm"] = candidates[0]
-    return {"dotnet": dotnet_version, "node": node_version, "npm": npm_version}, commands
+    installed: dict[str, str | None] = {
+        "dotnet": dotnet_version,
+        "node": node_version,
+        "npm": npm_version,
+    }
+    if "oasdiff" in required:
+        oasdiff, resolved_version = resolve_oasdiff(repository, required["oasdiff"], oasdiff_command)
+        installed["oasdiff"] = resolved_version
+        if oasdiff:
+            commands["oasdiff"] = [str(oasdiff)]
+    return installed, commands
 
 
 def write_evidence(
@@ -163,6 +211,26 @@ def install_npm(repository: Path, node: Path, required: str, requested: str) -> 
         raise ValueError("PKT019 approved npm installation failed; inspect the visible TLS/cache diagnostic.")
 
 
+def install_oasdiff(repository: Path, version: str, binary: str) -> None:
+    if not binary:
+        raise ValueError(
+            "PKT020 no reviewed oasdiff binary was supplied. Download the official binary for the managed "
+            f"{version} pin, verify its release provenance, and pass --oasdiff-binary."
+        )
+    source = Path(binary).resolve()
+    if not source.is_file() or oasdiff_version(source, repository) != version:
+        raise ValueError(f"PKT021 supplied oasdiff binary is missing or does not report version {version}")
+    suffix = source.suffix.casefold() if os.name == "nt" else ""
+    if os.name == "nt" and suffix not in {".exe", ".cmd", ".bat"}:
+        raise ValueError("PKT021 supplied Windows oasdiff binary must be an .exe, .cmd, or .bat file")
+    name = "oasdiff" + suffix if os.name == "nt" else "oasdiff"
+    destination = repository / ".program-kit/tools/oasdiff" / version / name
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, destination)
+    if os.name != "nt":
+        destination.chmod(0o755)
+
+
 def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description="Resolve and approval-gate the exact Program Kit toolchain.")
@@ -173,18 +241,22 @@ def main() -> int:
     parser.add_argument("--decline", action="store_true")
     parser.add_argument("--dotnet-installer", default="")
     parser.add_argument("--node-manager", choices=("auto", "fnm", "nvm", "volta"), default="auto")
+    parser.add_argument("--include-openapi", action="store_true")
+    parser.add_argument("--oasdiff-binary", default="")
     parser.add_argument("--dotnet-command", default="dotnet", help=argparse.SUPPRESS)
     parser.add_argument("--node-command", default="node", help=argparse.SUPPRESS)
     parser.add_argument("--npm-command", default="", help=argparse.SUPPRESS)
+    parser.add_argument("--oasdiff-command", default="oasdiff", help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
         repository = Path(args.repository).resolve()
         evidence = Path(args.evidence)
         if not evidence.is_absolute():
             evidence = repository / evidence
-        required = required_versions(repository)
+        required = required_versions(repository, args.include_openapi)
         installed, commands = resolve(
-            repository, required, args.dotnet_command, args.node_command, args.npm_command, args.node_manager
+            repository, required, args.dotnet_command, args.node_command, args.npm_command,
+            args.node_manager, args.oasdiff_command
         )
         missing = mismatch(required, installed)
         if not missing:
@@ -211,7 +283,9 @@ def main() -> int:
         if args.decline:
             print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
             return 3
-        approved = args.approve or input("Install the exact missing SDK/Node/npm versions side-by-side? [y/N] ").strip().lower() == "y"
+        approved = args.approve or input(
+            "Install the exact missing SDK/Node/npm tools and/or stage the reviewed oasdiff binary? [y/N] "
+        ).strip().lower() == "y"
         if not approved:
             print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
             return 3
@@ -219,8 +293,11 @@ def main() -> int:
             install_dotnet(required["dotnet"], args.dotnet_installer)
         if "node" in missing:
             install_node(required["node"], args.node_manager)
+        if "oasdiff" in missing:
+            install_oasdiff(repository, required["oasdiff"], args.oasdiff_binary)
         interim, interim_commands = resolve(
-            repository, required, args.dotnet_command, args.node_command, args.npm_command, args.node_manager
+            repository, required, args.dotnet_command, args.node_command, args.npm_command,
+            args.node_manager, args.oasdiff_command
         )
         if "npm" in mismatch(required, interim):
             node_values = interim_commands.get("node")
@@ -228,7 +305,8 @@ def main() -> int:
                 raise ValueError("PKT009 installation completed, but the pinned Node executable cannot be resolved.")
             install_npm(repository, Path(node_values[0]), required["npm"], args.npm_command)
         resolved, resolved_commands = resolve(
-            repository, required, args.dotnet_command, args.node_command, args.npm_command, args.node_manager
+            repository, required, args.dotnet_command, args.node_command, args.npm_command,
+            args.node_manager, args.oasdiff_command
         )
         remaining = mismatch(required, resolved)
         write_evidence(evidence, repository, required, resolved, resolved_commands, not remaining)

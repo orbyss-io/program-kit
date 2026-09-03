@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from xml.etree import ElementTree
 
+import spa_profile
+
 
 def sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
@@ -140,15 +142,31 @@ def selected_dotnet_sdk(target: Path, managed_global_json: Path) -> tuple[str, s
     return selected.strip(), "override"
 
 
-def desired_content(source: Path, relative: str, dotnet_sdk: str) -> bytes:
-    if relative != "global.json":
-        return source.read_bytes()
-    value = load_json(source, {})
-    sdk = value.get("sdk")
-    if not isinstance(sdk, dict):
-        raise ValueError("The Program Kit managed global.json has no sdk object.")
-    sdk["version"] = dotnet_sdk
-    return (json.dumps(value, indent=2) + "\n").encode("utf-8")
+def desired_content(
+    source: Path,
+    relative: str,
+    dotnet_sdk: str,
+    web_profile: str,
+    spa_configuration: dict | None,
+) -> bytes:
+    content = source.read_bytes()
+    if relative == "global.json":
+        value = load_json(source, {})
+        sdk = value.get("sdk")
+        if not isinstance(sdk, dict):
+            raise ValueError("The Program Kit managed global.json has no sdk object.")
+        sdk["version"] = dotnet_sdk
+        return (json.dumps(value, indent=2) + "\n").encode("utf-8")
+    if web_profile != "spa-pkce" or spa_configuration is None:
+        return content
+    renderers = {
+        "hostsettings.json": spa_profile.render_hostsettings,
+        ".program-kit/web-profile.json": spa_profile.render_profile,
+        "deploy/keycloak/program-kit-realm.json": spa_profile.render_realm,
+        "eng/program-kit/web/web-contract.json": spa_profile.render_web_contract,
+    }
+    renderer = renderers.get(relative)
+    return renderer(content, spa_configuration) if renderer else content
 
 
 def main() -> int:
@@ -219,6 +237,16 @@ def main() -> int:
         target, template_root / "files" / "global.json"
     )
     web_profile = selected_web_profile(target, args.web_profile)
+    spa_configuration: dict | None = None
+    if web_profile == "spa-pkce":
+        configuration_source = target / spa_profile.CONFIGURATION_PATH
+        if not configuration_source.is_file():
+            configuration_source = (
+                template_root / "web-profiles/spa-pkce" / spa_profile.CONFIGURATION_PATH
+            )
+        spa_configuration = spa_profile.validate_configuration(
+            spa_profile.load_object(configuration_source)
+        )
     print(f"selected .NET SDK: {dotnet_sdk} ({dotnet_sdk_source})")
     print(f"selected web profile: {web_profile}")
     print(f"selected persistence profile: {args.persistence_profile}")
@@ -253,7 +281,7 @@ def main() -> int:
         source_root = template_root / entry.get("sourceRoot", "files")
         source = source_root / entry.get("source", relative)
         destination = target / relative
-        desired = desired_content(source, relative, dotnet_sdk)
+        desired = desired_content(source, relative, dotnet_sdk, web_profile, spa_configuration)
         desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
 
@@ -284,6 +312,8 @@ def main() -> int:
                 else:
                     conflicts.append(relative)
                     conflict_details[relative] = routing_error
+            elif ownership == "configuration":
+                unchanged.append(relative)
             else:
                 conflicts.append(relative)
 
@@ -326,7 +356,14 @@ def main() -> int:
         return 2
 
     if args.check:
-        return 1 if created or updated or removed else 0
+        if created or updated or removed:
+            return 1
+        if web_profile == "spa-pkce" and spa_configuration is not None:
+            spa_profile.verify_outputs(target, spa_configuration)
+        return 0
+
+    if web_profile == "spa-pkce" and spa_configuration is not None:
+        spa_profile.verify_outputs(target, spa_configuration)
 
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(

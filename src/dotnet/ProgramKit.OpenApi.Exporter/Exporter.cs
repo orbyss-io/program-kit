@@ -15,7 +15,7 @@ namespace ProgramKit.OpenApiExport;
 internal static class Exporter
 {
     /// <summary>Identifies the exact managed exporter contract implemented by this binary.</summary>
-    private const string ToolVersion = "0.8.8-preview.1";
+    private const string ToolVersion = "0.8.9-preview.1";
 
     /// <summary>Identifies host-owned features that intentionally have no consumer package descriptor.</summary>
     private static readonly IReadOnlySet<string> HostFeatures =

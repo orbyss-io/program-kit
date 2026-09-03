@@ -67,9 +67,9 @@ if (-not $SkipRunnableHost -or $openApiEnabled) {
 
 if ($openApiEnabled) {
     python (Join-Path $PSScriptRoot 'toolchain.py') --repository $root `
-        --evidence (Join-Path $root '.program-kit/evidence/toolchain.json')
+        --evidence (Join-Path $root '.program-kit/evidence/toolchain.json') --include-openapi
     if ($LASTEXITCODE -ne 0) {
-        throw 'Pinned toolchain verification failed. Install or select the Program Kit Node pin; only an explicit managed-toolchain-version decision may retain another local version.'
+        throw 'Pinned toolchain verification failed. Install or select the managed SDK, Node/npm, and oasdiff pins; only an explicit managed-toolchain-version decision may retain another version.'
     }
     $openApiArguments = @('--repository', $root, '--registry', '.program-kit/openapi-contracts.json')
     if ($InitializeOpenApiBaseline) { $openApiArguments += '--initialize-baselines' }

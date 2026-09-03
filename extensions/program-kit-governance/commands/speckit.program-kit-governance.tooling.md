@@ -72,7 +72,10 @@ Problem Details, locale-fallback, and token-leak evidence owned by the profile. 
 meaningful policy path and outcomes; it does not select another authentication library or fixture.
 
 Map the secure-web checks to control IDs `WEB-C01` through `WEB-C13` and assurance levels `WEB-V1`
-through `WEB-V4` from `program-kit-web-security-evidence-v1`. Tool output must distinguish source and
+through `WEB-V4` from `program-kit-web-security-evidence-v1`, and preserve their canonical meanings
+and declared profile applicability. Do not renumber a sequential test list as `WEB-Cxx`. Give
+project-specific checks a separate `WEB-Qxx` identity (or a domain-specific identity) and record an
+explicit many-to-many mapping to the inherited controls. Tool output must distinguish source and
 configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.

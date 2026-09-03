@@ -1,0 +1,11 @@
+name: program-kit-application
+
+services:
+  application:
+    image: program-kit-consumer:local
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    extra_hosts:
+      - "localhost:host-gateway"
+    ports:
+      - "5000:8080"

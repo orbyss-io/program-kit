@@ -104,6 +104,18 @@ def main() -> int:
         mapped_threats.update(control["threats"])
     if mapped_threats != set(threats):
         raise AssertionError(f"Uncontrolled threats: {sorted(set(threats) - mapped_threats)}")
+    applicability = evidence.get("controlApplicability")
+    if not isinstance(applicability, dict) or set(applicability) != PROFILES:
+        raise AssertionError("Security evidence must declare control applicability for both profiles")
+    for profile, identifiers in applicability.items():
+        if (
+            not isinstance(identifiers, list)
+            or len(identifiers) != len(set(identifiers))
+            or not set(identifiers).issubset(controls)
+        ):
+            raise AssertionError(f"{profile} has invalid or duplicate applicable control IDs")
+    if {"WEB-C01", "WEB-C03", "WEB-C04"}.intersection(applicability["spa-pkce-v1"]):
+        raise AssertionError("The SPA profile must not claim BFF-only cookie controls")
 
     defaults = indexed(evidence.get("configurableDefaults"), "configurable default")
     if set(defaults) != REQUIRED_DEFAULTS:
@@ -190,6 +202,13 @@ def main() -> int:
     )
     if "PROGRAMKIT_PERMISSION_PROBE_PATH" not in browser_contract or "PROGRAMKIT_ROLE_PROBE_PATH" in browser_contract:
         raise AssertionError("The browser contract must probe application permissions, not provider roles")
+
+    tooling_command = (
+        root / "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md"
+    ).read_text(encoding="utf-8")
+    for required in ("preserve their canonical meanings", "WEB-Qxx", "many-to-many"):
+        if required not in tooling_command:
+            raise AssertionError("Tooling guidance permits ambiguous reuse of canonical WEB-Cxx IDs")
 
     adr = (root / "docs/decisions/0005-secure-web-boundary-profiles.md").read_text(encoding="utf-8")
     contract = (references / "secure-web-profiles.md").read_text(encoding="utf-8")

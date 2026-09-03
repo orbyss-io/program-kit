@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
   "files": [
-    { "path": "hostsettings.json", "ownership": "scaffold", "sourceRoot": "web-profiles/spa-pkce" },
+    { "path": ".program-kit/spa-pkce.json", "ownership": "configuration", "sourceRoot": "web-profiles/spa-pkce" },
+    { "path": ".program-kit/spa-pkce.schema.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
+    { "path": "hostsettings.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
     { "path": ".program-kit/web-profile.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
     { "path": ".program-kit/security/web-security-evidence.json", "ownership": "managed", "sourceRoot": "../../references", "source": "web-security-evidence.json" },
     { "path": "docs/architecture/program-kit/web-security-threat-model.md", "ownership": "managed", "sourceRoot": "../../references", "source": "web-security-threat-model.md" },
@@ -17,9 +19,12 @@
     { "path": "eng/program-kit/web/tests/authentication.spec.ts", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
     { "path": "eng/program-kit/web/web-contract.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
     ,{ "path": "eng/program-kit/web/spa-security.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
+    ,{ "path": "eng/program-kit/web/spa-session.ts", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
+    ,{ "path": "eng/program-kit/web/tests/spa-session.spec.ts", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
     ,{ "path": "eng/program-kit/web/vite.security.mjs", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
     ,{ "path": "eng/program-kit/web/verify_spa_security.py", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
+    ,{ "path": "eng/program-kit/verify_spa_profile.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "spa_profile.py" }
     ,{ "path": "eng/program-kit/preflight.py", "ownership": "managed", "sourceRoot": "web-profiles/common" }
-    ,{ "path": "deploy/compose.application.yml", "ownership": "managed", "sourceRoot": "web-profiles/common" }
+    ,{ "path": "deploy/compose.application.yml", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
   ]
 }

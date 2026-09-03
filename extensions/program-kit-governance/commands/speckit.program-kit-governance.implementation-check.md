@@ -75,6 +75,8 @@ Confirm:
 - security-sensitive web work traces its affected `WEB-C01` through `WEB-C13` controls and does not
   exceed the claims of `program-kit-web-threat-model-v1` or
   `program-kit-web-security-evidence-v1`;
+- project verification IDs do not redefine canonical `WEB-Cxx` meanings and preserve the managed
+  registry's profile applicability;
 - configurable security-default changes cite the matching `WEB-Dxx` rationale, Accepted risk owner,
   review condition, and negative regression evidence;
 

@@ -6,6 +6,24 @@
   It keeps all three review packets and hash validations, bypasses their pauses only when opted in,
   and records automatic versus interactive approval provenance in governance evidence.
 
+## 0.8.9 - 2026-09-03
+
+- Correct `spa-pkce-v1` Keycloak generation to use configurable exact callback, silent-renew, and
+  post-logout routes from the validated `.program-kit/spa-pkce.json` input. Synchronization rejects
+  wildcard or cross-origin registrations and updates unchanged 0.8.8 managed output safely.
+- Keep the SPA client public and secret-free throughout local composition. The SPA profile no longer
+  injects the BFF client secret, and the host rejects a configured SPA client secret at startup.
+- Make SPA session ownership executable: Keycloak enforces synchronized idle/maximum session bounds,
+  the API validates token lifetime, and the managed browser adapter enforces `exp`, the original
+  `auth_time` absolute deadline, local idle expiry, local-first logout, and token-free cross-tab sign-out.
+- Disable Playwright traces, screenshots, and video for authentication evidence and validate the
+  generated provider, host, browser, composition, and evidence-retention contract before launch.
+- Preserve canonical `WEB-Cxx` meanings and profile applicability; project-specific checks now use a
+  separate namespace and explicit many-to-many mappings instead of redefining control identifiers.
+- Adopt oasdiff `1.29.1` and the isolated TypeScript generator as managed OpenAPI defaults. Add the
+  empty-registry initializer, exact toolchain resolution/evidence, and repository-local installation
+  of a reviewed oasdiff binary, removing the unnecessary consumer tooling ADR.
+
 ## 0.8.8 - 2026-09-03
 
 - Replace the conventional `Domain`/`Contracts`/`Application`/`Infrastructure`/`Feature.*` topology

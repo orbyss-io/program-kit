@@ -7,7 +7,9 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: process.env.PROGRAMKIT_BASE_URL ?? 'http://localhost:5000',
-    trace: 'retain-on-failure',
+    trace: 'off',
+    screenshot: 'off',
+    video: 'off',
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 });

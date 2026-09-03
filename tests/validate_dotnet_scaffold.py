@@ -216,6 +216,69 @@ def main() -> int:
         spa_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
         assert spa_settings["ProgramKit"]["Web"]["Profile"] == "SpaPkce"
         assert spa_settings["ProgramKit"]["Web"]["AllowedOrigins"] == ["http://localhost:5173"]
+        spa_configuration_path = spa_target / ".program-kit/spa-pkce.json"
+        spa_configuration = json.loads(spa_configuration_path.read_text(encoding="utf-8"))
+        assert spa_state["files"][".program-kit/spa-pkce.json"]["ownership"] == "configuration"
+        realm = json.loads((spa_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8"))
+        spa_client = next(client for client in realm["clients"] if client["clientId"] == "program-kit-spa")
+        assert spa_client["publicClient"] is True and "secret" not in spa_client
+        assert spa_client["redirectUris"] == [
+            "http://localhost:5173/auth/callback",
+            "http://localhost:5173/auth/renew-callback",
+        ]
+        assert spa_client["postLogoutRedirectUris"] == ["http://localhost:5173/signed-out"]
+        assert not any("*" in uri for uri in spa_client["redirectUris"] + spa_client["postLogoutRedirectUris"])
+        compose = (spa_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
+        assert "ClientSecret" not in compose and "local-program-kit-secret" not in compose
+        playwright = (spa_target / "eng/program-kit/web/playwright.config.ts").read_text(encoding="utf-8")
+        assert "trace: 'off'" in playwright and "screenshot: 'off'" in playwright and "video: 'off'" in playwright
+        verifier = subprocess.run(
+            [sys.executable, str(spa_target / "eng/program-kit/verify_spa_profile.py"),
+             "--repository", str(spa_target)],
+            capture_output=True,
+            text=True,
+        )
+        assert verifier.returncode == 0, verifier.stderr
+
+        spa_configuration["applicationOrigin"] = "http://localhost:4173"
+        spa_configuration["redirectUris"] = [
+            "http://localhost:4173/auth/callback",
+            "http://localhost:4173/auth/renew-callback",
+        ]
+        spa_configuration["postLogoutRedirectUris"] = ["http://localhost:4173/signed-out"]
+        spa_configuration["session"]["idleMinutes"] = 20
+        spa_configuration_path.write_text(json.dumps(spa_configuration, indent=2) + "\n", encoding="utf-8")
+        customized = run("--target", str(spa_target), *approvals, "--web-profile", "spa-pkce")
+        assert customized.returncode == 0, customized.stderr
+        customized_realm = json.loads(
+            (spa_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8")
+        )
+        customized_client = next(
+            client for client in customized_realm["clients"] if client["clientId"] == "program-kit-spa"
+        )
+        assert customized_client["redirectUris"] == spa_configuration["redirectUris"]
+        assert customized_realm["ssoSessionIdleTimeout"] == 1200
+        customized_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
+        assert customized_settings["ProgramKit"]["Web"]["AllowedOrigins"] == ["http://localhost:4173"]
+        clean_spa = run(
+            "--target", str(spa_target), "--profile-selected", "--check", "--web-profile", "spa-pkce"
+        )
+        assert clean_spa.returncode == 0, clean_spa.stderr
+
+        invalid_spa = target / "invalid-spa-consumer"
+        invalid_spa.mkdir()
+        invalid_configuration = dict(spa_configuration)
+        invalid_configuration["redirectUris"] = ["http://localhost:4173/*"]
+        invalid_configuration_path = invalid_spa / ".program-kit/spa-pkce.json"
+        invalid_configuration_path.parent.mkdir()
+        invalid_configuration_path.write_text(
+            json.dumps(invalid_configuration, indent=2) + "\n", encoding="utf-8"
+        )
+        wildcard_rejected = run(
+            "--target", str(invalid_spa), *approvals, "--web-profile", "spa-pkce"
+        )
+        assert wildcard_rejected.returncode != 0 and "without wildcards" in wildcard_rejected.stderr
+        assert not (invalid_spa / "deploy/keycloak/program-kit-realm.json").exists()
 
         override_target = target / "explicit-local-sdk-override"
         override_decisions = override_target / "docs/architecture/bootstrap-decisions.json"

@@ -49,6 +49,11 @@ generated restore, build, CI, release, and runnable-host staging paths can acces
 The ownership record is `.program-kit/managed.json`. Root MSBuild discovery extension points, application
 `VERSION`, shell configuration, and `NuGet.config` are scaffolded once and remain consumer-owned. Program Kit
 owns the SDK, analyzer policy, `eng/program-kit`, container, schema, and generated workflow baselines.
+For `spa-pkce`, `.program-kit/spa-pkce.json` is the scaffold-owned typed security input and
+`hostsettings.json`, the Keycloak realm, and browser contract are managed derived outputs. Configure
+exact callback, silent-renew callback, post-logout routes, origins, scopes, renewal timeout, and
+session bounds in that input, then rerun the same sync command. Wildcards, cross-origin callbacks,
+contradictory lifetimes, and non-public SPA client configuration fail synchronization.
 The scaffolded NuGet configuration uses nuget.org as the default public-package source while more-specific
 patterns protect the approved CShells and Nuplane preview namespaces. Consumers remain authoritative over
 their dependencies and may add private sources with namespace-specific mappings; they must preserve the

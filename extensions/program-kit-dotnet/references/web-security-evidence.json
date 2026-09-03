@@ -263,6 +263,16 @@
       "verification": ["invalid settings fail startup with path-specific errors", "architecture readiness requires the exact profile and assurance IDs"]
     }
   ],
+  "controlApplicability": {
+    "bff-cookie-v1": [
+      "WEB-C01", "WEB-C02", "WEB-C03", "WEB-C04", "WEB-C05", "WEB-C06", "WEB-C07",
+      "WEB-C08", "WEB-C09", "WEB-C10", "WEB-C11", "WEB-C12", "WEB-C13"
+    ],
+    "spa-pkce-v1": [
+      "WEB-C02", "WEB-C05", "WEB-C06", "WEB-C07", "WEB-C08", "WEB-C09", "WEB-C10",
+      "WEB-C11", "WEB-C12", "WEB-C13"
+    ]
+  },
   "configurableDefaults": [
     {
       "id": "WEB-D01",

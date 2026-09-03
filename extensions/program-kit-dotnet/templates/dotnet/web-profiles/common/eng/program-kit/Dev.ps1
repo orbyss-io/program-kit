@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [switch]$IdentityOnly,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [string]$ComposeOverlay = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -11,6 +12,11 @@ $applicationCompose = Join-Path $repository 'deploy\compose.application.yml'
 
 python (Join-Path $PSScriptRoot 'preflight.py')
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit pre-host prerequisites failed.' }
+$spaVerifier = Join-Path $PSScriptRoot 'verify_spa_profile.py'
+if (Test-Path -LiteralPath $spaVerifier -PathType Leaf) {
+    python $spaVerifier --repository $repository
+    if ($LASTEXITCODE -ne 0) { throw 'The synchronized SPA-PKCE profile is invalid.' }
+}
 
 docker compose -f $compose up -d --wait
 if ($LASTEXITCODE -ne 0) { throw 'The pinned local Keycloak service did not become ready.' }
@@ -33,5 +39,15 @@ $applicationImage = 'program-kit-consumer:local'
 docker build --build-arg "PROGRAMKIT_HOST_IMAGE=$($env:PROGRAMKIT_HOST_IMAGE)" -t $applicationImage $repository
 if ($LASTEXITCODE -ne 0) { throw 'The local application image build failed.' }
 
-docker compose -f $applicationCompose up -d
+$applicationComposeArguments = @('compose', '-f', $applicationCompose)
+if (-not [string]::IsNullOrWhiteSpace($ComposeOverlay)) {
+    $overlay = [System.IO.Path]::GetFullPath((Join-Path $repository $ComposeOverlay))
+    $relativeOverlay = [System.IO.Path]::GetRelativePath($repository, $overlay)
+    if ($relativeOverlay.StartsWith('..') -or -not (Test-Path -LiteralPath $overlay -PathType Leaf)) {
+        throw 'ComposeOverlay must name a consumer-owned file inside the repository.'
+    }
+    $applicationComposeArguments += @('-f', $overlay)
+}
+$applicationComposeArguments += @('up', '-d')
+docker @applicationComposeArguments
 if ($LASTEXITCODE -ne 0) { throw 'The local runnable host did not start.' }

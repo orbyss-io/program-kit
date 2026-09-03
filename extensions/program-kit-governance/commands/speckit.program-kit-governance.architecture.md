@@ -125,3 +125,6 @@ small security-assurance section: additional assets/threats/assumptions, overrid
 accepted residual risks, owner, review condition, and verification. Do not call a working-group
 draft final, a platform recommendation normative, or a Program Kit operational default
 scientifically proven.
+Canonical `WEB-Cxx` identifiers retain the decision text and profile applicability from the managed
+evidence registry. Project-specific verification cases use another namespace, such as `WEB-Qxx`,
+and map explicitly to one or more canonical controls; they never redefine a `WEB-Cxx` identifier.

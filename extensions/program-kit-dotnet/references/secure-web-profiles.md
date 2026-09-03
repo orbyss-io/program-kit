@@ -50,7 +50,10 @@ architecture; it can and normally should use the BFF profile.
 ### Runtime configuration
 
 Configuration binds to `ProgramKit:Web` and is validated at startup. Secret values come from the
-environment or a secret provider and never from committed settings.
+environment or a secret provider and never from committed settings. For `spa-pkce-v1`, the
+scaffold-owned `.program-kit/spa-pkce.json` is the typed security input; synchronization validates it
+and derives the managed `hostsettings.json`, Keycloak registration, and browser contract. Consumers
+change that input and resynchronize rather than editing a derived managed file.
 
 - `Profile`: `None`, `BffCookie`, or `SpaPkce`.
 - `Authority`: HTTPS issuer URL; HTTP is permitted only by an explicit local-development setting.
@@ -63,7 +66,9 @@ environment or a secret provider and never from committed settings.
 - exact `AllowedOrigins`; wildcards and origin reflection are rejected.
 - callback, signed-out callback, remote-signout, and access-denied paths.
 - discovery/JWKS, remote-authentication, and back-channel time budgets.
-- session idle and absolute lifetimes; the absolute lifetime bounds refresh-token use.
+- session idle and absolute lifetimes; the absolute lifetime bounds refresh-token use. For SPA-PKCE,
+  these are enforced jointly by the provider SSO session, the browser session adapter, and API token
+  lifetime validation; the API host settings alone do not create a browser session.
 - cookie name, `Secure`, `HttpOnly`, and `SameSite` policy.
 
 Invalid or incomplete selected-profile configuration prevents startup with a path-specific error.
@@ -112,6 +117,8 @@ public SPA-PKCE client, API audience/scope, redirect and post-logout URIs, and t
 personas: authorized user, administrator, and authenticated user without the provider role that maps
 to the requested application permission. Fixture
 credentials are local-test data and are never reused in deployed environments.
+SPA redirect and post-logout registrations are exact routes derived from
+`.program-kit/spa-pkce.json`; wildcard registrations are rejected before Compose starts.
 
 ## `bff-cookie-v1`
 
@@ -148,6 +155,16 @@ credentials are local-test data and are never reused in deployed environments.
 - logout clears all local authentication state before RP-initiated provider logout.
 - exact API origin, allowed browser origins, redirect URIs, logout URIs, scopes, and renewal timeouts
   are part of the selected profile configuration.
+- Keycloak authoritatively enforces the configured idle and maximum SSO/client-session lifetimes;
+  the API authoritatively enforces token `exp`; and the consumer SPA imports the managed
+  `eng/program-kit/web/spa-session.ts` adapter to enforce local idle expiry and the non-extendable
+  `auth_time + absoluteMinutes` deadline. A missing trusted `auth_time` is an authentication failure,
+  not a reason to start a new absolute window. Silent renewal retains the original `auth_time` and
+  cannot move that deadline.
+- The browser announces only a `signed-out` event over `BroadcastChannel`; it never sends a token or
+  session identifier between tabs. Receipt clears local authentication in the other tab. Logout
+  clears local state and broadcasts first, then attempts provider logout; provider failure leaves
+  every local tab signed out and produces the documented unavailable outcome.
 - `eng/program-kit/web/vite.security.mjs` owns browser-response headers for local Vite development
   and preview. Consumer-owned `vite.config` imports `programKitSpaSecurity` with exact API and
   identity origins. A production static server or edge must translate the checked
@@ -193,8 +210,24 @@ The shared contract suite plus profile-specific browser suite verifies:
 9. Playwright runs the real local Keycloak login for the authorized, administrator, and wrong-role
    personas. Authentication state files are generated under test artifacts, treated as secrets, and
    never committed.
+10. Authentication suites disable traces, screenshots, and video by default. A project may retain a
+    separately reviewed, demonstrably redacted non-authentication artifact, but it must not enable
+    capture for login, callback, renewal, logout, or authenticated storage/network activity.
 
 Unit mocks may test feature policy logic, but they do not replace this browser/provider contract.
+
+## Managed ownership and extension points
+
+| Artifact | Ownership and supported change path |
+| --- | --- |
+| `.program-kit/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
+| `hostsettings.json` | Managed derived output for SPA-PKCE; scaffold-owned deployment input for BFF/none. |
+| `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture. Never edit it; change the SPA input and sync. |
+| `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
+| SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |
+| `eng/program-kit/Dev.ps1` and `Test-Web.ps1` | Managed launch/test entry points. Use their parameters; do not fork them. |
+| `eng/program-kit/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
+| Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
 
 ## Review and non-claims
 

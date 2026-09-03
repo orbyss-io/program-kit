@@ -117,7 +117,7 @@ public sealed class ForbiddenInitializer : IShellInitializer
                 "shell": "default",
                 "producer": {
                     "kind": "ProgramKit.OpenApi.Exporter",
-                    "version": "0.8.8-preview.1",
+                    "version": "0.8.9-preview.1",
                 },
                 "features": ["Fixture.Web"],
             },
@@ -253,6 +253,20 @@ raise SystemExit(0)
 """,
             encoding="utf-8",
         )
+        if os.name == "nt":
+            fake_oasdiff = tool_bin / "oasdiff.cmd"
+            fake_oasdiff.write_text(
+                "@echo off\r\nif \"%1\"==\"version\" echo oasdiff version v1.29.1\r\nexit /b 0\r\n",
+                encoding="utf-8",
+            )
+        else:
+            fake_oasdiff = tool_bin / "oasdiff"
+            fake_oasdiff.write_text(
+                "#!/bin/sh\nif [ \"$1\" = \"version\" ]; then printf 'oasdiff version v1.29.1\\n'; fi\nexit 0\n",
+                encoding="utf-8",
+            )
+            fake_oasdiff.chmod(0o755)
+        (repository / ".oasdiff-version").write_text("1.29.1\n", encoding="utf-8")
         staged_packages = repository / "artifacts/runnable-host/packages"
         staged_packages.mkdir(parents=True)
         for package in packages.glob("*.nupkg"):
@@ -317,12 +331,17 @@ raise SystemExit(0)
             json.dumps(
                 {
                     "schemaVersion": 2,
-                    "required": {"dotnet": "10.0.202", "node": "24.20.0", "npm": "11.19.0"},
-                    "resolved": {"dotnet": "10.0.202", "node": "24.20.0", "npm": "11.19.0"},
+                    "required": {
+                        "dotnet": "10.0.202", "node": "24.20.0", "npm": "11.19.0", "oasdiff": "1.29.1"
+                    },
+                    "resolved": {
+                        "dotnet": "10.0.202", "node": "24.20.0", "npm": "11.19.0", "oasdiff": "1.29.1"
+                    },
                     "commands": {
                         "dotnet": [str(Path(dotnet).resolve())],
                         "node": [str(fake_node.resolve())],
                         "npm": [str(Path(sys.executable).resolve()), str(fake_npm.resolve())],
+                        "oasdiff": [str(fake_oasdiff.resolve())],
                     },
                     "environment": {
                         "npmCache": str((repository / ".program-kit/cache/npm").resolve()),
@@ -360,6 +379,19 @@ raise SystemExit(0)
             raise AssertionError(f"pipeline did not preserve satisfied evidence: {pipeline_evidence}")
         if not (generator / "generated/types.ts").is_file():
             raise AssertionError("isolated client generation did not run")
+        compared = run(
+            [
+                sys.executable,
+                str(PIPELINE),
+                "--repository",
+                str(repository),
+                "--exporter",
+                str(EXPORTER),
+            ],
+            repository,
+        )
+        if compared.returncode != 0:
+            raise AssertionError(f"pinned oasdiff compatibility path failed:\n{compared.stdout}{compared.stderr}")
 
     print("Side-effect-free composed OpenAPI producer and client pipeline validation passed.")
     return 0

@@ -24,6 +24,11 @@ internal sealed class ProgramKitWebOptionsValidator(IHostEnvironment environment
         {
             Require(options.ClientSecret, "ProgramKit:Web:ClientSecret", failures);
         }
+        else if (options.Profile == ProgramKitWebProfile.SpaPkce
+            && !string.IsNullOrWhiteSpace(options.ClientSecret))
+        {
+            failures.Add("ProgramKit:Web:ClientSecret must be empty for the public SpaPkce client.");
+        }
 
         if (Uri.TryCreate(options.Authority, UriKind.Absolute, out var authority))
         {

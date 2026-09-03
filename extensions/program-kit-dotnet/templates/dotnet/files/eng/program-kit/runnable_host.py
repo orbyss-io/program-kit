@@ -15,7 +15,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-PROGRAM_KIT_VERSION = "0.8.8"
+PROGRAM_KIT_VERSION = "0.8.9"
 BUILT_IN_FEATURE_PACKAGES = {
     "ProgramKit.DomainEvents": "ProgramKit.DomainEvents",
     "ProgramKitTasks": "ProgramKit.Tasks",

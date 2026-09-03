@@ -31,6 +31,12 @@ API directly. It uses authorization code flow with PKCE and API bearer validatio
 token exposure, renewal, storage, CORS, and logout consequences must be acknowledged in the
 bootstrap baseline. Tokens are held in memory by default; durable browser token storage is not a
 Program Kit default.
+Its typed `.program-kit/spa-pkce.json` input is authoritative for exact redirect/logout routes,
+origins, scopes, renewal timeout, and session bounds. Managed outputs are derived from that input.
+Keycloak enforces provider idle/maximum sessions, the API enforces token lifetime, and the managed
+browser adapter preserves the original `auth_time` absolute deadline, local idle expiry,
+local-first logout, and credential-free cross-tab sign-out. A public SPA client cannot receive a
+client secret.
 
 `none-v1` is available for applications without a web authentication boundary. It is never inferred
 for a detected browser UI.
@@ -47,6 +53,8 @@ Security claims are governed by `program-kit-web-threat-model-v1` and
 architectures inherit those controls, assumptions, residual risks, evidence classifications,
 configurable-default rationale, and review triggers by exact ID. Project-specific deviations require
 an Accepted ADR with an owner, evidence, risk treatment, and regression coverage.
+Canonical `WEB-Cxx` identifiers are never reused for project-specific test cases; local checks use
+their own namespace and map many-to-many to the applicable canonical controls.
 
 ## Selection rules
 

@@ -518,6 +518,31 @@ def validate_toolchain_workflow() -> None:
         satisfied = run()
         if satisfied.returncode != 0 or "PKT000" not in satisfied.stdout:
             raise AssertionError("already-satisfied toolchain did not avoid installation")
+        (repository / ".oasdiff-version").write_text("1.29.1\n", encoding="utf-8")
+        if os.name == "nt":
+            reviewed_oasdiff = repository / "reviewed-oasdiff.cmd"
+            reviewed_oasdiff.write_text(
+                "@echo off\r\nif \"%1\"==\"version\" echo oasdiff version v1.29.1\r\nexit /b 0\r\n",
+                encoding="utf-8",
+            )
+        else:
+            reviewed_oasdiff = repository / "reviewed-oasdiff"
+            reviewed_oasdiff.write_text(
+                "#!/bin/sh\n[ \"$1\" = version ] && printf 'oasdiff version v1.29.1\\n'\nexit 0\n",
+                encoding="utf-8",
+            )
+            reviewed_oasdiff.chmod(0o755)
+        missing_oasdiff = run("--include-openapi", "--oasdiff-command", "missing-oasdiff")
+        if missing_oasdiff.returncode != 2 or "oasdiff" not in missing_oasdiff.stderr:
+            raise AssertionError("missing managed oasdiff was not reported")
+        installed_oasdiff = run(
+            "--include-openapi", "--oasdiff-command", "missing-oasdiff", "--remediate", "--approve",
+            "--oasdiff-binary", str(reviewed_oasdiff),
+        )
+        if installed_oasdiff.returncode != 0 or "PKT010" not in installed_oasdiff.stdout:
+            raise AssertionError(
+                f"reviewed oasdiff was not installed and re-verified: {installed_oasdiff.stdout}{installed_oasdiff.stderr}"
+            )
 
     with tempfile.TemporaryDirectory(prefix="program-kit-fnm-recheck-") as value:
         repository = Path(value)
@@ -714,6 +739,63 @@ def validate_openapi_contracts() -> None:
                 raise
         else:
             raise AssertionError("duplicate OpenAPI operation identity was accepted")
+
+
+def validate_openapi_initialization() -> None:
+    script = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/openapi_init.py"
+    with tempfile.TemporaryDirectory(prefix="program-kit-openapi-init-") as value:
+        repository = Path(value)
+        defaults = repository / ".program-kit/openapi-defaults.json"
+        defaults.parent.mkdir(parents=True)
+        defaults.write_text(
+            json.dumps({
+                "schemaVersion": 1,
+                "compatibility": {"tool": "oasdiff", "version": "1.29.1"},
+                "typescriptGenerator": {
+                    "package": "openapi-typescript", "version": "7.13.0",
+                    "isolation": "separate-package-and-lockfile",
+                },
+            }),
+            encoding="utf-8",
+        )
+        manifest = repository / "eng/program-kit/.config/dotnet-tools.json"
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text(
+            json.dumps({
+                "tools": {"programkit.openapi.exporter": {"version": "0.8.9-preview.1"}}
+            }),
+            encoding="utf-8",
+        )
+        (repository / ".program-kit/openapi-contracts.json").write_text(
+            json.dumps({"schemaVersion": 1, "contracts": []}), encoding="utf-8"
+        )
+        command = [
+            sys.executable, str(script), "--repository", str(repository),
+            "--identity", "catalog-v1", "--document-name", "v1", "--shell", "default",
+            "--feature", "Catalog.Api", "--application-directory", "src/web",
+            "--application-tsconfig", "src/web/tsconfig.json",
+        ]
+        initialized = subprocess.run(command, capture_output=True, text=True)
+        if initialized.returncode != 0:
+            raise AssertionError(f"OpenAPI initializer failed: {initialized.stdout}{initialized.stderr}")
+        registry = json.loads((repository / ".program-kit/openapi-contracts.json").read_text(encoding="utf-8"))
+        contract = json.loads((repository / registry["contracts"][0]).read_text(encoding="utf-8"))
+        generator_package = json.loads(
+            (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
+        )
+        if (
+            contract["producer"]["version"] != "0.8.9-preview.1"
+            or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
+            or contract["generator"]["directory"] == contract["application"]["directory"]
+            or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
+            or generator_package["scripts"]["generate"]
+            != "openapi-typescript ../../../contracts/openapi/catalog-v1.json --output generated/types.ts"
+            or "js_toolchain.py" not in initialized.stdout
+        ):
+            raise AssertionError("OpenAPI initializer did not scaffold the managed isolated generator")
+        duplicate = subprocess.run(command, capture_output=True, text=True)
+        if duplicate.returncode != 2 or "already exists" not in duplicate.stderr:
+            raise AssertionError("OpenAPI initializer overwrote an existing contract")
 
 
 def validate_npm_graph() -> None:
@@ -1325,7 +1407,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.8.8-preview.1"},
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.8.9-preview.1"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1360,7 +1442,7 @@ def validate_artifact_ownership() -> None:
                     "isRoot": True,
                     "tools": {
                         "programkit.openapi.exporter": {
-                            "version": "0.8.8-preview.1",
+                            "version": "0.8.9-preview.1",
                             "commands": ["programkit-openapi-export"],
                         }
                     },
@@ -1368,6 +1450,7 @@ def validate_artifact_ownership() -> None:
             ),
             encoding="utf-8",
         )
+        (root / ".oasdiff-version").write_text("1.29.1\n", encoding="utf-8")
         (root / ".program-kit/openapi-contracts.json").write_text(
             json.dumps(
                 {
@@ -1399,6 +1482,7 @@ def main() -> int:
     validate_toolchain_workflow()
     validate_managed_sources()
     validate_openapi_contracts()
+    validate_openapi_initialization()
     validate_npm_graph()
     validate_sync_preservation()
     validate_artifact_ownership()

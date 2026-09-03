@@ -7,5 +7,7 @@
   "browserCredential": "bearer-token",
   "tokenLocation": "memory-only",
   "cors": "exact-origin-allowlist",
-  "localIdentityProvider": "keycloak-26.7.3"
+  "localIdentityProvider": "keycloak-26.7.3",
+  "configuration": ".program-kit/spa-pkce.json",
+  "browserSessionAdapter": "eng/program-kit/web/spa-session.ts"
 }

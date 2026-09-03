@@ -92,7 +92,9 @@ def validate_stage(repository: Path, value: object, name: str, output: str) -> d
     return resolved
 
 
-def validate_contract(repository: Path, path: Path, exporter_version: str) -> tuple[dict, dict]:
+def validate_contract(
+    repository: Path, path: Path, exporter_version: str, oasdiff_version: str
+) -> tuple[dict, dict]:
     value = load_json(path, "OpenAPI contract")
     missing = sorted(REQUIRED - set(value))
     if missing or value.get("schemaVersion") != 1:
@@ -121,6 +123,10 @@ def validate_contract(repository: Path, path: Path, exporter_version: str) -> tu
     compatibility = value.get("compatibility")
     if not isinstance(compatibility, dict) or not isinstance(compatibility.get("oasdiffVersion"), str):
         raise ValueError("PKO204 compatibility must pin oasdiffVersion and an approval path.")
+    if compatibility.get("oasdiffVersion") != oasdiff_version:
+        raise ValueError(
+            f"PKO204 contract oasdiff version must equal managed tool pin {oasdiff_version!r}."
+        )
     resolved = {
         "packages": relative_path(repository, value["packageClosure"], "packageClosure"),
         "raw": relative_path(repository, value["rawDocument"], "rawDocument"),
@@ -210,6 +216,7 @@ def execute_contract(
     exporter: Path | None,
     dotnet: str,
     toolchain_evidence: Path,
+    oasdiff: str,
     nuget_environment: dict[str, str],
     initialize: bool,
     update: bool,
@@ -242,6 +249,7 @@ def execute_contract(
         "--artifact", str(paths["artifact"]),
         "--baseline", str(paths["baseline"]),
         "--approval", str(paths["approval"]),
+        "--oasdiff", oasdiff,
         "--oasdiff-version", str(contract["compatibility"]["oasdiffVersion"]),
     ]
     if initialize:
@@ -283,6 +291,9 @@ def main() -> int:
             print("OpenAPI contract pipeline is not configured; no contracts are registered.")
             return 0
         manifest, version = tool_version(repository)
+        oasdiff_version = (repository / ".oasdiff-version").read_text(encoding="utf-8").strip().removeprefix("v")
+        if not oasdiff_version:
+            raise ValueError("PKO206 managed .oasdiff-version does not pin oasdiff.")
         toolchain_evidence = repository / ".program-kit/evidence/toolchain.json"
         js_toolchain.context(repository, toolchain_evidence)
         toolchain = load_json(toolchain_evidence, "toolchain evidence")
@@ -291,6 +302,10 @@ def main() -> int:
         if not isinstance(dotnet_values, list) or len(dotnet_values) != 1 or not Path(dotnet_values[0]).is_file():
             raise ValueError("PKO210 exact dotnet command evidence is missing; run toolchain.py first.")
         dotnet = str(dotnet_values[0])
+        oasdiff_values = commands.get("oasdiff") if isinstance(commands, dict) else None
+        if not isinstance(oasdiff_values, list) or len(oasdiff_values) != 1 or not Path(oasdiff_values[0]).is_file():
+            raise ValueError("PKO210 exact oasdiff command evidence is missing; run toolchain.py --include-openapi first.")
+        oasdiff = str(oasdiff_values[0])
         nuget_cache = repository / ".program-kit/cache/nuget"
         (nuget_cache / "packages").mkdir(parents=True, exist_ok=True)
         (nuget_cache / "http").mkdir(parents=True, exist_ok=True)
@@ -311,7 +326,7 @@ def main() -> int:
         seen: set[str] = set()
         for item in contracts:
             contract_path = relative_path(repository, item, "registry contract")
-            contract, paths = validate_contract(repository, contract_path, version)
+            contract, paths = validate_contract(repository, contract_path, version, oasdiff_version)
             identity = str(contract["identity"])
             if identity in seen:
                 raise ValueError(f"PKO208 duplicate OpenAPI contract identity: {identity}")
@@ -325,6 +340,7 @@ def main() -> int:
                     exporter,
                     dotnet,
                     toolchain_evidence,
+                    oasdiff,
                     nuget_environment,
                     args.initialize_baselines,
                     args.update_artifacts,

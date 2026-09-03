@@ -6,6 +6,10 @@
   "registrationAllowed": false,
   "resetPasswordAllowed": false,
   "rememberMe": false,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "clientSessionIdleTimeout": 1800,
+  "clientSessionMaxLifespan": 28800,
   "internationalizationEnabled": true,
   "supportedLocales": [ "en", "nl", "fr", "de", "es" ],
   "defaultLocale": "en",
@@ -87,8 +91,11 @@
       "directAccessGrantsEnabled": false,
       "implicitFlowEnabled": false,
       "protocol": "openid-connect",
-      "redirectUris": [ "http://localhost:5173/*" ],
-      "postLogoutRedirectUris": [ "http://localhost:5173/*" ],
+      "redirectUris": [
+        "http://localhost:5173/auth/callback",
+        "http://localhost:5173/auth/renew-callback"
+      ],
+      "postLogoutRedirectUris": [ "http://localhost:5173/signed-out" ],
       "webOrigins": [ "http://localhost:5173" ],
       "attributes": { "pkce.code.challenge.method": "S256" },
       "defaultClientScopes": [ "basic", "profile", "roles", "web-origins", "acr", "program-kit-api" ]
