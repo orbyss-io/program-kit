@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.8.9"
+  version: "0.8.10"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -32,6 +32,9 @@ provides:
     - name: "speckit.program-kit-governance.constitution-ratify"
       file: "commands/speckit.program-kit-governance.constitution-ratify.md"
       description: "Validate and hash-bind constitution ratification after the human gate."
+    - name: "speckit.program-kit-governance.constitution-review"
+      file: "commands/speckit.program-kit-governance.constitution-review.md"
+      description: "Validate a drafted constitution and regenerate its current human review packet."
     - name: "speckit.program-kit-governance.architecture"
       file: "commands/speckit.program-kit-governance.architecture.md"
       description: "Create or update the architecture baseline and ADR system."
@@ -62,6 +65,11 @@ hooks:
     priority: 5
     optional: false
     description: "Revoke existing ratification before any constitution draft or amendment."
+  after_constitution:
+    command: "speckit.program-kit-governance.constitution-review"
+    priority: 5
+    optional: false
+    description: "Validate the current constitution draft and regenerate its review packet before ratification."
   before_specify:
     command: "speckit.program-kit-governance.architecture-check"
     priority: 5

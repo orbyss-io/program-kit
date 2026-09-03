@@ -4,6 +4,13 @@ Program Kit requires the human to start repository initialization, Program Kit i
 or update, and outer workflow orchestration from a normal user-owned PowerShell or WSL shell. Do not
 ask a Codex Desktop task or an interactive Codex CLI agent to perform those operations.
 
+On affected Windows hosts, Spec Kit 1.0.4 remote catalog updates launched inside Codex Desktop can
+also abort with `OPENSSL_Uplink(...): no OPENSSL_Applink` because Codex-owned native dependency
+directories precede the uv-installed CLI's OpenSSL runtime on `PATH`. This transport defect is being
+routed upstream. Do not sanitize or replace the Codex process `PATH` as a Program Kit workaround.
+Use the verified full release archive and its offline `scripts/upgrade_program_kit.py` from a normal
+user-owned terminal.
+
 ## Why this boundary exists
 
 Official OpenAI documentation says native Windows agent mode runs in a sandbox. The preferred

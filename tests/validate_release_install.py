@@ -10,6 +10,7 @@ import yaml
 
 EXPECTED_HOOKS = {
     "before_constitution",
+    "after_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
@@ -334,6 +335,8 @@ def main() -> int:
         # public-catalog test validates catalog-backed bundle installation.
         with zipfile.ZipFile(bundle_zip, "r") as archive:
             packaged_bundle = yaml.safe_load(archive.read("bundle.yml"))
+            if "scripts/upgrade_program_kit.py" not in archive.namelist():
+                raise AssertionError("Full Program Kit release is missing the offline/local updater")
         component_graph = {
             (kind, entry["id"])
             for kind, entries in packaged_bundle["provides"].items()

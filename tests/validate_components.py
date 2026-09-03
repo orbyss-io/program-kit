@@ -47,6 +47,7 @@ EXPECTED_STEPS = [
 ]
 EXPECTED_HOOKS = {
     "before_constitution",
+    "after_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
@@ -78,8 +79,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 12:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 12")
+    if len(command_names) != 13:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 13")
     extension_catalog = yaml.safe_load(
         (root / "catalogs/extensions.json").read_text(encoding="utf-8")
     )
@@ -270,8 +271,23 @@ def main() -> int:
         or before_constitution.get("optional") is not False
     ):
         raise AssertionError("Constitution begin must run exactly once through the mandatory core-command pre-hook")
+    after_constitution = extension.get("hooks", {}).get("after_constitution", {})
+    if (
+        after_constitution.get("command")
+        != "speckit.program-kit-governance.constitution-review"
+        or after_constitution.get("optional") is not False
+    ):
+        raise AssertionError(
+            "Constitution validation and review generation must run through the mandatory core-command post-hook"
+        )
 
     extension_root = extension_path.parent
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.constitution-review.md",
+        "validate-constitution-draft",
+        "write-review --stage constitution",
+        "before asking the user to",
+    )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.bootstrap.md",
         "This skill is guidance-only",
@@ -413,8 +429,7 @@ def main() -> int:
         "version-incoherent",
         "program-kit-dotnet",
         "program-kit-governance-config.local.yml",
-        "specify workflow update program-kit-bootstrap",
-        "specify bundle update program-kit --integration",
+        "upgrade_program_kit.py",
         "validate_bootstrap_decisions()",
         "complete_bootstrap()",
         "synchronize_roadmap_views()",
@@ -422,6 +437,20 @@ def main() -> int:
         "validate_completion()",
         "PENDING_RATIFICATION",
         "WEB_SECURITY_EVIDENCE",
+    )
+    updater = root / "scripts/upgrade_program_kit.py"
+    require_text(
+        updater,
+        "Resolve bundle composition record",
+        "Install bootstrap workflow",
+        "Install governance extension",
+        "Install .NET extension",
+        "Remove prior governance preset",
+        "Install governance preset",
+        "Resynchronize managed .NET baseline",
+        "Validate cross-component version coherence",
+        "program-kit-upgrade.lock",
+        "--offline",
     )
     context_script = extension_root / "scripts/bootstrap_context.py"
     context_schema = extension_root / "references/bootstrap-context.schema.json"

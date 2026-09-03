@@ -117,7 +117,7 @@ public sealed class ForbiddenInitializer : IShellInitializer
                 "shell": "default",
                 "producer": {
                     "kind": "ProgramKit.OpenApi.Exporter",
-                    "version": "0.8.9-preview.1",
+                    "version": "0.8.10-preview.1",
                 },
                 "features": ["Fixture.Web"],
             },

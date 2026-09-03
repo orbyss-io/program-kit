@@ -6,6 +6,22 @@
   It keeps all three review packets and hash validations, bypasses their pauses only when opted in,
   and records automatic versus interactive approval provenance in governance evidence.
 
+## 0.8.10 - 2026-09-03
+
+- Add a supported offline/local-release updater that locks Program Kit component mutation, invokes
+  bundle, workflow, extension, and preset primitives sequentially, resynchronizes an existing .NET
+  managed baseline, and refuses success until every installed version and registry converges.
+- Extend installation validation to the governance preset manifest/registry, bundle preset record,
+  and `.program-kit/managed.json`, preventing a newer bundle record from hiding old executable
+  extension or managed-baseline content.
+- Replace the unsafe two-command catalog upgrade guidance. Document the Spec Kit 1.0.4 Windows
+  Codex `OPENSSL_Applink` transport failure without weakening TLS or sanitizing the agent runtime.
+- Preserve immutable, hash-bound bootstrap decisions across upgrades. The local updater now writes
+  Accepted, decision-hash-bound version authority to `.specify/governance/program-kit-upgrades.json`;
+  governance rejects installed-version drift when that explicit evidence is absent or stale.
+- Add a mandatory `after_constitution` hook that validates every new or amended constitution draft
+  and regenerates its current review packet before the human ratification gate.
+
 ## 0.8.9 - 2026-09-03
 
 - Correct `spa-pkce-v1` Keycloak generation to use configurable exact callback, silent-renew, and

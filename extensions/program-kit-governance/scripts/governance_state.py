@@ -25,6 +25,7 @@ BOOTSTRAP_REVIEW = Path("docs/architecture/reviews/bootstrap-review.md")
 ASSESSMENT_APPROVAL = Path(".specify/governance/bootstrap-assessment-approval.json")
 BOOTSTRAP_APPROVAL = Path(".specify/governance/bootstrap-approval.json")
 BOOTSTRAP_COMPLETION = Path(".specify/governance/bootstrap-completion.json")
+PROGRAM_KIT_UPGRADES = Path(".specify/governance/program-kit-upgrades.json")
 READINESS_REPORT = Path("docs/architecture/readiness-report.md")
 CONFIGURATION = Path(
     ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
@@ -34,9 +35,12 @@ LOCAL_CONFIGURATION = Path(
 )
 EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-governance/extension.yml")
 DOTNET_EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-dotnet/extension.yml")
+PRESET_MANIFEST = Path(".specify/presets/program-kit-governance-preset/preset.yml")
+PRESET_REGISTRY = Path(".specify/presets/.registry")
 WORKFLOW_MANIFEST = Path(".specify/workflows/program-kit-bootstrap/workflow.yml")
 WORKFLOW_REGISTRY = Path(".specify/workflows/workflow-registry.json")
 BUNDLE_RECORDS = Path(".specify/bundle-records.json")
+MANAGED_BASELINE = Path(".program-kit/managed.json")
 INTEGRATION_STATE = Path(".specify/integration.json")
 STATUSES = {"Candidate", "Blocked", "Ready", "Active", "Delivered", "Superseded"}
 ROADMAP_VIEW_START = "<!-- PROGRAM-KIT:ROADMAP-VIEW:START -->"
@@ -216,8 +220,9 @@ def repair_commands() -> str:
         if isinstance(candidate, str) and re.fullmatch(r"[A-Za-z0-9_-]+", candidate.strip()):
             integration = candidate.strip()
     return (
-        "specify workflow update program-kit-bootstrap\n"
-        f"specify bundle update program-kit --integration {integration}"
+        "Download and extract the target Program Kit release, then run:\n"
+        "python <release-root>/scripts/upgrade_program_kit.py "
+        f"--release-root <release-root> --target . --integration {integration}"
     )
 
 
@@ -228,6 +233,9 @@ def validate_installation() -> dict[str, str]:
         ),
         "dotnet extension": manifest_version(
             project_path(DOTNET_EXTENSION_MANIFEST), "Program Kit .NET extension"
+        ),
+        "preset": manifest_version(
+            project_path(PRESET_MANIFEST), "Program Kit Governance preset"
         ),
         "workflow": manifest_version(
             project_path(WORKFLOW_MANIFEST), "Program Kit Bootstrap workflow"
@@ -249,6 +257,26 @@ def validate_installation() -> dict[str, str]:
             f"Repair the installation, in this order:\n{repair_commands()}"
         )
     versions["workflow registry"] = registry_version
+
+    preset_registry_path = project_path(PRESET_REGISTRY)
+    if not preset_registry_path.is_file():
+        raise GovernanceStateError(
+            f"Preset registry is missing: {preset_registry_path}\n"
+            f"Repair the installation sequentially:\n{repair_commands()}"
+        )
+    preset_registry = read_json(preset_registry_path).get("presets")
+    preset_entry = (
+        preset_registry.get("program-kit-governance-preset")
+        if isinstance(preset_registry, dict)
+        else None
+    )
+    preset_registry_version = preset_entry.get("version") if isinstance(preset_entry, dict) else None
+    if not isinstance(preset_registry_version, str):
+        raise GovernanceStateError(
+            f"Program Kit Governance preset is absent from the preset registry: {preset_registry_path}\n"
+            f"Repair the installation sequentially:\n{repair_commands()}"
+        )
+    versions["preset registry"] = preset_registry_version
 
     records_path = project_path(BUNDLE_RECORDS)
     if not records_path.is_file():
@@ -305,12 +333,39 @@ def validate_installation() -> dict[str, str]:
         )
     versions["bundle .NET extension record"] = dotnet_extension["version"]
 
+    preset_record = next(
+        (
+            component
+            for component in components or []
+            if isinstance(component, dict)
+            and component.get("kind") == "presets"
+            and component.get("id") == "program-kit-governance-preset"
+        ),
+        None,
+    )
+    if not isinstance(preset_record, dict) or not isinstance(preset_record.get("version"), str):
+        raise GovernanceStateError(
+            "Program Kit Governance preset is absent from the Program Kit bundle record.\n"
+            f"Repair the installation sequentially:\n{repair_commands()}"
+        )
+    versions["bundle preset record"] = preset_record["version"]
+
+    managed_path = project_path(MANAGED_BASELINE)
+    if managed_path.is_file():
+        managed_version = read_json(managed_path).get("programKitVersion")
+        if not isinstance(managed_version, str):
+            raise GovernanceStateError(
+                f"Managed .NET baseline has no Program Kit version: {managed_path}\n"
+                f"Repair the installation sequentially:\n{repair_commands()}"
+            )
+        versions["managed .NET baseline"] = managed_version
+
     if len(set(versions.values())) != 1:
         details = ", ".join(f"{name}={version}" for name, version in versions.items())
         raise GovernanceStateError(
-            f"Program Kit installation is version-incoherent ({details}). Spec Kit 1.0.1 "
-            "cannot refresh the separately installed workflow through bundle update. Do not "
-            "run bootstrap between repair commands. Repair the installation, in this order:\n"
+            f"Program Kit installation is version-incoherent ({details}). A bundle operation may "
+            "have advanced its record without every installed component. Do not run bootstrap, "
+            "sync, or another component mutation independently. Repair the installation sequentially:\n"
             f"{repair_commands()}"
         )
     return versions
@@ -459,7 +514,77 @@ def _has_decision_status(text: str, status: str) -> bool:
     return re.search(pattern, text, re.MULTILINE | re.IGNORECASE) is not None
 
 
-def validate_bootstrap_decisions() -> dict:
+def _upgrade_records(value: dict, decision_hash: str) -> list[dict]:
+    if set(value) != {"schema_version", "upgrades"} or value.get("schema_version") != "1.0":
+        raise GovernanceStateError("Program Kit upgrade evidence must use the 1.0 schema")
+    records = value.get("upgrades")
+    if not isinstance(records, list):
+        raise GovernanceStateError("Program Kit upgrade evidence must contain an upgrades list")
+    expected_fields = {
+        "id", "status", "baseline_profile_version", "previous_installed_version",
+        "installed_version", "bootstrap_decisions", "authorization",
+    }
+    seen: set[str] = set()
+    for index, record in enumerate(records, 1):
+        if not isinstance(record, dict) or set(record) != expected_fields:
+            raise GovernanceStateError(
+                f"Program Kit upgrade record {index} has unexpected fields"
+            )
+        record_id = _require_string(record.get("id"), f"Program Kit upgrade record {index}.id")
+        if record_id in seen:
+            raise GovernanceStateError(f"Duplicate Program Kit upgrade record id: {record_id}")
+        seen.add(record_id)
+        if record.get("status") != "Accepted":
+            raise GovernanceStateError(f"Program Kit upgrade record {record_id} is not Accepted")
+        for field in (
+            "baseline_profile_version", "previous_installed_version", "installed_version"
+        ):
+            _require_string(record.get(field), f"Program Kit upgrade record {record_id}.{field}")
+        if record.get("authorization") != "explicit-local-upgrade-command":
+            raise GovernanceStateError(
+                f"Program Kit upgrade record {record_id} has invalid authorization"
+            )
+        basis = record.get("bootstrap_decisions")
+        expected_basis = {
+            "path": BOOTSTRAP_DECISIONS.as_posix(),
+            "sha256": decision_hash,
+        }
+        if basis != expected_basis:
+            raise GovernanceStateError(
+                f"Program Kit upgrade record {record_id} is not bound to the immutable bootstrap decisions"
+            )
+    return records
+
+
+def validate_upgrade_authorization(
+    baseline_version: str,
+    installed_version: str,
+    value: dict | None = None,
+) -> None:
+    path = project_path(PROGRAM_KIT_UPGRADES)
+    if value is None:
+        if not path.is_file():
+            raise GovernanceStateError(
+                "Installed Program Kit version differs from the immutable bootstrap profile and "
+                "has no Accepted Program Kit upgrade evidence. Run the target release's "
+                "scripts/upgrade_program_kit.py; do not rewrite bootstrap-decisions.json"
+            )
+        value = read_json(path)
+    decision_hash = sha256(project_path(BOOTSTRAP_DECISIONS))
+    records = _upgrade_records(value, decision_hash)
+    if not any(
+        record["baseline_profile_version"] == baseline_version
+        and record["installed_version"] == installed_version
+        for record in records
+    ):
+        raise GovernanceStateError(
+            "Installed Program Kit version differs from the immutable bootstrap profile without "
+            f"Accepted upgrade evidence for {baseline_version} -> {installed_version}. Run the "
+            "target release's scripts/upgrade_program_kit.py"
+        )
+
+
+def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
     path = project_path(BOOTSTRAP_DECISIONS)
     value = read_json(path)
     required_fields = {
@@ -491,10 +616,7 @@ def validate_bootstrap_decisions() -> dict:
         project_path(EXTENSION_MANIFEST), "Program Kit Governance extension"
     )
     if profile_version != installed_version:
-        raise GovernanceStateError(
-            "Bootstrap default-profile version does not match the installed Program Kit version: "
-            f"{profile_version} != {installed_version}"
-        )
+        validate_upgrade_authorization(profile_version, installed_version, upgrade_state)
 
     choices = value.get("choices")
     if not isinstance(choices, list) or not choices:
@@ -731,6 +853,64 @@ def validate_bootstrap_decisions() -> dict:
         if web.get("secure_profile") != "none-v1":
             raise GovernanceStateError("A non-browser web decision block must select none-v1")
     return value
+
+
+def record_program_kit_upgrade(previous_version: str, target_version: str) -> None:
+    previous_version = _require_string(previous_version, "Previous Program Kit version")
+    target_version = _require_string(target_version, "Target Program Kit version")
+    versions = validate_installation()
+    installed_version = next(iter(versions.values()))
+    if target_version != installed_version:
+        raise GovernanceStateError(
+            f"Cannot accept Program Kit upgrade to {target_version}; coherent installation is {installed_version}"
+        )
+    decisions_value = read_json(project_path(BOOTSTRAP_DECISIONS))
+    profile = decisions_value.get("default_profile")
+    if not isinstance(profile, dict):
+        raise GovernanceStateError("Bootstrap decisions have no default_profile")
+    baseline_version = _require_string(
+        profile.get("version"), "Bootstrap default_profile.version"
+    )
+    if baseline_version == installed_version:
+        validate_bootstrap_decisions()
+        print("Program Kit installation still matches the immutable bootstrap profile; no upgrade record needed")
+        return
+    path = project_path(PROGRAM_KIT_UPGRADES)
+    if path.is_file():
+        state = read_json(path)
+        records = _upgrade_records(state, sha256(project_path(BOOTSTRAP_DECISIONS)))
+    else:
+        state = {"schema_version": "1.0", "upgrades": []}
+        records = state["upgrades"]
+    matching = next(
+        (
+            record for record in records
+            if record["baseline_profile_version"] == baseline_version
+            and record["installed_version"] == installed_version
+        ),
+        None,
+    )
+    if matching is None:
+        records.append(
+            {
+                "id": f"program-kit-{installed_version}",
+                "status": "Accepted",
+                "baseline_profile_version": baseline_version,
+                "previous_installed_version": previous_version,
+                "installed_version": installed_version,
+                "bootstrap_decisions": {
+                    "path": BOOTSTRAP_DECISIONS.as_posix(),
+                    "sha256": sha256(project_path(BOOTSTRAP_DECISIONS)),
+                },
+                "authorization": "explicit-local-upgrade-command",
+            }
+        )
+    validate_bootstrap_decisions(state)
+    write_json(path, state)
+    print(
+        f"Accepted Program Kit upgrade {previous_version} -> {installed_version} without changing "
+        f"{BOOTSTRAP_DECISIONS.as_posix()}"
+    )
 
 
 def _list_items(items: object, field: str, empty: str, *, limit: int = 15) -> list[str]:
@@ -1468,6 +1648,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate Program Kit governance state")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("validate-installation")
+    upgrade_parser = subparsers.add_parser("record-upgrade")
+    upgrade_parser.add_argument("--previous-version", required=True)
+    upgrade_parser.add_argument("--target-version", required=True)
     subparsers.add_parser("validate-assessment")
     assessment_parser = subparsers.add_parser("accept-assessment")
     assessment_parser.add_argument("--verdict", required=True)
@@ -1513,7 +1696,9 @@ def main() -> int:
             # validating governance operation. In particular, no Draft marker may
             # be written while the separately installed workflow is stale.
             validate_installation()
-            if args.command == "begin":
+            if args.command == "record-upgrade":
+                record_program_kit_upgrade(args.previous_version, args.target_version)
+            elif args.command == "begin":
                 begin()
             elif args.command == "validate-assessment":
                 validate_assessment()

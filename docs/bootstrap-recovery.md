@@ -27,32 +27,15 @@ if ([string]::IsNullOrWhiteSpace($integration)) {
     $integration = [string]$integrationState.integration
 }
 
-# Program Kit 0.6.9 and earlier registered immutable release catalogs. Replace
-# those registrations with the update channel before asking Spec Kit to update.
-$catalogRoot = 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs'
-specify extension catalog remove program-kit
-if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned extension catalog.' }
-specify preset catalog remove program-kit
-if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned preset catalog.' }
-specify workflow catalog remove 0
-if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned workflow catalog.' }
-specify bundle catalog remove program-kit
-if ($LASTEXITCODE -ne 0) { throw 'Could not remove the pinned bundle catalog.' }
-
-specify extension catalog add "$catalogRoot/extensions.json" --name program-kit --install-allowed
-if ($LASTEXITCODE -ne 0) { throw 'Could not register the extension update catalog.' }
-specify preset catalog add "$catalogRoot/presets.json" --name program-kit --install-allowed
-if ($LASTEXITCODE -ne 0) { throw 'Could not register the preset update catalog.' }
-specify workflow catalog add "$catalogRoot/workflows.json" --name program-kit
-if ($LASTEXITCODE -ne 0) { throw 'Could not register the workflow update catalog.' }
-specify bundle catalog add "$catalogRoot/bundles.json" --id program-kit --policy install-allowed
-if ($LASTEXITCODE -ne 0) { throw 'Could not register the bundle update catalog.' }
-
-specify workflow update program-kit-bootstrap
-if ($LASTEXITCODE -ne 0) { throw 'Program Kit workflow update failed.' }
-
-specify bundle update program-kit --integration $integration
-if ($LASTEXITCODE -ne 0) { throw 'Program Kit bundle update failed.' }
+# Download, verify, and extract the target full Program Kit release first. The
+# release-owned updater avoids catalog transport and does not trust a bundle
+# record until every installed primitive and managed baseline converges.
+$releaseRoot = 'C:\path\to\program-kit-0.8.10'
+python "$releaseRoot\scripts\upgrade_program_kit.py" `
+  --release-root $releaseRoot `
+  --target . `
+  --integration $integration
+if ($LASTEXITCODE -ne 0) { throw 'Sequential Program Kit upgrade failed.' }
 
 python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-installation
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit installation is not version-coherent.' }

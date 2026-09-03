@@ -57,6 +57,19 @@ def write_installation(project: Path, version: str, *, workflow_version: str | N
         f'schema_version: "1.0"\n\nworkflow:\n  id: "program-kit-bootstrap"\n  version: "{workflow_version}"\n',
         encoding="utf-8",
     )
+    preset_manifest = project / ".specify/presets/program-kit-governance-preset/preset.yml"
+    preset_manifest.parent.mkdir(parents=True, exist_ok=True)
+    preset_manifest.write_text(
+        f'schema_version: "1.0"\n\npreset:\n  id: "program-kit-governance-preset"\n  version: "{version}"\n',
+        encoding="utf-8",
+    )
+    preset_registry = {
+        "schema_version": "1.0",
+        "presets": {"program-kit-governance-preset": {"version": version}},
+    }
+    (project / ".specify/presets/.registry").write_text(
+        json.dumps(preset_registry), encoding="utf-8"
+    )
     registry = {
         "schema_version": "1.0",
         "workflows": {
@@ -85,7 +98,12 @@ def write_installation(project: Path, version: str, *, workflow_version: str | N
                         "kind": "extensions",
                         "id": "program-kit-dotnet",
                         "version": version,
-                    }
+                    },
+                    {
+                        "kind": "presets",
+                        "id": "program-kit-governance-preset",
+                        "version": version,
+                    },
                 ],
             }
         ],
@@ -314,12 +332,7 @@ def main() -> int:
 
             write_installation(project, "0.3.1", workflow_version="0.3.0")
             expect_error(module, module.validate_installation, "version-incoherent")
-            expect_error(module, module.validate_installation, "workflow update program-kit-bootstrap")
-            expect_error(
-                module,
-                module.validate_installation,
-                "bundle update program-kit --integration codex",
-            )
+            expect_error(module, module.validate_installation, "upgrade_program_kit.py")
             if run_main(module, "begin") != 1:
                 raise AssertionError("A mixed-version installation must fail before begin")
             if (project / module.RATIFICATION).exists():
@@ -329,6 +342,34 @@ def main() -> int:
             versions = module.validate_installation()
             if set(versions.values()) != {"0.3.1"}:
                 raise AssertionError(f"Unexpected coherent versions: {versions}")
+            preset_registry_path = project / module.PRESET_REGISTRY
+            preset_registry = json.loads(preset_registry_path.read_text(encoding="utf-8"))
+            preset_registry["presets"]["program-kit-governance-preset"]["version"] = "0.3.0"
+            preset_registry_path.write_text(json.dumps(preset_registry), encoding="utf-8")
+            expect_error(module, module.validate_installation, "preset registry=0.3.0")
+            preset_registry["presets"]["program-kit-governance-preset"]["version"] = "0.3.1"
+            preset_registry_path.write_text(json.dumps(preset_registry), encoding="utf-8")
+            records_path = project / module.BUNDLE_RECORDS
+            bundle_records = json.loads(records_path.read_text(encoding="utf-8"))
+            bundle_records["bundles"][0]["version"] = "0.3.2"
+            records_path.write_text(json.dumps(bundle_records), encoding="utf-8")
+            expect_error(module, module.validate_installation, "bundle record=0.3.2")
+            bundle_records["bundles"][0]["version"] = "0.3.1"
+            records_path.write_text(json.dumps(bundle_records), encoding="utf-8")
+            managed = project / module.MANAGED_BASELINE
+            managed.parent.mkdir(parents=True, exist_ok=True)
+            managed.write_text(
+                json.dumps({"schemaVersion": 1, "programKitVersion": "0.3.0"}),
+                encoding="utf-8",
+            )
+            expect_error(module, module.validate_installation, "managed .NET baseline=0.3.0")
+            managed.write_text(
+                json.dumps({"schemaVersion": 1, "programKitVersion": "0.3.1"}),
+                encoding="utf-8",
+            )
+            versions = module.validate_installation()
+            if versions.get("managed .NET baseline") != "0.3.1":
+                raise AssertionError("Managed baseline version was not included in coherence validation")
 
             expect_error(module, module.validate_ratification, "governance state file")
 
@@ -414,6 +455,41 @@ def main() -> int:
             )
             if assessment_record.get("approval_mode") != "interactive":
                 raise AssertionError("Interactive assessment approval was not recorded")
+
+            immutable_decisions = bootstrap_decisions.read_bytes()
+            write_installation(project, "0.3.2")
+            managed.write_text(
+                json.dumps({"schemaVersion": 1, "programKitVersion": "0.3.2"}),
+                encoding="utf-8",
+            )
+            expect_error(
+                module,
+                module.validate_bootstrap_decisions,
+                "no Accepted Program Kit upgrade evidence",
+            )
+            module.record_program_kit_upgrade("0.3.1", "0.3.2")
+            if bootstrap_decisions.read_bytes() != immutable_decisions:
+                raise AssertionError("Governed upgrade rewrote the hash-bound bootstrap decisions")
+            module.validate_bootstrap_decisions()
+            upgrade_path = project / module.PROGRAM_KIT_UPGRADES
+            upgrade_state = json.loads(upgrade_path.read_text(encoding="utf-8"))
+            record = upgrade_state["upgrades"][-1]
+            if (
+                record.get("baseline_profile_version") != "0.3.1"
+                or record.get("previous_installed_version") != "0.3.1"
+                or record.get("installed_version") != "0.3.2"
+                or record.get("status") != "Accepted"
+            ):
+                raise AssertionError(f"Unexpected governed upgrade record: {record}")
+            record["installed_version"] = "0.3.3"
+            upgrade_path.write_text(json.dumps(upgrade_state), encoding="utf-8")
+            expect_error(
+                module,
+                module.validate_bootstrap_decisions,
+                "without Accepted upgrade evidence",
+            )
+            record["installed_version"] = "0.3.2"
+            upgrade_path.write_text(json.dumps(upgrade_state), encoding="utf-8")
 
             constitution_path = project / module.CONSTITUTION
             constitution_path.parent.mkdir(parents=True)

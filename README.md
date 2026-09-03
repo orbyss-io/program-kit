@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.9/Initialize-ProgramKit-0.8.9.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.10/Initialize-ProgramKit-0.8.10.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.8.9/Initialize-ProgramKit-0.8.9.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.8.10/Initialize-ProgramKit-0.8.10.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -137,30 +137,33 @@ Spec Kit 1.0.1's bundle adapter incorrectly routes a catalog workflow ID through
 
 ### Upgrade an existing Program Kit installation
 
-With Spec Kit 1.0.1, the catalog workflow is installed separately from the bundle and must be updated first. Run both commands consecutively from the consuming repository, in this exact order:
+Download and verify the full `program-kit-<version>.zip` release asset, extract it, then run the
+release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-specify workflow update program-kit-bootstrap
-specify bundle update program-kit --integration codex
-python .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
+python C:\path\to\program-kit-0.8.10\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.8.10 `
+  --target . `
+  --integration codex
 ```
 
-Installations created by Program Kit 0.6.9 or earlier used immutable release-tag catalog
-registrations. Before their first upgrade, replace those four registrations once:
+Replace `codex` with the repository's installed integration. The updater does not use catalogs or
+the network. It validates that the extracted bundle, workflow, extensions, and preset all have the
+same release version; takes an exclusive mutation lock; invokes every Spec Kit primitive
+sequentially; resynchronizes an existing managed .NET baseline; runs sync check; and then compares
+the bundle record, workflow manifest/registry, both extension manifests, preset manifest/registry,
+and managed-baseline version. It reports success only when every value converges. Do not run
+`workflow`, `extension`, `preset`, or `bundle` mutations concurrently with it.
 
-```powershell
-$catalogRoot = 'https://raw.githubusercontent.com/orbyss-io/program-kit/main/catalogs'
-specify extension catalog remove program-kit
-specify preset catalog remove program-kit
-specify workflow catalog remove 0
-specify bundle catalog remove program-kit
-specify extension catalog add "$catalogRoot/extensions.json" --name program-kit --install-allowed
-specify preset catalog add "$catalogRoot/presets.json" --name program-kit --install-allowed
-specify workflow catalog add "$catalogRoot/workflows.json" --name program-kit
-specify bundle catalog add "$catalogRoot/bundles.json" --id program-kit --policy install-allowed
-```
+For a repository whose approved `bootstrap-decisions.json` names an older Program Kit version, the
+updater preserves that immutable file and appends Accepted, SHA-256-bound version authority to
+`.specify/governance/program-kit-upgrades.json`. Later governance validates the installed release
+against that record; unrecorded version drift remains blocked.
 
-Replace `codex` with the repository's installed integration. Do not run the bootstrap or any Program Kit governance command between these two updates. Program Kit validates the installed workflow registry, workflow manifest, extension manifest, and bundle records before governance work; a mixed-version installation stops with these repair commands before reading the initial design or mutating governance state.
+This local-release path replaces the previous pair of remote `workflow update` and `bundle update`
+commands. Besides depending on live catalog transport, Spec Kit can advance a bundle record while an
+existing component remains old. Program Kit therefore does not treat a successful bundle message as
+upgrade evidence.
 
 Run the architecture bootstrap with the path to your initial design:
 
@@ -246,8 +249,8 @@ orchestrating setup itself.
   invoked, reviewable repository sync command.
 - `program-kit-governance-preset`: appends governance traceability to Spec Kit's feature, plan, and task templates.
 - Mandatory hooks before and after `speckit.specify`, after `speckit.plan`, before
-  `speckit.implement`, after `speckit.tasks`, and before constitution drafting to prevent unauthorized
-  specification and detect architecture drift.
+  `speckit.implement`, after `speckit.tasks`, and before and after constitution drafting to prevent
+  unauthorized specification, regenerate the current ratification packet, and detect architecture drift.
 
 The preset deliberately uses the Spec Kit `append` strategy, so it augments rather than replaces
 the core templates. If a consumer needs a durable project-specific template, use the project's
@@ -357,11 +360,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.8.9.md`](docs/releasing-0.8.9.md).
+[`docs/releasing-0.8.10.md`](docs/releasing-0.8.10.md).
 
 ```powershell
-git tag v0.8.9
-git push origin v0.8.9
+git tag v0.8.10
+git push origin v0.8.10
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -369,6 +372,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 ## Release assets
 
 - `program-kit-<version>.zip`: Program Kit's catalog-backed, pinned bundle manifest.
+  It also contains `scripts/upgrade_program_kit.py`, the supported sequential offline/local-release
+  updater for existing installations.
 - `program-kit-governance-<version>.zip`: standalone governance extension package.
 - `program-kit-dotnet-<version>.zip`: standalone .NET capability extension package.
 - `program-kit-governance-preset-<version>.zip`: standalone governance template preset.
@@ -381,8 +386,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.8.9.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.8.9.zip -Algorithm SHA256
+gh attestation verify program-kit-0.8.10.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.8.10.zip -Algorithm SHA256
 ```
 
 ## License

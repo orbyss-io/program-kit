@@ -62,6 +62,7 @@ def main() -> int:
     required_archives = {
         "governance": artifacts / f"program-kit-governance-{version}.zip",
         "dotnet": artifacts / f"program-kit-dotnet-{version}.zip",
+        "preset": artifacts / f"program-kit-governance-preset-{version}.zip",
         "workflow": artifacts / f"program-kit-bootstrap-{version}.zip",
     }
     missing = [str(path) for path in required_archives.values() if not path.is_file()]
@@ -73,6 +74,7 @@ def main() -> int:
         destinations = {
             "governance": project / ".specify/extensions/program-kit-governance",
             "dotnet": project / ".specify/extensions/program-kit-dotnet",
+            "preset": project / ".specify/presets/program-kit-governance-preset",
             "workflow": project / ".specify/workflows/program-kit-bootstrap",
         }
         for name, archive in required_archives.items():
@@ -87,6 +89,22 @@ def main() -> int:
                     "schema_version": "1.0",
                     "workflows": {
                         "program-kit-bootstrap": {
+                            "version": version,
+                            "source": "release-regression",
+                        }
+                    },
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        write(
+            project / ".specify/presets/.registry",
+            json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "presets": {
+                        "program-kit-governance-preset": {
                             "version": version,
                             "source": "release-regression",
                         }
@@ -114,6 +132,16 @@ def main() -> int:
                                 {
                                     "kind": "extensions",
                                     "id": "program-kit-dotnet",
+                                    "version": version,
+                                },
+                                {
+                                    "kind": "presets",
+                                    "id": "program-kit-governance-preset",
+                                    "version": version,
+                                },
+                                {
+                                    "kind": "workflows",
+                                    "id": "program-kit-bootstrap",
                                     "version": version,
                                 },
                             ],

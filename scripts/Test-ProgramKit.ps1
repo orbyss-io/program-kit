@@ -35,6 +35,11 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Governance-state validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_local_upgrade.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Sequential offline/local upgrade validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_bootstrap_context.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Bootstrap-context validation failed.'

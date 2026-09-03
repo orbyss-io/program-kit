@@ -237,8 +237,7 @@ def main() -> int:
             raise AssertionError("Mixed-version installation unexpectedly passed preflight")
         for phrase in (
             "version-incoherent",
-            "specify workflow update program-kit-bootstrap",
-            "specify bundle update program-kit --integration codex",
+            "upgrade_program_kit.py",
         ):
             if phrase not in output:
                 raise AssertionError(f"Preflight output is missing {phrase!r}: {output}")
