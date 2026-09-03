@@ -36,6 +36,8 @@
   elevation-bound Chocolatey fallback.
 - Use an empty command-scoped Git excludes value on Windows live workers because Git rejects `NUL`;
   retain `/dev/null` on POSIX and never change global Git configuration.
+- Separate packaged-candidate release gates from public-catalog verification, whose immutable tag
+  URLs and downloadable assets necessarily become available only after publication.
 
 ## 0.8.3 - 2026-09-02
 

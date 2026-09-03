@@ -18,8 +18,6 @@ Before tagging:
 dotnet restore ProgramKit.slnx --locked-mode
 dotnet build ProgramKit.slnx -c Release --no-restore
 python tests/validate_dotnet_feature_host.py
-python tests/validate_public_install.py
-python tests/validate_public_upgrade.py
 ```
 
 The paid live suite is entirely user-invoked and is not a publication prerequisite. Do not ask to
@@ -59,4 +57,13 @@ Create and push the immutable tag only from the validated release commit:
 ```powershell
 git tag v0.8.4
 git push origin main v0.8.4
+```
+
+The public catalog checks require both the immutable tag and its GitHub release assets, so run them
+after the release workflow publishes those assets; they are also the workflow's final verification
+steps:
+
+```powershell
+python tests/validate_public_install.py
+python tests/validate_public_upgrade.py
 ```
