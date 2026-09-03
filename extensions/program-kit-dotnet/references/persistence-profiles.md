@@ -12,6 +12,11 @@ adapter and its real-provider test project. `none` is the default.
 | `ef-sqlserver` | EF Core/Design/SqlServer 10.0.11; Testcontainers.MsSql 4.14.0 | SQL Server/Azure SQL behavior and operations are requirements. |
 | `ef-sqlite` | EF Core/Design/Sqlite 10.0.11 | An embedded single-file relational store satisfies concurrency, durability, scale, and deployment constraints. It is never evidence for PostgreSQL or SQL Server. |
 
+All profiles inherit the common managed `Microsoft.Extensions.DependencyInjection.Abstractions` and
+`Microsoft.Extensions.Logging.Abstractions` 10.0.11 central pins. These pins converge older compatible
+transitive requests from Testcontainers with net10 platform and observability projects; they do not
+create new project dependency edges.
+
 Dapper is not a built-in profile in this release. Program Kit does not yet provide a sufficiently
 complete governed mapping, migrations, transaction, authorization-query, and real-provider test
 contract for it; selecting it requires an Accepted ADR and an explicit profile extension.

@@ -65,8 +65,15 @@ def main() -> int:
         root
         / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/ProgramKit.Packages.props"
     ).read_text(encoding="utf-8")
-    for package in ("ProgramKit.Analyzers", "ProgramKit.Tasks.Abstractions", "ProgramKit.Tasks"):
-        pattern = rf'Include="{re.escape(package)}" Version="{re.escape(runtime_version)}"'
+    managed_versions = {
+        "ProgramKit.Analyzers": runtime_version,
+        "ProgramKit.Tasks.Abstractions": runtime_version,
+        "ProgramKit.Tasks": runtime_version,
+        "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11",
+        "Microsoft.Extensions.Logging.Abstractions": "10.0.11",
+    }
+    for package, expected_version in managed_versions.items():
+        pattern = rf'Include="{re.escape(package)}" Version="{re.escape(expected_version)}"'
         if re.search(pattern, consumer_versions) is None:
             raise AssertionError(f"Consumer template does not pin {package} to {runtime_version}")
 

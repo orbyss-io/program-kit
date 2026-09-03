@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Exercise the managed .NET 10 Microsoft Testing Platform selection against a real
+  MSTest.Sdk 4.3.3 consumer solution, including the required `dotnet test --solution` invocation.
+- Converge `Microsoft.Extensions.DependencyInjection.Abstractions` and
+  `Microsoft.Extensions.Logging.Abstractions` to 10.0.11 through the managed central package
+  baseline, preventing Testcontainers 4.14.0 graphs from introducing .NET 8 assemblies into net10
+  platform and observability projects.
+
 ## 0.8.7 - 2026-09-03
 
 - Resolve the exact managed Node and npm executables once and reuse their evidence for OpenAPI,

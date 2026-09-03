@@ -50,7 +50,14 @@ commands. npm uses `.program-kit/cache/npm`, strict TLS, and either bundled or s
 
 Managed .NET and local-tool restores explicitly use the consumer-owned, reviewed `NuGet.config`, with
 package and HTTP caches below `.program-kit/cache/nuget`. The managed `global.json` selects
-`Microsoft.Testing.Platform` for .NET 10 test execution.
+`Microsoft.Testing.Platform` for .NET 10 test execution, and `Build.ps1` passes the generated solution
+through the MTP-aware `dotnet test --solution` form.
+
+The common managed package baseline centrally pins the dependency-injection and logging abstraction
+packages to the same 10.0.11 servicing line used by the .NET 10 profile. A package such as
+Testcontainers may request an older compatible abstraction transitively, but central transitive
+pinning converges the resulting consumer graph; it does not add either abstraction to projects that
+do not otherwise need it.
 
 ## Feature creation and release-time closure
 
