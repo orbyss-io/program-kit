@@ -14,6 +14,7 @@ V020 = f"{REPOSITORY}/v0.2.0/catalogs"
 CURRENT = f"{REPOSITORY}/main/catalogs"
 EXPECTED_HOOKS = {
     "before_constitution",
+    "after_constitution",
     "before_specify",
     "after_specify",
     "after_plan",

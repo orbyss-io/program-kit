@@ -280,6 +280,15 @@ def main() -> int:
         raise AssertionError(
             "Constitution validation and review generation must run through the mandatory core-command post-hook"
         )
+    for public_regression in (
+        root / "tests/validate_public_install.py",
+        root / "tests/validate_public_upgrade.py",
+        root / "tests/validate_release_install.py",
+    ):
+        require_text(
+            public_regression,
+            '"after_constitution"',
+        )
 
     extension_root = extension_path.parent
     require_text(
