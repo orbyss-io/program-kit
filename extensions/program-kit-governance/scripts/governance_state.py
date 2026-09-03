@@ -1162,28 +1162,51 @@ def validate_constitution_draft() -> None:
     constitution = project_path(CONSTITUTION)
     constitution_metadata(constitution, allow_pending=True)
     text = constitution.read_text(encoding="utf-8")
-    if not re.search(r"^\*\*Status\*\*:\s*Draft(?:\s.*)?$", text, re.MULTILINE):
+    if not re.search(r"^\*\*Status\*\*: Draft$", text, re.MULTILINE):
         raise GovernanceStateError("Constitution review requires an explicit Draft status")
 
 
-def _finalize_constitution_for_ratification(path: Path) -> None:
-    text = path.read_text(encoding="utf-8")
-    if "**Ratified**: PENDING_RATIFICATION" in text:
-        text = text.replace(
-            "**Ratified**: PENDING_RATIFICATION",
-            f"**Ratified**: {date.today().isoformat()}",
+def _finalize_constitution_for_ratification(path: Path) -> tuple[str, str, str, str, str]:
+    reviewed = path.read_bytes()
+    status_pattern = re.compile(rb"^\*\*Status\*\*: Draft(?=\r?$)", re.MULTILINE)
+    status_matches = status_pattern.findall(reviewed)
+    if len(status_matches) != 1:
+        raise GovernanceStateError("Constitution has no unique canonical Draft status to finalize")
+
+    pending_marker = b"**Ratified**: PENDING_RATIFICATION"
+    pending_count = reviewed.count(pending_marker)
+    if pending_count > 1:
+        raise GovernanceStateError("Constitution has multiple pending ratification dates")
+
+    expected = status_pattern.sub(b"**Status**: Ratified", reviewed, count=1)
+    if pending_count == 1:
+        expected = expected.replace(
+            pending_marker,
+            f"**Ratified**: {date.today().isoformat()}".encode("utf-8"),
             1,
         )
-    updated, count = re.subn(
-        r"^\*\*Status\*\*:\s*Draft(?:\s.*)?$",
-        "**Status**: Ratified",
-        text,
-        count=1,
-        flags=re.MULTILINE,
+
+    temporary = path.with_name(path.name + ".ratify.tmp")
+    try:
+        temporary.write_bytes(expected)
+        version, ratified, amended = constitution_metadata(temporary)
+        if temporary.read_bytes() != expected:
+            raise GovernanceStateError("Constitution finalization preview changed unexpected bytes")
+        temporary.replace(path)
+    finally:
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
+    if path.read_bytes() != expected:
+        raise GovernanceStateError("Constitution finalization changed bytes outside permitted substitutions")
+    return (
+        version,
+        ratified,
+        amended,
+        hashlib.sha256(reviewed).hexdigest(),
+        hashlib.sha256(expected).hexdigest(),
     )
-    if count != 1:
-        raise GovernanceStateError("Constitution has no unique Draft status to finalize")
-    write_text(path, updated)
 
 
 def begin() -> None:
@@ -1219,8 +1242,9 @@ def ratify(verdict: str, approval_mode: str = "interactive") -> None:
         (CONSTITUTION, ASSESSMENT_APPROVAL),
         "Constitution",
     )
-    _finalize_constitution_for_ratification(constitution)
-    version, ratified, amended = constitution_metadata(constitution)
+    version, ratified, amended, reviewed_sha256, expected_sha256 = (
+        _finalize_constitution_for_ratification(constitution)
+    )
     write_json(
         marker,
         {
@@ -1236,6 +1260,14 @@ def ratify(verdict: str, approval_mode: str = "interactive") -> None:
             "gate_verdict": verdict,
             "approval_mode": approval_mode,
             "approval_source": CONSTITUTION_REVIEW.as_posix(),
+            "finalization": {
+                "reviewed_sha256": reviewed_sha256,
+                "expected_final_sha256": expected_sha256,
+                "permitted_substitutions": [
+                    "**Status**: Draft -> **Status**: Ratified",
+                    "**Ratified**: PENDING_RATIFICATION -> current date (initial ratification only)",
+                ],
+            },
         },
     )
     print(f"Constitution {version} is ratified and hash-bound: {marker}")
@@ -1269,6 +1301,21 @@ def validate_ratification() -> dict:
         raise GovernanceStateError(
             "Constitution content or metadata changed after ratification; ratify the new draft"
         )
+    finalization = record.get("finalization")
+    if finalization is not None:
+        expected_substitutions = [
+            "**Status**: Draft -> **Status**: Ratified",
+            "**Ratified**: PENDING_RATIFICATION -> current date (initial ratification only)",
+        ]
+        if (
+            not isinstance(finalization, dict)
+            or set(finalization)
+            != {"reviewed_sha256", "expected_final_sha256", "permitted_substitutions"}
+            or not re.fullmatch(r"[0-9a-f]{64}", str(finalization.get("reviewed_sha256", "")))
+            or finalization.get("expected_final_sha256") != sha256(constitution)
+            or finalization.get("permitted_substitutions") != expected_substitutions
+        ):
+            raise GovernanceStateError("Constitution ratification has invalid finalization evidence")
     return record
 
 

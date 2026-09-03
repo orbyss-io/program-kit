@@ -517,6 +517,14 @@ def main() -> int:
             module.validate_constitution_draft()
             module.write_review("constitution")
             assert_review_packet(project / module.CONSTITUTION_REVIEW, "constitution")
+            reviewed_constitution = constitution_path.read_bytes()
+            expected_final_constitution = reviewed_constitution.replace(
+                b"**Status**: Draft", b"**Status**: Ratified", 1
+            ).replace(
+                b"**Ratified**: PENDING_RATIFICATION",
+                f"**Ratified**: {module.date.today().isoformat()}".encode("utf-8"),
+                1,
+            )
             expect_error(
                 module,
                 lambda: module.ratify("approve"),
@@ -525,12 +533,34 @@ def main() -> int:
             if "**Status**: Draft" not in constitution_path.read_text(encoding="utf-8"):
                 raise AssertionError("A non-ratify verdict changed the constitution draft")
             module.ratify("ratify", "automatic")
+            if constitution_path.read_bytes() != expected_final_constitution:
+                raise AssertionError(
+                    "Ratification changed reviewed constitution bytes outside the two permitted substitutions"
+                )
             module.validate_ratification()
             ratification_record = json.loads(
                 (project / module.RATIFICATION).read_text(encoding="utf-8")
             )
             if ratification_record.get("approval_mode") != "automatic":
                 raise AssertionError("Automatic constitution ratification was not recorded")
+            finalization = ratification_record.get("finalization", {})
+            if (
+                finalization.get("reviewed_sha256") != module.hashlib.sha256(reviewed_constitution).hexdigest()
+                or finalization.get("expected_final_sha256")
+                != module.hashlib.sha256(expected_final_constitution).hexdigest()
+            ):
+                raise AssertionError("Ratification evidence did not bind the reviewed and expected final bytes")
+            module.begin()
+            recovery_state = json.loads(
+                (project / module.RATIFICATION).read_text(encoding="utf-8")
+            )
+            if recovery_state.get("previous_ratification") != ratification_record:
+                raise AssertionError("Recovery draft did not preserve prior ratification evidence")
+            if constitution_path.read_bytes() != expected_final_constitution:
+                raise AssertionError("Beginning recovery unexpectedly changed constitution bytes")
+            (project / module.RATIFICATION).write_text(
+                json.dumps(ratification_record), encoding="utf-8"
+            )
             ratification_record["approval_mode"] = "unknown"
             (project / module.RATIFICATION).write_text(
                 json.dumps(ratification_record), encoding="utf-8"

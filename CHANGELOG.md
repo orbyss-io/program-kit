@@ -6,6 +6,16 @@
   It keeps all three review packets and hash validations, bypasses their pauses only when opted in,
   and records automatic versus interactive approval provenance in governance evidence.
 
+## 0.8.11 - 2026-09-03
+
+- Fix constitution ratification so its multiline status substitution cannot consume the following
+  blank line and `## Core Principles` heading. Finalization now preserves the reviewed bytes and
+  changes only the canonical Draft status plus an initial pending ratification date.
+- Validate the complete expected final constitution before atomically replacing the draft, then
+  record both reviewed and expected-final SHA-256 values with the permitted substitutions.
+- Cover amendment recovery by preserving the prior faulty ratification record as audit evidence
+  when a corrected draft is opened and re-ratified.
+
 ## 0.8.10 - 2026-09-03
 
 - Add a supported offline/local-release updater that locks Program Kit component mutation, invokes

@@ -1,10 +1,10 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="ProgramKit.Analyzers" Version="0.8.10-preview.1" />
-    <PackageVersion Include="ProgramKit.DomainEvents.Abstractions" Version="0.8.10-preview.1" />
-    <PackageVersion Include="ProgramKit.DomainEvents" Version="0.8.10-preview.1" />
-    <PackageVersion Include="ProgramKit.Tasks.Abstractions" Version="0.8.10-preview.1" />
-    <PackageVersion Include="ProgramKit.Tasks" Version="0.8.10-preview.1" />
+    <PackageVersion Include="ProgramKit.Analyzers" Version="0.8.11-preview.1" />
+    <PackageVersion Include="ProgramKit.DomainEvents.Abstractions" Version="0.8.11-preview.1" />
+    <PackageVersion Include="ProgramKit.DomainEvents" Version="0.8.11-preview.1" />
+    <PackageVersion Include="ProgramKit.Tasks.Abstractions" Version="0.8.11-preview.1" />
+    <PackageVersion Include="ProgramKit.Tasks" Version="0.8.11-preview.1" />
     <PackageVersion Include="CShells.Abstractions" Version="0.0.29-preview.147" />
     <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
