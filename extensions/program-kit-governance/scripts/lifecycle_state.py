@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -84,6 +85,38 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def feature_contract_error(feature_dir: Path) -> str | None:
+    validator_path = Path(__file__).with_name("artifact_ownership.py")
+    spec = importlib.util.spec_from_file_location("program_kit_artifact_ownership", validator_path)
+    if spec is None or spec.loader is None:
+        return f"cannot load artifact ownership validator: {validator_path}"
+    validator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(validator)
+    manifest_path = feature_dir / "artifact-ownership.json"
+    try:
+        manifest = validator.load_manifest(manifest_path)
+        missing = sorted(
+            validator.CANONICAL
+            - {
+                validator.normalize(str(item["path"]))
+                for item in manifest["artifacts"]
+                if isinstance(item, dict) and "path" in item
+            }
+        )
+        if missing:
+            raise ValueError(
+                "PKA009 manifest must predeclare canonical Program Kit artifacts: "
+                + ", ".join(missing)
+            )
+        validator.validate_governance_context(feature_dir, True)
+        validator.validate_runtime_profile(feature_dir, manifest, True)
+        validator.validate_npm_graph_evidence(feature_dir, manifest)
+        validator.validate_tasks(feature_dir / "tasks.md", manifest, feature_dir / "plan.md")
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return str(error)
+    return None
+
+
 def begin(repository: Path, feature_dir: Path, phase: str, resume: bool) -> int:
     required = ("spec.md",) if phase == "clarify" else ARTIFACTS
     current_hashes = artifact_hashes(feature_dir, required)
@@ -154,7 +187,8 @@ def complete_analysis(repository: Path, feature_dir: Path, report: Path) -> int:
     current_hashes = artifact_hashes(feature_dir, ARTIFACTS)
     detected = severities(report)
     blockers = [value for value in detected if value in BLOCKING_SEVERITIES]
-    ready = not blockers
+    contract_error = feature_contract_error(feature_dir)
+    ready = not blockers and contract_error is None
     state["phases"]["afterTasksAnalysis"] = {
         "completedAtUtc": utc_now(),
         "artifactHashes": current_hashes,
@@ -163,9 +197,18 @@ def complete_analysis(repository: Path, feature_dir: Path, report: Path) -> int:
         "severities": detected,
         "readyForImplementation": ready,
     }
+    if contract_error:
+        state["phases"]["afterTasksAnalysis"]["artifactContractError"] = contract_error
     state.pop("active", None)
     atomic_write(path, state)
     if not ready:
+        if contract_error:
+            print(
+                "PKL016 feature artifacts violate deterministic planning/ownership constraints: "
+                + contract_error,
+                file=sys.stderr,
+            )
+            return 16
         print(
             "PKL009 feature is not ready for implementation: after_tasks analysis contains "
             + ", ".join(blockers),
@@ -201,6 +244,14 @@ def verify_before_implement(repository: Path, feature_dir: Path) -> int:
     if not report.is_file() or sha256(report) != analysis.get("reportSha256"):
         print("PKL014 after_tasks analysis report is missing or changed.", file=sys.stderr)
         return 14
+    contract_error = feature_contract_error(feature_dir)
+    if contract_error:
+        print(
+            "PKL016 feature artifacts violate deterministic planning/ownership constraints: "
+            + contract_error,
+            file=sys.stderr,
+        )
+        return 16
     print("before_implement lifecycle evidence is current")
     return 0
 

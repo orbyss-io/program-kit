@@ -25,6 +25,16 @@ choices and Program Kit defaults, supplies current version evidence, and records
 when a demonstrated incompatibility exists. It must not demote an explicit choice or default to
 Proposed merely because alternatives exist.
 
+Treat `managed_profile_pins` in the stage brief as version-selection authority. Copy its exact
+`pins` into `bootstrap-decisions.json.toolchain` with source `program-kit-default` and an empty
+`override_reason`. Use current research and the locally installed environment only to establish
+compatibility, support status, upgrade guidance, and remediation—not to substitute a newer or older
+candidate for a managed pin. If a required managed .NET SDK is not installed locally, urge the user
+to install or upgrade to that exact SDK (side-by-side where supported); do not rewrite the pin to
+match `dotnet --version`. Retaining a different local .NET SDK requires an explicit user decision,
+source `override`, a non-empty reason, and an override record with ID
+`managed-toolchain-version`. Never create a separate ADR merely to re-approve a managed pin.
+
 Revalidate generic advice against the detected languages, frameworks, architecture style, team constraints, deployment environment, and risk. A popular tool is not automatically a suitable tool.
 
 Research whether the proposed module and slice boundaries can be enforced with the detected build
@@ -75,6 +85,8 @@ mechanism. Report sources and counts after writing; do not print the complete ar
 repository-wide diff.
 
 Before reporting completion, run
+`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-profile-pins --run-id <workflow-run-id>`
+using the run ID from the stage brief, then run
 `python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment`.
 Repair any contract error in the artifacts you changed and rerun it; do not return success while the
 next deterministic workflow step is known to fail.

@@ -57,6 +57,11 @@ def write_json(path: Path, payload: object) -> None:
     )
 
 
+def git_excludes_override() -> str:
+    """Disable inaccessible global excludes without using Windows' rejected NUL path."""
+    return "" if os.name == "nt" else os.devnull
+
+
 def load_json(path: Path) -> dict:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -80,6 +85,41 @@ def run_logged(command: list[str], cwd: Path, log: IO[str]) -> None:
     )
     if result.returncode != 0:
         raise AcceptanceError(f"Setup command exited with {result.returncode}: {printable}")
+
+
+def run_logged_with_catalog_retry(
+    command: list[str], cwd: Path, log: IO[str], attempts: int = 3
+) -> None:
+    """Retry only a known transient local-catalog archive transfer failure."""
+    printable = subprocess.list2cmdline(command)
+    for attempt in range(1, attempts + 1):
+        log.write(f"\n$ {printable} (attempt {attempt}/{attempts})\n")
+        log.flush()
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        output = (result.stdout or "") + (result.stderr or "")
+        log.write(output)
+        log.flush()
+        if result.returncode == 0:
+            return
+        retryable = (
+            re.search(r"Failed to save extension\s+archive", output) is not None
+            and "No changes were recorded" in output
+        )
+        if not retryable or attempt == attempts:
+            raise AcceptanceError(
+                f"Setup command exited with {result.returncode}: {printable}"
+            )
+        log.write("Transient localhost catalog transfer reset; retrying unchanged install.\n")
+        log.flush()
+        time.sleep(1)
 
 
 def safe_extract(archive_path: Path, destination: Path) -> None:
@@ -157,15 +197,34 @@ def stream_pipe(pipe: IO[str], destination: Path, display: IO[str] | None = None
     pipe.close()
 
 
-def discover_run_state(project: Path) -> tuple[Path | None, dict | None]:
+def discover_run_state(
+    project: Path, excluded_run_ids: set[str] | None = None
+) -> tuple[Path | None, dict | None]:
+    excluded_run_ids = excluded_run_ids or set()
     candidates = sorted(
-        (project / ".specify/workflows/runs").glob("*/state.json"),
+        (
+            path
+            for path in (project / ".specify/workflows/runs").glob("*/state.json")
+            if path.parent.name not in excluded_run_ids
+        ),
         key=lambda path: path.stat().st_mtime_ns,
         reverse=True,
     )
     if not candidates:
         return None, None
     path = candidates[0]
+    try:
+        return path, load_json(path)
+    except (OSError, json.JSONDecodeError, AcceptanceError):
+        return path, None
+
+
+def read_run_state(project: Path, run_id: str | None) -> tuple[Path | None, dict | None]:
+    if not run_id:
+        return discover_run_state(project)
+    path = project / ".specify/workflows/runs" / run_id / "state.json"
+    if not path.is_file():
+        return path, None
     try:
         return path, load_json(path)
     except (OSError, json.JSONDecodeError, AcceptanceError):
@@ -181,7 +240,7 @@ def write_worker_guidance(project: Path, integration: str) -> None:
     if integration != "codex":
         return
     safe_directory = project.resolve().as_posix()
-    null_device = os.devnull.replace("\\", "/")
+    excludes_override = git_excludes_override().replace("\\", "/")
     guidance = f"""# Disposable live-acceptance worker guidance
 
 This repository is owned by the Program Kit live acceptance harness and is safe to modify within
@@ -190,9 +249,10 @@ the requested bootstrap workflow. The Codex worker is intentionally launched wit
 
 Windows sandbox workers may see a different SID from the repository owner. For every Git command,
 use the command-scoped form
-`git -c safe.directory={safe_directory} -c core.excludesFile={null_device} <command>`. The null
-exclude file prevents harmless permission warnings when the sandbox cannot read the user's global
-Git ignore file. Never run `git config --global`, never disable the sandbox, and never add a
+`git -c safe.directory={safe_directory} -c core.excludesFile={excludes_override} <command>`. On
+Windows the value is deliberately empty because Git rejects `NUL` as an excludes file; on POSIX it
+is `/dev/null`. The override prevents harmless permission warnings when the sandbox cannot read the
+user's global Git ignore file. Never run `git config --global`, never disable the sandbox, and never add a
 persistent safe-directory entry.
 
 Use UTF-8 for Python subprocess output. Read compact bootstrap stage briefs first; do not print
@@ -338,24 +398,30 @@ def run_workflow(
     integration: str,
     evidence: Path,
     timeout_seconds: int,
+    *,
+    command: list[str] | None = None,
+    evidence_prefix: str = "",
+    progress_label: str = "Live bootstrap",
+    excluded_run_ids: set[str] | None = None,
 ) -> tuple[int, float, str | None]:
-    command = [
-        specify,
-        "workflow",
-        "run",
-        "program-kit-bootstrap",
-        "--input",
-        "initial_design=./INITIAL_DESIGN.md",
-        "--input",
-        f"integration={integration}",
-        "--input",
-        "assessment_verdict=approve",
-        "--input",
-        "constitution_verdict=ratify",
-        "--input",
-        "bootstrap_verdict=approve",
-        "--json",
-    ]
+    if command is None:
+        command = [
+            specify,
+            "workflow",
+            "run",
+            "program-kit-bootstrap",
+            "--input",
+            "initial_design=./INITIAL_DESIGN.md",
+            "--input",
+            f"integration={integration}",
+            "--input",
+            "assessment_verdict=approve",
+            "--input",
+            "constitution_verdict=ratify",
+            "--input",
+            "bootstrap_verdict=approve",
+            "--json",
+        ]
     environment = os.environ.copy()
     removed = [key for key in AGENT_ENVIRONMENT_KEYS if environment.pop(key, None)]
     environment["PROGRAM_KIT_LIVE_ACCEPTANCE"] = "clean-bootstrap"
@@ -371,7 +437,8 @@ def run_workflow(
         environment[f"GIT_CONFIG_KEY_{git_config_count}"] = "safe.directory"
         environment[f"GIT_CONFIG_VALUE_{git_config_count}"] = str(project)
         environment[f"GIT_CONFIG_KEY_{git_config_count + 1}"] = "core.excludesFile"
-        environment[f"GIT_CONFIG_VALUE_{git_config_count + 1}"] = os.devnull
+        excludes_override = git_excludes_override()
+        environment[f"GIT_CONFIG_VALUE_{git_config_count + 1}"] = excludes_override
         environment["GIT_CONFIG_COUNT"] = str(git_config_count + 2)
         worker_settings = {
             "sandbox": "workspace-write",
@@ -379,13 +446,13 @@ def run_workflow(
             "git_safe_directory_parent_scope": "workflow-process-only-best-effort",
             "git_safe_directory_worker_fallback": (
                 f"git -c safe.directory={project.resolve().as_posix()} "
-                f"-c core.excludesFile={os.devnull} <command>"
+                f"-c core.excludesFile={excludes_override} <command>"
             ),
-            "git_excludes_file_process_scope": os.devnull,
+            "git_excludes_file_process_scope": excludes_override,
             "global_git_configuration_modified": False,
         }
     write_json(
-        evidence / "invocation.json",
+        evidence / f"{evidence_prefix}invocation.json",
         {
             "command": command,
             "cwd": str(project),
@@ -411,24 +478,24 @@ def run_workflow(
         raise AcceptanceError("Could not capture workflow output streams")
     stdout_thread = threading.Thread(
         target=stream_pipe,
-        args=(process.stdout, evidence / "workflow.stdout.log", sys.stdout),
+        args=(process.stdout, evidence / f"{evidence_prefix}workflow.stdout.log", sys.stdout),
         daemon=True,
     )
     stderr_thread = threading.Thread(
         target=stream_pipe,
-        args=(process.stderr, evidence / "workflow.stderr.log"),
+        args=(process.stderr, evidence / f"{evidence_prefix}workflow.stderr.log"),
         daemon=True,
     )
     stdout_thread.start()
     stderr_thread.start()
-    monitor = evidence / "monitor.jsonl"
+    monitor = evidence / f"{evidence_prefix}monitor.jsonl"
     started = time.monotonic()
     last_state: tuple[object, ...] | None = None
     run_id: str | None = None
     try:
         while process.poll() is None:
             elapsed = time.monotonic() - started
-            state_path, state = discover_run_state(project)
+            state_path, state = discover_run_state(project, excluded_run_ids)
             if state:
                 run_id = str(state.get("run_id") or state_path.parent.name)
                 state_key = (
@@ -450,7 +517,7 @@ def run_workflow(
                         },
                     )
                     print(
-                        "Live bootstrap progress: "
+                        f"{progress_label} progress: "
                         f"step={state_key[2]} status={state_key[0]} elapsed={round(elapsed, 1)}s"
                     )
                     last_state = state_key
@@ -466,12 +533,12 @@ def run_workflow(
                 )
                 terminate_owned_process(process)
                 raise AcceptanceError(
-                    f"Live bootstrap exceeded its {timeout_seconds}-second timeout"
+                    f"{progress_label} exceeded its {timeout_seconds}-second timeout"
                 )
             time.sleep(2)
         return_code = process.wait()
         elapsed = time.monotonic() - started
-        state_path, state = discover_run_state(project)
+        state_path, state = discover_run_state(project, excluded_run_ids)
         if state:
             run_id = str(state.get("run_id") or state_path.parent.name)
             state_key = (
@@ -597,7 +664,7 @@ def install_candidate(
                 project,
                 log,
             )
-            run_logged(
+            run_logged_with_catalog_retry(
                 [
                     "specify",
                     "bundle",
@@ -624,7 +691,7 @@ def validate_result(
 ) -> tuple[dict, list[str]]:
     failures: list[str] = []
     workflow_completed = False
-    state_path, state = discover_run_state(project)
+    state_path, state = read_run_state(project, run_id)
     if not state_path or not state:
         failures.append("No readable Spec Kit workflow state was produced")
         state = {}
@@ -698,6 +765,380 @@ def validate_result(
     return {"run_id": run_id, "state": state, "files": file_evidence}, failures
 
 
+MANAGED_BASELINE_PATTERNS = (
+    ".specify/extensions/program-kit-governance/**/*",
+    ".specify/extensions/program-kit-dotnet/**/*",
+    ".specify/presets/program-kit-governance-preset/**/*",
+    ".specify/workflows/program-kit-bootstrap/**/*",
+    ".specify/bundles/**/*",
+    ".specify/extensions.yml",
+    ".agents/skills/speckit-program-kit-*/**/*",
+    ".claude/skills/speckit-program-kit-*/**/*",
+    ".claude/commands/speckit.program-kit-*",
+    "eng/program-kit/**/*",
+)
+
+
+def snapshot_managed_baseline(project: Path) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for pattern in MANAGED_BASELINE_PATTERNS:
+        for path in project.glob(pattern):
+            if path.is_file() and "__pycache__" not in path.parts and path.suffix not in {".pyc", ".pyo"}:
+                result[path.relative_to(project).as_posix()] = sha256(path)
+    return dict(sorted(result.items()))
+
+
+def find_python_313() -> list[str] | None:
+    candidates: list[list[str]] = []
+    if sys.version_info[:2] == (3, 13):
+        candidates.append([sys.executable])
+    executable = shutil.which("python3.13")
+    if executable:
+        candidates.append([executable])
+    launcher = shutil.which("py")
+    if launcher:
+        candidates.append([launcher, "-3.13"])
+    for command in candidates:
+        probe = subprocess.run(
+            [*command, "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if probe.returncode == 0 and "Python 3.13" in (probe.stdout + probe.stderr):
+            return command
+    return None
+
+
+def run_validation_command(
+    command: list[str], project: Path, log: IO[str], label: str
+) -> subprocess.CompletedProcess[str]:
+    log.write(f"\n## {label}\n$ {subprocess.list2cmdline(command)}\n")
+    environment = os.environ.copy()
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    result = subprocess.run(
+        command,
+        cwd=project,
+        env=environment,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    log.write(result.stdout)
+    log.write(result.stderr)
+    log.write(f"exit_code={result.returncode}\n")
+    log.flush()
+    return result
+
+
+def validate_first_slice(
+    project: Path,
+    expectations: dict,
+    run_id: str | None,
+    python_command: list[str],
+    managed_before: dict[str, str],
+    validation_log: Path,
+) -> tuple[dict, list[str]]:
+    failures: list[str] = []
+    workflow_completed = False
+    state_path, state = read_run_state(project, run_id)
+    if not state_path or not state:
+        failures.append("No readable first-slice workflow state was produced")
+        state = {}
+    else:
+        run_id = run_id or str(state.get("run_id") or state_path.parent.name)
+        workflow_completed = state.get("status") == "completed"
+        if not workflow_completed:
+            failures.append(
+                f"First-slice workflow status is {state.get('status')!r}, expected 'completed'"
+            )
+        failed_steps = [
+            step_id
+            for step_id, record in state.get("step_results", {}).items()
+            if isinstance(record, dict) and record.get("status") != "completed"
+        ]
+        if failed_steps:
+            failures.append(f"First-slice workflow has non-completed steps: {failed_steps}")
+
+    feature_directories = sorted(
+        path.parent for path in (project / "specs").glob("*/spec.md") if path.is_file()
+    )
+    feature: Path | None = feature_directories[0] if len(feature_directories) == 1 else None
+    if len(feature_directories) != 1:
+        if workflow_completed:
+            failures.append(
+                f"Expected exactly one first-slice feature directory, found {len(feature_directories)}"
+            )
+
+    file_evidence: list[dict] = []
+    if feature:
+        for name in expectations["required_feature_files"]:
+            path = feature / name
+            if not path.is_file():
+                if workflow_completed:
+                    failures.append(
+                        f"First-slice artifact is missing: {path.relative_to(project).as_posix()}"
+                    )
+                continue
+            file_evidence.append(
+                {
+                    "path": path.relative_to(project).as_posix(),
+                    "bytes": path.stat().st_size,
+                    "sha256": sha256(path),
+                }
+            )
+
+        traceability_contracts = {
+            "spec.md": (
+                "## Governance Traceability",
+                "**Specification roadmap entry**:",
+                "**Architecture constraints**:",
+                "**Owned contracts and data**:",
+            ),
+            "plan.md": (
+                "## Architecture Realization",
+                "**Roadmap entry and status transition**:",
+                "**Vertical-slice path**:",
+                "**Artifact ownership manifest**:",
+            ),
+            "tasks.md": (
+                "## Governance Completion Evidence",
+                "**Roadmap transition**:",
+                "**Path and ownership protection**:",
+            ),
+        }
+        if workflow_completed:
+            for name, markers in traceability_contracts.items():
+                path = feature / name
+                if not path.is_file():
+                    continue
+                text = path.read_text(encoding="utf-8")
+                missing = [marker for marker in markers if marker not in text]
+                if missing:
+                    failures.append(
+                        f"{path.relative_to(project).as_posix()} is missing governance context: {missing}"
+                    )
+                template_placeholders = (
+                    "[ROADMAP ID and title]",
+                    "[Outcome independently verified by this feature]",
+                    "[Ratified constitution principles",
+                    "[Owned modules, contracts",
+                    "[Behavior or technical work intentionally outside this feature]",
+                )
+                if any(value in text for value in template_placeholders):
+                    failures.append(
+                        f"{path.relative_to(project).as_posix()} retains unfilled governance placeholders"
+                    )
+
+    managed_after = snapshot_managed_baseline(project)
+    managed_changes = sorted(
+        path
+        for path in set(managed_before) | set(managed_after)
+        if managed_before.get(path) != managed_after.get(path)
+    )
+    if managed_changes:
+        failures.append(
+            "First-slice work changed Program Kit-managed baseline files: "
+            + ", ".join(managed_changes)
+        )
+    write_json(
+        validation_log.parent / "first-slice-managed-baseline.json",
+        {
+            "before": managed_before,
+            "after": managed_after,
+            "changes": managed_changes,
+        },
+    )
+
+    command_evidence: dict[str, dict] = {}
+    roadmap_status: str | None = None
+    with validation_log.open("w", encoding="utf-8", newline="\n") as log:
+        if workflow_completed and feature:
+            ownership_validator = (
+                project
+                / ".specify/extensions/program-kit-governance/scripts/artifact_ownership.py"
+            )
+            ownership = run_validation_command(
+                [
+                    *python_command,
+                    str(ownership_validator),
+                    "--manifest",
+                    str(feature / "artifact-ownership.json"),
+                    "--tasks",
+                    str(feature / "tasks.md"),
+                    "--plan",
+                    str(feature / "plan.md"),
+                ],
+                project,
+                log,
+                "Artifact ownership",
+            )
+            command_evidence["artifact_ownership"] = {
+                "exit_code": ownership.returncode,
+                "stdout": ownership.stdout,
+                "stderr": ownership.stderr,
+            }
+            if ownership.returncode != 0:
+                failures.append(
+                    "Artifact ownership validation failed; see first-slice.validation.log"
+                )
+
+            lifecycle = project / ".program-kit/lifecycle" / f"{feature.name}.json"
+            if not lifecycle.is_file():
+                failures.append(
+                    f"Hash-bound feature lifecycle evidence is missing: {lifecycle.relative_to(project).as_posix()}"
+                )
+            else:
+                try:
+                    lifecycle_state = load_json(lifecycle)
+                    phases = lifecycle_state.get("phases", {})
+                    if not isinstance(phases, dict):
+                        raise AcceptanceError("Lifecycle phases must be a JSON object")
+                    clarification = phases.get("afterSpecifyClarification", {})
+                    analysis_phase = phases.get("afterTasksAnalysis", {})
+                    if not isinstance(clarification, dict) or not isinstance(
+                        analysis_phase, dict
+                    ):
+                        raise AcceptanceError("Lifecycle phase records must be JSON objects")
+                    if clarification.get("outcome") not in {
+                        "no-questions",
+                        "questions-answered",
+                    }:
+                        failures.append(
+                            "First-slice clarification lifecycle evidence is incomplete"
+                        )
+                    if analysis_phase.get("readyForImplementation") is not True:
+                        failures.append(
+                            "First-slice analysis did not record implementation readiness"
+                        )
+                    if lifecycle_state.get("active"):
+                        failures.append(
+                            "First-slice lifecycle still contains an active interrupted phase"
+                        )
+                except (OSError, json.JSONDecodeError, AcceptanceError) as exc:
+                    failures.append(f"First-slice lifecycle evidence is unreadable: {exc}")
+            analysis = project / ".program-kit/evidence/after-tasks-analysis.md"
+            if not analysis.is_file():
+                failures.append("Canonical after-tasks analysis evidence is missing")
+
+            roadmap = project / "docs/architecture/specification-roadmap.md"
+            roadmap_text = roadmap.read_text(encoding="utf-8") if roadmap.is_file() else ""
+            roadmap_match = re.search(
+                r"^\s*-?\s*\*\*Status\*\*:\s*(Ready|Active|Delivered)\s*$",
+                roadmap_text,
+                re.MULTILINE,
+            )
+            roadmap_status = roadmap_match.group(1) if roadmap_match else None
+
+            pyproject = project / "pyproject.toml"
+            if pyproject.is_file():
+                pyproject_text = pyproject.read_text(encoding="utf-8")
+                try:
+                    import tomllib
+
+                    project_metadata = tomllib.loads(pyproject_text).get("project", {})
+                    if not isinstance(project_metadata, dict):
+                        raise TypeError("[project] must be a TOML table")
+                    requires_python = project_metadata.get("requires-python")
+                    if not isinstance(requires_python, str) or "3.13" not in requires_python:
+                        failures.append(
+                            "pyproject.toml does not declare the required Python 3.13 runtime"
+                        )
+                    dependencies = project_metadata.get("dependencies", [])
+                    if dependencies:
+                        failures.append(
+                            "pyproject.toml declares third-party runtime dependencies despite the standard-library-only scope"
+                        )
+                except (ValueError, TypeError) as exc:
+                    failures.append(f"pyproject.toml could not be inspected: {exc}")
+
+            consumer_tests = sorted(
+                path
+                for path in (project / "tests").rglob("test*.py")
+                if path.is_file()
+            )
+            if not consumer_tests:
+                failures.append("First-slice implementation produced no discoverable unittest files")
+
+        if workflow_completed:
+            tests = run_validation_command(
+                [*python_command, "-m", "unittest", "discover", "-s", "tests", "-v"],
+                project,
+                log,
+                "Consumer test suite",
+            )
+            command_evidence["tests"] = {
+                "exit_code": tests.returncode,
+                "stdout": tests.stdout,
+                "stderr": tests.stderr,
+            }
+            if tests.returncode != 0:
+                failures.append("Consumer test suite failed; see first-slice.validation.log")
+
+            greeting = run_validation_command(
+                [*python_command, "-m", "greeting"], project, log, "Greeting success path"
+            )
+            command_evidence["greeting"] = {
+                "exit_code": greeting.returncode,
+                "stdout": greeting.stdout,
+                "stderr": greeting.stderr,
+            }
+            if greeting.returncode != 0:
+                failures.append(f"Greeting success path exited with {greeting.returncode}, expected 0")
+            if greeting.stdout != expectations["expected_stdout"]:
+                failures.append(
+                    f"Greeting stdout is {greeting.stdout!r}, expected {expectations['expected_stdout']!r}"
+                )
+            if greeting.stderr:
+                failures.append(f"Greeting success path wrote stderr: {greeting.stderr!r}")
+
+            invalid = run_validation_command(
+                [*python_command, "-m", "greeting", "unexpected"],
+                project,
+                log,
+                "Greeting rejected-argument path",
+            )
+            command_evidence["invalid_argument"] = {
+                "exit_code": invalid.returncode,
+                "stdout": invalid.stdout,
+                "stderr": invalid.stderr,
+            }
+            expected_exit = expectations["expected_argument_exit_code"]
+            if invalid.returncode != expected_exit:
+                failures.append(
+                    f"Greeting rejected-argument path exited with {invalid.returncode}, expected {expected_exit}"
+                )
+            if invalid.stdout:
+                failures.append(f"Greeting rejected-argument path wrote stdout: {invalid.stdout!r}")
+            if not invalid.stderr.strip():
+                failures.append("Greeting rejected-argument path did not write a usage error to stderr")
+        else:
+            log.write("Independent first-slice validation skipped because the workflow did not complete.\n")
+
+    if workflow_completed and feature and roadmap_status not in {"Active", "Delivered"}:
+        failures.append(
+            "The implemented first roadmap entry is neither Active nor Delivered after independent validation"
+        )
+
+    return (
+        {
+            "run_id": run_id,
+            "state": state,
+            "feature_directory": feature.relative_to(project).as_posix() if feature else None,
+            "roadmap_status": roadmap_status,
+            "files": file_evidence,
+            "managed_baseline_file_count": len(managed_before),
+            "managed_baseline_changes": managed_changes,
+            "commands": command_evidence,
+        },
+        failures,
+    )
+
+
 def write_report(
     evidence: Path,
     scenario: str,
@@ -710,7 +1151,7 @@ def write_report(
 ) -> None:
     status = "passed" if workflow_exit_code == 0 and not failures else "failed"
     payload = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "scenario": scenario,
         "integration": integration,
         "status": status,
@@ -723,7 +1164,7 @@ def write_report(
     }
     write_json(evidence / "report.json", payload)
     lines = [
-        "# Program Kit live bootstrap acceptance",
+        "# Program Kit live acceptance",
         "",
         f"- Status: **{status.upper()}**",
         f"- Scenario: `{scenario}`",
@@ -752,6 +1193,22 @@ def write_report(
                 f"- Captured stderr: `{metrics.get('workflow_stderr_bytes', 0)} bytes`",
             ]
         )
+    first_slice = result.get("first_slice")
+    if isinstance(first_slice, dict):
+        lines.extend(
+            [
+                "",
+                "## First-slice continuation",
+                "",
+                f"- Status: `{first_slice.get('status')}`",
+                f"- Workflow exit code: `{first_slice.get('workflow_exit_code')}`",
+                f"- Run ID: `{first_slice.get('run_id')}`",
+                f"- Feature directory: `{first_slice.get('feature_directory')}`",
+                f"- Managed baseline changes: `{len(first_slice.get('managed_baseline_changes', []))}`",
+            ]
+        )
+        if first_slice.get("reason"):
+            lines.append(f"- Reason: {first_slice['reason']}")
     lines.extend(
         [
             "",
@@ -765,6 +1222,14 @@ def write_report(
             "",
         ]
     )
+    if isinstance(first_slice, dict) and first_slice.get("workflow_exit_code") is not None:
+        lines[-1:-1] = [
+            "- `first-slice.workflow.stdout.log`: structured first-slice workflow result.",
+            "- `first-slice.workflow.stderr.log`: first-slice agent and hook output.",
+            "- `first-slice.monitor.jsonl`: first-slice workflow transitions.",
+            "- `first-slice.validation.log`: independent ownership, test, and CLI validation.",
+            "- `first-slice-managed-baseline.json`: before/after hashes for Program Kit-managed files.",
+        ]
     (evidence / "report.md").write_text(
         "\n".join(lines), encoding="utf-8", newline="\n"
     )
@@ -782,6 +1247,12 @@ def main() -> int:
         help="Confirm that the user explicitly requested this paid live agent run.",
     )
     parser.add_argument("--timeout-seconds", type=int, default=7200)
+    parser.add_argument(
+        "--continue-first-slice",
+        action="store_true",
+        help="After bootstrap, run the first Ready slice through specify, plan, tasks, and implement.",
+    )
+    parser.add_argument("--first-slice-timeout-seconds", type=int, default=7200)
     parser.add_argument("--output-root", default="artifacts/live-acceptance")
     args = parser.parse_args()
 
@@ -803,11 +1274,22 @@ def main() -> int:
     if args.timeout_seconds < 60:
         print("Live acceptance timeout must be at least 60 seconds.", file=sys.stderr)
         return 3
+    if args.first_slice_timeout_seconds < 60:
+        print("First-slice timeout must be at least 60 seconds.", file=sys.stderr)
+        return 3
     specify = shutil.which("specify")
     integration_cli = shutil.which(args.integration)
     if not specify or not integration_cli:
         print(
             f"Required CLI is missing: specify={specify!r}, {args.integration}={integration_cli!r}",
+            file=sys.stderr,
+        )
+        return 3
+    python_313 = find_python_313() if args.continue_first_slice else None
+    if args.continue_first_slice and python_313 is None:
+        print(
+            "FIRST_SLICE_PYTHON_313_REQUIRED: The clean-bootstrap continuation must independently "
+            "run the fixture with Python 3.13 before starting paid agent sessions.",
             file=sys.stderr,
         )
         return 3
@@ -864,6 +1346,55 @@ def main() -> int:
             evidence / "validation.log",
         )
         failures.extend(validation_failures)
+        if args.continue_first_slice and not failures:
+            managed_before = snapshot_managed_baseline(project)
+            known_run_ids = {
+                path.name
+                for path in (project / ".specify/workflows/runs").iterdir()
+                if path.is_dir()
+            }
+            first_slice = expectations.get("first_slice")
+            if not isinstance(first_slice, dict):
+                raise AcceptanceError("Scenario is missing first-slice expectations")
+            first_slice_command = [
+                specify,
+                "workflow",
+                "run",
+                str(scenario_root / "first-slice-workflow.yml"),
+                "--input",
+                f"integration={args.integration}",
+                "--input",
+                f"feature_description={first_slice['feature_description']}",
+                "--json",
+            ]
+            first_exit_code, first_duration, first_run_id = run_workflow(
+                specify,
+                project,
+                args.integration,
+                evidence,
+                args.first_slice_timeout_seconds,
+                command=first_slice_command,
+                evidence_prefix="first-slice.",
+                progress_label="First-slice lifecycle",
+                excluded_run_ids=known_run_ids,
+            )
+            if first_exit_code != 0:
+                failures.append(f"First-slice workflow process exited with {first_exit_code}")
+            first_result, first_failures = validate_first_slice(
+                project,
+                first_slice,
+                first_run_id,
+                python_313 or [sys.executable],
+                managed_before,
+                evidence / "first-slice.validation.log",
+            )
+            first_result["workflow_exit_code"] = first_exit_code
+            first_result["duration_seconds"] = round(first_duration, 3)
+            first_result["status"] = (
+                "passed" if first_exit_code == 0 and not first_failures else "failed"
+            )
+            result["first_slice"] = first_result
+            failures.extend(first_failures)
     except KeyboardInterrupt:
         failures.append("Live bootstrap was interrupted by the operator")
         state_path, state = discover_run_state(project)
@@ -881,6 +1412,15 @@ def main() -> int:
             "state_path": str(state_path) if state_path else None,
             "state": state or {},
             "files": [],
+        }
+    if args.continue_first_slice and "first_slice" not in result:
+        result["first_slice"] = {
+            "status": "not-run",
+            "workflow_exit_code": None,
+            "run_id": None,
+            "feature_directory": None,
+            "managed_baseline_changes": [],
+            "reason": "The continuation did not complete; inspect the recorded failures and preserved project.",
         }
     resolved_run_id = str(result.get("run_id") or run_id or "") or None
     metrics = analyze_metrics(evidence, resolved_run_id, workflow_duration)

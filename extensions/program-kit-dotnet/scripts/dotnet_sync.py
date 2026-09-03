@@ -4,7 +4,6 @@ import argparse
 import hashlib
 import json
 import re
-import shutil
 import sys
 from pathlib import Path
 
@@ -59,6 +58,52 @@ def selected_web_profile(target: Path, requested: str) -> str:
     )
     browser_markers = ("browser", "react", "single-page", "single page", "spa", "typescript")
     return "bff-cookie" if any(marker in evidence for marker in browser_markers) else "none"
+
+
+def selected_dotnet_sdk(target: Path, managed_global_json: Path) -> tuple[str, str]:
+    """Return the governed SDK version and its authority source."""
+    managed = load_json(managed_global_json, {})
+    managed_version = managed.get("sdk", {}).get("version")
+    if not isinstance(managed_version, str) or not managed_version.strip():
+        raise ValueError("The Program Kit managed global.json has no exact SDK version.")
+
+    decision_path = target / "docs" / "architecture" / "bootstrap-decisions.json"
+    if not decision_path.is_file():
+        return managed_version, "program-kit-default"
+    decisions = load_json(decision_path, {})
+    toolchain = decisions.get("toolchain")
+    if not isinstance(toolchain, dict) or toolchain.get("source") != "override":
+        return managed_version, "program-kit-default"
+    reason = toolchain.get("override_reason")
+    pins = toolchain.get("pins")
+    overrides = decisions.get("overrides")
+    override_ids = {
+        item.get("id") for item in overrides if isinstance(item, dict)
+    } if isinstance(overrides, list) else set()
+    selected = pins.get("dotnet-sdk") if isinstance(pins, dict) else None
+    if (
+        not isinstance(reason, str)
+        or not reason.strip()
+        or "managed-toolchain-version" not in override_ids
+        or not isinstance(selected, str)
+        or not selected.strip()
+    ):
+        raise ValueError(
+            "The .NET SDK override is incomplete; record a non-empty reason, an exact dotnet-sdk "
+            "pin, and the managed-toolchain-version override decision."
+        )
+    return selected.strip(), "override"
+
+
+def desired_content(source: Path, relative: str, dotnet_sdk: str) -> bytes:
+    if relative != "global.json":
+        return source.read_bytes()
+    value = load_json(source, {})
+    sdk = value.get("sdk")
+    if not isinstance(sdk, dict):
+        raise ValueError("The Program Kit managed global.json has no sdk object.")
+    sdk["version"] = dotnet_sdk
+    return (json.dumps(value, indent=2) + "\n").encode("utf-8")
 
 
 def main() -> int:
@@ -125,7 +170,11 @@ def main() -> int:
         raise ValueError("The .NET template manifest has an invalid obsoleteFiles list.")
 
     target = Path(args.target).resolve()
+    dotnet_sdk, dotnet_sdk_source = selected_dotnet_sdk(
+        target, template_root / "files" / "global.json"
+    )
     web_profile = selected_web_profile(target, args.web_profile)
+    print(f"selected .NET SDK: {dotnet_sdk} ({dotnet_sdk_source})")
     print(f"selected web profile: {web_profile}")
     print(f"selected persistence profile: {args.persistence_profile}")
     profile_manifest_path = template_root / "web-profiles" / web_profile / "managed-files.json"
@@ -158,7 +207,7 @@ def main() -> int:
         source_root = template_root / entry.get("sourceRoot", "files")
         source = source_root / entry.get("source", relative)
         destination = target / relative
-        desired = source.read_bytes()
+        desired = desired_content(source, relative, dotnet_sdk)
         desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
 
@@ -166,7 +215,7 @@ def main() -> int:
             created.append(relative)
             if not args.check:
                 destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, destination)
+                destination.write_bytes(desired)
             current_hash = desired_hash
         else:
             current = destination.read_bytes()
@@ -176,7 +225,7 @@ def main() -> int:
             elif ownership == "managed" and isinstance(previous, dict) and current_hash == previous.get("installedHash"):
                 updated.append(relative)
                 if not args.check:
-                    shutil.copyfile(source, destination)
+                    destination.write_bytes(desired)
                 current_hash = desired_hash
             else:
                 conflicts.append(relative)
@@ -227,6 +276,8 @@ def main() -> int:
             {
                 "schemaVersion": 1,
                 "programKitVersion": extension_version(extension_root),
+                "dotnetSdk": dotnet_sdk,
+                "dotnetSdkSource": dotnet_sdk_source,
                 "webProfile": web_profile,
                 "webProfileContract": f"{web_profile}-v1",
                 "webThreatModel": (

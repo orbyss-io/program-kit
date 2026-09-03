@@ -47,7 +47,8 @@ edit the marked `PROGRAM-KIT:ROADMAP-VIEW` section; the deterministic synchroniz
 Make the smallest link-only edits needed outside the new roadmap, do not restate roadmap fields, and
 check the final byte count of each edited file against `output_contract.artifact_byte_budgets`.
 
-For each record use the heading `### <ID>: <Title>` and include exactly these bold fields:
+For each record use the heading `### <ID>: <Title>` and include exactly these list-item forms, with
+the colon outside the bold label (for example `- **User-visible outcome**: ...`):
 
 - **User-visible outcome**
 - **Scope**
@@ -64,8 +65,10 @@ For each record use the heading `### <ID>: <Title>` and include exactly these bo
 
 Statuses are `Candidate`, `Blocked`, `Ready`, `Active`, `Delivered`, and `Superseded`. Bootstrap may
 create Candidate, Blocked, and Ready records. A record is Ready only when every required ADR is
-Accepted, its dependencies and ownership are explicit, and writing its feature specification would
-introduce no hidden architecture choice.
+Accepted, its dependencies and ownership are explicit, and the feature can proceed through
+planning and implementation without a hidden decision or approval prerequisite. Put every required
+ADR in `Required Accepted ADRs`; never hide a later implementation blocker in Dependencies,
+Verification responsibility, or Recommended sequence while marking the record Ready.
 
 Design tasks remain separate. They produce evidence, alternatives, Proposed ADRs, updated views, and
 unlocked roadmap entries; they are not feature specifications or application implementation work.

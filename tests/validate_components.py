@@ -19,6 +19,7 @@ EXPECTED_STEPS = [
     "intake",
     "prepare-research-context",
     "research",
+    "validate-profile-pins",
     "validate-assessment",
     "write-assessment-review",
     "review-assessment",
@@ -169,6 +170,13 @@ def main() -> int:
         expected_context = f"steps.prepare-{stage}-context.output.data.path"
         if expected_context not in command_step.get("input", {}).get("args", ""):
             raise AssertionError(f"{command_id} does not consume its generated bootstrap context")
+    pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
+    if (
+        pin_validation.get("type") != "shell"
+        or "bootstrap_context.py validate-profile-pins" not in pin_validation.get("run", "")
+        or pin_validation.get("output_format") != "json"
+    ):
+        raise AssertionError("Selected profile pins must be deterministically validated after research")
     constitution_step = next(step for step in steps if step["id"] == "constitution-draft")
     if constitution_step.get("command") != "speckit.constitution":
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")
@@ -242,6 +250,8 @@ def main() -> int:
         "Program Kit default",
         "ProgramKit.Host",
         "preview packages",
+        "Managed toolchain precedence",
+        "managed-toolchain-version",
     )
     require_text(
         extension_root / "references/modularity-and-contracts.md",
@@ -256,6 +266,8 @@ def main() -> int:
         "CShells.AspNetCore.Abstractions",
         "ASP.NET Core Minimal API slices",
         "ProjectReference",
+        "global.json",
+        "managed-toolchain-version",
     )
     require_text(
         dotnet_root / "references/dotnet-engineering.md",
@@ -301,6 +313,7 @@ def main() -> int:
         "governance_state.py validate",
         "Read the compact bootstrap stage brief first",
         "specification-roadmap.md",
+        "- **Status**: Accepted",
     )
     for command_name in ("research", "tooling", "roadmap", "readiness"):
         require_text(
@@ -317,6 +330,9 @@ def main() -> int:
         "an acknowledgement contains only `id` and `summary`",
         "governance_state.py validate-assessment",
         "next deterministic workflow step is known to fail",
+        "managed_profile_pins",
+        "validate-profile-pins",
+        "Never create a separate ADR",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.intake.md",
@@ -395,6 +411,8 @@ def main() -> int:
         "governance_contract",
         "OUTPUT_CONTRACTS",
         "stale or invalid",
+        "managed_profile_pin_authority",
+        "validate_profile_pin_decisions",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.intake.md",

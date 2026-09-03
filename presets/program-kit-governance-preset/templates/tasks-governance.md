@@ -10,3 +10,10 @@ For each vertical outcome, include the task sequence that delivers and verifies 
   `STRUCTURE-DELTA: <path>`. Never ask implementation to edit `eng/program-kit/**`; name the
   consumer-owned extension point (`Directory.Build.props/targets`, feature adapter, `vite.config`,
   or consumer deployment configuration) instead.
+
+- **External host protection**: when `ProgramKit.Host` is selected, create only packable feature
+  packages and consumer activation/release inputs. Never create a repository-owned `.Host` project
+  or application `Program.cs`; include `ProgramKitFeatureIdentity`, `shells.json`,
+  `hostsettings.json`, package-closure staging, and digest-bound external-host evidence tasks.
+- **Dependency graph protection**: resolve exact npm peer, engine, and platform constraints in an
+  isolated lockfile-only check before implementation; never use force/legacy peer bypasses.

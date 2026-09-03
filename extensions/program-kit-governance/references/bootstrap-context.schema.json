@@ -12,6 +12,7 @@
     "initial_design",
     "normalized_brief",
     "authorities",
+    "managed_profile_pins",
     "decisions",
     "governance",
     "output_contract",
@@ -26,6 +27,37 @@
     "initial_design": { "$ref": "#/$defs/file" },
     "normalized_brief": { "$ref": "bootstrap-brief.schema.json" },
     "authorities": { "type": "object", "additionalProperties": { "type": "object" } },
+    "managed_profile_pins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["precedence", "selected_profiles", "pins", "sources", "local_environment_policy"],
+      "properties": {
+        "precedence": { "const": "program-kit-managed-profile-before-local-environment-or-current-candidate" },
+        "selected_profiles": { "$ref": "#/$defs/string_list" },
+        "pins": {
+          "type": "object",
+          "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256", "bytes", "profile"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "sha256": { "$ref": "#/$defs/sha256" },
+              "bytes": { "type": "integer", "minimum": 0 },
+              "profile": { "type": "string", "minLength": 1 },
+              "provides": { "$ref": "#/$defs/string_list" },
+              "verifies": { "type": "string", "minLength": 1 },
+              "settings": { "type": "object" }
+            }
+          }
+        },
+        "local_environment_policy": { "type": "string", "minLength": 1 }
+      }
+    },
     "decisions": {
       "type": "array",
       "items": {

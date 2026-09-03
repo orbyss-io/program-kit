@@ -118,6 +118,10 @@ Allowed choice sources are `explicit-intake`, `program-kit-default`, `derived-de
 has the exact fields shown plus concise review-packet text. Unresolved and deferred entries name
 the affected roadmap item or lifecycle trigger rather than becoming global blockers.
 
+Do not guess exact toolchain versions during intake. The research stage receives the selected
+profile manifests through its generated `managed_profile_pins` authority and adds the schema's
+`toolchain` block from those exact values before deterministic validation.
+
 When .NET is selected, set `ProgramKit.Host` automatically unless intake explicitly opts out. An
 opt-out requires a non-empty reason and alternate host. Without an opt-out, add acknowledgement ID
 `program-kit-preview-dependencies` explaining that the managed baseline uses pinned Program Kit,

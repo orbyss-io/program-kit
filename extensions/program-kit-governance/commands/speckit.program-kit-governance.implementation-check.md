@@ -36,6 +36,11 @@ Confirm:
 - interfaces and schemas live at their owned boundaries rather than in speculative shared projects;
 - inheritance or typed feature dependencies do not bypass the accepted feature-family exception policy;
 - dependency injection is confined to composition and endpoints or handlers declare explicit dependencies.
+- a selected external `ProgramKit.Host` profile has no repository-owned `.Host` project or
+  application `Program.cs`; feature identity metadata, `shells.json`, `hostsettings.json`, package
+  closure staging, and digest-bound external-host evidence are planned instead;
+- exact npm graphs have successful peer/engine/platform resolution evidence without `--force` or
+  `--legacy-peer-deps`;
 - authenticated web tasks consume the selected secure web profile rather than inventing schemes,
   claims mapping, session/refresh/logout behavior, runtime keys, CORS/CSP, denial bodies, or identity
   test fixtures inside a feature slice;

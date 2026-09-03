@@ -10,6 +10,13 @@ Build a tiny local command-line application for a single user.
 - The application accepts no arguments. Supplying an argument prints a concise usage error to
   standard error and exits with code `2`.
 - Automated tests verify the exact output and both exit-code paths.
+- The accepted verification tools are Python's standard-library `unittest` and `subprocess`; they
+  add no dependency or separate architecture choice.
+- For this disposable, local, single-maintainer application, `python -m unittest discover` is the
+  authoritative aggregate gate. CI and reviewed-commit remote evidence are deferred until a remote,
+  release, deployment, or additional-contributor surface actually exists.
+- Any available Python 3.13 patch satisfies the accepted runtime line. Record the resolved patch as
+  execution evidence; do not create a new ADR merely to choose a patch release.
 
 ## Explicit boundaries
 

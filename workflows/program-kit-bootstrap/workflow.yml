@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.8.3"
+  version: "0.8.4"
   author: "Orbyss"
   description: "Orchestrates the Program Kit bundle's governance extension through ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -104,6 +104,11 @@ steps:
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.initial_design }}; bootstrap context: {{ steps.prepare-research-context.output.data.path }}"
+
+  - id: validate-profile-pins
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-profile-pins --run-id {{ context.run_id }} --json"
+    output_format: json
 
   - id: validate-assessment
     type: shell

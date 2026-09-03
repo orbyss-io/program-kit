@@ -130,10 +130,8 @@ def main() -> int:
         adr = next(item for item in roadmap["decisions"] if item["path"].endswith("ADR-001.md"))
         if adr["status"] != "Proposed":
             raise AssertionError("ADR status was not indexed")
-        if roadmap_path.stat().st_size >= (
-            project / roadmap["evidence_index"]["path"]
-        ).stat().st_size:
-            raise AssertionError("Compact stage brief is not smaller than its evidence index")
+        if roadmap_path.stat().st_size >= 32 * 1024:
+            raise AssertionError("Compact stage brief exceeds its deterministic size ceiling")
         roadmap_budget = roadmap["output_contract"]["artifact_byte_budgets"].get(
             "docs/architecture/architecture.md"
         )
@@ -194,6 +192,82 @@ constitution:
         }.issubset(configured_paths):
             raise AssertionError(f"Configured governance evidence is incomplete: {configured_paths}")
         module.validate_context(project, run_id, "readiness")
+
+        managed_project = project / "managed-profile"
+        managed_run_id = "managed-profile-test"
+        seed_project(managed_project, module, managed_run_id)
+        for relative in (
+            module.DOTNET_SDK_MANIFEST,
+            module.NODE_VERSION_MANIFEST,
+            module.WEB_PACKAGE_MANIFEST,
+            module.WEB_PACKAGE_LOCK,
+        ):
+            source = root / Path(
+                relative.as_posix().replace(".specify/extensions/", "extensions/")
+            )
+            write(managed_project / relative, source.read_text(encoding="utf-8"))
+        pins = {
+            "dotnet-sdk": "10.0.202",
+            "node": "24.20.0",
+            "typescript": "7.0.2",
+            "@types/node": "24.13.3",
+            "@playwright/test": "1.62.1",
+        }
+        managed_decisions = {
+            "selected_profiles": ["dotnet", "typescript-web"],
+            "toolchain": {
+                "source": "program-kit-default",
+                "pins": dict(pins),
+                "override_reason": "",
+            },
+            "overrides": [],
+        }
+        managed_decision_path = (
+            managed_project / "docs/architecture/bootstrap-decisions.json"
+        )
+        write_json(managed_decision_path, managed_decisions)
+        _, research = module.build_context(
+            managed_project, managed_run_id, "research"
+        )
+        if research["managed_profile_pins"]["pins"] != pins:
+            raise AssertionError("Research context did not expose exact selected-profile pins")
+        if len(research["managed_profile_pins"]["sources"]) != 4:
+            raise AssertionError("Research context did not bind every managed pin manifest")
+        module.validate_profile_pin_decisions(managed_project, managed_run_id)
+
+        managed_decisions["toolchain"]["pins"]["typescript"] = "6.0.0"
+        write_json(managed_decision_path, managed_decisions)
+        try:
+            module.validate_profile_pin_decisions(managed_project, managed_run_id)
+        except module.ContextError as exc:
+            if "cannot replace" not in str(exc):
+                raise
+        else:
+            raise AssertionError("A researched TypeScript candidate replaced the managed pin")
+
+        managed_decisions["toolchain"] = {
+            "source": "override",
+            "pins": {**pins, "dotnet-sdk": "9.0.100"},
+            "override_reason": "The user explicitly retained the local SDK",
+        }
+        managed_decisions["overrides"] = [
+            {
+                "id": "managed-toolchain-version",
+                "decision": "Retain the local .NET SDK",
+            }
+        ]
+        write_json(managed_decision_path, managed_decisions)
+        module.validate_profile_pin_decisions(managed_project, managed_run_id)
+
+        managed_decisions["toolchain"]["pins"]["typescript"] = "6.0.0"
+        write_json(managed_decision_path, managed_decisions)
+        try:
+            module.validate_profile_pin_decisions(managed_project, managed_run_id)
+        except module.ContextError as exc:
+            if "other managed pins remain authoritative" not in str(exc):
+                raise
+        else:
+            raise AssertionError("The local .NET exception also changed a managed package pin")
 
         try:
             module.safe_run_directory(project, "../escape")

@@ -20,6 +20,9 @@ only after the owning capability's persistence admission record is complete.
    satisfy host/runtime selection and acknowledgement of the pinned preview packages and the
    `CShells Preview` and `Nuplane Preview` NuGet sources. Outside bootstrap, equivalent Accepted ADR
    and explicit acknowledgement evidence are required.
+   The Program Kit-managed SDK pin remains authoritative unless that register contains the explicit
+   `managed-toolchain-version` override. A different locally installed SDK is not implicit approval
+   to downgrade the managed baseline.
 2. For a write, run `{SCRIPT}` with `--target <repository-root> --profile-selected
    --host-runtime-accepted --preview-sources-approved`. Pass a confirmation flag only when its corresponding
    evidence exists. For a read-only drift report, pass `--check --profile-selected`; the two write approvals

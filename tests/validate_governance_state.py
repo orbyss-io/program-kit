@@ -179,6 +179,17 @@ def decisions() -> dict:
             "threat_model": "program-kit-web-threat-model-v1",
             "security_evidence": "program-kit-web-security-evidence-v1",
         },
+        "toolchain": {
+            "source": "program-kit-default",
+            "pins": {
+                "dotnet-sdk": "10.0.202",
+                "node": "24.20.0",
+                "typescript": "7.0.2",
+                "@types/node": "24.13.3",
+                "@playwright/test": "1.62.1",
+            },
+            "override_reason": "",
+        },
         "choices": [
             {
                 "id": "runtime-host",
@@ -287,6 +298,14 @@ def placeholder_roadmap() -> str:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     module = load_validator(root)
+    for status_line in (
+        "Status: Accepted",
+        "- Status: Accepted",
+        "- **Status**: Accepted",
+        "- **Status:** Accepted",
+    ):
+        if not module._has_decision_status(status_line, "Accepted"):
+            raise AssertionError(f"Decision status syntax was rejected: {status_line}")
     original = Path.cwd()
     with tempfile.TemporaryDirectory(prefix="program-kit-governance-test-") as directory:
         try:
@@ -358,6 +377,37 @@ def main() -> int:
                 "web.security_evidence",
             )
 
+            missing_toolchain_override = decisions()
+            missing_toolchain_override["toolchain"]["source"] = "override"
+            missing_toolchain_override["toolchain"]["override_reason"] = (
+                "Retain the explicitly selected local SDK"
+            )
+            bootstrap_decisions.write_text(
+                json.dumps(missing_toolchain_override), encoding="utf-8"
+            )
+            expect_error(
+                module,
+                module.validate_bootstrap_decisions,
+                "managed-toolchain-version",
+            )
+
+            explicit_toolchain_override = decisions()
+            explicit_toolchain_override["toolchain"]["source"] = "override"
+            explicit_toolchain_override["toolchain"]["pins"]["dotnet-sdk"] = "9.0.100"
+            explicit_toolchain_override["toolchain"]["override_reason"] = (
+                "The user explicitly retained the locally installed SDK"
+            )
+            explicit_toolchain_override["overrides"].append(
+                {
+                    "id": "managed-toolchain-version",
+                    "decision": "Retain .NET SDK 9.0.100 instead of the Program Kit pin",
+                }
+            )
+            bootstrap_decisions.write_text(
+                json.dumps(explicit_toolchain_override), encoding="utf-8"
+            )
+            module.validate_bootstrap_decisions()
+
             write_assessment(module, project)
 
             constitution_path = project / module.CONSTITUTION
@@ -407,9 +457,21 @@ def main() -> int:
             roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             expect_error(module, lambda: module.validate_roadmap(True), "unresolved ADRs")
 
+            hidden_gate = roadmap().replace(
+                "- **Dependencies**: None",
+                "- **Dependencies**: Before implementation, proposed test tooling requires an Accepted tooling ADR.",
+            )
+            roadmap_path.write_text(hidden_gate, encoding="utf-8")
+            expect_error(
+                module,
+                lambda: module.validate_roadmap(True),
+                "hides an unresolved implementation decision",
+            )
+
             decision = project / module.DECISIONS / "0042-first-boundary.md"
             decision.parent.mkdir(parents=True)
             decision.write_text("# ADR-0042\n\n- Status: Accepted\n", encoding="utf-8")
+            roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             module.validate_roadmap(True)
 
             write_bootstrap_artifacts(module, project)

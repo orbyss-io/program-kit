@@ -105,6 +105,7 @@ OUTPUT_CONTRACTS = {
             ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
         ],
         "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-profile-pins --run-id <workflow-run-id>",
             "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment"
         ],
     },
@@ -162,6 +163,20 @@ AUTHORITY_JSON = {
     ".specify/governance/bootstrap-approval.json": "bootstrap_approval",
 }
 
+DOTNET_SDK_MANIFEST = Path(
+    ".specify/extensions/program-kit-dotnet/templates/dotnet/files/global.json"
+)
+NODE_VERSION_MANIFEST = Path(
+    ".specify/extensions/program-kit-dotnet/templates/dotnet/files/.nvmrc"
+)
+WEB_PACKAGE_MANIFEST = Path(
+    ".specify/extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/program-kit/web/package.json"
+)
+WEB_PACKAGE_LOCK = Path(
+    ".specify/extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/program-kit/web/package-lock.json"
+)
+TOOLCHAIN_OVERRIDE_ID = "managed-toolchain-version"
+
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 SIGNAL = re.compile(
     r"(^\s*[-*]\s+\*\*|^\s*\*\*[^*]+\*\*\s*:|^\s*\|.*\|\s*$|"
@@ -193,6 +208,175 @@ def load_json(path: Path) -> dict:
     if not isinstance(value, dict):
         raise ContextError(f"Expected a JSON object in {path}")
     return value
+
+
+def _source_record(project_root: Path, relative: Path) -> dict:
+    path = project_root / relative
+    if not path.is_file():
+        raise ContextError(
+            f"Selected Program Kit profile pin source is missing: {relative.as_posix()}"
+        )
+    return {
+        "path": relative.as_posix(),
+        "sha256": sha256_file(path),
+        "bytes": path.stat().st_size,
+    }
+
+
+def managed_profile_pin_authority(project_root: Path, decisions: dict) -> dict:
+    selected = decisions.get("selected_profiles", [])
+    if not isinstance(selected, list) or not all(
+        isinstance(value, str) and value.strip() for value in selected
+    ):
+        raise ContextError("Bootstrap selected_profiles must be a list of non-empty strings")
+    profiles = {value.strip().casefold() for value in selected}
+    pins: dict[str, str] = {}
+    sources: list[dict] = []
+
+    if "dotnet" in profiles:
+        global_path = project_root / DOTNET_SDK_MANIFEST
+        global_json = load_json(global_path)
+        sdk = global_json.get("sdk")
+        version = sdk.get("version") if isinstance(sdk, dict) else None
+        if not isinstance(version, str) or not version.strip():
+            raise ContextError(
+                f"Managed .NET SDK manifest has no exact sdk.version: {DOTNET_SDK_MANIFEST.as_posix()}"
+            )
+        pins["dotnet-sdk"] = version.strip()
+        source = _source_record(project_root, DOTNET_SDK_MANIFEST)
+        source["profile"] = "dotnet"
+        source["provides"] = ["dotnet-sdk"]
+        source["settings"] = {
+            key: sdk[key] for key in ("rollForward", "allowPrerelease") if key in sdk
+        }
+        sources.append(source)
+        node_path = project_root / NODE_VERSION_MANIFEST
+        if not node_path.is_file():
+            raise ContextError(
+                f"Selected Program Kit profile pin source is missing: {NODE_VERSION_MANIFEST.as_posix()}"
+            )
+        node_version = node_path.read_text(encoding="utf-8").strip().removeprefix("v")
+        if not node_version:
+            raise ContextError("Managed Node version manifest is empty")
+        pins["node"] = node_version
+        node_source = _source_record(project_root, NODE_VERSION_MANIFEST)
+        node_source["profile"] = "dotnet"
+        node_source["provides"] = ["node"]
+        sources.append(node_source)
+
+    browser_selected = bool({"typescript-web", "browser-web"} & profiles)
+    if "dotnet" in profiles and browser_selected:
+        package_json = load_json(project_root / WEB_PACKAGE_MANIFEST)
+        dependencies = package_json.get("devDependencies")
+        if not isinstance(dependencies, dict) or not dependencies:
+            raise ContextError("Managed web package manifest has no devDependencies")
+        required_packages = ("typescript", "@types/node", "@playwright/test")
+        for package in required_packages:
+            version = dependencies.get(package)
+            if not isinstance(version, str) or not version.strip():
+                raise ContextError(f"Managed web package manifest has no exact {package} pin")
+            pins[package] = version.strip()
+
+        lock_json = load_json(project_root / WEB_PACKAGE_LOCK)
+        packages = lock_json.get("packages")
+        root_package = packages.get("") if isinstance(packages, dict) else None
+        locked = root_package.get("devDependencies") if isinstance(root_package, dict) else None
+        if not isinstance(locked, dict):
+            raise ContextError("Managed web package lock has no root devDependencies")
+        mismatches = {
+            package: {"manifest": dependencies[package], "lock": locked.get(package)}
+            for package in required_packages
+            if locked.get(package) != dependencies[package]
+        }
+        if mismatches:
+            raise ContextError(
+                f"Managed web package manifest and lock disagree: {mismatches}"
+            )
+        package_source = _source_record(project_root, WEB_PACKAGE_MANIFEST)
+        package_source["profile"] = "dotnet-typescript-web"
+        package_source["provides"] = list(required_packages)
+        sources.append(package_source)
+        lock_source = _source_record(project_root, WEB_PACKAGE_LOCK)
+        lock_source["profile"] = "dotnet-typescript-web"
+        lock_source["verifies"] = WEB_PACKAGE_MANIFEST.as_posix()
+        sources.append(lock_source)
+
+    return {
+        "precedence": "program-kit-managed-profile-before-local-environment-or-current-candidate",
+        "selected_profiles": sorted(profiles),
+        "pins": dict(sorted(pins.items())),
+        "sources": sources,
+        "local_environment_policy": (
+            "A missing or older local tool is a remediation requirement, not a version-selection "
+            "input. Recommend installing or upgrading to the Program Kit pin. Retain a different "
+            "local version only through an explicitly approved managed-toolchain-version override."
+        ),
+    }
+
+
+def validate_profile_pin_decisions(project_root: Path, run_id: str) -> dict:
+    validate_brief(project_root, run_id)
+    decisions = load_json(project_root / "docs/architecture/bootstrap-decisions.json")
+    authority = managed_profile_pin_authority(project_root, decisions)
+    expected = authority["pins"]
+    toolchain = decisions.get("toolchain")
+    if not expected:
+        if toolchain is not None:
+            raise ContextError(
+                "Bootstrap toolchain authority is present although no selected managed profile supplies pins"
+            )
+        return authority
+    if not isinstance(toolchain, dict) or set(toolchain) != {
+        "source",
+        "pins",
+        "override_reason",
+    }:
+        raise ContextError(
+            "Selected managed profiles require toolchain with exactly source, pins, and override_reason"
+        )
+    recorded = toolchain.get("pins")
+    if not isinstance(recorded, dict) or set(recorded) != set(expected) or not all(
+        isinstance(value, str) and value.strip() for value in recorded.values()
+    ):
+        raise ContextError(
+            f"Bootstrap toolchain pins must contain exactly the managed keys: {sorted(expected)}"
+        )
+    source = toolchain.get("source")
+    reason = toolchain.get("override_reason")
+    if source == "program-kit-default":
+        if recorded != expected:
+            raise ContextError(
+                "Bootstrap toolchain versions do not match the authoritative Program Kit profile pins; "
+                "a local installation or researched current candidate cannot replace them"
+            )
+        if reason not in ("", None):
+            raise ContextError("Program Kit default toolchain pins must not claim an override reason")
+    elif source == "override":
+        if not isinstance(reason, str) or not reason.strip():
+            raise ContextError("A managed toolchain version override requires an explicit reason")
+        overrides = decisions.get("overrides", [])
+        override_ids = {
+            item.get("id") for item in overrides if isinstance(item, dict)
+        } if isinstance(overrides, list) else set()
+        if TOOLCHAIN_OVERRIDE_ID not in override_ids:
+            raise ContextError(
+                f"A managed toolchain version override requires the approved {TOOLCHAIN_OVERRIDE_ID!r} override record"
+            )
+        non_dotnet_differences = {
+            key: {"managed": expected[key], "recorded": recorded[key]}
+            for key in expected
+            if key != "dotnet-sdk" and recorded[key] != expected[key]
+        }
+        if non_dotnet_differences:
+            raise ContextError(
+                "The managed-toolchain-version override may retain a user-selected local .NET SDK "
+                f"only; other managed pins remain authoritative: {non_dotnet_differences}"
+            )
+    else:
+        raise ContextError(
+            "Bootstrap toolchain source must be program-kit-default or an explicit override"
+        )
+    return authority
 
 
 def safe_run_directory(project_root: Path, run_id: str) -> Path:
@@ -350,7 +534,7 @@ def compact_authority(name: str, payload: dict) -> dict:
     if name == "assessment_decisions":
         keys = (
             "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
-            "choices", "overrides", "acknowledgements", "unresolved", "deferred",
+            "toolchain", "choices", "overrides", "acknowledgements", "unresolved", "deferred",
         )
         return {key: payload[key] for key in keys if key in payload}
     keys = ("schema_version", "status", "constitution", "gate_verdict", "artifacts", "approval_source")
@@ -491,6 +675,9 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "initial_design": initial_design_record(project_root, run_directory),
         "normalized_brief": brief,
         "authorities": authorities,
+        "managed_profile_pins": managed_profile_pin_authority(
+            project_root, authorities.get("assessment_decisions", {})
+        ),
         "decisions": decision_records(project_root, governance_paths["decisions"]),
         "governance": governance,
         "output_contract": resolved_output_contract(stage, governance_paths),
@@ -555,7 +742,9 @@ def main() -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Build compact Program Kit bootstrap stage handoffs.")
-    parser.add_argument("command", choices=("build", "validate", "validate-brief"))
+    parser.add_argument(
+        "command", choices=("build", "validate", "validate-brief", "validate-profile-pins")
+    )
     parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--project-root", default=".")
@@ -572,6 +761,13 @@ def main() -> int:
                 "boundary_count": len(payload["explicit_boundaries"]),
                 "ambiguity_count": len(payload["ambiguities"]),
             }
+        elif args.command == "validate-profile-pins":
+            authority = validate_profile_pin_decisions(project_root, args.run_id)
+            result = {
+                "selected_profiles": authority["selected_profiles"],
+                "pins": authority["pins"],
+                "source_count": len(authority["sources"]),
+            }
         else:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
@@ -587,6 +783,11 @@ def main() -> int:
         print(json.dumps(result))
     elif args.command == "validate-brief":
         print(f"Program Kit normalized bootstrap brief is valid: {result['path']}")
+    elif args.command == "validate-profile-pins":
+        print(
+            "Program Kit selected-profile pins are valid: "
+            f"{len(result['pins'])} managed pin(s)"
+        )
     else:
         print(f"Program Kit {args.stage} context is valid: {result['path']}")
     return 0

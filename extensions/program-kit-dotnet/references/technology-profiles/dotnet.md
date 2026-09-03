@@ -24,13 +24,19 @@ bootstrap assessment gate. Choices outside that reviewed baseline remain Propose
 ADR. ORM, serializer, and test-framework details use the baseline defaults when available rather
 than becoming mandatory human questions.
 
+The exact SDK in the selected Program Kit profile's managed `global.json` is authoritative even
+when `dotnet --version` reports an older or different local SDK. Treat that mismatch as an actionable
+install/upgrade requirement and urge exact, side-by-side remediation. Keep the local SDK as project
+truth only after the user explicitly approves the `managed-toolchain-version` override recorded by
+the bootstrap decision contract; current-version research alone is not an override.
+
 ## Modular DDD topology
 
 Apply `modularity-and-contracts.md` and `vertical-slicing.md`. A default solution graph is:
 
 ```text
-Product.Host
-  -> Context.Feature.*
+external ProgramKit.Host
+  -> packaged Context.Feature.* selected by shells.json
   -> accepted runtime composition packages
 
 Context.Domain
@@ -46,8 +52,9 @@ Context.Feature.Name
   -> feature-local adapters when split into internal projects
 ```
 
-The host is the composition root and may reference all selected feature roots. Peer feature roots do
-not reference one another. Domain and contracts projects do not reference hosts, features,
+The external host is the composition root and loads the selected feature package closure; the
+consumer repository does not create a host project unless an explicit accepted opt-out selects a
+custom runtime. Peer feature roots do not reference one another. Domain and contracts projects do not reference hosts, features,
 transports, persistence, dependency-injection frameworks, or vendor SDKs.
 
 For a complex feature family, application, infrastructure, HTTP, and composition projects may be

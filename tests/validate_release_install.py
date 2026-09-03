@@ -27,6 +27,7 @@ EXPECTED_STEPS = [
     "intake",
     "prepare-research-context",
     "research",
+    "validate-profile-pins",
     "validate-assessment",
     "write-assessment-review",
     "review-assessment",

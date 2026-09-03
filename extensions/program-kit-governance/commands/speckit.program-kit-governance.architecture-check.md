@@ -36,6 +36,11 @@ complete analysis against that report. HIGH or CRITICAL findings block readiness
 `scripts/artifact_ownership.py` against the feature's manifest, plan, and tasks; unknown paths,
 managed-path edits, or ownership drift are errors.
 
+For `after_plan`, and again for `after_tasks`, run `scripts/artifact_ownership.py` with the current
+feature's `artifact-ownership.json` and plan (plus tasks after task generation). This deterministic
+contract checks the mandatory governance sections and selected runtime profile; its `PKA010` through
+`PKA012` diagnostics block the lifecycle and must not be reduced to warnings.
+
 ## Checks
 
 - No statement conflicts with an Accepted ADR or architecture invariant.
@@ -61,5 +66,15 @@ managed-path edits, or ownership drift are errors.
 - Managed `eng/program-kit/**` files are never implementation targets. OpenAPI, feature metadata,
   SPA serving security, toolchain, and persistence are configured only from their documented
   consumer-owned MSBuild, Vite, feature-adapter, or deployment extension points.
+- When the selected .NET baseline has not explicitly opted out of `ProgramKit.Host`, reject every
+  repository-owned host project, `.Host` source directory, application `Program.cs`, or plan/task
+  that runs a custom host. Require packable feature projects with `ProgramKitFeatureIdentity`,
+  reviewed `shells.json` activation, consumer `hostsettings.json`, validated package-closure staging
+  through `runnable_host.py stage`, and digest-bound external `ProgramKit.Host` release evidence.
+- An exact npm dependency graph is implementation-ready only with recorded registry-metadata and
+  isolated lockfile-resolution evidence. Peer conflicts cannot be waived with `--force` or
+  `--legacy-peer-deps`; choose compatible packages or isolate an independently governed toolchain.
+  Run `scripts/npm_graph.py --package-json <candidate-package.json> --evidence
+  .program-kit/evidence/npm-graph.json` before approving a plan or task set that adopts such a graph.
 
 Return a structured report of errors, warnings, new decisions, and required artifact updates. Errors block the lifecycle step. Never silently edit an Accepted ADR to make a conflict disappear.

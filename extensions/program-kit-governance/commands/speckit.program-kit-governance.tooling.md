@@ -30,12 +30,29 @@ Create or update `docs/architecture/quality-system.md` containing:
 1. A capability matrix mapping each quality risk to prevention, static detection, test detection, runtime detection, owner, and evidence artifact.
 2. A staged adoption plan: bootstrap gates, first-code gates, first-contract gates, first-deployment gates, and scale/compliance gates.
 3. Exact trigger conditions for reevaluating optional tools and Spec Kit extensions.
-4. A CI policy that is the authoritative enforcement layer. Spec Kit hooks provide early feedback but are not the sole control.
+4. A repository enforcement policy. CI is the authoritative enforcement layer once the repository
+   has CI, multiple contributors, a release, or deployment. For an explicitly local,
+   single-maintainer, undistributed application with no CI surface, make one deterministic local
+   aggregate command authoritative and defer CI until one of those triggers occurs. Spec Kit hooks
+   provide early feedback but are not the sole control.
 5. Upgrade policy: pin versions, inspect release notes and scripts, exercise representative fixtures, and promote only after compatibility checks pass.
 6. Dependency enforcement for the accepted bounded-context, module, feature, and contract graph. Include forbidden project/package/assembly edges, cycles, shared-store access, exception allowlists, and ownership evidence.
 7. Slice-completeness evidence covering public schema compatibility, composition, authorization, observable outcomes, and architecture tests at the earliest reliable lifecycle stage.
 
 Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
+
+Do not manufacture a tooling ADR for standard-library test/process utilities that directly realize
+an explicit automated-test requirement without adding a dependency or architecture surface. Treat
+the exact installed patch within an explicitly accepted runtime minor line as remediation and
+execution evidence, not as a new architecture decision. A different runtime line remains an
+override and still requires the normal decision authority.
+
+Before proposing any exact npm package graph, inspect registry package metadata for dependencies,
+peer dependencies, engines, and platform constraints, and perform an isolated lockfile-only
+resolution with scripts disabled. Record the exact command and result. A graph that needs
+`--force`, `--legacy-peer-deps`, or ignored engine/platform constraints is not implementation-ready;
+select a mutually compatible graph or isolate the generator/tool in its own explicitly governed
+toolchain.
 
 Omit control families for explicitly excluded surfaces rather than designing future gates for
 them. For a single-interface, dependency-free local application, use the byte target supplied by

@@ -45,10 +45,33 @@ one approval chore per ordinary default.
 
 Project-specific choices outside that reviewed baseline still require the normal ADR process.
 
+## Managed toolchain precedence
+
+Selected Program Kit technology profiles supply exact toolchain and package pins through their
+managed manifests. Those pins are baseline authority before current-version research and before
+probing the local environment. Research verifies compatibility and maintenance; it does not replace
+a managed pin with a current candidate. A missing or older local installation is a remediation
+requirement: clearly urge the user to install or upgrade to the exact managed version, side-by-side
+where the ecosystem supports it.
+
+Only an explicit user decision may retain a different locally installed .NET SDK as project truth.
+Record that exception in `bootstrap-decisions.json.toolchain` with source `override`, a non-empty
+reason, and an override entry whose ID is `managed-toolchain-version`. Ordinary managed pins use
+source `program-kit-default`, exactly match the selected profile manifests, and need no separate ADR.
+
+When Node remediation is approved but no supported manager is present, stop with an actionable
+manager-install instruction rather than choosing or installing one implicitly. On Windows, prefer
+the official per-user `fnm` routes (WinGet, Scoop, or the release binary); do not send a
+non-administrator shell into an elevation-bound Chocolatey install. After `fnm install`, verify the
+pin in the same process with `fnm exec --using=<version> node --version`; parent-shell PATH or profile
+activation is not valid immediate verification evidence.
+
 ## .NET default
 
-When .NET is selected, the shallow `ProgramKit.Host` and runnable-host release model are the automatic runtime
-default. Adopt them unless the initial design explicitly opts out. An opt-out records the alternate
+When .NET is selected, the external shallow `ProgramKit.Host` and runnable-host release model are the
+automatic runtime default. Consumer repositories create packable feature projects and activation,
+configuration, package-closure, and release evidence—not a custom `.Host` project or application
+`Program.cs`. Adopt this model unless the initial design explicitly opts out. An opt-out records the alternate
 host, reason, consequences, and affected managed baseline.
 
 The standard runtime currently introduces pinned Program Kit, CShells, and Nuplane preview packages

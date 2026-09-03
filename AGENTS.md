@@ -14,6 +14,8 @@ and CI-compatible release tests remain mandatory.
 - Never add the paid live suite to CI or run it from an unattended hook.
 - Never pass `-Approved` without an explicit user request for the live run in the current
   conversation.
+- Pass `-ContinueFirstSlice` only when that request explicitly includes the paid first-slice
+  continuation; approval for a bootstrap-only run does not authorize the additional agent sessions.
 
 The live harness is the sole exception to the normal rule against agent-started outer Codex
 bootstrap orchestration. It may exercise that exception only for its generated disposable test
@@ -28,8 +30,9 @@ repository. A workflow-process `GIT_CONFIG_*` safe-directory injection is only a
 the sandbox may filter it before the worker starts.
 
 The harness therefore writes an `AGENTS.md` inside the disposable consumer. Workers must run every
-Git operation as `git -c safe.directory=<absolute-disposable-project> -c
-core.excludesFile=<platform-null-device> <command>`. The second override prevents a harmless warning
+Git operation as `git -c safe.directory=<absolute-disposable-project> -c core.excludesFile=
+<command>` on Windows, or use `/dev/null` as the excludes value on POSIX. Windows Git rejects `NUL`
+as an excludes file. The second override prevents a harmless warning
 when the sandbox cannot read the user's global Git ignore file. Never use `git config --global`,
 never persist a safe-directory exception, and never disable or bypass the sandbox. Keep Python
 output UTF-8 (`PYTHONUTF8=1`); the harness and workflow establish this for their owned process trees.

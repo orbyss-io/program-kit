@@ -2,8 +2,40 @@
 
 ## Unreleased
 
+## 0.8.4 - 2026-09-03
+
 - Make paid live bootstrap acceptance entirely user-invoked. Publication no longer prompts for the
   suite or records its absence as a skip; an explicit request authorizes a single local run.
+- Add a separately authorized first-slice continuation that exercises the complete installed Spec
+  Kit lifecycle after bootstrap and preserves governance traceability, hook, ownership, managed-file,
+  test, and exact application-behavior evidence.
+- Make selected Program Kit profile manifests explicit research-stage authority and validate their
+  exact pins before assessment approval. Current-version research and locally installed tools can
+  no longer silently replace managed TypeScript, Node, package, or .NET SDK versions. A different
+  local .NET SDK requires the recorded `managed-toolchain-version` user override; otherwise the
+  generated tooling gives direct install/upgrade guidance and managed sync preserves the Kit pin.
+- Accept the common bold ADR status spellings while prescribing one exact architecture-output form,
+  preventing semantically Accepted bootstrap baselines from failing the final governance gate.
+- Retry the disposable live catalog install only after Spec Kit explicitly reports a transient
+  extension-archive transfer failure with no recorded changes.
+- Reject Ready roadmap entries that hide a later Proposed decision/ADR gate, and hash-bind mandatory
+  specification, plan, task, ownership, external-host, and npm-resolution contracts before
+  implementation. The first-slice live fixture now keeps standard-library verification and its
+  local aggregate gate inside the approved baseline instead of inventing an unapproved tooling ADR.
+- Reject consumer-owned `.Host` projects and application `Program.cs` files under the default
+  external `ProgramKit.Host` profile. Plans must cover feature identity, `shells.json`,
+  `hostsettings.json`, validated package-closure staging, and digest-bound release evidence.
+- Restrict task-path ownership checks to checkbox task records and ignore explicitly prohibited or
+  comparison-only code spans, preventing explanatory references such as a feature directory,
+  `Program.cs`, or `ProgramKit.Build.targets` from becoming false edit targets.
+- Add strict, isolated npm lockfile resolution evidence for candidate package graphs, preventing an
+  incompatible peer graph such as TypeScript 7 with `openapi-typescript` 7.13.0 from passing plan
+  and task readiness or being bypassed with force/legacy-peer options.
+- Re-verify approved `fnm` Node installs through `fnm exec --using=<pin>` in the same process and
+  direct non-administrator Windows users to per-user manager installation rather than an
+  elevation-bound Chocolatey fallback.
+- Use an empty command-scoped Git excludes value on Windows live workers because Git rejects `NUL`;
+  retain `/dev/null` on POSIX and never change global Git configuration.
 
 ## 0.8.3 - 2026-09-02
 

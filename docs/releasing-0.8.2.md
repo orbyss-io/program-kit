@@ -22,8 +22,8 @@ suite in CI.
 
 For Codex on Windows, the harness supplies `workspace-write` and disposable worker instructions.
 If Git reports dubious ownership, use the command-scoped
-`git -c safe.directory=<absolute-disposable-project> -c
-core.excludesFile=<platform-null-device> <command>` form inside that run. The second override avoids
+`git -c safe.directory=<absolute-disposable-project> -c core.excludesFile= <command>` form on
+Windows (or `/dev/null` on POSIX) inside that run. The second override avoids
 warnings when the sandbox cannot read the user's ignore file. Do not change global Git
 configuration or bypass the sandbox. The harness also establishes UTF-8 and preserves raw worker
 output in the evidence directory while showing concise progress. See

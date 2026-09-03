@@ -9,6 +9,11 @@ param(
     [ValidateRange(60, 86400)]
     [int]$TimeoutSeconds = 7200,
 
+    [switch]$ContinueFirstSlice,
+
+    [ValidateRange(60, 86400)]
+    [int]$FirstSliceTimeoutSeconds = 7200,
+
     [switch]$Approved
 )
 
@@ -43,13 +48,27 @@ if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
 }
 
 $runner = Join-Path $projectRoot 'tests\live\run_bootstrap_acceptance.py'
-& $python $runner `
-    --scenario $Scenario `
-    --integration $Integration `
-    --timeout-seconds $TimeoutSeconds `
-    --approved
-if ($LASTEXITCODE -ne 0) {
-    throw "Live bootstrap acceptance failed with exit code $LASTEXITCODE. Inspect artifacts/live-acceptance."
+$arguments = @(
+    $runner
+    '--scenario'
+    $Scenario
+    '--integration'
+    $Integration
+    '--timeout-seconds'
+    $TimeoutSeconds
+    '--approved'
+)
+if ($ContinueFirstSlice) {
+    $arguments += @('--continue-first-slice', '--first-slice-timeout-seconds', $FirstSliceTimeoutSeconds)
 }
 
-Write-Host 'Live bootstrap acceptance passed.'
+& $python @arguments
+if ($LASTEXITCODE -ne 0) {
+    throw "Live acceptance failed with exit code $LASTEXITCODE. Inspect artifacts/live-acceptance."
+}
+
+if ($ContinueFirstSlice) {
+    Write-Host 'Live bootstrap and first-slice acceptance passed.'
+} else {
+    Write-Host 'Live bootstrap acceptance passed.'
+}

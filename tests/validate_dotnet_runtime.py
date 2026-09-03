@@ -9,9 +9,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.8.3":
+    if program_version != "0.8.4":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.8.3-preview.1":
+    if runtime_version != "0.8.4-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     version_props = (root / "eng/ProgramKit.Version.props").read_text(encoding="utf-8")

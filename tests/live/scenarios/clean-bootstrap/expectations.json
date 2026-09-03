@@ -22,6 +22,17 @@
     "readiness"
   ],
   "readiness_first_line": "**Status**: READY",
+  "first_slice": {
+    "feature_description": "Deliver the first Ready entry in docs/architecture/specification-roadmap.md as a complete vertical slice. Use INITIAL_DESIGN.md and the approved governance and architecture artifacts as authoritative context.",
+    "required_feature_files": [
+      "spec.md",
+      "plan.md",
+      "tasks.md",
+      "artifact-ownership.json"
+    ],
+    "expected_stdout": "Hello, Program Kit!\n",
+    "expected_argument_exit_code": 2
+  },
   "advisory_budgets": {
     "agent_tokens_total": 300000,
     "workflow_stderr_bytes": 1500000,

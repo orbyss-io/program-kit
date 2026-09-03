@@ -56,6 +56,8 @@ SHA-256 from `.specify/governance/bootstrap-assessment-approval.json`; include t
 choice, override, and acknowledgement so validation can prove traceability. Ordinary reviewed
 defaults do not need one ADR each. Project-specific choices outside that baseline remain Proposed
 until their own human approval.
+Write its status using the exact line `- **Status**: Accepted`. For every other ADR, use the same
+field syntax with its actual lifecycle value; keep the colon outside the bold marker.
 
 Scale the detail to the system. A one-module local process does not need speculative multi-module,
 deployment, persistence, or operations prose. State a not-applicable boundary once, keep catalogs

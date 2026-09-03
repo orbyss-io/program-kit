@@ -76,9 +76,12 @@ Do not count an explicit intake choice, Program Kit default, derived default, or
 from the approved bootstrap decision register as unresolved. Do not block early specifications on a
 decision explicitly deferred to production or another later trigger.
 
-A roadmap entry cannot be Ready while any required ADR is unresolved. At least one Ready entry must
-be suitable for the first feature specification without introducing an unreviewed architecture
-choice. Design tasks are never reported as feature specifications or implementation-ready work.
+A roadmap entry cannot be Ready while any required ADR or implementation decision is unresolved.
+At least one Ready entry must be suitable for the first feature specification and its complete
+planning, task, and implementation lifecycle without introducing an unreviewed architecture choice. A dependency or
+recommended sequence that says a Proposed choice, design task, or later ADR must be accepted before
+implementation makes the entry Blocked, even if specification drafting could begin. Design tasks
+are never reported as feature specifications or implementation-ready work.
 
 Do not change an ADR status while evaluating readiness.
 

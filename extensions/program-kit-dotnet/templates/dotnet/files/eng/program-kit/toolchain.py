@@ -24,7 +24,8 @@ def required_versions(repository: Path) -> dict[str, str]:
 
 
 def run_version(command: list[str]) -> str | None:
-    if shutil.which(command[0]) is None:
+    executable = Path(command[0])
+    if not executable.is_file() and shutil.which(command[0]) is None:
         return None
     result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=10)
     if result.returncode != 0:
@@ -77,22 +78,34 @@ def install_dotnet(version: str, installer: str) -> None:
         raise ValueError("PKT006 approved .NET side-by-side installation failed (offline or installer error).")
 
 
-def node_manager(selected: str) -> str | None:
+def node_manager(selected: str) -> tuple[str, str] | None:
     names = [selected] if selected != "auto" else ["fnm", "nvm", "volta"]
-    return next((name for name in names if shutil.which(name)), None)
+    for name in names:
+        command = shutil.which(name)
+        if command:
+            return name, command
+    return None
 
 
-def install_node(version: str, selected: str) -> None:
-    manager = node_manager(selected)
-    if manager is None:
+def install_node(version: str, selected: str) -> list[str] | None:
+    resolved_manager = node_manager(selected)
+    if resolved_manager is None:
         raise ValueError(
             "PKT007 no selected Node version manager is available. Install or select fnm, nvm, or volta; "
-            "Program Kit does not replace the user's manager."
+            "Program Kit does not replace the user's manager. On Windows prefer an official per-user "
+            "fnm route (winget, Scoop, or the release binary); do not fall back to an elevation-bound "
+            "Chocolatey install from a non-administrator shell."
         )
-    command = [manager, "install", version if manager != "volta" else f"node@{version}"]
+    manager, manager_command = resolved_manager
+    command = [manager_command, "install", version if manager != "volta" else f"node@{version}"]
     result = subprocess.run(command, check=False)
     if result.returncode != 0:
         raise ValueError("PKT008 approved Node installation failed (offline or manager error).")
+    if manager == "fnm":
+        return [manager_command, "exec", f"--using={version}", "node", "--version"]
+    if manager == "volta":
+        return [manager_command, "run", "--node", version, "node", "--version"]
+    return None
 
 
 def main() -> int:
@@ -125,6 +138,12 @@ def main() -> int:
             + ", ".join(f"{name} required={required[name]} resolved={installed[name] or 'missing'}" for name in missing),
             file=sys.stderr,
         )
+        print(
+            "PKT011 Program Kit managed pins remain authoritative. Install or upgrade to the exact "
+            "required versions (side-by-side where supported); do not rewrite them to match the local "
+            "environment without an explicit managed-toolchain-version override.",
+            file=sys.stderr,
+        )
         write_evidence(evidence, required, installed, False)
         if not args.remediate:
             print("Repository writes: evidence only. Proposed system changes and network downloads require approval.", file=sys.stderr)
@@ -140,9 +159,12 @@ def main() -> int:
             return 3
         if "dotnet" in missing:
             install_dotnet(required["dotnet"], args.dotnet_installer)
+        node_verification_command = None
         if "node" in missing:
-            install_node(required["node"], args.node_manager)
+            node_verification_command = install_node(required["node"], args.node_manager)
         resolved = installed_versions(args.dotnet_command, args.node_command)
+        if node_verification_command:
+            resolved["node"] = run_version(node_verification_command)
         remaining = mismatch(required, resolved)
         write_evidence(evidence, required, resolved, not remaining)
         if remaining:

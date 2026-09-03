@@ -44,6 +44,8 @@ def main() -> int:
         assert installed.returncode == 0, installed.stderr
         state = json.loads((target / ".program-kit/managed.json").read_text(encoding="utf-8"))
         assert state["programKitVersion"]
+        assert state["dotnetSdk"] == "10.0.202"
+        assert state["dotnetSdkSource"] == "program-kit-default"
         assert (target / "eng/program-kit/ProgramKit.Build.props").is_file()
         assert (target / "Directory.Build.props").is_file()
         build_script = (target / "eng/program-kit/Build.ps1").read_text(encoding="utf-8")
@@ -149,6 +151,59 @@ def main() -> int:
         spa_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
         assert spa_settings["ProgramKit"]["Web"]["Profile"] == "SpaPkce"
         assert spa_settings["ProgramKit"]["Web"]["AllowedOrigins"] == ["http://localhost:5173"]
+
+        override_target = target / "explicit-local-sdk-override"
+        override_decisions = override_target / "docs/architecture/bootstrap-decisions.json"
+        override_decisions.parent.mkdir(parents=True)
+        override_decisions.write_text(
+            json.dumps(
+                {
+                    "toolchain": {
+                        "source": "override",
+                        "pins": {"dotnet-sdk": "9.0.100"},
+                        "override_reason": "The user explicitly retained the local SDK",
+                    },
+                    "overrides": [
+                        {
+                            "id": "managed-toolchain-version",
+                            "decision": "Retain .NET SDK 9.0.100",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        override_installed = run("--target", str(override_target), *approvals)
+        assert override_installed.returncode == 0, override_installed.stderr
+        overridden_global = json.loads(
+            (override_target / "global.json").read_text(encoding="utf-8")
+        )
+        assert overridden_global["sdk"]["version"] == "9.0.100"
+        override_state = json.loads(
+            (override_target / ".program-kit/managed.json").read_text(encoding="utf-8")
+        )
+        assert override_state["dotnetSdk"] == "9.0.100"
+        assert override_state["dotnetSdkSource"] == "override"
+
+        invalid_override = target / "invalid-local-sdk-override"
+        invalid_decisions = invalid_override / "docs/architecture/bootstrap-decisions.json"
+        invalid_decisions.parent.mkdir(parents=True)
+        invalid_decisions.write_text(
+            json.dumps(
+                {
+                    "toolchain": {
+                        "source": "override",
+                        "pins": {"dotnet-sdk": "9.0.100"},
+                        "override_reason": "",
+                    },
+                    "overrides": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        invalid_result = run("--target", str(invalid_override), *approvals)
+        assert invalid_result.returncode != 0
+        assert "override is incomplete" in invalid_result.stderr
 
     print("Program Kit .NET scaffold lifecycle passed.")
     return 0

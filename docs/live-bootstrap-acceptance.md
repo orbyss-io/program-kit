@@ -31,11 +31,33 @@ third-party runtime concerns. This keeps the acceptance target unambiguous while
 7. bootstrap-context handoffs;
 8. final readiness and deterministic governance validation.
 
+The same clean consumer can optionally continue through its first complete feature lifecycle. Pass
+`-ContinueFirstSlice` to run `speckit.specify`, `speckit.plan`, `speckit.tasks`, and
+`speckit.implement` for the first Ready roadmap entry. This continuation deliberately supplies only
+the user intent and pointers to the approved repository artifacts: the installed commands and hooks
+must discover and apply the constitution, architecture, roadmap, ownership rules, and lifecycle
+evidence themselves. The mandatory clarify, analyze, architecture-check, ownership, and
+implementation-check hooks therefore remain part of what the live run proves.
+
 Run it only after an explicit user request:
 
 ```powershell
 ./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
 ```
+
+To include the optional first slice, which launches additional paid sessions and can consume a
+second two-hour timeout, install Python 3.13 and run:
+
+```powershell
+./scripts/Test-LiveBootstrap.ps1 -Integration codex -ContinueFirstSlice -Approved
+```
+
+The runner verifies Python 3.13 before starting any paid worker when this option is selected. Change
+the continuation timeout with `-FirstSliceTimeoutSeconds`.
+
+The disposable localhost catalog install retries a transfer only when Spec Kit reports both a
+failed extension-archive save and that no changes were recorded. Other setup failures remain
+immediate failures so retries cannot conceal a partial installation.
 
 Use `-Integration claude` only when the Claude CLI is installed and the user selected it. The
 default timeout is two hours and can be changed with `-TimeoutSeconds`.
@@ -52,6 +74,12 @@ Each run is preserved below `artifacts/live-acceptance/<run>/`:
 - `setup.log`: release build, initialization, and component-installation output;
 - `catalog-server/`: retained candidate catalogs and packages served only over loopback during setup;
 - `validation.log`: final approval/readiness governance validation;
+- `first-slice.workflow.stdout.log`, `first-slice.workflow.stderr.log`, and
+  `first-slice.monitor.jsonl`: the optional full lifecycle and its step transitions;
+- `first-slice.validation.log`: independent ownership validation, unittest results, and exact CLI
+  output/exit-code checks for the optional implemented slice;
+- `first-slice-managed-baseline.json`: before/after hashes proving the continuation did not edit
+  installed Program Kit-managed files;
 - `project/`: the disposable consumer repository for diagnosis;
 - `packages/`: the exact candidate component archives after extraction.
 
@@ -68,8 +96,8 @@ Codex workers receive a `workspace-write` sandbox. The parent workflow also rece
 process-scoped `GIT_CONFIG_*` safe-directory value as a best-effort convenience, but Windows worker
 sandboxes may filter that environment before launching the agent. The harness therefore writes
 disposable worker guidance requiring every Git command to use the command-scoped form
-`git -c safe.directory=<absolute-disposable-project> -c
-core.excludesFile=<platform-null-device> <command>`. This is the reliable fallback observed in live
+`git -c safe.directory=<absolute-disposable-project> -c core.excludesFile= <command>` on Windows or
+use `/dev/null` as the excludes value on POSIX. Windows Git rejects `NUL` as an excludes file. This is the reliable fallback observed in live
 runs: `safe.directory` handles the worker SID, while the null exclude file prevents a harmless
 permission warning when the sandbox cannot read the user's global Git ignore file. It never changes
 global Git configuration, never persists a safe-directory exception, never installs an approval
@@ -93,6 +121,12 @@ report. Their budgets are advisory: they expose regressions without converting a
 correct bootstrap into a false failure.
 The clean scenario also tracks proportional byte targets for research, architecture, quality, and
 readiness artifacts; exceeding one produces a warning, not a failed run.
+
+When the first-slice continuation is selected, the report also records the feature artifacts,
+hash-bound clarify/analyze lifecycle evidence, application-test results, exact success and rejected-
+argument behavior, and a before/after hash comparison of installed Program Kit-managed files. A
+change to those managed files fails the run; legitimate feature-owned source, tests, feature
+documents, evidence, and roadmap lifecycle updates remain visible in the preserved repository.
 
 Stage briefs also carry resolved governance paths, exact intended writes, contract references,
 validation commands, and byte budgets for every size-sensitive output a stage may edit. Agents must

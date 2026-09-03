@@ -430,6 +430,15 @@ def _require_string(value: object, label: str) -> str:
     return value.strip()
 
 
+def _has_decision_status(text: str, status: str) -> bool:
+    pattern = (
+        r"^(?:[-*]\s+)?(?:Status:|\*\*Status\*\*:|\*\*Status:\*\*)\s*"
+        + re.escape(status)
+        + r"\s*$"
+    )
+    return re.search(pattern, text, re.MULTILINE | re.IGNORECASE) is not None
+
+
 def validate_bootstrap_decisions() -> dict:
     path = project_path(BOOTSTRAP_DECISIONS)
     value = read_json(path)
@@ -437,7 +446,7 @@ def validate_bootstrap_decisions() -> dict:
         "schema_version", "default_profile", "selected_profiles", "choices", "overrides",
         "acknowledgements", "unresolved", "deferred",
     }
-    allowed_fields = required_fields | {"dotnet", "web"}
+    allowed_fields = required_fields | {"dotnet", "web", "toolchain"}
     missing_fields = required_fields - set(value)
     extra_fields = set(value) - allowed_fields
     if missing_fields or extra_fields:
@@ -541,6 +550,61 @@ def validate_bootstrap_decisions() -> dict:
     if len({item.lower() for item in selected_profiles}) != len(selected_profiles):
         raise GovernanceStateError("Bootstrap decisions selected_profiles contains duplicates")
     normalized_profiles = {item.lower() for item in selected_profiles}
+    toolchain = value.get("toolchain")
+    if "dotnet" in normalized_profiles:
+        if not isinstance(toolchain, dict):
+            raise GovernanceStateError(
+                "A selected .NET profile requires a toolchain authority block"
+            )
+        expected_toolchain_fields = {"source", "pins", "override_reason"}
+        if set(toolchain) != expected_toolchain_fields:
+            raise GovernanceStateError(
+                "Bootstrap toolchain has unexpected fields; expected "
+                f"{sorted(expected_toolchain_fields)}"
+            )
+        source = toolchain.get("source")
+        if source not in {"program-kit-default", "override"}:
+            raise GovernanceStateError(
+                "Bootstrap toolchain.source must be program-kit-default or override"
+            )
+        pins = toolchain.get("pins")
+        browser_selected = bool(
+            {"typescript-web", "browser-web"} & normalized_profiles
+        )
+        required_pins = {"dotnet-sdk", "node"}
+        if browser_selected:
+            required_pins.update(
+                {"node", "typescript", "@types/node", "@playwright/test"}
+            )
+        if (
+            not isinstance(pins, dict)
+            or set(pins) != required_pins
+            or any(not isinstance(pin, str) or not pin.strip() for pin in pins.values())
+        ):
+            raise GovernanceStateError(
+                "Bootstrap toolchain.pins must contain exactly the selected managed pin keys: "
+                f"{sorted(required_pins)}"
+            )
+        reason = toolchain.get("override_reason")
+        if source == "program-kit-default" and reason not in ("", None):
+            raise GovernanceStateError(
+                "Program Kit default toolchain pins must not include an override reason"
+            )
+        if source == "override":
+            _require_string(reason, "Bootstrap toolchain.override_reason")
+            override_ids = {
+                item.get("id")
+                for item in value.get("overrides", [])
+                if isinstance(item, dict)
+            }
+            if "managed-toolchain-version" not in override_ids:
+                raise GovernanceStateError(
+                    "A toolchain override requires the managed-toolchain-version override record"
+                )
+    elif toolchain is not None:
+        raise GovernanceStateError(
+            "Bootstrap toolchain authority requires the selected .NET profile"
+        )
     if "dotnet" in normalized_profiles:
         dotnet = value.get("dotnet")
         if not isinstance(dotnet, dict):
@@ -789,9 +853,9 @@ def write_review(stage: str) -> None:
             if path.name.lower() in {"readme.md", "template.md"}:
                 continue
             text = path.read_text(encoding="utf-8")
-            if re.search(r"(?:^|[-*]\s*)Status:\s*Accepted\s*$", text, re.MULTILINE | re.IGNORECASE):
+            if _has_decision_status(text, "Accepted"):
                 accepted += 1
-            elif re.search(r"(?:^|[-*]\s*)Status:\s*Proposed\s*$", text, re.MULTILINE | re.IGNORECASE):
+            elif _has_decision_status(text, "Proposed"):
                 proposed += 1
         roadmap_statuses = re.findall(
             r"^-\s+\*\*Status\*\*:\s*(\w+)\s*$",
@@ -1004,11 +1068,7 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
     decisions = validate_bootstrap_decisions()
     baseline = project_path(DECISIONS / "bootstrap-baseline.md")
     baseline_text = baseline.read_text(encoding="utf-8")
-    if not re.search(
-        r"(?:^|[-*]\s*)Status:\s*Accepted\s*$",
-        baseline_text,
-        re.MULTILINE | re.IGNORECASE,
-    ):
+    if not _has_decision_status(baseline_text, "Accepted"):
         raise GovernanceStateError("Bootstrap baseline decision must be Accepted")
     approved_artifacts = assessment_approval.get("artifacts")
     decision_hash = (
@@ -1161,8 +1221,8 @@ def accepted_adr(adr_id: str) -> bool:
     normalized = adr_id.lower()
     for path in decisions.rglob("*.md"):
         text = path.read_text(encoding="utf-8")
-        if normalized in (path.stem + "\n" + text[:500]).lower() and re.search(
-            r"(?:^|[-*]\s*)Status:\s*Accepted\s*$", text, re.MULTILINE | re.IGNORECASE
+        if normalized in (path.stem + "\n" + text[:500]).lower() and _has_decision_status(
+            text, "Accepted"
         ):
             return True
     return False
@@ -1223,6 +1283,39 @@ def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
                     f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
                     + ", ".join(unresolved)
                 )
+        lifecycle_text = "\n".join(
+            record[field]
+            for field in (
+                "Scope",
+                "Dependencies",
+                "Verification responsibility",
+                "Recommended sequence",
+            )
+        )
+        hidden_decision_gate = (
+            re.search(
+                r"\b(?:proposed|unresolved|pending)\b.{0,180}\b(?:ADR|decision|design task)\b",
+                lifecycle_text,
+                re.IGNORECASE | re.DOTALL,
+            )
+            or re.search(
+                r"\b(?:before|until|only after|requires?|must)\b.{0,180}"
+                r"\b(?:Accepted|acceptance)\b.{0,100}\bADR\b",
+                lifecycle_text,
+                re.IGNORECASE | re.DOTALL,
+            )
+            or re.search(
+                r"\bDT-[A-Z0-9-]+\b.{0,180}\b(?:before|block|gate|must|require)",
+                lifecycle_text,
+                re.IGNORECASE | re.DOTALL,
+            )
+        )
+        if hidden_decision_gate:
+            raise GovernanceStateError(
+                f"{record['Status']} roadmap record {record['id']} hides an unresolved "
+                "implementation decision outside Required Accepted ADRs; list the ADR there "
+                "and keep the record Blocked until it is Accepted"
+            )
     if require_ready and not any(record["Status"] == "Ready" for record in records):
         raise GovernanceStateError("Specification roadmap contains no Ready entry")
     return records

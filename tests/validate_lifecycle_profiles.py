@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -52,8 +54,37 @@ def validate_lifecycle() -> None:
         repository = Path(value)
         feature = repository / "specs/SPC-001"
         feature.mkdir(parents=True)
-        for name in lifecycle.ARTIFACTS:
-            (feature / name).write_text(f"# {name}\nUnicode ✓\n", encoding="utf-8")
+        (feature / "spec.md").write_text(
+            "# spec\n## Governance Traceability\n- **Specification roadmap entry**: SPC-001\n"
+            "- **Architecture constraints**: accepted baseline\n- **Owned contracts and data**: none\nUnicode ✓\n",
+            encoding="utf-8",
+        )
+        (feature / "plan.md").write_text(
+            "# plan\n## Architecture Realization\n- **Roadmap entry and status transition**: SPC-001\n"
+            "- **Vertical-slice path**: input to output\n- **Artifact ownership manifest**: artifact-ownership.json\n",
+            encoding="utf-8",
+        )
+        (feature / "tasks.md").write_text(
+            "# tasks\n## Governance Completion Evidence\n- **Roadmap transition**: Delivered after evidence\n"
+            "- **Path and ownership protection**: validated\n",
+            encoding="utf-8",
+        )
+        canonical = [
+            {"path": path, "ownership": "evidence", "classification": "internal", "lifecycle": "retained"}
+            for path in sorted(
+                {
+                    ".program-kit/evidence/runtime-closure.json",
+                    ".program-kit/evidence/host-image.json",
+                    ".program-kit/evidence/after-tasks-analysis.md",
+                    "docs/security/security-ledger.md",
+                    "tests/fixtures/program-kit/local-contract.json",
+                }
+            )
+        ]
+        (feature / "artifact-ownership.json").write_text(
+            json.dumps({"schemaVersion": 1, "feature": "SPC-001", "profiles": ["program-kit"], "artifacts": canonical}),
+            encoding="utf-8",
+        )
         if lifecycle.begin(repository, feature, "clarify", False) != 0:
             raise AssertionError("clarification did not start")
         if lifecycle.begin(repository, feature, "clarify", False) != 4:
@@ -72,14 +103,17 @@ def validate_lifecycle() -> None:
             raise AssertionError("clean analysis did not complete")
         if lifecycle.verify_before_implement(repository, feature) != 0:
             raise AssertionError("current analysis did not authorize implementation")
-        (feature / "tasks.md").write_text("changed\n", encoding="utf-8")
+        (feature / "tasks.md").write_text(
+            (feature / "tasks.md").read_text(encoding="utf-8") + "changed\n", encoding="utf-8"
+        )
         if lifecycle.verify_before_implement(repository, feature) != 12:
             raise AssertionError("stale analysis was not rejected")
 
         blocked = repository / "specs/SPC-002"
         blocked.mkdir()
-        for name in lifecycle.ARTIFACTS:
-            (blocked / name).write_text(f"# {name}\n", encoding="utf-8")
+        for name in ("spec.md", "plan.md", "tasks.md", "artifact-ownership.json"):
+            source = feature / name
+            (blocked / name).write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
         blocking_report = repository / ".program-kit/evidence/SPC-002-analysis.md"
         blocking_report.write_text("| Severity | Finding |\n| HIGH | ownership drift |\n", encoding="utf-8")
         lifecycle.begin(repository, blocked, "analyze", False)
@@ -87,6 +121,36 @@ def validate_lifecycle() -> None:
             raise AssertionError("HIGH analysis did not block readiness")
         if lifecycle.verify_before_implement(repository, blocked) != 13:
             raise AssertionError("non-ready analysis authorized implementation")
+
+        custom_host = repository / "specs/SPC-003"
+        custom_host.mkdir()
+        for name in ("spec.md", "plan.md", "tasks.md"):
+            (custom_host / name).write_text((feature / name).read_text(encoding="utf-8"), encoding="utf-8")
+        (custom_host / "plan.md").write_text(
+            (custom_host / "plan.md").read_text(encoding="utf-8")
+            + "\nCreate `src/Product.Host/Product.Host.csproj` and `src/Product.Host/Program.cs`.\n",
+            encoding="utf-8",
+        )
+        invalid_manifest = json.loads((feature / "artifact-ownership.json").read_text(encoding="utf-8"))
+        invalid_manifest["profiles"] = ["program-kit", "dotnet"]
+        invalid_manifest["artifacts"].append(
+            {
+                "path": "src/Product.Host/Product.Host.csproj",
+                "ownership": "consumer-owned",
+                "classification": "internal",
+                "lifecycle": "source",
+            }
+        )
+        (custom_host / "artifact-ownership.json").write_text(
+            json.dumps(invalid_manifest), encoding="utf-8"
+        )
+        custom_report = repository / ".program-kit/evidence/SPC-003-analysis.md"
+        custom_report.write_text("# Analysis\nNo blocking findings.\n", encoding="utf-8")
+        lifecycle.begin(repository, custom_host, "analyze", False)
+        if lifecycle.complete_analysis(repository, custom_host, custom_report) != 16:
+            raise AssertionError("custom host plan was marked ready for implementation")
+        if lifecycle.verify_before_implement(repository, custom_host) != 13:
+            raise AssertionError("custom host analysis authorized implementation")
 
 
 def validate_utf8() -> None:
@@ -368,7 +432,12 @@ def validate_toolchain_workflow() -> None:
             )
 
         declined = run("--remediate", "--decline")
-        if declined.returncode != 3 or "PKT003" not in declined.stderr:
+        if (
+            declined.returncode != 3
+            or "PKT003" not in declined.stderr
+            or "PKT011" not in declined.stderr
+            or "managed pins remain authoritative" not in declined.stderr
+        ):
             raise AssertionError("declined toolchain remediation changed state or returned the wrong code")
         unavailable = run("--remediate", "--approve")
         if unavailable.returncode != 4 or "PKT004" not in unavailable.stderr:
@@ -382,6 +451,71 @@ def validate_toolchain_workflow() -> None:
         satisfied = run()
         if satisfied.returncode != 0 or "PKT000" not in satisfied.stdout:
             raise AssertionError("already-satisfied toolchain did not avoid installation")
+
+    with tempfile.TemporaryDirectory(prefix="program-kit-fnm-recheck-") as value:
+        repository = Path(value)
+        tools = repository / "tools"
+        tools.mkdir()
+        (repository / "global.json").write_text('{"sdk":{"version":"10.0.202"}}\n', encoding="utf-8")
+        (repository / ".nvmrc").write_text("24.20.0\n", encoding="utf-8")
+        installed = repository / "node-installed"
+        if os.name == "nt":
+            dotnet = tools / "dotnet.cmd"
+            dotnet.write_text("@echo off\r\necho 10.0.202\r\n", encoding="utf-8")
+            node = tools / "node.cmd"
+            node.write_text("@echo off\r\necho v20.11.1\r\n", encoding="utf-8")
+            fnm = tools / "fnm.cmd"
+            fnm.write_text(
+                f"@echo off\r\nif \"%1\"==\"install\" (type nul > \"{installed}\" & exit /b 0)\r\n"
+                f"if \"%1\"==\"exec\" (if exist \"{installed}\" (echo v24.20.0 & exit /b 0))\r\n"
+                "exit /b 1\r\n",
+                encoding="utf-8",
+            )
+        else:
+            dotnet = tools / "dotnet"
+            dotnet.write_text("#!/bin/sh\necho 10.0.202\n", encoding="utf-8")
+            node = tools / "node"
+            node.write_text("#!/bin/sh\necho v20.11.1\n", encoding="utf-8")
+            fnm = tools / "fnm"
+            fnm.write_text(
+                f"#!/bin/sh\n[ \"$1\" = install ] && touch '{installed}' && exit 0\n"
+                f"[ \"$1\" = exec ] && [ -f '{installed}' ] && echo v24.20.0 && exit 0\nexit 1\n",
+                encoding="utf-8",
+            )
+            for path in (dotnet, node, fnm):
+                path.chmod(0o755)
+        environment = os.environ.copy()
+        environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
+        fnm_result = subprocess.run(
+            [
+                sys.executable,
+                str(toolchain),
+                "--repository",
+                str(repository),
+                "--dotnet-command",
+                str(dotnet),
+                "--node-command",
+                str(node),
+                "--remediate",
+                "--approve",
+                "--node-manager",
+                "fnm",
+            ],
+            env=environment,
+            capture_output=True,
+            text=True,
+        )
+        if fnm_result.returncode != 0 or "PKT010" not in fnm_result.stdout:
+            raise AssertionError(
+                "fnm installation was not re-verified in the same command: "
+                + fnm_result.stdout
+                + fnm_result.stderr
+            )
+        evidence = json.loads(
+            (repository / ".program-kit/evidence/toolchain.json").read_text(encoding="utf-8")
+        )
+        if evidence["resolved"]["node"] != "24.20.0" or evidence["satisfied"] is not True:
+            raise AssertionError(f"fnm re-verification evidence is incorrect: {evidence}")
 
 
 def validate_managed_sources() -> None:
@@ -481,6 +615,160 @@ def validate_openapi_contracts() -> None:
             raise AssertionError("duplicate OpenAPI operation identity was accepted")
 
 
+def validate_npm_graph() -> None:
+    script = ROOT / "extensions/program-kit-governance/scripts/npm_graph.py"
+    with tempfile.TemporaryDirectory(prefix="program-kit-npm-graph-") as value:
+        root = Path(value)
+        package_json = root / "package.json"
+        package_json.write_text(
+            json.dumps(
+                {
+                    "name": "candidate",
+                    "version": "1.0.0",
+                    "private": True,
+                    "devDependencies": {"typescript": "7.0.2", "openapi-typescript": "7.13.0"},
+                }
+            ),
+            encoding="utf-8",
+        )
+        evidence = root / "evidence.json"
+        if os.name == "nt":
+            success_npm = root / "npm-success.cmd"
+            success_npm.write_text(
+                '@echo off\r\n>package-lock.json echo {"lockfileVersion":3}\r\nexit /b 0\r\n',
+                encoding="utf-8",
+            )
+            failed_npm = root / "npm-failed.cmd"
+            failed_npm.write_text(
+                "@echo off\r\n>&2 echo npm ERR! ERESOLVE peer typescript@^^5.x\r\nexit /b 1\r\n",
+                encoding="utf-8",
+            )
+        else:
+            success_npm = root / "npm-success"
+            success_npm.write_text(
+                "#!/bin/sh\nprintf '{\"lockfileVersion\":3}\\n' > package-lock.json\n",
+                encoding="utf-8",
+            )
+            failed_npm = root / "npm-failed"
+            failed_npm.write_text(
+                "#!/bin/sh\necho 'npm ERR! ERESOLVE peer typescript@^5.x' >&2\nexit 1\n",
+                encoding="utf-8",
+            )
+            success_npm.chmod(0o755)
+            failed_npm.chmod(0o755)
+
+        success = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--package-json",
+                str(package_json),
+                "--evidence",
+                str(evidence),
+                "--npm-command",
+                str(success_npm),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if success.returncode != 0 or "PKN000" not in success.stdout:
+            raise AssertionError(f"resolvable npm graph was rejected: {success.stdout}{success.stderr}")
+        recorded = json.loads(evidence.read_text(encoding="utf-8"))
+        if (
+            recorded.get("satisfied") is not True
+            or "--strict-peer-deps" not in recorded.get("command", [])
+            or "--engine-strict" not in recorded.get("command", [])
+        ):
+            raise AssertionError(f"npm graph evidence is incomplete: {recorded}")
+
+        failed = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--package-json",
+                str(package_json),
+                "--evidence",
+                str(evidence),
+                "--npm-command",
+                str(failed_npm),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if failed.returncode != 2 or "PKN002" not in failed.stderr or "ERESOLVE" not in failed.stderr:
+            raise AssertionError(f"incompatible npm peer graph was accepted: {failed.stdout}{failed.stderr}")
+
+        npm = shutil.which("npm")
+        if npm:
+            npm_environment = os.environ.copy()
+            npm_environment["NPM_CONFIG_CACHE"] = str(root / "npm-cache")
+            npm_environment["NPM_CONFIG_OFFLINE"] = "true"
+            generator = root / "generator"
+            typescript = root / "typescript"
+            generator.mkdir()
+            typescript.mkdir()
+            (generator / "package.json").write_text(
+                json.dumps(
+                    {
+                        "name": "openapi-typescript",
+                        "version": "7.13.0",
+                        "peerDependencies": {"typescript": "^5.x"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (typescript / "package.json").write_text(
+                json.dumps({"name": "typescript", "version": "7.0.2"}), encoding="utf-8"
+            )
+            for package in (generator, typescript):
+                packed = subprocess.run(
+                    [npm, "pack", "--pack-destination", str(root)],
+                    cwd=package,
+                    capture_output=True,
+                    text=True,
+                    env=npm_environment,
+                )
+                if packed.returncode != 0:
+                    raise AssertionError(f"could not build local npm metadata fixture: {packed.stderr}")
+            generator_archive = root / "openapi-typescript-7.13.0.tgz"
+            typescript_archive = root / "typescript-7.0.2.tgz"
+            package_json.write_text(
+                json.dumps(
+                    {
+                        "name": "real-peer-conflict",
+                        "version": "1.0.0",
+                        "private": True,
+                        "devDependencies": {
+                            "typescript": "file:" + typescript_archive.resolve().as_posix(),
+                            "openapi-typescript": "file:" + generator_archive.resolve().as_posix(),
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            real = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--package-json",
+                    str(package_json),
+                    "--evidence",
+                    str(evidence),
+                    "--npm-command",
+                    npm,
+                ],
+                capture_output=True,
+                text=True,
+                env=npm_environment,
+            )
+            if real.returncode != 2 or "PKN002" not in real.stderr:
+                raise AssertionError(
+                    "real npm metadata did not reject the TypeScript 7/openapi-typescript ^5 peer conflict: "
+                    + real.stdout
+                    + real.stderr
+                )
+
+
 def validate_sync_preservation() -> None:
     sync = ROOT / "extensions/program-kit-dotnet/scripts/dotnet_sync.py"
     with tempfile.TemporaryDirectory(prefix="program-kit-sync-") as value:
@@ -544,6 +832,127 @@ def validate_artifact_ownership() -> None:
         else:
             raise AssertionError("managed path edit was not rejected")
 
+        wording = root / "wording.md"
+        wording.write_text(
+            "- [ ] Do not create `Program.cs`; use a feature adapter instead of `ProgramKit.Build.targets`.\n",
+            encoding="utf-8",
+        )
+        if ownership.task_paths(wording):
+            raise AssertionError("prohibited or comparison-only path wording was treated as an edit target")
+        explanatory = root / "explanatory.md"
+        explanatory.write_text(
+            "**Input**: design documents from `specs/001-feature/`\n\n"
+            "- [ ] T001 Create `src/Feature/Feature.csproj`\n",
+            encoding="utf-8",
+        )
+        extracted = ownership.task_paths(explanatory)
+        if [item[1] for item in extracted] != ["src/Feature/Feature.csproj"]:
+            raise AssertionError(f"task path extraction included explanatory prose: {extracted}")
+
+    with tempfile.TemporaryDirectory(prefix="program-kit-external-host-") as value:
+        root = Path(value)
+        feature = root / "specs/SPEC-101"
+        feature.mkdir(parents=True)
+        (root / ".specify").mkdir()
+        (feature / "spec.md").write_text(
+            "## Governance Traceability\n- **Specification roadmap entry**: SPEC-101\n"
+            "- **Architecture constraints**: ProgramKit.Host\n- **Owned contracts and data**: API\n",
+            encoding="utf-8",
+        )
+        (feature / "plan.md").write_text(
+            "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
+            "- **Vertical-slice path**: request to response\n"
+            "- **Artifact ownership manifest**: artifact-ownership.json\n"
+            "Create `src/PriceCalculator.Host/PriceCalculator.Host.csproj` and `src/PriceCalculator.Host/Program.cs`.\n",
+            encoding="utf-8",
+        )
+        (feature / "tasks.md").write_text(
+            "## Governance Completion Evidence\n- **Roadmap transition**: Delivered\n"
+            "- **Path and ownership protection**: validated\n",
+            encoding="utf-8",
+        )
+        dotnet_artifacts = [
+            {"path": item["path"], "ownership": item["ownership"], "classification": item["classification"], "lifecycle": item["lifecycle"]}
+            for item in artifacts
+        ]
+        dotnet_artifacts.append(
+            {"path": "src/PriceCalculator.Host/PriceCalculator.Host.csproj", "ownership": "consumer-owned", "classification": "internal", "lifecycle": "source"}
+        )
+        dotnet_manifest = {
+            "schemaVersion": 1,
+            "feature": "SPEC-101",
+            "profiles": ["program-kit", "dotnet"],
+            "artifacts": dotnet_artifacts,
+        }
+        (feature / "artifact-ownership.json").write_text(json.dumps(dotnet_manifest), encoding="utf-8")
+        try:
+            ownership.validate_runtime_profile(feature, dotnet_manifest, True)
+        except ValueError as error:
+            if "PKA011" not in str(error) or "Program.cs" not in str(error):
+                raise
+        else:
+            raise AssertionError("repository-owned custom host passed the external-host profile")
+
+        dotnet_manifest["artifacts"][-1]["path"] = "src/Catalog.Feature/Catalog.Feature.csproj"
+        (feature / "plan.md").write_text(
+            "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
+            "- **Vertical-slice path**: request to response\n"
+            "- **Artifact ownership manifest**: artifact-ownership.json\n"
+            "Pack `src/Catalog.Feature/Catalog.Feature.csproj` with ProgramKitFeatureIdentity; activate it in "
+            "`shells.json`, configure `hostsettings.json`, run `eng/program-kit/runnable_host.py stage` for "
+            "package-closure staging, and publish digest-pinned ProgramKit.Host evidence to "
+            "`.program-kit/evidence/host-image.json`.\n",
+            encoding="utf-8",
+        )
+        ownership.validate_runtime_profile(feature, dotnet_manifest, True)
+
+        (feature / "plan.md").write_text(
+            "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
+            "- **Vertical-slice path**: request to response\n"
+            "- **Artifact ownership manifest**: artifact-ownership.json\n"
+            "Create `src/Catalog.Feature/Catalog.Feature.csproj`.\n",
+            encoding="utf-8",
+        )
+        try:
+            ownership.validate_runtime_profile(feature, dotnet_manifest, True)
+        except ValueError as error:
+            if "PKA012" not in str(error) or "shell activation" not in str(error):
+                raise
+        else:
+            raise AssertionError("incomplete external-host closure passed planning validation")
+
+        typescript_manifest = {**dotnet_manifest, "profiles": ["program-kit", "typescript-vite"]}
+        (feature / "plan.md").write_text(
+            "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
+            "- **Vertical-slice path**: request to response\n"
+            "- **Artifact ownership manifest**: artifact-ownership.json\n"
+            "Adopt the exact npm dependency graph from `npm-candidate.package.json`.\n",
+            encoding="utf-8",
+        )
+        try:
+            ownership.validate_npm_graph_evidence(feature, typescript_manifest)
+        except ValueError as error:
+            if "PKA013" not in str(error):
+                raise
+        else:
+            raise AssertionError("npm package graph passed without strict resolution evidence")
+        candidate = feature / "npm-candidate.package.json"
+        candidate.write_text('{"devDependencies":{"typescript":"7.0.2"}}\n', encoding="utf-8")
+        evidence = root / ".program-kit/evidence/npm-graph.json"
+        evidence.parent.mkdir(parents=True)
+        evidence.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "packageJson": str(candidate),
+                    "packageJsonSha256": hashlib.sha256(candidate.read_bytes()).hexdigest(),
+                    "satisfied": True,
+                }
+            ),
+            encoding="utf-8",
+        )
+        ownership.validate_npm_graph_evidence(feature, typescript_manifest)
+
 
 def main() -> int:
     validate_hooks()
@@ -555,6 +964,7 @@ def main() -> int:
     validate_toolchain_workflow()
     validate_managed_sources()
     validate_openapi_contracts()
+    validate_npm_graph()
     validate_sync_preservation()
     validate_artifact_ownership()
     print("Lifecycle, activation, profile, ownership, and UTF-8 contracts passed.")

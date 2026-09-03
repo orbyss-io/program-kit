@@ -14,4 +14,12 @@
 - **Structure deltas**: A path outside the manifest or an accepted profile convention must be added
   to this plan as `STRUCTURE-DELTA: <path>` before task generation completes.
 
+When the accepted .NET runtime is the external `ProgramKit.Host`, the plan MUST NOT introduce a
+consumer `.Host` project or application `Program.cs`. It must instead name packable feature
+projects and `ProgramKitFeatureIdentity`, `shells.json` activation, consumer `hostsettings.json`,
+validated `runnable_host.py stage` package closure, and digest-bound external-host release evidence.
+Exact npm dependencies require a repository-contained candidate package manifest and current
+`.program-kit/evidence/npm-graph.json` from the strict isolated lockfile-only resolver before the
+plan is implementation-ready.
+
 If the plan identifies a new architecture decision, contract ownership conflict, or technology choice, stop and create the required design task and ADR rather than treating it as implementation detail.

@@ -54,6 +54,21 @@
         "security_evidence": { "$ref": "#/$defs/text" }
       }
     },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "pins", "override_reason"],
+      "properties": {
+        "source": { "enum": ["program-kit-default", "override"] },
+        "pins": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/text" },
+          "minProperties": 1
+        },
+        "override_reason": { "type": "string", "maxLength": 2000 }
+      }
+    },
     "choices": {
       "type": "array",
       "minItems": 1,
