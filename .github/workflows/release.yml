@@ -78,6 +78,9 @@ jobs:
       - name: Start host with a newly packed consumer feature
         run: python tests/validate_dotnet_feature_host.py
 
+      - name: Validate composed OpenAPI producer and client pipeline
+        run: python tests/validate_openapi_exporter.py
+
       - name: Validate bundle manifest
         run: specify bundle validate --path . --offline
 

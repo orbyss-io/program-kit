@@ -45,6 +45,9 @@ jobs:
       - name: Start host with a newly packed consumer feature
         run: python tests/validate_dotnet_feature_host.py
 
+      - name: Validate composed OpenAPI producer and client pipeline
+        run: python tests/validate_openapi_exporter.py
+
       - name: Upload packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -26,9 +26,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.8.5":
+    if program_version != "0.8.6":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.8.5-preview.1":
+    if runtime_version != "0.8.6-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     validate_package_source_routing(root / "NuGet.config")
@@ -47,6 +47,19 @@ def main() -> int:
     version_props = (root / "eng/ProgramKit.Version.props").read_text(encoding="utf-8")
     if f"<ProgramKitVersion>{runtime_version}</ProgramKitVersion>" not in version_props:
         raise AssertionError("Runtime project version does not match RUNTIME_VERSION")
+
+    exporter_source = (
+        root / "src/dotnet/ProgramKit.OpenApi.Exporter/Exporter.cs"
+    ).read_text(encoding="utf-8")
+    exporter_manifest = json.loads(
+        (
+            root
+            / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/.config/dotnet-tools.json"
+        ).read_text(encoding="utf-8")
+    )
+    exporter_version = exporter_manifest["tools"]["programkit.openapi.exporter"]["version"]
+    if exporter_version != runtime_version or f'ToolVersion = "{runtime_version}"' not in exporter_source:
+        raise AssertionError("OpenAPI exporter binary and managed tool manifest do not match RUNTIME_VERSION")
 
     consumer_versions = (
         root
@@ -103,7 +116,13 @@ def main() -> int:
     for required in ("AddNuplane", "AutoloadPackages", "AddCShellsAspNetCore", "MapShells"):
         if required not in source:
             raise AssertionError(f"ProgramKit.Host is missing shallow-host plumbing: {required}")
-    for project in ("ProgramKit.Host", "ProgramKit.Tasks", "ProgramKit.Tasks.Abstractions", "ProgramKit.Analyzers"):
+    for project in (
+        "ProgramKit.Host",
+        "ProgramKit.Tasks",
+        "ProgramKit.Tasks.Abstractions",
+        "ProgramKit.Analyzers",
+        "ProgramKit.OpenApi.Exporter",
+    ):
         if not (root / "src/dotnet" / project / "packages.lock.json").is_file():
             raise AssertionError(f"Missing dependency lock for {project}")
 

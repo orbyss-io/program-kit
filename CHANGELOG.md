@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 0.8.6 - 2026-09-03
+
+- Add the exact-pinned `ProgramKit.OpenApi.Exporter` tool and a managed producer-first OpenAPI
+  pipeline. It composes the validated external-host feature package closure without opening a
+  listener, starting consumer hosted services, or running shell initializers; materializes the raw
+  ASP.NET Core document; normalizes and compatibility-checks it; runs a separately locked client
+  generator; and finally compiles the consuming application's TypeScript graph.
+- Replace the incomplete post-build MSBuild hook—which assumed some unspecified actor had already
+  generated OpenAPI—with consumer-owned contract registration and explicit build orchestration.
+  Empty registries restore no exporter or npm dependencies, while configured contracts preserve
+  hash-bound producer, package, document, generator, and application evidence.
+- Reject implementation readiness with `PKA014` when .NET-to-TypeScript OpenAPI plans omit the
+  managed producer, staged package closure, contributing features, pinned compatibility contract,
+  isolated generator graph, generated types, or application compile boundary.
+
 ## 0.8.5 - 2026-09-03
 
 - Replace the .NET consumer package-ID allowlist with protected source routing: nuget.org accepts

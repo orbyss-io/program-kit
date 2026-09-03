@@ -41,6 +41,10 @@ Confirm:
   closure staging, and digest-bound external-host evidence are planned instead;
 - exact npm graphs have successful peer/engine/platform resolution evidence without `--force` or
   `--legacy-peer-deps`;
+- externally consumed .NET-to-TypeScript OpenAPI work registers a producer contract before
+  implementation: the managed exporter composes the validated staged feature closure without
+  listening or running shell initializers, then normalization/compatibility, an isolated generator
+  lockfile, and the application TypeScript compile run in that order;
 - authenticated web tasks consume the selected secure web profile rather than inventing schemes,
   claims mapping, session/refresh/logout behavior, runtime keys, CORS/CSP, denial bodies, or identity
   test fixtures inside a feature slice;

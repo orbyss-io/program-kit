@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "programkit.openapi.exporter": {
+      "version": "0.8.6-preview.1",
+      "commands": [
+        "programkit-openapi-export"
+      ]
+    }
+  }
+}

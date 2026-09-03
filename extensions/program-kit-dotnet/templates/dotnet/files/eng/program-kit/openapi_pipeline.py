@@ -1,0 +1,311 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path, PurePosixPath
+
+
+REQUIRED = {
+    "schemaVersion",
+    "identity",
+    "documentName",
+    "shell",
+    "producer",
+    "features",
+    "packageClosure",
+    "rawDocument",
+    "artifact",
+    "baseline",
+    "compatibility",
+    "generator",
+    "application",
+}
+
+
+def configure_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def relative_path(repository: Path, value: object, field: str) -> Path:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"PKO201 {field} must be a non-empty repository-relative path.")
+    pure = PurePosixPath(value.replace("\\", "/"))
+    if pure.is_absolute() or ".." in pure.parts or (pure.parts and ":" in pure.parts[0]):
+        raise ValueError(f"PKO201 {field} must be a repository-relative path without traversal: {value!r}")
+    resolved = (repository / Path(*pure.parts)).resolve()
+    try:
+        resolved.relative_to(repository)
+    except ValueError as error:
+        raise ValueError(f"PKO201 {field} escapes the repository: {value!r}") from error
+    return resolved
+
+
+def load_json(path: Path, label: str) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"PKO202 cannot load {label} {path}: {error}") from error
+    if not isinstance(value, dict):
+        raise ValueError(f"PKO202 {label} must be a JSON object: {path}")
+    return value
+
+
+def validate_stage(repository: Path, value: object, name: str, output: str) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise ValueError(f"PKO203 {name} must be an object.")
+    required = {"directory", "packageJson", "lockFile", "script", output}
+    missing = sorted(required - set(value))
+    if missing:
+        raise ValueError(f"PKO203 {name} is missing: {', '.join(missing)}.")
+    script = value.get("script")
+    if not isinstance(script, str) or not script or any(character.isspace() for character in script):
+        raise ValueError(f"PKO203 {name}.script must be one npm script name.")
+    resolved = {
+        "directory": relative_path(repository, value["directory"], f"{name}.directory"),
+        "packageJson": relative_path(repository, value["packageJson"], f"{name}.packageJson"),
+        "lockFile": relative_path(repository, value["lockFile"], f"{name}.lockFile"),
+        "script": script,
+        output: relative_path(repository, value[output], f"{name}.{output}"),
+    }
+    directory = resolved["directory"]
+    assert isinstance(directory, Path)
+    for field in ("packageJson", "lockFile"):
+        candidate = resolved[field]
+        assert isinstance(candidate, Path)
+        try:
+            candidate.relative_to(directory)
+        except ValueError as error:
+            raise ValueError(f"PKO203 {name}.{field} must stay inside {name}.directory.") from error
+    return resolved
+
+
+def validate_contract(repository: Path, path: Path, exporter_version: str) -> tuple[dict, dict]:
+    value = load_json(path, "OpenAPI contract")
+    missing = sorted(REQUIRED - set(value))
+    if missing or value.get("schemaVersion") != 1:
+        raise ValueError(
+            f"PKO204 unsupported or incomplete OpenAPI contract {path}; missing: {', '.join(missing)}."
+        )
+    producer = value.get("producer")
+    if not isinstance(producer, dict) or producer.get("kind") != "ProgramKit.OpenApi.Exporter":
+        raise ValueError("PKO204 producer.kind must be ProgramKit.OpenApi.Exporter.")
+    if producer.get("version") != exporter_version:
+        raise ValueError(
+            f"PKO204 contract exporter version must equal managed tool pin {exporter_version!r}."
+        )
+    features = value.get("features")
+    if (
+        not isinstance(features, list)
+        or not features
+        or any(not isinstance(item, str) or not item for item in features)
+        or len(features) != len(set(features))
+    ):
+        raise ValueError("PKO204 features must be a non-empty array of unique identities.")
+    if str(value.get("packageClosure", "")).replace("\\", "/") != "artifacts/runnable-host/packages":
+        raise ValueError(
+            "PKO204 packageClosure must be the validated artifacts/runnable-host/packages closure."
+        )
+    compatibility = value.get("compatibility")
+    if not isinstance(compatibility, dict) or not isinstance(compatibility.get("oasdiffVersion"), str):
+        raise ValueError("PKO204 compatibility must pin oasdiffVersion and an approval path.")
+    resolved = {
+        "packages": relative_path(repository, value["packageClosure"], "packageClosure"),
+        "raw": relative_path(repository, value["rawDocument"], "rawDocument"),
+        "artifact": relative_path(repository, value["artifact"], "artifact"),
+        "baseline": relative_path(repository, value["baseline"], "baseline"),
+        "approval": relative_path(repository, compatibility.get("approval"), "compatibility.approval"),
+        "generator": validate_stage(repository, value.get("generator"), "generator", "generatedTypes"),
+        "application": validate_stage(repository, value.get("application"), "application", "tsconfig"),
+    }
+    distinct = [resolved[name] for name in ("raw", "artifact", "baseline")]
+    if len(set(distinct)) != len(distinct):
+        raise ValueError("PKO204 rawDocument, artifact, and baseline must use distinct paths.")
+    return value, resolved
+
+
+def run(command: list[str], cwd: Path, label: str) -> None:
+    result = subprocess.run(command, cwd=cwd, check=False, timeout=600)
+    if result.returncode != 0:
+        raise ValueError(f"PKO205 {label} failed with exit code {result.returncode}.")
+
+
+def tool_version(repository: Path) -> tuple[Path, str]:
+    manifest = repository / "eng/program-kit/.config/dotnet-tools.json"
+    value = load_json(manifest, "managed .NET tool manifest")
+    tools = value.get("tools")
+    entry = tools.get("programkit.openapi.exporter") if isinstance(tools, dict) else None
+    version = entry.get("version") if isinstance(entry, dict) else None
+    if not isinstance(version, str) or not version:
+        raise ValueError("PKO206 managed tool manifest does not pin ProgramKit.OpenApi.Exporter.")
+    return manifest, version
+
+
+def npm_stage(npm: str, stage: dict[str, object], name: str) -> dict[str, str]:
+    directory = stage["directory"]
+    package_json = stage["packageJson"]
+    lock_file = stage["lockFile"]
+    assert isinstance(directory, Path) and isinstance(package_json, Path) and isinstance(lock_file, Path)
+    for path, label in ((package_json, "package.json"), (lock_file, "package lock")):
+        if not path.is_file():
+            raise ValueError(f"PKO207 {name} {label} is missing: {path}")
+    npm_command = [sys.executable, npm] if Path(npm).suffix.casefold() == ".py" else [npm]
+    run(npm_command + ["ci", "--ignore-scripts", "--strict-peer-deps", "--engine-strict"], directory, f"{name} npm ci")
+    run(npm_command + ["run", str(stage["script"])], directory, f"{name} npm script")
+    output_name = "generatedTypes" if name == "generator" else "tsconfig"
+    output = stage[output_name]
+    assert isinstance(output, Path)
+    if not output.is_file():
+        raise ValueError(f"PKO207 {name} did not produce or retain {output_name}: {output}")
+    return {
+        "packageJsonSha256": sha256(package_json),
+        "lockFileSha256": sha256(lock_file),
+        f"{output_name}Sha256": sha256(output),
+    }
+
+
+def execute_contract(
+    repository: Path,
+    contract_path: Path,
+    contract: dict,
+    paths: dict,
+    exporter: Path | None,
+    npm: str,
+    initialize: bool,
+    update: bool,
+) -> dict:
+    identity = str(contract["identity"])
+    export_evidence = repository / f".program-kit/evidence/openapi/{identity}-export.json"
+    exporter_command = ["dotnet", str(exporter)] if exporter else [
+        "dotnet", "tool", "run", "programkit-openapi-export", "--"
+    ]
+    run(
+        exporter_command
+        + [
+            "--repository", str(repository),
+            "--packages", str(paths["packages"]),
+            "--shells", str(repository / "shells.json"),
+            "--hostsettings", str(repository / "hostsettings.json"),
+            "--contract", str(contract_path),
+            "--output", str(paths["raw"]),
+            "--evidence", str(export_evidence),
+        ],
+        repository / "eng/program-kit" if exporter is None else repository,
+        f"OpenAPI export for {identity}",
+    )
+    normalizer = repository / "eng/program-kit/openapi_contracts.py"
+    normalize_command = [
+        sys.executable,
+        str(normalizer),
+        "--generated", str(paths["raw"]),
+        "--artifact", str(paths["artifact"]),
+        "--baseline", str(paths["baseline"]),
+        "--approval", str(paths["approval"]),
+        "--oasdiff-version", str(contract["compatibility"]["oasdiffVersion"]),
+    ]
+    if initialize:
+        normalize_command.extend(["--initialize-baseline", "--write-generated"])
+    elif update:
+        normalize_command.append("--write-generated")
+    run(normalize_command, repository, f"OpenAPI normalization for {identity}")
+    generator = npm_stage(npm, paths["generator"], "generator")
+    application = npm_stage(npm, paths["application"], "application")
+    return {
+        "identity": identity,
+        "contractSha256": sha256(contract_path),
+        "exportEvidenceSha256": sha256(export_evidence),
+        "rawDocumentSha256": sha256(paths["raw"]),
+        "artifactSha256": sha256(paths["artifact"]),
+        "baselineSha256": sha256(paths["baseline"]),
+        "generator": generator,
+        "application": application,
+    }
+
+
+def main() -> int:
+    configure_utf8()
+    parser = argparse.ArgumentParser(description="Run the producer-first Program Kit OpenAPI contract pipeline.")
+    parser.add_argument("--repository", default=".")
+    parser.add_argument("--registry", default=".program-kit/openapi-contracts.json")
+    parser.add_argument("--exporter", default="", help=argparse.SUPPRESS)
+    parser.add_argument("--npm-command", default="npm", help=argparse.SUPPRESS)
+    parser.add_argument("--initialize-baselines", action="store_true")
+    parser.add_argument("--update-artifacts", action="store_true")
+    args = parser.parse_args()
+    try:
+        repository = Path(args.repository).resolve()
+        registry_path = relative_path(repository, args.registry, "registry")
+        registry = load_json(registry_path, "OpenAPI registry")
+        contracts = registry.get("contracts")
+        if registry.get("schemaVersion") != 1 or not isinstance(contracts, list):
+            raise ValueError("PKO208 OpenAPI registry must use schemaVersion 1 and a contracts array.")
+        if not contracts:
+            print("OpenAPI contract pipeline is not configured; no contracts are registered.")
+            return 0
+        manifest, version = tool_version(repository)
+        exporter = Path(args.exporter).resolve() if args.exporter else None
+        if exporter is not None and not exporter.is_file():
+            raise ValueError(f"PKO209 exporter test override is missing: {exporter}")
+        if exporter is None:
+            run(
+                ["dotnet", "tool", "restore", "--tool-manifest", str(manifest), "--configfile", str(repository / "NuGet.config")],
+                repository,
+                "managed OpenAPI exporter restore",
+            )
+        evidence = []
+        seen: set[str] = set()
+        for item in contracts:
+            contract_path = relative_path(repository, item, "registry contract")
+            contract, paths = validate_contract(repository, contract_path, version)
+            identity = str(contract["identity"])
+            if identity in seen:
+                raise ValueError(f"PKO208 duplicate OpenAPI contract identity: {identity}")
+            seen.add(identity)
+            evidence.append(
+                execute_contract(
+                    repository,
+                    contract_path,
+                    contract,
+                    paths,
+                    exporter,
+                    args.npm_command,
+                    args.initialize_baselines,
+                    args.update_artifacts,
+                )
+            )
+        evidence_path = repository / ".program-kit/evidence/openapi/pipeline.json"
+        evidence_path.parent.mkdir(parents=True, exist_ok=True)
+        evidence_path.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": version},
+                    "registrySha256": sha256(registry_path),
+                    "contracts": evidence,
+                    "satisfied": True,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        print(f"OpenAPI producer, compatibility, generation, and application compile pipeline passed ({evidence_path}).")
+        return 0
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as error:
+        print(str(error), file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

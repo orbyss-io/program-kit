@@ -314,6 +314,107 @@ def validate_npm_graph_evidence(feature_dir: Path, manifest: dict) -> None:
         raise ValueError("PKA013 npm graph evidence is stale for its candidate package manifest")
 
 
+def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: bool) -> None:
+    profiles = {str(value).lower() for value in manifest.get("profiles", [])}
+    if "dotnet" not in profiles or not profiles & {"typescript-vite", "typescript-web", "browser-web"}:
+        return
+    documents = [feature_dir / "spec.md", feature_dir / "plan.md", feature_dir / "quickstart.md"]
+    if include_tasks:
+        documents.append(feature_dir / "tasks.md")
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in documents if path.is_file())
+    if not re.search(r"\bopenapi\b", combined, re.IGNORECASE):
+        return
+    root = repository_root(feature_dir)
+    tool_manifest_path = root / "eng/program-kit/.config/dotnet-tools.json"
+    try:
+        tool_manifest = json.loads(tool_manifest_path.read_text(encoding="utf-8"))
+        exporter_version = tool_manifest["tools"]["programkit.openapi.exporter"]["version"]
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
+        raise ValueError(
+            f"PKA014 OpenAPI planning requires the managed exporter tool pin at {tool_manifest_path}: {error}"
+        ) from error
+    if not isinstance(exporter_version, str) or not exporter_version:
+        raise ValueError("PKA014 managed ProgramKit.OpenApi.Exporter version pin is invalid")
+    registry_path = root / ".program-kit/openapi-contracts.json"
+    try:
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(
+            f"PKA014 OpenAPI planning requires a valid consumer registry at {registry_path}: {error}"
+        ) from error
+    contracts = registry.get("contracts") if isinstance(registry, dict) else None
+    if not isinstance(registry, dict) or registry.get("schemaVersion") != 1 or not isinstance(contracts, list) or not contracts:
+        raise ValueError("PKA014 OpenAPI registry must use schemaVersion 1 and register at least one contract")
+    required = {
+        "schemaVersion", "identity", "documentName", "shell", "producer", "features",
+        "packageClosure", "rawDocument", "artifact", "baseline", "compatibility",
+        "generator", "application",
+    }
+    identities: set[str] = set()
+    for contract_value in contracts:
+        try:
+            contract_path = root / normalize(str(contract_value))
+            contract_path.resolve().relative_to(root.resolve())
+            contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError(f"PKA014 cannot load registered OpenAPI contract {contract_value!r}: {error}") from error
+        if not isinstance(contract, dict) or contract.get("schemaVersion") != 1:
+            raise ValueError(f"PKA014 unsupported OpenAPI contract: {contract_path}")
+        missing = sorted(required - set(contract))
+        if missing:
+            raise ValueError(f"PKA014 {contract_path} is missing: {', '.join(missing)}")
+        identity = contract.get("identity")
+        if not isinstance(identity, str) or not identity or identity in identities:
+            raise ValueError(f"PKA014 contract identity must be non-empty and unique: {identity!r}")
+        identities.add(identity)
+        producer = contract.get("producer")
+        if (
+            not isinstance(producer, dict)
+            or producer.get("kind") != "ProgramKit.OpenApi.Exporter"
+            or producer.get("version") != exporter_version
+        ):
+            raise ValueError(
+                "PKA014 OpenAPI plans must select the exact managed ProgramKit.OpenApi.Exporter producer"
+            )
+        features = contract.get("features")
+        if not isinstance(features, list) or not features or any(not isinstance(item, str) or not item for item in features):
+            raise ValueError("PKA014 every OpenAPI contract must name its contributing feature identities")
+        untraced = sorted(feature for feature in set(features) if feature not in combined)
+        if untraced:
+            raise ValueError(
+                "PKA014 OpenAPI contributing features are not traced in specification/plan/tasks: "
+                + ", ".join(untraced)
+            )
+        package_closure = normalize(str(contract.get("packageClosure", "")))
+        if package_closure != "artifacts/runnable-host/packages":
+            raise ValueError(
+                "PKA014 OpenAPI production must compose the validated artifacts/runnable-host/packages closure"
+            )
+        for stage_name, output_name in (("generator", "generatedTypes"), ("application", "tsconfig")):
+            stage = contract.get(stage_name)
+            required_stage = {"directory", "packageJson", "lockFile", "script", output_name}
+            if not isinstance(stage, dict) or not required_stage.issubset(stage):
+                raise ValueError(
+                    f"PKA014 OpenAPI {stage_name} must declare directory, packageJson, lockFile, script, and {output_name}"
+                )
+            for field in required_stage - {"script"}:
+                if not isinstance(stage[field], str) or not stage[field]:
+                    raise ValueError(f"PKA014 OpenAPI {stage_name}.{field} must be a repository-relative path")
+                normalize(stage[field])
+        if normalize(str(contract["generator"]["directory"])) == normalize(str(contract["application"]["directory"])):
+            raise ValueError(
+                "PKA014 OpenAPI client generation dependencies must be isolated from the application TypeScript graph"
+            )
+        compatibility = contract.get("compatibility")
+        if (
+            not isinstance(compatibility, dict)
+            or not isinstance(compatibility.get("oasdiffVersion"), str)
+            or not compatibility.get("oasdiffVersion")
+            or "approval" not in compatibility
+        ):
+            raise ValueError("PKA014 OpenAPI compatibility must pin oasdiff and an approval artifact")
+
+
 def main() -> int:
     configure_utf8()
     parser = argparse.ArgumentParser(description="Validate Program Kit artifact ownership and task paths.")
@@ -331,6 +432,7 @@ def main() -> int:
         validate_governance_context(feature_dir, bool(args.tasks))
         validate_runtime_profile(feature_dir, manifest, bool(args.tasks))
         validate_npm_graph_evidence(feature_dir, manifest)
+        validate_openapi_pipeline(feature_dir, manifest, bool(args.tasks))
         if args.tasks:
             validate_tasks(Path(args.tasks), manifest, Path(args.plan) if args.plan else None)
         print("artifact ownership and task paths are valid")

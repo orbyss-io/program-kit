@@ -529,9 +529,27 @@ def validate_managed_sources() -> None:
             ElementTree.parse(source)
 
     targets = (template / "files/eng/program-kit/ProgramKit.Build.targets").read_text(encoding="utf-8")
-    for phrase in ("ProgramKitApiContracts", "1.29.1", "ProgramKitFeatureMetadata", "PKF101", "openapi_contracts.py", "feature_metadata.py"):
+    for phrase in ("ProgramKitFeatureMetadata", "PKF101", "feature_metadata.py"):
         if phrase not in targets:
             raise AssertionError(f"managed build target is missing {phrase}")
+    if "ProgramKitApiContracts" in targets or "ProgramKitOpenApiGeneratedDocument" in targets:
+        raise AssertionError("legacy consumer-supplied OpenAPI document target remains active")
+    pipeline = (template / "files/eng/program-kit/openapi_pipeline.py").read_text(encoding="utf-8")
+    for phrase in (
+        "ProgramKit.OpenApi.Exporter",
+        "artifacts/runnable-host/packages",
+        "--strict-peer-deps",
+        "generatedTypes",
+        "application",
+    ):
+        if phrase not in pipeline:
+            raise AssertionError(f"managed OpenAPI pipeline is missing {phrase}")
+    tool_manifest = json.loads(
+        (template / "files/eng/program-kit/.config/dotnet-tools.json").read_text(encoding="utf-8")
+    )
+    exporter = tool_manifest.get("tools", {}).get("programkit.openapi.exporter", {})
+    if exporter.get("commands") != ["programkit-openapi-export"] or not exporter.get("version"):
+        raise AssertionError("managed OpenAPI exporter tool pin is incomplete")
     runnable_schema = json.loads(
         (template / "files/.program-kit/runnable-host.schema.json").read_text(encoding="utf-8")
     )
@@ -952,6 +970,86 @@ def validate_artifact_ownership() -> None:
             encoding="utf-8",
         )
         ownership.validate_npm_graph_evidence(feature, typescript_manifest)
+
+        openapi_manifest = {
+            **dotnet_manifest,
+            "profiles": ["program-kit", "dotnet", "typescript-vite"],
+        }
+        (feature / "plan.md").write_text(
+            "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
+            "- **Vertical-slice path**: request to response\n"
+            "- **Artifact ownership manifest**: artifact-ownership.json\n"
+            "OpenAPI is produced from Platform.WebBoundary and Catalog.Web through the managed exporter.\n",
+            encoding="utf-8",
+        )
+        contract_path = feature / "openapi-contract.json"
+        contract = {
+            "schemaVersion": 1,
+            "identity": "catalog-v1",
+            "documentName": "v1",
+            "shell": "default",
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.8.6-preview.1"},
+            "features": ["Platform.WebBoundary", "Catalog.Web"],
+            "packageClosure": "artifacts/runnable-host/packages",
+            "rawDocument": "artifacts/openapi/catalog.raw.json",
+            "artifact": "contracts/openapi/catalog.json",
+            "baseline": "contracts/openapi/catalog.baseline.json",
+            "compatibility": {
+                "oasdiffVersion": "1.29.1",
+                "approval": "contracts/openapi/catalog.breaking-change.json",
+            },
+            "generator": {
+                "directory": "tools/openapi-generator",
+                "packageJson": "tools/openapi-generator/package.json",
+                "lockFile": "tools/openapi-generator/package-lock.json",
+                "script": "generate",
+                "generatedTypes": "tools/openapi-generator/generated/catalog.ts",
+            },
+            "application": {
+                "directory": "src/web",
+                "packageJson": "src/web/package.json",
+                "lockFile": "src/web/package-lock.json",
+                "script": "typecheck",
+                "tsconfig": "src/web/tsconfig.json",
+            },
+        }
+        contract_path.write_text(json.dumps(contract), encoding="utf-8")
+        tool_manifest = root / "eng/program-kit/.config/dotnet-tools.json"
+        tool_manifest.parent.mkdir(parents=True)
+        tool_manifest.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "isRoot": True,
+                    "tools": {
+                        "programkit.openapi.exporter": {
+                            "version": "0.8.6-preview.1",
+                            "commands": ["programkit-openapi-export"],
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        (root / ".program-kit/openapi-contracts.json").write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "contracts": ["specs/SPEC-101/openapi-contract.json"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        ownership.validate_openapi_pipeline(feature, openapi_manifest, True)
+        contract["producer"]["kind"] = "consumer-custom-host"
+        contract_path.write_text(json.dumps(contract), encoding="utf-8")
+        try:
+            ownership.validate_openapi_pipeline(feature, openapi_manifest, True)
+        except ValueError as error:
+            if "PKA014" not in str(error) or "ProgramKit.OpenApi.Exporter" not in str(error):
+                raise
+        else:
+            raise AssertionError("OpenAPI planning passed without the managed producer")
 
 
 def main() -> int:

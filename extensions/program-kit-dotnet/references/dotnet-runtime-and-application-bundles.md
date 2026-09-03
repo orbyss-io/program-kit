@@ -48,7 +48,9 @@ Container health is also selected by the application once its feature-health con
 
 - Central package management, locked restore, deterministic pack, and package-source mapping are mandatory.
 - `shells.json` and `hostsettings.json` remain scaffold-once consumer-owned inputs.
-- Managed OpenAPI compatibility runs through `ProgramKit.Build.targets`; consumers configure it through
-  documented root MSBuild extension points.
+- Managed OpenAPI production runs after package-closure staging through
+  `eng/program-kit/openapi_pipeline.py`. Consumers register complete producer, compatibility,
+  isolated client-generation, and application-compile contracts in
+  `.program-kit/openapi-contracts.json`; the external host remains feature-free.
 - Domain and persistence guidance remains feature-owned. No shared `DbContext`, generic repository, provider,
   or readiness probe belongs in the host.

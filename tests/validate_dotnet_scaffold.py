@@ -60,6 +60,18 @@ def main() -> int:
         assert "Build.ps1 -LockedMode" in application_release
         assert "runnable-host.json" in application_release
         assert "containerimage.digest" in application_release
+        disabled_openapi = subprocess.run(
+            [
+                sys.executable,
+                str(target / "eng/program-kit/openapi_pipeline.py"),
+                "--repository",
+                str(target),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert disabled_openapi.returncode == 0, disabled_openapi.stderr
+        assert "not configured" in disabled_openapi.stdout
 
         nuget_config = target / "NuGet.config"
         nuget_text = nuget_config.read_text(encoding="utf-8")

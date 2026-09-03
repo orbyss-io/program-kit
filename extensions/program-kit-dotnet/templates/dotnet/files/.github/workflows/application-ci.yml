@@ -21,6 +21,11 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Set up managed Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+
       - name: Build, test, and pack
         shell: pwsh
         run: ./eng/program-kit/Build.ps1 -SkipRunnableHost -LockedMode

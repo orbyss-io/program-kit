@@ -152,6 +152,16 @@ the feature composition adapter.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
 
+For an externally consumed OpenAPI surface, register a consumer-owned contract in
+`.program-kit/openapi-contracts.json` before implementation readiness. The contract names the shell and
+every route-contributing feature, uses `artifacts/runnable-host/packages` as its package closure, and pins
+the managed `ProgramKit.OpenApi.Exporter`. `eng/program-kit/Build.ps1` then composes those feature packages
+without opening a listener or running shell initializers, normalizes and compatibility-checks the result,
+runs the separately locked client generator, and finally compiles the application's own TypeScript graph.
+The exporter tool is restored only when the registry is non-empty; its dependencies are not added to feature
+projects or the application. Generator dependencies remain consumer-selected inside the isolated generator
+package, subject to strict peer/engine resolution evidence.
+
 When the application has an authenticated browser boundary, an explicitly selected web-boundary feature owns
 the versioned contract in `../secure-web-profiles.md`. It registers authentication and authorization,
 claims normalization, antiforgery, CORS, Problem Details, correlation, security headers, identity

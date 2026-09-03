@@ -105,7 +105,7 @@ def main() -> int:
             if not args.write_generated:
                 raise ValueError(
                     f"PKO008 generated OpenAPI output is stale: {artifact}. "
-                    "Set ProgramKitOpenApiUpdateGenerated=true in an explicit update invocation."
+                    "Invoke eng/program-kit/Build.ps1 with -UpdateOpenApiArtifact after reviewing the revision."
                 )
             artifact.write_bytes(normalized)
 
@@ -113,7 +113,7 @@ def main() -> int:
             if not args.initialize_baseline:
                 raise ValueError(
                     "PKO009 compatibility baseline is missing. Review the first contract and invoke once with "
-                    "ProgramKitOpenApiInitializeBaseline=true."
+                    "-InitializeOpenApiBaseline."
                 )
             baseline.parent.mkdir(parents=True, exist_ok=True)
             baseline.write_bytes(normalized)

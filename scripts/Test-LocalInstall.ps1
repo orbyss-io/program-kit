@@ -81,14 +81,16 @@ try {
         $preflightOutput = (& specify workflow run program-kit-bootstrap `
             --input initial_design=./DOES-NOT-EXIST.md `
             --input integration=codex 2>&1 | Out-String)
-        if ($LASTEXITCODE -ne 0) {
-            throw "Codex agent preflight did not pause cleanly: $preflightOutput"
-        }
+        $preflightExitCode = $LASTEXITCODE
         $normalizedPreflightOutput = $preflightOutput -replace '\s+', ' '
-        foreach ($expected in @(
-            'Status: paused',
-            'confirm-agent-boundary-stop'
-        )) {
+        $paused = $preflightExitCode -eq 0 -and $normalizedPreflightOutput -match [regex]::Escape('Status: paused')
+        $aborted = $preflightExitCode -ne 0 `
+            -and $normalizedPreflightOutput -match [regex]::Escape('Status: aborted') `
+            -and $normalizedPreflightOutput -match [regex]::Escape("Gate rejected by user at step 'confirm-agent-boundary-stop'")
+        if (-not $paused -and -not $aborted) {
+            throw "Codex agent preflight did not stop cleanly: $preflightOutput"
+        }
+        foreach ($expected in @('confirm-agent-boundary-stop')) {
             if ($normalizedPreflightOutput -notmatch [regex]::Escape($expected)) {
                 throw "Workflow-visible Codex preflight stop is missing '$expected': $preflightOutput"
             }

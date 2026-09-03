@@ -63,9 +63,14 @@ publishes that fully runnable image, obtains its registry digest, and emits `run
 descriptor contains only application/version provenance, image repository/tag/digest, and the exact
 secret-free Nuplane/CShells configuration with hashes. `ProgramKit.Host` never consumes it.
 
-Managed OpenAPI verification separately remains a build concern. Consumer-owned MSBuild properties select
-deterministic generation, canonical output, an explicit first baseline, pinned `oasdiff`, and hash-bound
-approval for an intentional breaking change.
+Managed OpenAPI verification separately remains a build concern. A consumer registers contract files in
+`.program-kit/openapi-contracts.json`; an empty registry does nothing and restores no exporter or npm
+dependencies. Each registered contract selects the managed exporter version, shell and contributing feature
+identities, the validated `artifacts/runnable-host/packages` closure, raw/canonical/baseline outputs, pinned
+`oasdiff`, an isolated generator package/lock/script/output, and the consuming application package/lock/type
+check. `Build.ps1` executes that chain after staging and writes hash-bound evidence. Use
+`-InitializeOpenApiBaseline` only for the reviewed first baseline and `-UpdateOpenApiArtifact` only for a
+reviewed generated-contract revision.
 
 ## Secure web and persistence profiles
 
