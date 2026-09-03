@@ -30,6 +30,11 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Web security assurance validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_dotnet_runtime.py')
+if ($LASTEXITCODE -ne 0) {
+    throw '.NET runtime version coherence validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_governance_state.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Governance-state validation failed.'
