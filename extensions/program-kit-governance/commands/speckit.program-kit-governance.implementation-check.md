@@ -38,6 +38,11 @@ Confirm:
 - interfaces and schemas live at their owned boundaries rather than in speculative shared projects;
 - inheritance or typed feature dependencies do not bypass the accepted feature-family exception policy;
 - dependency injection is confined to composition and endpoints or handlers declare explicit dependencies.
+- for external-host .NET work, every selected runtime adapter has an explicitly accepted and
+  `shells.json`-activated composition owner; the exact direct `ProjectReference` and
+  `PackageReference` sets in `artifact-ownership.json.runtimeComposition` match each existing
+  project before source work continues. Treat unused declared references as real edges rather than
+  relying only on compiled CLR type-dependency tests;
 - a selected external `ProgramKit.Host` profile has no repository-owned `.Host` project or
   application `Program.cs`; feature identity metadata, `shells.json`, `hostsettings.json`, package
   closure staging, and digest-bound external-host evidence are planned instead;

@@ -76,8 +76,10 @@ owned, versioned, and backed by an Accepted ADR.
   under the ownership, substitutability, ADR, and allowlist rules in `modularity-and-contracts.md`.
 - `InternalsVisibleTo` is limited to tightly controlled test assemblies unless an Accepted ADR states
   a different owner and compatibility boundary.
-- CI validates the MSBuild project graph and compiled assembly dependencies. Exact Accepted
-  exceptions are allowlisted; naming conventions alone are insufficient enforcement.
+- CI validates both the declared MSBuild `ProjectReference`/`PackageReference` graph and compiled
+  assembly dependencies. The declared graph is authoritative even when a reference has not yet
+  produced a CLR type dependency. Exact Accepted exceptions are allowlisted; naming conventions
+  alone are insufficient enforcement.
 
 ## Program Kit host and CShells profile mapping
 
@@ -148,7 +150,10 @@ transport-cross-cutting concerns only and must not become a hidden domain pipeli
 
 Register application-wide ASP.NET Core and OpenAPI services through an explicitly selected platform feature,
 not `ProgramKit.Host`. Register feature-owned implementations, validators, policies, and translators through
-the feature composition adapter.
+the feature composition adapter. Before implementation, record each application-port/runtime-adapter
+binding and its activated composition owner in `artifact-ownership.json.runtimeComposition`. The owner
+may be an endpoint feature or a separate runtime feature only when the accepted capability graph says
+so; Program Kit must surface an undecided ownership path rather than selecting one implicitly.
 Test route collisions, shell prefixes, authorization metadata, schema generation, problem responses,
 and dynamic endpoint refresh when those CShells capabilities are used.
 

@@ -57,6 +57,14 @@ contract checks the mandatory governance sections and selected runtime profile; 
 - Specifications, plans, and tasks are organized around complete vertical outcomes rather than technical-layer phases.
 - Every slice identifies its owner, intent, contracts, policies, effects, material failures, operational concerns, and verification in proportion to risk.
 - Module and feature references match the accepted dependency graph; peer implementations and stores are not accessed directly.
+- For an external-host .NET slice, `artifact-ownership.json.runtimeComposition` identifies the
+  accepted graph authorities, inventories every planned project's exact direct project/package
+  references, and assigns every application-port/runtime-adapter binding to an activated feature.
+  Compare that inventory with both the authority artifacts and every existing `.csproj`. Inspect
+  declared MSBuild references even when no CLR type currently uses them; an unused forbidden edge
+  is still an architecture error. An adapter with no activated composition owner blocks readiness.
+  Never choose between endpoint-owned composition and a separate runtime feature on the consumer's
+  behalf when the accepted architecture has not made that material choice.
 - Shared abstractions, kernels, runtime feature dependencies, and feature-family extension or inheritance edges have explicit ownership and any required Accepted ADR and allowlist.
 - Public endpoint, event, configuration, and schema types are distinct from domain entities and have compatibility evidence.
 - Authenticated browser boundaries inherit `program-kit-web-threat-model-v1` and
@@ -70,7 +78,8 @@ contract checks the mandatory governance sections and selected runtime profile; 
   repository-owned host project, `.Host` source directory, application `Program.cs`, or plan/task
   that runs a custom host. Require packable feature projects with `ProgramKitFeatureIdentity`,
   reviewed `shells.json` activation, consumer `hostsettings.json`, validated package-closure staging
-  through `runnable_host.py stage`, and digest-bound external `ProgramKit.Host` release evidence.
+  through `runnable_host.py stage`, digest-bound external `ProgramKit.Host` release evidence, and
+  a `PKA015`-valid runtime composition/project graph contract.
 - An exact npm dependency graph is implementation-ready only with recorded registry-metadata and
   isolated lockfile-resolution evidence. Peer conflicts cannot be waived with `--force` or
   `--legacy-peer-deps`; choose compatible packages or isolate an independently governed toolchain.

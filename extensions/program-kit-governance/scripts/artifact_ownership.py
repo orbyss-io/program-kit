@@ -6,12 +6,14 @@ import hashlib
 import json
 import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path, PurePosixPath
 
 
 OWNERSHIP = {"managed", "scaffold-once", "consumer-owned", "generated", "evidence"}
 CLASSIFICATION = {"public", "internal", "confidential", "restricted", "secret"}
 LIFECYCLE = {"source", "generated", "ephemeral", "retained", "replaced", "deployment"}
+RUNTIME_PROJECT_ROLES = {"feature", "application", "domain", "contracts", "runtime-adapter", "test", "other"}
 CONVENTIONS = {
     "program-kit": {"spec.md", "plan.md", "tasks.md", "research.md", "data-model.md", "quickstart.md"},
     "dotnet": {"*.sln", "*.slnx", "src/**/*.csproj", "tests/**/*.csproj", "Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props"},
@@ -274,6 +276,205 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
             "PKA012 .NET feature planning is incomplete for the external ProgramKit.Host profile; "
             "missing " + ", ".join(missing) + "."
         )
+    validate_runtime_composition(feature_dir, manifest)
+
+
+def direct_msbuild_references(project: Path, root: Path) -> tuple[set[str], set[str]]:
+    try:
+        document = ET.parse(project)
+    except (ET.ParseError, OSError) as error:
+        raise ValueError(f"PKA015 cannot inspect project references in {project}: {error}") from error
+    project_references: set[str] = set()
+    package_references: set[str] = set()
+    for element in document.iter():
+        kind = element.tag.rsplit("}", 1)[-1]
+        include = element.attrib.get("Include")
+        if not include:
+            continue
+        if kind == "ProjectReference":
+            target = (project.parent / include.replace("\\", "/")).resolve()
+            try:
+                project_references.add(target.relative_to(root.resolve()).as_posix())
+            except ValueError as error:
+                raise ValueError(
+                    f"PKA015 {project} references a project outside the repository: {include}"
+                ) from error
+        elif kind == "PackageReference":
+            package_references.add(include)
+    return project_references, package_references
+
+
+def activated_feature_identities(root: Path) -> set[str]:
+    path = root / "shells.json"
+    if not path.is_file():
+        return set()
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        shells = value["CShells"]["Shells"]
+    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        raise ValueError(f"PKA015 cannot inspect activated feature identities in {path}: {error}") from error
+    if not isinstance(shells, dict):
+        raise ValueError(f"PKA015 {path} must use the CShells:Shells object schema")
+    identities: set[str] = set()
+    for shell in shells.values():
+        features = shell.get("Features") if isinstance(shell, dict) else None
+        if not isinstance(features, dict):
+            raise ValueError(f"PKA015 {path} contains a shell without a Features object")
+        identities.update(str(identity) for identity in features)
+    return identities
+
+
+def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
+    composition = manifest.get("runtimeComposition")
+    if not isinstance(composition, dict):
+        raise ValueError(
+            "PKA015 external-host .NET planning must declare runtimeComposition in "
+            "artifact-ownership.json; name the accepted authority, direct project/package graph, "
+            "and the activated owner of every runtime-adapter binding."
+        )
+    authorities = composition.get("authorities")
+    projects = composition.get("projects")
+    bindings = composition.get("bindings")
+    if not isinstance(authorities, list) or not authorities or not isinstance(projects, list) or not isinstance(bindings, list):
+        raise ValueError("PKA015 runtimeComposition requires non-empty authorities plus projects and bindings arrays")
+
+    root = repository_root(feature_dir)
+    errors: list[str] = []
+    for authority in authorities:
+        try:
+            authority_path = normalize(str(authority))
+        except ValueError as error:
+            errors.append(str(error).replace("PKA001", "PKA015", 1))
+            continue
+        if not (root / authority_path).is_file():
+            errors.append(f"PKA015 runtime composition authority is missing: {authority_path}")
+
+    declared_artifact_projects = {
+        normalize(str(entry["path"]))
+        for entry in manifest.get("artifacts", [])
+        if isinstance(entry, dict) and isinstance(entry.get("path"), str) and str(entry["path"]).lower().endswith(".csproj")
+    }
+    declared_projects: dict[str, dict] = {}
+    identities: dict[str, str] = {}
+    adapter_projects: set[str] = set()
+    for project in projects:
+        if not isinstance(project, dict):
+            errors.append("PKA015 each runtimeComposition project must be an object")
+            continue
+        try:
+            path = normalize(str(project.get("path", "")))
+        except ValueError as error:
+            errors.append(str(error).replace("PKA001", "PKA015", 1))
+            continue
+        if path in declared_projects:
+            errors.append(f"PKA015 duplicate runtime composition project: {path}")
+            continue
+        if matches(path, manifest) is None:
+            errors.append(f"PKA015 runtime composition project is not owned by the manifest: {path}")
+        if project.get("role") not in RUNTIME_PROJECT_ROLES:
+            errors.append(f"PKA015 {path} has an invalid runtime composition role: {project.get('role')!r}")
+        project_refs = project.get("projectReferences")
+        package_refs = project.get("packageReferences")
+        if not isinstance(project_refs, list) or not isinstance(package_refs, list):
+            errors.append(f"PKA015 {path} must declare projectReferences and packageReferences arrays")
+            continue
+        try:
+            expected_project_refs = {normalize(str(value)) for value in project_refs}
+        except ValueError as error:
+            errors.append(str(error).replace("PKA001", "PKA015", 1))
+            continue
+        if len(expected_project_refs) != len(project_refs) or len({str(value) for value in package_refs}) != len(package_refs):
+            errors.append(f"PKA015 {path} contains duplicate direct references")
+        normalized_project = {
+            **project,
+            "path": path,
+            "projectReferences": expected_project_refs,
+            "packageReferences": {str(value) for value in package_refs},
+        }
+        declared_projects[path] = normalized_project
+        if project.get("role") == "runtime-adapter":
+            adapter_projects.add(path)
+        identity = project.get("featureIdentity")
+        if identity:
+            identity_value = str(identity)
+            if identity_value in identities:
+                errors.append(f"PKA015 duplicate ProgramKitFeatureIdentity owner: {identity_value}")
+            identities[identity_value] = path
+
+    missing_projects = sorted(declared_artifact_projects - set(declared_projects))
+    if missing_projects:
+        errors.append(
+            "PKA015 runtime composition omits planned project(s): " + ", ".join(missing_projects)
+        )
+
+    bound_adapters: set[str] = set()
+    activated = activated_feature_identities(root)
+    for binding in bindings:
+        if not isinstance(binding, dict):
+            errors.append("PKA015 each runtime adapter binding must be an object")
+            continue
+        try:
+            port_project = normalize(str(binding.get("portProject", "")))
+            adapter_project = normalize(str(binding.get("adapterProject", "")))
+            owner_project = normalize(str(binding.get("ownerProject", "")))
+        except ValueError as error:
+            errors.append(str(error).replace("PKA001", "PKA015", 1))
+            continue
+        owner_feature = str(binding.get("ownerFeature", ""))
+        if port_project not in declared_projects or adapter_project not in declared_projects or owner_project not in declared_projects:
+            errors.append(
+                "PKA015 binding projects must all exist in runtimeComposition.projects: "
+                f"{port_project}, {adapter_project}, {owner_project}"
+            )
+        if adapter_project not in adapter_projects:
+            errors.append(f"PKA015 binding adapterProject is not classified runtime-adapter: {adapter_project}")
+        else:
+            bound_adapters.add(adapter_project)
+        if not owner_feature or identities.get(owner_feature) != owner_project:
+            errors.append(
+                f"PKA015 binding ownerFeature {owner_feature!r} must identify ownerProject {owner_project}"
+            )
+        if owner_feature and owner_feature not in activated:
+            errors.append(
+                f"PKA015 runtime adapter binding has no activated owner in shells.json: {owner_feature}"
+            )
+        owner = declared_projects.get(owner_project)
+        if owner is not None and owner_project != adapter_project and adapter_project not in owner["projectReferences"]:
+            errors.append(
+                f"PKA015 composition owner {owner_project} has no declared direct path to runtime adapter {adapter_project}"
+            )
+        adapter = declared_projects.get(adapter_project)
+        if adapter is not None and adapter_project != port_project and port_project not in adapter["projectReferences"]:
+            errors.append(
+                f"PKA015 runtime adapter {adapter_project} has no declared direct path to its owned port {port_project}"
+            )
+        if not str(binding.get("port", "")).strip() or not str(binding.get("adapter", "")).strip() or not str(binding.get("registration", "")).strip():
+            errors.append("PKA015 each binding must name its port, adapter, and registration entry point")
+
+    unbound = sorted(adapter_projects - bound_adapters)
+    if unbound:
+        errors.append(
+            "PKA015 selected runtime-adapter project(s) have no explicit activated composition owner: "
+            + ", ".join(unbound)
+        )
+
+    for path, project in declared_projects.items():
+        project_path = root / path
+        if not project_path.is_file():
+            continue
+        actual_projects, actual_packages = direct_msbuild_references(project_path, root)
+        if actual_projects != project["projectReferences"]:
+            errors.append(
+                f"PKA015 {path} direct ProjectReference graph differs from its accepted runtimeComposition entry; "
+                f"expected {sorted(project['projectReferences'])}, actual {sorted(actual_projects)}"
+            )
+        if actual_packages != project["packageReferences"]:
+            errors.append(
+                f"PKA015 {path} direct PackageReference graph differs from its accepted runtimeComposition entry; "
+                f"expected {sorted(project['packageReferences'])}, actual {sorted(actual_packages)}"
+            )
+    if errors:
+        raise ValueError("\n".join(errors))
 
 
 def validate_npm_graph_evidence(feature_dir: Path, manifest: dict) -> None:

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Require external-host .NET plans to declare the accepted runtime composition owner for every
+  application-port/runtime-adapter binding and an exact direct project/package reference graph.
+  `PKA015` now rejects unactivated adapters, missing composition paths, and declared MSBuild edges
+  that differ from the plan even when no compiled CLR type currently exposes the dependency.
 - Exercise the managed .NET 10 Microsoft Testing Platform selection against a real
   MSTest.Sdk 4.3.3 consumer solution, including the required `dotnet test --solution` invocation.
 - Converge `Microsoft.Extensions.DependencyInjection.Abstractions` and

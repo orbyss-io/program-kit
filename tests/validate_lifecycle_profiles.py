@@ -978,6 +978,26 @@ def validate_artifact_ownership() -> None:
             raise AssertionError("repository-owned custom host passed the external-host profile")
 
         dotnet_manifest["artifacts"][-1]["path"] = "src/Catalog.Feature/Catalog.Feature.csproj"
+        authority = root / "docs/architecture/module-capabilities.md"
+        authority.parent.mkdir(parents=True)
+        authority.write_text("# Module capabilities\n\nCatalog.Feature -> Catalog.Application\n", encoding="utf-8")
+        (root / "shells.json").write_text(
+            json.dumps({"CShells": {"Shells": {"default": {"Features": {"Catalog.Feature": {}}}}}}),
+            encoding="utf-8",
+        )
+        dotnet_manifest["runtimeComposition"] = {
+            "authorities": ["docs/architecture/module-capabilities.md"],
+            "projects": [
+                {
+                    "path": "src/Catalog.Feature/Catalog.Feature.csproj",
+                    "role": "feature",
+                    "featureIdentity": "Catalog.Feature",
+                    "projectReferences": [],
+                    "packageReferences": [],
+                }
+            ],
+            "bindings": [],
+        }
         (feature / "plan.md").write_text(
             "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
             "- **Vertical-slice path**: request to response\n"
@@ -1004,6 +1024,145 @@ def validate_artifact_ownership() -> None:
                 raise
         else:
             raise AssertionError("incomplete external-host closure passed planning validation")
+
+        graph_paths = {
+            "src/Catalog.Application/Catalog.Application.csproj": [],
+            "src/Catalog.Infrastructure.PostgreSql/Catalog.Infrastructure.PostgreSql.csproj": [
+                "..\\Catalog.Application\\Catalog.Application.csproj"
+            ],
+            "src/Catalog.Feature.AdminApi/Catalog.Feature.AdminApi.csproj": [
+                "../Catalog.Application/Catalog.Application.csproj",
+                "../Catalog.Infrastructure.PostgreSql/Catalog.Infrastructure.PostgreSql.csproj",
+            ],
+        }
+        for project_path, references in graph_paths.items():
+            project = root / project_path
+            project.parent.mkdir(parents=True, exist_ok=True)
+            reference_xml = "".join(f'<ProjectReference Include="{value}" />' for value in references)
+            project.write_text(
+                f'<Project Sdk="Microsoft.NET.Sdk"><ItemGroup>{reference_xml}</ItemGroup></Project>',
+                encoding="utf-8",
+            )
+            dotnet_manifest["artifacts"].append(
+                {
+                    "path": project_path,
+                    "ownership": "consumer-owned",
+                    "classification": "internal",
+                    "lifecycle": "source",
+                }
+            )
+        dotnet_manifest["runtimeComposition"] = {
+            "authorities": ["docs/architecture/module-capabilities.md"],
+            "projects": [
+                {
+                    "path": "src/Catalog.Feature/Catalog.Feature.csproj",
+                    "role": "feature",
+                    "featureIdentity": "Catalog.Feature",
+                    "projectReferences": [],
+                    "packageReferences": [],
+                },
+                {
+                    "path": "src/Catalog.Application/Catalog.Application.csproj",
+                    "role": "application",
+                    "projectReferences": [],
+                    "packageReferences": [],
+                },
+                {
+                    "path": "src/Catalog.Infrastructure.PostgreSql/Catalog.Infrastructure.PostgreSql.csproj",
+                    "role": "runtime-adapter",
+                    "projectReferences": ["src/Catalog.Application/Catalog.Application.csproj"],
+                    "packageReferences": [],
+                },
+                {
+                    "path": "src/Catalog.Feature.AdminApi/Catalog.Feature.AdminApi.csproj",
+                    "role": "feature",
+                    "featureIdentity": "Catalog.AdminApi",
+                    "projectReferences": ["src/Catalog.Application/Catalog.Application.csproj"],
+                    "packageReferences": [],
+                },
+            ],
+            "bindings": [
+                {
+                    "port": "Catalog.Application.ICatalogStore",
+                    "portProject": "src/Catalog.Application/Catalog.Application.csproj",
+                    "adapter": "Catalog.Infrastructure.PostgreSql.CatalogStore",
+                    "adapterProject": "src/Catalog.Infrastructure.PostgreSql/Catalog.Infrastructure.PostgreSql.csproj",
+                    "ownerFeature": "Catalog.AdminApi",
+                    "ownerProject": "src/Catalog.Feature.AdminApi/Catalog.Feature.AdminApi.csproj",
+                    "registration": "AddCatalogPostgreSql",
+                }
+            ],
+        }
+        (root / "shells.json").write_text(
+            json.dumps(
+                {
+                    "CShells": {
+                        "Shells": {
+                            "default": {
+                                "Features": {"Catalog.Feature": {}, "Catalog.AdminApi": {}}
+                            }
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        (feature / "plan.md").write_text(
+            "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
+            "- **Vertical-slice path**: request to response\n"
+            "- **Artifact ownership manifest**: artifact-ownership.json\n"
+            "Pack projects with ProgramKitFeatureIdentity; activate them in `shells.json`, configure "
+            "`hostsettings.json`, run `eng/program-kit/runnable_host.py stage` for package-closure staging, "
+            "and publish digest-pinned ProgramKit.Host evidence to `.program-kit/evidence/host-image.json`.\n",
+            encoding="utf-8",
+        )
+        try:
+            ownership.validate_runtime_profile(feature, dotnet_manifest, True)
+        except ValueError as error:
+            if "PKA015" not in str(error) or "actual" not in str(error) or "no declared direct path" not in str(error):
+                raise
+        else:
+            raise AssertionError("unused forbidden ProjectReference passed runtime composition validation")
+
+        admin_project = root / "src/Catalog.Feature.AdminApi/Catalog.Feature.AdminApi.csproj"
+        admin_project.write_text(
+            '<Project Sdk="Microsoft.NET.Sdk"><ItemGroup>'
+            '<ProjectReference Include="../Catalog.Application/Catalog.Application.csproj" />'
+            "</ItemGroup></Project>",
+            encoding="utf-8",
+        )
+        try:
+            ownership.validate_runtime_profile(feature, dotnet_manifest, True)
+        except ValueError as error:
+            if "PKA015" not in str(error) or "no declared direct path" not in str(error):
+                raise
+        else:
+            raise AssertionError("runtime adapter without an activated composition path passed validation")
+
+        infrastructure = dotnet_manifest["runtimeComposition"]["projects"][2]
+        infrastructure["featureIdentity"] = "Catalog.Persistence"
+        binding = dotnet_manifest["runtimeComposition"]["bindings"][0]
+        binding["ownerFeature"] = "Catalog.Persistence"
+        binding["ownerProject"] = infrastructure["path"]
+        (root / "shells.json").write_text(
+            json.dumps(
+                {
+                    "CShells": {
+                        "Shells": {
+                            "default": {
+                                "Features": {
+                                    "Catalog.Feature": {},
+                                    "Catalog.AdminApi": {},
+                                    "Catalog.Persistence": {},
+                                }
+                            }
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        ownership.validate_runtime_profile(feature, dotnet_manifest, True)
 
         typescript_manifest = {**dotnet_manifest, "profiles": ["program-kit", "typescript-vite"]}
         (feature / "plan.md").write_text(
