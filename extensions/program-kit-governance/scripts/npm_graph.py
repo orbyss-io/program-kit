@@ -43,7 +43,14 @@ def write_evidence(path: Path, payload: dict) -> None:
     )
 
 
-def resolve(package_json: Path, npm_command: str, evidence: Path, timeout: int) -> None:
+def resolve(
+    package_json: Path,
+    repository: Path,
+    toolchain_evidence: Path,
+    npm_command: str,
+    evidence: Path,
+    timeout: int,
+) -> None:
     manifest = load_manifest(package_json)
     candidate = {
         "name": manifest.get("name", "program-kit-dependency-candidate"),
@@ -59,8 +66,7 @@ def resolve(package_json: Path, npm_command: str, evidence: Path, timeout: int) 
         candidate_path.write_text(
             json.dumps(candidate, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
         )
-        command = [
-            npm_command,
+        arguments = [
             "install",
             "--package-lock-only",
             "--ignore-scripts",
@@ -69,10 +75,39 @@ def resolve(package_json: Path, npm_command: str, evidence: Path, timeout: int) 
             "--no-audit",
             "--no-fund",
         ]
+        environment = None
+        if npm_command:
+            command = [npm_command, "--strict-ssl=true", *arguments]
+        else:
+            wrapper = repository / "eng/program-kit/js_toolchain.py"
+            if not wrapper.is_file():
+                raise ValueError(
+                    "PKN003 managed JavaScript runtime wrapper is missing; synchronize the .NET profile first."
+                )
+            toolchain = json.loads(toolchain_evidence.read_text(encoding="utf-8"))
+            npm = toolchain.get("commands", {}).get("npm")
+            if not isinstance(npm, list) or not npm:
+                raise ValueError("PKN003 exact npm command evidence is missing; run toolchain.py first.")
+            command = [*npm, "--strict-ssl=true", *arguments]
+            invocation = [
+                sys.executable,
+                str(wrapper),
+                "--repository",
+                str(repository),
+                "--evidence",
+                str(toolchain_evidence),
+                "--timeout-seconds",
+                str(timeout),
+                "npm",
+                "--",
+                *arguments,
+            ]
         result = subprocess.run(
-            command,
+            command if npm_command else invocation,
             cwd=workspace,
-            capture_output=True,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=None,
             text=True,
             encoding="utf-8",
             errors="replace",
@@ -91,13 +126,13 @@ def resolve(package_json: Path, npm_command: str, evidence: Path, timeout: int) 
             payload["lockfileSha256"] = digest(lockfile)
         write_evidence(evidence, payload)
         if result.returncode != 0 or not lockfile.is_file():
-            detail = (result.stderr or result.stdout).strip()
+            detail = (result.stdout or "").strip()
             if len(detail) > 2000:
                 detail = detail[-2000:]
             raise ValueError(
                 "PKN002 exact npm graph failed strict peer/engine/platform resolution; choose "
                 "compatible versions or isolate the generator toolchain. Force and legacy-peer "
-                f"bypasses are forbidden. npm: {detail}"
+                f"bypasses are forbidden. npm stdout: {detail or 'see the visible stderr and repository npm cache logs'}"
             )
     print(f"PKN000 exact npm dependency graph resolved with strict peers: {evidence}")
 
@@ -109,16 +144,24 @@ def main() -> int:
     )
     parser.add_argument("--package-json", required=True)
     parser.add_argument("--evidence", required=True)
-    parser.add_argument("--npm-command", default="npm")
+    parser.add_argument("--repository", default=".")
+    parser.add_argument("--toolchain-evidence", default=".program-kit/evidence/toolchain.json")
+    parser.add_argument("--npm-command", default="", help=argparse.SUPPRESS)
     parser.add_argument("--timeout-seconds", type=int, default=180)
     args = parser.parse_args()
     try:
-        if shutil.which(args.npm_command) is None and not Path(args.npm_command).is_file():
+        if args.npm_command and shutil.which(args.npm_command) is None and not Path(args.npm_command).is_file():
             raise ValueError(f"PKN003 npm command is unavailable: {args.npm_command}")
         if args.timeout_seconds < 1:
             raise ValueError("PKN004 timeout must be at least one second")
+        repository = Path(args.repository).resolve()
+        toolchain_evidence = Path(args.toolchain_evidence)
+        if not toolchain_evidence.is_absolute():
+            toolchain_evidence = repository / toolchain_evidence
         resolve(
             Path(args.package_json).resolve(),
+            repository,
+            toolchain_evidence,
             args.npm_command,
             Path(args.evidence).resolve(),
             args.timeout_seconds,

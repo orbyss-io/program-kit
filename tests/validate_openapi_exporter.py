@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -16,8 +17,12 @@ EXPORTER = (
 PIPELINE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/openapi_pipeline.py"
 
 
-def run(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(command, cwd=cwd, capture_output=True, text=True, timeout=180)
+def run(
+    command: list[str], cwd: Path, environment: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        command, cwd=cwd, env=environment, capture_output=True, text=True, timeout=180
+    )
 
 
 def write_fixture(repository: Path) -> None:
@@ -130,6 +135,25 @@ def main() -> int:
         repository = Path(value)
         write_fixture(repository)
         packages = repository / "packages"
+        environment = os.environ.copy()
+        environment["NUGET_PACKAGES"] = str(repository / ".program-kit/cache/nuget/packages")
+        environment["NUGET_HTTP_CACHE_PATH"] = str(repository / ".program-kit/cache/nuget/http")
+        # Keep this repository test independent from an unreadable outer-agent Windows profile.
+        environment["APPDATA"] = str(repository / ".program-kit/cache/profile/roaming")
+        environment["LOCALAPPDATA"] = str(repository / ".program-kit/cache/profile/local")
+        restored = run(
+            [
+                "dotnet",
+                "restore",
+                "WebFeature.csproj",
+                "--configfile",
+                str(repository / "NuGet.config"),
+            ],
+            repository,
+            environment,
+        )
+        if restored.returncode != 0:
+            raise AssertionError(f"fixture restore failed:\n{restored.stdout}{restored.stderr}")
         packed = run(
             [
                 "dotnet",
@@ -139,10 +163,10 @@ def main() -> int:
                 "Release",
                 "-o",
                 str(packages),
-                "--configfile",
-                str(repository / "NuGet.config"),
+                "--no-restore",
             ],
             repository,
+            environment,
         )
         if packed.returncode != 0:
             raise AssertionError(f"fixture pack failed:\n{packed.stdout}{packed.stderr}")
@@ -206,11 +230,22 @@ def main() -> int:
             (directory / "package.json").write_text("{}\n", encoding="utf-8")
             (directory / "package-lock.json").write_text("{}\n", encoding="utf-8")
         (application / "tsconfig.json").write_text("{}\n", encoding="utf-8")
-        fake_npm = repository / "fake_npm.py"
+        tool_bin = repository / "tool-bin"
+        tool_bin.mkdir()
+        if os.name == "nt":
+            fake_node = tool_bin / "node.cmd"
+            fake_node.write_text("@echo off\r\necho v24.20.0\r\n", encoding="utf-8")
+        else:
+            fake_node = tool_bin / "node"
+            fake_node.write_text("#!/bin/sh\nprintf 'v24.20.0\\n'\n", encoding="utf-8")
+            fake_node.chmod(0o755)
+        fake_npm = tool_bin / "fake_npm.py"
         fake_npm.write_text(
             """from pathlib import Path
 import sys
-if sys.argv[1:3] == ["run", "generate"]:
+if sys.argv[1:] == ["--version"]:
+    print("11.19.0")
+elif sys.argv[1:4] == ["--strict-ssl=true", "run", "generate"]:
     target = Path.cwd() / "generated/types.ts"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("export interface Order { id: string }\\n", encoding="utf-8")
@@ -227,6 +262,10 @@ raise SystemExit(0)
         shutil.copyfile(
             ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/openapi_contracts.py",
             managed / "openapi_contracts.py",
+        )
+        shutil.copyfile(
+            ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/js_toolchain.py",
+            managed / "js_toolchain.py",
         )
         shutil.copyfile(
             ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/.config/dotnet-tools.json",
@@ -269,6 +308,35 @@ raise SystemExit(0)
             + "\n",
             encoding="utf-8",
         )
+        dotnet = shutil.which("dotnet")
+        if not dotnet:
+            raise AssertionError("dotnet is required for the OpenAPI exporter validation")
+        toolchain_evidence = repository / ".program-kit/evidence/toolchain.json"
+        toolchain_evidence.parent.mkdir(parents=True, exist_ok=True)
+        toolchain_evidence.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 2,
+                    "required": {"dotnet": "10.0.202", "node": "24.20.0", "npm": "11.19.0"},
+                    "resolved": {"dotnet": "10.0.202", "node": "24.20.0", "npm": "11.19.0"},
+                    "commands": {
+                        "dotnet": [str(Path(dotnet).resolve())],
+                        "node": [str(fake_node.resolve())],
+                        "npm": [str(Path(sys.executable).resolve()), str(fake_npm.resolve())],
+                    },
+                    "environment": {
+                        "npmCache": str((repository / ".program-kit/cache/npm").resolve()),
+                        "trustMode": "bundled",
+                        "extraCaCertificates": "",
+                        "strictSsl": True,
+                    },
+                    "satisfied": True,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         pipelined = run(
             [
                 sys.executable,
@@ -277,8 +345,6 @@ raise SystemExit(0)
                 str(repository),
                 "--exporter",
                 str(EXPORTER),
-                "--npm-command",
-                str(fake_npm),
                 "--initialize-baselines",
             ],
             repository,

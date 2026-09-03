@@ -26,7 +26,7 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.8.6":
+    if program_version != "0.8.7":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
     if runtime_version != "0.8.6-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
@@ -95,7 +95,10 @@ def main() -> int:
     if '"version": "10.0.202"' not in global_json or '"rollForward": "latestPatch"' not in global_json:
         raise AssertionError("The .NET SDK feature band and patch policy are not pinned")
     dockerfile = (root / "src/dotnet/ProgramKit.Host/Dockerfile").read_text(encoding="utf-8")
-    if dockerfile.count("@sha256:") < 3 or "dotnet restore ProgramKit.slnx --locked-mode" not in dockerfile:
+    if (
+        dockerfile.count("@sha256:") < 3
+        or "dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.config" not in dockerfile
+    ):
         raise AssertionError("Host image inputs must be digest-pinned and restored in locked mode")
     if "HEALTHCHECK" in dockerfile or "PROGRAMKIT_BUNDLE" in dockerfile:
         raise AssertionError("The shallow host image must not own application health or release-bundle policy")

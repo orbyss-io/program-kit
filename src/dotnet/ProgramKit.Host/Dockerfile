@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0.202@sha256:adc02be8b87957d07208a4a3e51775935b33bad3317de8c45b1e67357b4c073b AS build
 WORKDIR /src
 COPY . .
-RUN dotnet restore ProgramKit.slnx --locked-mode
+RUN dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.config
 RUN dotnet publish src/dotnet/ProgramKit.Host/ProgramKit.Host.csproj -c Release --no-restore -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:a4556ed033fa96f984bb7a8d348851cb2d36b1281dd2420070045f664fbb5f94 AS final

@@ -15,7 +15,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-PROGRAM_KIT_VERSION = "0.8.6"
+PROGRAM_KIT_VERSION = "0.8.7"
 BUILT_IN_FEATURE_PACKAGES = {"ProgramKitTasks": "ProgramKit.Tasks"}
 
 
@@ -231,6 +231,18 @@ def package_sources(repository: Path) -> list[str]:
     ]
 
 
+def managed_package_versions(repository: Path) -> dict[str, str]:
+    path = repository / "eng/program-kit/ProgramKit.Packages.props"
+    root = ElementTree.parse(path).getroot()
+    return {
+        element.attrib["Include"]: element.attrib["Version"]
+        for element in root.iter()
+        if element.tag.endswith("PackageVersion")
+        and element.attrib.get("Include")
+        and element.attrib.get("Version")
+    }
+
+
 def package_base_addresses(sources: list[str]) -> list[str]:
     result: list[str] = []
     for source in sources:
@@ -271,6 +283,18 @@ def stage(repository: Path, package_output: Path, output: Path) -> None:
             shutil.copyfile(package, destination)
             register_package(identities, destination)
         required = runtime_dependencies(repository, {item[0].casefold() for item in identities})
+        active = set().union(*activated_features(repository / "shells.json").values())
+        built_ins = [identity for identity in sorted(active) if identity in BUILT_IN_FEATURE_PACKAGES]
+        managed_versions = managed_package_versions(repository) if built_ins else {}
+        for identity in built_ins:
+            package_id = BUILT_IN_FEATURE_PACKAGES.get(identity)
+            if package_id:
+                version = managed_versions.get(package_id)
+                if not version:
+                    raise ValueError(
+                        f"PKR019 built-in feature '{identity}' has no managed package pin for '{package_id}'."
+                    )
+                required.add((package_id, version))
         missing = sorted(required - set(identities), key=lambda item: (item[0].casefold(), item[1]))
         if missing:
             bases = package_base_addresses(package_sources(repository))

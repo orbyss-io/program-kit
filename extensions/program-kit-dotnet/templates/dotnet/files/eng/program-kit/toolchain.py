@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import js_toolchain
 
 
 def configure_utf8() -> None:
@@ -18,35 +19,76 @@ def required_versions(repository: Path) -> dict[str, str]:
     global_json = json.loads((repository / "global.json").read_text(encoding="utf-8"))
     dotnet = global_json.get("sdk", {}).get("version")
     node = (repository / ".nvmrc").read_text(encoding="utf-8").strip().removeprefix("v")
-    if not isinstance(dotnet, str) or not dotnet or not node:
-        raise ValueError("PKT001 managed global.json or .nvmrc has no exact toolchain version.")
-    return {"dotnet": dotnet, "node": node}
+    npm = (repository / ".npm-version").read_text(encoding="utf-8").strip().removeprefix("v")
+    if not isinstance(dotnet, str) or not dotnet or not node or not npm:
+        raise ValueError("PKT001 managed global.json, .nvmrc, or .npm-version has no exact toolchain version.")
+    return {"dotnet": dotnet, "node": node, "npm": npm}
 
 
-def run_version(command: list[str]) -> str | None:
-    executable = Path(command[0])
-    if not executable.is_file() and shutil.which(command[0]) is None:
-        return None
-    result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=10)
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip().splitlines()[0].removeprefix("v")
+def run_version(command: list[str], repository: Path) -> str | None:
+    return js_toolchain.version(command, repository)
 
 
-def installed_versions(dotnet_command: str = "dotnet", node_command: str = "node") -> dict[str, str | None]:
-    return {
-        "dotnet": run_version([dotnet_command, "--version"]),
-        "node": run_version([node_command, "--version"]),
-    }
+def resolve(
+    repository: Path,
+    required: dict[str, str],
+    dotnet_command: str,
+    node_command: str,
+    npm_command: str,
+    manager: str,
+) -> tuple[dict[str, str | None], dict[str, list[str]]]:
+    dotnet = js_toolchain.executable(dotnet_command)
+    dotnet_version = run_version([str(dotnet)], repository) if dotnet else None
+    node, node_version = js_toolchain.resolve_node(repository, required["node"], node_command, manager)
+    npm: list[str] | None = None
+    npm_version: str | None = None
+    if node:
+        npm, npm_version = js_toolchain.resolve_npm(repository, node, required["npm"], npm_command)
+    commands: dict[str, list[str]] = {}
+    if dotnet:
+        commands["dotnet"] = [str(dotnet)]
+    if node:
+        commands["node"] = [str(node)]
+    else:
+        requested_node = js_toolchain.executable(node_command)
+        if requested_node:
+            commands["node"] = [str(requested_node)]
+            node_version = run_version(commands["node"], repository)
+    if npm:
+        commands["npm"] = npm
+    elif node:
+        candidates = js_toolchain.npm_candidates(node, npm_command)
+        if candidates:
+            commands["npm"] = candidates[0]
+    return {"dotnet": dotnet_version, "node": node_version, "npm": npm_version}, commands
 
 
-def write_evidence(path: Path | None, required: dict, installed: dict, resolved: bool) -> None:
-    if path is None:
-        return
+def write_evidence(
+    path: Path,
+    repository: Path,
+    required: dict,
+    installed: dict,
+    commands: dict,
+    satisfied: bool,
+) -> None:
+    cache = js_toolchain.cache_directory(repository)
+    _, trust_mode, extra_ca = js_toolchain.trust_environment(repository, cache)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(
-            {"schemaVersion": 1, "required": required, "resolved": installed, "satisfied": resolved},
+            {
+                "schemaVersion": 2,
+                "required": required,
+                "resolved": installed,
+                "commands": commands,
+                "environment": {
+                    "npmCache": str(cache),
+                    "trustMode": trust_mode,
+                    "extraCaCertificates": extra_ca,
+                    "strictSsl": True,
+                },
+                "satisfied": satisfied,
+            },
             indent=2,
             sort_keys=True,
         )
@@ -57,7 +99,7 @@ def write_evidence(path: Path | None, required: dict, installed: dict, resolved:
 
 
 def mismatch(required: dict[str, str], installed: dict[str, str | None]) -> list[str]:
-    return [name for name, version in required.items() if installed.get(name) != version]
+    return [name for name, expected in required.items() if installed.get(name) != expected]
 
 
 def install_dotnet(version: str, installer: str) -> None:
@@ -69,25 +111,21 @@ def install_dotnet(version: str, installer: str) -> None:
     path = Path(installer).resolve()
     if not path.is_file():
         raise ValueError(f"PKT005 .NET installer is unavailable: {path}")
-    if path.suffix.lower() == ".ps1":
-        command = ["powershell", "-NoProfile", "-File", str(path), "-Version", version]
-    else:
-        command = [str(path), "--version", version]
-    result = subprocess.run(command, check=False)
-    if result.returncode != 0:
+    command = ["powershell", "-NoProfile", "-File", str(path), "-Version", version] if path.suffix.lower() == ".ps1" else [str(path), "--version", version]
+    if subprocess.run(command, check=False).returncode != 0:
         raise ValueError("PKT006 approved .NET side-by-side installation failed (offline or installer error).")
 
 
 def node_manager(selected: str) -> tuple[str, str] | None:
     names = [selected] if selected != "auto" else ["fnm", "nvm", "volta"]
     for name in names:
-        command = shutil.which(name)
+        command = js_toolchain.executable(name)
         if command:
-            return name, command
+            return name, str(command)
     return None
 
 
-def install_node(version: str, selected: str) -> list[str] | None:
+def install_node(version: str, selected: str) -> None:
     resolved_manager = node_manager(selected)
     if resolved_manager is None:
         raise ValueError(
@@ -96,21 +134,33 @@ def install_node(version: str, selected: str) -> list[str] | None:
             "fnm route (winget, Scoop, or the release binary); do not fall back to an elevation-bound "
             "Chocolatey install from a non-administrator shell."
         )
-    manager, manager_command = resolved_manager
-    command = [manager_command, "install", version if manager != "volta" else f"node@{version}"]
-    result = subprocess.run(command, check=False)
-    if result.returncode != 0:
+    manager, command = resolved_manager
+    arguments = [command, "install", version if manager != "volta" else f"node@{version}"]
+    if subprocess.run(arguments, check=False).returncode != 0:
         raise ValueError("PKT008 approved Node installation failed (offline or manager error).")
-    if manager == "fnm":
-        return [manager_command, "exec", f"--using={version}", "node", "--version"]
-    if manager == "volta":
-        return [manager_command, "run", "--node", version, "node", "--version"]
-    return None
+
+
+def install_npm(repository: Path, node: Path, required: str, requested: str) -> None:
+    candidates = js_toolchain.npm_candidates(node, requested)
+    current = next((command for command in candidates if js_toolchain.version(command, repository)), None)
+    if current is None:
+        raise ValueError("PKT018 pinned Node is installed but has no usable npm CLI for approved remediation.")
+    cache = js_toolchain.cache_directory(repository)
+    environment, _, _ = js_toolchain.trust_environment(repository, cache)
+    result = subprocess.run(
+        current + ["--strict-ssl=true", "install", "--global", f"npm@{required}"],
+        cwd=repository,
+        env=environment,
+        check=False,
+        timeout=300,
+    )
+    if result.returncode != 0:
+        raise ValueError("PKT019 approved npm installation failed; inspect the visible TLS/cache diagnostic.")
 
 
 def main() -> int:
     configure_utf8()
-    parser = argparse.ArgumentParser(description="Check and approval-gate Program Kit toolchain remediation.")
+    parser = argparse.ArgumentParser(description="Resolve and approval-gate the exact Program Kit toolchain.")
     parser.add_argument("--repository", default=".")
     parser.add_argument("--evidence", default=".program-kit/evidence/toolchain.json")
     parser.add_argument("--remediate", action="store_true")
@@ -120,6 +170,7 @@ def main() -> int:
     parser.add_argument("--node-manager", choices=("auto", "fnm", "nvm", "volta"), default="auto")
     parser.add_argument("--dotnet-command", default="dotnet", help=argparse.SUPPRESS)
     parser.add_argument("--node-command", default="node", help=argparse.SUPPRESS)
+    parser.add_argument("--npm-command", default="", help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
         repository = Path(args.repository).resolve()
@@ -127,49 +178,58 @@ def main() -> int:
         if not evidence.is_absolute():
             evidence = repository / evidence
         required = required_versions(repository)
-        installed = installed_versions(args.dotnet_command, args.node_command)
+        installed, commands = resolve(
+            repository, required, args.dotnet_command, args.node_command, args.npm_command, args.node_manager
+        )
         missing = mismatch(required, installed)
         if not missing:
-            write_evidence(evidence, required, installed, True)
-            print("PKT000 exact managed toolchain versions are satisfied")
+            write_evidence(evidence, repository, required, installed, commands, True)
+            print("PKT000 exact managed toolchain commands are resolved and satisfied")
             return 0
         print(
             "PKT002 toolchain mismatch: "
-            + ", ".join(f"{name} required={required[name]} resolved={installed[name] or 'missing'}" for name in missing),
+            + ", ".join(
+                f"{name} required={required[name]} executable={commands.get(name, 'missing')} actual={installed[name] or 'missing'}"
+                for name in missing
+            ),
             file=sys.stderr,
         )
         print(
             "PKT011 Program Kit managed pins remain authoritative. Install or upgrade to the exact "
-            "required versions (side-by-side where supported); do not rewrite them to match the local "
-            "environment without an explicit managed-toolchain-version override.",
+            "required versions; do not rewrite them to match PATH without an explicit managed-toolchain-version override.",
             file=sys.stderr,
         )
-        write_evidence(evidence, required, installed, False)
+        write_evidence(evidence, repository, required, installed, commands, False)
         if not args.remediate:
-            print("Repository writes: evidence only. Proposed system changes and network downloads require approval.", file=sys.stderr)
+            print("Repository writes: evidence/cache only. System changes and downloads require approval.", file=sys.stderr)
             return 2
         if args.decline:
             print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
             return 3
-        approved = args.approve
-        if not approved:
-            approved = input("Install the exact missing SDK/Node versions side-by-side? [y/N] ").strip().lower() == "y"
+        approved = args.approve or input("Install the exact missing SDK/Node/npm versions side-by-side? [y/N] ").strip().lower() == "y"
         if not approved:
             print("PKT003 remediation declined; no installer was run.", file=sys.stderr)
             return 3
         if "dotnet" in missing:
             install_dotnet(required["dotnet"], args.dotnet_installer)
-        node_verification_command = None
         if "node" in missing:
-            node_verification_command = install_node(required["node"], args.node_manager)
-        resolved = installed_versions(args.dotnet_command, args.node_command)
-        if node_verification_command:
-            resolved["node"] = run_version(node_verification_command)
+            install_node(required["node"], args.node_manager)
+        interim, interim_commands = resolve(
+            repository, required, args.dotnet_command, args.node_command, args.npm_command, args.node_manager
+        )
+        if "npm" in mismatch(required, interim):
+            node_values = interim_commands.get("node")
+            if not node_values:
+                raise ValueError("PKT009 installation completed, but the pinned Node executable cannot be resolved.")
+            install_npm(repository, Path(node_values[0]), required["npm"], args.npm_command)
+        resolved, resolved_commands = resolve(
+            repository, required, args.dotnet_command, args.node_command, args.npm_command, args.node_manager
+        )
         remaining = mismatch(required, resolved)
-        write_evidence(evidence, required, resolved, not remaining)
+        write_evidence(evidence, repository, required, resolved, resolved_commands, not remaining)
         if remaining:
-            raise ValueError("PKT009 installation completed, but exact version checks still fail: " + ", ".join(remaining))
-        print("PKT010 approved toolchain remediation completed and was re-verified")
+            raise ValueError("PKT009 installation completed, but exact command checks still fail: " + ", ".join(remaining))
+        print("PKT010 approved toolchain remediation completed and exact commands were re-verified")
         return 0
     except (OSError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as error:
         print(str(error), file=sys.stderr)

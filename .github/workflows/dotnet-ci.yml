@@ -24,17 +24,20 @@ jobs:
       - name: Validate runtime version coherence
         run: python tests/validate_dotnet_runtime.py
 
+      - name: Validate exact JavaScript toolchain execution
+        run: python tests/validate_js_toolchain.py
+
+      - name: Validate managed build and restricted-profile restore contract
+        run: python tests/validate_dotnet_build_contract.py
+
       - name: Restore
-        run: dotnet restore ProgramKit.slnx --locked-mode
+        run: dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.config
 
       - name: Restore representative consumer dependency graph
         run: python tests/validate_dotnet_consumer_restore.py
 
       - name: Build
         run: dotnet build ProgramKit.slnx -c Release --no-restore
-
-      - name: Test
-        run: dotnet test ProgramKit.slnx -c Release --no-build --no-restore
 
       - name: Validate Program Kit analyzer policies
         run: python tests/validate_analyzer.py

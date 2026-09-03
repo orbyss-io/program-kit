@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.8.7 - 2026-09-03
+
+- Resolve the exact managed Node and npm executables once and reuse their evidence for OpenAPI,
+  web, and governance npm graphs. Managed npm execution now ignores a mismatched PATH, uses a
+  writable repository cache, keeps strict TLS enabled, and supports system or explicit organization
+  CA trust without insecure certificate bypasses.
+- Bind managed .NET restores and local tool restores to the reviewed repository `NuGet.config` and
+  repository-owned package/HTTP caches, and select Microsoft Testing Platform in both managed
+  `global.json` files.
+- Seed activated built-in runtime features such as `ProgramKitTasks` from their managed package pin
+  even when consumer projects do not reference them directly.
+- Canonicalize task checkbox state for lifecycle readiness hashes so implementation progress can be
+  resumed without false `PKL012` failures; task IDs, descriptions, order, and paths remain protected.
+
 ## 0.8.6 - 2026-09-03
 
 - Add the exact-pinned `ProgramKit.OpenApi.Exporter` tool and a managed producer-first OpenAPI

@@ -3,9 +3,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
+
+import js_toolchain
 
 
 REQUIRED = {
@@ -133,8 +136,14 @@ def validate_contract(repository: Path, path: Path, exporter_version: str) -> tu
     return value, resolved
 
 
-def run(command: list[str], cwd: Path, label: str) -> None:
-    result = subprocess.run(command, cwd=cwd, check=False, timeout=600)
+def run(
+    command: list[str],
+    cwd: Path,
+    label: str,
+    environment: dict[str, str] | None = None,
+    timeout: int = 600,
+) -> None:
+    result = subprocess.run(command, cwd=cwd, env=environment, check=False, timeout=timeout)
     if result.returncode != 0:
         raise ValueError(f"PKO205 {label} failed with exit code {result.returncode}.")
 
@@ -150,7 +159,12 @@ def tool_version(repository: Path) -> tuple[Path, str]:
     return manifest, version
 
 
-def npm_stage(npm: str, stage: dict[str, object], name: str) -> dict[str, str]:
+def npm_stage(
+    repository: Path,
+    evidence: Path,
+    stage: dict[str, object],
+    name: str,
+) -> dict[str, str]:
     directory = stage["directory"]
     package_json = stage["packageJson"]
     lock_file = stage["lockFile"]
@@ -158,9 +172,24 @@ def npm_stage(npm: str, stage: dict[str, object], name: str) -> dict[str, str]:
     for path, label in ((package_json, "package.json"), (lock_file, "package lock")):
         if not path.is_file():
             raise ValueError(f"PKO207 {name} {label} is missing: {path}")
-    npm_command = [sys.executable, npm] if Path(npm).suffix.casefold() == ".py" else [npm]
-    run(npm_command + ["ci", "--ignore-scripts", "--strict-peer-deps", "--engine-strict"], directory, f"{name} npm ci")
-    run(npm_command + ["run", str(stage["script"])], directory, f"{name} npm script")
+    installed = js_toolchain.run_npm(
+        repository,
+        evidence,
+        ["ci", "--ignore-scripts", "--strict-peer-deps", "--engine-strict"],
+        directory,
+        300,
+    )
+    if installed.returncode != 0:
+        raise ValueError(f"PKO205 {name} npm ci failed with exit code {installed.returncode}.")
+    generated = js_toolchain.run_npm(
+        repository,
+        evidence,
+        ["run", str(stage["script"])],
+        directory,
+        300,
+    )
+    if generated.returncode != 0:
+        raise ValueError(f"PKO205 {name} npm script failed with exit code {generated.returncode}.")
     output_name = "generatedTypes" if name == "generator" else "tsconfig"
     output = stage[output_name]
     assert isinstance(output, Path)
@@ -179,14 +208,16 @@ def execute_contract(
     contract: dict,
     paths: dict,
     exporter: Path | None,
-    npm: str,
+    dotnet: str,
+    toolchain_evidence: Path,
+    nuget_environment: dict[str, str],
     initialize: bool,
     update: bool,
 ) -> dict:
     identity = str(contract["identity"])
     export_evidence = repository / f".program-kit/evidence/openapi/{identity}-export.json"
-    exporter_command = ["dotnet", str(exporter)] if exporter else [
-        "dotnet", "tool", "run", "programkit-openapi-export", "--"
+    exporter_command = [dotnet, str(exporter)] if exporter else [
+        dotnet, "tool", "run", "programkit-openapi-export", "--"
     ]
     run(
         exporter_command
@@ -201,6 +232,7 @@ def execute_contract(
         ],
         repository / "eng/program-kit" if exporter is None else repository,
         f"OpenAPI export for {identity}",
+        nuget_environment,
     )
     normalizer = repository / "eng/program-kit/openapi_contracts.py"
     normalize_command = [
@@ -217,8 +249,8 @@ def execute_contract(
     elif update:
         normalize_command.append("--write-generated")
     run(normalize_command, repository, f"OpenAPI normalization for {identity}")
-    generator = npm_stage(npm, paths["generator"], "generator")
-    application = npm_stage(npm, paths["application"], "application")
+    generator = npm_stage(repository, toolchain_evidence, paths["generator"], "generator")
+    application = npm_stage(repository, toolchain_evidence, paths["application"], "application")
     return {
         "identity": identity,
         "contractSha256": sha256(contract_path),
@@ -237,7 +269,6 @@ def main() -> int:
     parser.add_argument("--repository", default=".")
     parser.add_argument("--registry", default=".program-kit/openapi-contracts.json")
     parser.add_argument("--exporter", default="", help=argparse.SUPPRESS)
-    parser.add_argument("--npm-command", default="npm", help=argparse.SUPPRESS)
     parser.add_argument("--initialize-baselines", action="store_true")
     parser.add_argument("--update-artifacts", action="store_true")
     args = parser.parse_args()
@@ -252,14 +283,29 @@ def main() -> int:
             print("OpenAPI contract pipeline is not configured; no contracts are registered.")
             return 0
         manifest, version = tool_version(repository)
+        toolchain_evidence = repository / ".program-kit/evidence/toolchain.json"
+        js_toolchain.context(repository, toolchain_evidence)
+        toolchain = load_json(toolchain_evidence, "toolchain evidence")
+        commands = toolchain.get("commands", {})
+        dotnet_values = commands.get("dotnet") if isinstance(commands, dict) else None
+        if not isinstance(dotnet_values, list) or len(dotnet_values) != 1 or not Path(dotnet_values[0]).is_file():
+            raise ValueError("PKO210 exact dotnet command evidence is missing; run toolchain.py first.")
+        dotnet = str(dotnet_values[0])
+        nuget_cache = repository / ".program-kit/cache/nuget"
+        (nuget_cache / "packages").mkdir(parents=True, exist_ok=True)
+        (nuget_cache / "http").mkdir(parents=True, exist_ok=True)
+        nuget_environment = os.environ.copy()
+        nuget_environment["NUGET_PACKAGES"] = str(nuget_cache / "packages")
+        nuget_environment["NUGET_HTTP_CACHE_PATH"] = str(nuget_cache / "http")
         exporter = Path(args.exporter).resolve() if args.exporter else None
         if exporter is not None and not exporter.is_file():
             raise ValueError(f"PKO209 exporter test override is missing: {exporter}")
         if exporter is None:
             run(
-                ["dotnet", "tool", "restore", "--tool-manifest", str(manifest), "--configfile", str(repository / "NuGet.config")],
+                [dotnet, "tool", "restore", "--tool-manifest", str(manifest), "--configfile", str(repository / "NuGet.config")],
                 repository,
                 "managed OpenAPI exporter restore",
+                nuget_environment,
             )
         evidence = []
         seen: set[str] = set()
@@ -277,7 +323,9 @@ def main() -> int:
                     contract,
                     paths,
                     exporter,
-                    args.npm_command,
+                    dotnet,
+                    toolchain_evidence,
+                    nuget_environment,
                     args.initialize_baselines,
                     args.update_artifacts,
                 )

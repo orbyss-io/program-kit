@@ -66,7 +66,7 @@ def validate_lifecycle() -> None:
         )
         (feature / "tasks.md").write_text(
             "# tasks\n## Governance Completion Evidence\n- **Roadmap transition**: Delivered after evidence\n"
-            "- **Path and ownership protection**: validated\n",
+            "- **Path and ownership protection**: validated\n- [ ] T001 Confirm governance evidence.\n",
             encoding="utf-8",
         )
         canonical = [
@@ -103,6 +103,12 @@ def validate_lifecycle() -> None:
             raise AssertionError("clean analysis did not complete")
         if lifecycle.verify_before_implement(repository, feature) != 0:
             raise AssertionError("current analysis did not authorize implementation")
+        (feature / "tasks.md").write_text(
+            (feature / "tasks.md").read_text(encoding="utf-8").replace("- [ ] T001", "- [X] T001"),
+            encoding="utf-8",
+        )
+        if lifecycle.verify_before_implement(repository, feature) != 0:
+            raise AssertionError("checkbox-only implementation progress invalidated analysis readiness")
         (feature / "tasks.md").write_text(
             (feature / "tasks.md").read_text(encoding="utf-8") + "changed\n", encoding="utf-8"
         )
@@ -286,6 +292,45 @@ def validate_release_feature_closure() -> None:
         else:
             raise AssertionError("route collision was accepted")
 
+        clean_repository = root / "clean-consumer"
+        clean_repository.mkdir()
+        (clean_repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
+        (clean_repository / "NuGet.config").write_text(
+            '<configuration><packageSources><add key="test" value="https://example.invalid/v3/index.json" /></packageSources></configuration>\n',
+            encoding="utf-8",
+        )
+        managed = clean_repository / "eng/program-kit"
+        managed.mkdir(parents=True)
+        (managed / "ProgramKit.Packages.props").write_text(
+            '<Project><ItemGroup><PackageVersion Include="ProgramKit.Tasks" Version="1.0.0" /></ItemGroup></Project>\n',
+            encoding="utf-8",
+        )
+        (clean_repository / "shells.json").write_text(
+            json.dumps({"CShells": {"Shells": {"default": {"Features": {"ProgramKitTasks": {}}}}}}),
+            encoding="utf-8",
+        )
+        (clean_repository / "hostsettings.json").write_text("{}\n", encoding="utf-8")
+        clean_packages = root / "clean-packages"
+        clean_packages.mkdir()
+        clean_output = root / "clean-stage"
+        original_bases = release.package_base_addresses
+        original_download = release.download_package
+        release.package_base_addresses = lambda sources: ["https://example.invalid/flat"]
+
+        def seed_built_in(package_id: str, version: str, bases: list[str], destination: Path) -> None:
+            if (package_id, version) != ("ProgramKit.Tasks", "1.0.0"):
+                raise AssertionError(f"unexpected built-in package request: {package_id} {version}")
+            shutil.copyfile(tasks, destination)
+
+        release.download_package = seed_built_in
+        try:
+            release.stage(clean_repository, clean_packages, clean_output)
+        finally:
+            release.package_base_addresses = original_bases
+            release.download_package = original_download
+        if not (clean_output / "packages/ProgramKit.Tasks.1.0.0.nupkg").is_file():
+            raise AssertionError("activated ProgramKitTasks was not seeded from its managed package pin")
+
         staged = root / "staged"
         staged.mkdir()
         hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
@@ -385,6 +430,7 @@ def validate_toolchain_workflow() -> None:
         tools.mkdir()
         (repository / "global.json").write_text('{"sdk":{"version":"10.0.202"}}\n', encoding="utf-8")
         (repository / ".nvmrc").write_text("24.20.0\n", encoding="utf-8")
+        (repository / ".npm-version").write_text("11.19.0\n", encoding="utf-8")
         marker = repository / "dotnet-installed"
         if os.name == "nt":
             dotnet = tools / "dotnet.cmd"
@@ -394,6 +440,8 @@ def validate_toolchain_workflow() -> None:
             )
             node = tools / "node.cmd"
             node.write_text("@echo off\r\necho v24.20.0\r\n", encoding="utf-8")
+            npm = tools / "npm.cmd"
+            npm.write_text("@echo off\r\necho 11.19.0\r\n", encoding="utf-8")
             installer = repository / "dotnet-install.cmd"
             installer.write_text(f"@echo off\r\ntype nul > \"{marker}\"\r\n", encoding="utf-8")
             offline = repository / "offline.cmd"
@@ -403,11 +451,13 @@ def validate_toolchain_workflow() -> None:
             dotnet.write_text(f"#!/bin/sh\n[ -f '{marker}' ] && echo 10.0.202 || echo 9.0.100\n", encoding="utf-8")
             node = tools / "node"
             node.write_text("#!/bin/sh\necho v24.20.0\n", encoding="utf-8")
+            npm = tools / "npm"
+            npm.write_text("#!/bin/sh\necho 11.19.0\n", encoding="utf-8")
             installer = repository / "dotnet-install.sh"
             installer.write_text(f"#!/bin/sh\ntouch '{marker}'\n", encoding="utf-8")
             offline = repository / "offline.sh"
             offline.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
-            for path in (dotnet, node, installer, offline):
+            for path in (dotnet, node, npm, installer, offline):
                 path.chmod(0o755)
         environment = os.environ.copy()
         environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
@@ -458,16 +508,23 @@ def validate_toolchain_workflow() -> None:
         tools.mkdir()
         (repository / "global.json").write_text('{"sdk":{"version":"10.0.202"}}\n', encoding="utf-8")
         (repository / ".nvmrc").write_text("24.20.0\n", encoding="utf-8")
+        (repository / ".npm-version").write_text("11.19.0\n", encoding="utf-8")
         installed = repository / "node-installed"
+        pinned = repository / "pinned"
+        pinned.mkdir()
         if os.name == "nt":
             dotnet = tools / "dotnet.cmd"
             dotnet.write_text("@echo off\r\necho 10.0.202\r\n", encoding="utf-8")
             node = tools / "node.cmd"
             node.write_text("@echo off\r\necho v20.11.1\r\n", encoding="utf-8")
+            pinned_node = pinned / "node.cmd"
+            pinned_node.write_text("@echo off\r\necho v24.20.0\r\n", encoding="utf-8")
+            pinned_npm = pinned / "npm.cmd"
+            pinned_npm.write_text("@echo off\r\necho 11.19.0\r\n", encoding="utf-8")
             fnm = tools / "fnm.cmd"
             fnm.write_text(
                 f"@echo off\r\nif \"%1\"==\"install\" (type nul > \"{installed}\" & exit /b 0)\r\n"
-                f"if \"%1\"==\"exec\" (if exist \"{installed}\" (echo v24.20.0 & exit /b 0))\r\n"
+                f"if \"%1\"==\"exec\" (if exist \"{installed}\" (echo {pinned_node} & exit /b 0))\r\n"
                 "exit /b 1\r\n",
                 encoding="utf-8",
             )
@@ -476,13 +533,17 @@ def validate_toolchain_workflow() -> None:
             dotnet.write_text("#!/bin/sh\necho 10.0.202\n", encoding="utf-8")
             node = tools / "node"
             node.write_text("#!/bin/sh\necho v20.11.1\n", encoding="utf-8")
+            pinned_node = pinned / "node"
+            pinned_node.write_text("#!/bin/sh\necho v24.20.0\n", encoding="utf-8")
+            pinned_npm = pinned / "npm"
+            pinned_npm.write_text("#!/bin/sh\necho 11.19.0\n", encoding="utf-8")
             fnm = tools / "fnm"
             fnm.write_text(
                 f"#!/bin/sh\n[ \"$1\" = install ] && touch '{installed}' && exit 0\n"
-                f"[ \"$1\" = exec ] && [ -f '{installed}' ] && echo v24.20.0 && exit 0\nexit 1\n",
+                f"[ \"$1\" = exec ] && [ -f '{installed}' ] && printf '%s\\n' '{pinned_node}' && exit 0\nexit 1\n",
                 encoding="utf-8",
             )
-            for path in (dotnet, node, fnm):
+            for path in (dotnet, node, pinned_node, pinned_npm, fnm):
                 path.chmod(0o755)
         environment = os.environ.copy()
         environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
@@ -514,7 +575,12 @@ def validate_toolchain_workflow() -> None:
         evidence = json.loads(
             (repository / ".program-kit/evidence/toolchain.json").read_text(encoding="utf-8")
         )
-        if evidence["resolved"]["node"] != "24.20.0" or evidence["satisfied"] is not True:
+        if (
+            evidence["resolved"]["node"] != "24.20.0"
+            or evidence["resolved"]["npm"] != "11.19.0"
+            or evidence["commands"]["node"] != [str(pinned_node.resolve())]
+            or evidence["satisfied"] is not True
+        ):
             raise AssertionError(f"fnm re-verification evidence is incorrect: {evidence}")
 
 

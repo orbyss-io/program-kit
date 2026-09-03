@@ -12,8 +12,10 @@ require some other entry to remain Ready after the selected specification become
 
 Run `scripts/lifecycle_state.py verify-before-implement` for the active feature. It must prove that
 the canonical after_tasks analysis report is unchanged, contains no HIGH/CRITICAL readiness block,
-and was computed from the current byte hashes of `spec.md`, `plan.md`, and `tasks.md`. Missing,
-interrupted, or stale evidence blocks implementation.
+and was computed from the current hashes of `spec.md`, `plan.md`, and a canonical `tasks.md`. Checkbox
+state is implementation progress and is excluded from the task design hash; task IDs, descriptions,
+order, paths, and all other content remain hash-protected. Missing, interrupted, or stale evidence blocks
+implementation.
 
 Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`,
 `software-language.md`, `vertical-slicing.md`, `modularity-and-contracts.md`, and any detected

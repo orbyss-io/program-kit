@@ -40,9 +40,17 @@ architecture policy, vulnerability checks, and accepted decisions govern depende
 Sync accepts those consumer additions when the default public route and protected namespace routes
 remain intact; it reports an explicit conflict for malformed or unsafe routing.
 
-The managed toolchain checker reads the exact SDK and Node pins, asks before system or network changes,
-installs side-by-side where supported, and rechecks afterward. Persistence remains separately opt-in; a
-Nuplane package source or host setting does not select a database technology.
+The managed toolchain checker reads the exact SDK, Node, and npm pins, resolves their executable paths
+once into `.program-kit/evidence/toolchain.json`, asks before system or network changes, installs
+side-by-side where supported, and rechecks afterward. Every managed npm subprocess (OpenAPI, web tests,
+and governance dependency-graph research) re-verifies and uses those exact paths rather than bare PATH
+commands. npm uses `.program-kit/cache/npm`, strict TLS, and either bundled or system CA trust. Set
+`PROGRAMKIT_NODE_TRUST_MODE=system` when an organization roots TLS through the OS trust store, or set
+`PROGRAMKIT_NODE_EXTRA_CA_CERTS` to a reviewed PEM file; disabling strict SSL is rejected.
+
+Managed .NET and local-tool restores explicitly use the consumer-owned, reviewed `NuGet.config`, with
+package and HTTP caches below `.program-kit/cache/nuget`. The managed `global.json` selects
+`Microsoft.Testing.Platform` for .NET 10 test execution.
 
 ## Feature creation and release-time closure
 
@@ -55,7 +63,8 @@ abstractions are compile-time-private.
 `artifacts/runnable-host/` for an application image. The staging directory contains the validated runtime
 NuGet closure plus `hostsettings.json` and `shells.json`. Closure, duplicate version/identity, missing
 dependency, inactive feature, and route-collision failures are release-pipeline concerns. The shallow host
-does not repeat them.
+does not repeat them. Activated built-in features (currently `ProgramKitTasks`) are seeded from
+`ProgramKit.Packages.props` even when no consumer project needs a compile-time reference to their package.
 
 The generated application Dockerfile derives from an approved digest-pinned `ProgramKit.Host`, copies the
 staged packages into `/app/packages`, and copies the two configuration files. The generated release workflow
@@ -71,6 +80,11 @@ identities, the validated `artifacts/runnable-host/packages` closure, raw/canoni
 check. `Build.ps1` executes that chain after staging and writes hash-bound evidence. Use
 `-InitializeOpenApiBaseline` only for the reviewed first baseline and `-UpdateOpenApiArtifact` only for a
 reviewed generated-contract revision.
+
+`ProgramKit.OpenApi.Exporter` is packaged as a .NET local tool (a console application with the
+`programkit-openapi-export` command). Consumers do not install it globally or invoke its project directly:
+the synchronized local tool manifest pins it, and `openapi_pipeline.py` restores and runs that exact local
+version only when at least one OpenAPI contract is registered.
 
 ## Secure web and persistence profiles
 

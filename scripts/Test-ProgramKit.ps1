@@ -50,6 +50,16 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Lifecycle and profile validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_js_toolchain.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Exact JavaScript toolchain validation failed.'
+}
+
+& $python (Join-Path $projectRoot 'tests\validate_dotnet_build_contract.py')
+if ($LASTEXITCODE -ne 0) {
+    throw '.NET build and restricted-profile restore validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_codex_bootstrap.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Codex Desktop bootstrap validation failed.'

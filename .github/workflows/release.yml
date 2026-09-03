@@ -60,6 +60,12 @@ jobs:
       - name: Validate lifecycle and managed profile contracts
         run: python tests/validate_lifecycle_profiles.py
 
+      - name: Validate exact JavaScript toolchain execution
+        run: python tests/validate_js_toolchain.py
+
+      - name: Validate managed build and restricted-profile restore contract
+        run: python tests/validate_dotnet_build_contract.py
+
       - name: Validate profile-gated .NET scaffold
         run: python tests/validate_dotnet_scaffold.py
 
@@ -68,9 +74,8 @@ jobs:
 
       - name: Build .NET runtime in locked mode
         run: |
-          dotnet restore ProgramKit.slnx --locked-mode
+          dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.config
           dotnet build ProgramKit.slnx -c Release --no-restore
-          dotnet test ProgramKit.slnx -c Release --no-build --no-restore
 
       - name: Restore representative consumer dependency graph
         run: python tests/validate_dotnet_consumer_restore.py

@@ -33,6 +33,14 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def lifecycle_sha256(path: Path) -> str:
+    if path.name != "tasks.md":
+        return sha256(path)
+    content = path.read_text(encoding="utf-8")
+    canonical = re.sub(r"(?m)^(\s*-\s+\[)[ xX](\]\s+)", r"\1 \2", content)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def feature_identity(feature_dir: Path) -> str:
     value = feature_dir.name.strip()
     if not value or value in {".", ".."}:
@@ -46,7 +54,7 @@ def artifact_hashes(feature_dir: Path, required: tuple[str, ...]) -> dict[str, s
         path = feature_dir / name
         if not path.is_file():
             raise FileNotFoundError(f"PKL001 required lifecycle artifact is missing: {path}")
-        result[name] = sha256(path)
+        result[name] = lifecycle_sha256(path)
     return result
 
 
