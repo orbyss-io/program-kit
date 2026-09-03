@@ -10,11 +10,12 @@ import tempfile
 from pathlib import Path
 
 
-def version(command: list[str], cwd: Path) -> str | None:
+def version(command: list[str], cwd: Path, environment: dict[str, str] | None = None) -> str | None:
     try:
         result = subprocess.run(
             command + ["--version"],
             cwd=cwd,
+            env=environment,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -142,13 +143,19 @@ def npm_candidates(node: Path, requested: str) -> list[list[str]]:
     ):
         if candidate.is_file():
             result.append([str(node), str(candidate.resolve())])
+    if os.name != "nt":
+        candidate = directory / "npm"
+        if candidate.is_file():
+            result.append([str(candidate.resolve())])
     return result
 
 
 def resolve_npm(repository: Path, node: Path, required: str, requested: str) -> tuple[list[str] | None, str | None]:
     actual: str | None = None
+    environment = os.environ.copy()
+    environment["PATH"] = str(node.parent) + os.pathsep + environment.get("PATH", "")
     for command in npm_candidates(node, requested):
-        actual = version(command, repository)
+        actual = version(command, repository, environment)
         if actual == required:
             return command, actual
     return None, actual
@@ -246,8 +253,15 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
             continue
         if not Path(npm[index]).is_file():
             raise ValueError(f"PKT016 recorded npm command path is missing: {npm[index]}")
-    actual_node = version([str(commands["node"][0])], repository)
-    actual_npm = version(list(npm), repository)
+    node_command = commands.get("node") if isinstance(commands, dict) else None
+    if not isinstance(node_command, list) or len(node_command) != 1 or not Path(node_command[0]).is_file():
+        raise ValueError("PKT016 recorded Node command is invalid or missing.")
+    validation_environment = os.environ.copy()
+    validation_environment["PATH"] = (
+        str(Path(node_command[0]).parent) + os.pathsep + validation_environment.get("PATH", "")
+    )
+    actual_node = version(list(node_command), repository, validation_environment)
+    actual_npm = version(list(npm), repository, validation_environment)
     if actual_node != required.get("node") or actual_npm != required.get("npm"):
         raise ValueError(
             "PKT017 pinned JavaScript runtime cannot be used: "
@@ -266,6 +280,7 @@ def context(repository: Path, evidence_path: Path) -> tuple[list[str], dict[str,
         str(recorded_environment.get("trustMode", "")),
         str(recorded_environment.get("extraCaCertificates", "")),
     )
+    environment["PATH"] = str(Path(node_command[0]).parent) + os.pathsep + environment.get("PATH", "")
     return list(npm), environment
 
 

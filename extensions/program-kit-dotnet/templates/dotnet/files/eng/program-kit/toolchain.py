@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -142,11 +143,15 @@ def install_node(version: str, selected: str) -> None:
 
 def install_npm(repository: Path, node: Path, required: str, requested: str) -> None:
     candidates = js_toolchain.npm_candidates(node, requested)
-    current = next((command for command in candidates if js_toolchain.version(command, repository)), None)
-    if current is None:
-        raise ValueError("PKT018 pinned Node is installed but has no usable npm CLI for approved remediation.")
     cache = js_toolchain.cache_directory(repository)
     environment, _, _ = js_toolchain.trust_environment(repository, cache)
+    environment["PATH"] = str(node.parent) + os.pathsep + environment.get("PATH", "")
+    current = next(
+        (command for command in candidates if js_toolchain.version(command, repository, environment)),
+        None,
+    )
+    if current is None:
+        raise ValueError("PKT018 pinned Node is installed but has no usable npm CLI for approved remediation.")
     result = subprocess.run(
         current + ["--strict-ssl=true", "install", "--global", f"npm@{required}"],
         cwd=repository,
