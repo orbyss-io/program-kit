@@ -27,6 +27,9 @@ jobs:
       - name: Restore
         run: dotnet restore ProgramKit.slnx --locked-mode
 
+      - name: Restore representative consumer dependency graph
+        run: python tests/validate_dotnet_consumer_restore.py
+
       - name: Build
         run: dotnet build ProgramKit.slnx -c Release --no-restore
 

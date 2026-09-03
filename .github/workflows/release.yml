@@ -72,6 +72,9 @@ jobs:
           dotnet build ProgramKit.slnx -c Release --no-restore
           dotnet test ProgramKit.slnx -c Release --no-build --no-restore
 
+      - name: Restore representative consumer dependency graph
+        run: python tests/validate_dotnet_consumer_restore.py
+
       - name: Start host with a newly packed consumer feature
         run: python tests/validate_dotnet_feature_host.py
 

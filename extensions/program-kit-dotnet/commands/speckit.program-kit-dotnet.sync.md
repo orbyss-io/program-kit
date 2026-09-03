@@ -47,8 +47,13 @@ The sync itself performs local, path-contained file operations and does not cont
 generated restore, build, CI, release, and runnable-host staging paths can access the configured NuGet sources.
 
 The ownership record is `.program-kit/managed.json`. Root MSBuild discovery extension points, application
-`VERSION`, and shell configuration are scaffolded once and remain consumer-owned. Program Kit owns the SDK,
-NuGet source, analyzer policy, `eng/program-kit`, container, schema, and generated workflow baselines.
+`VERSION`, shell configuration, and `NuGet.config` are scaffolded once and remain consumer-owned. Program Kit
+owns the SDK, analyzer policy, `eng/program-kit`, container, schema, and generated workflow baselines.
+The scaffolded NuGet configuration uses nuget.org as the default public-package source while more-specific
+patterns protect the approved CShells and Nuplane preview namespaces. Consumers remain authoritative over
+their dependencies and may add private sources with namespace-specific mappings; they must preserve the
+protected Program Kit mappings and must not map those namespaces to multiple sources.
+Treat a consumer-extended configuration that passes those routing invariants as current, not as drift.
 The selected secure web profile additionally owns its identity Compose/realm fixture, web contract,
 and Playwright harness. `hostsettings.json` remains scaffold-once because deployment identifiers and
 secrets are consumer configuration; the generated version starts with safe local identifiers and an

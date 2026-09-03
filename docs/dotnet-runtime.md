@@ -28,9 +28,17 @@ that knows its selected features and operational dependencies.
 
 Run `speckit.program-kit-dotnet.sync` in write mode only after Accepted evidence selects .NET,
 `ProgramKit.Host`, and the disclosed preview feeds. Root `Directory.*`, `VERSION`, `shells.json`, and
-`hostsettings.json` are scaffold-once, consumer-owned files. Program Kit hash-manages `global.json`,
-`NuGet.config`, `.editorconfig`, generated workflows, and `eng/program-kit`. A changed managed file is a
+`hostsettings.json` and `NuGet.config` are scaffold-once, consumer-owned files. Program Kit hash-manages
+`global.json`, `.editorconfig`, generated workflows, and `eng/program-kit`. A changed managed file is a
 reported conflict, never an overwrite.
+
+Package Source Mapping is a source-routing boundary, not a Program Kit package allowlist. The generated
+`NuGet.config` routes the protected `CShells` and `Nuplane` namespaces to their approved preview feeds and
+uses nuget.org as the default for other public packages. Consumers choose their direct dependencies and
+may add their own private feeds with specific namespace mappings. Exact version pins, lock files,
+architecture policy, vulnerability checks, and accepted decisions govern dependency selection.
+Sync accepts those consumer additions when the default public route and protected namespace routes
+remain intact; it reports an explicit conflict for malformed or unsafe routing.
 
 The managed toolchain checker reads the exact SDK and Node pins, asks before system or network changes,
 installs side-by-side where supported, and rechecks afterward. Persistence remains separately opt-in; a
@@ -71,6 +79,10 @@ governed deployment artifacts rather than startup behavior, and PostgreSQL/SQL S
 provider-representative evidence.
 
 ## Upgrade note
+
+The next sync safely replaces an unchanged Program Kit-managed `NuGet.config` with the source-routing
+baseline and then transfers it to scaffold-once consumer ownership. A consumer-modified copy remains a
+reported conflict. The protected `CShells` and `Nuplane` mappings must remain intact when adding sources.
 
 The 0.8.1 sync removes the obsolete managed application-bundle schema and builder only when their recorded
 installed hashes are unchanged. A consumer-modified copy is preserved as a conflict. Existing scaffold-once

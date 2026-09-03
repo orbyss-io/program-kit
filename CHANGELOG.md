@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.8.5 - 2026-09-03
+
+- Replace the .NET consumer package-ID allowlist with protected source routing: nuget.org accepts
+  arbitrary consumer-selected public dependency graphs while the more-specific CShells and Nuplane
+  namespaces remain bound to their approved preview feeds. Safely migrate unchanged managed
+  `NuGet.config` files to the corrected baseline and then transfer them to consumer ownership; add a
+  restore regression covering MSTest SDK, Testcontainers, ArchUnitNET, and their transitive packages.
+  Sync accepts consumer-added private feeds with namespace-specific mappings while rejecting unsafe
+  catch-all or protected-namespace reassignment.
+
 ## 0.8.4 - 2026-09-03
 
 - Make paid live bootstrap acceptance entirely user-invoked. Publication no longer prompts for the

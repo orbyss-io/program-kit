@@ -8,7 +8,7 @@
     { "path": "Directory.Build.props", "ownership": "scaffold" },
     { "path": "Directory.Build.targets", "ownership": "scaffold" },
     { "path": "Directory.Packages.props", "ownership": "scaffold" },
-    { "path": "NuGet.config", "ownership": "managed" },
+    { "path": "NuGet.config", "ownership": "scaffold" },
     { "path": "shells.json", "ownership": "scaffold" },
     { "path": "hostsettings.json", "ownership": "scaffold" },
     { "path": ".dockerignore", "ownership": "managed" },

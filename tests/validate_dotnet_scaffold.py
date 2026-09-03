@@ -61,6 +61,59 @@ def main() -> int:
         assert "runnable-host.json" in application_release
         assert "containerimage.digest" in application_release
 
+        nuget_config = target / "NuGet.config"
+        nuget_text = nuget_config.read_text(encoding="utf-8")
+        assert '<package pattern="*" />' in nuget_text
+        assert '<package pattern="CShells.*" />' in nuget_text
+        assert '<package pattern="Nuplane.*" />' in nuget_text
+        assert state["files"]["NuGet.config"]["ownership"] == "scaffold"
+
+        # Repositories installed before NuGet.config became consumer-owned receive the
+        # routing correction once, but only while their managed copy is unmodified.
+        legacy_nuget = nuget_text.replace(
+            '<package pattern="*" />',
+            '<package pattern="Microsoft.*" />\n      <package pattern="System.*" />',
+        ).encode("utf-8")
+        nuget_config.write_bytes(legacy_nuget)
+        state_path = target / ".program-kit/managed.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["files"]["NuGet.config"] = {
+            "ownership": "managed",
+            "installedHash": hashlib.sha256(legacy_nuget).hexdigest(),
+            "templateHash": hashlib.sha256(legacy_nuget).hexdigest(),
+        }
+        state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+        ownership_migrated = run("--target", str(target), *approvals)
+        assert ownership_migrated.returncode == 0, ownership_migrated.stderr
+        assert "  ~ NuGet.config" in ownership_migrated.stdout
+        assert nuget_config.read_text(encoding="utf-8") == nuget_text
+        migrated_state = json.loads(state_path.read_text(encoding="utf-8"))
+        assert migrated_state["files"]["NuGet.config"]["ownership"] == "scaffold"
+
+        consumer_nuget = nuget_text.replace(
+            "  </packageSources>",
+            '    <add key="Consumer Feed" value="https://packages.example.invalid/v3/index.json" />\n  </packageSources>',
+        ).replace(
+            "  </packageSourceMapping>",
+            '    <packageSource key="Consumer Feed">\n      <package pattern="Consumer.*" />\n    </packageSource>\n  </packageSourceMapping>',
+        )
+        nuget_config.write_text(consumer_nuget, encoding="utf-8")
+        consumer_preserved = run("--target", str(target), *approvals)
+        assert consumer_preserved.returncode == 0, consumer_preserved.stderr
+        assert nuget_config.read_text(encoding="utf-8") == consumer_nuget
+
+        unsafe_nuget = consumer_nuget.replace(
+            '<package pattern="Consumer.*" />', '<package pattern="*" />'
+        )
+        nuget_config.write_text(unsafe_nuget, encoding="utf-8")
+        unsafe_rejected = run("--target", str(target), *approvals)
+        assert unsafe_rejected.returncode == 2, unsafe_rejected.stderr
+        assert "must use namespace-specific patterns" in unsafe_rejected.stdout
+        assert nuget_config.read_text(encoding="utf-8") == unsafe_nuget
+        nuget_config.write_bytes(
+            (ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/NuGet.config").read_bytes()
+        )
+
         obsolete_content = b"managed by the previous Program Kit\n"
         state_path = target / ".program-kit/managed.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))

@@ -1,18 +1,48 @@
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from xml.etree import ElementTree
+
+
+def validate_package_source_routing(path: Path) -> None:
+    root = ElementTree.parse(path).getroot()
+    mappings = {
+        source.attrib["key"]: {package.attrib["pattern"] for package in source}
+        for source in root.findall("./packageSourceMapping/packageSource")
+    }
+    if mappings.get("nuget.org") != {"*"}:
+        raise AssertionError(f"{path} must route all non-protected public packages to nuget.org")
+    if mappings.get("CShells Preview") != {"CShells", "CShells.*"}:
+        raise AssertionError(f"{path} does not exclusively protect the CShells namespace")
+    if mappings.get("Nuplane Preview") != {"Nuplane", "Nuplane.*"}:
+        raise AssertionError(f"{path} does not exclusively protect the Nuplane namespace")
+    if any("*" in patterns for key, patterns in mappings.items() if key != "nuget.org"):
+        raise AssertionError(f"{path} maps arbitrary consumer packages to a preview feed")
 
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.8.4":
+    if program_version != "0.8.5":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.8.4-preview.1":
+    if runtime_version != "0.8.5-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
+
+    validate_package_source_routing(root / "NuGet.config")
+    validate_package_source_routing(
+        root / "extensions/program-kit-dotnet/templates/dotnet/files/NuGet.config"
+    )
+    manifest = json.loads(
+        (root / "extensions/program-kit-dotnet/templates/dotnet/managed-files.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    nuget_entry = next(item for item in manifest["files"] if item["path"] == "NuGet.config")
+    if nuget_entry["ownership"] != "scaffold":
+        raise AssertionError("Consumer NuGet.config must remain consumer-owned after scaffolding")
 
     version_props = (root / "eng/ProgramKit.Version.props").read_text(encoding="utf-8")
     if f"<ProgramKitVersion>{runtime_version}</ProgramKitVersion>" not in version_props:

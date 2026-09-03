@@ -87,6 +87,13 @@ runtime composition mechanism; it does not imply that shells are tenants or boun
 Record the preview packages and package sources as a material acknowledgement in the assessment
 review packet. Do not download or restore them merely by approving architecture.
 
+Treat Package Source Mapping as source routing, not as a Program Kit dependency allowlist. The
+scaffolded configuration maps the protected `CShells` and `Nuplane` namespaces to their approved
+preview feeds; a generic nuget.org mapping accepts other public packages and their transitive
+closures. Consumers own dependency selection and may add private sources with specific namespace
+mappings. Keep dependency approval in the consumer's version pins, lock files, architecture rules,
+security checks, and accepted decisions rather than requiring Program Kit to enumerate package IDs.
+
 An explicit opt-out may select a conventional ASP.NET Core host. Record why the Program Kit host is
 not suitable and which composition, packaging, task, and deployment responsibilities the project
 then owns.

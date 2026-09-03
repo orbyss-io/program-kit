@@ -6,6 +6,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from xml.etree import ElementTree
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -27,6 +28,50 @@ def load_json(path: Path, default: dict) -> dict:
     if not isinstance(value, dict):
         raise ValueError(f"Expected an object in {path}")
     return value
+
+
+def consumer_nuget_routing_error(path: Path) -> str | None:
+    """Validate the protected routes while allowing consumer-owned feed extensions."""
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (ElementTree.ParseError, OSError) as exc:
+        return f"cannot parse consumer-owned NuGet configuration: {exc}"
+
+    sources = {
+        source.attrib.get("key", ""): source.attrib.get("value", "")
+        for source in root.findall("./packageSources/add")
+    }
+    required_sources = {
+        "nuget.org": "https://api.nuget.org/v3/index.json",
+        "CShells Preview": "https://f.feedz.io/valence-works/cshells/nuget/index.json",
+        "Nuplane Preview": "https://f.feedz.io/valence-works/nuplane/nuget/index.json",
+    }
+    for source, url in required_sources.items():
+        if sources.get(source) != url:
+            return f"{source} must retain its approved package-source URL"
+
+    mappings = {
+        source.attrib.get("key", ""): {
+            package.attrib.get("pattern", "") for package in source.findall("package")
+        }
+        for source in root.findall("./packageSourceMapping/packageSource")
+    }
+    expected = {
+        "CShells Preview": {"CShells", "CShells.*"},
+        "Nuplane Preview": {"Nuplane", "Nuplane.*"},
+    }
+    if "*" not in mappings.get("nuget.org", set()):
+        return "nuget.org must retain the default '*' public-package route"
+    for source, patterns in expected.items():
+        if mappings.get(source) != patterns:
+            return f"{source} must retain only the protected patterns {sorted(patterns)}"
+    for source, patterns in mappings.items():
+        if source != "nuget.org" and "*" in patterns:
+            return f"{source} must use namespace-specific patterns rather than a second '*' route"
+        protected = {"CShells", "CShells.*", "Nuplane", "Nuplane.*"}
+        if source not in expected and patterns.intersection(protected):
+            return f"{source} must not duplicate a protected CShells or Nuplane route"
+    return None
 
 
 def selected_web_profile(target: Path, requested: str) -> str:
@@ -198,6 +243,7 @@ def main() -> int:
     updated: list[str] = []
     unchanged: list[str] = []
     conflicts: list[str] = []
+    conflict_details: dict[str, str] = {}
     removed: list[str] = []
     next_files: dict[str, dict[str, str]] = {}
 
@@ -222,11 +268,22 @@ def main() -> int:
             current_hash = sha256_bytes(current)
             if current_hash == desired_hash:
                 unchanged.append(relative)
-            elif ownership == "managed" and isinstance(previous, dict) and current_hash == previous.get("installedHash"):
+            elif (
+                isinstance(previous, dict)
+                and current_hash == previous.get("installedHash")
+                and (ownership == "managed" or previous.get("ownership") == "managed")
+            ):
                 updated.append(relative)
                 if not args.check:
                     destination.write_bytes(desired)
                 current_hash = desired_hash
+            elif ownership == "scaffold" and relative == "NuGet.config":
+                routing_error = consumer_nuget_routing_error(destination)
+                if routing_error is None:
+                    unchanged.append(relative)
+                else:
+                    conflicts.append(relative)
+                    conflict_details[relative] = routing_error
             else:
                 conflicts.append(relative)
 
@@ -258,7 +315,8 @@ def main() -> int:
     print(f"unchanged: {len(unchanged)}")
     print(f"conflicts: {len(conflicts)}")
     for path in conflicts:
-        print(f"  ! {path}")
+        detail = conflict_details.get(path)
+        print(f"  ! {path}" + (f": {detail}" if detail else ""))
     print(f"removed obsolete managed files: {len(removed)}")
     for path in removed:
         print(f"  - {path}")

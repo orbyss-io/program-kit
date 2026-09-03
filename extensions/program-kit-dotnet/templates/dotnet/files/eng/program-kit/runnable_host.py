@@ -15,7 +15,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-PROGRAM_KIT_VERSION = "0.8.4"
+PROGRAM_KIT_VERSION = "0.8.5"
 BUILT_IN_FEATURE_PACKAGES = {"ProgramKitTasks": "ProgramKit.Tasks"}
 
 
