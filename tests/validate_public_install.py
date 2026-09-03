@@ -26,6 +26,7 @@ BUNDLE_CATALOG = (
 )
 EXPECTED_HOOKS = {
     "before_constitution",
+    "after_constitution",
     "before_specify",
     "after_specify",
     "after_plan",
