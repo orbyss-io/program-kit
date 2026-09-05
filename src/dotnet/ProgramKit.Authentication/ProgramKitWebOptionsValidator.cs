@@ -43,6 +43,30 @@ internal sealed class ProgramKitWebOptionsValidator(
             failures.Add("ProgramKit:Web:Authority must be an absolute URI.");
         }
 
+        if (!string.IsNullOrWhiteSpace(options.BackchannelAuthority))
+        {
+            if (Uri.TryCreate(options.BackchannelAuthority, UriKind.Absolute, out var backchannelAuthority))
+            {
+                var localHttpAllowed = environment.IsDevelopment()
+                    && options.AllowHttpForLocalDevelopment
+                    && backchannelAuthority.Scheme == Uri.UriSchemeHttp;
+                if (backchannelAuthority.Scheme != Uri.UriSchemeHttps && !localHttpAllowed)
+                {
+                    failures.Add(
+                        "ProgramKit:Web:BackchannelAuthority must use HTTPS; local HTTP requires the explicit development override.");
+                }
+                if (!string.IsNullOrEmpty(backchannelAuthority.Query)
+                    || !string.IsNullOrEmpty(backchannelAuthority.Fragment))
+                {
+                    failures.Add("ProgramKit:Web:BackchannelAuthority must not contain a query or fragment.");
+                }
+            }
+            else
+            {
+                failures.Add("ProgramKit:Web:BackchannelAuthority must be an absolute URI when configured.");
+            }
+        }
+
         if (options.Scopes.Length == 0 || !options.Scopes.Contains("openid", StringComparer.Ordinal))
         {
             failures.Add("ProgramKit:Web:Scopes must include openid.");

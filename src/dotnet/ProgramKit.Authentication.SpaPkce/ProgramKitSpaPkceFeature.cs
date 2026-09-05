@@ -39,9 +39,15 @@ public sealed class ProgramKitSpaPkceFeature : IWebShellFeature, IMiddlewareShel
             {
                 var settings = selected.Value;
                 options.Authority = settings.Authority;
+                if (!string.IsNullOrWhiteSpace(settings.BackchannelAuthority))
+                {
+                    options.MetadataAddress =
+                        $"{settings.BackchannelAuthority.TrimEnd('/')}/.well-known/openid-configuration";
+                }
                 options.Audience = settings.Audience;
                 options.MapInboundClaims = false;
                 options.RequireHttpsMetadata = !settings.AllowHttpForLocalDevelopment;
+                options.BackchannelTimeout = TimeSpan.FromSeconds(settings.DiscoveryTimeoutSeconds);
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,

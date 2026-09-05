@@ -29,7 +29,21 @@ def main() -> int:
         if rule_id not in output:
             raise AssertionError(f"The analyzer probe did not report {rule_id}.\n{output}")
 
-    print("Program Kit C# structure and documentation analyzers passed.")
+    feature_project = root / "tests/analyzer-feature-probe/AnalyzerFeatureProbe.csproj"
+    feature = subprocess.run(
+        ["dotnet", "build", str(feature_project), "--nologo"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    feature_output = feature.stdout + feature.stderr
+    if feature.returncode == 0 or "PK1006" not in feature_output:
+        raise AssertionError(
+            "The analyzer did not reject a dotted ProgramKitFeatureIdentity whose CLR "
+            f"[ShellFeature] name diverges.\n{feature_output}"
+        )
+
+    print("Program Kit C# structure, documentation, and feature-identity analyzers passed.")
     return 0
 
 

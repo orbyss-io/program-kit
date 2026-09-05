@@ -1,16 +1,93 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 UPDATER = ROOT / "scripts/upgrade_program_kit.py"
+
+
+def load_updater():
+    scripts = str(ROOT / "scripts")
+    sys.path.insert(0, scripts)
+    try:
+        specification = importlib.util.spec_from_file_location("program_kit_upgrade", UPDATER)
+        if specification is None or specification.loader is None:
+            raise AssertionError("could not load release-owned updater")
+        module = importlib.util.module_from_spec(specification)
+        specification.loader.exec_module(module)
+        return module
+    finally:
+        sys.path.remove(scripts)
+
+
+def validate_uv_launcher_bridge() -> None:
+    if os.name != "nt":
+        return
+    updater = load_updater()
+    with tempfile.TemporaryDirectory(prefix="program-kit-uv-launcher-") as value:
+        root = Path(value)
+        target = root / "consumer"
+        target.mkdir()
+        release = root / "release"
+        bridge = release / "scripts/invoke_specify.py"
+        bridge.parent.mkdir(parents=True)
+        shutil.copyfile(ROOT / "scripts/invoke_specify.py", bridge)
+
+        environment = root / "external-uv-tools/specify-cli"
+        interpreter = environment / "Scripts/python.exe"
+        interpreter.parent.mkdir(parents=True)
+        interpreter.write_bytes(b"inaccessible uv Python launcher fixture")
+        (environment / "pyvenv.cfg").write_text(
+            "home = C:\\external\\uv\\python\nuv = 0.11.3\n", encoding="utf-8"
+        )
+        package = environment / "Lib/site-packages/specify_cli"
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text(
+            "def main():\n"
+            "    print('sandbox-compatible Specify fixture')\n"
+            "    return 0\n",
+            encoding="utf-8",
+        )
+        launcher = root / "external-bin/specify.exe"
+        launcher.parent.mkdir()
+        launcher.write_bytes(
+            b"MZ-program-kit-invalid-executable-fixture\n#!"
+            + str(interpreter).encode("utf-8")
+            + b"\nfrom specify_cli import main\n"
+        )
+        before = sorted(path.relative_to(target).as_posix() for path in target.rglob("*"))
+        original_probe = updater.run_specify_probe
+
+        def probe(command, arguments, repository):
+            if command == [str(launcher)]:
+                return subprocess.CompletedProcess(
+                    command + arguments,
+                    101,
+                    "",
+                    f'Unable to create process using "{interpreter}" "{launcher}": Access is denied.',
+                )
+            return original_probe(command, arguments, repository)
+
+        with patch.object(updater, "run_specify_probe", probe):
+            resolved = updater.preflight_specify([str(launcher)], target, release)
+        after = sorted(path.relative_to(target).as_posix() for path in target.rglob("*"))
+        if before != after:
+            raise AssertionError("uv launcher bridge preflight mutated the consumer repository")
+        if resolved[:2] != [sys.executable, str(bridge.resolve())] or str(package.parent.resolve()) not in resolved:
+            raise AssertionError(f"uv launcher did not resolve the release-owned bridge: {resolved}")
+        probe = run(*resolved, "bundle", "install", "--help", cwd=target)
+        require_success(probe, "sandbox-compatible uv Specify bridge")
 
 
 def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -211,6 +288,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
 
 
 def main() -> int:
+    validate_uv_launcher_bridge()
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     with tempfile.TemporaryDirectory(prefix="program-kit-local-upgrade-") as directory:
         project = Path(directory)

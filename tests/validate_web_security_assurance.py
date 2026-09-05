@@ -246,10 +246,57 @@ def main() -> int:
         "IMiddlewareShellFeature",
         "IAuthenticationErrorWriter",
         "TryAddSingleton<IAuthenticationErrorWriter, DefaultAuthenticationErrorWriter>",
+        "settings.BackchannelAuthority",
+        "options.MetadataAddress",
+        "options.BackchannelTimeout",
     ):
         if required not in feature_source:
             raise AssertionError(f"CShells feature packages do not implement the web contract: {required}")
     web_profiles_root = root / "extensions/program-kit-dotnet/templates/dotnet/web-profiles"
+    persona_fixture = web_profiles_root / "common/eng/program-kit/web/persona-fixture.ts"
+    persona_source = persona_fixture.read_text(encoding="utf-8")
+    expected_realm = (
+        persona_fixture.parent / "../../../deploy/keycloak/program-kit-realm.json"
+    ).resolve()
+    if "../../../deploy/keycloak/program-kit-realm.json" not in persona_source or not expected_realm.is_file():
+        raise AssertionError("The managed persona loader does not resolve the realm from its shipped suite directory")
+    if "../../../../deploy/keycloak/program-kit-realm.json" in persona_source:
+        raise AssertionError("The managed persona loader still escapes one directory above the consumer repository")
+    test_web = (web_profiles_root / "common/eng/program-kit/Test-Web.ps1").read_text(encoding="utf-8")
+    package = load_object(web_profiles_root / "common/eng/program-kit/web/package.json")
+    fixture_script = package.get("scripts", {}).get("test:fixture", "")
+    if "../../../deploy/keycloak/program-kit-realm.json" not in fixture_script:
+        raise AssertionError("The managed web suite has no executable persona-fixture regression")
+    if "npm -- run test:fixture" not in test_web:
+        raise AssertionError("Test-Web.ps1 does not execute the persona-fixture regression")
+    identity_compose = (
+        web_profiles_root / "common/deploy/compose.identity.yml"
+    ).read_text(encoding="utf-8")
+    for required in (
+        "KC_HOSTNAME: http://localhost:8080",
+        'KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"',
+        "program-kit-identity",
+        "name: program-kit-local",
+    ):
+        if required not in identity_compose:
+            raise AssertionError(f"The identity Compose topology is missing: {required}")
+    for compose_path in (
+        web_profiles_root / "common/deploy/compose.application.yml",
+        web_profiles_root / "spa-pkce/deploy/compose.application.yml",
+    ):
+        application_compose = compose_path.read_text(encoding="utf-8")
+        for required in (
+            "BackchannelAuthority",
+            "http://program-kit-identity:8080/realms/program-kit",
+            "external: true",
+            "name: program-kit-local",
+        ):
+            if required not in application_compose:
+                raise AssertionError(
+                    f"{compose_path} is missing private identity backchannel topology: {required}"
+                )
+        if "extra_hosts" in application_compose or "localhost:host-gateway" in application_compose:
+            raise AssertionError(f"{compose_path} must not override container localhost")
     realm_fixture = web_profiles_root / "common/deploy/keycloak/program-kit-realm.json"
     realm = load_object(realm_fixture)
     if realm.get("attributes", {}).get("programKitFixture") != "local-non-production-only":

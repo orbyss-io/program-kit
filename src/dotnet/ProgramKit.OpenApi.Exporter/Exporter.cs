@@ -15,7 +15,7 @@ namespace ProgramKit.OpenApiExport;
 internal static class Exporter
 {
     /// <summary>Identifies the exact managed exporter contract implemented by this binary.</summary>
-    private const string ToolVersion = "0.9.6-preview.1";
+    private const string ToolVersion = "0.9.7-preview.1";
 
     /// <summary>Runs one export and converts deterministic contract failures to PKO200 diagnostics.</summary>
     public static async Task<int> RunAsync(string[] args)
@@ -197,6 +197,13 @@ internal static class Exporter
             throw new InvalidOperationException(
                 $"feature package '{descriptor.PackageId}' must expose exactly one IShellFeature; " +
                 $"found {candidates.Length}.");
+        }
+        var attribute = candidates[0].GetCustomAttribute<ShellFeatureAttribute>();
+        if (!string.Equals(attribute?.Name, identity, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"feature package '{descriptor.PackageId}' declares descriptor identity '{identity}', but " +
+                $"CLR type '{candidates[0].FullName}' does not declare the exact [ShellFeature] identity.");
         }
         var constructors = candidates[0].GetConstructors();
         var settingsConstructor = constructors.SingleOrDefault(constructor =>

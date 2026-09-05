@@ -66,6 +66,39 @@ def wait_ready(name: str, timeout: int = 180) -> None:
     raise AssertionError(f"Keycloak did not become ready:\n{logs.stdout}{logs.stderr}")
 
 
+def published_port(name: str, container_port: str) -> str:
+    result = subprocess.run(
+        ["docker", "port", name, container_port], capture_output=True, text=True, check=True
+    )
+    return result.stdout.strip().rsplit(":", 1)[-1]
+
+
+def validate_split_authority_metadata(name: str) -> None:
+    request = urllib.request.Request(
+        f"http://127.0.0.1:{published_port(name, '8080/tcp')}"
+        "/realms/program-kit/.well-known/openid-configuration",
+        headers={"Host": "program-kit-identity:8080"},
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        metadata = json.loads(response.read())
+    expected_public = "http://localhost:8080/realms/program-kit"
+    expected_backchannel = "http://program-kit-identity:8080/realms/program-kit"
+    expected = {
+        "issuer": expected_public,
+        "authorization_endpoint": f"{expected_public}/protocol/openid-connect/auth",
+        "end_session_endpoint": f"{expected_public}/protocol/openid-connect/logout",
+        "token_endpoint": f"{expected_backchannel}/protocol/openid-connect/token",
+        "userinfo_endpoint": f"{expected_backchannel}/protocol/openid-connect/userinfo",
+        "jwks_uri": f"{expected_backchannel}/protocol/openid-connect/certs",
+    }
+    actual = {key: metadata.get(key) for key in expected}
+    if actual != expected:
+        raise AssertionError(
+            "Keycloak did not preserve the public issuer/frontchannel and private server backchannel: "
+            + json.dumps(actual, sort_keys=True)
+        )
+
+
 def smoke(profile: str, root: Path) -> None:
     name = f"program-kit-keycloak-{profile}-{uuid.uuid4().hex[:8]}"
     realm = root / f"{profile}.json"
@@ -73,10 +106,12 @@ def smoke(profile: str, root: Path) -> None:
     started = subprocess.run(
         [
             "docker", "run", "--detach", "--name", name,
+            "--publish", "127.0.0.1::8080",
             "--publish", "127.0.0.1::9000",
             "--env", "KC_BOOTSTRAP_ADMIN_USERNAME=fixture-admin",
             "--env", "KC_BOOTSTRAP_ADMIN_PASSWORD=ephemeral-smoke-only",
             "--env", "KC_HOSTNAME=http://localhost:8080",
+            "--env", "KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true",
             "--volume", f"{realm.resolve()}:/opt/keycloak/data/import/program-kit-realm.json:ro",
             image_reference(), "start-dev", "--import-realm", "--health-enabled=true",
         ],
@@ -91,6 +126,7 @@ def smoke(profile: str, root: Path) -> None:
         logs = subprocess.run(["docker", "logs", name], capture_output=True, text=True, check=True)
         if "Unrecognized field" in logs.stdout + logs.stderr:
             raise AssertionError(f"Keycloak rejected the {profile} realm representation")
+        validate_split_authority_metadata(name)
     finally:
         subprocess.run(["docker", "rm", "--force", name], check=False, capture_output=True)
 

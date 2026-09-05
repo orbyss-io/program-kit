@@ -9,6 +9,12 @@ public sealed class ProgramKitWebOptions
     /// <summary>Gets or sets the OIDC issuer authority.</summary>
     public string Authority { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets an optional server-reachable authority used only to retrieve OIDC metadata.
+    /// The public <see cref="Authority"/> remains the issuer and browser-facing authority.
+    /// </summary>
+    public string BackchannelAuthority { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the registered OAuth client identifier.</summary>
     public string ClientId { get; set; } = string.Empty;
 

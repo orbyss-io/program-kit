@@ -11,6 +11,15 @@ routed upstream. Do not sanitize or replace the Codex process `PATH` as a Progra
 Use the verified full release archive and its offline `scripts/upgrade_program_kit.py` from a normal
 user-owned terminal.
 
+The release-owned updater also recognizes a uv-generated `specify.exe` whose managed Python cannot
+execute inside the current Windows sandbox. When that launcher's uv environment remains readable,
+the updater validates the embedded interpreter path and uv metadata, then performs read-only probes
+through `scripts/invoke_specify.py` using the updater's already-running Python. This reuses the exact
+installed `specify_cli` package without downloading, copying, or replacing it. If the package is not
+readable or compatible, `PKU114` stops before mutation and prints the exact PowerShell retry command
+for a normal user-owned terminal. A persisted repository command vector would retain a stale external
+uv path and is therefore not used as a portability claim.
+
 ## Why this boundary exists
 
 Official OpenAI documentation says native Windows agent mode runs in a sandbox. The preferred

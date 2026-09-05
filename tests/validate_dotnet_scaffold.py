@@ -350,6 +350,9 @@ def main() -> int:
         }
         bff_compose = (browser_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
         assert "CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret" in bff_compose
+        assert "CShells__Shells__default__Configuration__ProgramKit__Web__BackchannelAuthority" in bff_compose
+        assert "program-kit-identity:8080/realms/program-kit" in bff_compose
+        assert "extra_hosts" not in bff_compose and "localhost:host-gateway" not in bff_compose
         assert (browser_target / "eng/program-kit/web/package-lock.json").is_file()
         assert (browser_target / ".program-kit/security/web-security-evidence.json").is_file()
         assert (browser_target / "docs/architecture/program-kit/web-security-threat-model.md").is_file()
@@ -466,6 +469,9 @@ def main() -> int:
         assert not any("*" in uri for uri in spa_client["redirectUris"])
         compose = (spa_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
         assert "ClientSecret" not in compose and "local-program-kit-secret" not in compose
+        assert "CShells__Shells__default__Configuration__ProgramKit__Web__BackchannelAuthority" in compose
+        assert "program-kit-identity:8080/realms/program-kit" in compose
+        assert "extra_hosts" not in compose and "localhost:host-gateway" not in compose
         playwright = (spa_target / "eng/program-kit/web/playwright.config.ts").read_text(encoding="utf-8")
         assert "trace: 'off'" in playwright and "screenshot: 'off'" in playwright and "video: 'off'" in playwright
         verifier = subprocess.run(

@@ -164,7 +164,7 @@ public sealed class ForbiddenInitializer : IShellInitializer
                 "shell": "default",
                 "producer": {
                     "kind": "ProgramKit.OpenApi.Exporter",
-                    "version": "0.9.6-preview.1",
+                    "version": "0.9.7-preview.1",
                 },
                 "features": ["Fixture.Web"],
             },
@@ -272,6 +272,40 @@ def main() -> int:
             raise AssertionError(f"exporter did not record API Explorer initialization: {recorded}")
         if (repository / "initializer-ran.txt").exists():
             raise AssertionError("OpenAPI export ran a shell lifecycle initializer")
+
+        mismatched_packages = repository / "mismatched-packages"
+        feature_source = repository / "FixtureWebFeature.cs"
+        feature_source.write_text(
+            feature_source.read_text(encoding="utf-8").replace(
+                '[ShellFeature(name: "Fixture.Web", DisplayName = "Fixture Web")]',
+                '[ShellFeature(name: "Fixture.Clr", DisplayName = "Fixture Web")]',
+            ),
+            encoding="utf-8",
+        )
+        mismatched = run(
+            [
+                "dotnet",
+                "pack",
+                "WebFeature.csproj",
+                "-c",
+                "Release",
+                "-o",
+                str(mismatched_packages),
+                "--no-restore",
+            ],
+            repository,
+            environment,
+        )
+        if mismatched.returncode != 0:
+            raise AssertionError(f"mismatched fixture pack failed:\n{mismatched.stdout}{mismatched.stderr}")
+        for package in packages.glob("*.nupkg"):
+            if "ProgramKit.OpenApiFixture" not in package.name:
+                shutil.copyfile(package, mismatched_packages / package.name)
+        mismatched_command = list(command)
+        mismatched_command[mismatched_command.index("--packages") + 1] = str(mismatched_packages)
+        rejected_identity = run(mismatched_command, repository)
+        if rejected_identity.returncode != 2 or "does not declare the exact [ShellFeature] identity" not in rejected_identity.stderr:
+            raise AssertionError("OpenAPI export accepted CLR/package feature-identity divergence")
 
         contract = json.loads((repository / "openapi-contract.json").read_text(encoding="utf-8"))
         contract["features"] = []
@@ -385,7 +419,7 @@ raise SystemExit(0)
                 repository,
                 staged_root,
                 repository / runtime_closure.EVIDENCE,
-                "0.9.6",
+                "0.9.7",
             )
         finally:
             sys.path.remove(str(managed))

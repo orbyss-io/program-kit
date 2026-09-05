@@ -26,9 +26,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.9.6":
+    if program_version != "0.9.7":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.9.6-preview.1":
+    if runtime_version != "0.9.7-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     validate_package_source_routing(root / "NuGet.config")
@@ -86,13 +86,13 @@ def main() -> int:
             raise AssertionError(f"Consumer template does not pin {package} to {runtime_version}")
 
     analyzer = (root / "src/dotnet/ProgramKit.Analyzers/ProgramKitAnalyzer.cs").read_text(encoding="utf-8")
-    for rule_id in ("PK1001", "PK1002", "PK1003", "PK1004", "PK1005"):
+    for rule_id in ("PK1001", "PK1002", "PK1003", "PK1004", "PK1005", "PK1006"):
         if rule_id not in analyzer:
             raise AssertionError(f"Program Kit analyzer does not declare {rule_id}")
     editorconfig = (
         root / "extensions/program-kit-dotnet/templates/dotnet/files/.editorconfig"
     ).read_text(encoding="utf-8")
-    for rule_id in ("PK1003", "PK1004", "PK1005"):
+    for rule_id in ("PK1003", "PK1004", "PK1005", "PK1006"):
         if f"dotnet_diagnostic.{rule_id}.severity = error" not in editorconfig:
             raise AssertionError(f"Consumer template does not enforce {rule_id}")
     engineering = (

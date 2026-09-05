@@ -125,6 +125,8 @@ When accepted:
 - only the host/composition project references the full `CShells` and `CShells.AspNetCore` runtimes;
 - the host bridges Nuplane-loaded feature assemblies into CShells and owns only its runtime configuration;
 - an `IShellFeature` or `IWebShellFeature` is a composition adapter, not the domain model;
+- every packaged feature declares `[ShellFeature("<exact ProgramKitFeatureIdentity>")]`; CLR,
+  package, runtime-catalog, and `shells.json` identities are one case-sensitive contract;
 - `ConfigureServices` registers implementations of owned domain or contract interfaces and contains
   no business policy;
 - feature configuration is bound to feature-owned typed options using the accepted .NET options

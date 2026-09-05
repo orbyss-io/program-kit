@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FEATURE_ID = "ConsumerOrders"
+FEATURE_ID = "PriceCalculator.Access.Api"
 PACKAGE_ID = "ProgramKit.TestFeature"
 
 
@@ -42,7 +42,7 @@ def create_consumer_feature(repository: Path) -> None:
     <PackageId>ProgramKit.TestFeature</PackageId>
     <AssemblyName>ProgramKit.TestFeature</AssemblyName>
     <Version>1.0.0</Version>
-    <ProgramKitFeatureIdentity>ConsumerOrders</ProgramKitFeatureIdentity>
+    <ProgramKitFeatureIdentity>PriceCalculator.Access.Api</ProgramKitFeatureIdentity>
     <ProgramKitFeatureRoutes>/orders</ProgramKitFeatureRoutes>
   </PropertyGroup>
   <ItemGroup>
@@ -54,27 +54,27 @@ def create_consumer_feature(repository: Path) -> None:
         encoding="utf-8",
         newline="\n",
     )
-    (repository / "ConsumerOrdersFeature.cs").write_text(
+    (repository / "AccessApiFeature.cs").write_text(
         """using CShells.Features;
 using CShells.Lifecycle;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ProgramKit.TestFeature;
 
-[ShellFeature(name: \"ConsumerOrders\", DisplayName = \"Consumer Orders\")]
-public sealed class ConsumerOrdersFeature : IShellFeature
+[ShellFeature(name: \"PriceCalculator.Access.Api\", DisplayName = \"PriceCalculator Access API\")]
+public sealed class AccessApiFeature : IShellFeature
 {
     public void ConfigureServices(IServiceCollection services) =>
-        services.AddShellInitializer<ConsumerOrdersInitializer>(LifecyclePhase.Start, order: 0);
+        services.AddShellInitializer<AccessApiInitializer>(LifecyclePhase.Start, order: 0);
 }
 
-public sealed class ConsumerOrdersInitializer : IShellInitializer
+public sealed class AccessApiInitializer : IShellInitializer
 {
     public Task InitializeAsync(CancellationToken cancellationToken)
     {
         var marker = Environment.GetEnvironmentVariable("PROGRAMKIT_TEST_FEATURE_MARKER")
             ?? throw new InvalidOperationException("The feature activation marker is not configured.");
-        File.WriteAllText(marker, "ConsumerOrders activated");
+        File.WriteAllText(marker, "PriceCalculator.Access.Api activated");
         return Task.CompletedTask;
     }
 }
@@ -154,12 +154,27 @@ def wait_for_activation(process: subprocess.Popen[str], marker: Path) -> None:
         if process.poll() is not None:
             stdout, stderr = process.communicate()
             raise AssertionError(f"ProgramKit.Host exited before readiness.\n{stdout}\n{stderr}")
-        if marker.is_file() and marker.read_text(encoding="utf-8") == "ConsumerOrders activated":
+        if marker.is_file() and marker.read_text(encoding="utf-8") == "PriceCalculator.Access.Api activated":
             return
         time.sleep(0.25)
     process.terminate()
     stdout, stderr = process.communicate(timeout=10)
     raise AssertionError(f"ProgramKit.Host did not eagerly activate the consumer feature.\n{stdout}\n{stderr}")
+
+
+def wait_for_missing_identity_failure(process: subprocess.Popen[str], identity: str) -> None:
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            stdout, stderr = process.communicate()
+            output = stdout + stderr
+            if process.returncode == 0 or identity not in output or "absent from the runtime catalog" not in output:
+                raise AssertionError(f"ProgramKit.Host did not fail closed for {identity}.\n{output}")
+            return
+        time.sleep(0.25)
+    process.terminate()
+    stdout, stderr = process.communicate(timeout=10)
+    raise AssertionError(f"ProgramKit.Host kept serving without required feature {identity}.\n{stdout}\n{stderr}")
 
 
 def main() -> int:
@@ -214,7 +229,7 @@ def main() -> int:
 
         port = free_port()
         host_environment = os.environ.copy()
-        activation_marker = repository / "consumer-orders.activated"
+        activation_marker = repository / "access-api.activated"
         host_environment["PROGRAMKIT_TEST_FEATURE_MARKER"] = str(activation_marker)
         host_environment["ASPNETCORE_URLS"] = f"http://127.0.0.1:{port}"
         host_environment["DOTNET_ENVIRONMENT"] = "Production"
@@ -241,6 +256,26 @@ def main() -> int:
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait(timeout=10)
+
+        missing_identity = "PriceCalculator.Access.Missing"
+        staged_shells = staged / "shells.json"
+        shell_configuration = json.loads(staged_shells.read_text(encoding="utf-8"))
+        shell_configuration["CShells"]["Shells"]["default"]["Features"] = {missing_identity: {}}
+        staged_shells.write_text(json.dumps(shell_configuration, indent=2) + "\n", encoding="utf-8")
+        failed = subprocess.Popen(
+            ["dotnet", str(host)],
+            cwd=staged,
+            env=host_environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        try:
+            wait_for_missing_identity_failure(failed, missing_identity)
+        finally:
+            if failed.poll() is None:
+                failed.terminate()
+                failed.wait(timeout=10)
 
     print("Consumer feature package, release closure, and application-neutral host activation passed.")
     return 0

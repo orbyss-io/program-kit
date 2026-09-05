@@ -159,33 +159,121 @@ def resolve_specify_command(single: str, vector_json: str) -> list[str]:
     return command
 
 
-def preflight_specify(command: list[str], target: Path) -> None:
+def run_specify_probe(
+    command: list[str], arguments: list[str], target: Path
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        command + arguments,
+        cwd=target,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+
+
+def uv_windows_specify_environment(command: list[str]) -> tuple[Path, Path] | None:
+    if os.name != "nt" or len(command) != 1:
+        return None
+    launcher = Path(command[0])
+    if launcher.suffix.lower() != ".exe" or not launcher.is_file():
+        return None
     try:
-        result = subprocess.run(
-            command + ["--version"],
-            cwd=target,
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
+        payload = launcher.read_bytes()
+        marker = payload.rfind(b"#!")
+        if marker < 0:
+            return None
+        shebang = payload[marker + 2 :].splitlines()[0].decode("utf-8").strip().strip('"')
+        interpreter = Path(shebang)
+        environment = interpreter.parent.parent
+        configuration = (environment / "pyvenv.cfg").read_text(encoding="utf-8")
+        site_packages = environment / "Lib/site-packages"
+    except (OSError, UnicodeDecodeError, IndexError):
+        return None
+    if (
+        not interpreter.is_absolute()
+        or not interpreter.is_file()
+        or not re.search(r"(?m)^uv\s*=\s*\S+\s*$", configuration)
+        or not (site_packages / "specify_cli/__init__.py").is_file()
+        or b"from specify_cli import main" not in payload[marker:]
+    ):
+        return None
+    return interpreter.resolve(), site_packages.resolve()
+
+
+def powershell_retry_command() -> str:
+    def literal(value: str) -> str:
+        return "'" + value.replace("'", "''") + "'"
+
+    return "& " + " ".join(literal(item) for item in [sys.executable, *sys.argv])
+
+
+def preflight_specify(command: list[str], target: Path, release: Path) -> list[str]:
+    failure: BaseException | subprocess.CompletedProcess[str]
+    try:
+        result = run_specify_probe(command, ["--version"], target)
+        if result.returncode == 0:
+            return command
+        failure = result
     except (OSError, subprocess.TimeoutExpired) as error:
-        raise UpgradeError(
-            "PKU112 Spec Kit CLI cannot execute before mutation. Run the updater from a context "
-            "that can execute the installed CLI, or pass an explicitly reviewed command vector with "
-            f"--specify-command-json. Detail: {error}"
-        ) from error
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout).strip().splitlines()
-        suffix = f" Detail: {detail[-1]}" if detail else ""
-        raise UpgradeError(
-            "PKU112 Spec Kit CLI cannot execute before mutation "
-            f"(exit {result.returncode}). Run the updater from a context that can execute the installed "
-            "CLI, or pass an explicitly reviewed command vector with --specify-command-json."
-            + suffix
+        failure = error
+
+    uv_environment = uv_windows_specify_environment(command)
+    bridge = release / "scripts/invoke_specify.py"
+    if uv_environment and bridge.is_file():
+        interpreter, site_packages = uv_environment
+        fallback = [
+            sys.executable,
+            str(bridge.resolve()),
+            "--site-packages",
+            str(site_packages),
+            "--",
+        ]
+        probes = (
+            ["--version"],
+            ["bundle", "install", "--help"],
+            ["workflow", "add", "--help"],
+            ["extension", "add", "--help"],
+            ["preset", "remove", "--help"],
+            ["preset", "add", "--help"],
         )
+        try:
+            probe_results = [run_specify_probe(fallback, probe, target) for probe in probes]
+        except (OSError, subprocess.TimeoutExpired) as error:
+            fallback_failure = str(error)
+        else:
+            rejected = next((item for item in probe_results if item.returncode != 0), None)
+            if rejected is None:
+                print(
+                    "PKU114 uv-installed Spec Kit launcher cannot execute its managed Python in this "
+                    f"context; using the release-owned bridge with the same environment: {site_packages}"
+                )
+                return fallback
+            lines = (rejected.stderr or rejected.stdout).strip().splitlines()
+            fallback_failure = lines[-1] if lines else f"exit {rejected.returncode}"
+        raise UpgradeError(
+            "PKU114 uv-installed Spec Kit launcher crosses an execution boundary that the current "
+            f"Windows context cannot use (launcher={command[0]}, interpreter={interpreter}). The "
+            f"release-owned bridge also failed before mutation: {fallback_failure}. Rerun from a "
+            "normal user-owned PowerShell terminal with: "
+            + powershell_retry_command()
+        )
+
+    if isinstance(failure, subprocess.CompletedProcess):
+        lines = (failure.stderr or failure.stdout).strip().splitlines()
+        suffix = f" Detail: {lines[-1]}" if lines else ""
+        failure_description = f"exit {failure.returncode}"
+    else:
+        suffix = f" Detail: {failure}"
+        failure_description = "an execution error"
+    raise UpgradeError(
+        "PKU112 Spec Kit CLI cannot execute before mutation "
+        f"({failure_description}). Run the updater from a context that can execute the installed "
+        "CLI, or pass an explicitly reviewed command vector with --specify-command-json."
+        + suffix
+    )
 
 
 def stale_program_kit_locks(target: Path, runtime_version: str) -> list[Path]:
@@ -340,7 +428,7 @@ def main() -> int:
             )
         integration = selected_integration(target, args.integration)
         specify = resolve_specify_command(args.specify_command, args.specify_command_json)
-        preflight_specify(specify, target)
+        specify = preflight_specify(specify, target, release)
         stale_locks = stale_program_kit_locks(target, runtime_version)
         descriptor, lock_path = acquire_lock(target)
         steps = [

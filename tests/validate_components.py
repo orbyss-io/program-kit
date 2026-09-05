@@ -469,8 +469,15 @@ def main() -> int:
         "--accept-openapi-producer-pin-reconciliation",
         "--specify-command-json",
         "PKU112",
+        "PKU114",
         "PKU113",
         "--offline",
+    )
+    require_text(
+        root / "scripts/invoke_specify.py",
+        "--site-packages",
+        "specify_cli",
+        "Program Kit Specify bridge",
     )
     require_text(
         reconciliation,

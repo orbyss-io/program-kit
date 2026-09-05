@@ -60,6 +60,10 @@ change that input and resynchronize rather than editing a derived managed file.
 - The active `ProgramKit.Authentication.BffCookie` or `ProgramKit.Authentication.SpaPkce` feature is
   the profile discriminator; runtime code does not branch on a profile enum.
 - `Authority`: HTTPS issuer URL; HTTP is permitted only by an explicit local-development setting.
+- `BackchannelAuthority`: optional server-reachable discovery authority. It changes only metadata
+  retrieval; `Authority` remains the validated issuer and browser-facing URL. The managed local
+  Compose topology uses Keycloak's dynamic backchannel support and a private shared network, never
+  a container override for `localhost`.
 - `ClientId`; `ClientSecret` is required only for BFF.
 - `Audience`, `Scopes`, provider `RoleClaim` (default `roles`), and canonical `PermissionClaim`
   (default `permissions`).
@@ -77,6 +81,12 @@ change that input and resynchronize rather than editing a derived managed file.
 Invalid or incomplete selected-profile configuration prevents startup with a path-specific error.
 Checked-in local settings contain identifiers and loopback URLs only; production secrets and origins
 must be supplied by deployment.
+
+The local Keycloak fixture advertises `http://localhost:8080` to browsers while the application
+container retrieves discovery through `http://program-kit-identity:8080`. Keycloak derives its
+backchannel endpoints from that private request and retains the public issuer/frontchannel URLs.
+The application and identity Compose projects join the named `program-kit-local` network; replacing
+container `localhost` is forbidden because it changes loopback semantics for every process.
 
 The presence of a configurable value does not mean its default is universal. The evidence register
 classifies every material default and states when it must be reviewed. In particular, identity time

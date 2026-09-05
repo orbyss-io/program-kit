@@ -23,7 +23,7 @@ consumer-owned `shells.json`. Add a reviewed selection deterministically with:
 python eng/program-kit/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
 ```
 
-An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `ProgramKitFeatureIdentity`, and sets
+An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `ProgramKitFeatureIdentity`, declares an exact matching `[ShellFeature("<ProgramKitFeatureIdentity>")]`, and sets
 `AssemblyName` equal to `PackageId`. It references host-supplied CShells/framework abstractions with
 `PrivateAssets=all`; it does not reference the host, Nuplane runtime, or peer runtime implementations.
 Optional dependency, route, and dormant metadata is embedded during pack.

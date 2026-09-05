@@ -8,6 +8,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: local-admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: local-bootstrap-admin-only
       KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     ports:
       - "8080:8080"
       - "9000:9000"
@@ -19,3 +20,11 @@ services:
       timeout: 3s
       retries: 30
       start_period: 20s
+    networks:
+      program-kit-local:
+        aliases:
+          - program-kit-identity
+
+networks:
+  program-kit-local:
+    name: program-kit-local

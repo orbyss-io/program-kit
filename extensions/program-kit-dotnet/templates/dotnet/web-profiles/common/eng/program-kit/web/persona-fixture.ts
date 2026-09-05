@@ -11,7 +11,7 @@ type RealmFixture = {
 };
 
 const realmPath = fileURLToPath(
-  new URL('../../../../deploy/keycloak/program-kit-realm.json', import.meta.url),
+  new URL('../../../deploy/keycloak/program-kit-realm.json', import.meta.url),
 );
 
 function loadRealm(): RealmFixture {

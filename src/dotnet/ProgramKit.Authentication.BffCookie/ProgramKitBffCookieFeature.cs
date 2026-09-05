@@ -132,6 +132,11 @@ public sealed class ProgramKitBffCookieFeature : IWebShellFeature, IMiddlewareSh
             {
                 var settings = selected.Value;
                 options.Authority = settings.Authority;
+                if (!string.IsNullOrWhiteSpace(settings.BackchannelAuthority))
+                {
+                    options.MetadataAddress =
+                        $"{settings.BackchannelAuthority.TrimEnd('/')}/.well-known/openid-configuration";
+                }
                 options.ClientId = settings.ClientId;
                 options.ClientSecret = settings.ClientSecret;
                 options.ResponseType = "code";
@@ -144,6 +149,7 @@ public sealed class ProgramKitBffCookieFeature : IWebShellFeature, IMiddlewareSh
                 options.SignedOutCallbackPath = settings.SignedOutCallbackPath;
                 options.RemoteSignOutPath = settings.RemoteSignOutPath;
                 options.RemoteAuthenticationTimeout = TimeSpan.FromSeconds(settings.RemoteAuthenticationTimeoutSeconds);
+                options.BackchannelTimeout = TimeSpan.FromSeconds(settings.DiscoveryTimeoutSeconds);
                 if (environment.IsDevelopment() && settings.AllowHttpForLocalDevelopment)
                 {
                     options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;

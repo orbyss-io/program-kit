@@ -5,7 +5,13 @@ services:
     image: program-kit-consumer:local
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-    extra_hosts:
-      - "localhost:host-gateway"
+      CShells__Shells__default__Configuration__ProgramKit__Web__BackchannelAuthority: http://program-kit-identity:8080/realms/program-kit
+    networks:
+      - program-kit-local
     ports:
       - "5000:8080"
+
+networks:
+  program-kit-local:
+    name: program-kit-local
+    external: true

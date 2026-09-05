@@ -31,6 +31,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Web contract dependency restore failed.' }
     python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 300 npm -- run typecheck
     if ($LASTEXITCODE -ne 0) { throw 'Managed web adapters or contract tests did not type-check.' }
+    python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 30 npm -- run test:fixture
+    if ($LASTEXITCODE -ne 0) { throw 'The managed browser personas cannot be loaded from the local identity fixture.' }
     python $npmRunner --repository $repository --evidence $evidence --timeout-seconds 600 npm -- exec -- playwright install --with-deps chromium
     if ($LASTEXITCODE -ne 0) { throw 'Playwright browser installation failed.' }
     $env:PROGRAMKIT_BASE_URL = $BaseUrl

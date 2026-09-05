@@ -28,6 +28,9 @@ public sealed class ProgramKitAnalyzer : DiagnosticAnalyzer
     /// <summary>Identifies declared types and members without XML documentation.</summary>
     public const string XmlDocumentationRuleId = "PK1005";
 
+    /// <summary>Identifies CLR feature names that diverge from package metadata.</summary>
+    public const string FeatureIdentityRuleId = "PK1006";
+
     /// <summary>Defines the shell-hosted-service diagnostic.</summary>
     private static readonly DiagnosticDescriptor ShellHostedServiceRule = new(
         ShellHostedServiceRuleId,
@@ -78,6 +81,16 @@ public sealed class ProgramKitAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         description: "Every declared type and member has concise contract documentation; design rationale belongs in Architecture or an ADR.");
 
+    /// <summary>Defines the feature-identity convergence diagnostic.</summary>
+    private static readonly DiagnosticDescriptor FeatureIdentityRule = new(
+        FeatureIdentityRuleId,
+        "Declare the governed shell feature identity",
+        "Feature type '{0}' must declare [ShellFeature(\"{1}\")] to match ProgramKitFeatureIdentity",
+        "Architecture",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "The CLR feature identity must equal the package descriptor and configured shell identity exactly.");
+
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(
@@ -85,7 +98,8 @@ public sealed class ProgramKitAnalyzer : DiagnosticAnalyzer
             NamedArgumentsRule,
             OneTypePerFileRule,
             PrivateMethodsLastRule,
-            XmlDocumentationRule);
+            XmlDocumentationRule,
+            FeatureIdentityRule);
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -95,6 +109,7 @@ public sealed class ProgramKitAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeObjectCreation, OperationKind.ObjectCreation);
         context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
+        context.RegisterSymbolAction(AnalyzeFeatureIdentity, SymbolKind.NamedType);
         context.RegisterSyntaxNodeAction(
             AnalyzePrivateMethodOrder,
             SyntaxKind.ClassDeclaration,
@@ -122,6 +137,34 @@ public sealed class ProgramKitAnalyzer : DiagnosticAnalyzer
             SyntaxKind.EventFieldDeclaration,
             SyntaxKind.OperatorDeclaration,
             SyntaxKind.ConversionOperatorDeclaration);
+    }
+
+    /// <summary>Requires a packaged shell feature to declare the exact MSBuild-governed identity.</summary>
+    /// <param name="context">The current symbol-analysis context.</param>
+    private static void AnalyzeFeatureIdentity(SymbolAnalysisContext context)
+    {
+        if (context.Symbol is not INamedTypeSymbol { TypeKind: TypeKind.Class, IsAbstract: false } type
+            || !ImplementsShellFeature(type)
+            || !context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                "build_property.ProgramKitFeatureIdentity", out var expected)
+            || string.IsNullOrWhiteSpace(expected))
+        {
+            return;
+        }
+
+        var attribute = type.GetAttributes().SingleOrDefault(candidate =>
+            candidate.AttributeClass?.ToDisplayString() == "CShells.Features.ShellFeatureAttribute");
+        var actual = attribute is { ConstructorArguments.Length: > 0 }
+            ? attribute.ConstructorArguments[0].Value as string
+            : null;
+        if (!string.Equals(actual, expected, StringComparison.Ordinal))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                FeatureIdentityRule,
+                type.Locations.FirstOrDefault(),
+                type.Name,
+                expected));
+        }
     }
 
     /// <summary>Rejects hosted-service registration from a CShells feature and evaluates invocation arguments.</summary>

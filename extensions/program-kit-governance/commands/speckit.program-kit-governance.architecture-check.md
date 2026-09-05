@@ -112,7 +112,8 @@ contract checks the mandatory governance sections and selected runtime profile; 
 - When the selected .NET baseline has not explicitly opted out of `ProgramKit.Host`, reject every
   repository-owned host project, `.Host` source directory, application `Program.cs`, or plan/task
   that runs a custom host. Require packable feature projects with `ProgramKitFeatureIdentity`,
-  reviewed `shells.json` activation, consumer `hostsettings.json`, validated package-closure staging
+  an exact `[ShellFeature("<ProgramKitFeatureIdentity>")]` CLR declaration, reviewed `shells.json`
+  activation, consumer `hostsettings.json`, validated package-closure staging
   through `runnable_host.py stage`, digest-bound external `ProgramKit.Host` release evidence, and
   a `PKA015`-valid runtime composition/project graph contract.
 - An exact npm dependency graph is implementation-ready only with recorded registry-metadata and

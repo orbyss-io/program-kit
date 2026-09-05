@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.9.7 - 2026-09-05
+
+- Bridge verified uv-installed Spec Kit environments through the updater's executable Python when
+  the Windows sandbox can read the tool but cannot launch its managed interpreter. The updater
+  probes every required command before mutation and retains an exact normal-PowerShell recovery.
+- Make `ProgramKitFeatureIdentity`, CLR `[ShellFeature]`, package descriptors, runtime catalog
+  activation, and OpenAPI export one exact identity contract. The analyzer and host now fail closed
+  instead of allowing a configured feature to disappear behind a derived CLR name.
+- Correct the managed browser-persona fixture path and execute a fixture-load regression from the
+  actual managed web-suite directory before Playwright.
+- Split local identity frontchannel and backchannel topology without redefining container
+  `localhost`: browsers retain the public Keycloak issuer while the application uses a named private
+  network for discovery, token, user-info, and JWKS calls.
+
 ## 0.9.6 - 2026-09-05
 
 - Add a managed repository-isolated restore wrapper and make build, CI/release verification, and

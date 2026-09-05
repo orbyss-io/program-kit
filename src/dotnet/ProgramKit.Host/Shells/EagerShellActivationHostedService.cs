@@ -1,3 +1,4 @@
+using CShells.Features;
 using CShells.Lifecycle;
 
 namespace ProgramKit.Host.Shells;
@@ -5,6 +6,7 @@ namespace ProgramKit.Host.Shells;
 /// <summary>Uses the CShells registry to activate configured shells during host startup.</summary>
 internal sealed class EagerShellActivationHostedService(
     IShellRegistry registry,
+    IRuntimeFeatureCatalog featureCatalog,
     IConfiguration configuration,
     ILogger<EagerShellActivationHostedService> logger) : IHostedService
 {
@@ -21,6 +23,25 @@ internal sealed class EagerShellActivationHostedService(
             .ToArray();
         if (shellNames.Length == 0)
             throw new InvalidOperationException("No shells are configured under 'CShells:Shells'.");
+
+        var available = (await featureCatalog.GetSnapshotAsync(cancellationToken).ConfigureAwait(false))
+            .FeatureMap;
+        foreach (var name in shellNames)
+        {
+            var required = configuration.GetSection($"CShells:Shells:{name}:Features").GetChildren()
+                .Where(feature => !string.Equals(feature.Value, "false", StringComparison.OrdinalIgnoreCase))
+                .Select(feature => feature.Key)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+            var missing = required.Where(feature => !available.ContainsKey(feature)).ToArray();
+            if (missing.Length > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Shell '{name}' requires feature identities that are absent from the runtime catalog: " +
+                    string.Join(", ", missing) + ". Every packaged feature must declare an exact " +
+                    "[ShellFeature] identity matching ProgramKitFeatureIdentity and shells.json.");
+            }
+        }
 
         foreach (var name in shellNames)
         {

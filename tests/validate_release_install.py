@@ -337,6 +337,8 @@ def main() -> int:
             packaged_bundle = yaml.safe_load(archive.read("bundle.yml"))
             if "scripts/upgrade_program_kit.py" not in archive.namelist():
                 raise AssertionError("Full Program Kit release is missing the offline/local updater")
+            if "scripts/invoke_specify.py" not in archive.namelist():
+                raise AssertionError("Full Program Kit release is missing the sandbox-compatible Specify bridge")
             if "scripts/openapi_upgrade_reconciliation.py" not in archive.namelist():
                 raise AssertionError("Full Program Kit release is missing OpenAPI upgrade reconciliation")
         component_graph = {
