@@ -419,7 +419,7 @@ raise SystemExit(0)
                 repository,
                 staged_root,
                 repository / runtime_closure.EVIDENCE,
-                "0.9.7",
+                "0.9.8",
             )
         finally:
             sys.path.remove(str(managed))

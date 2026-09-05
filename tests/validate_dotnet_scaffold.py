@@ -335,6 +335,14 @@ def main() -> int:
         )
         bff_client_ids = [client["clientId"] for client in bff_realm["clients"]]
         assert bff_client_ids == ["program-kit-api", "program-kit-bff"]
+        bff_scope_names = {scope["name"] for scope in bff_realm["clientScopes"]}
+        assert {
+            "basic", "profile", "roles", "web-origins", "acr", "offline_access", "program-kit-api"
+        }.issubset(bff_scope_names)
+        bff_client = bff_realm["clients"][1]
+        assert set(bff_client["defaultClientScopes"]).issubset(bff_scope_names)
+        assert set(bff_client["optionalClientScopes"]).issubset(bff_scope_names)
+        assert (browser_target / "eng/program-kit/compose_topology.py").is_file()
         assert (browser_target / "eng/program-kit/web/bff-session.ts").is_file()
         assert (browser_target / "eng/program-kit/web/tests/bff-session.spec.ts").is_file()
         bff_contract = json.loads(
@@ -459,6 +467,9 @@ def main() -> int:
         realm = json.loads((spa_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8"))
         assert not any(client["clientId"] == "program-kit-bff" for client in realm["clients"])
         spa_client = next(client for client in realm["clients"] if client["clientId"] == "program-kit-spa")
+        assert set(spa_client["defaultClientScopes"]).issubset(
+            {scope["name"] for scope in realm["clientScopes"]}
+        )
         assert spa_client["publicClient"] is True and "secret" not in spa_client
         assert spa_client["redirectUris"] == [
             "http://localhost:5173/auth/callback",

@@ -20,6 +20,7 @@
     ,{ "path": "eng/program-kit/web/bff-session.ts", "ownership": "managed", "sourceRoot": "web-profiles/bff-cookie" }
     ,{ "path": "eng/program-kit/web/tests/bff-session.spec.ts", "ownership": "managed", "sourceRoot": "web-profiles/bff-cookie" }
     ,{ "path": "eng/program-kit/preflight.py", "ownership": "managed", "sourceRoot": "web-profiles/common" }
+    ,{ "path": "eng/program-kit/compose_topology.py", "ownership": "managed", "sourceRoot": "web-profiles/common" }
     ,{ "path": "deploy/compose.application.yml", "ownership": "managed", "sourceRoot": "web-profiles/common" }
   ]
 }

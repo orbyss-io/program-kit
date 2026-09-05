@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 from openapi_upgrade_reconciliation import (
@@ -276,6 +277,287 @@ def preflight_specify(command: list[str], target: Path, release: Path) -> list[s
     )
 
 
+def repository_relative_path(target: Path, value: str, label: str) -> Path:
+    """Resolve an installer-owned relative path without permitting an escape."""
+    relative = Path(value.replace("\\", "/"))
+    if not value or relative.is_absolute() or ".." in relative.parts:
+        raise UpgradeError(f"PKU115 unsafe {label} destination: {value!r}")
+    path = (target / relative).resolve()
+    try:
+        path.relative_to(target)
+    except ValueError as error:
+        raise UpgradeError(f"PKU115 {label} destination escapes the repository: {value!r}") from error
+    return path
+
+
+def read_destination_state(path: Path, label: str) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise UpgradeError(f"PKU115 cannot inspect {label} destination state {path}: {error}") from error
+    if not isinstance(value, dict):
+        raise UpgradeError(f"PKU115 {label} destination state is not an object: {path}")
+    return value
+
+
+def common_destination_root(paths: list[Path]) -> Path | None:
+    if not paths:
+        return None
+    common = paths[0].parent
+    for path in paths[1:]:
+        candidate = path.parent
+        while common != candidate and common not in candidate.parents:
+            if common == common.parent:
+                return None
+            common = common.parent
+    return common
+
+
+def managed_mutation_destinations(
+    target: Path,
+    release: Path,
+    integration: str,
+    profile: tuple[str, str] | None,
+    has_bootstrap_decisions: bool,
+    reconciliation: dict | None,
+    stale_locks: list[Path],
+) -> tuple[dict[Path, set[str]], set[Path]]:
+    """Return all known component roots and existing files touched by an upgrade.
+
+    Spec Kit records the exact files owned by each installed integration. Those
+    manifests are the durable source for agent-specific locations; this avoids
+    encoding Codex's ``.agents`` layout (or any other integration layout) in the
+    Program Kit updater.
+    """
+    roots: dict[Path, set[str]] = {}
+    existing_files: set[Path] = set()
+
+    def add_root(path: Path, reason: str) -> None:
+        roots.setdefault(path, set()).add(reason)
+
+    for relative, reason in (
+        (".specify", "upgrade lock and Spec Kit registries"),
+        (".specify/extensions", "extension installation"),
+        (".specify/workflows", "workflow installation"),
+        (".specify/presets", "preset installation"),
+    ):
+        add_root(target / relative, reason)
+
+    integration_state_path = target / ".specify/integration.json"
+    integration_state = read_destination_state(integration_state_path, "integration")
+    agent_ids = {integration}
+    installed = integration_state.get("installed_integrations", [])
+    if isinstance(installed, list):
+        agent_ids.update(item for item in installed if isinstance(item, str))
+
+    for registry_relative, kind in (
+        (".specify/extensions/.registry", "extension"),
+        (".specify/presets/.registry", "preset"),
+    ):
+        registry_path = target / registry_relative
+        if not registry_path.is_file():
+            continue
+        registry = read_destination_state(registry_path, kind)
+        records = registry.get(kind + "s", {})
+        if not isinstance(records, dict):
+            raise UpgradeError(f"PKU115 {kind} destination registry is malformed: {registry_path}")
+        for record in records.values():
+            commands = record.get("registered_commands", {}) if isinstance(record, dict) else {}
+            if isinstance(commands, dict):
+                agent_ids.update(item for item in commands if isinstance(item, str))
+
+    for agent_id in sorted(agent_ids):
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", agent_id):
+            raise UpgradeError(f"PKU115 unsafe installed integration identity: {agent_id!r}")
+        manifest_path = target / ".specify/integrations" / f"{agent_id}.manifest.json"
+        if not manifest_path.is_file():
+            raise UpgradeError(
+                f"PKU115 cannot determine the managed destination for integration {agent_id!r}; "
+                f"its installation manifest is missing: {manifest_path}"
+            )
+        manifest = read_destination_state(manifest_path, f"{agent_id} integration")
+        files = manifest.get("files")
+        if not isinstance(files, dict) or not files:
+            raise UpgradeError(
+                f"PKU115 integration {agent_id!r} has no managed file destinations in {manifest_path}"
+            )
+        paths = [
+            repository_relative_path(target, value, f"{agent_id} integration")
+            for value in files
+            if isinstance(value, str)
+        ]
+        if len(paths) != len(files):
+            raise UpgradeError(f"PKU115 integration {agent_id!r} has malformed file destinations")
+        command_paths = [
+            path
+            for path in paths
+            if any(part.casefold().startswith("speckit") for part in path.relative_to(target).parts)
+        ]
+        root = common_destination_root(command_paths or paths)
+        if root is None:
+            raise UpgradeError(f"PKU115 cannot determine a common destination for integration {agent_id!r}")
+        add_root(root, f"{agent_id} integration command registration")
+        if root.is_dir():
+            for path in root.rglob("*"):
+                if not (path.is_file() or path.is_symlink()):
+                    continue
+                if any(
+                    part.startswith("speckit-program-kit-")
+                    or part.startswith("speckit.program-kit.")
+                    for part in path.relative_to(root).parts
+                ):
+                    existing_files.add(path)
+
+    if profile:
+        managed_path = target / ".program-kit/managed.json"
+        managed = read_destination_state(managed_path, "managed profile")
+        files = managed.get("files")
+        if not isinstance(files, dict):
+            raise UpgradeError(f"PKU115 managed profile has no file destination map: {managed_path}")
+        add_root(target / ".program-kit", "managed profile state")
+        for value, record in files.items():
+            if not isinstance(value, str):
+                raise UpgradeError(f"PKU115 managed profile has a malformed file destination: {value!r}")
+            path = repository_relative_path(target, value, "managed profile")
+            add_root(path.parent, "managed profile synchronization")
+            if (
+                isinstance(record, dict)
+                and record.get("ownership") == "managed"
+                and (path.is_file() or path.is_symlink())
+            ):
+                existing_files.add(path)
+
+        web, _ = profile
+        desired_manifests = [
+            release / "extensions/program-kit-dotnet/templates/dotnet/managed-files.json"
+        ]
+        if web != "none":
+            desired_manifests.append(
+                release
+                / "extensions/program-kit-dotnet/templates/dotnet/web-profiles"
+                / web
+                / "managed-files.json"
+            )
+        for manifest_path in desired_manifests:
+            manifest = read_destination_state(manifest_path, "release managed profile")
+            entries = manifest.get("files")
+            obsolete = manifest.get("obsoleteFiles", [])
+            if not isinstance(entries, list) or not isinstance(obsolete, list):
+                raise UpgradeError(f"PKU115 release managed profile manifest is malformed: {manifest_path}")
+            desired_entries = [entry for entry in entries if isinstance(entry, dict)]
+            desired = [entry.get("path") for entry in desired_entries] + obsolete
+            if len(desired) != len(entries) + len(obsolete) or any(
+                not isinstance(value, str) for value in desired
+            ):
+                raise UpgradeError(f"PKU115 release managed profile destinations are malformed: {manifest_path}")
+            managed_desired = {
+                entry.get("path")
+                for entry in desired_entries
+                if entry.get("ownership") == "managed"
+            } | set(obsolete)
+            for value in desired:
+                path = repository_relative_path(target, value, "release managed profile")
+                add_root(path.parent, "managed profile synchronization")
+                if value in managed_desired and (path.is_file() or path.is_symlink()):
+                    existing_files.add(path)
+
+    if has_bootstrap_decisions:
+        add_root(target / ".specify/governance", "governed upgrade record")
+
+    if stale_locks or (target / ".program-kit/evidence/dotnet-lock-renewal.json").exists():
+        add_root(target / ".program-kit/evidence", "NuGet lock renewal evidence")
+
+    if reconciliation:
+        paths = [entry["path"] for entry in reconciliation["contracts"]]
+        paths.extend(reconciliation["planningPaths"])
+        for feature_dir in reconciliation["featureDirs"]:
+            state_path = target / ".program-kit/lifecycle" / f"{feature_identity(feature_dir)}.json"
+            if state_path.is_file():
+                paths.append(state_path)
+        for path in paths:
+            add_root(path.parent, "OpenAPI producer-pin reconciliation")
+            if path.is_file() or path.is_symlink():
+                existing_files.add(path)
+
+    return roots, existing_files
+
+
+def feature_identity(feature_dir: Path) -> str:
+    return re.sub(r"[^a-zA-Z0-9._-]", "-", feature_dir.name)
+
+
+def nearest_existing_directory(path: Path) -> Path:
+    candidate = path if path.is_dir() else path.parent
+    while not candidate.exists():
+        if candidate == candidate.parent:
+            raise OSError(f"no existing parent directory for {path}")
+        candidate = candidate.parent
+    if not candidate.is_dir():
+        raise OSError(f"destination parent is not a directory: {candidate}")
+    return candidate
+
+
+def probe_mutation_directory(path: Path) -> None:
+    directory = nearest_existing_directory(path)
+    nonce = uuid.uuid4().hex
+    first = directory / f".program-kit-write-probe-{nonce}.tmp"
+    second = directory / f".program-kit-write-probe-{nonce}.renamed.tmp"
+    descriptor: int | None = None
+    try:
+        descriptor = os.open(first, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(descriptor, b"Program Kit destination capability probe\n")
+        os.close(descriptor)
+        descriptor = None
+        os.replace(first, second)
+        second.unlink()
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        for sentinel in (first, second):
+            try:
+                sentinel.unlink()
+            except FileNotFoundError:
+                pass
+
+
+def preflight_mutation_destinations(
+    target: Path,
+    release: Path,
+    integration: str,
+    profile: tuple[str, str] | None,
+    has_bootstrap_decisions: bool,
+    reconciliation: dict | None,
+    stale_locks: list[Path],
+) -> None:
+    roots, existing_files = managed_mutation_destinations(
+        target,
+        release,
+        integration,
+        profile,
+        has_bootstrap_decisions,
+        reconciliation,
+        stale_locks,
+    )
+    try:
+        for path in sorted(roots, key=lambda item: str(item).casefold()):
+            probe_mutation_directory(path)
+        for path in sorted(existing_files, key=lambda item: str(item).casefold()):
+            if path.is_symlink():
+                continue
+            with path.open("r+b"):
+                pass
+    except OSError as error:
+        blocked = path
+        reason = ", ".join(sorted(roots.get(path, {"managed installer file replacement"})))
+        raise UpgradeError(
+            "PKU115 Program Kit cannot mutate every installer-owned destination in the current "
+            f"execution context; no component mutation started. Blocked destination: {blocked} "
+            f"({reason}; {error}). Rerun from a user-owned PowerShell outside this sandbox "
+            "(elevate only if OS ACLs require it) with: "
+            + powershell_retry_command()
+        ) from error
+
+
 def stale_program_kit_locks(target: Path, runtime_version: str) -> list[Path]:
     ignored = {".git", ".specify", "artifacts", "node_modules"}
     stale: list[Path] = []
@@ -430,6 +712,15 @@ def main() -> int:
         specify = resolve_specify_command(args.specify_command, args.specify_command_json)
         specify = preflight_specify(specify, target, release)
         stale_locks = stale_program_kit_locks(target, runtime_version)
+        preflight_mutation_destinations(
+            target,
+            release,
+            integration,
+            profile,
+            has_bootstrap_decisions,
+            reconciliation,
+            stale_locks,
+        )
         descriptor, lock_path = acquire_lock(target)
         steps = [
             (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),

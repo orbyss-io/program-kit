@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import json
+import base64
+import hashlib
+import http.cookiejar
+import http.cookies
 import re
 import shutil
 import subprocess
@@ -8,6 +12,7 @@ import sys
 import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
@@ -99,6 +104,104 @@ def validate_split_authority_metadata(name: str) -> None:
         )
 
 
+def validate_authorization_entry(name: str, profile: str) -> None:
+    port = published_port(name, "8080/tcp")
+    discovery = urllib.request.Request(
+        f"http://127.0.0.1:{port}/realms/program-kit/.well-known/openid-configuration",
+        headers={"Host": "program-kit-identity:8080"},
+    )
+    with urllib.request.urlopen(discovery, timeout=10) as response:
+        metadata = json.loads(response.read())
+    par_endpoint = metadata.get("pushed_authorization_request_endpoint")
+    if not isinstance(par_endpoint, str):
+        raise AssertionError(f"Fresh {profile} realm does not advertise PAR")
+    parsed_par = urllib.parse.urlsplit(par_endpoint)
+    client_id = "program-kit-bff" if profile == "bff-cookie" else "program-kit-spa"
+    redirect_uri = (
+        "http://localhost:5000/signin-oidc"
+        if profile == "bff-cookie"
+        else "http://localhost:5173/auth/callback"
+    )
+    scopes = (
+        "openid profile offline_access program-kit-api"
+        if profile == "bff-cookie"
+        else "openid profile program-kit-api"
+    )
+    verifier = "program-kit-clean-import-par-verifier-0123456789abcdef"
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode("ascii")).digest()
+    ).decode("ascii").rstrip("=")
+    form = {
+        "client_id": client_id,
+        "response_type": "code",
+        "response_mode": "query",
+        "redirect_uri": redirect_uri,
+        "scope": scopes,
+        "state": "program-kit-import-state",
+        "nonce": "program-kit-import-nonce",
+        "code_challenge": challenge,
+        "code_challenge_method": "S256",
+    }
+    if profile == "bff-cookie":
+        form["client_secret"] = "local-program-kit-secret"
+    par = urllib.request.Request(
+        urllib.parse.urlunsplit(("http", f"127.0.0.1:{port}", parsed_par.path, parsed_par.query, "")),
+        data=urllib.parse.urlencode(form).encode("ascii"),
+        headers={
+            "Host": "program-kit-identity:8080",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+    )
+    try:
+        with urllib.request.urlopen(par, timeout=10) as response:
+            payload = json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        raise AssertionError(
+            f"Fresh {profile} realm rejected the managed PAR scope contract: "
+            f"{error.code} {error.read().decode('utf-8', errors='replace')}"
+        ) from error
+    request_uri = payload.get("request_uri")
+    if not isinstance(request_uri, str) or not request_uri:
+        raise AssertionError(f"Fresh {profile} PAR response omitted request_uri: {payload}")
+    query = urllib.parse.urlencode({"client_id": client_id, "request_uri": request_uri})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()), NoRedirect()
+    )
+    next_url = f"http://localhost:{port}/realms/program-kit/protocol/openid-connect/auth?{query}"
+    page = ""
+    cookies: dict[str, str] = {}
+    for _ in range(6):
+        headers = {"Host": "localhost:8080"}
+        if cookies:
+            headers["Cookie"] = "; ".join(f"{key}={value}" for key, value in cookies.items())
+        request = urllib.request.Request(next_url, headers=headers)
+        try:
+            with opener.open(request, timeout=10) as response:
+                page = response.read().decode("utf-8", errors="replace")
+            break
+        except urllib.error.HTTPError as error:
+            if error.code not in {301, 302, 303, 307, 308} or not error.headers.get("Location"):
+                raise AssertionError(
+                    f"Fresh {profile} PAR authorization entry failed at {error.url}: "
+                    f"{error.code} {error.read().decode('utf-8', errors='replace')}"
+                ) from error
+            for value in error.headers.get_all("Set-Cookie", []):
+                parsed_cookie = http.cookies.SimpleCookie()
+                parsed_cookie.load(value)
+                cookies.update((key, morsel.value) for key, morsel in parsed_cookie.items())
+            redirected = urllib.parse.urljoin(next_url, error.headers["Location"])
+            parsed = urllib.parse.urlsplit(redirected)
+            next_url = urllib.parse.urlunsplit(
+                ("http", f"localhost:{port}", parsed.path, parsed.query, "")
+            )
+    if 'name="username"' not in page:
+        raise AssertionError(f"Fresh {profile} PAR did not reach the real Keycloak login form")
+
+
 def smoke(profile: str, root: Path) -> None:
     name = f"program-kit-keycloak-{profile}-{uuid.uuid4().hex[:8]}"
     realm = root / f"{profile}.json"
@@ -124,9 +227,13 @@ def smoke(profile: str, root: Path) -> None:
     try:
         wait_ready(name)
         logs = subprocess.run(["docker", "logs", name], capture_output=True, text=True, check=True)
-        if "Unrecognized field" in logs.stdout + logs.stderr:
+        combined_logs = logs.stdout + logs.stderr
+        if "Unrecognized field" in combined_logs:
             raise AssertionError(f"Keycloak rejected the {profile} realm representation")
+        if "referenced client scope" in combined_logs.casefold() and "does not exist" in combined_logs.casefold():
+            raise AssertionError(f"Fresh {profile} realm ignored a referenced client scope:\n{combined_logs}")
         validate_split_authority_metadata(name)
+        validate_authorization_entry(name, profile)
     finally:
         subprocess.run(["docker", "rm", "--force", name], check=False, capture_output=True)
 
@@ -137,7 +244,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-keycloak-import-") as value:
         for profile in ("bff-cookie", "spa-pkce"):
             smoke(profile, Path(value))
-    print("Pinned Keycloak imports both generated web-profile realms and reaches readiness.")
+    print("Pinned Keycloak clean-imports both profiles and accepts their real PAR/login entry flows.")
     return 0
 
 

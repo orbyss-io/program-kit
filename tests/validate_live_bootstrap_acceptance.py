@@ -412,6 +412,7 @@ def main() -> int:
         root / "docs/releasing-0.8.4.md",
         root / "docs/releasing-0.9.6.md",
         root / "docs/releasing-0.9.7.md",
+        root / "docs/releasing-0.9.8.md",
         wrapper,
         runner,
     )

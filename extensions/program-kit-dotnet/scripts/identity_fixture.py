@@ -8,6 +8,8 @@ import spa_profile
 
 REALM_PATH = "deploy/keycloak/program-kit-realm.json"
 PROFILE_CLIENT_PATH = "identity-client.json"
+PROTOCOL_SCOPES = {"openid"}
+BFF_REQUESTED_SCOPES = {"openid", "profile", "offline_access", "program-kit-api"}
 
 
 def json_bytes(value: dict) -> bytes:
@@ -92,6 +94,32 @@ def validate_realm(
     if api.get("bearerOnly") is not True:
         raise ValueError("PKW113 the API audience must remain a bearer-only Keycloak client")
     profile_client = realm["clients"][1]
+    client_scopes = realm.get("clientScopes")
+    if not isinstance(client_scopes, list) or not all(
+        isinstance(scope, dict) and isinstance(scope.get("name"), str) and scope["name"]
+        for scope in client_scopes
+    ):
+        raise ValueError("PKW113 every managed Keycloak client scope must have a non-empty name")
+    scope_names = [scope["name"] for scope in client_scopes]
+    if len(scope_names) != len(set(scope_names)):
+        raise ValueError("PKW113 managed Keycloak client scope names must be unique")
+    referenced = {
+        str(scope)
+        for client in realm["clients"]
+        for key in ("defaultClientScopes", "optionalClientScopes")
+        for scope in client.get(key, [])
+    }
+    requested = (
+        BFF_REQUESTED_SCOPES
+        if web_profile == "bff-cookie"
+        else set(spa_configuration["scopes"])
+    )
+    missing = sorted((referenced | requested) - set(scope_names) - PROTOCOL_SCOPES)
+    if missing:
+        raise ValueError(
+            "PKW113 the managed Keycloak realm does not materialize referenced/requested client "
+            "scopes: " + ", ".join(missing)
+        )
     if "postLogoutRedirectUris" in profile_client:
         raise ValueError(
             "PKW113 Keycloak ClientRepresentation does not accept postLogoutRedirectUris; "

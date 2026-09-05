@@ -6,6 +6,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -410,6 +411,66 @@ def main() -> int:
             raise AssertionError(f"inaccessible Specify launcher was not rejected:\n{blocked.stdout}{blocked.stderr}")
         if before_preflight != after_preflight or (project / ".specify/program-kit-upgrade.lock").exists():
             raise AssertionError("Specify executable preflight mutated the consumer repository")
+
+        protected_skill = (
+            project
+            / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"
+        )
+        original_mode = stat.S_IMODE(protected_skill.stat().st_mode)
+        protected_skill.chmod(stat.S_IREAD)
+        before_destination_preflight = {
+            path.relative_to(project).as_posix(): sha256(path)
+            for path in project.rglob("*")
+            if path.is_file()
+        }
+        try:
+            destination_blocked = run(*command, cwd=project)
+        finally:
+            protected_skill.chmod(original_mode | stat.S_IWRITE)
+        after_destination_preflight = {
+            path.relative_to(project).as_posix(): sha256(path)
+            for path in project.rglob("*")
+            if path.is_file()
+        }
+        if destination_blocked.returncode != 2 or "PKU115" not in destination_blocked.stderr:
+            raise AssertionError(
+                "protected integration destination was not rejected before mutation:\n"
+                f"{destination_blocked.stdout}{destination_blocked.stderr}"
+            )
+        if "Resolve bundle composition record" in destination_blocked.stdout:
+            raise AssertionError("destination permission preflight began component mutation")
+        if before_destination_preflight != after_destination_preflight:
+            raise AssertionError("destination permission preflight changed consumer file content")
+        if "outside this sandbox" not in destination_blocked.stderr or "SKILL.md" not in destination_blocked.stderr:
+            raise AssertionError("PKU115 omitted the blocked destination or copyable recovery route")
+
+        partial_cli = project / "partial_specify.py"
+        partial_cli.write_text(
+            "import subprocess, sys\n"
+            "args = sys.argv[1:]\n"
+            "if args[:2] == ['extension', 'add'] and "
+            "any(value.replace('\\\\', '/').endswith('/extensions/program-kit-governance') for value in args):\n"
+            "    print('deliberate third-step failure', file=sys.stderr)\n"
+            "    raise SystemExit(97)\n"
+            "raise SystemExit(subprocess.run(['specify', *args], check=False).returncode)\n",
+            encoding="utf-8",
+        )
+        partial = run(
+            *command,
+            "--specify-command-json",
+            json.dumps([sys.executable, str(partial_cli)]),
+            cwd=project,
+        )
+        if partial.returncode != 2 or "PKU105 Install governance extension" not in partial.stderr:
+            raise AssertionError(f"partial sequential upgrade fixture did not fail at step three:\n{partial.stdout}{partial.stderr}")
+        if "Resolve bundle composition record" not in partial.stdout or "Install bootstrap workflow" not in partial.stdout:
+            raise AssertionError("partial sequential upgrade did not complete its first two mutations")
+        partial_records = json.loads(
+            (project / ".specify/bundle-records.json").read_text(encoding="utf-8")
+        )["bundles"][0]
+        if partial_records.get("version") != expected or version(manifests[0]) != old:
+            raise AssertionError("partial upgrade fixture did not leave the expected mixed component state")
+
         installed = run(*command, cwd=project)
         require_success(installed, "local release upgrade")
         order = (

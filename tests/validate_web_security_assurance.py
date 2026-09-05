@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 from pathlib import Path
+from unittest.mock import patch
 
 
 THREAT_MODEL_ID = "program-kit-web-threat-model-v1"
@@ -51,8 +53,77 @@ def require_nonempty(item: dict, fields: tuple[str, ...], label: str) -> None:
             raise AssertionError(f"{label} has no {field}")
 
 
+def validate_compose_topology_contract(root: Path) -> None:
+    path = (
+        root
+        / "extensions/program-kit-dotnet/templates/dotnet/web-profiles/common/eng/program-kit/compose_topology.py"
+    )
+    specification = importlib.util.spec_from_file_location("program_kit_compose_topology", path)
+    if specification is None or specification.loader is None:
+        raise AssertionError("Could not load the managed Compose topology validator")
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+
+    identity = {
+        "networks": {"private": {"name": "program-kit-local"}},
+        "services": {
+            "keycloak": {
+                "networks": {"private": {"aliases": ["program-kit-identity"]}}
+            }
+        },
+    }
+    application = {
+        "networks": {
+            "private": {"name": "program-kit-local"},
+            "default": {"name": "consumer_default"},
+        },
+        "services": {
+            "application": {
+                "environment": {"AUTHORITY": "http://program-kit-identity:8080/realms/program-kit"},
+                "networks": {"private": None},
+            },
+            "browser": {
+                "environment": {"PROGRAMKIT_INTERNAL_ORIGIN": "http://application:8080"},
+                "depends_on": {"application": {"condition": "service_started"}},
+                "networks": {"default": None},
+            },
+        },
+    }
+    overlay = Path("deploy/compose.browser.yml")
+    try:
+        module.validate_desired({"identity": identity, "application": application}, overlay)
+    except module.TopologyError as error:
+        message = str(error)
+        if "PKC001" not in message or str(overlay) not in message or "program-kit-local" not in message:
+            raise AssertionError(f"Disconnected Compose diagnostic is incomplete: {message}") from error
+    else:
+        raise AssertionError("A consumer service isolated on the implicit default network was accepted")
+
+    application["services"]["browser"]["networks"] = {"renamed-private-key": None}
+    application["networks"]["renamed-private-key"] = {"name": "program-kit-local"}
+    module.validate_desired({"identity": identity, "application": application}, overlay)
+
+    def running(_docker, _compose, service_name, _repository):
+        return {"consumer_default"} if service_name == "browser" else {"program-kit-local"}
+
+    with patch.object(module, "inspect_running_networks", running):
+        try:
+            module.verify_running(
+                "docker",
+                {"identity": identity, "application": application},
+                {"identity": [], "application": []},
+                root,
+            )
+        except module.TopologyError as error:
+            if "PKC002" not in str(error) or "force-recreated" not in str(error):
+                raise AssertionError(f"Stale running-container diagnostic is incomplete: {error}") from error
+        else:
+            raise AssertionError("A stale running container attachment was accepted")
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
+    validate_compose_topology_contract(root)
     references = root / "extensions/program-kit-dotnet/references"
     evidence_path = references / "web-security-evidence.json"
     threat_model_path = references / "web-security-threat-model.md"
@@ -253,6 +324,18 @@ def main() -> int:
         if required not in feature_source:
             raise AssertionError(f"CShells feature packages do not implement the web contract: {required}")
     web_profiles_root = root / "extensions/program-kit-dotnet/templates/dotnet/web-profiles"
+    dev_script = (
+        web_profiles_root / "common/eng/program-kit/Dev.ps1"
+    ).read_text(encoding="utf-8")
+    for required in (
+        "compose_topology.py",
+        "no service was started",
+        "--force-recreate",
+        "--remove-orphans",
+        "--verify-running",
+    ):
+        if required not in dev_script:
+            raise AssertionError(f"Managed Dev.ps1 does not reconcile Compose topology: {required}")
     persona_fixture = web_profiles_root / "common/eng/program-kit/web/persona-fixture.ts"
     persona_source = persona_fixture.read_text(encoding="utf-8")
     expected_realm = (

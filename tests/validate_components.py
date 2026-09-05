@@ -470,6 +470,7 @@ def main() -> int:
         "--specify-command-json",
         "PKU112",
         "PKU114",
+        "PKU115",
         "PKU113",
         "--offline",
     )

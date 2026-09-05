@@ -26,6 +26,7 @@
     ,{ "path": "eng/program-kit/web/verify_spa_security.py", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
     ,{ "path": "eng/program-kit/verify_spa_profile.py", "ownership": "managed", "sourceRoot": "../../scripts", "source": "spa_profile.py" }
     ,{ "path": "eng/program-kit/preflight.py", "ownership": "managed", "sourceRoot": "web-profiles/common" }
+    ,{ "path": "eng/program-kit/compose_topology.py", "ownership": "managed", "sourceRoot": "web-profiles/common" }
     ,{ "path": "deploy/compose.application.yml", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" }
   ]
 }

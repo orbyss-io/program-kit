@@ -9,6 +9,7 @@ $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $compose = Join-Path $repository 'deploy\compose.identity.yml'
 $applicationCompose = Join-Path $repository 'deploy\compose.application.yml'
+$topologyValidator = Join-Path $PSScriptRoot 'compose_topology.py'
 
 python (Join-Path $PSScriptRoot 'preflight.py')
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit pre-host prerequisites failed.' }
@@ -29,10 +30,31 @@ elseif ($selectedWebProfile -ne 'bff-cookie-v1') {
     throw "The synchronized web profile '$selectedWebProfile' is unsupported by Dev.ps1."
 }
 
+$applicationComposeArguments = @('compose', '-f', $applicationCompose)
+$overlay = $null
+if (-not [string]::IsNullOrWhiteSpace($ComposeOverlay)) {
+    $overlay = [System.IO.Path]::GetFullPath((Join-Path $repository $ComposeOverlay))
+    $relativeOverlay = [System.IO.Path]::GetRelativePath($repository, $overlay)
+    if ($relativeOverlay.StartsWith('..') -or -not (Test-Path -LiteralPath $overlay -PathType Leaf)) {
+        throw 'ComposeOverlay must name a consumer-owned file inside the repository.'
+    }
+    $applicationComposeArguments += @('-f', $overlay)
+}
+
+$topologyArguments = @('--repository', $repository, '--identity-compose', $compose)
+if (-not $IdentityOnly) {
+    $topologyArguments += @('--application-compose', $applicationCompose)
+    if ($null -ne $overlay) { $topologyArguments += @('--overlay', $overlay) }
+}
+python $topologyValidator @topologyArguments
+if ($LASTEXITCODE -ne 0) { throw 'The merged local Compose topology is disconnected; no service was started.' }
+
 docker compose -f $compose up -d --wait
 if ($LASTEXITCODE -ne 0) { throw 'The pinned local Keycloak service did not become ready.' }
 
 if ($IdentityOnly) {
+    python $topologyValidator @topologyArguments --verify-running
+    if ($LASTEXITCODE -ne 0) { throw 'The running identity topology differs from the desired Compose model.' }
     Write-Host 'Local identity is ready at http://localhost:8080 (realm program-kit).'
     exit 0
 }
@@ -50,15 +72,9 @@ $applicationImage = 'program-kit-consumer:local'
 docker build --build-arg "PROGRAMKIT_HOST_IMAGE=$($env:PROGRAMKIT_HOST_IMAGE)" -t $applicationImage $repository
 if ($LASTEXITCODE -ne 0) { throw 'The local application image build failed.' }
 
-$applicationComposeArguments = @('compose', '-f', $applicationCompose)
-if (-not [string]::IsNullOrWhiteSpace($ComposeOverlay)) {
-    $overlay = [System.IO.Path]::GetFullPath((Join-Path $repository $ComposeOverlay))
-    $relativeOverlay = [System.IO.Path]::GetRelativePath($repository, $overlay)
-    if ($relativeOverlay.StartsWith('..') -or -not (Test-Path -LiteralPath $overlay -PathType Leaf)) {
-        throw 'ComposeOverlay must name a consumer-owned file inside the repository.'
-    }
-    $applicationComposeArguments += @('-f', $overlay)
-}
-$applicationComposeArguments += @('up', '-d')
+$applicationComposeArguments += @('up', '-d', '--force-recreate', '--remove-orphans')
 docker @applicationComposeArguments
 if ($LASTEXITCODE -ne 0) { throw 'The local runnable host did not start.' }
+
+python $topologyValidator @topologyArguments --verify-running
+if ($LASTEXITCODE -ne 0) { throw 'The running local topology differs from the merged desired Compose model.' }

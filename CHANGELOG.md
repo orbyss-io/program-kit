@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.9.8 - 2026-09-05
+
+- Preflight every Spec Kit component registry, installed integration command root, current and
+  release-desired managed-profile path, governance record, lock-renewal evidence path, and planned
+  OpenAPI reconciliation destination before the first component mutation.
+- Stop protected destination trees with stable `PKU115`, the exact blocked path, and a copyable
+  outside-sandbox PowerShell retry command instead of leaking a late raw `PermissionError`.
+- Prove a denied agent-owned `SKILL.md` leaves all component content unchanged and that a deliberate
+  failure after bundle/workflow mutation converges idempotently when the updater is rerun.
+- Validate cross-file Compose service dependencies against effective network names before startup,
+  force-recreate application-side services, and verify live container network attachments afterward.
+- Materialize every Keycloak client scope referenced or requested by either managed web profile and
+  require clean disposable imports to complete real PAR-to-login entry for both clients.
+
 ## 0.9.7 - 2026-09-05
 
 - Bridge verified uv-installed Spec Kit environments through the updater's executable Python when
