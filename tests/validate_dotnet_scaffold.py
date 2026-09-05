@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
 import subprocess
 import sys
 import tempfile
@@ -12,8 +13,62 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "extensions/program-kit-dotnet/scripts/dotnet_sync.py"
 
 
-def run(*arguments: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run([sys.executable, str(SCRIPT), *arguments], capture_output=True, text=True)
+def run(*arguments: str, environment: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(SCRIPT), *arguments],
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+
+
+def snapshot(repository: Path) -> dict[str, bytes]:
+    return {
+        path.relative_to(repository).as_posix(): path.read_bytes()
+        for path in repository.rglob("*")
+        if path.is_file()
+    }
+
+
+def assert_profile(repository: Path, expected: str) -> None:
+    state = json.loads((repository / ".program-kit/managed.json").read_text(encoding="utf-8"))
+    assert state["schemaVersion"] == 2
+    assert state["selections"]["web"] == expected
+    shell = json.loads(
+        (repository / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
+    )["CShells"]["Shells"]["default"]
+    features = set(shell["Features"])
+    if expected == "none":
+        assert not any(feature.startswith("ProgramKit.Authentication") for feature in features)
+        assert not (repository / "deploy/keycloak/program-kit-realm.json").exists()
+    else:
+        selected = (
+            "ProgramKit.Authentication.BffCookie"
+            if expected == "bff-cookie"
+            else "ProgramKit.Authentication.SpaPkce"
+        )
+        alternative = (
+            "ProgramKit.Authentication.SpaPkce"
+            if expected == "bff-cookie"
+            else "ProgramKit.Authentication.BffCookie"
+        )
+        assert selected in features and alternative not in features
+        realm = json.loads(
+            (repository / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8")
+        )
+        client_ids = {client["clientId"] for client in realm["clients"]}
+        assert ("program-kit-bff" in client_ids) == (expected == "bff-cookie")
+        assert ("program-kit-spa" in client_ids) == (expected == "spa-pkce")
+    spa_only = (
+        ".program-kit/spa-pkce.json",
+        ".program-kit/spa-pkce.schema.json",
+        "eng/program-kit/verify_spa_profile.py",
+        "eng/program-kit/web/spa-session.ts",
+        "eng/program-kit/web/vite.security.mjs",
+    )
+    for relative in spa_only:
+        assert (repository / relative).exists() == (expected == "spa-pkce"), relative
+    assert (repository / "eng/program-kit/web/bff-session.ts").exists() == (expected == "bff-cookie")
 
 
 def main() -> int:
@@ -46,6 +101,11 @@ def main() -> int:
         assert state["programKitVersion"]
         assert state["dotnetSdk"] == "10.0.202"
         assert state["dotnetSdkSource"] == "program-kit-default"
+        assert state["schemaVersion"] == 2
+        none_shell_profile = json.loads(
+            (target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
+        )
+        assert none_shell_profile["CShells"]["Shells"]["default"]["Features"] == {}
         assert (target / "eng/program-kit/ProgramKit.Build.props").is_file()
         assert (target / "Directory.Build.props").is_file()
         build_script = (target / "eng/program-kit/Build.ps1").read_text(encoding="utf-8")
@@ -186,11 +246,54 @@ def main() -> int:
         assert browser_state["webThreatModel"] == "program-kit-web-threat-model-v1"
         assert browser_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
         bff_settings = json.loads((browser_target / "hostsettings.json").read_text(encoding="utf-8"))
-        assert bff_settings["ProgramKit"]["Web"]["Profile"] == "BffCookie"
+        assert "Web" not in bff_settings["ProgramKit"]
+        bff_shell = json.loads(
+            (browser_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
+        )["CShells"]["Shells"]["default"]
+        assert "ProgramKit.Authentication.BffCookie" in bff_shell["Features"]
+        assert "ProgramKit.Authentication.SpaPkce" not in bff_shell["Features"]
+        assert bff_shell["Configuration"]["ProgramKit"]["Web"]["ClientId"] == "program-kit-bff"
         assert (browser_target / "deploy/keycloak/program-kit-realm.json").is_file()
+        bff_realm = json.loads(
+            (browser_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8")
+        )
+        bff_client_ids = {client["clientId"] for client in bff_realm["clients"]}
+        assert "program-kit-bff" in bff_client_ids and "program-kit-spa" not in bff_client_ids
+        assert (browser_target / "eng/program-kit/web/bff-session.ts").is_file()
+        bff_compose = (browser_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
+        assert "CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret" in bff_compose
         assert (browser_target / "eng/program-kit/web/package-lock.json").is_file()
         assert (browser_target / ".program-kit/security/web-security-evidence.json").is_file()
         assert (browser_target / "docs/architecture/program-kit/web-security-threat-model.md").is_file()
+        permission_spec_relative = "eng/program-kit/web/tests/authentication.spec.ts"
+        permission_spec = browser_target / permission_spec_relative
+        current_permission_contract = permission_spec.read_bytes()
+        assert b"expect(authorizedResponse.ok()).toBeTruthy();" in current_permission_contract
+        assert b"expect(deniedResponse.status()).toBe(403);" in current_permission_contract
+
+        # An unchanged managed file installed by 0.8.11 must upgrade in place. Consumers must not
+        # need to edit the managed browser test to accept a legitimate 204 permission response.
+        legacy_permission_contract = current_permission_contract.replace(
+            b"  const authorizedResponse = await authorized.request.get(path);\n"
+            b"  expect(authorizedResponse.ok()).toBeTruthy();",
+            b"  expect((await authorized.request.get(path)).status()).toBe(200);",
+        )
+        assert legacy_permission_contract != current_permission_contract
+        permission_spec.write_bytes(legacy_permission_contract)
+        browser_state_path = browser_target / ".program-kit/managed.json"
+        browser_state = json.loads(browser_state_path.read_text(encoding="utf-8"))
+        legacy_hash = hashlib.sha256(legacy_permission_contract).hexdigest()
+        browser_state["schemaVersion"] = 1
+        for record in browser_state["files"].values():
+            for name in ("baselineHash", "contribution", "lastWrittenHash", "lifecycle", "sourceIdentity"):
+                record.pop(name, None)
+        browser_state["files"][permission_spec_relative]["installedHash"] = legacy_hash
+        browser_state["files"][permission_spec_relative]["templateHash"] = legacy_hash
+        browser_state_path.write_text(json.dumps(browser_state, indent=2) + "\n", encoding="utf-8")
+        browser_upgraded = run("--target", str(browser_target), *approvals)
+        assert browser_upgraded.returncode == 0, browser_upgraded.stderr
+        assert f"  ~ {permission_spec_relative}" in browser_upgraded.stdout
+        assert permission_spec.read_bytes() == current_permission_contract
 
         mentioned_alternative = target / "mentioned-spa-alternative"
         alternative_design = mentioned_alternative / "INITIAL_DESIGN.md"
@@ -214,12 +317,17 @@ def main() -> int:
         assert spa_state["webThreatModel"] == "program-kit-web-threat-model-v1"
         assert spa_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
         spa_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
-        assert spa_settings["ProgramKit"]["Web"]["Profile"] == "SpaPkce"
-        assert spa_settings["ProgramKit"]["Web"]["AllowedOrigins"] == ["http://localhost:5173"]
+        assert "Web" not in spa_settings["ProgramKit"]
+        spa_shell = json.loads(
+            (spa_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
+        )["CShells"]["Shells"]["default"]
+        assert "ProgramKit.Authentication.SpaPkce" in spa_shell["Features"]
+        assert "ProgramKit.Authentication.BffCookie" not in spa_shell["Features"]
         spa_configuration_path = spa_target / ".program-kit/spa-pkce.json"
         spa_configuration = json.loads(spa_configuration_path.read_text(encoding="utf-8"))
         assert spa_state["files"][".program-kit/spa-pkce.json"]["ownership"] == "configuration"
         realm = json.loads((spa_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8"))
+        assert not any(client["clientId"] == "program-kit-bff" for client in realm["clients"])
         spa_client = next(client for client in realm["clients"] if client["clientId"] == "program-kit-spa")
         assert spa_client["publicClient"] is True and "secret" not in spa_client
         assert spa_client["redirectUris"] == [
@@ -258,8 +366,14 @@ def main() -> int:
         )
         assert customized_client["redirectUris"] == spa_configuration["redirectUris"]
         assert customized_realm["ssoSessionIdleTimeout"] == 1200
-        customized_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
-        assert customized_settings["ProgramKit"]["Web"]["AllowedOrigins"] == ["http://localhost:4173"]
+        customized_shell = json.loads(
+            (spa_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
+        )
+        assert (
+            customized_shell["CShells"]["Shells"]["default"]["Configuration"]["ProgramKit"]["Web"]
+            ["AllowedOrigins"]
+            == ["http://localhost:4173"]
+        )
         clean_spa = run(
             "--target", str(spa_target), "--profile-selected", "--check", "--web-profile", "spa-pkce"
         )
@@ -332,6 +446,130 @@ def main() -> int:
         invalid_result = run("--target", str(invalid_override), *approvals)
         assert invalid_result.returncode != 0
         assert "override is incomplete" in invalid_result.stderr
+
+        # Every directed transition converges to only the selected profile contribution.
+        for source_profile in ("none", "bff-cookie", "spa-pkce"):
+            for destination_profile in ("none", "bff-cookie", "spa-pkce"):
+                if source_profile == destination_profile:
+                    continue
+                transition = target / f"transition-{source_profile}-to-{destination_profile}"
+                source_result = run(
+                    "--target", str(transition), *approvals, "--web-profile", source_profile
+                )
+                assert source_result.returncode == 0, source_result.stderr
+                assert_profile(transition, source_profile)
+                destination_result = run(
+                    "--target", str(transition), *approvals, "--web-profile", destination_profile
+                )
+                assert destination_result.returncode == 0, destination_result.stderr
+                assert_profile(transition, destination_profile)
+                converged = run(
+                    "--target",
+                    str(transition),
+                    "--profile-selected",
+                    "--check",
+                    "--web-profile",
+                    destination_profile,
+                )
+                assert converged.returncode == 0, converged.stderr
+
+        # A versioned migration removes SPA files that 0.8.11 could lose from state while leaving
+        # them on disk. Only the exact governed bytes are eligible for retirement.
+        migration_catalog = json.loads(
+            (ROOT / "extensions/program-kit-dotnet/templates/dotnet/migrations.json")
+            .read_text(encoding="utf-8")
+        )
+        residue_migration = next(
+            item for item in migration_catalog["migrations"]
+            if item["id"] == "0.9.0-retire-lost-spa-profile-residue"
+        )
+        spa_template_root = ROOT / "extensions/program-kit-dotnet/templates/dotnet/web-profiles/spa-pkce"
+        script_source = ROOT / "extensions/program-kit-dotnet/scripts/spa_profile.py"
+
+        def seed_lost_spa_residue(repository: Path) -> None:
+            for item in residue_migration["retire"]:
+                relative = item["path"]
+                source = script_source if relative == "eng/program-kit/verify_spa_profile.py" else spa_template_root / relative
+                destination = repository / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(source.read_bytes())
+            managed_path = repository / ".program-kit/managed.json"
+            managed = json.loads(managed_path.read_text(encoding="utf-8"))
+            managed["programKitVersion"] = "0.8.11"
+            managed["appliedMigrations"] = [
+                value for value in managed.get("appliedMigrations", [])
+                if value != residue_migration["id"]
+            ]
+            managed_path.write_text(json.dumps(managed, indent=2) + "\n", encoding="utf-8")
+
+        legacy_residue = target / "legacy-lost-spa-residue"
+        legacy_installed = run(
+            "--target", str(legacy_residue), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert legacy_installed.returncode == 0, legacy_installed.stderr
+        seed_lost_spa_residue(legacy_residue)
+        migrated = run(
+            "--target", str(legacy_residue), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert migrated.returncode == 0, migrated.stderr
+        for item in residue_migration["retire"]:
+            assert not (legacy_residue / item["path"]).exists(), item["path"]
+
+        modified_residue = target / "modified-lost-spa-residue"
+        modified_installed = run(
+            "--target", str(modified_residue), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert modified_installed.returncode == 0, modified_installed.stderr
+        seed_lost_spa_residue(modified_residue)
+        modified_path = modified_residue / ".program-kit/spa-pkce.json"
+        modified_path.write_text(modified_path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        before_migration_conflict = snapshot(modified_residue)
+        blocked_migration = run(
+            "--target", str(modified_residue), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert blocked_migration.returncode == 2, blocked_migration.stderr
+        assert snapshot(modified_residue) == before_migration_conflict
+
+        # A consumer-modified retiring contribution blocks the complete plan before any mutation.
+        conflict_transition = target / "transition-conflict-zero-mutation"
+        installed_spa = run(
+            "--target", str(conflict_transition), *approvals, "--web-profile", "spa-pkce"
+        )
+        assert installed_spa.returncode == 0, installed_spa.stderr
+        spa_input = conflict_transition / ".program-kit/spa-pkce.json"
+        spa_input.write_text(spa_input.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        before_conflict = snapshot(conflict_transition)
+        blocked_transition = run(
+            "--target", str(conflict_transition), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert blocked_transition.returncode == 2, blocked_transition.stderr
+        assert snapshot(conflict_transition) == before_conflict
+
+        # An injected mid-apply failure rolls every file back; a clean retry then converges.
+        interrupted = target / "interrupted-transaction"
+        installed_bff = run(
+            "--target", str(interrupted), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert installed_bff.returncode == 0, installed_bff.stderr
+        before_interruption = snapshot(interrupted)
+        injected_environment = os.environ.copy()
+        injected_environment["PROGRAMKIT_TEST_SYNC_FAIL_AFTER_ACTION"] = "2"
+        failed_apply = run(
+            "--target",
+            str(interrupted),
+            *approvals,
+            "--web-profile",
+            "spa-pkce",
+            environment=injected_environment,
+        )
+        assert failed_apply.returncode == 2, failed_apply.stderr
+        assert "rolled back" in failed_apply.stderr
+        assert snapshot(interrupted) == before_interruption
+        recovered_apply = run(
+            "--target", str(interrupted), *approvals, "--web-profile", "spa-pkce"
+        )
+        assert recovered_apply.returncode == 0, recovered_apply.stderr
+        assert_profile(interrupted, "spa-pkce")
 
     print("Program Kit .NET scaffold lifecycle passed.")
     return 0

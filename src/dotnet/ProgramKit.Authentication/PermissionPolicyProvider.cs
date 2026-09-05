@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
-namespace ProgramKit.Host.Web;
+namespace ProgramKit.Authentication;
 
 /// <summary>Builds authorization policies from stable <c>permission:name</c> identifiers.</summary>
 internal sealed class PermissionPolicyProvider(
@@ -16,11 +16,15 @@ internal sealed class PermissionPolicyProvider(
     public override Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
         if (!policyName.StartsWith(Prefix, StringComparison.Ordinal))
+        {
             return base.GetPolicyAsync(policyName);
+        }
 
         var permission = policyName[Prefix.Length..].Trim();
         if (permission.Length == 0)
+        {
             return Task.FromResult<AuthorizationPolicy?>(null);
+        }
 
         var policy = new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()

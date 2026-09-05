@@ -1,13 +1,10 @@
-namespace ProgramKit.Host.Web;
+namespace ProgramKit.Authentication;
 
-/// <summary>Defines the validated runtime settings shared by the secure web profiles.</summary>
-internal sealed class ProgramKitWebOptions
+/// <summary>Defines settings shared by the Program Kit authentication profile features.</summary>
+public sealed class ProgramKitWebOptions
 {
-    /// <summary>Gets the configuration section containing secure web settings.</summary>
+    /// <summary>Gets the shell-configuration section containing secure web settings.</summary>
     public const string SectionName = "ProgramKit:Web";
-
-    /// <summary>Gets or sets the selected secure web boundary profile.</summary>
-    public ProgramKitWebProfile Profile { get; set; }
 
     /// <summary>Gets or sets the OIDC issuer authority.</summary>
     public string Authority { get; set; } = string.Empty;
@@ -68,10 +65,4 @@ internal sealed class ProgramKitWebOptions
 
     /// <summary>Gets or sets whether loopback/container HTTP is accepted during local development.</summary>
     public bool AllowHttpForLocalDevelopment { get; set; }
-
-    /// <summary>Gets or sets the deterministic application fallback locale.</summary>
-    public string DefaultLocale { get; set; } = "en";
-
-    /// <summary>Gets or sets the application locales accepted by request localization.</summary>
-    public string[] SupportedLocales { get; set; } = ["en"];
 }

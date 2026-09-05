@@ -26,9 +26,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.8.11":
+    if program_version != "0.9.0":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.8.11-preview.1":
+    if runtime_version != "0.9.0-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     validate_package_source_routing(root / "NuGet.config")
@@ -67,10 +67,16 @@ def main() -> int:
     ).read_text(encoding="utf-8")
     managed_versions = {
         "ProgramKit.Analyzers": runtime_version,
+        "ProgramKit.Authentication": runtime_version,
+        "ProgramKit.Authentication.BffCookie": runtime_version,
+        "ProgramKit.Authentication.SpaPkce": runtime_version,
         "ProgramKit.DomainEvents.Abstractions": runtime_version,
         "ProgramKit.DomainEvents": runtime_version,
         "ProgramKit.Tasks.Abstractions": runtime_version,
         "ProgramKit.Tasks": runtime_version,
+        "ProgramKit.WebDefaults": runtime_version,
+        "ProgramKit.Web.OpenApi": runtime_version,
+        "ProgramKit.Web.ProblemDetails": runtime_version,
         "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11",
         "Microsoft.Extensions.Logging.Abstractions": "10.0.11",
     }
@@ -116,9 +122,6 @@ def main() -> int:
     packages = {item.attrib["Include"] for item in project.iter() if item.tag.endswith("PackageReference")}
     allowed = {
         "CShells.AspNetCore",
-        "Microsoft.AspNetCore.Authentication.JwtBearer",
-        "Microsoft.AspNetCore.Authentication.OpenIdConnect",
-        "Microsoft.AspNetCore.OpenApi",
         "Nuplane",
         "Nuplane.Loading",
         "Nuplane.Sources.Directory",
@@ -130,18 +133,23 @@ def main() -> int:
         for path in host_root.rglob("*.cs")
         if "obj" not in path.parts
     )
-    for forbidden in ("Npgsql", "ApplicationBundle", "health/ready"):
+    for forbidden in (
+        "Npgsql",
+        "ApplicationBundle",
+        "health/ready",
+        "AddAuthentication",
+        "UseAuthentication",
+        "UseExceptionHandler",
+        "AddProblemDetails",
+        "ProgramKitWebBoundary",
+    ):
         if forbidden in source:
             raise AssertionError(f"ProgramKit.Host contains application/release concern: {forbidden}")
     for required in (
         "AddNuplane",
         "AutoloadPackages",
         "AddCShellsAspNetCore",
-        "AddProgramKitWebBoundary",
-        "UseProgramKitWebBoundary",
-        "PermissionClaimsTransformation",
-        "PermissionPolicyProvider",
-        'RequireClaim(webOptions.Value.PermissionClaim, permission)',
+        ".program-kit/web-profile.shells.json",
         "MapShells",
     ):
         if required not in source:
@@ -166,10 +174,16 @@ def main() -> int:
         raise AssertionError("Domain-event handlers must remain independent of the concrete dispatcher package")
     for project in (
         "ProgramKit.Host",
+        "ProgramKit.Authentication",
+        "ProgramKit.Authentication.BffCookie",
+        "ProgramKit.Authentication.SpaPkce",
         "ProgramKit.DomainEvents",
         "ProgramKit.DomainEvents.Abstractions",
         "ProgramKit.Tasks",
         "ProgramKit.Tasks.Abstractions",
+        "ProgramKit.WebDefaults",
+        "ProgramKit.Web.OpenApi",
+        "ProgramKit.Web.ProblemDetails",
         "ProgramKit.Analyzers",
         "ProgramKit.OpenApi.Exporter",
     ):

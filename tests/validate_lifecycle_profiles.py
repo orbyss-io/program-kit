@@ -762,7 +762,7 @@ def validate_openapi_initialization() -> None:
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
-                "tools": {"programkit.openapi.exporter": {"version": "0.8.11-preview.1"}}
+                "tools": {"programkit.openapi.exporter": {"version": "0.9.0-preview.1"}}
             }),
             encoding="utf-8",
         )
@@ -784,7 +784,7 @@ def validate_openapi_initialization() -> None:
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
         )
         if (
-            contract["producer"]["version"] != "0.8.11-preview.1"
+            contract["producer"]["version"] != "0.9.0-preview.1"
             or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
@@ -975,8 +975,12 @@ def validate_sync_preservation() -> None:
         unrelated = repository / "consumer-owned.txt"
         unrelated.write_text("keep\n", encoding="utf-8")
         repeated = subprocess.run(command, capture_output=True, text=True)
-        if repeated.returncode != 2 or root_targets.read_text(encoding="utf-8") != consumer_value:
-            raise AssertionError("scaffold-once consumer MSBuild extension was overwritten or not reported")
+        if (
+            repeated.returncode != 0
+            or root_targets.read_text(encoding="utf-8") != consumer_value
+            or "preserved consumer files:" not in repeated.stdout
+        ):
+            raise AssertionError("scaffold-once consumer MSBuild extension was overwritten or not preserved")
         if unrelated.read_text(encoding="utf-8") != "keep\n":
             raise AssertionError("unrelated consumer file changed during synchronization")
         state = json.loads((repository / ".program-kit/managed.json").read_text(encoding="utf-8"))
@@ -1407,7 +1411,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.8.11-preview.1"},
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.0-preview.1"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1442,7 +1446,7 @@ def validate_artifact_ownership() -> None:
                     "isRoot": True,
                     "tools": {
                         "programkit.openapi.exporter": {
-                            "version": "0.8.11-preview.1",
+                            "version": "0.9.0-preview.1",
                             "commands": ["programkit-openapi-export"],
                         }
                     },

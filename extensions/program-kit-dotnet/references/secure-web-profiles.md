@@ -49,13 +49,16 @@ architecture; it can and normally should use the BFF profile.
 
 ### Runtime configuration
 
-Configuration binds to `ProgramKit:Web` and is validated at startup. Secret values come from the
-environment or a secret provider and never from committed settings. For `spa-pkce-v1`, the
+Configuration binds to the selected shell's `ProgramKit:Web` section and is validated when that
+shell activates. Secret values come from the environment or a secret provider and never from
+committed settings. For the scaffolded `default` shell, the BFF client-secret environment key is
+`CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret`. For `spa-pkce-v1`, the
 scaffold-owned `.program-kit/spa-pkce.json` is the typed security input; synchronization validates it
-and derives the managed `hostsettings.json`, Keycloak registration, and browser contract. Consumers
+and derives the managed shell overlay, Keycloak registration, and browser contract. Consumers
 change that input and resynchronize rather than editing a derived managed file.
 
-- `Profile`: `None`, `BffCookie`, or `SpaPkce`.
+- The active `ProgramKit.Authentication.BffCookie` or `ProgramKit.Authentication.SpaPkce` feature is
+  the profile discriminator; runtime code does not branch on a profile enum.
 - `Authority`: HTTPS issuer URL; HTTP is permitted only by an explicit local-development setting.
 - `ClientId`; `ClientSecret` is required only for BFF.
 - `Audience`, `Scopes`, provider `RoleClaim` (default `roles`), and canonical `PermissionClaim`
@@ -122,6 +125,9 @@ SPA redirect and post-logout registrations are exact routes derived from
 
 ## `bff-cookie-v1`
 
+- The profile activates `ProgramKit.Authentication.BffCookie`, an `IWebShellFeature` plus ordered
+  `IMiddlewareShellFeature`; the generic host contains no BFF endpoints, authentication handlers,
+  antiforgery middleware, or response-format policy.
 - The selected Program Kit host web runtime is a confidential OIDC client using authorization code
   flow and PKCE.
 - Access and refresh tokens remain in a server-side `ITicketStore`; the browser cookie contains only
@@ -133,8 +139,11 @@ SPA redirect and post-logout registrations are exact routes derived from
 - `GET /bff/user` returns a minimal session projection (authentication state, subject, display name,
   and canonical permissions) and never returns tokens, provider roles, or the raw claims principal.
 - `GET /bff/antiforgery` issues an antiforgery request token for in-memory use by the UI.
-- unsafe same-origin `/api` and `POST /bff/logout` requests require the token in
-  `X-CSRF-TOKEN`. Cross-site navigation cannot perform logout.
+- unsafe same-origin `/api` requests require the token in `X-CSRF-TOKEN`. Browser logout uses the
+  managed `bff-session.ts` adapter: it opens a same-origin auxiliary browsing context during the
+  user gesture, obtains `/bff/antiforgery`, and submits a top-level `POST /bff/logout` form using
+  `__RequestVerificationToken`. A missing, invalid, or cross-site token fails before local session
+  mutation. Scripted cross-origin `fetch` is not a logout-navigation mechanism.
 - session renewal is server controlled and cannot extend beyond the configured absolute lifetime.
   Expired or unrecoverable sessions terminate locally and return `401` to API requests.
 - logout deletes the local server ticket and cookie first, then attempts RP-initiated provider
@@ -146,6 +155,9 @@ SPA redirect and post-logout registrations are exact routes derived from
 
 ## `spa-pkce-v1`
 
+- The profile activates `ProgramKit.Authentication.SpaPkce`, an ordered `IMiddlewareShellFeature`
+  (and endpoint-capable `IWebShellFeature`); the generic host contains no bearer handler, CORS
+  policy, or authentication response formatting.
 - The browser is a public authorization-code client with PKCE S256 and no client secret.
 - The API accepts bearer tokens only and validates issuer, audience, signature, and lifetime.
 - access and refresh tokens are memory-only by default. Browser refresh terminates the local session
@@ -170,6 +182,10 @@ SPA redirect and post-logout registrations are exact routes derived from
   identity origins. A production static server or edge must translate the checked
   `spa-security.json` contract; the production TLS terminator separately owns HTTPS and HSTS, so
   local HTTP never claims them.
+- `bff-cookie-v1` serves the browser and API through the Program Kit host's same-origin security-
+  header middleware. Its WEB-V3 suite asserts those headers on a BFF response. `Test-Web.ps1`
+  rejects `-ViteConfig` for BFF consumers because that adapter is exclusive to an independently
+  hosted `spa-pkce-v1` client.
 - The production CSP permits self-hosted scripts/styles by default. Add an exact source, nonce, or
   hash only after resource review; do not add `unsafe-inline` or wildcard sources. Keycloak
   top-level navigation needs no CSP source, while browser discovery/token calls need its exact
@@ -194,7 +210,8 @@ not security evidence by itself.
 The shared contract suite plus profile-specific browser suite verifies:
 
 1. Anonymous API call is `401`; a principal without the requested application permission receives
-   `403`; a principal with it succeeds.
+   exactly `403`; a principal with it succeeds with any `2xx` response, including `200` and `204`.
+   Redirects and every other non-`2xx` response fail the authorized permission probe.
 2. Permissions are derived from the configured canonical claim or exact provider-role/scope mappings;
    unknown or missing values grant nothing.
 3. Login returns only to a validated local path.
@@ -221,13 +238,36 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 | Artifact | Ownership and supported change path |
 | --- | --- |
 | `.program-kit/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
-| `hostsettings.json` | Managed derived output for SPA-PKCE; scaffold-owned deployment input for BFF/none. |
+| `hostsettings.json` | Scaffold-owned host infrastructure only: eager activation and Nuplane package loading. It contains no auth profile configuration. |
 | `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture. Never edit it; change the SPA input and sync. |
 | `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
 | SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |
 | `eng/program-kit/Dev.ps1` and `Test-Web.ps1` | Managed launch/test entry points. Use their parameters; do not fork them. |
 | `eng/program-kit/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
 | Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
+| `.program-kit/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
+| `shells.json` | Consumer-owned CShells composition. It is loaded after the managed profile contribution, so a consumer can set `ProgramKit.Web.ProblemDetails` to `false` and activate its own exception feature. |
+
+## CShells feature composition
+
+`ProgramKit.Host` owns only Nuplane/CShells bootstrapping, eager shell activation, `MapShells()`, and
+process lifetime. Web behavior is package-owned:
+
+- `ProgramKit.Authentication.BffCookie` owns confidential OIDC/cookie configuration, server-side
+  tickets, antiforgery middleware, and `/bff/*` endpoints.
+- `ProgramKit.Authentication.SpaPkce` owns JWT bearer validation and exact-origin CORS.
+- `ProgramKit.Authentication` is the shared dependency for canonical permission mapping and exposes
+  `IAuthenticationErrorWriter`; consumers may replace its default error representation.
+- `ProgramKit.WebDefaults` owns the default localization, HSTS, correlation, and security-header
+  middleware.
+- `ProgramKit.Web.OpenApi` owns the optional shell OpenAPI endpoint.
+- `ProgramKit.Web.ProblemDetails` owns the optional default exception/status response format. It is
+  deliberately not an authentication-feature dependency, so consumers can deactivate it and bring
+  their own global exception-handler feature without forking the host or an auth package.
+
+Per-shell exception middleware covers downstream shell middleware and endpoints. A failure before
+CShells resolves and enters a shell remains a host-infrastructure failure and is not reformatted by
+an application feature.
 
 ## Review and non-claims
 

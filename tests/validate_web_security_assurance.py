@@ -174,16 +174,61 @@ def main() -> int:
         profile_record = load_object(profile_root / ".program-kit/web-profile.json")
         if profile_record.get("threatModel") != THREAT_MODEL_ID or profile_record.get("securityEvidence") != EVIDENCE_ID:
             raise AssertionError(f"{profile_directory} profile record does not bind exact assurance IDs")
-        host_settings = load_object(profile_root / "hostsettings.json")["ProgramKit"]["Web"]
-        if host_settings.get("PermissionClaim") != "permissions":
+        shell_profile = load_object(profile_root / ".program-kit/web-profile.shells.json")
+        shell = shell_profile["CShells"]["Shells"]["default"]
+        web_settings = shell["Configuration"]["ProgramKit"]["Web"]
+        if web_settings.get("PermissionClaim") != "permissions":
             raise AssertionError(f"{profile_directory} does not name the canonical permission claim")
-        if host_settings.get("RolePermissions") != {} or host_settings.get("ScopePermissions") != {}:
+        if web_settings.get("RolePermissions") != {} or web_settings.get("ScopePermissions") != {}:
             raise AssertionError(
                 f"{profile_directory} must not invent application-specific provider mappings"
             )
+        selected_feature = (
+            "ProgramKit.Authentication.BffCookie"
+            if profile_directory == "bff-cookie"
+            else "ProgramKit.Authentication.SpaPkce"
+        )
+        alternative_feature = (
+            "ProgramKit.Authentication.SpaPkce"
+            if profile_directory == "bff-cookie"
+            else "ProgramKit.Authentication.BffCookie"
+        )
+        if selected_feature not in shell["Features"] or alternative_feature in shell["Features"]:
+            raise AssertionError(f"{profile_directory} does not activate only its selected auth feature")
+        if (profile_root / "hostsettings.json").exists():
+            raise AssertionError(f"{profile_directory} must not carry auth settings in hostsettings.json")
 
-    host_web_root = root / "src/dotnet/ProgramKit.Host/Web"
-    host_web = "\n".join(path.read_text(encoding="utf-8") for path in host_web_root.glob("*.cs"))
+    base_host_settings = load_object(
+        root / "extensions/program-kit-dotnet/templates/dotnet/files/hostsettings.json"
+    )
+    if "Web" in base_host_settings.get("ProgramKit", {}):
+        raise AssertionError("ProgramKit hostsettings must remain free of web-profile configuration")
+
+    host_root = root / "src/dotnet/ProgramKit.Host"
+    host_source = "\n".join(path.read_text(encoding="utf-8") for path in host_root.rglob("*.cs"))
+    for forbidden in (
+        "ProgramKitWebBoundary",
+        "AddAuthentication",
+        "UseAuthentication",
+        "UseExceptionHandler",
+        "AddProblemDetails",
+        "CorrelationAndSecurityHeadersMiddleware",
+    ):
+        if forbidden in host_source:
+            raise AssertionError(f"ProgramKit.Host still owns web or authentication policy: {forbidden}")
+    feature_roots = [
+        root / "src/dotnet/ProgramKit.Authentication",
+        root / "src/dotnet/ProgramKit.Authentication.BffCookie",
+        root / "src/dotnet/ProgramKit.Authentication.SpaPkce",
+        root / "src/dotnet/ProgramKit.WebDefaults",
+        root / "src/dotnet/ProgramKit.Web.ProblemDetails",
+        root / "src/dotnet/ProgramKit.Web.OpenApi",
+    ]
+    feature_source = "\n".join(
+        path.read_text(encoding="utf-8")
+        for feature_root in feature_roots
+        for path in feature_root.glob("*.cs")
+    )
     for required in (
         "PermissionClaimsTransformation",
         "PermissionPolicyProvider",
@@ -191,9 +236,17 @@ def main() -> int:
         "settings.RolePermissions",
         "settings.ScopePermissions",
         "permissions",
+        "AntiforgeryFormField",
+        "formFieldName = AntiforgeryFormField",
+        '"authentication_callback_invalid"',
+        '"identity_provider_unavailable"',
+        "IWebShellFeature",
+        "IMiddlewareShellFeature",
+        "IAuthenticationErrorWriter",
+        "TryAddSingleton<IAuthenticationErrorWriter, DefaultAuthenticationErrorWriter>",
     ):
-        if required not in host_web:
-            raise AssertionError(f"ProgramKit.Host does not implement permission contract: {required}")
+        if required not in feature_source:
+            raise AssertionError(f"CShells feature packages do not implement the web contract: {required}")
     web_profiles_root = root / "extensions/program-kit-dotnet/templates/dotnet/web-profiles"
     browser_contract = "\n".join(
         path.read_text(encoding="utf-8")
@@ -202,6 +255,52 @@ def main() -> int:
     )
     if "PROGRAMKIT_PERMISSION_PROBE_PATH" not in browser_contract or "PROGRAMKIT_ROLE_PROBE_PATH" in browser_contract:
         raise AssertionError("The browser contract must probe application permissions, not provider roles")
+    permission_probe = (
+        web_profiles_root
+        / "common/eng/program-kit/web/tests/authentication.spec.ts"
+    ).read_text(encoding="utf-8")
+    for required in (
+        "const authorizedResponse = await authorized.request.get(path);",
+        "expect(authorizedResponse.ok()).toBeTruthy();",
+        "const deniedResponse = await denied.request.get(path);",
+        "expect(deniedResponse.status()).toBe(403);",
+    ):
+        if required not in permission_probe:
+            raise AssertionError(f"The permission-probe browser contract is missing: {required}")
+    if "authorized.request.get(path)).status()).toBe(200)" in permission_probe:
+        raise AssertionError("The authorized permission probe must accept every successful 2xx response")
+    for required in (
+        "page.evaluate(async () =>",
+        "form.method = 'post';",
+        "field.name = formFieldName;",
+        "form.submit();",
+        "cross-site top-level logout form fails before session mutation",
+        "provider navigation failure cannot restore local access",
+    ):
+        if required not in permission_probe:
+            raise AssertionError(f"The real-browser BFF logout evidence is missing: {required}")
+
+    bff_root = web_profiles_root / "bff-cookie"
+    bff_manifest = load_object(bff_root / "managed-files.json")
+    bff_files = {item["path"] for item in bff_manifest["files"]}
+    if "eng/program-kit/web/bff-session.ts" not in bff_files:
+        raise AssertionError("The BFF profile does not ship its browser logout adapter")
+    bff_contract = load_object(bff_root / "eng/program-kit/web/web-contract.json")
+    if bff_contract.get("schemaVersion") != 2:
+        raise AssertionError("The browser-complete BFF contract must use schema version 2")
+    routes = bff_contract.get("routes", {})
+    if set(routes) != {
+        "login", "user", "antiforgery", "logout", "signedOut", "accessDenied",
+        "oidcCallback", "signedOutCallback", "remoteSignOut",
+    }:
+        raise AssertionError("The BFF contract does not close over every managed browser route")
+    if routes["antiforgery"]["success"]["body"].get("formFieldName") != "__RequestVerificationToken":
+        raise AssertionError("The BFF contract does not expose the browser form antiforgery field")
+    if routes["logout"].get("browserInvocation") != "user-initiated-top-level-form-target":
+        raise AssertionError("The BFF logout contract is not consumable as browser navigation")
+    ownership = bff_contract.get("ownership", {})
+    if ownership.get("featureOwnedPrefix") != "/api/" or "/bff/logout" not in ownership.get("managedExactPaths", []):
+        raise AssertionError("The BFF contract confuses managed BFF routes with feature-owned APIs")
 
     tooling_command = (
         root / "extensions/program-kit-governance/commands/speckit.program-kit-governance.tooling.md"
@@ -216,6 +315,9 @@ def main() -> int:
         for required in (THREAT_MODEL_ID, EVIDENCE_ID):
             if required not in document:
                 raise AssertionError(f"{document_name} does not reference {required}")
+    for required in ("any `2xx` response", "including `200` and `204`", "exactly `403`"):
+        if required not in contract:
+            raise AssertionError(f"The secure web contract does not define permission-probe behavior: {required}")
     if "not a final RFC" not in adr or "does not certify" not in adr:
         raise AssertionError("ADR 0005 overstates the strength of its security evidence")
 

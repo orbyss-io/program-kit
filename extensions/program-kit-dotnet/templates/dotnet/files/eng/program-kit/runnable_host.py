@@ -15,10 +15,36 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-PROGRAM_KIT_VERSION = "0.8.11"
+PROGRAM_KIT_VERSION = "0.9.0"
 BUILT_IN_FEATURE_PACKAGES = {
+    "ProgramKit.Authentication": "ProgramKit.Authentication",
+    "ProgramKit.Authentication.BffCookie": "ProgramKit.Authentication.BffCookie",
+    "ProgramKit.Authentication.SpaPkce": "ProgramKit.Authentication.SpaPkce",
     "ProgramKit.DomainEvents": "ProgramKit.DomainEvents",
     "ProgramKitTasks": "ProgramKit.Tasks",
+    "ProgramKit.WebDefaults": "ProgramKit.WebDefaults",
+    "ProgramKit.Web.OpenApi": "ProgramKit.Web.OpenApi",
+    "ProgramKit.Web.ProblemDetails": "ProgramKit.Web.ProblemDetails",
+}
+IDENTITY_RUNTIME_PACKAGES = {
+    ("Microsoft.Bcl.Cryptography", "10.0.2"),
+    ("Microsoft.IdentityModel.Abstractions", "8.19.2"),
+    ("Microsoft.IdentityModel.JsonWebTokens", "8.19.2"),
+    ("Microsoft.IdentityModel.Logging", "8.19.2"),
+    ("Microsoft.IdentityModel.Protocols", "8.19.2"),
+    ("Microsoft.IdentityModel.Protocols.OpenIdConnect", "8.19.2"),
+    ("Microsoft.IdentityModel.Tokens", "8.19.2"),
+    ("System.IdentityModel.Tokens.Jwt", "8.19.2"),
+}
+BUILT_IN_FEATURE_RUNTIME_PACKAGES = {
+    "ProgramKit.Authentication.BffCookie": IDENTITY_RUNTIME_PACKAGES
+    | {("Microsoft.AspNetCore.Authentication.OpenIdConnect", "10.0.11")},
+    "ProgramKit.Authentication.SpaPkce": IDENTITY_RUNTIME_PACKAGES
+    | {("Microsoft.AspNetCore.Authentication.JwtBearer", "10.0.11")},
+    "ProgramKit.Web.OpenApi": {
+        ("Microsoft.AspNetCore.OpenApi", "10.0.11"),
+        ("Microsoft.OpenApi", "2.7.5"),
+    },
 }
 
 
@@ -54,6 +80,56 @@ def package_identity(path: Path) -> tuple[str, str]:
         return package_id, version
 
 
+def package_dependencies(path: Path) -> set[tuple[str, str]]:
+    """Read dependencies from the nearest net10-compatible group in a NuGet package."""
+    with zipfile.ZipFile(path) as archive:
+        nuspecs = [name for name in archive.namelist() if name.lower().endswith(".nuspec")]
+        root = ElementTree.fromstring(archive.read(nuspecs[0]))
+    groups = [element for element in root.iter() if element.tag.endswith("group")]
+    by_framework = {
+        group.attrib.get("targetFramework", "").replace(" ", "").casefold(): group
+        for group in groups
+    }
+    selected = next(
+        (
+            by_framework[framework]
+            for framework in (
+                "net10.0",
+                ".netcoreapp,version=v10.0",
+                "net9.0",
+                "net8.0",
+                "net7.0",
+                "net6.0",
+                ".netstandard,version=v2.1",
+                ".netstandard,version=v2.0",
+                "netstandard2.1",
+                "netstandard2.0",
+            )
+            if framework in by_framework
+        ),
+        None,
+    )
+    if groups and selected is None:
+        return set()
+    parent = selected if selected is not None else root
+    result: set[tuple[str, str]] = set()
+    for dependency in parent.iter():
+        if not dependency.tag.endswith("dependency"):
+            continue
+        package_id = dependency.attrib.get("id", "").strip()
+        raw_version = dependency.attrib.get("version", "").strip()
+        version = raw_version.strip("[]() ").split(",", 1)[0].strip()
+        if package_id and version:
+            result.add((package_id, version))
+    return result
+
+
+def nuget_version_key(value: str) -> tuple[tuple[int, ...], int, str]:
+    """Order the concrete versions emitted by the governed dependency graph."""
+    release, separator, prerelease = value.partition("-")
+    return tuple(int(part) for part in release.split(".")), 1 if not separator else 0, prerelease.casefold()
+
+
 def is_runtime_package(path: Path) -> bool:
     with zipfile.ZipFile(path) as archive:
         nuspecs = [name for name in archive.namelist() if name.lower().endswith(".nuspec")]
@@ -86,19 +162,27 @@ def package_feature(path: Path) -> dict | None:
 
 
 def activated_features(shells_path: Path) -> dict[str, set[str]]:
-    value = json.loads(shells_path.read_text(encoding="utf-8"))
-    try:
-        shells = value["CShells"]["Shells"]
-    except (KeyError, TypeError) as error:
-        raise ValueError("PKR003 shells.json must use the CShells:Shells schema.") from error
-    if not isinstance(shells, dict) or not shells:
-        raise ValueError("PKR004 shells.json must declare at least one named shell.")
-    result: dict[str, set[str]] = {}
-    for shell_name, shell in shells.items():
-        features = shell.get("Features") if isinstance(shell, dict) else None
-        if not isinstance(features, dict):
-            raise ValueError(f"PKR005 shell '{shell_name}' must declare a Features object.")
-        result[shell_name] = set(features)
+    sources = [shells_path.parent / ".program-kit/web-profile.shells.json", shells_path]
+    merged: dict[str, dict[str, object]] = {}
+    for source in sources:
+        if not source.is_file():
+            continue
+        value = json.loads(source.read_text(encoding="utf-8"))
+        try:
+            shells = value["CShells"]["Shells"]
+        except (KeyError, TypeError) as error:
+            raise ValueError(f"PKR003 {source.name} must use the CShells:Shells schema.") from error
+        if not isinstance(shells, dict) or not shells:
+            raise ValueError(f"PKR004 {source.name} must declare at least one named shell.")
+        for shell_name, shell in shells.items():
+            features = shell.get("Features") if isinstance(shell, dict) else None
+            if not isinstance(features, dict):
+                raise ValueError(f"PKR005 shell '{shell_name}' must declare a Features object.")
+            merged.setdefault(shell_name, {}).update(features)
+    result: dict[str, set[str]] = {
+        shell_name: {identity for identity, setting in features.items() if setting is not False}
+        for shell_name, features in merged.items()
+    }
     return result
 
 
@@ -274,6 +358,12 @@ def download_package(package_id: str, version: str, bases: list[str], destinatio
 
 
 def stage(repository: Path, package_output: Path, output: Path) -> None:
+    active = set().union(*activated_features(repository / "shells.json").values())
+    inactive_built_in_packages = {
+        package_id.casefold()
+        for identity, package_id in BUILT_IN_FEATURE_PACKAGES.items()
+        if identity not in active
+    }
     with tempfile.TemporaryDirectory(prefix="program-kit-runnable-host-") as temp_value:
         staging = Path(temp_value) / "runnable-host"
         staged_packages = staging / "packages"
@@ -282,11 +372,14 @@ def stage(repository: Path, package_output: Path, output: Path) -> None:
         for package in sorted(package_output.glob("*.nupkg")):
             if not is_runtime_package(package):
                 continue
+            package_id, _ = package_identity(package)
+            if package_id.casefold() in inactive_built_in_packages:
+                continue
             destination = staged_packages / package.name
             shutil.copyfile(package, destination)
             register_package(identities, destination)
         required = runtime_dependencies(repository, {item[0].casefold() for item in identities})
-        active = set().union(*activated_features(repository / "shells.json").values())
+        bases: list[str] = []
         built_ins = [identity for identity in sorted(active) if identity in BUILT_IN_FEATURE_PACKAGES]
         managed_versions = managed_package_versions(repository) if built_ins else {}
         for identity in built_ins:
@@ -298,10 +391,41 @@ def stage(repository: Path, package_output: Path, output: Path) -> None:
                         f"PKR019 built-in feature '{identity}' has no managed package pin for '{package_id}'."
                     )
                 required.add((package_id, version))
+            required.update(BUILT_IN_FEATURE_RUNTIME_PACKAGES.get(identity, set()))
         missing = sorted(required - set(identities), key=lambda item: (item[0].casefold(), item[1]))
         if missing:
             bases = package_base_addresses(package_sources(repository))
             for package_id, version in missing:
+                destination = staged_packages / f"{package_id}.{version}.nupkg"
+                download_package(package_id, version, bases, destination)
+                register_package(identities, destination)
+        while True:
+            required_by_dependencies: dict[str, tuple[str, str]] = {}
+            for package_path in identities.values():
+                for package_id, version in package_dependencies(package_path):
+                    key = package_id.casefold()
+                    previous = required_by_dependencies.get(key)
+                    if previous is None or nuget_version_key(version) > nuget_version_key(previous[1]):
+                        required_by_dependencies[key] = (package_id, version)
+            present = {package_id.casefold(): (package_id, version) for package_id, version in identities}
+            missing_dependencies = sorted(
+                (
+                    dependency
+                    for key, dependency in required_by_dependencies.items()
+                    if key not in present
+                    or nuget_version_key(dependency[1]) > nuget_version_key(present[key][1])
+                ),
+                key=lambda item: (item[0].casefold(), item[1]),
+            )
+            if not missing_dependencies:
+                break
+            if not bases:
+                bases = package_base_addresses(package_sources(repository))
+            for package_id, version in missing_dependencies:
+                conflicting = present.get(package_id.casefold())
+                if conflicting:
+                    old_path = identities.pop(conflicting)
+                    old_path.unlink()
                 destination = staged_packages / f"{package_id}.{version}.nupkg"
                 download_package(package_id, version, bases, destination)
                 register_package(identities, destination)
@@ -312,6 +436,11 @@ def stage(repository: Path, package_output: Path, output: Path) -> None:
             if not source.is_file():
                 raise FileNotFoundError(f"PKR016 required runnable-host configuration is missing: {source}")
             shutil.copyfile(source, staging / name)
+        profile_shells = repository / ".program-kit/web-profile.shells.json"
+        if profile_shells.is_file():
+            destination = staging / ".program-kit/web-profile.shells.json"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(profile_shells, destination)
         validate_feature_closure(staging / "shells.json", identities)
         if output.exists():
             shutil.rmtree(output)
@@ -338,9 +467,16 @@ def describe(repository: Path, staged: Path, image: str, tag: str, digest: str, 
     if not re.fullmatch(r"sha256:[a-f0-9]{64}", digest):
         raise ValueError("PKR018 image digest must be a lowercase sha256 digest.")
     hostsettings_path, shells_path = staged / "hostsettings.json", staged / "shells.json"
+    profile_shells_path = staged / ".program-kit/web-profile.shells.json"
     hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
     shells = json.loads(shells_path.read_text(encoding="utf-8"))
     reject_embedded_secrets(hostsettings)
+    profile_shells = (
+        json.loads(profile_shells_path.read_text(encoding="utf-8"))
+        if profile_shells_path.is_file()
+        else None
+    )
+    reject_embedded_secrets(profile_shells)
     payload = {
         "schemaVersion": 1,
         "application": {
@@ -360,6 +496,8 @@ def describe(repository: Path, staged: Path, image: str, tag: str, digest: str, 
             "hostsettingsSha256": sha256(hostsettings_path),
             "shells": shells,
             "shellsSha256": sha256(shells_path),
+            "webProfileShells": profile_shells,
+            "webProfileShellsSha256": sha256(profile_shells_path) if profile_shells_path.is_file() else None,
         },
     }
     output.parent.mkdir(parents=True, exist_ok=True)

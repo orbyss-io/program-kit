@@ -50,7 +50,7 @@ The ownership record is `.program-kit/managed.json`. Root MSBuild discovery exte
 `VERSION`, shell configuration, and `NuGet.config` are scaffolded once and remain consumer-owned. Program Kit
 owns the SDK, analyzer policy, `eng/program-kit`, container, schema, and generated workflow baselines.
 For `spa-pkce`, `.program-kit/spa-pkce.json` is the scaffold-owned typed security input and
-`hostsettings.json`, the Keycloak realm, and browser contract are managed derived outputs. Configure
+the shell-profile overlay, Keycloak realm, and browser contract are managed derived outputs. Configure
 exact callback, silent-renew callback, post-logout routes, origins, scopes, renewal timeout, and
 session bounds in that input, then rerun the same sync command. Wildcards, cross-origin callbacks,
 contradictory lifetimes, and non-public SPA client configuration fail synchronization.
@@ -59,7 +59,7 @@ patterns protect the approved CShells and Nuplane preview namespaces. Consumers 
 their dependencies and may add private sources with namespace-specific mappings; they must preserve the
 protected Program Kit mappings and must not map those namespaces to multiple sources.
 Treat a consumer-extended configuration that passes those routing invariants as current, not as drift.
-The selected secure web profile additionally owns its identity Compose/realm fixture, web contract,
-and Playwright harness. `hostsettings.json` remains scaffold-once because deployment identifiers and
-secrets are consumer configuration; the generated version starts with safe local identifiers and an
-empty BFF secret that must be supplied through `ProgramKit__Web__ClientSecret`.
+The selected secure web profile additionally owns its shell feature/configuration overlay, identity
+Compose/realm fixture, web contract, and Playwright harness. `hostsettings.json` remains a clean,
+scaffold-once Nuplane/host input. The BFF secret must be supplied through
+`CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret`.

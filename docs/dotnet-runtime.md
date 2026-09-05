@@ -6,21 +6,20 @@ Program Kit alone never creates .NET files.
 
 ## The application-neutral host invariant
 
-`ProgramKit.Host` compiles the CShells/Nuplane runtime and Program Kit's versioned secure-web
-profile implementation. Its code is limited to:
+`ProgramKit.Host` compiles only the CShells/Nuplane runtime. Its code is limited to:
 
-- loading standard ASP.NET Core configuration plus consumer-owned `hostsettings.json` and `shells.json`;
+- loading standard ASP.NET Core configuration, scaffold-owned `hostsettings.json`, the managed
+  `.program-kit/web-profile.shells.json` contribution, and consumer-owned `shells.json`;
 - configuring Nuplane's package source and runtime loader;
 - bridging Nuplane-loaded assemblies into CShells discovery;
 - configuring and mapping CShells; and
-- configuring authentication, common authorization/HTTP middleware, and standard BFF protocol
-  endpoints from the selected `ProgramKit:Web` profile; and
 - optionally triggering shell activation through `IShellRegistry`.
 
 It does not parse a Program Kit release descriptor, inspect package or feature metadata, connect to a
 database, or define feature dependency readiness. Standard authenticated web plumbing is supplied by
 the host's accepted Program Kit web profile; persistence, tasks, business endpoints, and other
-behavior arrive as packages through Nuplane and activate through CShells.
+behavior—including authentication and HTTP defaults—arrives as packages through Nuplane and
+activates through CShells.
 It remains application-neutral: no business endpoint, permission identity, data provider, or
 consumer feature is compiled into the host. Its modular runtime boundary is inspired by the upstream
 [`Elsa.Foundation.Host`](https://github.com/elsa-workflows/elsa-foundation/tree/main/src/Apps/Elsa.Foundation.Host).
@@ -66,24 +65,30 @@ do not otherwise need it.
 
 ## Feature creation and release-time closure
 
-The authoritative activation shape remains `CShells:Shells:<shell>:Features:<feature>` in consumer-owned
-`shells.json`. No runtime package is activated merely because it exists. A managed feature build emits
+The authoritative activation shape remains `CShells:Shells:<shell>:Features:<feature>`. Program Kit's
+selected-profile contribution is loaded first and consumer-owned `shells.json` is loaded afterward,
+so consumers can disable optional defaults or activate replacements. No shell feature is activated
+merely because its package exists. A managed feature build emits
 `program-kit/feature.json`; its package ID equals its assembly name and its host-supplied CShells/framework
 abstractions are compile-time-private.
 
 `eng/program-kit/Build.ps1` restores, builds, tests, and packs the application, then stages
 `artifacts/runnable-host/` for an application image. The staging directory contains the validated runtime
-NuGet closure plus `hostsettings.json` and `shells.json`. Closure, duplicate version/identity, missing
+NuGet closure plus `hostsettings.json`, `.program-kit/web-profile.shells.json`, and `shells.json`.
+Closure, duplicate version/identity, missing
 dependency, inactive feature, and route-collision failures are release-pipeline concerns. The application-neutral host
 does not repeat them. Activated built-in features (`ProgramKitTasks` and `ProgramKit.DomainEvents`)
 are seeded from
 `ProgramKit.Packages.props` even when no consumer project needs a compile-time reference to their package.
+Inactive built-in feature packages are omitted, and external dependencies are resolved from the
+nearest compatible NuGet framework group.
 
 The generated application Dockerfile derives from an approved digest-pinned `ProgramKit.Host`, copies the
-staged packages into `/app/packages`, and copies the two configuration files. The generated release workflow
+staged packages into `/app/packages`, and copies the three configuration files. The generated release workflow
 publishes that fully runnable image, obtains its registry digest, and emits `runnable-host.json`. That
 descriptor contains only application/version provenance, image repository/tag/digest, and the exact
-secret-free Nuplane/CShells configuration with hashes. `ProgramKit.Host` never consumes it.
+secret-free Nuplane/CShells configuration—including the selected profile overlay—with hashes.
+`ProgramKit.Host` never consumes the descriptor.
 
 Managed OpenAPI verification separately remains a build concern. A consumer registers contract files in
 `.program-kit/openapi-contracts.json`; an empty registry does nothing and restores no exporter or npm
@@ -114,8 +119,8 @@ package and lockfile, so its TypeScript peer range does not constrain the applic
 
 SPA serving headers remain in the Vite/static-server adapter. The SPA process itself is consumer-owned
 and may be added through `Dev.ps1 -ComposeOverlay`; the managed application Compose file owns only the
-API host. The accepted web profile configures
-ProgramKit.Host authentication, common authorization, and HTTP plumbing from `hostsettings.json`;
+API host. The accepted web profile activates separate authentication, web-defaults, OpenAPI, and
+optional Problem Details CShell features through `.program-kit/web-profile.shells.json`;
 consumer `.Api` packages own endpoint permission metadata and custom protocol behavior. Production
 HSTS belongs to the TLS terminator.
 

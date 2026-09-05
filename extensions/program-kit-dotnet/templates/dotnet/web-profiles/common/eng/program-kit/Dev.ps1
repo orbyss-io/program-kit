@@ -12,10 +12,21 @@ $applicationCompose = Join-Path $repository 'deploy\compose.application.yml'
 
 python (Join-Path $PSScriptRoot 'preflight.py')
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit pre-host prerequisites failed.' }
-$spaVerifier = Join-Path $PSScriptRoot 'verify_spa_profile.py'
-if (Test-Path -LiteralPath $spaVerifier -PathType Leaf) {
+$profileRecord = Join-Path $repository '.program-kit\web-profile.json'
+if (-not (Test-Path -LiteralPath $profileRecord -PathType Leaf)) {
+    throw 'The synchronized web-profile record is missing.'
+}
+$selectedWebProfile = (Get-Content -LiteralPath $profileRecord -Raw | ConvertFrom-Json).profile
+if ($selectedWebProfile -eq 'spa-pkce-v1') {
+    $spaVerifier = Join-Path $PSScriptRoot 'verify_spa_profile.py'
+    if (-not (Test-Path -LiteralPath $spaVerifier -PathType Leaf)) {
+        throw 'The selected SPA-PKCE profile verifier is missing.'
+    }
     python $spaVerifier --repository $repository
     if ($LASTEXITCODE -ne 0) { throw 'The synchronized SPA-PKCE profile is invalid.' }
+}
+elseif ($selectedWebProfile -ne 'bff-cookie-v1') {
+    throw "The synchronized web profile '$selectedWebProfile' is unsupported by Dev.ps1."
 }
 
 docker compose -f $compose up -d --wait

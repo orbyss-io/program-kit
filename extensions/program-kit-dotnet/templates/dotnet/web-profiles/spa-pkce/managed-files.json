@@ -3,7 +3,7 @@
   "files": [
     { "path": ".program-kit/spa-pkce.json", "ownership": "configuration", "sourceRoot": "web-profiles/spa-pkce" },
     { "path": ".program-kit/spa-pkce.schema.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
-    { "path": "hostsettings.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
+    { "path": ".program-kit/web-profile.shells.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
     { "path": ".program-kit/web-profile.json", "ownership": "managed", "sourceRoot": "web-profiles/spa-pkce" },
     { "path": ".program-kit/security/web-security-evidence.json", "ownership": "managed", "sourceRoot": "../../references", "source": "web-security-evidence.json" },
     { "path": "docs/architecture/program-kit/web-security-threat-model.md", "ownership": "managed", "sourceRoot": "../../references", "source": "web-security-threat-model.md" },

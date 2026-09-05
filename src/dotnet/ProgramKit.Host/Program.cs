@@ -6,11 +6,11 @@ using Nuplane.Loading.Hosting.Builder;
 using Nuplane.Sources.Directory.Configuration;
 using ProgramKit.Host.Feed;
 using ProgramKit.Host.Shells;
-using ProgramKit.Host.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .AddJsonFile("hostsettings.json", optional: true, reloadOnChange: false)
+    .AddJsonFile(".program-kit/web-profile.shells.json", optional: true, reloadOnChange: false)
     .AddJsonFile("shells.json", optional: false, reloadOnChange: false)
     .AddEnvironmentVariables()
     .AddCommandLine(args);
@@ -33,11 +33,7 @@ builder.Services.AddCShellsAspNetCore(shells => shells
     }));
 
 builder.Services.AddHostedService<EagerShellActivationHostedService>();
-builder.Services.AddProgramKitWebBoundary(configuration, builder.Environment);
 
 var app = builder.Build();
-app.UseProgramKitWebBoundary();
-app.MapProgramKitWebBoundary();
-app.MapOpenApi("/_program-kit/openapi/{documentName}.json");
 app.MapShells();
 app.Run();

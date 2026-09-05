@@ -2,9 +2,28 @@
 
 ## Unreleased
 
+## 0.9.0 - 2026-09-05
+
 - Add the explicit `auto_approve_and_ratify` bootstrap input for uninterrupted development runs.
   It keeps all three review packets and hash validations, bypasses their pauses only when opted in,
   and records automatic versus interactive approval provenance in governance evidence.
+- Replace the host-owned `ProgramKitWebBoundary` with independently packaged CShells features for
+  BFF-cookie authentication, SPA-PKCE bearer authentication, common permission policy, web
+  defaults, OpenAPI, and optional Problem Details. Profile selection now activates exactly one
+  authentication feature through shell configuration, and consumers can disable the default
+  exception-response feature and provide their own.
+- Make .NET profile synchronization a transactional desired-state reconciliation. Plans are
+  digest-bound, conflicts prevent all mutation, writes are journaled and atomic, failed applies
+  roll back, interrupted transactions are recoverable, and every directed profile transition
+  retires only authenticated Program Kit contributions.
+- Repair upgrades affected by stale SPA-only files whose ownership disappeared from 0.8.11 state,
+  while preserving modified files as explicit conflicts. Generate only the selected Keycloak
+  client and render the selected profile's CShell configuration.
+- Complete the BFF browser logout contract with antiforgery form and popup support, accept every
+  successful 2xx permission probe while requiring an exact 403 for the wrong role, and keep the
+  browser-visible error representation replaceable through `IAuthenticationErrorWriter`.
+- Stage only active built-in feature packages plus a framework-compatible NuGet dependency closure;
+  include the managed shell-profile overlay and its digest in runnable-host release evidence.
 
 ## 0.8.11 - 2026-09-03
 

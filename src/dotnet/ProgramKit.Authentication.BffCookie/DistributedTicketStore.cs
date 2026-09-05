@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using ProgramKit.Authentication;
 
-namespace ProgramKit.Host.Web;
+namespace ProgramKit.Authentication.BffCookie;
 
 /// <summary>Stores full authentication tickets outside the browser cookie.</summary>
 internal sealed class DistributedTicketStore(
@@ -13,7 +14,7 @@ internal sealed class DistributedTicketStore(
     /// <summary>Namespaces opaque session keys in the distributed cache.</summary>
     private const string KeyPrefix = "program-kit:session:";
 
-    /// <summary>Stores the absolute session limit inside the protected server-side ticket.</summary>
+    /// <summary>Stores the non-extendable session deadline in the protected ticket.</summary>
     private const string AbsoluteExpiryProperty = ".program-kit.absolute-expiry";
 
     /// <inheritdoc />
@@ -21,7 +22,8 @@ internal sealed class DistributedTicketStore(
     {
         var key = $"{KeyPrefix}{Guid.NewGuid():N}";
         var absolute = DateTimeOffset.UtcNow.AddMinutes(webOptions.Value.SessionAbsoluteMinutes);
-        ticket.Properties.Items[AbsoluteExpiryProperty] = absolute.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
+        ticket.Properties.Items[AbsoluteExpiryProperty] =
+            absolute.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
         await RenewAsync(key, ticket).ConfigureAwait(false);
         return key;
     }
@@ -29,7 +31,8 @@ internal sealed class DistributedTicketStore(
     /// <inheritdoc />
     public Task RenewAsync(string key, AuthenticationTicket ticket)
     {
-        var idleExpiry = ticket.Properties.ExpiresUtc ?? DateTimeOffset.UtcNow.AddMinutes(webOptions.Value.SessionIdleMinutes);
+        var idleExpiry = ticket.Properties.ExpiresUtc
+            ?? DateTimeOffset.UtcNow.AddMinutes(webOptions.Value.SessionIdleMinutes);
         var absoluteExpiry = ReadAbsoluteExpiry(ticket) ?? DateTimeOffset.UtcNow;
         var expires = idleExpiry < absoluteExpiry ? idleExpiry : absoluteExpiry;
         return cache.SetAsync(
@@ -48,11 +51,15 @@ internal sealed class DistributedTicketStore(
     /// <inheritdoc />
     public Task RemoveAsync(string key) => cache.RemoveAsync(key);
 
-    /// <summary>Reads the non-extendable session expiry stored when the ticket was created.</summary>
+    /// <summary>Reads the non-extendable session deadline stored when the ticket was created.</summary>
     private static DateTimeOffset? ReadAbsoluteExpiry(AuthenticationTicket ticket)
     {
         if (!ticket.Properties.Items.TryGetValue(AbsoluteExpiryProperty, out var value)
-            || !long.TryParse(value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var seconds))
+            || !long.TryParse(
+                value,
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var seconds))
         {
             return null;
         }

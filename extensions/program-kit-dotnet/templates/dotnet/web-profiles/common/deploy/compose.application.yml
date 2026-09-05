@@ -5,7 +5,7 @@ services:
     image: program-kit-consumer:local
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ProgramKit__Web__ClientSecret: local-program-kit-secret
+      CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret: local-program-kit-secret
     extra_hosts:
       - "localhost:host-gateway"
     ports:

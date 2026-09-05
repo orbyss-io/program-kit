@@ -13,6 +13,7 @@
     { "path": "NuGet.config", "ownership": "scaffold" },
     { "path": "shells.json", "ownership": "scaffold" },
     { "path": "hostsettings.json", "ownership": "scaffold" },
+    { "path": ".program-kit/web-profile.shells.json", "ownership": "managed" },
     { "path": ".dockerignore", "ownership": "managed" },
     { "path": "Dockerfile", "ownership": "managed" },
     { "path": ".program-kit/runnable-host.schema.json", "ownership": "managed" },

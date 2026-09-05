@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace ProgramKit.Host.Web;
+namespace ProgramKit.WebDefaults;
 
 /// <summary>Establishes safe correlation and browser-security response headers.</summary>
 internal sealed partial class CorrelationAndSecurityHeadersMiddleware(RequestDelegate next)
@@ -21,7 +23,8 @@ internal sealed partial class CorrelationAndSecurityHeadersMiddleware(RequestDel
         context.Response.Headers.XFrameOptions = "DENY";
         context.Response.Headers["Referrer-Policy"] = "no-referrer";
         context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-        context.Response.Headers.ContentSecurityPolicy = "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'";
+        context.Response.Headers.ContentSecurityPolicy =
+            "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'";
 
         using (logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
         {

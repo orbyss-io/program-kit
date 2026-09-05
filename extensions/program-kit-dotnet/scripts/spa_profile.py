@@ -154,7 +154,11 @@ def render_realm(source: bytes, configuration: dict) -> bytes:
     realm["ssoSessionMaxLifespan"] = session["absoluteMinutes"] * 60
     realm["clientSessionIdleTimeout"] = session["idleMinutes"] * 60
     realm["clientSessionMaxLifespan"] = session["absoluteMinutes"] * 60
-    clients = realm.get("clients", [])
+    clients = [
+        client for client in realm.get("clients", [])
+        if client.get("clientId") != "program-kit-bff"
+    ]
+    realm["clients"] = clients
     audience = configuration["audience"]
     api = next((item for item in clients if item.get("clientId") == "program-kit-api"), None)
     if not isinstance(api, dict):
@@ -184,9 +188,9 @@ def render_realm(source: bytes, configuration: dict) -> bytes:
     return json_bytes(realm)
 
 
-def render_hostsettings(source: bytes, configuration: dict) -> bytes:
+def render_shell_profile(source: bytes, configuration: dict) -> bytes:
     settings = json.loads(source.decode("utf-8"))
-    web = settings["ProgramKit"]["Web"]
+    web = settings["CShells"]["Shells"]["default"]["Configuration"]["ProgramKit"]["Web"]
     web["Authority"] = configuration["identityAuthority"]
     web["ClientId"] = configuration["clientId"]
     web["Audience"] = configuration["audience"]
@@ -230,10 +234,7 @@ def render_web_contract(source: bytes, configuration: dict) -> bytes:
 
 
 def verify_outputs(repository: Path, configuration: dict) -> None:
-    host = load_object(repository / "hostsettings.json")
-    web = host.get("ProgramKit", {}).get("Web", {})
     expected = {
-        "Profile": "SpaPkce",
         "Authority": configuration["identityAuthority"],
         "ClientId": configuration["clientId"],
         "Audience": configuration["audience"],
@@ -243,16 +244,32 @@ def verify_outputs(repository: Path, configuration: dict) -> None:
         "SessionIdleMinutes": configuration["session"]["idleMinutes"],
         "SessionAbsoluteMinutes": configuration["session"]["absoluteMinutes"],
     }
+    shell_profile = load_object(repository / ".program-kit/web-profile.shells.json")
+    shell_web = (
+        shell_profile.get("CShells", {})
+        .get("Shells", {})
+        .get("default", {})
+        .get("Configuration", {})
+        .get("ProgramKit", {})
+        .get("Web", {})
+    )
     for name, expected_value in expected.items():
-        if web.get(name) != expected_value:
-            raise ValueError(f"PKW107 hostsettings ProgramKit:Web:{name} does not match {CONFIGURATION_PATH}")
-    if web.get("ClientSecret"):
-        raise ValueError("PKW108 SpaPkce must not configure ProgramKit:Web:ClientSecret")
+        if shell_web.get(name) != expected_value:
+            raise ValueError(
+                f"PKW107 shell ProgramKit:Web:{name} does not match {CONFIGURATION_PATH}"
+            )
+    features = (
+        shell_profile.get("CShells", {}).get("Shells", {}).get("default", {}).get("Features", {})
+    )
+    if "ProgramKit.Authentication.SpaPkce" not in features or "ProgramKit.Authentication.BffCookie" in features:
+        raise ValueError("PKW108 the shell must activate only the selected SPA-PKCE authentication feature")
 
     realm = load_object(repository / "deploy/keycloak/program-kit-realm.json")
     spa = next((item for item in realm.get("clients", []) if item.get("clientId") == configuration["clientId"]), None)
     if not isinstance(spa, dict) or spa.get("publicClient") is not True or "secret" in spa:
         raise ValueError("PKW108 the SPA must be a public Keycloak client without a secret")
+    if any(item.get("clientId") == "program-kit-bff" for item in realm.get("clients", [])):
+        raise ValueError("PKW108 the SPA fixture must not enable the alternative confidential BFF client")
     if spa.get("redirectUris") != configuration["redirectUris"] or spa.get("postLogoutRedirectUris") != configuration["postLogoutRedirectUris"]:
         raise ValueError("PKW109 Keycloak exact redirect registrations do not match the SPA-PKCE input")
     session = configuration["session"]

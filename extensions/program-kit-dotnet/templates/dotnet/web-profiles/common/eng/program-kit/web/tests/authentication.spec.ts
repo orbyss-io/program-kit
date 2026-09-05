@@ -1,4 +1,4 @@
-import { expect, type Browser, type BrowserContext, test } from '@playwright/test';
+import { expect, type Browser, type BrowserContext, type Page, test } from '@playwright/test';
 
 const personas = {
   user: { username: 'local-user', password: 'local-user-only' },
@@ -24,32 +24,123 @@ async function authenticatedContext(
   return context;
 }
 
+async function submitLogoutForm(page: Page): Promise<Page> {
+  const token = await page.evaluate(async () => {
+    const response = await fetch('/bff/antiforgery', { credentials: 'same-origin', cache: 'no-store' });
+    if (!response.ok) throw new Error('Could not obtain the BFF antiforgery token.');
+    return await response.json() as {
+      headerName: string;
+      formFieldName: string;
+      requestToken: string;
+    };
+  });
+  expect(token).toMatchObject({
+    headerName: 'X-CSRF-TOKEN',
+    formFieldName: '__RequestVerificationToken',
+  });
+  const popup = page.waitForEvent('popup');
+  await page.evaluate(({ formFieldName, requestToken }) => {
+    const target = 'program-kit-provider-logout';
+    window.open('about:blank', target);
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/bff/logout';
+    form.target = target;
+    const field = document.createElement('input');
+    field.type = 'hidden';
+    field.name = formFieldName;
+    field.value = requestToken;
+    form.append(field);
+    document.body.append(form);
+    form.submit();
+    form.remove();
+  }, token);
+  return await popup;
+}
+
 test('anonymous browser has no BFF session', async ({ request }) => {
   const response = await request.get('/bff/user');
   expect(response.ok()).toBeTruthy();
   expect(await response.json()).toEqual({ authenticated: false });
 });
 
-test('real provider login, refresh, and local logout use the BFF contract', async ({ browser, baseURL }) => {
+test('WEB-V3 same-origin BFF response has the governed browser headers', async ({ request }) => {
+  const response = await request.get('/bff/user');
+  expect(response.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(response.headers()['x-frame-options']).toBe('DENY');
+  expect(response.headers()['referrer-policy']).toBe('no-referrer');
+  expect(response.headers()['permissions-policy']).toContain('camera=()');
+  expect(response.headers()['x-content-type-options']).toBe('nosniff');
+});
+
+test('real browser form logout clears local state and completes provider navigation', async ({ browser, baseURL }) => {
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const context = await authenticatedContext(browser, baseURL, personas.user);
   const page = await context.newPage();
   await page.reload();
   expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
 
-  const tokenResponse = await context.request.get('/bff/antiforgery');
-  const token = (await tokenResponse.json()) as { requestToken: string };
-  const logout = await context.request.post('/bff/logout', {
-    headers: { 'X-CSRF-TOKEN': token.requestToken },
-    maxRedirects: 0,
+  const providerWindow = await submitLogoutForm(page);
+  await expect.poll(async () => await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+  await providerWindow.waitForURL(`${baseURL}/bff/signed-out`);
+  await page.goto('/bff/signed-out?remote=pending');
+  expect(await page.locator('body').innerText()).toContain('"signedOut":true');
+  await providerWindow.close();
+  await context.close();
+});
+
+test('missing or invalid browser antiforgery logout does not clear the session', async ({ browser, baseURL }) => {
+  if (!baseURL) throw new Error('Playwright baseURL is required.');
+  const context = await authenticatedContext(browser, baseURL, personas.user);
+  const page = await context.newPage();
+  const outcomes = await page.evaluate(async () => {
+    const missing = await fetch('/bff/logout', { method: 'POST', redirect: 'error' });
+    const invalid = await fetch('/bff/logout', {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': 'invalid' },
+      redirect: 'error',
+    });
+    return [
+      { status: missing.status, body: await missing.json() },
+      { status: invalid.status, body: await invalid.json() },
+    ];
   });
-  expect(logout.status()).toBe(302);
-  const providerLocation = logout.headers().location;
-  expect(providerLocation).toContain('localhost:8080');
-  if (!providerLocation) throw new Error('RP-initiated logout did not return a provider location.');
-  await page.route('http://localhost:8080/**', route => route.abort());
-  await page.goto(providerLocation).catch(() => undefined);
-  expect(await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+  for (const outcome of outcomes) {
+    expect(outcome.status).toBe(400);
+    expect(outcome.body).toMatchObject({ code: 'invalid_antiforgery_token' });
+  }
+  expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
+  await context.close();
+});
+
+test('cross-site top-level logout form fails before session mutation', async ({ browser, baseURL }) => {
+  if (!baseURL) throw new Error('Playwright baseURL is required.');
+  const context = await authenticatedContext(browser, baseURL, personas.user);
+  const attacker = await context.newPage();
+  await attacker.goto('http://localhost:8080/realms/program-kit/.well-known/openid-configuration');
+  await attacker.evaluate(applicationOrigin => {
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = `${applicationOrigin}/bff/logout`;
+    document.body.append(form);
+    form.submit();
+  }, baseURL);
+  await attacker.waitForURL(`${baseURL}/bff/logout`);
+  expect(await attacker.locator('body').innerText()).toContain('invalid_antiforgery_token');
+  expect(await (await context.request.get('/bff/user')).json()).toMatchObject({ authenticated: true });
+  await context.close();
+});
+
+test('provider navigation failure cannot restore local access or displace the signed-out page', async ({ browser, baseURL }) => {
+  if (!baseURL) throw new Error('Playwright baseURL is required.');
+  const context = await authenticatedContext(browser, baseURL, personas.user);
+  await context.route('http://localhost:8080/**', route => route.abort());
+  const page = await context.newPage();
+  const providerWindow = await submitLogoutForm(page);
+  await expect.poll(async () => await (await context.request.get('/bff/user')).json()).toEqual({ authenticated: false });
+  await page.goto('/bff/signed-out?remote=unavailable');
+  expect(await page.locator('body').innerText()).toContain('"signedOut":true');
+  await providerWindow.close();
   await context.close();
 });
 
@@ -58,9 +149,11 @@ test('configured permission endpoint distinguishes authorized and unauthorized u
   if (!baseURL) throw new Error('Playwright baseURL is required.');
   const path = process.env.PROGRAMKIT_PERMISSION_PROBE_PATH!;
   const authorized = await authenticatedContext(browser, baseURL, personas.admin);
-  expect((await authorized.request.get(path)).status()).toBe(200);
+  const authorizedResponse = await authorized.request.get(path);
+  expect(authorizedResponse.ok()).toBeTruthy();
   await authorized.close();
   const denied = await authenticatedContext(browser, baseURL, personas.wrongRole);
-  expect((await denied.request.get(path)).status()).toBe(403);
+  const deniedResponse = await denied.request.get(path);
+  expect(deniedResponse.status()).toBe(403);
   await denied.close();
 });

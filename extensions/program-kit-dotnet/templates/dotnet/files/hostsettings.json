@@ -12,6 +12,7 @@
         {
           "Name": "runtime-packages",
           "DirectoryPath": "packages",
+          "IncludePatterns": [ "ProgramKit.*" ],
           "Directory": {
             "Watch": false
           }

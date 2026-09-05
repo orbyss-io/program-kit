@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from xml.etree import ElementTree
 
+import reconciliation
 import spa_profile
 
 
@@ -157,10 +158,17 @@ def desired_content(
             raise ValueError("The Program Kit managed global.json has no sdk object.")
         sdk["version"] = dotnet_sdk
         return (json.dumps(value, indent=2) + "\n").encode("utf-8")
+    if web_profile == "bff-cookie" and relative == "deploy/keycloak/program-kit-realm.json":
+        realm = json.loads(content.decode("utf-8"))
+        realm["clients"] = [
+            client for client in realm.get("clients", [])
+            if client.get("clientId") != "program-kit-spa"
+        ]
+        return (json.dumps(realm, indent=2) + "\n").encode("utf-8")
     if web_profile != "spa-pkce" or spa_configuration is None:
         return content
     renderers = {
-        "hostsettings.json": spa_profile.render_hostsettings,
+        ".program-kit/web-profile.shells.json": spa_profile.render_shell_profile,
         ".program-kit/web-profile.json": spa_profile.render_profile,
         "deploy/keycloak/program-kit-realm.json": spa_profile.render_realm,
         "eng/program-kit/web/web-contract.json": spa_profile.render_web_contract,
@@ -169,13 +177,48 @@ def desired_content(
     return renderer(content, spa_configuration) if renderer else content
 
 
+def version_key(value: str) -> tuple[int, int, int]:
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", value)
+    if match is None:
+        raise ValueError(f"Unsupported Program Kit version: {value}")
+    return tuple(int(part) for part in match.groups())
+
+
+def lifecycle_for(relative: str, ownership: str, rendered: bool) -> str:
+    if rendered:
+        return "derived"
+    if relative.startswith(".program-kit/security/") or "threat-model" in relative:
+        return "evidence"
+    return ownership
+
+
+def profile_paths(template_root: Path, profile: object) -> set[str]:
+    if not isinstance(profile, str):
+        return set()
+    manifest_path = template_root / "web-profiles" / profile / "managed-files.json"
+    if not manifest_path.is_file():
+        return set()
+    entries = load_json(manifest_path, {}).get("files")
+    if not isinstance(entries, list):
+        raise ValueError(f"The {profile} profile manifest has no files list.")
+    return {entry["path"] for entry in entries}
+
+
+def stable_plan_digest(value: dict) -> str:
+    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Synchronize the Program Kit .NET repository baseline.")
     parser.add_argument("--target", default=".", help="Consuming repository root")
-    parser.add_argument("--check", action="store_true", help="Report drift without writing")
+    parser.add_argument("--check", action="store_true", help="Preview drift without writing")
+    parser.add_argument("--json", action="store_true", help="Emit the reconciliation plan as JSON")
+    parser.add_argument("--plan-digest", help="Apply only when the recomputed plan has this SHA-256 digest")
+    parser.add_argument("--recover", action="store_true", help="Roll back an interrupted reconciliation before planning")
     parser.add_argument(
         "--web-profile",
         choices=("auto", "none", "bff-cookie", "spa-pkce"),
@@ -224,15 +267,32 @@ def main() -> int:
 
     extension_root = Path(__file__).resolve().parents[1]
     template_root = extension_root / "templates" / "dotnet"
+    target = Path(args.target).resolve()
+    pending = reconciliation.pending_transactions(target)
+    if pending and not args.recover:
+        print(
+            "PKS200 interrupted Program Kit reconciliation requires explicit --recover before sync: "
+            + ", ".join(path.name for path in pending),
+            file=sys.stderr,
+        )
+        return 6
+    if args.recover:
+        try:
+            recovered = reconciliation.recover_transactions(target)
+        except (OSError, ValueError, json.JSONDecodeError, reconciliation.ReconciliationError) as error:
+            print(f"PKS201 reconciliation recovery failed: {error}", file=sys.stderr)
+            return 2
+        for transaction_id in recovered:
+            print(f"recovered transaction: {transaction_id}")
+
     template_manifest = load_json(template_root / "managed-files.json", {})
-    entries = template_manifest.get("files")
-    if not isinstance(entries, list):
+    base_entries = template_manifest.get("files")
+    if not isinstance(base_entries, list):
         raise ValueError("The .NET template manifest has no files list.")
     obsolete_files = template_manifest.get("obsoleteFiles", [])
     if not isinstance(obsolete_files, list) or not all(isinstance(path, str) for path in obsolete_files):
         raise ValueError("The .NET template manifest has an invalid obsoleteFiles list.")
 
-    target = Path(args.target).resolve()
     dotnet_sdk, dotnet_sdk_source = selected_dotnet_sdk(
         target, template_root / "files" / "global.json"
     )
@@ -241,156 +301,319 @@ def main() -> int:
     if web_profile == "spa-pkce":
         configuration_source = target / spa_profile.CONFIGURATION_PATH
         if not configuration_source.is_file():
-            configuration_source = (
-                template_root / "web-profiles/spa-pkce" / spa_profile.CONFIGURATION_PATH
-            )
-        spa_configuration = spa_profile.validate_configuration(
-            spa_profile.load_object(configuration_source)
-        )
-    print(f"selected .NET SDK: {dotnet_sdk} ({dotnet_sdk_source})")
-    print(f"selected web profile: {web_profile}")
-    print(f"selected persistence profile: {args.persistence_profile}")
+            configuration_source = template_root / "web-profiles/spa-pkce" / spa_profile.CONFIGURATION_PATH
+        spa_configuration = spa_profile.validate_configuration(spa_profile.load_object(configuration_source))
+
+    entries = [dict(entry, contribution="base") for entry in base_entries]
     profile_manifest_path = template_root / "web-profiles" / web_profile / "managed-files.json"
     if profile_manifest_path.is_file():
-        profile_manifest = load_json(profile_manifest_path, {})
-        profile_entries = profile_manifest.get("files")
+        profile_entries = load_json(profile_manifest_path, {}).get("files")
         if not isinstance(profile_entries, list):
             raise ValueError(f"The {web_profile} profile manifest has no files list.")
         profile_destinations = {entry["path"] for entry in profile_entries}
         entries = [entry for entry in entries if entry["path"] not in profile_destinations]
-        entries.extend(profile_entries)
-    if not args.check:
-        target.mkdir(parents=True, exist_ok=True)
-    state_path = target / ".program-kit" / "managed.json"
+        entries.extend(dict(entry, contribution=f"web:{web_profile}") for entry in profile_entries)
+
+    state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
     old_files = state.get("files")
     if not isinstance(old_files, dict):
         raise ValueError(f"Invalid managed-file state in {state_path}")
+    previous_profile = state.get("webProfile")
+    previous_profile_paths = profile_paths(template_root, previous_profile)
+
+    desired_by_path: dict[str, dict] = {}
+    for entry in entries:
+        relative = entry["path"]
+        if relative in desired_by_path:
+            raise ValueError(f"Duplicate managed destination: {relative}")
+        source_root = template_root / entry.get("sourceRoot", "files")
+        source_relative = entry.get("source", relative)
+        source = source_root / source_relative
+        rendered = web_profile == "spa-pkce" and relative in {
+            ".program-kit/web-profile.shells.json",
+            ".program-kit/web-profile.json",
+            "deploy/keycloak/program-kit-realm.json",
+            "eng/program-kit/web/web-contract.json",
+        }
+        content = desired_content(source, relative, dotnet_sdk, web_profile, spa_configuration)
+        desired_by_path[relative] = {
+            **entry,
+            "sourceIdentity": source.relative_to(template_root).as_posix(),
+            "rendered": rendered,
+            "content": content,
+            "hash": sha256_bytes(content),
+        }
 
     created: list[str] = []
     updated: list[str] = []
     unchanged: list[str] = []
+    preserved: list[str] = []
+    removed: list[str] = []
     conflicts: list[str] = []
     conflict_details: dict[str, str] = {}
-    removed: list[str] = []
-    next_files: dict[str, dict[str, str]] = {}
+    actions: list[dict] = []
+    next_files: dict[str, dict] = {}
 
-    for entry in entries:
-        relative = entry["path"]
-        ownership = entry["ownership"]
-        source_root = template_root / entry.get("sourceRoot", "files")
-        source = source_root / entry.get("source", relative)
+    for relative, desired_entry in desired_by_path.items():
+        ownership = desired_entry["ownership"]
         destination = target / relative
-        desired = desired_content(source, relative, dotnet_sdk, web_profile, spa_configuration)
-        desired_hash = sha256_bytes(desired)
+        desired = desired_entry["content"]
+        desired_hash = desired_entry["hash"]
         previous = old_files.get(relative)
+        previous_contribution = None
+        if isinstance(previous, dict):
+            previous_contribution = previous.get("contribution")
+            if not isinstance(previous_contribution, str):
+                previous_contribution = (
+                    f"web:{previous_profile}" if relative in previous_profile_paths else "base"
+                )
+        contribution_changed = (
+            previous_contribution is not None
+            and previous_contribution != desired_entry["contribution"]
+        )
+        baseline_hash = (
+            previous.get("baselineHash", previous.get("templateHash"))
+            if isinstance(previous, dict)
+            else None
+        )
+        last_written_hash = (
+            previous.get("lastWrittenHash", previous.get("installedHash"))
+            if isinstance(previous, dict)
+            else None
+        )
 
-        if not destination.exists():
+        if not destination.is_file():
             created.append(relative)
-            if not args.check:
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                destination.write_bytes(desired)
-            current_hash = desired_hash
+            actions.append({"kind": "create", "path": relative, "content": desired})
+            final_hash = desired_hash
+            final_baseline = desired_hash
+            final_written = desired_hash
         else:
-            current = destination.read_bytes()
-            current_hash = sha256_bytes(current)
+            current_hash = sha256_bytes(destination.read_bytes())
+            final_hash = current_hash
+            final_baseline = baseline_hash or desired_hash
+            final_written = last_written_hash
             if current_hash == desired_hash:
                 unchanged.append(relative)
+                final_written = desired_hash if ownership == "managed" else (last_written_hash or desired_hash)
+            elif contribution_changed and current_hash == baseline_hash:
+                updated.append(relative)
+                actions.append({"kind": "update", "path": relative, "content": desired})
+                final_hash = desired_hash
+                final_baseline = desired_hash
+                final_written = desired_hash
             elif (
                 isinstance(previous, dict)
-                and current_hash == previous.get("installedHash")
+                and current_hash == last_written_hash
                 and (ownership == "managed" or previous.get("ownership") == "managed")
             ):
                 updated.append(relative)
-                if not args.check:
-                    destination.write_bytes(desired)
-                current_hash = desired_hash
+                actions.append({"kind": "update", "path": relative, "content": desired})
+                final_hash = desired_hash
+                if contribution_changed:
+                    final_baseline = desired_hash
+                final_written = desired_hash
             elif ownership == "scaffold" and relative == "NuGet.config":
                 routing_error = consumer_nuget_routing_error(destination)
                 if routing_error is None:
-                    unchanged.append(relative)
+                    preserved.append(relative)
                 else:
                     conflicts.append(relative)
                     conflict_details[relative] = routing_error
-            elif ownership == "configuration":
-                unchanged.append(relative)
+            elif ownership in {"scaffold", "configuration"} and not contribution_changed:
+                preserved.append(relative)
             else:
                 conflicts.append(relative)
+                conflict_details[relative] = (
+                    "current bytes do not match the last Program Kit write or the prior contribution baseline"
+                )
 
         next_files[relative] = {
             "ownership": ownership,
+            "lifecycle": lifecycle_for(relative, ownership, desired_entry["rendered"]),
+            "contribution": desired_entry["contribution"],
+            "sourceIdentity": desired_entry["sourceIdentity"],
             "templateHash": desired_hash,
-            "installedHash": current_hash,
+            "baselineHash": final_baseline,
+            "lastWrittenHash": final_written,
+            "installedHash": final_hash,
         }
 
+    retirement_candidates: dict[str, dict] = {}
+    for relative, previous in old_files.items():
+        if relative not in desired_by_path:
+            retirement_candidates[relative] = {"previous": previous, "migration": None}
     for relative in obsolete_files:
+        if relative not in desired_by_path:
+            retirement_candidates.setdefault(relative, {"previous": old_files.get(relative), "migration": None})
+
+    migration_catalog = load_json(template_root / "migrations.json", {"schemaVersion": 1, "migrations": []})
+    migrations = migration_catalog.get("migrations")
+    if not isinstance(migrations, list):
+        raise ValueError("The .NET migration catalog has no migrations list.")
+    applied_migrations = list(state.get("appliedMigrations", []))
+    current_version = str(state.get("programKitVersion", "0.0.0"))
+    for migration in migrations:
+        migration_id = migration.get("id")
+        if not isinstance(migration_id, str) or migration_id in applied_migrations:
+            continue
+        through = migration.get("throughVersion")
+        unless_profile = migration.get("unlessWebProfile")
+        applicable = (
+            isinstance(through, str)
+            and version_key(current_version) <= version_key(through)
+            and web_profile != unless_profile
+        )
+        if not applicable:
+            continue
+        retire = migration.get("retire")
+        if not isinstance(retire, list):
+            raise ValueError(f"Migration {migration_id} has no retire list.")
+        for item in retire:
+            relative = item.get("path")
+            hashes = item.get("expectedHashes")
+            if not isinstance(relative, str) or not isinstance(hashes, list):
+                raise ValueError(f"Migration {migration_id} has an invalid retirement entry.")
+            if relative not in desired_by_path:
+                retirement_candidates.setdefault(
+                    relative,
+                    {"previous": None, "migration": {**item, "id": migration_id}},
+                )
+        applied_migrations.append(migration_id)
+
+    for relative, candidate in retirement_candidates.items():
         destination = target / relative
-        previous = old_files.get(relative)
-        if not destination.exists():
+        if not destination.is_file():
             continue
         current_hash = sha256_bytes(destination.read_bytes())
-        if isinstance(previous, dict) and current_hash == previous.get("installedHash"):
+        previous = candidate["previous"]
+        migration = candidate["migration"]
+        safe_hashes: set[str] = set()
+        if isinstance(previous, dict):
+            previous_ownership = previous.get("ownership")
+            if previous_ownership == "managed":
+                value = previous.get("lastWrittenHash", previous.get("installedHash"))
+            else:
+                value = previous.get("baselineHash", previous.get("templateHash"))
+            if isinstance(value, str):
+                safe_hashes.add(value)
+        if isinstance(migration, dict):
+            safe_hashes.update(value for value in migration["expectedHashes"] if isinstance(value, str))
+        if current_hash in safe_hashes:
             removed.append(relative)
-            if not args.check:
-                destination.unlink()
+            actions.append({"kind": "remove", "path": relative, "content": None})
         else:
             conflicts.append(relative)
+            conflict_details[relative] = (
+                "retired Program Kit contribution was preserved because its bytes are not authenticated "
+                "by prior state or a versioned migration"
+            )
 
-    print(f"created: {len(created)}")
-    for path in created:
-        print(f"  + {path}")
-    print(f"updated: {len(updated)}")
-    for path in updated:
-        print(f"  ~ {path}")
-    print(f"unchanged: {len(unchanged)}")
-    print(f"conflicts: {len(conflicts)}")
-    for path in conflicts:
-        detail = conflict_details.get(path)
-        print(f"  ! {path}" + (f": {detail}" if detail else ""))
-    print(f"removed obsolete managed files: {len(removed)}")
-    for path in removed:
-        print(f"  - {path}")
+    manifest_rows = [
+        {
+            "path": relative,
+            "ownership": entry["ownership"],
+            "lifecycle": lifecycle_for(relative, entry["ownership"], entry["rendered"]),
+            "contribution": entry["contribution"],
+            "sourceIdentity": entry["sourceIdentity"],
+            "templateHash": entry["hash"],
+        }
+        for relative, entry in sorted(desired_by_path.items())
+    ]
+    plan_core = {
+        "schemaVersion": 1,
+        "programKitVersion": extension_version(extension_root),
+        "from": {
+            "programKitVersion": state.get("programKitVersion"),
+            "webProfile": previous_profile,
+            "persistenceProfile": state.get("persistenceProfile"),
+        },
+        "to": {"webProfile": web_profile, "persistenceProfile": args.persistence_profile},
+        "actions": [
+            {
+                "kind": action["kind"],
+                "path": action["path"],
+                "desiredHash": sha256_bytes(action["content"]) if action["content"] is not None else None,
+            }
+            for action in actions
+        ],
+        "preserved": sorted(preserved),
+        "conflicts": [
+            {"path": path, "reason": conflict_details.get(path, "unclassified conflict")}
+            for path in sorted(set(conflicts))
+        ],
+        "appliedMigrations": applied_migrations,
+        "desiredManifestDigest": stable_plan_digest({"files": manifest_rows}),
+    }
+    plan_digest = stable_plan_digest(plan_core)
+    plan = {**plan_core, "planDigest": plan_digest}
+    if args.plan_digest and args.plan_digest != plan_digest:
+        print(
+            f"PKS202 plan digest changed: expected {args.plan_digest}, actual {plan_digest}",
+            file=sys.stderr,
+        )
+        return 7
+
+    next_state_value = {
+        "schemaVersion": 2,
+        "programKitVersion": extension_version(extension_root),
+        "dotnetSdk": dotnet_sdk,
+        "dotnetSdkSource": dotnet_sdk_source,
+        "selections": {"web": web_profile, "persistence": args.persistence_profile},
+        "webProfile": web_profile,
+        "webProfileContract": f"{web_profile}-v1",
+        "webThreatModel": "program-kit-web-threat-model-v1" if web_profile != "none" else "none",
+        "webSecurityEvidence": "program-kit-web-security-evidence-v1" if web_profile != "none" else "none",
+        "persistenceProfile": args.persistence_profile,
+        "desiredManifestDigest": plan_core["desiredManifestDigest"],
+        "appliedMigrations": applied_migrations,
+        "files": next_files,
+    }
+    next_state = (json.dumps(next_state_value, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    state_changed = not state_path.is_file() or state_path.read_bytes() != next_state
+    plan["stateChanged"] = state_changed
+
+    if args.json:
+        print(json.dumps(plan, indent=2, sort_keys=True))
+    else:
+        print(f"selected .NET SDK: {dotnet_sdk} ({dotnet_sdk_source})")
+        print(f"selected web profile: {web_profile}")
+        print(f"selected persistence profile: {args.persistence_profile}")
+        for label, marker, paths in (
+            ("created", "+", created),
+            ("updated", "~", updated),
+            ("preserved consumer files", "=", preserved),
+            ("conflicts", "!", sorted(set(conflicts))),
+            ("removed retired Program Kit files", "-", removed),
+        ):
+            print(f"{label}: {len(paths)}")
+            for path in paths:
+                detail = conflict_details.get(path)
+                print(f"  {marker} {path}" + (f": {detail}" if detail else ""))
+        print(f"unchanged: {len(unchanged)}")
+        print(f"state changed: {'yes' if state_changed else 'no'}")
+        print(f"plan digest: {plan_digest}")
 
     if conflicts:
-        print("Resolve conflicts explicitly; no conflicted file was overwritten.", file=sys.stderr)
+        print("Resolve conflicts explicitly; reconciliation made no consumer-file changes.", file=sys.stderr)
         return 2
-
     if args.check:
-        if created or updated or removed:
-            return 1
-        if web_profile == "spa-pkce" and spa_configuration is not None:
-            spa_profile.verify_outputs(target, spa_configuration)
-        return 0
-
+        return 1 if actions or state_changed else 0
+    if web_profile == "spa-pkce" and spa_configuration is not None:
+        # Validate derived output semantics against desired bytes before the transaction commits.
+        for relative in ("hostsettings.json", "deploy/keycloak/program-kit-realm.json"):
+            if relative not in desired_by_path:
+                raise ValueError(f"SPA desired state is missing {relative}")
+    target.mkdir(parents=True, exist_ok=True)
+    try:
+        transaction_id = reconciliation.apply_plan(target, actions, next_state)
+    except (OSError, ValueError, reconciliation.ReconciliationError) as error:
+        print(f"PKS203 reconciliation rolled back: {error}", file=sys.stderr)
+        return 2
+    print(f"committed reconciliation transaction: {transaction_id}")
     if web_profile == "spa-pkce" and spa_configuration is not None:
         spa_profile.verify_outputs(target, spa_configuration)
-
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    state_path.write_text(
-        json.dumps(
-            {
-                "schemaVersion": 1,
-                "programKitVersion": extension_version(extension_root),
-                "dotnetSdk": dotnet_sdk,
-                "dotnetSdkSource": dotnet_sdk_source,
-                "webProfile": web_profile,
-                "webProfileContract": f"{web_profile}-v1",
-                "webThreatModel": (
-                    "program-kit-web-threat-model-v1" if web_profile != "none" else "none"
-                ),
-                "webSecurityEvidence": (
-                    "program-kit-web-security-evidence-v1" if web_profile != "none" else "none"
-                ),
-                "persistenceProfile": args.persistence_profile,
-                "files": next_files,
-            },
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-        newline="\n",
-    )
     return 0
 
 
