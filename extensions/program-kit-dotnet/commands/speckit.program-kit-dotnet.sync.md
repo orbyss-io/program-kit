@@ -63,3 +63,6 @@ The selected secure web profile additionally owns its shell feature/configuratio
 Compose/realm fixture, web contract, and Playwright harness. `hostsettings.json` remains a clean,
 scaffold-once Nuplane/host input. The BFF secret must be supplied through
 `CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret`.
+The identity fixture contains the bearer-only API audience plus exactly one interactive client for
+the selected authenticated profile. The alternative client's registration and profile-only files
+must be absent, not retained in a disabled state. `none` removes the identity fixture entirely.

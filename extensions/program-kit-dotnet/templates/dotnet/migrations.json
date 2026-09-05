@@ -51,6 +51,24 @@
           "expectedHashes": ["0e1b7dbb950489efaa46a90900bdcf33529264c7b191dd5f2cb553518eece1b0"]
         }
       ]
+    },
+    {
+      "id": "0.9.1-retire-legacy-root-web-settings",
+      "throughVersion": "0.9.0",
+      "jsonTransforms": [
+        {
+          "path": "hostsettings.json",
+          "remove": [
+            {
+              "pointer": "/ProgramKit/Web",
+              "expectedValueHashes": [
+                "3eb5640d31530f92f4abada7cc9bb1fd5b8f640651d97c5d66d3df13dbded21d",
+                "0597ba179bbfbe2589505963e64a66b8feb97bebcde70e8b9b1028a5f3753279"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

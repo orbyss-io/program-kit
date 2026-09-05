@@ -30,12 +30,21 @@
     },
     "configuration": {
       "type": "object",
-      "required": [ "hostsettings", "hostsettingsSha256", "shells", "shellsSha256" ],
+      "required": [ "hostsettings", "hostsettingsSha256", "shells", "shellsSha256", "webProfileShells", "webProfileShellsSha256" ],
       "properties": {
         "hostsettings": { "type": "object" },
         "hostsettingsSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "shells": { "type": "object", "required": [ "CShells" ] },
-        "shellsSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "shellsSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "webProfileShells": {
+          "type": [ "object", "null" ],
+          "description": "Managed selected-profile shell contribution, or null when no contribution is staged."
+        },
+        "webProfileShellsSha256": {
+          "type": [ "string", "null" ],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Digest of webProfileShells, or null when that contribution is absent."
+        }
       },
       "additionalProperties": false
     }

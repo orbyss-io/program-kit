@@ -41,9 +41,15 @@
         "anonymousBody": { "authenticated": false },
         "authenticatedBody": {
           "authenticated": true,
-          "subject": "string-or-null",
+          "issuer": "non-empty-validated-uri-string",
+          "subject": "non-empty-string",
           "displayName": "string-or-null",
           "permissions": "sorted-distinct-string-array"
+        },
+        "invalidIdentity": {
+          "status": 401,
+          "code": "authentication_identity_invalid",
+          "localSession": "cleared"
         }
       }
     },
@@ -112,6 +118,7 @@
   "errors": {
     "mediaType": "application/problem+json",
     "authentication": "authentication_required",
+    "identity": "authentication_identity_invalid",
     "authorization": "authorization_denied",
     "antiforgery": "invalid_antiforgery_token",
     "callback": "authentication_callback_invalid",

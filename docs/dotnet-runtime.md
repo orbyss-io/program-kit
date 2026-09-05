@@ -83,12 +83,21 @@ are seeded from
 Inactive built-in feature packages are omitted, and external dependencies are resolved from the
 nearest compatible NuGet framework group.
 
+Managed CI and release workflows enter repository verification through
+`eng/program-kit/Invoke-RepositoryVerification.ps1`. If the consumer owns a regular, non-reparse
+`eng/verify.ps1` inside the repository, that aggregate gate runs and any failure stops the workflow.
+When it is absent, the wrapper runs the locked managed build fallback. The hook path is fixed and is
+never read from arguments or environment variables; release staging remains a separate managed step.
+
 The generated application Dockerfile derives from an approved digest-pinned `ProgramKit.Host`, copies the
 staged packages into `/app/packages`, and copies the three configuration files. The generated release workflow
 publishes that fully runnable image, obtains its registry digest, and emits `runnable-host.json`. That
 descriptor contains only application/version provenance, image repository/tag/digest, and the exact
 secret-free Nuplane/CShells configuration—including the selected profile overlay—with hashes.
 `ProgramKit.Host` never consumes the descriptor.
+The checked `.program-kit/runnable-host.schema.json` declares the profile overlay and its digest as
+required nullable fields, matching the producer whether an authenticated profile contribution is
+staged or absent.
 
 Managed OpenAPI verification separately remains a build concern. A consumer registers contract files in
 `.program-kit/openapi-contracts.json`; an empty registry does nothing and restores no exporter or npm
@@ -139,3 +148,9 @@ The 0.8.1 sync removes the obsolete managed application-bundle schema and builde
 installed hashes are unchanged. A consumer-modified copy is preserved as a conflict. Existing scaffold-once
 `hostsettings.json` needs review because the application-neutral host no longer injects a package path; its Nuplane feed
 must name `packages` (or another deployment-owned path) explicitly.
+
+The 0.9.1 sync removes a legacy root `ProgramKit.Web` object only when its canonical value hash
+matches an authenticated 0.8.x BFF or SPA baseline. A customized object is preserved as a
+zero-mutation conflict so its values can be migrated explicitly to the selected shell overlay (or
+typed SPA input). Consumer-owned changes elsewhere in `hostsettings.json`, `shells.json`, and the
+OpenAPI registry are not Program Kit drift and do not make `--check` fail.

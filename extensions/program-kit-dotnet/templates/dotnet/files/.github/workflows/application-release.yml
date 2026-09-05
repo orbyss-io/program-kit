@@ -39,6 +39,10 @@ jobs:
             exit 1
           fi
 
+      - name: Run repository verification gate
+        shell: pwsh
+        run: ./eng/program-kit/Invoke-RepositoryVerification.ps1 -Mode Release
+
       - name: Stage runnable host image
         shell: pwsh
         run: ./eng/program-kit/Build.ps1 -LockedMode

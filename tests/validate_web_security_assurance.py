@@ -285,6 +285,8 @@ def main() -> int:
     bff_files = {item["path"] for item in bff_manifest["files"]}
     if "eng/program-kit/web/bff-session.ts" not in bff_files:
         raise AssertionError("The BFF profile does not ship its browser logout adapter")
+    if "eng/program-kit/web/tests/bff-session.spec.ts" not in bff_files:
+        raise AssertionError("The BFF profile does not ship direct tests for its browser logout adapter")
     bff_contract = load_object(bff_root / "eng/program-kit/web/web-contract.json")
     if bff_contract.get("schemaVersion") != 2:
         raise AssertionError("The browser-complete BFF contract must use schema version 2")
@@ -298,6 +300,13 @@ def main() -> int:
         raise AssertionError("The BFF contract does not expose the browser form antiforgery field")
     if routes["logout"].get("browserInvocation") != "user-initiated-top-level-form-target":
         raise AssertionError("The BFF logout contract is not consumable as browser navigation")
+    authenticated_body = routes["user"]["success"]["authenticatedBody"]
+    if authenticated_body.get("issuer") != "non-empty-validated-uri-string":
+        raise AssertionError("The BFF session projection does not expose its validated issuer")
+    if authenticated_body.get("subject") != "non-empty-string":
+        raise AssertionError("The BFF session projection still permits an authenticated null subject")
+    if routes["user"]["success"].get("invalidIdentity", {}).get("code") != "authentication_identity_invalid":
+        raise AssertionError("The BFF contract has no explicit failure for a malformed authenticated ticket")
     ownership = bff_contract.get("ownership", {})
     if ownership.get("featureOwnedPrefix") != "/api/" or "/bff/logout" not in ownership.get("managedExactPaths", []):
         raise AssertionError("The BFF contract confuses managed BFF routes with feature-owned APIs")

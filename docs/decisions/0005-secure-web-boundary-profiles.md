@@ -67,6 +67,9 @@ their own namespace and map many-to-many to the applicable canonical controls.
    provider roles or scopes into those permissions.
 5. Profile changes are architecture changes with migration and regression evidence, not feature
    implementation details.
+6. The local identity fixture is desired state, not a union catalog: it contains the bearer-only API
+   audience plus exactly the selected profile's interactive client. The alternative client and all
+   retired profile-only artifacts are absent rather than disabled.
 
 ## Consequences
 

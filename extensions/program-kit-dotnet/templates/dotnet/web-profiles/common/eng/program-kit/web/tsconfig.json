@@ -9,5 +9,5 @@
     "exactOptionalPropertyTypes": true,
     "types": [ "node", "@playwright/test" ]
   },
-  "include": [ "playwright.config.ts", "tests/**/*.ts" ]
+  "include": [ "*.ts", "tests/**/*.ts" ]
 }

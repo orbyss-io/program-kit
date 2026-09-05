@@ -115,13 +115,25 @@ must be tightened or minimally adapted to the actual frontend resource model.
 
 ### Identity provider fixture
 
-The local profile supplies a pinned Keycloak container, imported realm, confidential BFF client,
-public SPA-PKCE client, API audience/scope, redirect and post-logout URIs, and three non-production
-personas: authorized user, administrator, and authenticated user without the provider role that maps
-to the requested application permission. Fixture
-credentials are local-test data and are never reused in deployed environments.
-SPA redirect and post-logout registrations are exact routes derived from
-`.program-kit/spa-pkce.json`; wildcard registrations are rejected before Compose starts.
+The selected local profile supplies a pinned Keycloak container, imported realm, bearer-only API
+audience/scope, exactly one interactive client, and three non-production personas: authorized user,
+administrator, and authenticated user without the provider role that maps to the requested
+application permission. The unselected interactive client is absent from the desired state, not
+disabled or retained for convenience.
+
+| Selected profile | Interactive client present | Interactive client absent |
+| --- | --- | --- |
+| `bff-cookie-v1` | Confidential BFF client with its exact redirect and post-logout URIs | Public SPA-PKCE client |
+| `spa-pkce-v1` | Public SPA-PKCE client with its exact origins, redirects, and post-logout URIs | Confidential BFF client |
+| `none-v1` | None; the identity fixture is not installed | Both authenticated-profile clients |
+
+The profile-neutral realm source contains only shared provider state and the bearer-only API client.
+Synchronization composes it with the one client contribution owned by the selected profile, then
+validates the exact client set before and after the transaction. Profile-neutral documentation and
+validation describe BFF and SPA-PKCE as alternatives; they never prescribe their union. Fixture
+credentials are local-test data and are never reused in deployed environments. SPA redirect and
+post-logout registrations are exact routes derived from `.program-kit/spa-pkce.json`; wildcard
+registrations are rejected before Compose starts.
 
 ## `bff-cookie-v1`
 
@@ -136,8 +148,11 @@ SPA redirect and post-logout registrations are exact routes derived from
   and path `/`. Local HTTP is supported only by an explicit development override and uses visibly
   development-only cookie names because browsers reject `__Host-` cookies without `Secure`.
 - `GET /bff/login?returnUrl=/safe/path` starts login. Return URLs must be local and relative.
-- `GET /bff/user` returns a minimal session projection (authentication state, subject, display name,
-  and canonical permissions) and never returns tokens, provider roles, or the raw claims principal.
+- `GET /bff/user` returns a minimal session projection (authentication state, validated issuer,
+  non-empty subject, display name, and canonical permissions) and never returns tokens, provider
+  roles, or the raw claims principal. An OIDC response without both `iss` and `sub` cannot establish
+  a session; an anomalous existing ticket missing either claim is cleared and returns `401`
+  `authentication_identity_invalid`.
 - `GET /bff/antiforgery` issues an antiforgery request token for in-memory use by the UI.
 - unsafe same-origin `/api` requests require the token in `X-CSRF-TOKEN`. Browser logout uses the
   managed `bff-session.ts` adapter: it opens a same-origin auxiliary browsing context during the
@@ -239,7 +254,7 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 | --- | --- |
 | `.program-kit/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
 | `hostsettings.json` | Scaffold-owned host infrastructure only: eager activation and Nuplane package loading. It contains no auth profile configuration. |
-| `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture. Never edit it; change the SPA input and sync. |
+| `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture composed from shared provider state and exactly one selected-profile client. Never edit it; change the selected profile (or SPA input) and sync. |
 | `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
 | SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |
 | `eng/program-kit/Dev.ps1` and `Test-Web.ps1` | Managed launch/test entry points. Use their parameters; do not fork them. |

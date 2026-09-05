@@ -36,6 +36,7 @@
     { "path": "eng/program-kit/profiles/persistence/ProgramKit.Persistence.EfSqlite.props", "ownership": "managed" },
     { "path": "eng/program-kit/ProgramKit.Packages.props", "ownership": "managed" },
     { "path": "eng/program-kit/Build.ps1", "ownership": "managed" },
+    { "path": "eng/program-kit/Invoke-RepositoryVerification.ps1", "ownership": "managed" },
     { "path": "eng/program-kit/runnable_host.py", "ownership": "managed" },
     { "path": ".github/workflows/application-ci.yml", "ownership": "managed" },
     { "path": ".github/workflows/application-release.yml", "ownership": "managed" }

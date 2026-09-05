@@ -56,9 +56,9 @@ def assert_profile(repository: Path, expected: str) -> None:
         realm = json.loads(
             (repository / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8")
         )
-        client_ids = {client["clientId"] for client in realm["clients"]}
-        assert ("program-kit-bff" in client_ids) == (expected == "bff-cookie")
-        assert ("program-kit-spa" in client_ids) == (expected == "spa-pkce")
+        selected_client = "program-kit-bff" if expected == "bff-cookie" else "program-kit-spa"
+        client_ids = [client["clientId"] for client in realm["clients"]]
+        assert client_ids == ["program-kit-api", selected_client]
     spa_only = (
         ".program-kit/spa-pkce.json",
         ".program-kit/spa-pkce.schema.json",
@@ -69,9 +69,53 @@ def assert_profile(repository: Path, expected: str) -> None:
     for relative in spa_only:
         assert (repository / relative).exists() == (expected == "spa-pkce"), relative
     assert (repository / "eng/program-kit/web/bff-session.ts").exists() == (expected == "bff-cookie")
+    assert (repository / "eng/program-kit/web/tests/bff-session.spec.ts").exists() == (
+        expected == "bff-cookie"
+    )
+
+
+def seed_legacy_root_web_settings(repository: Path, profile: str) -> None:
+    fixture = json.loads(
+        (ROOT / f"tests/fixtures/legacy-{profile}-web.json").read_text(encoding="utf-8")
+    )
+    hostsettings_path = repository / "hostsettings.json"
+    hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
+    hostsettings["ProgramKit"]["Web"] = fixture
+    hostsettings_path.write_text(json.dumps(hostsettings, indent=2) + "\n", encoding="utf-8")
+    state_path = repository / ".program-kit/managed.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["programKitVersion"] = "0.9.0"
+    state["appliedMigrations"] = [
+        migration
+        for migration in state.get("appliedMigrations", [])
+        if migration != "0.9.1-retire-legacy-root-web-settings"
+    ]
+    state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> int:
+    template_root = ROOT / "extensions/program-kit-dotnet/templates/dotnet"
+    neutral_realm = json.loads(
+        (template_root / "web-profiles/common/deploy/keycloak/program-kit-realm.json")
+        .read_text(encoding="utf-8")
+    )
+    assert [client["clientId"] for client in neutral_realm["clients"]] == ["program-kit-api"]
+    for profile, selected_client in (
+        ("bff-cookie", "program-kit-bff"),
+        ("spa-pkce", "program-kit-spa"),
+    ):
+        contribution = json.loads(
+            (template_root / f"web-profiles/{profile}/identity-client.json")
+            .read_text(encoding="utf-8")
+        )
+        assert contribution["clientId"] == selected_client
+    profile_reference = (
+        ROOT / "extensions/program-kit-dotnet/references/secure-web-profiles.md"
+    ).read_text(encoding="utf-8")
+    assert "exactly one interactive client" in profile_reference
+    assert "The unselected interactive client is absent" in profile_reference
+    assert "confidential BFF client,\npublic SPA-PKCE client" not in profile_reference
+
     with tempfile.TemporaryDirectory(prefix="program-kit-dotnet-sync-") as value:
         target = Path(value)
 
@@ -116,7 +160,8 @@ def main() -> int:
         assert '"analyzer", "dotnettool", "template"' in runnable_builder
         application_ci = (target / ".github/workflows/application-ci.yml").read_text(encoding="utf-8")
         application_release = (target / ".github/workflows/application-release.yml").read_text(encoding="utf-8")
-        assert "-SkipRunnableHost -LockedMode" in application_ci
+        assert "Invoke-RepositoryVerification.ps1 -Mode CI" in application_ci
+        assert "Invoke-RepositoryVerification.ps1 -Mode Release" in application_release
         assert "Build.ps1 -LockedMode" in application_release
         assert "runnable-host.json" in application_release
         assert "containerimage.digest" in application_release
@@ -139,6 +184,37 @@ def main() -> int:
         assert '<package pattern="CShells.*" />' in nuget_text
         assert '<package pattern="Nuplane.*" />' in nuget_text
         assert state["files"]["NuGet.config"]["ownership"] == "scaffold"
+
+        consumer_verifier = target / "eng/verify.ps1"
+        consumer_verifier.parent.mkdir(parents=True, exist_ok=True)
+        consumer_verifier.write_text("Write-Host 'consumer aggregate gate'\n", encoding="utf-8")
+        verifier_bytes = consumer_verifier.read_bytes()
+        verifier_preserved = run("--target", str(target), *approvals)
+        assert verifier_preserved.returncode == 0, verifier_preserved.stderr
+        assert consumer_verifier.read_bytes() == verifier_bytes
+
+        # A managed 0.9.0 schema upgrades atomically with its already-updated descriptor producer.
+        runnable_schema_path = target / ".program-kit/runnable-host.schema.json"
+        current_runnable_schema = json.loads(runnable_schema_path.read_text(encoding="utf-8"))
+        legacy_runnable_schema = json.loads(json.dumps(current_runnable_schema))
+        legacy_configuration = legacy_runnable_schema["properties"]["configuration"]
+        legacy_configuration["required"] = [
+            name for name in legacy_configuration["required"] if not name.startswith("webProfile")
+        ]
+        legacy_configuration["properties"].pop("webProfileShells")
+        legacy_configuration["properties"].pop("webProfileShellsSha256")
+        legacy_schema_bytes = (json.dumps(legacy_runnable_schema, indent=2) + "\n").encode("utf-8")
+        runnable_schema_path.write_bytes(legacy_schema_bytes)
+        schema_state_path = target / ".program-kit/managed.json"
+        schema_state = json.loads(schema_state_path.read_text(encoding="utf-8"))
+        schema_state["programKitVersion"] = "0.9.0"
+        legacy_schema_hash = hashlib.sha256(legacy_schema_bytes).hexdigest()
+        schema_state["files"][".program-kit/runnable-host.schema.json"]["lastWrittenHash"] = legacy_schema_hash
+        schema_state["files"][".program-kit/runnable-host.schema.json"]["installedHash"] = legacy_schema_hash
+        schema_state_path.write_text(json.dumps(schema_state, indent=2) + "\n", encoding="utf-8")
+        schema_upgraded = run("--target", str(target), *approvals)
+        assert schema_upgraded.returncode == 0, schema_upgraded.stderr
+        assert json.loads(runnable_schema_path.read_text(encoding="utf-8")) == current_runnable_schema
 
         # Repositories installed before NuGet.config became consumer-owned receive the
         # routing correction once, but only while their managed copy is unmodified.
@@ -257,14 +333,65 @@ def main() -> int:
         bff_realm = json.loads(
             (browser_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8")
         )
-        bff_client_ids = {client["clientId"] for client in bff_realm["clients"]}
-        assert "program-kit-bff" in bff_client_ids and "program-kit-spa" not in bff_client_ids
+        bff_client_ids = [client["clientId"] for client in bff_realm["clients"]]
+        assert bff_client_ids == ["program-kit-api", "program-kit-bff"]
         assert (browser_target / "eng/program-kit/web/bff-session.ts").is_file()
+        assert (browser_target / "eng/program-kit/web/tests/bff-session.spec.ts").is_file()
+        bff_contract = json.loads(
+            (browser_target / "eng/program-kit/web/web-contract.json").read_text(encoding="utf-8")
+        )
+        authenticated_body = bff_contract["routes"]["user"]["success"]["authenticatedBody"]
+        assert authenticated_body["issuer"] == "non-empty-validated-uri-string"
+        assert authenticated_body["subject"] == "non-empty-string"
+        assert bff_contract["routes"]["user"]["success"]["invalidIdentity"] == {
+            "status": 401,
+            "code": "authentication_identity_invalid",
+            "localSession": "cleared",
+        }
         bff_compose = (browser_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
         assert "CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret" in bff_compose
         assert (browser_target / "eng/program-kit/web/package-lock.json").is_file()
         assert (browser_target / ".program-kit/security/web-security-evidence.json").is_file()
         assert (browser_target / "docs/architecture/program-kit/web-security-threat-model.md").is_file()
+
+        # Valid consumer extension-point edits do not become Program Kit state drift.
+        consumer_shells_path = browser_target / "shells.json"
+        consumer_shells = json.loads(consumer_shells_path.read_text(encoding="utf-8"))
+        consumer_shells["CShells"]["Shells"]["default"]["Features"]["PriceCalculator.Api"] = {}
+        consumer_shells_path.write_text(json.dumps(consumer_shells, indent=2) + "\n", encoding="utf-8")
+        consumer_hostsettings_path = browser_target / "hostsettings.json"
+        consumer_hostsettings = json.loads(consumer_hostsettings_path.read_text(encoding="utf-8"))
+        consumer_hostsettings["PriceCalculator"] = {"VerificationMode": "strict"}
+        consumer_hostsettings_path.write_text(
+            json.dumps(consumer_hostsettings, indent=2) + "\n", encoding="utf-8"
+        )
+        openapi_registry_path = browser_target / ".program-kit/openapi-contracts.json"
+        openapi_registry = json.loads(openapi_registry_path.read_text(encoding="utf-8"))
+        openapi_registry["contracts"] = [
+            {
+                "id": "price-calculator-api",
+                "shell": "default",
+                "features": ["PriceCalculator.Api"],
+            }
+        ]
+        openapi_registry_path.write_text(
+            json.dumps(openapi_registry, indent=2) + "\n", encoding="utf-8"
+        )
+        consumer_extension_check = run(
+            "--target",
+            str(browser_target),
+            "--profile-selected",
+            "--check",
+            "--web-profile",
+            "bff-cookie",
+            "--persistence-profile",
+            "none",
+        )
+        assert consumer_extension_check.returncode == 0, consumer_extension_check.stderr
+        assert "created: 0" in consumer_extension_check.stdout
+        assert "updated: 0" in consumer_extension_check.stdout
+        assert "conflicts: 0" in consumer_extension_check.stdout
+        assert "state changed: no" in consumer_extension_check.stdout
         permission_spec_relative = "eng/program-kit/web/tests/authentication.spec.ts"
         permission_spec = browser_target / permission_spec_relative
         current_permission_contract = permission_spec.read_bytes()
@@ -364,6 +491,10 @@ def main() -> int:
         customized_client = next(
             client for client in customized_realm["clients"] if client["clientId"] == "program-kit-spa"
         )
+        assert [client["clientId"] for client in customized_realm["clients"]] == [
+            "program-kit-api",
+            "program-kit-spa",
+        ]
         assert customized_client["redirectUris"] == spa_configuration["redirectUris"]
         assert customized_realm["ssoSessionIdleTimeout"] == 1200
         customized_shell = json.loads(
@@ -472,6 +603,57 @@ def main() -> int:
                     destination_profile,
                 )
                 assert converged.returncode == 0, converged.stderr
+
+        # Structured field retirement removes authenticated legacy profile settings while
+        # preserving the rest of scaffold-owned hostsettings across either profile direction.
+        legacy_bff_to_spa = target / "legacy-hostsettings-bff-to-spa"
+        assert run(
+            "--target", str(legacy_bff_to_spa), *approvals, "--web-profile", "bff-cookie"
+        ).returncode == 0
+        seed_legacy_root_web_settings(legacy_bff_to_spa, "bff")
+        migrated_to_spa = run(
+            "--target", str(legacy_bff_to_spa), *approvals, "--web-profile", "spa-pkce"
+        )
+        assert migrated_to_spa.returncode == 0, migrated_to_spa.stderr
+        assert "Web" not in json.loads(
+            (legacy_bff_to_spa / "hostsettings.json").read_text(encoding="utf-8")
+        )["ProgramKit"]
+        assert_profile(legacy_bff_to_spa, "spa-pkce")
+
+        legacy_spa_to_bff = target / "legacy-hostsettings-spa-to-bff"
+        assert run(
+            "--target", str(legacy_spa_to_bff), *approvals, "--web-profile", "spa-pkce"
+        ).returncode == 0
+        seed_legacy_root_web_settings(legacy_spa_to_bff, "spa")
+        migrated_to_bff = run(
+            "--target", str(legacy_spa_to_bff), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert migrated_to_bff.returncode == 0, migrated_to_bff.stderr
+        assert "Web" not in json.loads(
+            (legacy_spa_to_bff / "hostsettings.json").read_text(encoding="utf-8")
+        )["ProgramKit"]
+        assert_profile(legacy_spa_to_bff, "bff-cookie")
+
+        customized_legacy = target / "customized-legacy-hostsettings"
+        assert run(
+            "--target", str(customized_legacy), *approvals, "--web-profile", "bff-cookie"
+        ).returncode == 0
+        seed_legacy_root_web_settings(customized_legacy, "bff")
+        customized_hostsettings_path = customized_legacy / "hostsettings.json"
+        customized_hostsettings = json.loads(
+            customized_hostsettings_path.read_text(encoding="utf-8")
+        )
+        customized_hostsettings["ProgramKit"]["Web"]["Authority"] = "https://identity.example.test"
+        customized_hostsettings_path.write_text(
+            json.dumps(customized_hostsettings, indent=2) + "\n", encoding="utf-8"
+        )
+        before_structured_conflict = snapshot(customized_legacy)
+        structured_conflict = run(
+            "--target", str(customized_legacy), *approvals, "--web-profile", "bff-cookie"
+        )
+        assert structured_conflict.returncode == 2, structured_conflict.stderr
+        assert "migrate its settings explicitly before removal" in structured_conflict.stdout
+        assert snapshot(customized_legacy) == before_structured_conflict
 
         # A versioned migration removes SPA files that 0.8.11 could lose from state while leaving
         # them on disk. Only the exact governed bytes are eligible for retirement.

@@ -75,23 +75,7 @@ public sealed class ProgramKitBffCookieFeature : IWebShellFeature, IMiddlewareSh
                 [OpenIdConnectDefaults.AuthenticationScheme]);
         }).AllowAnonymous();
 
-        endpoints.MapGet("/bff/user", (ClaimsPrincipal user, IOptions<ProgramKitWebOptions> options) =>
-        {
-            if (user.Identity?.IsAuthenticated != true)
-            {
-                return Results.Ok(new { authenticated = false });
-            }
-
-            var permissions = user.FindAll(options.Value.PermissionClaim).Select(claim => claim.Value)
-                .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-            return Results.Ok(new
-            {
-                authenticated = true,
-                subject = user.FindFirstValue("sub"),
-                displayName = user.FindFirstValue("name"),
-                permissions
-            });
-        }).AllowAnonymous();
+        endpoints.MapGet("/bff/user", WriteUserAsync).AllowAnonymous();
 
         endpoints.MapGet("/bff/antiforgery", (HttpContext context, IAntiforgery antiforgery) =>
         {
@@ -173,6 +157,16 @@ public sealed class ProgramKitBffCookieFeature : IWebShellFeature, IMiddlewareSh
                 }
 
                 options.TokenValidationParameters = ValidationParameters(settings, settings.ClientId);
+                options.Events.OnTokenValidated = context =>
+                {
+                    if (
+                        string.IsNullOrWhiteSpace(context.Principal?.FindFirstValue("iss"))
+                        || string.IsNullOrWhiteSpace(context.Principal?.FindFirstValue("sub")))
+                    {
+                        context.Fail("The validated OpenID Connect identity requires issuer and subject claims.");
+                    }
+                    return Task.CompletedTask;
+                };
                 options.Events.OnRemoteFailure = context =>
                 {
                     var code = context.Failure is HttpRequestException or TaskCanceledException
@@ -223,6 +217,43 @@ public sealed class ProgramKitBffCookieFeature : IWebShellFeature, IMiddlewareSh
                 .LogWarning("Remote logout could not be initiated after the local session was cleared.");
             context.Response.Redirect("/bff/signed-out?remote=unavailable");
         }
+    }
+
+    /// <summary>Returns a minimal session projection only for a validated issuer-subject identity.</summary>
+    private static async Task WriteUserAsync(
+        HttpContext context,
+        IOptions<ProgramKitWebOptions> options,
+        IAuthenticationErrorWriter errorWriter)
+    {
+        var user = context.User;
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            await context.Response.WriteAsJsonAsync(new { authenticated = false }).ConfigureAwait(false);
+            return;
+        }
+
+        var issuer = user.FindFirstValue("iss");
+        var subject = user.FindFirstValue("sub");
+        if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(subject))
+        {
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
+            await errorWriter.WriteAsync(
+                context,
+                StatusCodes.Status401Unauthorized,
+                "authentication_identity_invalid").ConfigureAwait(false);
+            return;
+        }
+
+        var permissions = user.FindAll(options.Value.PermissionClaim).Select(claim => claim.Value)
+            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        await context.Response.WriteAsJsonAsync(new
+        {
+            authenticated = true,
+            issuer,
+            subject,
+            displayName = user.FindFirstValue("name"),
+            permissions
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Maps interactive protocol failures to stable authentication error codes.</summary>

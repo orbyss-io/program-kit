@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## 0.9.1 - 2026-09-05
+
+- Compose the local Keycloak realm from profile-neutral provider state plus exactly one selected
+  interactive-client contribution. References and validators now describe BFF and SPA-PKCE as
+  alternatives, and clean installs and both transition directions require the retired client to be absent.
+- Require validated non-empty `iss` and `sub` claims before establishing a BFF session. The user
+  projection now returns both values, and clears anomalous existing tickets with the stable
+  `authentication_identity_invalid` outcome instead of emitting authenticated-plus-null.
+- Add authenticated JSON-field migrations for obsolete scaffold-owned settings. Known 0.8.x root
+  `ProgramKit.Web` blocks are removed atomically; customized blocks stop as zero-mutation conflicts
+  with explicit migration guidance.
+- Keep consumer/scaffold-owned byte changes outside Program Kit state drift, so valid edits to
+  `shells.json`, `hostsettings.json`, and the OpenAPI registry leave `--check` clean while managed
+  drift and unsafe migrations still fail.
+- Align the runnable-host descriptor schema with the profile overlay and digest already emitted by
+  its producer, and validate generated descriptors with both present and absent profile contributions.
+- Add a fixed, path-safe `eng/verify.ps1` hook to managed CI and release workflows with a managed
+  fallback. Consumer verification is preserved across upgrades and its failure blocks publication.
+- Type-check the shipped web adapters and directly exercise the BFF logout adapter's local-path,
+  antiforgery-form, popup, termination-wait, navigation, and failure-cleanup behavior.
+
 ## 0.9.0 - 2026-09-05
 
 - Add the explicit `auto_approve_and_ratify` bootstrap input for uninterrupted development runs.

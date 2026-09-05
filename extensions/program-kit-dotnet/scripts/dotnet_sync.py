@@ -9,6 +9,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 import reconciliation
+import identity_fixture
 import spa_profile
 
 
@@ -31,6 +32,66 @@ def load_json(path: Path, default: dict) -> dict:
     if not isinstance(value, dict):
         raise ValueError(f"Expected an object in {path}")
     return value
+
+
+def canonical_json_hash(value: object) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return sha256_bytes(encoded)
+
+
+def remove_authenticated_json_value(document: object, operation: dict, migration_id: str) -> bool:
+    pointer = operation.get("pointer")
+    expected_hashes = operation.get("expectedValueHashes")
+    if (
+        not isinstance(pointer, str)
+        or not pointer.startswith("/")
+        or not isinstance(expected_hashes, list)
+        or not all(isinstance(value, str) for value in expected_hashes)
+    ):
+        raise ValueError(f"migration {migration_id} has an invalid JSON removal")
+    parts = [part.replace("~1", "/").replace("~0", "~") for part in pointer[1:].split("/")]
+    parent = document
+    for part in parts[:-1]:
+        if not isinstance(parent, dict) or part not in parent:
+            return False
+        parent = parent[part]
+    leaf = parts[-1]
+    if not isinstance(parent, dict) or leaf not in parent:
+        return False
+    actual_hash = canonical_json_hash(parent[leaf])
+    if actual_hash not in expected_hashes:
+        raise ValueError(
+            f"migration {migration_id} preserved {pointer}: value hash {actual_hash} is not an "
+            "authenticated Program Kit baseline; migrate its settings explicitly before removal"
+        )
+    del parent[leaf]
+    return True
+
+
+def apply_structured_migrations(
+    relative: str,
+    content: bytes,
+    migrations: list[dict],
+) -> bytes:
+    matching = [
+        (migration, transform)
+        for migration in migrations
+        for transform in migration.get("jsonTransforms", [])
+        if isinstance(transform, dict) and transform.get("path") == relative
+    ]
+    if not matching:
+        return content
+    document = json.loads(content.decode("utf-8"))
+    changed = False
+    for migration, transform in matching:
+        removals = transform.get("remove")
+        if not isinstance(removals, list):
+            raise ValueError(f"migration {migration['id']} has no JSON removal list")
+        for operation in removals:
+            if not isinstance(operation, dict):
+                raise ValueError(f"migration {migration['id']} has an invalid JSON removal")
+            changed = remove_authenticated_json_value(document, operation, migration["id"]) or changed
+    return (json.dumps(document, indent=2) + "\n").encode("utf-8") if changed else content
 
 
 def consumer_nuget_routing_error(path: Path) -> str | None:
@@ -149,6 +210,7 @@ def desired_content(
     dotnet_sdk: str,
     web_profile: str,
     spa_configuration: dict | None,
+    template_root: Path,
 ) -> bytes:
     content = source.read_bytes()
     if relative == "global.json":
@@ -158,19 +220,15 @@ def desired_content(
             raise ValueError("The Program Kit managed global.json has no sdk object.")
         sdk["version"] = dotnet_sdk
         return (json.dumps(value, indent=2) + "\n").encode("utf-8")
-    if web_profile == "bff-cookie" and relative == "deploy/keycloak/program-kit-realm.json":
-        realm = json.loads(content.decode("utf-8"))
-        realm["clients"] = [
-            client for client in realm.get("clients", [])
-            if client.get("clientId") != "program-kit-spa"
-        ]
-        return (json.dumps(realm, indent=2) + "\n").encode("utf-8")
+    if relative == identity_fixture.REALM_PATH and web_profile in {"bff-cookie", "spa-pkce"}:
+        return identity_fixture.render_realm(
+            content, template_root, web_profile, spa_configuration
+        )
     if web_profile != "spa-pkce" or spa_configuration is None:
         return content
     renderers = {
         ".program-kit/web-profile.shells.json": spa_profile.render_shell_profile,
         ".program-kit/web-profile.json": spa_profile.render_profile,
-        "deploy/keycloak/program-kit-realm.json": spa_profile.render_realm,
         "eng/program-kit/web/web-contract.json": spa_profile.render_web_contract,
     }
     renderer = renderers.get(relative)
@@ -190,6 +248,15 @@ def lifecycle_for(relative: str, ownership: str, rendered: bool) -> str:
     if relative.startswith(".program-kit/security/") or "threat-model" in relative:
         return "evidence"
     return ownership
+
+
+def recorded_consumer_hash(previous: object, fallback: str) -> str:
+    if isinstance(previous, dict):
+        for name in ("installedHash", "baselineHash", "templateHash"):
+            value = previous.get(name)
+            if isinstance(value, str):
+                return value
+    return fallback
 
 
 def profile_paths(template_root: Path, profile: object) -> set[str]:
@@ -321,6 +388,28 @@ def main() -> int:
         raise ValueError(f"Invalid managed-file state in {state_path}")
     previous_profile = state.get("webProfile")
     previous_profile_paths = profile_paths(template_root, previous_profile)
+    migration_catalog = load_json(
+        template_root / "migrations.json", {"schemaVersion": 1, "migrations": []}
+    )
+    migrations = migration_catalog.get("migrations")
+    if not isinstance(migrations, list):
+        raise ValueError("The .NET migration catalog has no migrations list.")
+    applied_migrations = list(state.get("appliedMigrations", []))
+    current_version = str(state.get("programKitVersion", "0.0.0"))
+    applicable_migrations: list[dict] = []
+    for migration in migrations:
+        migration_id = migration.get("id")
+        if not isinstance(migration_id, str) or migration_id in applied_migrations:
+            continue
+        through = migration.get("throughVersion")
+        unless_profile = migration.get("unlessWebProfile")
+        if (
+            isinstance(through, str)
+            and version_key(current_version) <= version_key(through)
+            and web_profile != unless_profile
+        ):
+            applicable_migrations.append(migration)
+            applied_migrations.append(migration_id)
 
     desired_by_path: dict[str, dict] = {}
     for entry in entries:
@@ -330,13 +419,20 @@ def main() -> int:
         source_root = template_root / entry.get("sourceRoot", "files")
         source_relative = entry.get("source", relative)
         source = source_root / source_relative
-        rendered = web_profile == "spa-pkce" and relative in {
-            ".program-kit/web-profile.shells.json",
-            ".program-kit/web-profile.json",
-            "deploy/keycloak/program-kit-realm.json",
-            "eng/program-kit/web/web-contract.json",
-        }
-        content = desired_content(source, relative, dotnet_sdk, web_profile, spa_configuration)
+        rendered = (
+            relative == identity_fixture.REALM_PATH
+            and web_profile in {"bff-cookie", "spa-pkce"}
+        ) or (
+            web_profile == "spa-pkce"
+            and relative in {
+                ".program-kit/web-profile.shells.json",
+                ".program-kit/web-profile.json",
+                "eng/program-kit/web/web-contract.json",
+            }
+        )
+        content = desired_content(
+            source, relative, dotnet_sdk, web_profile, spa_configuration, template_root
+        )
         desired_by_path[relative] = {
             **entry,
             "sourceIdentity": source.relative_to(template_root).as_posix(),
@@ -390,11 +486,28 @@ def main() -> int:
             final_baseline = desired_hash
             final_written = desired_hash
         else:
-            current_hash = sha256_bytes(destination.read_bytes())
+            current_content = destination.read_bytes()
+            current_hash = sha256_bytes(current_content)
             final_hash = current_hash
             final_baseline = baseline_hash or desired_hash
             final_written = last_written_hash
-            if current_hash == desired_hash:
+            try:
+                migrated_content = apply_structured_migrations(
+                    relative, current_content, applicable_migrations
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+                conflicts.append(relative)
+                conflict_details[relative] = str(error)
+                migrated_content = current_content
+            if migrated_content != current_content:
+                updated.append(relative)
+                actions.append({"kind": "update", "path": relative, "content": migrated_content})
+                final_hash = sha256_bytes(migrated_content)
+                final_baseline = desired_hash
+                final_written = final_hash
+            elif relative in conflict_details:
+                pass
+            elif current_hash == desired_hash:
                 unchanged.append(relative)
                 final_written = desired_hash if ownership == "managed" else (last_written_hash or desired_hash)
             elif contribution_changed and current_hash == baseline_hash:
@@ -418,11 +531,15 @@ def main() -> int:
                 routing_error = consumer_nuget_routing_error(destination)
                 if routing_error is None:
                     preserved.append(relative)
+                    final_hash = recorded_consumer_hash(previous, desired_hash)
                 else:
                     conflicts.append(relative)
                     conflict_details[relative] = routing_error
             elif ownership in {"scaffold", "configuration"} and not contribution_changed:
                 preserved.append(relative)
+                # Consumer-owned bytes are deliberately outside Program Kit desired state. Keep
+                # the last governed baseline instead of turning every legitimate edit into state drift.
+                final_hash = recorded_consumer_hash(previous, desired_hash)
             else:
                 conflicts.append(relative)
                 conflict_details[relative] = (
@@ -448,28 +565,11 @@ def main() -> int:
         if relative not in desired_by_path:
             retirement_candidates.setdefault(relative, {"previous": old_files.get(relative), "migration": None})
 
-    migration_catalog = load_json(template_root / "migrations.json", {"schemaVersion": 1, "migrations": []})
-    migrations = migration_catalog.get("migrations")
-    if not isinstance(migrations, list):
-        raise ValueError("The .NET migration catalog has no migrations list.")
-    applied_migrations = list(state.get("appliedMigrations", []))
-    current_version = str(state.get("programKitVersion", "0.0.0"))
-    for migration in migrations:
-        migration_id = migration.get("id")
-        if not isinstance(migration_id, str) or migration_id in applied_migrations:
-            continue
-        through = migration.get("throughVersion")
-        unless_profile = migration.get("unlessWebProfile")
-        applicable = (
-            isinstance(through, str)
-            and version_key(current_version) <= version_key(through)
-            and web_profile != unless_profile
-        )
-        if not applicable:
-            continue
-        retire = migration.get("retire")
+    for migration in applicable_migrations:
+        migration_id = migration["id"]
+        retire = migration.get("retire", [])
         if not isinstance(retire, list):
-            raise ValueError(f"Migration {migration_id} has no retire list.")
+            raise ValueError(f"Migration {migration_id} has an invalid retire list.")
         for item in retire:
             relative = item.get("path")
             hashes = item.get("expectedHashes")
@@ -480,7 +580,6 @@ def main() -> int:
                     relative,
                     {"previous": None, "migration": {**item, "id": migration_id}},
                 )
-        applied_migrations.append(migration_id)
 
     for relative, candidate in retirement_candidates.items():
         destination = target / relative
@@ -600,11 +699,12 @@ def main() -> int:
         return 2
     if args.check:
         return 1 if actions or state_changed else 0
-    if web_profile == "spa-pkce" and spa_configuration is not None:
-        # Validate derived output semantics against desired bytes before the transaction commits.
-        for relative in ("hostsettings.json", "deploy/keycloak/program-kit-realm.json"):
-            if relative not in desired_by_path:
-                raise ValueError(f"SPA desired state is missing {relative}")
+    if web_profile in {"bff-cookie", "spa-pkce"}:
+        # Validate identity desired-state semantics against staged bytes before commit.
+        realm = desired_by_path.get(identity_fixture.REALM_PATH)
+        if realm is None:
+            raise ValueError(f"{web_profile} desired state is missing {identity_fixture.REALM_PATH}")
+        identity_fixture.validate_realm(realm["content"], web_profile, spa_configuration)
     target.mkdir(parents=True, exist_ok=True)
     try:
         transaction_id = reconciliation.apply_plan(target, actions, next_state)
@@ -612,6 +712,8 @@ def main() -> int:
         print(f"PKS203 reconciliation rolled back: {error}", file=sys.stderr)
         return 2
     print(f"committed reconciliation transaction: {transaction_id}")
+    if web_profile in {"bff-cookie", "spa-pkce"}:
+        identity_fixture.verify_repository(target, web_profile, spa_configuration)
     if web_profile == "spa-pkce" and spa_configuration is not None:
         spa_profile.verify_outputs(target, spa_configuration)
     return 0

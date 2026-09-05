@@ -70,6 +70,16 @@ if ($LASTEXITCODE -ne 0) {
     throw '.NET build and restricted-profile restore validation failed.'
 }
 
+& $python (Join-Path $projectRoot 'tests\validate_repository_verification_hook.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Repository verification-hook validation failed.'
+}
+
+& $python (Join-Path $projectRoot 'tests\validate_generated_contract_schemas.py')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Generated descriptor/schema validation failed.'
+}
+
 & $python (Join-Path $projectRoot 'tests\validate_domain_events.py')
 if ($LASTEXITCODE -ne 0) {
     throw 'Program Kit domain-event validation failed.'
