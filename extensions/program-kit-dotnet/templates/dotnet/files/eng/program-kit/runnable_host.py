@@ -17,9 +17,9 @@ from xml.etree import ElementTree
 
 import shell_composition
 import runtime_closure
+from program_kit_version import PROGRAM_KIT_VERSION
 
 
-PROGRAM_KIT_VERSION = "0.9.5"
 BUILT_IN_FEATURE_PACKAGES = {
     "ProgramKit.Authentication": "ProgramKit.Authentication",
     "ProgramKit.Authentication.BffCookie": "ProgramKit.Authentication.BffCookie",
@@ -65,12 +65,13 @@ def source_commit(repository: Path) -> str:
     if value:
         return value
     excludes = "" if os.name == "nt" else "/dev/null"
+    safe_directory = repository.resolve().as_posix()
     try:
         result = subprocess.run(
             [
                 "git",
                 "-c",
-                f"safe.directory={repository}",
+                f"safe.directory={safe_directory}",
                 "-c",
                 f"core.excludesFile={excludes}",
                 "-C",

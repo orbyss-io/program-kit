@@ -217,7 +217,6 @@ def stale_program_kit_locks(target: Path, runtime_version: str) -> list[Path]:
 
 
 def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
-    config = "NuGet.config"
     solutions = sorted([*target.glob("*.slnx"), *target.glob("*.sln")])
     if len(solutions) == 1:
         subjects = [solutions[0].relative_to(target).as_posix()]
@@ -235,8 +234,8 @@ def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
     for subject in subjects:
         commands.extend(
             [
-                f"dotnet restore {subject} --force-evaluate --configfile {config}",
-                f"dotnet restore {subject} --locked-mode --configfile {config}",
+                f"pwsh -NoProfile -File eng/program-kit/Restore.ps1 -Subject {subject} -ForceEvaluate",
+                f"pwsh -NoProfile -File eng/program-kit/Restore.ps1 -Subject {subject} -LockedMode",
             ]
         )
     return commands

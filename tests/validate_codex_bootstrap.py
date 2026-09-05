@@ -121,6 +121,19 @@ def validate_python_consumer(module) -> None:
         if result != {"action": "continue", "script_flavor": "py"}:
             raise AssertionError(f"Usable Python resolver was unexpectedly rejected: {result}")
 
+        observed_git: list[str] = []
+
+        def ownership_safe_runner(command, **kwargs):
+            observed_git.extend(command)
+            return subprocess.CompletedProcess(command, 0, stdout="true\n", stderr="")
+
+        module.verify_git_worktree(project, runner=ownership_safe_runner)
+        if (
+            f"safe.directory={project.resolve().as_posix()}" not in observed_git
+            or not any(value.startswith("core.excludesFile=") for value in observed_git)
+        ):
+            raise AssertionError(f"Git ownership validation is not command-scoped and path-normalized: {observed_git}")
+
         integration_path = project / ".specify/integration.json"
         integration = json.loads(integration_path.read_text(encoding="utf-8"))
         integration["integration_settings"]["codex"]["script"] = "ps"

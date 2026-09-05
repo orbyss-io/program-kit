@@ -597,7 +597,7 @@ def validate_release_feature_closure() -> None:
                     raise AssertionError("sandbox-safe Git commit resolution lost the exact commit")
                 command = run_git.call_args.args[0]
                 if (
-                    f"safe.directory={repository.resolve()}" not in command
+                    f"safe.directory={repository.resolve().as_posix()}" not in command
                     or not any(item.startswith("core.excludesFile=") for item in command)
                     or command[-3:] != [str(repository.resolve()), "rev-parse", "HEAD"]
                 ):
@@ -752,6 +752,14 @@ def validate_toolchain_workflow() -> None:
         missing_oasdiff = run("--include-openapi", "--oasdiff-command", "missing-oasdiff")
         if missing_oasdiff.returncode != 2 or "oasdiff" not in missing_oasdiff.stderr:
             raise AssertionError("missing managed oasdiff was not reported")
+        preserved = json.loads(
+            (repository / ".program-kit/evidence/toolchain.json").read_text(encoding="utf-8")
+        )
+        failed = json.loads(
+            (repository / ".program-kit/evidence/toolchain.failure.json").read_text(encoding="utf-8")
+        )
+        if preserved.get("satisfied") is not True or failed.get("previousEvidencePreserved") is not True:
+            raise AssertionError("failed toolchain renewal destroyed previously satisfied evidence")
         installed_oasdiff = run(
             "--include-openapi", "--oasdiff-command", "missing-oasdiff", "--remediate", "--approve",
             "--oasdiff-binary", str(reviewed_oasdiff),
@@ -760,6 +768,8 @@ def validate_toolchain_workflow() -> None:
             raise AssertionError(
                 f"reviewed oasdiff was not installed and re-verified: {installed_oasdiff.stdout}{installed_oasdiff.stderr}"
             )
+        if (repository / ".program-kit/evidence/toolchain.failure.json").exists():
+            raise AssertionError("successful toolchain renewal retained stale failure evidence")
 
     with tempfile.TemporaryDirectory(prefix="program-kit-fnm-recheck-") as value:
         repository = Path(value)
@@ -869,6 +879,28 @@ def validate_managed_sources() -> None:
     ):
         if phrase not in pipeline:
             raise AssertionError(f"managed OpenAPI pipeline is missing {phrase}")
+    pipeline_module = module(
+        template / "files/eng/program-kit/openapi_pipeline.py", "openapi_pipeline_environment"
+    )
+    observed_environment: dict[str, str] = {}
+
+    def observe_toolchain(_repository: Path, _evidence: Path, environment: dict[str, str]) -> None:
+        observed_environment.update(environment)
+
+    original_appdata = os.environ.get("APPDATA")
+    os.environ["APPDATA"] = "consumer-fnm-profile"
+    try:
+        with patch.object(pipeline_module, "ensure_openapi_toolchain", observe_toolchain), patch.object(
+            pipeline_module.js_toolchain, "context", lambda *_: None
+        ):
+            pipeline_module.prepare_openapi_toolchain(Path.cwd(), Path("toolchain.json"))
+    finally:
+        if original_appdata is None:
+            os.environ.pop("APPDATA", None)
+        else:
+            os.environ["APPDATA"] = original_appdata
+    if observed_environment.get("APPDATA") != "consumer-fnm-profile":
+        raise AssertionError("OpenAPI toolchain discovery ran after NuGet profile isolation hid fnm")
     tool_manifest = json.loads(
         (template / "files/eng/program-kit/.config/dotnet-tools.json").read_text(encoding="utf-8")
     )
@@ -982,7 +1014,7 @@ def validate_openapi_initialization() -> None:
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
-                "tools": {"programkit.openapi.exporter": {"version": "0.9.5-preview.1"}}
+                "tools": {"programkit.openapi.exporter": {"version": "0.9.6-preview.1"}}
             }),
             encoding="utf-8",
         )
@@ -1004,7 +1036,7 @@ def validate_openapi_initialization() -> None:
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
         )
         if (
-            contract["producer"]["version"] != "0.9.5-preview.1"
+            contract["producer"]["version"] != "0.9.6-preview.1"
             or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
@@ -1631,7 +1663,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.5-preview.1"},
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.6-preview.1"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1666,7 +1698,7 @@ def validate_artifact_ownership() -> None:
                     "isRoot": True,
                     "tools": {
                         "programkit.openapi.exporter": {
-                            "version": "0.9.5-preview.1",
+                            "version": "0.9.6-preview.1",
                             "commands": ["programkit-openapi-export"],
                         }
                     },

@@ -307,9 +307,21 @@ def verify_git_worktree(
     runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
 ) -> None:
     """Require the Git work tree that Codex exec uses as its trust boundary."""
+    repository = project_root.resolve()
+    excludes = "" if os.name == "nt" else "/dev/null"
     try:
         result = runner(
-            ["git", "-C", str(project_root), "rev-parse", "--is-inside-work-tree"],
+            [
+                "git",
+                "-c",
+                f"safe.directory={repository.as_posix()}",
+                "-c",
+                f"core.excludesFile={excludes}",
+                "-C",
+                str(repository),
+                "rev-parse",
+                "--is-inside-work-tree",
+            ],
             capture_output=True,
             text=True,
             encoding="utf-8",

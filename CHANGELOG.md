@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.9.6 - 2026-09-05
+
+- Add a managed repository-isolated restore wrapper and make build, CI/release verification, and
+  lock-renewal guidance use it. The wrapper confines NuGet caches, .NET CLI state, and Windows
+  profile discovery below `.program-kit/cache`, covering NuGet's ambient proxy-settings read even
+  when `--configfile` is supplied.
+- Normalize command-scoped Git `safe.directory` values to absolute forward-slash paths on Windows,
+  retaining the empty Windows `core.excludesFile` override without changing global Git config.
+- Keep exact Node/npm/oasdiff discovery outside the NuGet-isolated Windows profile, preserve valid
+  toolchain evidence atomically when a renewal attempt fails, and retain a separate failure record.
+- Validate runtime-closure evidence against the installed Program Kit baseline rather than the
+  consumer application's independent `VERSION`, so producer-first OpenAPI works for normal
+  application versions.
+
 ## 0.9.5 - 2026-09-05
 
 - Require the exact governed .NET SDK by disabling SDK patch roll-forward in both the repository and

@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import js_toolchain
@@ -104,6 +105,53 @@ def resolve(
     return installed, commands
 
 
+def evidence_value(
+    repository: Path, required: dict, installed: dict, commands: dict, satisfied: bool
+) -> dict:
+    cache = js_toolchain.cache_directory(repository)
+    _, trust_mode, extra_ca = js_toolchain.trust_environment(repository, cache)
+    return {
+        "schemaVersion": 2,
+        "required": required,
+        "resolved": installed,
+        "commands": commands,
+        "environment": {
+            "npmCache": str(cache),
+            "trustMode": trust_mode,
+            "extraCaCertificates": extra_ca,
+            "strictSsl": True,
+        },
+        "satisfied": satisfied,
+    }
+
+
+def atomic_write(path: Path, value: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(value, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+        Path(temporary).replace(path)
+    except BaseException:
+        try:
+            Path(temporary).unlink()
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def failure_path(path: Path) -> Path:
+    return path.with_name(path.stem + ".failure" + path.suffix)
+
+
+def has_satisfied_evidence(path: Path) -> bool:
+    try:
+        return json.loads(path.read_text(encoding="utf-8")).get("satisfied") is True
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return False
+
+
 def write_evidence(
     path: Path,
     repository: Path,
@@ -112,31 +160,16 @@ def write_evidence(
     commands: dict,
     satisfied: bool,
 ) -> None:
-    cache = js_toolchain.cache_directory(repository)
-    _, trust_mode, extra_ca = js_toolchain.trust_environment(repository, cache)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(
-            {
-                "schemaVersion": 2,
-                "required": required,
-                "resolved": installed,
-                "commands": commands,
-                "environment": {
-                    "npmCache": str(cache),
-                    "trustMode": trust_mode,
-                    "extraCaCertificates": extra_ca,
-                    "strictSsl": True,
-                },
-                "satisfied": satisfied,
-            },
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-        newline="\n",
-    )
+    value = evidence_value(repository, required, installed, commands, satisfied)
+    if satisfied:
+        atomic_write(path, value)
+        failure_path(path).unlink(missing_ok=True)
+    elif has_satisfied_evidence(path):
+        value["reason"] = "toolchain-resolution-failed"
+        value["previousEvidencePreserved"] = True
+        atomic_write(failure_path(path), value)
+    else:
+        atomic_write(path, value)
 
 
 def mismatch(required: dict[str, str], installed: dict[str, str | None]) -> list[str]:

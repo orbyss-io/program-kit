@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -72,11 +73,17 @@ def sha256(path: Path) -> str:
 
 def repository_source_files(root: Path) -> list[Path]:
     """Return tracked and intentional untracked source, excluding ignored build output."""
+    repository = root.resolve()
+    excludes = "" if os.name == "nt" else "/dev/null"
     result = subprocess.run(
         [
             "git",
+            "-c",
+            f"safe.directory={repository.as_posix()}",
+            "-c",
+            f"core.excludesFile={excludes}",
             "-C",
-            str(root),
+            str(repository),
             "ls-files",
             "--cached",
             "--others",
@@ -95,7 +102,7 @@ def repository_source_files(root: Path) -> list[Path]:
         (
             relative
             for relative in relative_paths
-            if (root / relative).is_file() and not (root / relative).is_symlink()
+            if (repository / relative).is_file() and not (repository / relative).is_symlink()
         ),
         key=lambda path: path.as_posix(),
     )

@@ -12,6 +12,7 @@ SOURCE = (
     ROOT
     / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/Invoke-RepositoryVerification.ps1"
 )
+RESTORE_SOURCE = SOURCE.with_name("Restore.ps1")
 
 
 def run(shell: str, script: Path, environment: dict[str, str]) -> subprocess.CompletedProcess[str]:
@@ -37,6 +38,8 @@ def main() -> int:
         managed.mkdir(parents=True)
         wrapper = managed / SOURCE.name
         shutil.copyfile(SOURCE, wrapper)
+        shutil.copyfile(RESTORE_SOURCE, managed / RESTORE_SOURCE.name)
+        shutil.copyfile(ROOT / "NuGet.config", repository / "NuGet.config")
         marker = repository / "verification.marker"
         environment = os.environ.copy()
         environment["PROGRAMKIT_TEST_VERIFICATION_MARKER"] = str(marker)

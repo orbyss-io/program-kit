@@ -52,8 +52,13 @@ commands. npm uses `.program-kit/cache/npm`, strict TLS, and either bundled or s
 `PROGRAMKIT_NODE_TRUST_MODE=system` when an organization roots TLS through the OS trust store, or set
 `PROGRAMKIT_NODE_EXTRA_CA_CERTS` to a reviewed PEM file; disabling strict SSL is rejected.
 
-Managed .NET and local-tool restores explicitly use the consumer-owned, reviewed `NuGet.config`, with
-package and HTTP caches below `.program-kit/cache/nuget`. The managed `global.json` selects
+Managed .NET restores use `eng/program-kit/Restore.ps1`; it selects the consumer-owned, reviewed
+`NuGet.config` and confines package, HTTP, scratch, plugin, .NET CLI, and Windows profile state below
+`.program-kit/cache`. `dotnet restore --configfile` selects only settings from the named file, but current
+NuGet/MSBuild can still initialize proxy/user-settings infrastructure through the ambient profile. A raw
+`dotnet restore --configfile` invocation therefore does not satisfy Program Kit's stronger no-ambient-read
+contract. Build and repository-verification entry points establish the wrapper's environment before any
+consumer-owned verification command runs. The managed `global.json` selects
 `Microsoft.Testing.Platform` for .NET 10 test execution, and `Build.ps1` passes the generated solution
 through the MTP-aware `dotnet test --solution` form.
 
@@ -107,7 +112,7 @@ welcome but are not a Program Kit correctness requirement.
 Immediately after a release, a workstation may retain stale NuGet HTTP metadata and report that the
 new exact version does not exist even after NuGet.org's public flat-container endpoint is ready. Do
 not delete global caches. Retry the approved restore once with
-`dotnet restore <solution> --no-cache --configfile NuGet.config`; subsequent normal locked restores
+`eng/program-kit/Restore.ps1 -Subject <solution> -NoCache`; subsequent normal locked restores
 may reuse the refreshed repository-confined result. The publication workflow independently waits for
 every package at the public flat-container endpoint before declaring the NuGet release successful.
 The checked `.program-kit/runnable-host.schema.json` declares the profile overlay and its digest as

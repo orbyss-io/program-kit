@@ -11,6 +11,7 @@ from pathlib import Path, PurePosixPath
 import js_toolchain
 import shell_composition
 import runtime_closure
+from program_kit_version import PROGRAM_KIT_VERSION
 
 
 REQUIRED = {
@@ -209,6 +210,14 @@ def ensure_openapi_toolchain(
         )
 
 
+def prepare_openapi_toolchain(repository: Path, evidence: Path) -> None:
+    # Resolve user-managed SDK/Node/npm/oasdiff paths before NuGet isolation changes the
+    # Windows profile roots used by version managers such as fnm. Later executions use
+    # the absolute, re-verified commands recorded in the evidence file.
+    ensure_openapi_toolchain(repository, evidence, os.environ.copy())
+    js_toolchain.context(repository, evidence)
+
+
 def restore_exporter(
     dotnet: str, manifest: Path, repository: Path, environment: dict[str, str]
 ) -> None:
@@ -306,7 +315,7 @@ def execute_contract(
         repository,
         staged_root,
         repository / runtime_closure.EVIDENCE,
-        (repository / "VERSION").read_text(encoding="utf-8").strip(),
+        PROGRAM_KIT_VERSION,
     )
     export_evidence = repository / f".program-kit/evidence/openapi/{identity}-export.json"
     exporter_command = [dotnet, str(exporter)] if exporter else [
@@ -381,9 +390,8 @@ def main() -> int:
         if not oasdiff_version:
             raise ValueError("PKO206 managed .oasdiff-version does not pin oasdiff.")
         toolchain_evidence = repository / ".program-kit/evidence/toolchain.json"
+        prepare_openapi_toolchain(repository, toolchain_evidence)
         nuget_environment = repository_nuget_environment(repository)
-        ensure_openapi_toolchain(repository, toolchain_evidence, nuget_environment)
-        js_toolchain.context(repository, toolchain_evidence)
         toolchain = load_json(toolchain_evidence, "toolchain evidence")
         commands = toolchain.get("commands", {})
         dotnet_values = commands.get("dotnet") if isinstance(commands, dict) else None

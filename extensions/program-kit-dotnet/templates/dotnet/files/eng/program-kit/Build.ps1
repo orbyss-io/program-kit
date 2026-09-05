@@ -21,28 +21,6 @@ if ($solutions.Count -ne 1) {
 }
 
 $artifacts = Join-Path $root 'artifacts'
-$cache = Join-Path $root '.program-kit/cache'
-$nugetConfig = Join-Path $root 'NuGet.config'
-if (-not (Test-Path -LiteralPath $nugetConfig -PathType Leaf)) {
-    throw "Managed restore requires the reviewed repository NuGet.config: $nugetConfig"
-}
-$env:NUGET_PACKAGES = Join-Path $cache 'nuget/packages'
-$env:NUGET_HTTP_CACHE_PATH = Join-Path $cache 'nuget/http'
-$env:NUGET_SCRATCH = Join-Path $cache 'nuget/scratch'
-$env:NUGET_PLUGINS_CACHE_PATH = Join-Path $cache 'nuget/plugins'
-$env:DOTNET_CLI_HOME = Join-Path $cache 'dotnet-home'
-$env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
-$env:DOTNET_NOLOGO = '1'
-if ($IsWindows -or $env:OS -eq 'Windows_NT') {
-    $env:APPDATA = Join-Path $cache 'profile/roaming'
-    $env:LOCALAPPDATA = Join-Path $cache 'profile/local'
-}
-New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES, $env:NUGET_HTTP_CACHE_PATH, `
-    $env:NUGET_SCRATCH, $env:NUGET_PLUGINS_CACHE_PATH, $env:DOTNET_CLI_HOME | Out-Null
-if ($IsWindows -or $env:OS -eq 'Windows_NT') {
-    New-Item -ItemType Directory -Force -Path $env:APPDATA, $env:LOCALAPPDATA | Out-Null
-}
 $packages = Join-Path (Join-Path $artifacts 'packages') $version
 $openApiRegistry = Join-Path $root '.program-kit/openapi-contracts.json'
 $openApiEnabled = $false
@@ -56,12 +34,12 @@ if (Test-Path -LiteralPath $openApiRegistry) {
 New-Item -ItemType Directory -Force -Path $packages | Out-Null
 
 if ($LockedMode) {
-    dotnet restore $solutions[0].FullName --locked-mode --configfile $nugetConfig
+    & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName -LockedMode
 }
 else {
-    dotnet restore $solutions[0].FullName --configfile $nugetConfig
+    & (Join-Path $PSScriptRoot 'Restore.ps1') -Subject $solutions[0].FullName
 }
-if ($LASTEXITCODE -ne 0) { throw 'dotnet restore failed.' }
+if (-not $?) { throw 'Managed repository-isolated restore failed.' }
 dotnet build $solutions[0].FullName -c Release --no-restore -p:Version=$version
 if ($LASTEXITCODE -ne 0) { throw 'dotnet build failed.' }
 

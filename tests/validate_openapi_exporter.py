@@ -164,7 +164,7 @@ public sealed class ForbiddenInitializer : IShellInitializer
                 "shell": "default",
                 "producer": {
                     "kind": "ProgramKit.OpenApi.Exporter",
-                    "version": "0.9.5-preview.1",
+                    "version": "0.9.6-preview.1",
                 },
                 "features": ["Fixture.Web"],
             },
@@ -217,7 +217,7 @@ def main() -> int:
         )
         if packed.returncode != 0:
             raise AssertionError(f"fixture pack failed:\n{packed.stdout}{packed.stderr}")
-        runtime_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-preview.1"
+        runtime_version = (ROOT / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
         for package_id in (
             "ProgramKit.Authentication",
             "ProgramKit.Authentication.BffCookie",
@@ -360,7 +360,13 @@ raise SystemExit(0)
             ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/js_toolchain.py",
             managed / "js_toolchain.py",
         )
-        for name in ("oasdiff_cli.py", "runtime_closure.py", "shell_composition.py", "toolchain.py"):
+        for name in (
+            "oasdiff_cli.py",
+            "program_kit_version.py",
+            "runtime_closure.py",
+            "shell_composition.py",
+            "toolchain.py",
+        ):
             shutil.copyfile(
                 ROOT / f"extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/{name}",
                 managed / name,
@@ -370,6 +376,7 @@ raise SystemExit(0)
                 ROOT / f"extensions/program-kit-dotnet/templates/dotnet/files/{name}",
                 repository / name,
             )
+        (repository / "VERSION").write_text("0.1.0\n", encoding="utf-8")
         sys.path.insert(0, str(managed))
         try:
             import runtime_closure
@@ -378,7 +385,7 @@ raise SystemExit(0)
                 repository,
                 staged_root,
                 repository / runtime_closure.EVIDENCE,
-                (repository / "VERSION").read_text(encoding="utf-8").strip(),
+                "0.9.6",
             )
         finally:
             sys.path.remove(str(managed))

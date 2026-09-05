@@ -8,6 +8,11 @@ $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 $consumerPath = Join-Path $repository 'eng\verify.ps1'
 
+& (Join-Path $PSScriptRoot 'Restore.ps1') -EnvironmentOnly
+if (-not $?) {
+    throw "Managed $Mode verification could not prepare the repository-owned NuGet/.NET environment."
+}
+
 if (Test-Path -LiteralPath $consumerPath) {
     $consumer = Get-Item -LiteralPath $consumerPath -Force
     if (-not $consumer.PSIsContainer -and ($consumer.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) {
