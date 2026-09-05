@@ -19,7 +19,7 @@ import shell_composition
 import runtime_closure
 
 
-PROGRAM_KIT_VERSION = "0.9.4"
+PROGRAM_KIT_VERSION = "0.9.5"
 BUILT_IN_FEATURE_PACKAGES = {
     "ProgramKit.Authentication": "ProgramKit.Authentication",
     "ProgramKit.Authentication.BffCookie": "ProgramKit.Authentication.BffCookie",

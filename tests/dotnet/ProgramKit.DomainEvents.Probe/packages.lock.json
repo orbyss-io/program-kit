@@ -14,7 +14,7 @@
       "programkit.domainevents": {
         "type": "Project",
         "dependencies": {
-          "ProgramKit.DomainEvents.Abstractions": "[0.9.4-preview.1, )"
+          "ProgramKit.DomainEvents.Abstractions": "[0.9.5-preview.1, )"
         }
       },
       "programkit.domainevents.abstractions": {

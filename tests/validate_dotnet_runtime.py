@@ -26,9 +26,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.9.4":
+    if program_version != "0.9.5":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.9.4-preview.1":
+    if runtime_version != "0.9.5-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     validate_package_source_routing(root / "NuGet.config")
@@ -107,7 +107,7 @@ def main() -> int:
         raise AssertionError("Host workflow does not derive its image tag from RUNTIME_VERSION")
 
     global_json = (root / "global.json").read_text(encoding="utf-8")
-    if '"version": "10.0.202"' not in global_json or '"rollForward": "latestPatch"' not in global_json:
+    if '"version": "10.0.202"' not in global_json or '"rollForward": "disable"' not in global_json:
         raise AssertionError("The .NET SDK feature band and patch policy are not pinned")
     dockerfile = (root / "src/dotnet/ProgramKit.Host/Dockerfile").read_text(encoding="utf-8")
     if (

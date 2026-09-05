@@ -586,28 +586,33 @@ def validate_release_feature_closure() -> None:
             else:
                 os.environ["GITHUB_SHA"] = previous_sha
 
-        with patch.object(release.subprocess, "run") as run_git:
-            run_git.return_value = subprocess.CompletedProcess(
-                ["git"], 0, stdout="c" * 40 + "\n", stderr=""
-            )
-            resolved = release.source_commit(repository.resolve())
-            if resolved != "c" * 40:
-                raise AssertionError("sandbox-safe Git commit resolution lost the exact commit")
-            command = run_git.call_args.args[0]
-            if (
-                f"safe.directory={repository.resolve()}" not in command
-                or not any(item.startswith("core.excludesFile=") for item in command)
-                or command[-3:] != [str(repository.resolve()), "rev-parse", "HEAD"]
-            ):
-                raise AssertionError(f"source commit resolution is not repository-confined: {command}")
-
+        inherited_github_sha = os.environ.pop("GITHUB_SHA", None)
         try:
-            release.source_commit(root / "not-a-git-repository")
-        except ValueError as error:
-            if "PKR020" not in str(error):
-                raise
-        else:
-            raise AssertionError("non-Git runnable-host evidence did not fail actionably")
+            with patch.object(release.subprocess, "run") as run_git:
+                run_git.return_value = subprocess.CompletedProcess(
+                    ["git"], 0, stdout="c" * 40 + "\n", stderr=""
+                )
+                resolved = release.source_commit(repository.resolve())
+                if resolved != "c" * 40:
+                    raise AssertionError("sandbox-safe Git commit resolution lost the exact commit")
+                command = run_git.call_args.args[0]
+                if (
+                    f"safe.directory={repository.resolve()}" not in command
+                    or not any(item.startswith("core.excludesFile=") for item in command)
+                    or command[-3:] != [str(repository.resolve()), "rev-parse", "HEAD"]
+                ):
+                    raise AssertionError(f"source commit resolution is not repository-confined: {command}")
+
+            try:
+                release.source_commit(root / "not-a-git-repository")
+            except ValueError as error:
+                if "PKR020" not in str(error):
+                    raise
+            else:
+                raise AssertionError("non-Git runnable-host evidence did not fail actionably")
+        finally:
+            if inherited_github_sha is not None:
+                os.environ["GITHUB_SHA"] = inherited_github_sha
 
 
 def validate_preflight_seams() -> None:
@@ -977,7 +982,7 @@ def validate_openapi_initialization() -> None:
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
-                "tools": {"programkit.openapi.exporter": {"version": "0.9.4-preview.1"}}
+                "tools": {"programkit.openapi.exporter": {"version": "0.9.5-preview.1"}}
             }),
             encoding="utf-8",
         )
@@ -999,7 +1004,7 @@ def validate_openapi_initialization() -> None:
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
         )
         if (
-            contract["producer"]["version"] != "0.9.4-preview.1"
+            contract["producer"]["version"] != "0.9.5-preview.1"
             or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
@@ -1626,7 +1631,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.4-preview.1"},
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.5-preview.1"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1661,7 +1666,7 @@ def validate_artifact_ownership() -> None:
                     "isRoot": True,
                     "tools": {
                         "programkit.openapi.exporter": {
-                            "version": "0.9.4-preview.1",
+                            "version": "0.9.5-preview.1",
                             "commands": ["programkit-openapi-export"],
                         }
                     },

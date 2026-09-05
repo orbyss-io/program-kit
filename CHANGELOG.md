@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.9.5 - 2026-09-05
+
+- Require the exact governed .NET SDK by disabling SDK patch roll-forward in both the repository and
+  generated consumer baseline. This keeps toolchain preflight, local builds, and GitHub runners on
+  the same `10.0.202` SDK when newer patches are also installed.
+- Make the sandbox-safe Git commit regression independent of GitHub Actions' inherited `GITHUB_SHA`,
+  so it exercises the intended subprocess path consistently on Windows and Linux.
+
 ## 0.9.4 - 2026-09-05
 
 - Compose profile-owned and consumer-owned shell configuration into one canonical effective feature
