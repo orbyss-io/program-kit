@@ -448,6 +448,7 @@ def main() -> int:
         "WEB_SECURITY_EVIDENCE",
     )
     updater = root / "scripts/upgrade_program_kit.py"
+    reconciliation = root / "scripts/openapi_upgrade_reconciliation.py"
     require_text(
         updater,
         "Resolve bundle composition record",
@@ -459,7 +460,21 @@ def main() -> int:
         "Resynchronize managed .NET baseline",
         "Validate cross-component version coherence",
         "program-kit-upgrade.lock",
+        "--accept-openapi-producer-pin-reconciliation",
         "--offline",
+    )
+    require_text(
+        reconciliation,
+        "PKU110",
+        "ProgramKit.OpenApi.Exporter",
+        "afterTasksAnalysis",
+        "atomic_replace",
+    )
+    require_text(
+        extension_root / "scripts/implementation_preflight.py",
+        "verify-before-implement",
+        "artifact_ownership.py",
+        "implementation preflight lifecycle and artifact ownership are coherent",
     )
     context_script = extension_root / "scripts/bootstrap_context.py"
     context_schema = extension_root / "references/bootstrap-context.schema.json"

@@ -43,7 +43,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.9.2/Initialize-ProgramKit-0.9.2.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.9.3/Initialize-ProgramKit-0.9.3.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -62,7 +62,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.9.2/Initialize-ProgramKit-0.9.2.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.9.3/Initialize-ProgramKit-0.9.3.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -141,8 +141,8 @@ Download and verify the full `program-kit-<version>.zip` release asset, extract 
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.9.2\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.9.2 `
+python C:\path\to\program-kit-0.9.3\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.9.3 `
   --target . `
   --integration codex
 ```
@@ -154,6 +154,21 @@ sequentially; resynchronizes an existing managed .NET baseline; runs sync check;
 the bundle record, workflow manifest/registry, both extension manifests, preset manifest/registry,
 and managed-baseline version. It reports success only when every value converges. Do not run
 `workflow`, `extension`, `preset`, or `bundle` mutations concurrently with it.
+
+If the target release changes the managed `ProgramKit.OpenApi.Exporter` pin while registered
+consumer contracts still name the older version, the updater stops before mutation with `PKU110`.
+It lists every affected contract and specification/planning/research file. Review that list, then
+explicitly rerun the same command with:
+
+```powershell
+--accept-openapi-producer-pin-reconciliation
+```
+
+That opt-in applies the exact producer-pin changes atomically only after component installation
+succeeds. It removes stale after-tasks readiness while retaining an invalidation audit and returns
+`PKU111`, rather than claiming implementation readiness. Run `$speckit-analyze`, the Program Kit
+architecture check, and the Program Kit implementation check for each feature named by the
+diagnostic. Never bypass `PKA014` or reuse the prior analysis after planning evidence changes.
 
 For a repository whose approved `bootstrap-decisions.json` names an older Program Kit version, the
 updater preserves that immutable file and appends Accepted, SHA-256-bound version authority to
@@ -360,11 +375,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.9.2.md`](docs/releasing-0.9.2.md).
+[`docs/releasing-0.9.3.md`](docs/releasing-0.9.3.md).
 
 ```powershell
-git tag v0.9.2
-git push origin v0.9.2
+git tag v0.9.3
+git push origin v0.9.3
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -386,8 +401,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.9.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.9.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.9.3.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.9.3.zip -Algorithm SHA256
 ```
 
 ## License

@@ -9,6 +9,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+from openapi_upgrade_reconciliation import (
+    ReconciliationError,
+    apply as apply_openapi_reconciliation,
+    describe as describe_openapi_reconciliation,
+    discover as discover_openapi_reconciliation,
+)
+
 
 COMPONENTS = (
     ("bundle", Path("bundle.yml")),
@@ -147,6 +154,11 @@ def main() -> int:
     parser.add_argument("--release-root", default=str(Path(__file__).resolve().parents[1]))
     parser.add_argument("--target", default=".")
     parser.add_argument("--integration", default="auto")
+    parser.add_argument(
+        "--accept-openapi-producer-pin-reconciliation",
+        action="store_true",
+        help="Explicitly update registered Program Kit exporter pins and invalidate affected analysis readiness.",
+    )
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
     args = parser.parse_args()
     descriptor: int | None = None
@@ -161,6 +173,16 @@ def main() -> int:
         previous_version = current_version(target)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
+        reconciliation = discover_openapi_reconciliation(target, release)
+        if reconciliation and not args.accept_openapi_producer_pin_reconciliation:
+            raise UpgradeError(
+                "PKU110 upgrade requires explicit OpenAPI producer-pin reconciliation before it can mutate "
+                "Program Kit components. "
+                + describe_openapi_reconciliation(target, reconciliation)
+                + ". Re-run this exact updater command with "
+                "--accept-openapi-producer-pin-reconciliation; it will update those consumer-owned pins "
+                "atomically, invalidate affected after_tasks readiness, and stop with the required renewal path."
+            )
         integration = selected_integration(target, args.integration)
         specify = shutil.which(args.specify_command)
         if not specify:
@@ -174,7 +196,13 @@ def main() -> int:
             ([specify, "preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
             ([specify, "preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
         ]
-        total = len(steps) + (2 if profile else 0) + 1 + (1 if has_bootstrap_decisions else 0)
+        total = (
+            len(steps)
+            + (2 if profile else 0)
+            + 1
+            + (1 if has_bootstrap_decisions else 0)
+            + (1 if reconciliation else 0)
+        )
         for number, (command, label) in enumerate(steps, 1):
             run_step(command, target, label, number, total)
         next_step = len(steps) + 1
@@ -213,12 +241,25 @@ def main() -> int:
                 next_step + 1,
                 total,
             )
+            next_step += 1
+        if reconciliation:
+            print(f"[{next_step + 1}/{total}] Reconcile registered OpenAPI producer pins")
+            changed = apply_openapi_reconciliation(target, reconciliation)
+            print("atomically reconciled: " + ", ".join(changed))
+            print(
+                "PKU111 Program Kit components are coherent, but affected after_tasks analysis readiness "
+                "was invalidated honestly. Run $speckit-analyze, then the Program Kit architecture check, "
+                "then the Program Kit implementation check for each affected feature: "
+                + ", ".join(path.name for path in reconciliation["featureDirs"]),
+                file=sys.stderr,
+            )
+            return 3
         print(
             f"Program Kit v{version} upgrade completed: workflow, extensions, preset, bundle record, "
             "managed baseline, and governed version authority are coherent."
         )
         return 0
-    except (OSError, UpgradeError, json.JSONDecodeError) as error:
+    except (OSError, UpgradeError, ReconciliationError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)
         return 2
     finally:

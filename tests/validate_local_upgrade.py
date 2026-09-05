@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -36,6 +38,176 @@ def set_manifest_version(path: Path, old: str, new: str) -> None:
     if marker not in text:
         raise AssertionError(f"Could not seed old version in {path}")
     path.write_text(text.replace(marker, f'  version: "{new}"', 1), encoding="utf-8")
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def lifecycle_sha256(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    canonical = re.sub(r"(?m)^(\s*-\s+\[)[ xX](\]\s+)", r"\1 \2", text)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
+    feature = project / "specs/001-openapi-upgrade"
+    feature.mkdir(parents=True)
+    spec = feature / "spec.md"
+    plan = feature / "plan.md"
+    tasks = feature / "tasks.md"
+    research = feature / "research.md"
+    spec.write_text(
+        "# spec\n## Governance Traceability\n"
+        "- **Specification roadmap entry**: SPC-001\n"
+        "- **Architecture constraints**: accepted baseline\n"
+        "- **Owned contracts and data**: Catalog.Api OpenAPI\n",
+        encoding="utf-8",
+    )
+    plan.write_text(
+        "# plan\n## Architecture Realization\n"
+        "- **Roadmap entry and status transition**: SPC-001\n"
+        "- **Vertical-slice path**: Catalog.Api OpenAPI to generated client\n"
+        "- **Artifact ownership manifest**: artifact-ownership.json\n"
+        f"Use ProgramKit.OpenApi.Exporter {old_runtime} for Catalog.Api OpenAPI.\n",
+        encoding="utf-8",
+    )
+    tasks.write_text(
+        "# tasks\n## Governance Completion Evidence\n"
+        "- **Roadmap transition**: Delivered after evidence\n"
+        "- **Path and ownership protection**: validated\n"
+        f"- [ ] T001 Verify Catalog.Api OpenAPI exporter {old_runtime} with "
+        "`contracts/openapi/catalog.contract.json`.\n",
+        encoding="utf-8",
+    )
+    research.write_text(
+        f"# Research\nUse ProgramKit.OpenApi.Exporter {old_runtime}.\n",
+        encoding="utf-8",
+    )
+    canonical = {
+        ".program-kit/evidence/runtime-closure.json",
+        ".program-kit/evidence/host-image.json",
+        ".program-kit/evidence/after-tasks-analysis.md",
+        "docs/security/security-ledger.md",
+        "tests/fixtures/program-kit/local-contract.json",
+        "contracts/openapi/catalog.contract.json",
+    }
+    (feature / "artifact-ownership.json").write_text(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "feature": feature.name,
+                "profiles": ["program-kit", "dotnet", "typescript-vite"],
+                "artifacts": [
+                    {
+                        "path": path,
+                        "ownership": "consumer-owned" if path.endswith(".contract.json") else "evidence",
+                        "classification": "internal",
+                        "lifecycle": "source" if path.endswith(".contract.json") else "retained",
+                    }
+                    for path in sorted(canonical)
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    contract = project / "contracts/openapi/catalog.contract.json"
+    contract.parent.mkdir(parents=True)
+    contract.write_text(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "identity": "catalog-v1",
+                "documentName": "v1",
+                "shell": "default",
+                "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": old_runtime},
+                "features": ["Catalog.Api"],
+                "packageClosure": "artifacts/runnable-host/packages",
+                "rawDocument": "artifacts/openapi/catalog.raw.json",
+                "artifact": "contracts/openapi/catalog.json",
+                "baseline": "contracts/openapi/catalog.baseline.json",
+                "compatibility": {
+                    "oasdiffVersion": "1.29.1",
+                    "approval": "contracts/openapi/catalog.breaking-change.json",
+                },
+                "generator": {
+                    "directory": "tools/openapi/catalog",
+                    "packageJson": "tools/openapi/catalog/package.json",
+                    "lockFile": "tools/openapi/catalog/package-lock.json",
+                    "script": "generate",
+                    "generatedTypes": "tools/openapi/catalog/generated/types.ts",
+                },
+                "application": {
+                    "directory": "src/web",
+                    "packageJson": "src/web/package.json",
+                    "lockFile": "src/web/package-lock.json",
+                    "script": "typecheck",
+                    "tsconfig": "src/web/tsconfig.json",
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (project / ".program-kit/openapi-contracts.json").write_text(
+        json.dumps({"schemaVersion": 1, "contracts": ["contracts/openapi/catalog.contract.json"]}) + "\n",
+        encoding="utf-8",
+    )
+    candidate = feature / "npm-candidate.package.json"
+    candidate.write_text('{"devDependencies":{"openapi-typescript":"7.13.0"}}\n', encoding="utf-8")
+    npm_evidence = project / ".program-kit/evidence/npm-graph.json"
+    npm_evidence.parent.mkdir(parents=True, exist_ok=True)
+    npm_evidence.write_text(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "packageJson": candidate.relative_to(project).as_posix(),
+                "packageJsonSha256": sha256(candidate),
+                "satisfied": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    report = project / ".program-kit/evidence/after-tasks-analysis.md"
+    report.write_text(
+        "# Specification Analysis Report\n\n"
+        "| ID | Category | Severity | Location(s) | Summary | Recommendation |\n"
+        "|----|----------|----------|-------------|---------|----------------|\n"
+        "| — | — | — | — | No findings | Proceed |\n",
+        encoding="utf-8",
+    )
+    lifecycle = project / ".program-kit/lifecycle" / f"{feature.name}.json"
+    lifecycle.parent.mkdir(parents=True, exist_ok=True)
+    lifecycle.write_text(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "feature": feature.name,
+                "phases": {
+                    "afterTasksAnalysis": {
+                        "completedAtUtc": "2026-01-01T00:00:00Z",
+                        "artifactHashes": {
+                            "spec.md": sha256(spec),
+                            "plan.md": sha256(plan),
+                            "tasks.md": lifecycle_sha256(tasks),
+                        },
+                        "report": report.relative_to(project).as_posix(),
+                        "reportSha256": sha256(report),
+                        "severities": [],
+                        "readyForImplementation": True,
+                    }
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return feature
 
 
 def main() -> int:
@@ -109,6 +281,12 @@ def main() -> int:
                 "schema_version": "1.0",
                 "default_profile": {"id": "program-kit-standard", "version": old},
                 "selected_profiles": [],
+                "dotnet": {
+                    "host_runtime": "Custom.Host",
+                    "host_source": "override",
+                    "program_kit_host_opt_out": True,
+                    "opt_out_reason": "Isolate the OpenAPI upgrade contract from host composition.",
+                },
                 "choices": [{
                     "id": "first-slice",
                     "decision": "Keep the accepted first slice",
@@ -176,6 +354,139 @@ def main() -> int:
             or accepted.get("installed_version") != expected
         ):
             raise AssertionError(f"Updater did not record governed version authority: {accepted}")
+
+        old_runtime = "0.0.0-preview.1"
+        target_runtime = (ROOT / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
+        feature = seed_openapi_lifecycle(project, old_runtime)
+        contract_path = project / "contracts/openapi/catalog.contract.json"
+        contract_before = contract_path.read_bytes()
+        pending = run(*command, cwd=project)
+        if pending.returncode != 2 or "PKU110" not in pending.stderr:
+            raise AssertionError(f"stale consumer OpenAPI pin did not stop before upgrade:\n{pending.stdout}{pending.stderr}")
+        if "Resolve bundle composition record" in pending.stdout or contract_path.read_bytes() != contract_before:
+            raise AssertionError("OpenAPI reconciliation preflight mutated components or consumer contracts")
+        for expected_path in (
+            "contracts/openapi/catalog.contract.json",
+            "specs/001-openapi-upgrade/spec.md",
+            "specs/001-openapi-upgrade/plan.md",
+            "specs/001-openapi-upgrade/tasks.md",
+            "specs/001-openapi-upgrade/research.md",
+        ):
+            if expected_path not in pending.stderr:
+                raise AssertionError(f"Reconciliation diagnostic omitted affected/review path: {expected_path}")
+
+        accepted_command = (*command, "--accept-openapi-producer-pin-reconciliation")
+        reconciled = run(*accepted_command, cwd=project)
+        if reconciled.returncode != 3 or "PKU111" not in reconciled.stderr:
+            raise AssertionError(
+                f"explicit OpenAPI reconciliation did not require lifecycle renewal:\n"
+                f"{reconciled.stdout}{reconciled.stderr}"
+            )
+        contract_value = json.loads(contract_path.read_text(encoding="utf-8"))
+        if contract_value["producer"]["version"] != target_runtime:
+            raise AssertionError("registered OpenAPI producer pin did not advance atomically")
+        for name in ("plan.md", "tasks.md", "research.md"):
+            text = (feature / name).read_text(encoding="utf-8")
+            if old_runtime in text or target_runtime not in text:
+                raise AssertionError(f"exact OpenAPI planning pin did not advance in {name}")
+        lifecycle_path = project / ".program-kit/lifecycle/001-openapi-upgrade.json"
+        lifecycle_value = json.loads(lifecycle_path.read_text(encoding="utf-8"))
+        if "afterTasksAnalysis" in lifecycle_value["phases"]:
+            raise AssertionError("producer-pin reconciliation retained stale implementation readiness")
+        invalidation = lifecycle_value.get("invalidations", [])[-1]
+        if (
+            invalidation.get("reason") != "program-kit-openapi-producer-pin-reconciliation"
+            or invalidation.get("fromVersions") != [old_runtime]
+            or invalidation.get("toVersion") != target_runtime
+        ):
+            raise AssertionError(f"lifecycle invalidation audit is incomplete: {invalidation}")
+
+        sync = project / ".specify/extensions/program-kit-dotnet/scripts/dotnet_sync.py"
+        require_success(
+            run(
+                sys.executable,
+                str(sync),
+                "--target",
+                str(project),
+                "--profile-selected",
+                "--persistence-profile",
+                "none",
+                "--web-profile",
+                "none",
+                "--check",
+                cwd=project,
+            ),
+            "post-reconciliation managed sync check",
+        )
+        ownership = project / ".specify/extensions/program-kit-governance/scripts/artifact_ownership.py"
+        require_success(
+            run(
+                sys.executable,
+                str(ownership),
+                "--manifest",
+                str(feature / "artifact-ownership.json"),
+                "--plan",
+                str(feature / "plan.md"),
+                "--tasks",
+                str(feature / "tasks.md"),
+                cwd=project,
+            ),
+            "post-reconciliation artifact ownership",
+        )
+        preflight = project / ".specify/extensions/program-kit-governance/scripts/implementation_preflight.py"
+        stale = run(
+            sys.executable,
+            str(preflight),
+            "--repository",
+            str(project),
+            "--feature-dir",
+            str(feature),
+            cwd=project,
+        )
+        if stale.returncode != 11 or "PKL011" not in stale.stderr:
+            raise AssertionError("implementation preflight did not block invalidated lifecycle readiness")
+        lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
+        require_success(
+            run(
+                sys.executable,
+                str(lifecycle_script),
+                "--repository",
+                str(project),
+                "--feature-dir",
+                str(feature),
+                "begin",
+                "analyze",
+                cwd=project,
+            ),
+            "renewed analysis begin",
+        )
+        require_success(
+            run(
+                sys.executable,
+                str(lifecycle_script),
+                "--repository",
+                str(project),
+                "--feature-dir",
+                str(feature),
+                "complete-analysis",
+                "--report",
+                ".program-kit/evidence/after-tasks-analysis.md",
+                cwd=project,
+            ),
+            "renewed analysis completion",
+        )
+        require_success(
+            run(
+                sys.executable,
+                str(preflight),
+                "--repository",
+                str(project),
+                "--feature-dir",
+                str(feature),
+                cwd=project,
+            ),
+            "full mandatory implementation preflight after renewal",
+        )
 
         lock = project / ".specify/program-kit-upgrade.lock"
         lock.write_text("test lock\n", encoding="utf-8")

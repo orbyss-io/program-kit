@@ -10,12 +10,15 @@ Run `{SCRIPT}` and read the ratified constitution and active roadmap entry befor
 plan. A stale constitution or non-Ready/non-Active roadmap entry blocks implementation. Do not
 require some other entry to remain Ready after the selected specification becomes Active.
 
-Run `scripts/lifecycle_state.py verify-before-implement` for the active feature. It must prove that
+Run `scripts/implementation_preflight.py --repository <repository> --feature-dir <feature-dir>` for
+the active feature. This mandatory deterministic preflight runs both lifecycle verification and the
+complete artifact-ownership validator, including registered OpenAPI producer pins. It must prove that
 the canonical after_tasks analysis report is unchanged, contains no HIGH/CRITICAL readiness block,
 and was computed from the current hashes of `spec.md`, `plan.md`, and a canonical `tasks.md`. Checkbox
 state is implementation progress and is excluded from the task design hash; task IDs, descriptions,
-order, paths, and all other content remain hash-protected. Missing, interrupted, or stale evidence blocks
-implementation.
+order, paths, and all other content remain hash-protected. Missing, interrupted, stale, or producer-pin-
+incoherent evidence blocks implementation. Do not substitute lifecycle verification alone for this
+preflight.
 
 Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`,
 `software-language.md`, `vertical-slicing.md`, `modularity-and-contracts.md`, and any detected

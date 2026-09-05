@@ -149,7 +149,7 @@ installed hashes are unchanged. A consumer-modified copy is preserved as a confl
 `hostsettings.json` needs review because the application-neutral host no longer injects a package path; its Nuplane feed
 must name `packages` (or another deployment-owned path) explicitly.
 
-The 0.9.2 sync removes a legacy root `ProgramKit.Web` object only when its canonical value hash
+The 0.9.3 sync removes a legacy root `ProgramKit.Web` object only when its canonical value hash
 matches an authenticated 0.8.x BFF or SPA baseline. A customized object is preserved as a
 zero-mutation conflict so its values can be migrated explicitly to the selected shell overlay (or
 typed SPA input). Consumer-owned changes elsewhere in `hostsettings.json`, `shells.json`, and the

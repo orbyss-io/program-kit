@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.9.3 - 2026-09-05
+
+- Preflight registered consumer-owned OpenAPI contracts before a pin-changing Program Kit upgrade.
+  A stale `ProgramKit.OpenApi.Exporter` pin now stops before component mutation with `PKU110` and an
+  exact contract plus specification/planning/research review list.
+- Add explicit atomic producer-pin reconciliation. The opt-in updates registered contracts and exact
+  planning references only after component installation succeeds, preserves an invalidation audit,
+  removes stale after-tasks readiness, and returns `PKU111` with the mandatory analysis-renewal path.
+- Add one deterministic implementation preflight that runs both lifecycle verification and complete
+  artifact-ownership validation, preventing lifecycle-only release checks from missing `PKA014`.
+
 ## 0.9.2 - 2026-09-05
 
 - Parse only the standardized Spec Kit findings table when completing after-tasks analysis. Severity

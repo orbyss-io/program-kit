@@ -26,9 +26,9 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     program_version = (root / "VERSION").read_text(encoding="utf-8").strip()
     runtime_version = (root / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-    if program_version != "0.9.2":
+    if program_version != "0.9.3":
         raise AssertionError(f"Unexpected Program Kit version: {program_version}")
-    if runtime_version != "0.9.2-preview.1":
+    if runtime_version != "0.9.3-preview.1":
         raise AssertionError(f"Unexpected runtime artifact version: {runtime_version}")
 
     validate_package_source_routing(root / "NuGet.config")
