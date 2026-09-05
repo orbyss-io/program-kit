@@ -15,7 +15,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
-PROGRAM_KIT_VERSION = "0.9.1"
+PROGRAM_KIT_VERSION = "0.9.2"
 BUILT_IN_FEATURE_PACKAGES = {
     "ProgramKit.Authentication": "ProgramKit.Authentication",
     "ProgramKit.Authentication.BffCookie": "ProgramKit.Authentication.BffCookie",

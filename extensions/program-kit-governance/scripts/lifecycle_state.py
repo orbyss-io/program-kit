@@ -14,6 +14,9 @@ from pathlib import Path
 
 ARTIFACTS = ("spec.md", "plan.md", "tasks.md")
 BLOCKING_SEVERITIES = {"HIGH", "CRITICAL"}
+ANALYSIS_SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW")
+ANALYSIS_COLUMNS = ("id", "category", "severity", "locations", "summary", "recommendation")
+ANALYSIS_REPORT_FORMAT = "spec-kit-analysis-markdown-table-v1"
 SCHEMA_VERSION = 1
 
 
@@ -175,10 +178,108 @@ def complete_clarify(repository: Path, feature_dir: Path, outcome: str) -> int:
     return 0
 
 
+def markdown_cells(line: str) -> list[str] | None:
+    value = line.strip()
+    if "|" not in value:
+        return None
+    cells = re.split(r"(?<!\\)\|", value)
+    if value.startswith("|"):
+        cells = cells[1:]
+    if value.endswith("|"):
+        cells = cells[:-1]
+    return [cell.strip().replace(r"\|", "|") for cell in cells]
+
+
+def normalized_column(value: str) -> str:
+    without_markup = value.replace("`", "").replace("*", "").replace("_", "")
+    return re.sub(r"[^a-z0-9]+", "", without_markup.casefold())
+
+
+def separator_row(cells: list[str]) -> bool:
+    return len(cells) == len(ANALYSIS_COLUMNS) and all(
+        re.fullmatch(r":?-{3,}:?", cell) is not None for cell in cells
+    )
+
+
+def placeholder(value: str) -> bool:
+    without_markup = value.replace("`", "").replace("*", "").replace("_", "")
+    return without_markup.strip().casefold() in {"", "-", "—", "n/a", "na", "none"}
+
+
+def analysis_findings(report: Path) -> list[dict[str, str]]:
+    """Parse only the standardized Spec Kit findings table from an analysis report."""
+    lines = report.read_text(encoding="utf-8").splitlines()
+    headers: list[int] = []
+    for index, line in enumerate(lines):
+        cells = markdown_cells(line)
+        if cells is not None and tuple(normalized_column(cell) for cell in cells) == ANALYSIS_COLUMNS:
+            headers.append(index)
+    if not headers:
+        raise ValueError(
+            "PKL017 analysis report is malformed: expected exactly one findings table with columns "
+            "ID, Category, Severity, Location(s), Summary, Recommendation."
+        )
+    if len(headers) != 1:
+        raise ValueError(
+            f"PKL017 analysis report is ambiguous: found {len(headers)} standardized findings tables; "
+            "expected exactly one."
+        )
+
+    header = headers[0]
+    if header + 1 >= len(lines):
+        raise ValueError("PKL017 analysis findings table is missing its Markdown separator row.")
+    separator = markdown_cells(lines[header + 1])
+    if separator is None or not separator_row(separator):
+        raise ValueError("PKL017 analysis findings table has an invalid Markdown separator row.")
+
+    findings: list[dict[str, str]] = []
+    saw_no_findings = False
+    for line_number, line in enumerate(lines[header + 2 :], start=header + 3):
+        if not line.strip():
+            break
+        cells = markdown_cells(line)
+        if cells is None:
+            break
+        if len(cells) != len(ANALYSIS_COLUMNS):
+            raise ValueError(
+                f"PKL017 analysis finding row {line_number} has {len(cells)} cells; "
+                f"expected {len(ANALYSIS_COLUMNS)}."
+            )
+        finding = dict(zip(ANALYSIS_COLUMNS, cells, strict=True))
+        severity = normalized_column(finding["severity"]).upper()
+        no_finding_row = (
+            all(placeholder(finding[column]) for column in ANALYSIS_COLUMNS[:4])
+            and normalized_column(finding["summary"]) in {"none", "nofinding", "nofindings"}
+        )
+        if no_finding_row:
+            if findings or saw_no_findings:
+                raise ValueError(
+                    f"PKL017 analysis finding row {line_number} mixes a no-findings sentinel with other rows."
+                )
+            saw_no_findings = True
+            continue
+        if saw_no_findings:
+            raise ValueError(
+                f"PKL017 analysis finding row {line_number} follows a no-findings sentinel."
+            )
+        if severity not in ANALYSIS_SEVERITIES:
+            rendered = finding["severity"] or "<empty>"
+            raise ValueError(
+                f"PKL017 analysis finding row {line_number} has invalid severity '{rendered}'; "
+                "expected CRITICAL, HIGH, MEDIUM, or LOW."
+            )
+        if placeholder(finding["id"]) or placeholder(finding["category"]):
+            raise ValueError(
+                f"PKL017 analysis finding row {line_number} requires non-placeholder ID and Category values."
+            )
+        finding["severity"] = severity
+        findings.append(finding)
+    return findings
+
+
 def severities(report: Path) -> list[str]:
-    text = report.read_text(encoding="utf-8")
-    found = {match.upper() for match in re.findall(r"\b(CRITICAL|HIGH|MEDIUM|LOW)\b", text, re.IGNORECASE)}
-    order = {value: index for index, value in enumerate(("CRITICAL", "HIGH", "MEDIUM", "LOW"))}
+    found = {finding["severity"] for finding in analysis_findings(report)}
+    order = {value: index for index, value in enumerate(ANALYSIS_SEVERITIES)}
     return sorted(found, key=order.__getitem__)
 
 
@@ -192,8 +293,16 @@ def complete_analysis(repository: Path, feature_dir: Path, report: Path) -> int:
     if not report.is_file():
         print(f"PKL008 canonical analysis report is missing: {report}", file=sys.stderr)
         return 4
+    try:
+        findings = analysis_findings(report)
+    except (OSError, UnicodeError, ValueError) as error:
+        print(str(error), file=sys.stderr)
+        return 17
     current_hashes = artifact_hashes(feature_dir, ARTIFACTS)
-    detected = severities(report)
+    detected = sorted(
+        {finding["severity"] for finding in findings},
+        key={value: index for index, value in enumerate(ANALYSIS_SEVERITIES)}.__getitem__,
+    )
     blockers = [value for value in detected if value in BLOCKING_SEVERITIES]
     contract_error = feature_contract_error(feature_dir)
     ready = not blockers and contract_error is None
@@ -202,6 +311,9 @@ def complete_analysis(repository: Path, feature_dir: Path, report: Path) -> int:
         "artifactHashes": current_hashes,
         "report": report.resolve().relative_to(repository.resolve()).as_posix(),
         "reportSha256": sha256(report),
+        "reportFormat": ANALYSIS_REPORT_FORMAT,
+        "findingCount": len(findings),
+        "findings": findings,
         "severities": detected,
         "readyForImplementation": ready,
     }

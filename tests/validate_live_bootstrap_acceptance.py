@@ -276,7 +276,13 @@ def main() -> int:
         )
         analysis = project / ".program-kit/evidence/after-tasks-analysis.md"
         analysis.parent.mkdir(parents=True)
-        analysis.write_text("No blocking findings.\n", encoding="utf-8")
+        analysis.write_text(
+            "# Specification Analysis Report\n\n"
+            "| ID | Category | Severity | Location(s) | Summary | Recommendation |\n"
+            "|----|----------|----------|-------------|---------|----------------|\n"
+            "| — | — | — | — | No findings | Proceed |\n",
+            encoding="utf-8",
+        )
         roadmap = project / "docs/architecture/specification-roadmap.md"
         roadmap.parent.mkdir(parents=True)
         roadmap.write_text("### SPC-001: Greeting\n\n**Status**: Delivered\n", encoding="utf-8")
@@ -404,7 +410,7 @@ def main() -> int:
         root / "docs/releasing-0.8.2.md",
         root / "docs/releasing-0.8.3.md",
         root / "docs/releasing-0.8.4.md",
-        root / "docs/releasing-0.9.1.md",
+        root / "docs/releasing-0.9.2.md",
         wrapper,
         runner,
     )

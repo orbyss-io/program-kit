@@ -88,7 +88,7 @@ def seed_legacy_root_web_settings(repository: Path, profile: str) -> None:
     state["appliedMigrations"] = [
         migration
         for migration in state.get("appliedMigrations", [])
-        if migration != "0.9.1-retire-legacy-root-web-settings"
+        if migration != "0.9.2-retire-legacy-root-web-settings"
     ]
     state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.9.2 - 2026-09-05
+
+- Parse only the standardized Spec Kit findings table when completing after-tasks analysis. Severity
+  labels in headings, legends, prose, and zero-valued metrics no longer create false findings.
+- Persist each parsed finding as machine-readable lifecycle evidence while retaining the complete
+  report and its SHA-256 binding. MEDIUM/LOW findings remain recorded and implementation-ready;
+  genuine HIGH/CRITICAL rows remain blockers.
+- Reject missing, duplicate, malformed, or ambiguously classified findings tables with `PKL017`.
+  Evidence-format failures preserve the active analysis for a safe retry, while valid blocking
+  analyses complete normally so artifact remediation starts a fresh hash-bound run.
+
 ## 0.9.1 - 2026-09-05
 
 - Compose the local Keycloak realm from profile-neutral provider state plus exactly one selected

@@ -32,7 +32,15 @@ with `no-questions` and continue automatically. Do not re-enter an active operat
 
 For `after_tasks`, save the complete `speckit.analyze` result at
 `.program-kit/evidence/after-tasks-analysis.md`, run `scripts/lifecycle_state.py begin analyze`, and
-complete analysis against that report. HIGH or CRITICAL findings block readiness. Then run
+complete analysis against that report. Preserve exactly one findings table with the upstream Spec Kit
+columns `ID`, `Category`, `Severity`, `Location(s)`, `Summary`, and `Recommendation`; use one row per
+finding, or an empty table / a single row with placeholder identity fields and `No findings` in the
+summary for a clean result. The
+lifecycle parser reads only this table, persists its rows as machine-readable evidence, and ignores
+severity words in headings, legends, metrics, and prose. Missing, duplicated, or malformed findings
+tables fail explicitly and keep the active analysis retryable. A structurally valid report containing
+HIGH or CRITICAL findings completes the run but blocks readiness, so corrected artifacts require a
+fresh analysis. Then run
 `scripts/artifact_ownership.py` against the feature's manifest, plan, and tasks; unknown paths,
 managed-path edits, or ownership drift are errors.
 

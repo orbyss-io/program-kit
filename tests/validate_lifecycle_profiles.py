@@ -27,6 +27,21 @@ def module(path: Path, name: str):
     return value
 
 
+def analysis_report(rows: list[tuple[str, str, str, str, str, str]] | None = None) -> str:
+    rendered = [
+        "# Specification Analysis Report",
+        "",
+        "| ID | Category | Severity | Location(s) | Summary | Recommendation |",
+        "|----|----------|----------|-------------|---------|----------------|",
+    ]
+    if rows is None:
+        rendered.append("| — | — | — | — | No findings | Proceed |")
+    else:
+        rendered.extend("| " + " | ".join(row) + " |" for row in rows)
+    rendered.extend(["", "## Metrics", "", "- Critical findings: 0", ""])
+    return "\n".join(rendered)
+
+
 def validate_hooks() -> None:
     manifest = yaml.safe_load(
         (ROOT / "extensions/program-kit-governance/extension.yml").read_text(encoding="utf-8")
@@ -96,13 +111,39 @@ def validate_lifecycle() -> None:
 
         report = repository / ".program-kit/evidence/after-tasks-analysis.md"
         report.parent.mkdir(parents=True)
-        report.write_text("# Analysis\nNo blocking findings.\n", encoding="utf-8")
+        report.write_text(
+            "## Severity legend\n\nCRITICAL and HIGH findings block; MEDIUM and LOW findings do not.\n\n"
+            + analysis_report(),
+            encoding="utf-8",
+        )
         if lifecycle.begin(repository, feature, "analyze", False) != 0:
             raise AssertionError("analysis did not start")
         if lifecycle.complete_analysis(repository, feature, report) != 0:
             raise AssertionError("clean analysis did not complete")
+        clean_state = json.loads(lifecycle.state_path(repository, feature).read_text(encoding="utf-8"))
+        clean_analysis = clean_state["phases"]["afterTasksAnalysis"]
+        if clean_analysis["findingCount"] != 0 or clean_analysis["findings"] or clean_analysis["severities"]:
+            raise AssertionError("zero metrics or severity prose produced false findings")
         if lifecycle.verify_before_implement(repository, feature) != 0:
             raise AssertionError("current analysis did not authorize implementation")
+
+        report.write_text(
+            analysis_report(
+                [
+                    ("T1", "Terminology", "MEDIUM", "spec.md:L10", "Term drift", "Align wording"),
+                    ("S1", "Style", "LOW", "tasks.md:L20", "Minor wording", "Clarify"),
+                ]
+            ),
+            encoding="utf-8",
+        )
+        if lifecycle.begin(repository, feature, "analyze", False) != 0:
+            raise AssertionError("non-blocking analysis did not start")
+        if lifecycle.complete_analysis(repository, feature, report) != 0:
+            raise AssertionError("MEDIUM/LOW analysis did not remain implementation-ready")
+        nonblocking_state = json.loads(lifecycle.state_path(repository, feature).read_text(encoding="utf-8"))
+        nonblocking = nonblocking_state["phases"]["afterTasksAnalysis"]
+        if nonblocking["severities"] != ["MEDIUM", "LOW"] or nonblocking["findingCount"] != 2:
+            raise AssertionError("non-blocking findings were not recorded as structured evidence")
         (feature / "tasks.md").write_text(
             (feature / "tasks.md").read_text(encoding="utf-8").replace("- [ ] T001", "- [X] T001"),
             encoding="utf-8",
@@ -121,12 +162,93 @@ def validate_lifecycle() -> None:
             source = feature / name
             (blocked / name).write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
         blocking_report = repository / ".program-kit/evidence/SPC-002-analysis.md"
-        blocking_report.write_text("| Severity | Finding |\n| HIGH | ownership drift |\n", encoding="utf-8")
+        blocking_report.write_text(
+            analysis_report(
+                [
+                    ("C1", "Constitution", "CRITICAL", "spec.md:L1", "MUST conflict", "Correct spec"),
+                    ("A1", "Ownership", "HIGH", "plan.md:L4", "Ownership drift", "Correct plan"),
+                ]
+            ),
+            encoding="utf-8",
+        )
         lifecycle.begin(repository, blocked, "analyze", False)
         if lifecycle.complete_analysis(repository, blocked, blocking_report) != 9:
-            raise AssertionError("HIGH analysis did not block readiness")
+            raise AssertionError("HIGH/CRITICAL analysis did not block readiness")
+        blocked_state = json.loads(lifecycle.state_path(repository, blocked).read_text(encoding="utf-8"))
+        blocked_analysis = blocked_state["phases"]["afterTasksAnalysis"]
+        if blocked_analysis["severities"] != ["CRITICAL", "HIGH"] or blocked_state.get("active"):
+            raise AssertionError("valid blocking analysis was not completed deterministically")
         if lifecycle.verify_before_implement(repository, blocked) != 13:
             raise AssertionError("non-ready analysis authorized implementation")
+
+        retryable = repository / "specs/SPC-004"
+        retryable.mkdir()
+        for name in ("spec.md", "plan.md", "tasks.md", "artifact-ownership.json"):
+            source = feature / name
+            (retryable / name).write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+        malformed_report = repository / ".program-kit/evidence/SPC-004-analysis.md"
+        malformed_report.write_text("# Analysis\nNo blocking findings.\n", encoding="utf-8")
+        lifecycle.begin(repository, retryable, "analyze", False)
+        if lifecycle.complete_analysis(repository, retryable, malformed_report) != 17:
+            raise AssertionError("malformed analysis report did not fail explicitly")
+        retry_state = json.loads(lifecycle.state_path(repository, retryable).read_text(encoding="utf-8"))
+        if retry_state.get("active", {}).get("phase") != "analyze":
+            raise AssertionError("malformed analysis report consumed the retryable active lifecycle")
+        malformed_report.write_text(analysis_report(), encoding="utf-8")
+        if lifecycle.complete_analysis(repository, retryable, malformed_report) != 0:
+            raise AssertionError("corrected analysis report could not retry completion")
+        ambiguous_report = repository / ".program-kit/evidence/ambiguous-analysis.md"
+        ambiguous_report.write_text(analysis_report() + "\n" + analysis_report(), encoding="utf-8")
+        try:
+            lifecycle.analysis_findings(ambiguous_report)
+        except ValueError as error:
+            if "PKL017" not in str(error) or "ambiguous" not in str(error):
+                raise
+        else:
+            raise AssertionError("ambiguous analysis report was silently classified")
+        invalid_report = repository / ".program-kit/evidence/invalid-severity-analysis.md"
+        invalid_report.write_text(
+            analysis_report(
+                [("A1", "Ambiguity", "NOTICE", "spec.md:L2", "Unclear phrase", "Clarify")]
+            ),
+            encoding="utf-8",
+        )
+        try:
+            lifecycle.analysis_findings(invalid_report)
+        except ValueError as error:
+            if "PKL017" not in str(error) or "invalid severity 'NOTICE'" not in str(error):
+                raise
+        else:
+            raise AssertionError("invalid finding severity was silently classified")
+        malformed_row_report = repository / ".program-kit/evidence/malformed-row-analysis.md"
+        malformed_row_report.write_text(
+            "# Specification Analysis Report\n\n"
+            "| ID | Category | Severity | Location(s) | Summary | Recommendation |\n"
+            "|----|----------|----------|-------------|---------|----------------|\n"
+            "| A1 | Ambiguity | HIGH | spec.md:L2 | Missing recommendation |\n",
+            encoding="utf-8",
+        )
+        mixed_sentinel_report = repository / ".program-kit/evidence/mixed-sentinel-analysis.md"
+        mixed_sentinel_report.write_text(
+            analysis_report(
+                [
+                    ("—", "—", "—", "—", "No findings", "Proceed"),
+                    ("A1", "Ambiguity", "HIGH", "spec.md:L2", "Unclear phrase", "Clarify"),
+                ]
+            ),
+            encoding="utf-8",
+        )
+        for invalid_path, diagnostic in (
+            (malformed_row_report, "has 5 cells"),
+            (mixed_sentinel_report, "follows a no-findings sentinel"),
+        ):
+            try:
+                lifecycle.analysis_findings(invalid_path)
+            except ValueError as error:
+                if "PKL017" not in str(error) or diagnostic not in str(error):
+                    raise
+            else:
+                raise AssertionError(f"malformed report was silently classified: {invalid_path.name}")
 
         custom_host = repository / "specs/SPC-003"
         custom_host.mkdir()
@@ -151,7 +273,7 @@ def validate_lifecycle() -> None:
             json.dumps(invalid_manifest), encoding="utf-8"
         )
         custom_report = repository / ".program-kit/evidence/SPC-003-analysis.md"
-        custom_report.write_text("# Analysis\nNo blocking findings.\n", encoding="utf-8")
+        custom_report.write_text(analysis_report(), encoding="utf-8")
         lifecycle.begin(repository, custom_host, "analyze", False)
         if lifecycle.complete_analysis(repository, custom_host, custom_report) != 16:
             raise AssertionError("custom host plan was marked ready for implementation")
@@ -762,7 +884,7 @@ def validate_openapi_initialization() -> None:
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
-                "tools": {"programkit.openapi.exporter": {"version": "0.9.1-preview.1"}}
+                "tools": {"programkit.openapi.exporter": {"version": "0.9.2-preview.1"}}
             }),
             encoding="utf-8",
         )
@@ -784,7 +906,7 @@ def validate_openapi_initialization() -> None:
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
         )
         if (
-            contract["producer"]["version"] != "0.9.1-preview.1"
+            contract["producer"]["version"] != "0.9.2-preview.1"
             or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
@@ -1411,7 +1533,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.1-preview.1"},
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.2-preview.1"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1446,7 +1568,7 @@ def validate_artifact_ownership() -> None:
                     "isRoot": True,
                     "tools": {
                         "programkit.openapi.exporter": {
-                            "version": "0.9.1-preview.1",
+                            "version": "0.9.2-preview.1",
                             "commands": ["programkit-openapi-export"],
                         }
                     },
