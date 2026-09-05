@@ -1,8 +1,7 @@
 name: Publish Program Kit NuGet Packages
 
 on:
-  push:
-    tags: ["v*.*.*"]
+  workflow_call:
 
 permissions:
   contents: read

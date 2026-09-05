@@ -22,6 +22,28 @@ bootstrap orchestration. It may exercise that exception only for its generated d
 repository and preserves evidence under `artifacts/live-acceptance/`. Do not copy its environment
 sanitization into consumer setup, bootstrap guidance, or another script.
 
+## Failed stable-release recovery
+
+A pushed stable tag is a release candidate until the complete Release workflow succeeds. NuGet and
+host-image publication must remain downstream reusable jobs of that workflow, after all deterministic
+validation and public component-release gates. Never restore independent stable-tag triggers for
+those irreversible publication workflows.
+
+If the Release workflow fails for a stable tag:
+
+1. Preserve and inspect the failed run evidence.
+2. Repair the failure and complete the deterministic local release validation.
+3. Obtain or confirm the user's approval for the exact corrected commit and same stable tag.
+4. Delete the failed tag locally and remotely, recreate it at the approved corrected commit, and push
+   the corrected commit and recreated tag. Do not increment the stable version merely because the
+   failed candidate tag existed.
+5. Do not tell consumers that the version is available, or unblock dependent work, until the recreated
+   tag's complete Release workflow succeeds.
+
+Before repointing, verify whether any immutable registry artifact escaped the gate. Disclose any
+partial publication explicitly; a tag correction must never conceal that an artifact was produced
+from a different source state.
+
 ## Windows live-worker execution
 
 The live harness launches disposable Codex workers with `--sandbox workspace-write`. On Windows,

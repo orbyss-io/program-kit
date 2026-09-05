@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
   id-token: write
   attestations: write
 
@@ -83,6 +84,9 @@ jobs:
           dotnet restore ProgramKit.slnx --locked-mode --configfile NuGet.config
           dotnet build ProgramKit.slnx -c Release --no-restore
 
+      - name: Pack built-in .NET features for integration validation
+        run: dotnet pack ProgramKit.slnx -c Release --no-build -p:PackageOutputPath="$PWD/artifacts/nuget"
+
       - name: Restore representative consumer dependency graph
         run: python tests/validate_dotnet_consumer_restore.py
 
@@ -146,3 +150,13 @@ jobs:
 
       - name: Test live public catalog upgrade from v0.2.0
         run: python tests/validate_public_upgrade.py
+
+  publish-nuget:
+    needs: release
+    uses: ./.github/workflows/publish-nuget.yml
+    secrets: inherit
+
+  publish-host-image:
+    needs: release
+    uses: ./.github/workflows/publish-host-image.yml
+    secrets: inherit

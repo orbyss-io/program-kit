@@ -105,6 +105,25 @@ def main() -> int:
     host_workflow = (root / ".github/workflows/publish-host-image.yml").read_text(encoding="utf-8")
     if "< RUNTIME_VERSION" not in host_workflow or "steps.runtime_version.outputs.value" not in host_workflow:
         raise AssertionError("Host workflow does not derive its image tag from RUNTIME_VERSION")
+    nuget_workflow = (root / ".github/workflows/publish-nuget.yml").read_text(encoding="utf-8")
+    release_workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    for name, workflow in (("NuGet", nuget_workflow), ("host-image", host_workflow)):
+        trigger = workflow.split("permissions:", maxsplit=1)[0]
+        if "workflow_call:" not in trigger or "push:" in trigger:
+            raise AssertionError(
+                f"{name} publication must be callable only after release validation, not from a stable tag"
+            )
+    pack_command = "dotnet pack ProgramKit.slnx -c Release --no-build"
+    openapi_command = "python tests/validate_openapi_exporter.py"
+    if pack_command not in release_workflow or release_workflow.index(pack_command) > release_workflow.index(openapi_command):
+        raise AssertionError("Release must pack built-in features before OpenAPI integration validation")
+    for publication_workflow in ("publish-nuget.yml", "publish-host-image.yml"):
+        if f"uses: ./.github/workflows/{publication_workflow}" not in release_workflow:
+            raise AssertionError(f"Release does not call {publication_workflow} after validation")
+    if release_workflow.count("needs: release") < 2:
+        raise AssertionError("Registry publication jobs must depend on the validated release job")
+    if "packages: write" not in release_workflow:
+        raise AssertionError("Release must grant its called host-image workflow package publication access")
 
     global_json = (root / "global.json").read_text(encoding="utf-8")
     if '"version": "10.0.202"' not in global_json or '"rollForward": "disable"' not in global_json:
