@@ -461,8 +461,9 @@ def main() -> int:
             "http://localhost:5173/auth/callback",
             "http://localhost:5173/auth/renew-callback",
         ]
-        assert spa_client["postLogoutRedirectUris"] == ["http://localhost:5173/signed-out"]
-        assert not any("*" in uri for uri in spa_client["redirectUris"] + spa_client["postLogoutRedirectUris"])
+        assert spa_client["attributes"]["post.logout.redirect.uris"] == "http://localhost:5173/signed-out"
+        assert "postLogoutRedirectUris" not in spa_client
+        assert not any("*" in uri for uri in spa_client["redirectUris"])
         compose = (spa_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
         assert "ClientSecret" not in compose and "local-program-kit-secret" not in compose
         playwright = (spa_target / "eng/program-kit/web/playwright.config.ts").read_text(encoding="utf-8")
@@ -496,6 +497,8 @@ def main() -> int:
             "program-kit-spa",
         ]
         assert customized_client["redirectUris"] == spa_configuration["redirectUris"]
+        assert customized_client["attributes"]["post.logout.redirect.uris"] == "http://localhost:4173/signed-out"
+        assert "postLogoutRedirectUris" not in customized_client
         assert customized_realm["ssoSessionIdleTimeout"] == 1200
         customized_shell = json.loads(
             (spa_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")

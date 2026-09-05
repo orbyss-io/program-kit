@@ -6,7 +6,7 @@ services:
     command: [ "start-dev", "--import-realm", "--health-enabled=true" ]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: local-admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: local-admin-only
+      KC_BOOTSTRAP_ADMIN_PASSWORD: local-bootstrap-admin-only
       KC_HOSTNAME: http://localhost:8080
     ports:
       - "8080:8080"

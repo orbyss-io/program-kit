@@ -5,7 +5,7 @@ on:
     tags: ["v*.*.*"]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   id-token: write
   attestations: write
@@ -40,6 +40,7 @@ jobs:
           password: ${{ github.token }}
 
       - name: Build and publish host image
+        id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
@@ -51,3 +52,43 @@ jobs:
           tags: |
             ghcr.io/orbyss-io/program-kit-host:${{ steps.runtime_version.outputs.value }}
             ghcr.io/orbyss-io/program-kit-host:sha-${{ github.sha }}
+
+      - name: Write immutable host-image release evidence
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          python scripts/write_host_image_release_evidence.py \
+            --version "$version" \
+            --runtime-version "${{ steps.runtime_version.outputs.value }}" \
+            --source-commit "$GITHUB_SHA" \
+            --digest "${{ steps.build.outputs.digest }}" \
+            --output "artifacts/program-kit-host-image-$version.json"
+          echo "PROGRAMKIT_HOST_IMAGE=ghcr.io/orbyss-io/program-kit-host@${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest host-image release evidence
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: artifacts/program-kit-host-image-*.json
+
+      - name: Publish host-image evidence with the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          asset="artifacts/program-kit-host-image-$(tr -d '\r\n' < VERSION).json"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$asset" --clobber
+          elif ! gh release create "$GITHUB_REF_NAME" "$asset" \
+              --verify-tag \
+              --title "Program Kit $GITHUB_REF_NAME" \
+              --generate-notes; then
+            for attempt in {1..12}; do
+              if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+                gh release upload "$GITHUB_REF_NAME" "$asset" --clobber
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "release creation failed and no concurrent release became visible" >&2
+            exit 1
+          fi

@@ -38,6 +38,7 @@ def write_fixture(repository: Path) -> None:
     <AssemblyName>ProgramKit.OpenApiFixture</AssemblyName>
     <Version>1.0.0</Version>
     <ProgramKitFeatureIdentity>Fixture.Web</ProgramKitFeatureIdentity>
+    <ProgramKitFeatureDependencies>ProgramKit.Authentication</ProgramKitFeatureDependencies>
     <ProgramKitFeatureRoutes>/orders</ProgramKitFeatureRoutes>
   </PropertyGroup>
   <ItemGroup>
@@ -89,20 +90,66 @@ public sealed class ForbiddenInitializer : IShellInitializer
     )
     shutil.copyfile(ROOT / "NuGet.config", repository / "NuGet.config")
     (repository / "hostsettings.json").write_text("{}\n", encoding="utf-8")
-    (repository / "shells.json").write_text(
-        json.dumps(
-            {
-                "CShells": {
-                    "Shells": {
-                        "default": {
-                            "Features": {"ProgramKitTasks": {}, "Fixture.Web": {}},
-                            "Configuration": {
-                                "WebRouting": {"Path": "", "RoutePrefix": "api/v1"}
-                            },
-                        }
-                    }
+    consumer_shells = {
+        "CShells": {
+            "Shells": {
+                "default": {
+                    "Features": {
+                        "ProgramKitTasks": {},
+                        "Fixture.Web": {},
+                        "ProgramKit.Web.ProblemDetails": False,
+                    },
+                    "Configuration": {
+                        "WebRouting": {"Path": "", "RoutePrefix": "api/v1"}
+                    },
                 }
-            },
+            }
+        }
+    }
+    profile_shells = {
+        "CShells": {
+            "Shells": {
+                "default": {
+                    "Features": {
+                        "ProgramKit.Authentication": {},
+                        "ProgramKit.Authentication.BffCookie": {},
+                        "ProgramKit.WebDefaults": {},
+                        "ProgramKit.Web.OpenApi": {},
+                        "ProgramKit.Web.ProblemDetails": {},
+                    },
+                    "Configuration": {
+                        "ProgramKit": {
+                            "Web": {
+                                "Authority": "http://localhost:8080/realms/program-kit",
+                                "ClientId": "program-kit-bff",
+                                "ClientSecret": "fixture-secret",
+                                "Audience": "fixture-api",
+                                "Scopes": ["openid", "profile", "fixture-api"],
+                                "AllowHttpForLocalDevelopment": True,
+                            }
+                        }
+                    },
+                }
+            }
+        }
+    }
+    (repository / "shells.json").write_text(
+        json.dumps(consumer_shells, indent=2) + "\n", encoding="utf-8"
+    )
+    profile_path = repository / ".program-kit/web-profile.shells.json"
+    profile_path.parent.mkdir(parents=True)
+    profile_path.write_text(json.dumps(profile_shells, indent=2) + "\n", encoding="utf-8")
+    effective = json.loads(json.dumps(profile_shells))
+    effective_shell = effective["CShells"]["Shells"]["default"]
+    effective_shell["Features"].update(
+        consumer_shells["CShells"]["Shells"]["default"]["Features"]
+    )
+    effective_shell["Configuration"].update(
+        consumer_shells["CShells"]["Shells"]["default"]["Configuration"]
+    )
+    (repository / "direct-shells.json").write_text(
+        json.dumps(
+            effective,
             indent=2,
         )
         + "\n",
@@ -117,7 +164,7 @@ public sealed class ForbiddenInitializer : IShellInitializer
                 "shell": "default",
                 "producer": {
                     "kind": "ProgramKit.OpenApi.Exporter",
-                    "version": "0.9.3-preview.1",
+                    "version": "0.9.4-preview.1",
                 },
                 "features": ["Fixture.Web"],
             },
@@ -170,6 +217,19 @@ def main() -> int:
         )
         if packed.returncode != 0:
             raise AssertionError(f"fixture pack failed:\n{packed.stdout}{packed.stderr}")
+        runtime_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip() + "-preview.1"
+        for package_id in (
+            "ProgramKit.Authentication",
+            "ProgramKit.Authentication.BffCookie",
+            "ProgramKit.WebDefaults",
+            "ProgramKit.Web.OpenApi",
+            "ProgramKit.Web.ProblemDetails",
+            "ProgramKit.Tasks",
+        ):
+            source = ROOT / f"artifacts/nuget/{package_id}.{runtime_version}.nupkg"
+            if not source.is_file():
+                raise AssertionError(f"packed built-in feature is missing: {source}")
+            shutil.copyfile(source, packages / source.name)
 
         raw = repository / "artifacts/openapi/fixture.raw.json"
         evidence = repository / ".program-kit/evidence/openapi-export.json"
@@ -181,7 +241,7 @@ def main() -> int:
             "--packages",
             str(packages),
             "--shells",
-            str(repository / "shells.json"),
+            str(repository / "direct-shells.json"),
             "--hostsettings",
             str(repository / "hostsettings.json"),
             "--contract",
@@ -200,8 +260,8 @@ def main() -> int:
         recorded = json.loads(evidence.read_text(encoding="utf-8"))
         if recorded.get("contractFeatures") != ["Fixture.Web"]:
             raise AssertionError(f"export evidence lost feature coverage: {recorded}")
-        if recorded.get("composedFeatures") != ["Fixture.Web"]:
-            raise AssertionError(f"export evidence included a host-owned feature: {recorded}")
+        if recorded.get("composedFeatures") != ["Fixture.Web", "ProgramKit.Web.OpenApi"]:
+            raise AssertionError(f"export evidence lost effective feature composition: {recorded}")
         side_effects = recorded.get("sideEffects", {})
         if any(
             side_effects.get(name)
@@ -254,15 +314,28 @@ raise SystemExit(0)
             encoding="utf-8",
         )
         if os.name == "nt":
+            fake_npm_command = tool_bin / "npm.cmd"
+            fake_npm_command.write_text(
+                f'@echo off\r\n"{Path(sys.executable).resolve()}" "{fake_npm.resolve()}" %*\r\n',
+                encoding="utf-8",
+            )
+        else:
+            fake_npm_command = tool_bin / "npm"
+            fake_npm_command.write_text(
+                f"#!/bin/sh\nexec '{Path(sys.executable).resolve()}' '{fake_npm.resolve()}' \"$@\"\n",
+                encoding="utf-8",
+            )
+            fake_npm_command.chmod(0o755)
+        if os.name == "nt":
             fake_oasdiff = tool_bin / "oasdiff.cmd"
             fake_oasdiff.write_text(
-                "@echo off\r\nif \"%1\"==\"version\" echo oasdiff version v1.29.1\r\nexit /b 0\r\n",
+                "@echo off\r\nif \"%1\"==\"--version\" echo oasdiff version v1.29.1\r\nexit /b 0\r\n",
                 encoding="utf-8",
             )
         else:
             fake_oasdiff = tool_bin / "oasdiff"
             fake_oasdiff.write_text(
-                "#!/bin/sh\nif [ \"$1\" = \"version\" ]; then printf 'oasdiff version v1.29.1\\n'; fi\nexit 0\n",
+                "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then printf 'oasdiff version v1.29.1\\n'; fi\nexit 0\n",
                 encoding="utf-8",
             )
             fake_oasdiff.chmod(0o755)
@@ -271,6 +344,12 @@ raise SystemExit(0)
         staged_packages.mkdir(parents=True)
         for package in packages.glob("*.nupkg"):
             shutil.copyfile(package, staged_packages / package.name)
+        staged_root = staged_packages.parent
+        for name in ("hostsettings.json", "shells.json"):
+            shutil.copyfile(repository / name, staged_root / name)
+        staged_profile = staged_root / ".program-kit/web-profile.shells.json"
+        staged_profile.parent.mkdir(parents=True)
+        shutil.copyfile(repository / ".program-kit/web-profile.shells.json", staged_profile)
         managed = repository / "eng/program-kit"
         (managed / ".config").mkdir(parents=True)
         shutil.copyfile(
@@ -281,6 +360,28 @@ raise SystemExit(0)
             ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/js_toolchain.py",
             managed / "js_toolchain.py",
         )
+        for name in ("oasdiff_cli.py", "runtime_closure.py", "shell_composition.py", "toolchain.py"):
+            shutil.copyfile(
+                ROOT / f"extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/{name}",
+                managed / name,
+            )
+        for name in ("global.json", ".nvmrc", ".npm-version", "VERSION"):
+            shutil.copyfile(
+                ROOT / f"extensions/program-kit-dotnet/templates/dotnet/files/{name}",
+                repository / name,
+            )
+        sys.path.insert(0, str(managed))
+        try:
+            import runtime_closure
+
+            runtime_closure.write_success(
+                repository,
+                staged_root,
+                repository / runtime_closure.EVIDENCE,
+                (repository / "VERSION").read_text(encoding="utf-8").strip(),
+            )
+        finally:
+            sys.path.remove(str(managed))
         shutil.copyfile(
             ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/eng/program-kit/.config/dotnet-tools.json",
             managed / ".config/dotnet-tools.json",
@@ -356,6 +457,10 @@ raise SystemExit(0)
             + "\n",
             encoding="utf-8",
         )
+        pipeline_environment = os.environ.copy()
+        pipeline_environment["PATH"] = str(tool_bin) + os.pathsep + pipeline_environment.get("PATH", "")
+        pipeline_environment["PROGRAMKIT_NODE_EXECUTABLE"] = str(fake_node.resolve())
+        pipeline_environment["PROGRAMKIT_NPM_EXECUTABLE"] = str(fake_npm_command.resolve())
         pipelined = run(
             [
                 sys.executable,
@@ -367,6 +472,7 @@ raise SystemExit(0)
                 "--initialize-baselines",
             ],
             repository,
+            pipeline_environment,
         )
         if pipelined.returncode != 0:
             raise AssertionError(
@@ -377,6 +483,22 @@ raise SystemExit(0)
         )
         if pipeline_evidence.get("satisfied") is not True:
             raise AssertionError(f"pipeline did not preserve satisfied evidence: {pipeline_evidence}")
+        effective_value = json.loads(
+            (repository / ".program-kit/cache/openapi/effective-shells.json").read_text(encoding="utf-8")
+        )
+        effective_default = effective_value["CShells"]["Shells"]["default"]
+        if effective_default["Features"].get("ProgramKit.Authentication.BffCookie") != {}:
+            raise AssertionError("profile-owned authentication feature was absent from effective shells")
+        if effective_default["Features"].get("ProgramKit.Web.ProblemDetails") is not False:
+            raise AssertionError("consumer false did not override the profile-owned optional feature")
+        if (
+            effective_default["Configuration"]
+            .get("ProgramKit", {})
+            .get("Web", {})
+            .get("ClientId")
+            != "program-kit-bff"
+        ):
+            raise AssertionError("deep shell composition discarded profile-owned configuration")
         if not (generator / "generated/types.ts").is_file():
             raise AssertionError("isolated client generation did not run")
         compared = run(
@@ -389,9 +511,27 @@ raise SystemExit(0)
                 str(EXPORTER),
             ],
             repository,
+            pipeline_environment,
         )
         if compared.returncode != 0:
             raise AssertionError(f"pinned oasdiff compatibility path failed:\n{compared.stdout}{compared.stderr}")
+        changed_package = next(staged_packages.glob("ProgramKit.OpenApiFixture.*.nupkg"))
+        unchanged = changed_package.read_bytes()
+        changed_package.write_bytes(unchanged + b"stale-after-stage")
+        stale = run(
+            [
+                sys.executable,
+                str(PIPELINE),
+                "--repository",
+                str(repository),
+                "--exporter",
+                str(EXPORTER),
+            ],
+            repository,
+            pipeline_environment,
+        )
+        if stale.returncode != 2 or "PKR022" not in stale.stderr:
+            raise AssertionError("OpenAPI export accepted a package changed after runtime staging")
 
     print("Side-effect-free composed OpenAPI producer and client pipeline validation passed.")
     return 0

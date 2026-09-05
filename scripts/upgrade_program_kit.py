@@ -134,6 +134,158 @@ def run_step(command: list[str], target: Path, label: str, number: int, total: i
         )
 
 
+def resolve_specify_command(single: str, vector_json: str) -> list[str]:
+    if vector_json:
+        try:
+            vector = json.loads(vector_json)
+        except json.JSONDecodeError as error:
+            raise UpgradeError(f"PKU108 --specify-command-json is not valid JSON: {error}") from error
+        if (
+            not isinstance(vector, list)
+            or not vector
+            or any(not isinstance(item, str) or not item for item in vector)
+        ):
+            raise UpgradeError("PKU108 --specify-command-json must be a non-empty JSON string array")
+        command = list(vector)
+    else:
+        command = [single]
+    executable = shutil.which(command[0])
+    if executable is None:
+        candidate = Path(command[0])
+        executable = str(candidate.resolve()) if candidate.is_file() else None
+    if not executable:
+        raise UpgradeError(f"PKU108 Spec Kit CLI is unavailable: {command[0]}")
+    command[0] = executable
+    return command
+
+
+def preflight_specify(command: list[str], target: Path) -> None:
+    try:
+        result = subprocess.run(
+            command + ["--version"],
+            cwd=target,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise UpgradeError(
+            "PKU112 Spec Kit CLI cannot execute before mutation. Run the updater from a context "
+            "that can execute the installed CLI, or pass an explicitly reviewed command vector with "
+            f"--specify-command-json. Detail: {error}"
+        ) from error
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        suffix = f" Detail: {detail[-1]}" if detail else ""
+        raise UpgradeError(
+            "PKU112 Spec Kit CLI cannot execute before mutation "
+            f"(exit {result.returncode}). Run the updater from a context that can execute the installed "
+            "CLI, or pass an explicitly reviewed command vector with --specify-command-json."
+            + suffix
+        )
+
+
+def stale_program_kit_locks(target: Path, runtime_version: str) -> list[Path]:
+    ignored = {".git", ".specify", "artifacts", "node_modules"}
+    stale: list[Path] = []
+    for path in target.rglob("packages.lock.json"):
+        relative = path.relative_to(target)
+        if any(part in ignored for part in relative.parts) or relative.parts[:2] == (".program-kit", "cache"):
+            continue
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise UpgradeError(f"PKU113 cannot inspect NuGet lock file {path}: {error}") from error
+        frameworks = value.get("dependencies", {})
+        if not isinstance(frameworks, dict):
+            continue
+        entries = [
+            (package_id, dependency)
+            for dependencies in frameworks.values()
+            if isinstance(dependencies, dict)
+            for package_id, dependency in dependencies.items()
+            if isinstance(package_id, str)
+            and package_id.startswith("ProgramKit.")
+            and isinstance(dependency, dict)
+        ]
+        if any(str(dependency.get("resolved", "")) != runtime_version for _, dependency in entries):
+            stale.append(path)
+    return sorted(stale)
+
+
+def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
+    config = "NuGet.config"
+    solutions = sorted([*target.glob("*.slnx"), *target.glob("*.sln")])
+    if len(solutions) == 1:
+        subjects = [solutions[0].relative_to(target).as_posix()]
+    else:
+        subjects = []
+        for lock in locks:
+            projects = sorted([*lock.parent.glob("*.csproj"), *lock.parent.glob("*.fsproj")])
+            if len(projects) != 1:
+                raise UpgradeError(
+                    f"PKU113 cannot select one project for stale lock {lock}; add one root solution or renew it explicitly"
+                )
+            subjects.append(projects[0].relative_to(target).as_posix())
+        subjects = sorted(set(subjects))
+    commands: list[str] = []
+    for subject in subjects:
+        commands.extend(
+            [
+                f"dotnet restore {subject} --force-evaluate --configfile {config}",
+                f"dotnet restore {subject} --locked-mode --configfile {config}",
+            ]
+        )
+    return commands
+
+
+def write_lock_renewal(target: Path, runtime_version: str, locks: list[Path]) -> list[str]:
+    commands = lock_renewal_commands(target, locks)
+    path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "schemaVersion": 1,
+                "targetRuntimeVersion": runtime_version,
+                "affectedLocks": [item.relative_to(target).as_posix() for item in locks],
+                "renewalCommands": commands,
+                "reason": "program-kit-runtime-pin-upgrade",
+                "satisfied": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    return commands
+
+
+def satisfy_lock_renewal(target: Path, runtime_version: str) -> None:
+    path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
+    if not path.is_file():
+        return
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise UpgradeError(f"PKU113 cannot verify NuGet lock renewal evidence {path}: {error}") from error
+    if not isinstance(value, dict) or value.get("schemaVersion") != 1:
+        raise UpgradeError(f"PKU113 NuGet lock renewal evidence is malformed: {path}")
+    value["targetRuntimeVersion"] = runtime_version
+    value["reason"] = "program-kit-runtime-locks-verified"
+    value["satisfied"] = True
+    path.write_text(
+        json.dumps(value, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
 def acquire_lock(target: Path) -> tuple[int, Path]:
     path = target / ".specify/program-kit-upgrade.lock"
     try:
@@ -160,6 +312,7 @@ def main() -> int:
         help="Explicitly update registered Program Kit exporter pins and invalidate affected analysis readiness.",
     )
     parser.add_argument("--specify-command", default="specify", help=argparse.SUPPRESS)
+    parser.add_argument("--specify-command-json", default="", help=argparse.SUPPRESS)
     args = parser.parse_args()
     descriptor: int | None = None
     lock_path: Path | None = None
@@ -167,6 +320,9 @@ def main() -> int:
         release = Path(args.release_root).resolve()
         target = Path(args.target).resolve()
         version = validate_release(release)
+        runtime_version = (release / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
+        if not runtime_version:
+            raise UpgradeError("PKU101 release RUNTIME_VERSION is empty")
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
@@ -184,17 +340,17 @@ def main() -> int:
                 "atomically, invalidate affected after_tasks readiness, and stop with the required renewal path."
             )
         integration = selected_integration(target, args.integration)
-        specify = shutil.which(args.specify_command)
-        if not specify:
-            raise UpgradeError(f"PKU108 Spec Kit CLI is unavailable: {args.specify_command}")
+        specify = resolve_specify_command(args.specify_command, args.specify_command_json)
+        preflight_specify(specify, target)
+        stale_locks = stale_program_kit_locks(target, runtime_version)
         descriptor, lock_path = acquire_lock(target)
         steps = [
-            ([specify, "bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
-            ([specify, "workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
-            ([specify, "extension", "add", str(release / "extensions/program-kit-governance"), "--dev", "--force"], "Install governance extension"),
-            ([specify, "extension", "add", str(release / "extensions/program-kit-dotnet"), "--dev", "--force"], "Install .NET extension"),
-            ([specify, "preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
-            ([specify, "preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
+            (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
+            (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
+            (specify + ["extension", "add", str(release / "extensions/program-kit-governance"), "--dev", "--force"], "Install governance extension"),
+            (specify + ["extension", "add", str(release / "extensions/program-kit-dotnet"), "--dev", "--force"], "Install .NET extension"),
+            (specify + ["preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
+            (specify + ["preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
         ]
         total = (
             len(steps)
@@ -242,6 +398,7 @@ def main() -> int:
                 total,
             )
             next_step += 1
+        renewal_required = False
         if reconciliation:
             print(f"[{next_step + 1}/{total}] Reconcile registered OpenAPI producer pins")
             changed = apply_openapi_reconciliation(target, reconciliation)
@@ -253,6 +410,20 @@ def main() -> int:
                 + ", ".join(path.name for path in reconciliation["featureDirs"]),
                 file=sys.stderr,
             )
+            renewal_required = True
+        if stale_locks:
+            commands = write_lock_renewal(target, runtime_version, stale_locks)
+            print(
+                "PKU113 Program Kit runtime pins changed while consumer NuGet lock files still resolve "
+                f"an older version: {', '.join(path.relative_to(target).as_posix() for path in stale_locks)}. "
+                "No network restore was run implicitly. Renew and verify with: "
+                + " ; then ".join(commands),
+                file=sys.stderr,
+            )
+            renewal_required = True
+        else:
+            satisfy_lock_renewal(target, runtime_version)
+        if renewal_required:
             return 3
         print(
             f"Program Kit v{version} upgrade completed: workflow, extensions, preset, bundle record, "

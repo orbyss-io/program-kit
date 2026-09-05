@@ -447,6 +447,12 @@ def main() -> int:
         "PENDING_RATIFICATION",
         "WEB_SECURITY_EVIDENCE",
     )
+    for release_script in (
+        root / "scripts/write_host_image_release_evidence.py",
+        root / "scripts/verify_nuget_publication.py",
+    ):
+        if not release_script.is_file():
+            raise AssertionError(f"Release verification script is missing: {release_script}")
     updater = root / "scripts/upgrade_program_kit.py"
     reconciliation = root / "scripts/openapi_upgrade_reconciliation.py"
     require_text(
@@ -461,6 +467,9 @@ def main() -> int:
         "Validate cross-component version coherence",
         "program-kit-upgrade.lock",
         "--accept-openapi-producer-pin-reconciliation",
+        "--specify-command-json",
+        "PKU112",
+        "PKU113",
         "--offline",
     )
     require_text(

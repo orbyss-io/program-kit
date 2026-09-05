@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { personas } from '../persona-fixture.js';
 
 const apiPath = process.env.PROGRAMKIT_PERMISSION_PROBE_PATH ?? '/api/auth-contract';
 
@@ -36,8 +37,8 @@ test('consumer supplies the real PKCE browser journey for an explicitly selected
   const loginPath = process.env.PROGRAMKIT_SPA_LOGIN_PATH;
   test.skip(!loginPath, 'Set PROGRAMKIT_SPA_LOGIN_PATH to the client route that starts the standard PKCE login.');
   await page.goto(loginPath!);
-  await page.locator('#username').fill('local-user');
-  await page.locator('#password').fill('local-user-only');
+  await page.locator('#username').fill(personas.user.username);
+  await page.locator('#password').fill(personas.user.password);
   await page.locator('#kc-login').click();
   await expect(page).not.toHaveURL(/localhost:8080/);
   const storage = await page.evaluate(() => ({ ...localStorage, ...sessionStorage }));

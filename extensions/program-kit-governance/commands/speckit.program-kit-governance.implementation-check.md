@@ -72,6 +72,9 @@ Confirm:
   claims mapping, session/refresh/logout behavior, runtime keys, CORS/CSP, denial bodies, or identity
   test fixtures inside a feature slice. Each `.Api` project puts stable application
   permission/policy metadata on the endpoints it owns;
+- consumer features do not call `IsInRole` or parse provider/canonical permission claims. No-effect
+  probes contain no synthetic inner permission service; protected business operations retain a real
+  application/domain resource/state/effect authorization check behind the endpoint permission gate;
 - permission-protected endpoints have provider-backed contract evidence for anonymous `401`,
   missing-permission `403`, and authorized success, including negative provider-role/scope mapping
   cases and the profile's mandatory Playwright journey.

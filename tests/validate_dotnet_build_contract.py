@@ -40,7 +40,8 @@ def main() -> int:
             dotnet = tools / "dotnet.cmd"
             dotnet.write_text(
                 "@echo off\r\n"
-                f"echo %*^|%NUGET_PACKAGES%^|%NUGET_HTTP_CACHE_PATH%>>\"{log}\"\r\n"
+                f"echo %*^|%NUGET_PACKAGES%^|%NUGET_HTTP_CACHE_PATH%^|%NUGET_SCRATCH%^|"
+                f"%NUGET_PLUGINS_CACHE_PATH%^|%DOTNET_CLI_HOME%^|%APPDATA%^|%LOCALAPPDATA%>>\"{log}\"\r\n"
                 "exit /b 0\r\n",
                 encoding="utf-8",
             )
@@ -48,13 +49,18 @@ def main() -> int:
             dotnet = tools / "dotnet"
             dotnet.write_text(
                 "#!/bin/sh\n"
-                f"printf '%s|%s|%s\\n' \"$*\" \"$NUGET_PACKAGES\" \"$NUGET_HTTP_CACHE_PATH\" >> '{log}'\n",
+                f"printf '%s|%s|%s|%s|%s|%s|%s|%s\\n' \"$*\" \"$NUGET_PACKAGES\" "
+                f"\"$NUGET_HTTP_CACHE_PATH\" \"$NUGET_SCRATCH\" \"$NUGET_PLUGINS_CACHE_PATH\" "
+                f"\"$DOTNET_CLI_HOME\" \"$APPDATA\" \"$LOCALAPPDATA\" >> '{log}'\n",
                 encoding="utf-8",
             )
             dotnet.chmod(0o755)
         environment = os.environ.copy()
         environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
-        environment["APPDATA"] = str(repository / "denied-roaming-profile")
+        hostile_profile = repository / "denied-roaming-profile/NuGet"
+        hostile_profile.mkdir(parents=True)
+        (hostile_profile / "NuGet.Config").write_text("<malformed", encoding="utf-8")
+        environment["APPDATA"] = str(hostile_profile.parent)
         result = subprocess.run(
             [shell, "-NoProfile", "-File", str(managed / "Build.ps1"), "-SkipRunnableHost"],
             cwd=repository,
@@ -72,9 +78,19 @@ def main() -> int:
         for expected in (
             repository / ".program-kit/cache/nuget/packages",
             repository / ".program-kit/cache/nuget/http",
+            repository / ".program-kit/cache/nuget/scratch",
+            repository / ".program-kit/cache/nuget/plugins",
+            repository / ".program-kit/cache/dotnet-home",
         ):
             if str(expected) not in restore:
                 raise AssertionError(f"restore did not use repository-owned NuGet cache {expected}: {restore}")
+        if os.name == "nt":
+            for expected in (
+                repository / ".program-kit/cache/profile/roaming",
+                repository / ".program-kit/cache/profile/local",
+            ):
+                if str(expected) not in restore:
+                    raise AssertionError(f"restore did not isolate its Windows profile path {expected}: {restore}")
         test = next((line for line in entries if line.startswith("test ")), "")
         if "--solution" not in test or str(repository / "Consumer.slnx") not in test:
             raise AssertionError(f"managed Build.ps1 did not use MTP solution syntax: {test}")

@@ -2,6 +2,7 @@
   "realm": "program-kit",
   "enabled": true,
   "displayName": "Program Kit Local Identity",
+  "attributes": { "programKitFixture": "local-non-production-only" },
   "sslRequired": "none",
   "registrationAllowed": false,
   "resetPasswordAllowed": false,

@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import urllib.error
 import urllib.request
@@ -14,8 +15,11 @@ import zipfile
 from pathlib import Path
 from xml.etree import ElementTree
 
+import shell_composition
+import runtime_closure
 
-PROGRAM_KIT_VERSION = "0.9.3"
+
+PROGRAM_KIT_VERSION = "0.9.4"
 BUILT_IN_FEATURE_PACKAGES = {
     "ProgramKit.Authentication": "ProgramKit.Authentication",
     "ProgramKit.Authentication.BffCookie": "ProgramKit.Authentication.BffCookie",
@@ -60,10 +64,38 @@ def source_commit(repository: Path) -> str:
     value = os.environ.get("GITHUB_SHA")
     if value:
         return value
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=repository, check=True, capture_output=True, text=True
-    )
-    return result.stdout.strip()
+    excludes = "" if os.name == "nt" else "/dev/null"
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-c",
+                f"safe.directory={repository}",
+                "-c",
+                f"core.excludesFile={excludes}",
+                "-C",
+                str(repository),
+                "rev-parse",
+                "HEAD",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ValueError(f"PKR020 cannot resolve the repository source commit safely: {error}") from error
+    commit = result.stdout.strip()
+    if result.returncode != 0 or not re.fullmatch(r"[a-fA-F0-9]{40,64}", commit):
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        suffix = f" Detail: {detail[-1]}" if detail else ""
+        raise ValueError(
+            "PKR020 runnable-host evidence requires a Git repository with a resolvable HEAD."
+            + suffix
+        )
+    return commit.lower()
 
 
 def package_identity(path: Path) -> tuple[str, str]:
@@ -161,31 +193,6 @@ def package_feature(path: Path) -> dict | None:
     return value
 
 
-def activated_features(shells_path: Path) -> dict[str, set[str]]:
-    sources = [shells_path.parent / ".program-kit/web-profile.shells.json", shells_path]
-    merged: dict[str, dict[str, object]] = {}
-    for source in sources:
-        if not source.is_file():
-            continue
-        value = json.loads(source.read_text(encoding="utf-8"))
-        try:
-            shells = value["CShells"]["Shells"]
-        except (KeyError, TypeError) as error:
-            raise ValueError(f"PKR003 {source.name} must use the CShells:Shells schema.") from error
-        if not isinstance(shells, dict) or not shells:
-            raise ValueError(f"PKR004 {source.name} must declare at least one named shell.")
-        for shell_name, shell in shells.items():
-            features = shell.get("Features") if isinstance(shell, dict) else None
-            if not isinstance(features, dict):
-                raise ValueError(f"PKR005 shell '{shell_name}' must declare a Features object.")
-            merged.setdefault(shell_name, {}).update(features)
-    result: dict[str, set[str]] = {
-        shell_name: {identity for identity, setting in features.items() if setting is not False}
-        for shell_name, features in merged.items()
-    }
-    return result
-
-
 def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str], Path]) -> None:
     package_ids = {package_id.casefold() for package_id, _ in identities}
     descriptors: dict[str, tuple[dict, str]] = {}
@@ -202,7 +209,18 @@ def validate_feature_closure(shells_path: Path, identities: dict[tuple[str, str]
             )
         descriptors[identity] = (descriptor, package_id)
 
-    shells = activated_features(shells_path)
+    if shells_path.name == shell_composition.CONSUMER_SHELLS.name:
+        shells = shell_composition.activated_features(shells_path.parent)
+    else:
+        value = shell_composition.load(shells_path, required=True)
+        shells = {
+            shell_name: {
+                identity
+                for identity, settings in shell["Features"].items()
+                if settings is not False
+            }
+            for shell_name, shell in value["CShells"]["Shells"].items()
+        }
     activated_anywhere = set().union(*shells.values())
     for shell_name, active in shells.items():
         routes: dict[str, str] = {}
@@ -357,8 +375,10 @@ def download_package(package_id: str, version: str, bases: list[str], destinatio
     raise FileNotFoundError(f"Could not download {package_id} {version} from configured NuGet sources.")
 
 
-def stage(repository: Path, package_output: Path, output: Path) -> None:
-    active = set().union(*activated_features(repository / "shells.json").values())
+def stage(repository: Path, package_output: Path, output: Path, evidence: Path | None = None) -> None:
+    evidence = evidence or repository / runtime_closure.EVIDENCE
+    runtime_closure.mark_in_progress(repository, output, evidence)
+    active = set().union(*shell_composition.activated_features(repository).values())
     inactive_built_in_packages = {
         package_id.casefold()
         for identity, package_id in BUILT_IN_FEATURE_PACKAGES.items()
@@ -429,8 +449,6 @@ def stage(repository: Path, package_output: Path, output: Path) -> None:
                 destination = staged_packages / f"{package_id}.{version}.nupkg"
                 download_package(package_id, version, bases, destination)
                 register_package(identities, destination)
-        if not identities:
-            raise ValueError("PKR015 no runtime packages were produced for the runnable host image.")
         for name in ("hostsettings.json", "shells.json"):
             source = repository / name
             if not source.is_file():
@@ -442,10 +460,13 @@ def stage(repository: Path, package_output: Path, output: Path) -> None:
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(profile_shells, destination)
         validate_feature_closure(staging / "shells.json", identities)
+        if not identities:
+            raise ValueError("PKR015 no runtime packages were produced for the runnable host image.")
         if output.exists():
             shutil.rmtree(output)
         output.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(staging, output)
+    runtime_closure.write_success(repository, output, evidence, PROGRAM_KIT_VERSION)
     print(f"staged runnable host image inputs in {output}")
 
 
@@ -463,9 +484,24 @@ def reject_embedded_secrets(value: object, path: str = "$") -> None:
             reject_embedded_secrets(child, f"{path}[{index}]")
 
 
-def describe(repository: Path, staged: Path, image: str, tag: str, digest: str, output: Path) -> None:
+def describe(
+    repository: Path,
+    staged: Path,
+    image: str,
+    tag: str,
+    digest: str,
+    output: Path,
+    closure_evidence: Path | None = None,
+) -> None:
     if not re.fullmatch(r"sha256:[a-f0-9]{64}", digest):
         raise ValueError("PKR018 image digest must be a lowercase sha256 digest.")
+    closure_path = closure_evidence or repository / runtime_closure.EVIDENCE
+    closure = runtime_closure.validate(
+        repository,
+        staged,
+        closure_path,
+        PROGRAM_KIT_VERSION,
+    )
     hostsettings_path, shells_path = staged / "hostsettings.json", staged / "shells.json"
     profile_shells_path = staged / ".program-kit/web-profile.shells.json"
     hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
@@ -491,6 +527,12 @@ def describe(repository: Path, staged: Path, image: str, tag: str, digest: str, 
             "digest": digest,
             "reference": f"{image}@{digest}",
         },
+        "runtimeClosure": {
+            "evidence": runtime_closure.relative(repository, closure_path, "runtime closure evidence"),
+            "digest": closure["closureDigest"],
+            "packageCount": len(closure["packages"]),
+            "packageHashesAreRunScoped": True,
+        },
         "configuration": {
             "hostsettings": hostsettings,
             "hostsettingsSha256": sha256(hostsettings_path),
@@ -512,6 +554,7 @@ def main() -> int:
     stage_parser.add_argument("--repository", default=".")
     stage_parser.add_argument("--packages", required=True)
     stage_parser.add_argument("--output", required=True)
+    stage_parser.add_argument("--evidence", default=str(runtime_closure.EVIDENCE))
     describe_parser = subparsers.add_parser("describe")
     describe_parser.add_argument("--repository", default=".")
     describe_parser.add_argument("--staged", required=True)
@@ -519,20 +562,32 @@ def main() -> int:
     describe_parser.add_argument("--tag", required=True)
     describe_parser.add_argument("--digest", required=True)
     describe_parser.add_argument("--output", required=True)
+    describe_parser.add_argument("--closure-evidence", default=str(runtime_closure.EVIDENCE))
     args = parser.parse_args()
-    repository = Path(args.repository).resolve()
-    if args.command == "stage":
-        stage(repository, Path(args.packages).resolve(), Path(args.output).resolve())
-    else:
-        describe(
-            repository,
-            Path(args.staged).resolve(),
-            args.image,
-            args.tag,
-            args.digest,
-            Path(args.output).resolve(),
-        )
-    return 0
+    try:
+        repository = Path(args.repository).resolve()
+        if args.command == "stage":
+            evidence = Path(args.evidence)
+            if not evidence.is_absolute():
+                evidence = repository / evidence
+            stage(repository, Path(args.packages).resolve(), Path(args.output).resolve(), evidence.resolve())
+        else:
+            closure_evidence = Path(args.closure_evidence)
+            if not closure_evidence.is_absolute():
+                closure_evidence = repository / closure_evidence
+            describe(
+                repository,
+                Path(args.staged).resolve(),
+                args.image,
+                args.tag,
+                args.digest,
+                Path(args.output).resolve(),
+                closure_evidence.resolve(),
+            )
+        return 0
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as error:
+        print(str(error), file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

@@ -180,7 +180,11 @@ def render_realm(source: bytes, configuration: dict) -> bytes:
     spa["publicClient"] = True
     spa.pop("secret", None)
     spa["redirectUris"] = configuration["redirectUris"]
-    spa["postLogoutRedirectUris"] = configuration["postLogoutRedirectUris"]
+    spa.pop("postLogoutRedirectUris", None)
+    attributes = spa.setdefault("attributes", {})
+    if not isinstance(attributes, dict):
+        raise ValueError("PKW106 managed Keycloak SPA client attributes must be an object")
+    attributes["post.logout.redirect.uris"] = "##".join(configuration["postLogoutRedirectUris"])
     spa["webOrigins"] = [configuration["applicationOrigin"]]
     spa["defaultClientScopes"] = [
         "basic", "profile", "roles", "web-origins", "acr", audience
@@ -270,7 +274,12 @@ def verify_outputs(repository: Path, configuration: dict) -> None:
         raise ValueError("PKW108 the SPA must be a public Keycloak client without a secret")
     if any(item.get("clientId") == "program-kit-bff" for item in realm.get("clients", [])):
         raise ValueError("PKW108 the SPA fixture must not enable the alternative confidential BFF client")
-    if spa.get("redirectUris") != configuration["redirectUris"] or spa.get("postLogoutRedirectUris") != configuration["postLogoutRedirectUris"]:
+    if (
+        spa.get("redirectUris") != configuration["redirectUris"]
+        or spa.get("attributes", {}).get("post.logout.redirect.uris")
+        != "##".join(configuration["postLogoutRedirectUris"])
+        or "postLogoutRedirectUris" in spa
+    ):
         raise ValueError("PKW109 Keycloak exact redirect registrations do not match the SPA-PKCE input")
     session = configuration["session"]
     for name, expected_value in {

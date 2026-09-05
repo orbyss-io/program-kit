@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import oasdiff_cli
+
 
 HTTP_METHODS = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
 
@@ -56,13 +58,7 @@ def validate_operation_identity(document: dict) -> None:
 
 
 def check_tool(command: str, expected: str) -> None:
-    try:
-        result = subprocess.run([command, "version"], check=False, capture_output=True, text=True, timeout=10)
-    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
-        raise ValueError(f"PKO006 pinned oasdiff {expected} is unavailable: {error}") from error
-    output = (result.stdout + result.stderr).strip()
-    if result.returncode != 0 or expected not in output:
-        raise ValueError(f"PKO007 expected oasdiff {expected}; resolved output was {output!r}")
+    oasdiff_cli.require(command, Path.cwd(), expected)
 
 
 def approved(path: Path | None, baseline_hash: str, current_hash: str, version: str) -> bool:

@@ -31,6 +31,17 @@ def _profile_client(template_root: Path, web_profile: str) -> dict:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"PKW113 expected one profile client object in {path}")
+    redirects = value.pop("postLogoutRedirectUris", None)
+    if (
+        not isinstance(redirects, list)
+        or not redirects
+        or any(not isinstance(item, str) or not item for item in redirects)
+    ):
+        raise ValueError(f"PKW113 profile client {path} must declare exact postLogoutRedirectUris")
+    attributes = value.setdefault("attributes", {})
+    if not isinstance(attributes, dict):
+        raise ValueError(f"PKW113 profile client {path} attributes must be an object")
+    attributes["post.logout.redirect.uris"] = "##".join(redirects)
     return value
 
 
@@ -81,6 +92,14 @@ def validate_realm(
     if api.get("bearerOnly") is not True:
         raise ValueError("PKW113 the API audience must remain a bearer-only Keycloak client")
     profile_client = realm["clients"][1]
+    if "postLogoutRedirectUris" in profile_client:
+        raise ValueError(
+            "PKW113 Keycloak ClientRepresentation does not accept postLogoutRedirectUris; "
+            "use the post.logout.redirect.uris client attribute"
+        )
+    logout_attribute = profile_client.get("attributes", {}).get("post.logout.redirect.uris")
+    if not isinstance(logout_attribute, str) or not logout_attribute:
+        raise ValueError("PKW113 the selected client has no exact Keycloak post-logout redirect attribute")
     if web_profile == "bff-cookie":
         if profile_client.get("publicClient") is not False or not profile_client.get("secret"):
             raise ValueError("PKW113 the selected BFF client must remain confidential")

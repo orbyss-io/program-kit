@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace ProgramKit.OpenApiExport;
 
@@ -33,11 +34,26 @@ internal sealed class PackageSet
         var descriptors = new Dictionary<string, FeatureDescriptor>(StringComparer.Ordinal);
         var assemblies = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         var hashes = new Dictionary<string, string>(StringComparer.Ordinal);
+        var packageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var package in Directory.EnumerateFiles(directory, "*.nupkg").Order())
         {
             hashes[Path.GetFileName(package)] = Convert.ToHexStringLower(
                 SHA256.HashData(File.ReadAllBytes(package)));
             using var archive = ZipFile.OpenRead(package);
+            var nuspec = archive.Entries.SingleOrDefault(item =>
+                item.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException(
+                    $"staged package '{Path.GetFileName(package)}' must contain exactly one nuspec.");
+            using (var nuspecStream = nuspec.Open())
+            {
+                var document = XDocument.Load(nuspecStream);
+                var metadata = document.Descendants().Single(item => item.Name.LocalName == "metadata");
+                var stagedPackageId = metadata.Elements()
+                    .Single(item => item.Name.LocalName == "id").Value;
+                if (!packageIds.Add(stagedPackageId))
+                    throw new InvalidOperationException(
+                        $"multiple staged packages have package id '{stagedPackageId}'.");
+            }
             var descriptorEntry = archive.GetEntry("program-kit/feature.json");
             string? packageId = null;
             string? identity = null;
@@ -88,6 +104,22 @@ internal sealed class PackageSet
                 throw new InvalidOperationException(
                     $"multiple staged packages claim feature identity '{identity}'.");
             }
+        }
+        foreach (var (identity, definition) in BuiltInFeatures.Definitions)
+        {
+            if (!packageIds.Contains(definition.PackageId) || descriptors.ContainsKey(identity))
+                continue;
+            if (!assemblies.ContainsKey(definition.PackageId))
+                throw new InvalidOperationException(
+                    $"built-in feature package '{definition.PackageId}' has no compatible managed assembly.");
+            descriptors.Add(
+                identity,
+                new FeatureDescriptor(
+                    identity,
+                    definition.PackageId,
+                    definition.PackageId,
+                    definition.Dependencies,
+                    definition.Routes));
         }
         return new PackageSet(descriptors, assemblies, hashes);
     }

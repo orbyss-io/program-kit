@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.9.4 - 2026-09-05
+
+- Compose profile-owned and consumer-owned shell configuration into one canonical effective feature
+  set. Authentication, web defaults, OpenAPI, and optional Problem Details stay independently
+  packaged CShell features; consumer overrides, including explicit disablement, remain authoritative.
+- Make OpenAPI export reconstruct the same runtime feature graph as the host, fail on missing
+  prerequisites, use the official `oasdiff` CLI contract, and isolate every NuGet and .NET cache
+  used by managed build and export operations inside the repository.
+- Add hash-bound, same-run runtime-closure evidence for staged packages and configuration, and
+  require both runnable-host description and OpenAPI export to validate it before proceeding.
+- Preflight the Specify CLI before upgrade mutation, emit exact lock-file renewal evidence when
+  Program Kit NuGet pins change, and verify public NuGet propagation after publication.
+- Tighten authorization ownership checks so application policy remains resource/state based while
+  provider claims and canonical permission parsing stay in the packaged authentication boundary.
+- Confine local test-persona credentials to the marked Keycloak fixture, generate supported
+  post-logout redirect attributes, validate both realm variants against the pinned Keycloak image,
+  and attach immutable host-image digest evidence to the GitHub release.
+
 ## 0.9.3 - 2026-09-05
 
 - Preflight registered consumer-owned OpenAPI contracts before a pin-changing Program Kit upgrade.

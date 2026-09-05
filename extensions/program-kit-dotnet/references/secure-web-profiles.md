@@ -93,6 +93,9 @@ must be tightened or minimally adapted to the actual frontend resource model.
   issue the configured canonical permission claim directly.
 - policies use stable application requirements such as `permission:catalog.administer`; endpoint
   implementations do not parse provider token shapes or hard-code provider role names.
+- consumer features also do not reparse the normalized canonical permission claim. The managed
+  dynamic `permission:<identity>` policy is the endpoint authority. A no-effect access probe stops
+  there; only a real resource/state/effect decision adds an owning `.Api` authorization handler.
 - endpoints require authenticated users by fallback policy unless they explicitly opt into anonymous
   access. Login initiation and protocol callback endpoints are the standard anonymous set; any health
   endpoint needs a separately owned contract.

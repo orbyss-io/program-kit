@@ -72,6 +72,9 @@ jobs:
       - name: Validate profile-gated .NET scaffold
         run: python tests/validate_dotnet_scaffold.py
 
+      - name: Import generated realms into pinned Keycloak
+        run: python tests/validate_keycloak_realm_import.py
+
       - name: Validate .NET runtime version coherence
         run: python tests/validate_dotnet_runtime.py
 
@@ -123,11 +126,19 @@ jobs:
           )
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
-          else
-            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+          elif ! gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
               --verify-tag \
               --title "Program Kit $GITHUB_REF_NAME" \
-              --generate-notes
+              --generate-notes; then
+            for attempt in {1..12}; do
+              if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+                gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "release creation failed and no concurrent release became visible" >&2
+            exit 1
           fi
 
       - name: Test live public catalog installation

@@ -99,6 +99,9 @@ contract checks the mandatory governance sections and selected runtime profile; 
 - Authenticated `.Api` implementations own permission/policy metadata on their actual endpoint
   groups. Reject consumer-root `Administration.Api`/`Platform.WebBoundary` packages that merely
   duplicate selected Program Kit host web plumbing.
+- Reject consumer parsing of provider roles/token shapes or canonical permission claims. A
+  bodyless/no-effect probe uses the managed endpoint policy only; a real protected effect also names
+  and verifies its owning resource/state/effect authorization rule.
 - Authenticated browser boundaries inherit `program-kit-web-threat-model-v1` and
   `program-kit-web-security-evidence-v1`; overrides identify the affected `WEB-Cxx`, `WEB-Dxx`, or
   residual-risk control, an owner, review condition, and executable evidence.

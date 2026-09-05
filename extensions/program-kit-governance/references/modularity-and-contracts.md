@@ -150,6 +150,11 @@ authority, audience, origins, claim mappings, and limits.
 Each `.Api` implementation owns its route groups, wire models, endpoint-specific validation and
 bounds, OpenAPI metadata, stable application permission identities, and policy/rate requirements.
 Provider roles and token shapes are normalized by the host boundary; endpoints do not parse them.
+Keep three owners distinct: deployment selects provider-role/scope mappings, the Program Kit
+authentication feature normalizes and evaluates dynamic `permission:<identity>` policies, and the
+owning application/domain capability evaluates resource/state/effect rules. Do not duplicate either
+of the first two in a consumer feature. For a no-effect probe, the endpoint policy is the complete
+authorization decision; for a protected business effect it is only the outer gate.
 Do not create an application-root `Administration.Api` or `Platform.WebBoundary` project merely to
 repeat generic host plumbing.
 

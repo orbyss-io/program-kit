@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import js_toolchain
+import oasdiff_cli
 
 
 def configure_utf8() -> None:
@@ -39,17 +40,8 @@ def run_version(command: list[str], repository: Path) -> str | None:
 
 
 def oasdiff_version(command: Path, repository: Path) -> str | None:
-    try:
-        result = subprocess.run(
-            [str(command), "version"], cwd=repository, capture_output=True, text=True,
-            encoding="utf-8", errors="replace", check=False, timeout=10,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    if result.returncode != 0:
-        return None
-    match = re.search(r"\bv?(\d+\.\d+\.\d+)\b", result.stdout + result.stderr)
-    return match.group(1) if match else None
+    version, _ = oasdiff_cli.detect(command, repository)
+    return version
 
 
 def resolve_oasdiff(repository: Path, required: str, requested: str) -> tuple[Path | None, str | None]:

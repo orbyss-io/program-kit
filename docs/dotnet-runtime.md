@@ -95,6 +95,21 @@ publishes that fully runnable image, obtains its registry digest, and emits `run
 descriptor contains only application/version provenance, image repository/tag/digest, and the exact
 secret-free Nuplane/CShells configuration—including the selected profile overlay—with hashes.
 `ProgramKit.Host` never consumes the descriptor.
+
+`runnable_host.py stage` writes `.program-kit/evidence/runtime-closure.json` only after validating
+the exact staged package/configuration bytes. It first marks prior evidence unsatisfied, so a failed
+or interrupted restage cannot leave a usable stale manifest. Package hashes are deliberately
+run-scoped: consumer `dotnet pack` ZIP timestamps can change the nupkg bytes across equivalent pack
+runs. OpenAPI export and `runnable_host.py describe` therefore verify and consume the same staged
+run; they do not rebuild packages between evidence and use. Reproducible consumer nupkg bytes are
+welcome but are not a Program Kit correctness requirement.
+
+Immediately after a release, a workstation may retain stale NuGet HTTP metadata and report that the
+new exact version does not exist even after NuGet.org's public flat-container endpoint is ready. Do
+not delete global caches. Retry the approved restore once with
+`dotnet restore <solution> --no-cache --configfile NuGet.config`; subsequent normal locked restores
+may reuse the refreshed repository-confined result. The publication workflow independently waits for
+every package at the public flat-container endpoint before declaring the NuGet release successful.
 The checked `.program-kit/runnable-host.schema.json` declares the profile overlay and its digest as
 required nullable fields, matching the producer whether an authenticated profile contribution is
 staged or absent.

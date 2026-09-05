@@ -21,8 +21,9 @@
           "ownership": "managed",
           "expectedHashes": [
             "77dac0f2b3a8bcc1c7fe955b0138a1c42f27959ba3c8bf94fa5ffd2990fcd491",
-            "5b7c5b2b7244bae5d17cf9ba8ffb6e527b0bfec69bd98bbf2e979ffeb7820351",
-            "f616f8b66a2f51723d95e719bb3487b5aea398ac89d7e5ce6d860e081c41a0c1"
+              "5b7c5b2b7244bae5d17cf9ba8ffb6e527b0bfec69bd98bbf2e979ffeb7820351",
+              "f616f8b66a2f51723d95e719bb3487b5aea398ac89d7e5ce6d860e081c41a0c1",
+              "0dbad17ad72c2dc4d66dcd18a457f917bed318c4e518e8e021f71931fee4ab10"
           ]
         },
         {

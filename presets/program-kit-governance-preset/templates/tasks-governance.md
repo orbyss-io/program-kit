@@ -17,3 +17,6 @@ For each vertical outcome, include the task sequence that delivers and verifies 
   `hostsettings.json`, package-closure staging, and digest-bound external-host evidence tasks.
 - **Dependency graph protection**: resolve exact npm peer, engine, and platform constraints in an
   isolated lockfile-only check before implementation; never use force/legacy peer bypasses.
+- **Authorization ownership protection**: test managed endpoint permission metadata and real
+  resource/state/effect rules separately; never task a consumer feature with parsing provider roles
+  or canonical permission claims, and do not invent an inner service for a no-effect access probe.

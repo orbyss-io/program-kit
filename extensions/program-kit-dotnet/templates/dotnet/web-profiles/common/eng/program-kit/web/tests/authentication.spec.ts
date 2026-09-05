@@ -1,10 +1,5 @@
 import { expect, type Browser, type BrowserContext, type Page, test } from '@playwright/test';
-
-const personas = {
-  user: { username: 'local-user', password: 'local-user-only' },
-  admin: { username: 'local-admin', password: 'local-admin-only' },
-  wrongRole: { username: 'local-wrong-role', password: 'local-wrong-role-only' },
-} as const;
+import { personas } from '../persona-fixture.js';
 
 async function authenticatedContext(
   browser: Browser,

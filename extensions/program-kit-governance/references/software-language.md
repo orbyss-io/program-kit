@@ -14,6 +14,13 @@ A policy is a named, side-effect-free evaluation over explicit inputs. Its resul
 
 Authorization is a policy evaluated before protected effects. Authentication establishes identity; it does not itself grant authority.
 
+Authorization has proportional boundaries. Provider roles, scopes, and token shapes are normalized
+once at the authentication boundary; transport endpoints name stable application permission
+requirements; application/domain policies decide genuine resource, state, and effect rules. A
+bodyless or no-effect access probe ends at the transport permission decision and does not justify a
+second application service or claim parser. A protected business effect still requires both the
+transport permission gate and its real application/domain authorization rule.
+
 ## Transition path
 
 Commands, queries, triggers, and messages enter a guarded path. Every path ends with an explicit outcome: success, rejection, failure, cancellation, or durable asynchronous acceptance with an operation identity. Unexpected exceptions are defects or infrastructure failures, not a control-flow language.

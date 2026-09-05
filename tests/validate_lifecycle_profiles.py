@@ -10,6 +10,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 from xml.etree import ElementTree
 
 import yaml
@@ -19,6 +20,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def module(path: Path, name: str):
+    parent = str(path.parent)
+    if parent not in sys.path:
+        sys.path.insert(0, parent)
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise AssertionError(f"Could not load {path}")
@@ -448,7 +452,7 @@ def validate_release_feature_closure() -> None:
         (clean_repository / "hostsettings.json").write_text("{}\n", encoding="utf-8")
         clean_packages = root / "clean-packages"
         clean_packages.mkdir()
-        clean_output = root / "clean-stage"
+        clean_output = clean_repository / "artifacts/runnable-host"
         original_bases = release.package_base_addresses
         original_download = release.download_package
         release.package_base_addresses = lambda sources: ["https://example.invalid/flat"]
@@ -469,16 +473,50 @@ def validate_release_feature_closure() -> None:
             raise AssertionError("activated ProgramKitTasks was not seeded from its managed package pin")
         if not (clean_output / "packages/ProgramKit.DomainEvents.1.0.0.nupkg").is_file():
             raise AssertionError("activated ProgramKit.DomainEvents was not seeded from its managed package pin")
+        closure_evidence = clean_repository / ".program-kit/evidence/runtime-closure.json"
+        closure = json.loads(closure_evidence.read_text(encoding="utf-8"))
+        if (
+            closure.get("satisfied") is not True
+            or closure.get("packageHashesAreRunScoped") is not True
+            or len(closure.get("packages", [])) != 2
+        ):
+            raise AssertionError(f"same-run runtime closure evidence is incomplete: {closure}")
+        valid_shells = (clean_repository / "shells.json").read_bytes()
+        (clean_repository / "shells.json").write_text(
+            json.dumps({"CShells": {"Shells": {"default": {"Features": {"Missing": {}}}}}}),
+            encoding="utf-8",
+        )
+        try:
+            release.stage(clean_repository, clean_packages, clean_output)
+        except ValueError as error:
+            if "PKR009" not in str(error):
+                raise
+        else:
+            raise AssertionError("invalid runtime stage unexpectedly succeeded")
+        failed_evidence = json.loads(closure_evidence.read_text(encoding="utf-8"))
+        if failed_evidence.get("satisfied") is not False:
+            raise AssertionError("a partial failed runtime stage retained satisfied closure evidence")
+        (clean_repository / "shells.json").write_bytes(valid_shells)
 
-        staged = root / "staged"
-        staged.mkdir()
+        repository = root / "repository"
+        repository.mkdir()
+        (repository / "VERSION").write_text("1.2.3\n", encoding="utf-8")
+        staged = repository / "artifacts/runnable-host"
+        staged.mkdir(parents=True)
         hostsettings = {"Nuplane": {"Loading": {"Enabled": True}}}
         shells_value = {"CShells": {"Shells": {"default": {"Features": {}}}}}
         (staged / "hostsettings.json").write_text(json.dumps(hostsettings), encoding="utf-8")
         (staged / "shells.json").write_text(json.dumps(shells_value), encoding="utf-8")
-        repository = root / "repository"
-        repository.mkdir()
-        (repository / "VERSION").write_text("1.2.3\n", encoding="utf-8")
+        staged_packages = staged / "packages"
+        staged_packages.mkdir()
+        shutil.copyfile(tasks, staged_packages / tasks.name)
+        descriptor_evidence = repository / ".program-kit/evidence/runtime-closure.json"
+        release.runtime_closure.write_success(
+            repository,
+            staged,
+            descriptor_evidence,
+            release.PROGRAM_KIT_VERSION,
+        )
         output = root / "runnable-host.json"
         previous_sha = os.environ.get("GITHUB_SHA")
         os.environ["GITHUB_SHA"] = "a" * 40
@@ -496,8 +534,37 @@ def validate_release_feature_closure() -> None:
                 raise AssertionError("runnable-host descriptor did not bind the immutable image")
             if descriptor["configuration"]["shells"] != shells_value:
                 raise AssertionError("runnable-host descriptor did not capture CShells settings")
+            original_shells = (staged / "shells.json").read_bytes()
+            (staged / "shells.json").write_text('{"changed":true}\n', encoding="utf-8")
+            try:
+                release.describe(
+                    repository,
+                    staged,
+                    "ghcr.io/example/application",
+                    "v1.2.3",
+                    "sha256:" + "b" * 64,
+                    output,
+                )
+            except ValueError as error:
+                if "PKR022" not in str(error):
+                    raise
+            else:
+                raise AssertionError("release describe accepted stale runtime-closure evidence")
+            (staged / "shells.json").write_bytes(original_shells)
+            release.runtime_closure.write_success(
+                repository,
+                staged,
+                descriptor_evidence,
+                release.PROGRAM_KIT_VERSION,
+            )
             (staged / "hostsettings.json").write_text(
                 json.dumps({"ConnectionStrings": {"Password": "do-not-publish"}}), encoding="utf-8"
+            )
+            release.runtime_closure.write_success(
+                repository,
+                staged,
+                descriptor_evidence,
+                release.PROGRAM_KIT_VERSION,
             )
             try:
                 release.describe(
@@ -518,6 +585,29 @@ def validate_release_feature_closure() -> None:
                 os.environ.pop("GITHUB_SHA", None)
             else:
                 os.environ["GITHUB_SHA"] = previous_sha
+
+        with patch.object(release.subprocess, "run") as run_git:
+            run_git.return_value = subprocess.CompletedProcess(
+                ["git"], 0, stdout="c" * 40 + "\n", stderr=""
+            )
+            resolved = release.source_commit(repository.resolve())
+            if resolved != "c" * 40:
+                raise AssertionError("sandbox-safe Git commit resolution lost the exact commit")
+            command = run_git.call_args.args[0]
+            if (
+                f"safe.directory={repository.resolve()}" not in command
+                or not any(item.startswith("core.excludesFile=") for item in command)
+                or command[-3:] != [str(repository.resolve()), "rev-parse", "HEAD"]
+            ):
+                raise AssertionError(f"source commit resolution is not repository-confined: {command}")
+
+        try:
+            release.source_commit(root / "not-a-git-repository")
+        except ValueError as error:
+            if "PKR020" not in str(error):
+                raise
+        else:
+            raise AssertionError("non-Git runnable-host evidence did not fail actionably")
 
 
 def validate_preflight_seams() -> None:
@@ -784,11 +874,14 @@ def validate_managed_sources() -> None:
         (template / "files/.program-kit/runnable-host.schema.json").read_text(encoding="utf-8")
     )
     required = set(runnable_schema.get("required", []))
-    if required != {"schemaVersion", "application", "hostImage", "configuration"}:
+    if required != {"schemaVersion", "application", "hostImage", "runtimeClosure", "configuration"}:
         raise AssertionError("runnable-host schema does not close over image identity and configuration")
     host_image = runnable_schema["properties"]["hostImage"]
     if "digest" not in host_image.get("required", []) or "reference" not in host_image.get("required", []):
         raise AssertionError("runnable-host schema does not require immutable image identity")
+    runtime_closure_schema = runnable_schema["properties"]["runtimeClosure"]
+    if {"evidence", "digest", "packageCount"} - set(runtime_closure_schema.get("required", [])):
+        raise AssertionError("runnable-host schema does not require runtime-closure identity")
     persistence = ROOT / "extensions/program-kit-dotnet/references/persistence-profiles.md"
     text = persistence.read_text(encoding="utf-8")
     for phrase in ("ef-postgresql", "ef-sqlserver", "ef-sqlite", "IEntityTypeConfiguration", "Testcontainers", "generic repository", "lazy-loading"):
@@ -884,7 +977,7 @@ def validate_openapi_initialization() -> None:
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
-                "tools": {"programkit.openapi.exporter": {"version": "0.9.3-preview.1"}}
+                "tools": {"programkit.openapi.exporter": {"version": "0.9.4-preview.1"}}
             }),
             encoding="utf-8",
         )
@@ -906,7 +999,7 @@ def validate_openapi_initialization() -> None:
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
         )
         if (
-            contract["producer"]["version"] != "0.9.3-preview.1"
+            contract["producer"]["version"] != "0.9.4-preview.1"
             or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
@@ -1533,7 +1626,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.3-preview.1"},
+            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.4-preview.1"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1568,7 +1661,7 @@ def validate_artifact_ownership() -> None:
                     "isRoot": True,
                     "tools": {
                         "programkit.openapi.exporter": {
-                            "version": "0.9.3-preview.1",
+                            "version": "0.9.4-preview.1",
                             "commands": ["programkit-openapi-export"],
                         }
                     },
@@ -1598,6 +1691,93 @@ def validate_artifact_ownership() -> None:
             raise AssertionError("OpenAPI planning passed without the managed producer")
 
 
+def validate_authorization_boundaries() -> None:
+    ownership = module(
+        ROOT / "extensions/program-kit-governance/scripts/artifact_ownership.py",
+        "authorization_ownership",
+    )
+    with tempfile.TemporaryDirectory(prefix="program-kit-authorization-ownership-") as value:
+        root = Path(value)
+        (root / ".specify").mkdir()
+        feature = root / "specs/001-access-probe"
+        feature.mkdir(parents=True)
+        project = root / "src/Access.Api/Access.Api.csproj"
+        project.parent.mkdir(parents=True)
+        project.write_text('<Project Sdk="Microsoft.NET.Sdk" />\n', encoding="utf-8")
+        manifest = {
+            "profiles": ["program-kit", "dotnet"],
+            "runtimeComposition": {
+                "projects": [
+                    {
+                        "path": "src/Access.Api/Access.Api.csproj",
+                        "role": "implementation",
+                        "featureIdentities": ["Access.Api"],
+                    }
+                ]
+            },
+        }
+        (feature / "spec.md").write_text(
+            "A bodyless access probe proves transport authorization without a business effect.\n",
+            encoding="utf-8",
+        )
+        (feature / "plan.md").write_text(
+            'Map GET /api/access/probe and call RequireAuthorization("permission:calculator-user").\n',
+            encoding="utf-8",
+        )
+        endpoint = project.parent / "AccessFeature.cs"
+        endpoint.write_text(
+            'endpoints.MapGet("/api/access/probe", () => Results.NoContent())'
+            '.RequireAuthorization("permission:calculator-user");\n',
+            encoding="utf-8",
+        )
+        ownership.validate_authorization_ownership(feature, manifest, False)
+
+        endpoint.write_text(
+            'var allowed = user.HasClaim(ProgramKitWebOptions.PermissionClaim, requiredPermission);\n',
+            encoding="utf-8",
+        )
+        try:
+            ownership.validate_authorization_ownership(feature, manifest, False)
+        except ValueError as error:
+            if "PKA016" not in str(error) or "reparses canonical permission" not in str(error):
+                raise
+        else:
+            raise AssertionError("duplicate canonical permission parser passed authorization ownership")
+
+        endpoint.write_text('var allowed = user.IsInRole("provider-admin");\n', encoding="utf-8")
+        try:
+            ownership.validate_authorization_ownership(feature, manifest, False)
+        except ValueError as error:
+            if "PKA016" not in str(error) or "provider roles" not in str(error):
+                raise
+        else:
+            raise AssertionError("provider-role parsing passed authorization ownership")
+
+        (feature / "spec.md").write_text(
+            "An identified quote adjustment changes protected pricing state.\n", encoding="utf-8"
+        )
+        endpoint.write_text(
+            "public bool CanAdjust(Quote quote, ClaimsPrincipal user) => "
+            "quote.OwnerSubject == user.Identity!.Name && quote.State == QuoteState.Draft;\n",
+            encoding="utf-8",
+        )
+        ownership.validate_authorization_ownership(feature, manifest, False)
+
+        (feature / "spec.md").write_text(
+            "A bodyless access probe has no business effect.\n", encoding="utf-8"
+        )
+        (feature / "plan.md").write_text(
+            "Create AccessPermissionPolicy as an inner authorization policy.\n", encoding="utf-8"
+        )
+        try:
+            ownership.validate_authorization_ownership(feature, manifest, False)
+        except ValueError as error:
+            if "PKA016" not in str(error) or "no-effect access probe" not in str(error):
+                raise
+        else:
+            raise AssertionError("synthetic no-effect probe service passed proportional authorization validation")
+
+
 def main() -> int:
     validate_hooks()
     validate_lifecycle()
@@ -1612,6 +1792,7 @@ def main() -> int:
     validate_npm_graph()
     validate_sync_preservation()
     validate_artifact_ownership()
+    validate_authorization_boundaries()
     print("Lifecycle, activation, profile, ownership, and UTF-8 contracts passed.")
     return 0
 

@@ -23,5 +23,8 @@ These defaults apply unless a narrower rule is justified and documented:
   an explicitly accepted integration-event/outbox design; fire-and-forget is not a bridge.
 - Treat concrete inheritance across feature boundaries as stronger coupling, not an automatic exception. Require an Accepted ADR and an architecture-test allowlist for a genuine feature-family extension.
 - Keep dependency injection and service location at composition boundaries. Business behavior declares explicit constructor dependencies and does not resolve arbitrary services from a container.
+- Reuse the selected authentication feature's canonical permission policy. Consumer features do not
+  parse provider roles/token shapes or reparse canonical permission claims; add a resource-specific
+  authorization handler only for a real resource, state, tenancy, or protected-effect decision.
 
 Apply rules proportionally. Pure transformations and trivial adapters should remain small; they do not need ceremony that adds no invariant, policy, or lifecycle value.

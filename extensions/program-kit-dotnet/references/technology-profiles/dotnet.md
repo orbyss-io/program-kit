@@ -200,6 +200,10 @@ parse provider token shapes, implement login/logout, or return tokens. Deploymen
 provider roles, scopes, or claims to canonical application permissions. Resource-specific
 authorization handlers stay with the owning `.Api` implementation when generic permission metadata
 cannot express the rule.
+Do not add a feature-side provider-role parser, canonical `permissions` claim parser, or wrapper
+`*PermissionPolicy` around the managed dynamic policy provider. A bodyless/no-effect permission probe
+uses only `.RequireAuthorization("permission:<identity>")`. A command or query that changes, reveals,
+or admits protected business state additionally invokes the owning resource/state/effect rule.
 
 ## Domain and persistence rules
 

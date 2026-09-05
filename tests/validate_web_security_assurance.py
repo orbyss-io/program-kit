@@ -156,6 +156,8 @@ def main() -> int:
         profile_root = root / "extensions/program-kit-dotnet/templates/dotnet/web-profiles" / profile_directory
         manifest = load_object(profile_root / "managed-files.json")
         files = {item["path"]: item for item in manifest["files"]}
+        if "eng/program-kit/web/persona-fixture.ts" not in files:
+            raise AssertionError(f"{profile_directory} does not ship the validated persona-fixture loader")
         for destination, source in (
             (".program-kit/security/web-security-evidence.json", "web-security-evidence.json"),
             ("docs/architecture/program-kit/web-security-threat-model.md", "web-security-threat-model.md"),
@@ -248,6 +250,33 @@ def main() -> int:
         if required not in feature_source:
             raise AssertionError(f"CShells feature packages do not implement the web contract: {required}")
     web_profiles_root = root / "extensions/program-kit-dotnet/templates/dotnet/web-profiles"
+    realm_fixture = web_profiles_root / "common/deploy/keycloak/program-kit-realm.json"
+    realm = load_object(realm_fixture)
+    if realm.get("attributes", {}).get("programKitFixture") != "local-non-production-only":
+        raise AssertionError("The managed identity personas are not explicitly local/non-production")
+    fixture_passwords = {
+        credential["value"]
+        for user in realm.get("users", [])
+        for credential in user.get("credentials", [])
+        if credential.get("type") == "password"
+    }
+    if len(fixture_passwords) != 3:
+        raise AssertionError("The local identity fixture must define exactly three persona passwords")
+    occurrences: dict[str, list[str]] = {password: [] for password in fixture_passwords}
+    for path in root.rglob("*"):
+        if (
+            not path.is_file()
+            or any(part in {".git", "artifacts", "bin", "obj", "node_modules", "__pycache__"} for part in path.parts)
+            or path.suffix.lower() not in {".json", ".md", ".py", ".ps1", ".ts", ".cs", ".yml", ".yaml"}
+        ):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for password in fixture_passwords:
+            if password in text:
+                occurrences[password].append(path.relative_to(root).as_posix())
+    expected_fixture = realm_fixture.relative_to(root).as_posix()
+    if any(paths != [expected_fixture] for paths in occurrences.values()):
+        raise AssertionError(f"Managed local persona password escaped its authorized fixture: {occurrences}")
     browser_contract = "\n".join(
         path.read_text(encoding="utf-8")
         for pattern in ("*.ts", "*.ps1")
@@ -259,6 +288,13 @@ def main() -> int:
         web_profiles_root
         / "common/eng/program-kit/web/tests/authentication.spec.ts"
     ).read_text(encoding="utf-8")
+    if "../persona-fixture.js" not in permission_probe:
+        raise AssertionError("The BFF browser contract does not load personas from the managed realm fixture")
+    spa_probe = (
+        web_profiles_root / "spa-pkce/eng/program-kit/web/tests/authentication.spec.ts"
+    ).read_text(encoding="utf-8")
+    if "../persona-fixture.js" not in spa_probe:
+        raise AssertionError("The SPA browser contract does not load personas from the managed realm fixture")
     for required in (
         "const authorizedResponse = await authorized.request.get(path);",
         "expect(authorizedResponse.ok()).toBeTruthy();",

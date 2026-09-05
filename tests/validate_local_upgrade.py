@@ -306,6 +306,32 @@ def main() -> int:
             sys.executable, str(UPDATER), "--release-root", str(ROOT),
             "--target", str(project), "--integration", "codex",
         )
+        blocked_cli = project / "blocked_specify.py"
+        blocked_cli.write_text(
+            "import sys\nprint('sandbox denied the installed Specify interpreter', file=sys.stderr)\n"
+            "raise SystemExit(101)\n",
+            encoding="utf-8",
+        )
+        before_preflight = {
+            path.relative_to(project).as_posix(): sha256(path)
+            for path in project.rglob("*")
+            if path.is_file()
+        }
+        blocked = run(
+            *command,
+            "--specify-command-json",
+            json.dumps([sys.executable, str(blocked_cli)]),
+            cwd=project,
+        )
+        after_preflight = {
+            path.relative_to(project).as_posix(): sha256(path)
+            for path in project.rglob("*")
+            if path.is_file()
+        }
+        if blocked.returncode != 2 or "PKU112" not in blocked.stderr:
+            raise AssertionError(f"inaccessible Specify launcher was not rejected:\n{blocked.stdout}{blocked.stderr}")
+        if before_preflight != after_preflight or (project / ".specify/program-kit-upgrade.lock").exists():
+            raise AssertionError("Specify executable preflight mutated the consumer repository")
         installed = run(*command, cwd=project)
         require_success(installed, "local release upgrade")
         order = (
@@ -358,6 +384,26 @@ def main() -> int:
         old_runtime = "0.0.0-preview.1"
         target_runtime = (ROOT / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
         feature = seed_openapi_lifecycle(project, old_runtime)
+        (project / "Program.slnx").write_text("<Solution />\n", encoding="utf-8")
+        (project / "packages.lock.json").write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "dependencies": {
+                        "net10.0": {
+                            "ProgramKit.Authentication": {
+                                "type": "Direct",
+                                "requested": f"[{old_runtime}, )",
+                                "resolved": old_runtime,
+                            }
+                        }
+                    },
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         contract_path = project / "contracts/openapi/catalog.contract.json"
         contract_before = contract_path.read_bytes()
         pending = run(*command, cwd=project)
@@ -377,7 +423,11 @@ def main() -> int:
 
         accepted_command = (*command, "--accept-openapi-producer-pin-reconciliation")
         reconciled = run(*accepted_command, cwd=project)
-        if reconciled.returncode != 3 or "PKU111" not in reconciled.stderr:
+        if (
+            reconciled.returncode != 3
+            or "PKU111" not in reconciled.stderr
+            or "PKU113" not in reconciled.stderr
+        ):
             raise AssertionError(
                 f"explicit OpenAPI reconciliation did not require lifecycle renewal:\n"
                 f"{reconciled.stdout}{reconciled.stderr}"
@@ -400,6 +450,20 @@ def main() -> int:
             or invalidation.get("toVersion") != target_runtime
         ):
             raise AssertionError(f"lifecycle invalidation audit is incomplete: {invalidation}")
+        lock_renewal = json.loads(
+            (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
+        )
+        expected_commands = [
+            "dotnet restore Program.slnx --force-evaluate --configfile NuGet.config",
+            "dotnet restore Program.slnx --locked-mode --configfile NuGet.config",
+        ]
+        if (
+            lock_renewal.get("targetRuntimeVersion") != target_runtime
+            or lock_renewal.get("affectedLocks") != ["packages.lock.json"]
+            or lock_renewal.get("renewalCommands") != expected_commands
+            or lock_renewal.get("satisfied") is not False
+        ):
+            raise AssertionError(f"NuGet lock renewal evidence is incomplete: {lock_renewal}")
 
         sync = project / ".specify/extensions/program-kit-dotnet/scripts/dotnet_sync.py"
         require_success(
@@ -487,6 +551,25 @@ def main() -> int:
             ),
             "full mandatory implementation preflight after renewal",
         )
+
+        lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))
+        dependency = lock_value["dependencies"]["net10.0"]["ProgramKit.Authentication"]
+        dependency["requested"] = f"[{target_runtime}, )"
+        dependency["resolved"] = target_runtime
+        (project / "packages.lock.json").write_text(
+            json.dumps(lock_value, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        require_success(run(*command, cwd=project), "upgrade convergence after lock renewal")
+        satisfied_renewal = json.loads(
+            (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
+        )
+        if (
+            satisfied_renewal.get("targetRuntimeVersion") != target_runtime
+            or satisfied_renewal.get("reason") != "program-kit-runtime-locks-verified"
+            or satisfied_renewal.get("satisfied") is not True
+        ):
+            raise AssertionError(f"NuGet lock renewal did not converge: {satisfied_renewal}")
 
         lock = project / ".specify/program-kit-upgrade.lock"
         lock.write_text("test lock\n", encoding="utf-8")

@@ -15,11 +15,7 @@ namespace ProgramKit.OpenApiExport;
 internal static class Exporter
 {
     /// <summary>Identifies the exact managed exporter contract implemented by this binary.</summary>
-    private const string ToolVersion = "0.9.3-preview.1";
-
-    /// <summary>Identifies host-owned features that intentionally have no consumer package descriptor.</summary>
-    private static readonly IReadOnlySet<string> HostFeatures =
-        new HashSet<string>(["ProgramKitTasks", "ProgramKit.DomainEvents"], StringComparer.Ordinal);
+    private const string ToolVersion = "0.9.4-preview.1";
 
     /// <summary>Runs one export and converts deterministic contract failures to PKO200 diagnostics.</summary>
     public static async Task<int> RunAsync(string[] args)
@@ -52,8 +48,7 @@ internal static class Exporter
         var shell = Shell.Read(shells.RootElement, contract.Shell);
         var packages = PackageSet.Load(options.Packages);
         var descriptors = packages.FeatureDescriptors;
-        var missing = shell.Features.Where(feature =>
-            !descriptors.ContainsKey(feature) && !HostFeatures.Contains(feature)).Order().ToArray();
+        var missing = shell.Features.Where(feature => !descriptors.ContainsKey(feature)).Order().ToArray();
         if (missing.Length > 0)
         {
             throw new InvalidOperationException(
@@ -75,7 +70,9 @@ internal static class Exporter
                 "contract features have no unique staged package descriptor: " +
                 string.Join(", ", undescribed));
         }
+        ValidateDependenciesAndRoutes(shell.Features, descriptors);
         var routeContributors = shell.Features.Where(feature =>
+                !BuiltInFeatures.Definitions.ContainsKey(feature) &&
                 descriptors.TryGetValue(feature, out var descriptor) && descriptor.Routes.Length > 0)
             .ToHashSet(StringComparer.Ordinal);
         var uncovered = routeContributors.Except(contractFeatures).Order().ToArray();
@@ -86,11 +83,14 @@ internal static class Exporter
                 string.Join(", ", uncovered));
         }
 
-        var composed = shell.Features.Where(descriptors.ContainsKey).ToHashSet(StringComparer.Ordinal);
-        var ordered = TopologicalOrder(composed, descriptors);
+        var composed = shell.Features.Where(feature =>
+                !BuiltInFeatures.Definitions.TryGetValue(feature, out var definition) ||
+                definition.ComposeForOpenApi)
+            .ToHashSet(StringComparer.Ordinal);
+        var ordered = TopologicalOrder(composed, shell.Features.ToHashSet(StringComparer.Ordinal), descriptors);
         using var resolver = new AssemblyResolver(packages.Assemblies);
         var features = ordered.Select(identity =>
-            LoadFeature(identity, descriptors[identity], resolver)).ToArray();
+            LoadFeature(identity, descriptors[identity], resolver, shell.Settings)).ToArray();
 
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -172,7 +172,8 @@ internal static class Exporter
     private static IShellFeature LoadFeature(
         string identity,
         FeatureDescriptor descriptor,
-        AssemblyResolver resolver)
+        AssemblyResolver resolver,
+        CShells.ShellSettings settings)
     {
         var assembly = resolver.Load(descriptor.AssemblyName);
         Type[] types;
@@ -197,14 +198,49 @@ internal static class Exporter
                 $"feature package '{descriptor.PackageId}' must expose exactly one IShellFeature; " +
                 $"found {candidates.Length}.");
         }
-        return Activator.CreateInstance(candidates[0]) as IShellFeature
+        var constructors = candidates[0].GetConstructors();
+        var settingsConstructor = constructors.SingleOrDefault(constructor =>
+            constructor.GetParameters() is [{ ParameterType: var parameterType }] &&
+            parameterType == typeof(CShells.ShellSettings));
+        var parameterless = constructors.SingleOrDefault(constructor => constructor.GetParameters().Length == 0);
+        var instance = settingsConstructor is not null
+            ? settingsConstructor.Invoke([settings])
+            : parameterless?.Invoke(null);
+        return instance as IShellFeature
             ?? throw new InvalidOperationException(
-                $"feature '{identity}' must have a public parameterless constructor.");
+                $"feature '{identity}' must have a public parameterless or ShellSettings constructor.");
+    }
+
+    /// <summary>Validates active dependencies and unique route ownership for every staged feature.</summary>
+    private static void ValidateDependenciesAndRoutes(
+        IReadOnlyCollection<string> active,
+        IReadOnlyDictionary<string, FeatureDescriptor> descriptors)
+    {
+        var activeSet = active.ToHashSet(StringComparer.Ordinal);
+        var routes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var identity in active.Order())
+        {
+            var descriptor = descriptors[identity];
+            foreach (var dependency in descriptor.Dependencies.Order())
+            {
+                if (!activeSet.Contains(dependency))
+                    throw new InvalidOperationException(
+                        $"feature '{identity}' requires inactive feature '{dependency}'.");
+            }
+            foreach (var route in descriptor.Routes.Order())
+            {
+                if (routes.TryGetValue(route, out var previous) && previous != identity)
+                    throw new InvalidOperationException(
+                        $"route collision '{route}' between features '{previous}' and '{identity}'.");
+                routes[route] = identity;
+            }
+        }
     }
 
     /// <summary>Orders activated features by their governed metadata dependencies.</summary>
     private static string[] TopologicalOrder(
         IReadOnlySet<string> active,
+        IReadOnlySet<string> shellFeatures,
         IReadOnlyDictionary<string, FeatureDescriptor> descriptors)
     {
         var result = new List<string>();
@@ -218,12 +254,13 @@ internal static class Exporter
                 throw new InvalidOperationException($"feature dependency cycle includes '{identity}'.");
             foreach (var dependency in descriptors[identity].Dependencies.Order())
             {
-                if (!active.Contains(dependency))
+                if (!shellFeatures.Contains(dependency))
                 {
                     throw new InvalidOperationException(
                         $"feature '{identity}' requires inactive feature '{dependency}'.");
                 }
-                Visit(dependency);
+                if (active.Contains(dependency))
+                    Visit(dependency);
             }
             visiting.Remove(identity);
             visited.Add(identity);

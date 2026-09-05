@@ -91,3 +91,7 @@ requires a split. Reuse the compact authority and normalized brief rather than r
 design from every downstream document. Report entry IDs, statuses, final byte counts, and validation
 counts only; do
 not print the complete roadmap or repository-wide diffs.
+
+For authorization journeys, distinguish a bodyless/no-effect access probe from a protected business
+effect. The former is Ready with managed endpoint `permission:<identity>` policy evidence and must
+not invent an inner service; the latter also owns a resource/state/effect authorization rule.

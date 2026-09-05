@@ -4,7 +4,9 @@ import importlib.util
 import json
 import os
 import re
+import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 
@@ -13,6 +15,7 @@ TEMPLATE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files"
 
 
 def load_module(path: Path):
+    sys.path.insert(0, str(path.parent))
     spec = importlib.util.spec_from_file_location("runnable_host_schema_probe", path)
     if spec is None or spec.loader is None:
         raise AssertionError(f"Could not load {path}")
@@ -30,6 +33,7 @@ def validate(instance: object, schema: dict, path: str = "$") -> None:
             "array": lambda value: isinstance(value, list),
             "string": lambda value: isinstance(value, str),
             "integer": lambda value: isinstance(value, int) and not isinstance(value, bool),
+            "boolean": lambda value: isinstance(value, bool),
             "null": lambda value: value is None,
         }
         if not any(checks[name](instance) for name in names):
@@ -54,6 +58,9 @@ def validate(instance: object, schema: dict, path: str = "$") -> None:
         for name, child in instance.items():
             if name in properties:
                 validate(child, properties[name], f"{path}.{name}")
+    if isinstance(instance, list) and isinstance(schema.get("items"), dict):
+        for index, child in enumerate(instance):
+            validate(child, schema["items"], f"{path}[{index}]")
 
 
 def main() -> int:
@@ -64,15 +71,24 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-runnable-schema-") as value:
         root = Path(value)
         repository = root / "consumer"
-        staged = root / "staged"
+        staged = repository / "artifacts/staged"
         repository.mkdir()
-        staged.mkdir()
+        staged.mkdir(parents=True)
         (repository / "VERSION").write_text("1.0.0\n", encoding="utf-8")
         (staged / "hostsettings.json").write_text("{}\n", encoding="utf-8")
         (staged / "shells.json").write_text(
             json.dumps({"CShells": {"Shells": {"default": {"Features": {}}}}}) + "\n",
             encoding="utf-8",
         )
+        packages = staged / "packages"
+        packages.mkdir()
+        package = packages / "Example.Feature.1.0.0.nupkg"
+        with zipfile.ZipFile(package, "w") as archive:
+            archive.writestr(
+                "Example.Feature.nuspec",
+                "<package><metadata><id>Example.Feature</id><version>1.0.0</version></metadata></package>",
+            )
+        closure_path = repository / ".program-kit/evidence/runtime-closure.json"
         previous_sha = os.environ.get("GITHUB_SHA")
         os.environ["GITHUB_SHA"] = "a" * 40
         try:
@@ -84,6 +100,12 @@ def main() -> int:
                     profile_path.parent.mkdir(parents=True, exist_ok=True)
                     profile_path.write_text(json.dumps(profile_shells) + "\n", encoding="utf-8")
                 output = root / "runnable-host.json"
+                producer.runtime_closure.write_success(
+                    repository,
+                    staged,
+                    closure_path,
+                    producer.PROGRAM_KIT_VERSION,
+                )
                 producer.describe(
                     repository,
                     staged,
@@ -93,13 +115,17 @@ def main() -> int:
                     output,
                 )
                 validate(json.loads(output.read_text(encoding="utf-8")), schema)
+                closure_schema = json.loads(
+                    (TEMPLATE / ".program-kit/runtime-closure.schema.json").read_text(encoding="utf-8")
+                )
+                validate(json.loads(closure_path.read_text(encoding="utf-8")), closure_schema)
         finally:
             if previous_sha is None:
                 os.environ.pop("GITHUB_SHA", None)
             else:
                 os.environ["GITHUB_SHA"] = previous_sha
 
-    print("Runnable-host producer validates against its shipped schema with and without a profile contribution.")
+    print("Runnable-host and runtime-closure producers validate against their shipped schemas.")
     return 0
 
 

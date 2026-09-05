@@ -606,6 +606,73 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
         raise ValueError("\n".join(errors))
 
 
+def validate_authorization_ownership(feature_dir: Path, manifest: dict, include_tasks: bool) -> None:
+    profiles = {str(value).lower() for value in manifest.get("profiles", [])}
+    if "dotnet" not in profiles:
+        return
+    root = repository_root(feature_dir)
+    composition = manifest.get("runtimeComposition")
+    projects = composition.get("projects", []) if isinstance(composition, dict) else []
+    errors: list[str] = []
+    provider_shape = re.compile(
+        r"\bIsInRole\s*\(|\bClaimTypes\.Role\b|"
+        r"\b(?:FindAll|FindFirst|FindFirstValue|HasClaim)\s*\([^;\n]*(?:roles|realm_access|resource_access)",
+        re.IGNORECASE,
+    )
+    canonical_permission_parser = re.compile(
+        r"\b(?:FindAll|FindFirst|FindFirstValue|HasClaim)\s*\([^;\n]*(?:permissions|PermissionClaim)",
+        re.IGNORECASE,
+    )
+    for project in projects:
+        if not isinstance(project, dict) or project.get("role") not in ACTIVATABLE_PROJECT_ROLES:
+            continue
+        try:
+            project_path = root / normalize(str(project.get("path", "")))
+        except ValueError:
+            continue
+        source_root = project_path.parent
+        if not source_root.is_dir():
+            continue
+        for source in source_root.rglob("*.cs"):
+            relative_parts = source.relative_to(source_root).parts
+            if any(part in {"bin", "obj"} for part in relative_parts):
+                continue
+            text = source.read_text(encoding="utf-8")
+            if provider_shape.search(text):
+                errors.append(
+                    f"PKA016 {source.relative_to(root).as_posix()} parses provider roles/token shapes; "
+                    "the selected ProgramKit.Authentication feature must normalize them to canonical permissions"
+                )
+            if canonical_permission_parser.search(text):
+                errors.append(
+                    f"PKA016 {source.relative_to(root).as_posix()} reparses canonical permission claims; "
+                    "use endpoint metadata such as RequireAuthorization(\"permission:<identity>\") and reserve "
+                    "feature-owned handlers for genuine resource/state/effect rules"
+                )
+    documents = [feature_dir / "spec.md", feature_dir / "plan.md", feature_dir / "quickstart.md"]
+    if include_tasks:
+        documents.append(feature_dir / "tasks.md")
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in documents if path.is_file())
+    no_effect_probe = re.search(
+        r"(?:bodyless|no[- ]effect|without (?:a )?(?:business )?effect|access probe|permission probe)",
+        combined,
+        re.IGNORECASE,
+    )
+    invented_inner_policy = re.search(
+        r"(?:AccessPermissionPolicy|inner (?:authorization|permission) policy|"
+        r"application[- ]service authorization|parse canonical permission)",
+        combined,
+        re.IGNORECASE,
+    )
+    if no_effect_probe and invented_inner_policy:
+        errors.append(
+            "PKA016 a bodyless/no-effect access probe must use the managed endpoint permission policy only; "
+            "do not invent an application service or second claim parser when there is no protected business effect"
+        )
+    if errors:
+        raise ValueError("\n".join(errors))
+
+
 def validate_npm_graph_evidence(feature_dir: Path, manifest: dict) -> None:
     profiles = {str(value).lower() for value in manifest.get("profiles", [])}
     if not profiles & {"typescript-vite", "typescript-web", "browser-web"}:
@@ -770,6 +837,7 @@ def main() -> int:
         feature_dir = Path(args.manifest).resolve().parent
         validate_governance_context(feature_dir, bool(args.tasks))
         validate_runtime_profile(feature_dir, manifest, bool(args.tasks))
+        validate_authorization_ownership(feature_dir, manifest, bool(args.tasks))
         validate_npm_graph_evidence(feature_dir, manifest)
         validate_openapi_pipeline(feature_dir, manifest, bool(args.tasks))
         if args.tasks:

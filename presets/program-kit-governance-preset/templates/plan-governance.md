@@ -33,4 +33,9 @@ Exact npm dependencies require a repository-contained candidate package manifest
 `.program-kit/evidence/npm-graph.json` from the strict isolated lockfile-only resolver before the
 plan is implementation-ready.
 
+For authenticated .NET endpoints, keep provider mapping in deployment, canonical permission
+normalization/policy evaluation in the selected Program Kit authentication feature, and only genuine
+resource/state/effect authorization in consumer code. A bodyless/no-effect probe uses managed
+`permission:<identity>` endpoint metadata and must not introduce a second permission service/parser.
+
 If the plan identifies a new architecture decision, contract ownership conflict, or technology choice, stop and create the required design task and ADR rather than treating it as implementation detail.

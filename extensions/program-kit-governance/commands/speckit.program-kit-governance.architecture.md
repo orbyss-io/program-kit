@@ -89,6 +89,9 @@ The architecture baseline must also define:
   every durable post-commit, background, broker, or cross-process requirement;
 - host web-runtime versus `.Api` endpoint ownership, including canonical permission identities and
   provider-claim mapping boundaries;
+- proportional authorization ownership: provider mappings belong to deployment, canonical
+  `permission:<identity>` policies to the selected Program Kit authentication feature, and only
+  genuine resource/state/effect decisions to consumer code; a no-effect probe ends at the endpoint gate;
 - how the first specification delivers an observable vertical slice rather than technical layers.
 
 `docs/architecture/specification-roadmap.md` is the sole authority for `Candidate`, `Blocked`,

@@ -25,6 +25,10 @@ For every non-trivial slice, identify:
 
 A slice is complete only when its supported success and material failure paths are usable and
 verifiable. A route, UI component, database migration, or handler alone is not a complete slice.
+An explicitly bodyless/no-effect authorization probe is a proportional transport proving slice: its
+observable `401`/`403`/success outcomes come from managed endpoint permission metadata, so it must not
+invent an inner application service. A real protected operation remains a full slice and carries its
+resource/state/effect authorization beyond the endpoint gate.
 
 ## Cohesion and coupling
 

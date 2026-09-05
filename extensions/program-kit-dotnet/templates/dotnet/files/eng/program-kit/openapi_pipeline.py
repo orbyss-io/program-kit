@@ -9,6 +9,8 @@ import sys
 from pathlib import Path, PurePosixPath
 
 import js_toolchain
+import shell_composition
+import runtime_closure
 
 
 REQUIRED = {
@@ -154,6 +156,82 @@ def run(
         raise ValueError(f"PKO205 {label} failed with exit code {result.returncode}.")
 
 
+def repository_nuget_environment(repository: Path) -> dict[str, str]:
+    cache = repository / ".program-kit/cache"
+    paths = {
+        "NUGET_PACKAGES": cache / "nuget/packages",
+        "NUGET_HTTP_CACHE_PATH": cache / "nuget/http",
+        "NUGET_SCRATCH": cache / "nuget/scratch",
+        "NUGET_PLUGINS_CACHE_PATH": cache / "nuget/plugins",
+        "DOTNET_CLI_HOME": cache / "dotnet-home",
+    }
+    environment = os.environ.copy()
+    for name, path in paths.items():
+        path.mkdir(parents=True, exist_ok=True)
+        environment[name] = str(path)
+    environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
+    environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1"
+    environment["DOTNET_NOLOGO"] = "1"
+    if os.name == "nt":
+        roaming = cache / "profile/roaming"
+        local = cache / "profile/local"
+        roaming.mkdir(parents=True, exist_ok=True)
+        local.mkdir(parents=True, exist_ok=True)
+        environment["APPDATA"] = str(roaming)
+        environment["LOCALAPPDATA"] = str(local)
+    return environment
+
+
+def ensure_openapi_toolchain(
+    repository: Path, evidence: Path, environment: dict[str, str]
+) -> None:
+    command = [
+        sys.executable,
+        str(repository / "eng/program-kit/toolchain.py"),
+        "--repository",
+        str(repository),
+        "--evidence",
+        str(evidence),
+        "--include-openapi",
+    ]
+    result = subprocess.run(
+        command,
+        cwd=repository,
+        env=environment,
+        check=False,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        raise ValueError(
+            "PKO210 exact OpenAPI toolchain evidence could not be renewed without system changes or "
+            "downloads. Stage the reviewed pinned oasdiff binary with toolchain.py --include-openapi "
+            "--remediate and explicit approval, then rerun the pipeline."
+        )
+
+
+def restore_exporter(
+    dotnet: str, manifest: Path, repository: Path, environment: dict[str, str]
+) -> None:
+    config = repository / "NuGet.config"
+    if not config.is_file():
+        raise ValueError(f"PKO211 reviewed repository NuGet.config is missing: {config}")
+    run(
+        [
+            dotnet,
+            "tool",
+            "restore",
+            "--tool-manifest",
+            str(manifest),
+            "--configfile",
+            str(config),
+            "--disable-parallel",
+        ],
+        repository,
+        "managed OpenAPI exporter restore",
+        environment,
+    )
+
+
 def tool_version(repository: Path) -> tuple[Path, str]:
     manifest = repository / "eng/program-kit/.config/dotnet-tools.json"
     value = load_json(manifest, "managed .NET tool manifest")
@@ -220,8 +298,16 @@ def execute_contract(
     nuget_environment: dict[str, str],
     initialize: bool,
     update: bool,
+    effective_shells: Path,
 ) -> dict:
     identity = str(contract["identity"])
+    staged_root = paths["packages"].parent
+    runtime_closure.validate(
+        repository,
+        staged_root,
+        repository / runtime_closure.EVIDENCE,
+        (repository / "VERSION").read_text(encoding="utf-8").strip(),
+    )
     export_evidence = repository / f".program-kit/evidence/openapi/{identity}-export.json"
     exporter_command = [dotnet, str(exporter)] if exporter else [
         dotnet, "tool", "run", "programkit-openapi-export", "--"
@@ -231,8 +317,8 @@ def execute_contract(
         + [
             "--repository", str(repository),
             "--packages", str(paths["packages"]),
-            "--shells", str(repository / "shells.json"),
-            "--hostsettings", str(repository / "hostsettings.json"),
+            "--shells", str(effective_shells),
+            "--hostsettings", str(staged_root / "hostsettings.json"),
             "--contract", str(contract_path),
             "--output", str(paths["raw"]),
             "--evidence", str(export_evidence),
@@ -295,6 +381,8 @@ def main() -> int:
         if not oasdiff_version:
             raise ValueError("PKO206 managed .oasdiff-version does not pin oasdiff.")
         toolchain_evidence = repository / ".program-kit/evidence/toolchain.json"
+        nuget_environment = repository_nuget_environment(repository)
+        ensure_openapi_toolchain(repository, toolchain_evidence, nuget_environment)
         js_toolchain.context(repository, toolchain_evidence)
         toolchain = load_json(toolchain_evidence, "toolchain evidence")
         commands = toolchain.get("commands", {})
@@ -306,22 +394,13 @@ def main() -> int:
         if not isinstance(oasdiff_values, list) or len(oasdiff_values) != 1 or not Path(oasdiff_values[0]).is_file():
             raise ValueError("PKO210 exact oasdiff command evidence is missing; run toolchain.py --include-openapi first.")
         oasdiff = str(oasdiff_values[0])
-        nuget_cache = repository / ".program-kit/cache/nuget"
-        (nuget_cache / "packages").mkdir(parents=True, exist_ok=True)
-        (nuget_cache / "http").mkdir(parents=True, exist_ok=True)
-        nuget_environment = os.environ.copy()
-        nuget_environment["NUGET_PACKAGES"] = str(nuget_cache / "packages")
-        nuget_environment["NUGET_HTTP_CACHE_PATH"] = str(nuget_cache / "http")
         exporter = Path(args.exporter).resolve() if args.exporter else None
         if exporter is not None and not exporter.is_file():
             raise ValueError(f"PKO209 exporter test override is missing: {exporter}")
         if exporter is None:
-            run(
-                [dotnet, "tool", "restore", "--tool-manifest", str(manifest), "--configfile", str(repository / "NuGet.config")],
-                repository,
-                "managed OpenAPI exporter restore",
-                nuget_environment,
-            )
+            restore_exporter(dotnet, manifest, repository, nuget_environment)
+        effective_shells = repository / ".program-kit/cache/openapi/effective-shells.json"
+        shell_composition.write(repository / "artifacts/runnable-host", effective_shells)
         evidence = []
         seen: set[str] = set()
         for item in contracts:
@@ -344,6 +423,7 @@ def main() -> int:
                     nuget_environment,
                     args.initialize_baselines,
                     args.update_artifacts,
+                    effective_shells,
                 )
             )
         evidence_path = repository / ".program-kit/evidence/openapi/pipeline.json"
