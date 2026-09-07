@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Consolidate generated Program Kit engineering tooling under `.program-kit/eng/` and migrate
+  authenticated files from the opaque top-level `eng/program-kit/` layout during managed sync.
+
 ## 0.9.9 - 2026-09-05
 
 - Move BFF, SPA, error, and web middleware ownership into independently selectable CShell features;
