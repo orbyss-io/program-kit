@@ -8,9 +8,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-PRODUCER_KIND = "ProgramKit.OpenApi.Exporter"
+PRODUCER_KIND = "Orbyss.Foundation.OpenApi.Exporter"
 PLANNING_NAMES = ("spec.md", "plan.md", "tasks.md", "research.md", "quickstart.md", "data-model.md")
-VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+-preview\.\d+$")
+VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:-preview\.\d+)?$")
 
 
 class ReconciliationError(ValueError):
@@ -35,7 +35,7 @@ def target_exporter_version(release: Path) -> str:
     path = release / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/.config/dotnet-tools.json"
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
-        version = value["tools"]["programkit.openapi.exporter"]["version"]
+        version = value["tools"]["orbyss.foundation.openapi.exporter"]["version"]
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise ReconciliationError(f"PKU110 cannot read the release exporter pin at {path}: {error}") from error
     if not isinstance(version, str) or not VERSION_PATTERN.fullmatch(version):
@@ -103,11 +103,12 @@ def feature_identity(feature_dir: Path) -> str:
     return re.sub(r"[^a-zA-Z0-9._-]", "-", feature_dir.name)
 
 
-def version_key(value: str) -> tuple[int, int, int, int]:
-    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)-preview\.(\d+)", value)
+def version_key(value: str) -> tuple[int, int, int, int, int]:
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-preview\.(\d+))?", value)
     if match is None:
-        raise ReconciliationError(f"PKU110 unsupported Program Kit runtime version: {value!r}")
-    return tuple(int(part) for part in match.groups())
+        raise ReconciliationError(f"PKU110 unsupported building-block version: {value!r}")
+    major, minor, patch, preview = match.groups()
+    return int(major), int(minor), int(patch), 1 if preview is None else 0, int(preview or 0)
 
 
 def discover(target: Path, release: Path) -> dict | None:

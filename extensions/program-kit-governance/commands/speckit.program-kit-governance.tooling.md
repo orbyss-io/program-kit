@@ -68,7 +68,7 @@ compact capability matrix, and defer future controls by lifecycle trigger withou
 surveys. Report paths, sizes, and validation counts only; do not print complete artifacts or a
 repository-wide diff.
 
-For .NET, build the staged quality system around the accepted `ProgramKit.Host` default unless the
+For .NET, build the staged quality system around the accepted `Orbyss.Foundation.Host` default unless the
 decision register contains an explicit opt-out. Keep actual repository synchronization and networked
 package restore as separate, reviewable actions.
 

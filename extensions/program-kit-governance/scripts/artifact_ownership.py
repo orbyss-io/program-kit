@@ -69,10 +69,10 @@ GOVERNANCE_CONTEXT = {
     ),
 }
 EXTERNAL_HOST_REQUIREMENTS = {
-    "ProgramKitFeatureIdentity": "feature identity metadata",
+    "FoundationFeatureIdentity": "feature identity metadata",
     "shells.json": "shell activation",
     "hostsettings.json": "external-host configuration",
-    "ProgramKit.Host": "the external Program Kit host",
+    "Orbyss.Foundation.Host": "the external Program Kit host",
 }
 
 
@@ -273,7 +273,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
     custom = sorted({f"{source} -> {path}" for source, path in paths if is_custom_host_path(path)})
     if custom:
         raise ValueError(
-            "PKA011 external ProgramKit.Host profile forbids a repository-owned host project or "
+            "PKA011 external Orbyss.Foundation.Host profile forbids a repository-owned host project or "
             "Program.cs; create packable feature projects and external-host activation/release inputs instead: "
             + "; ".join(custom)
         )
@@ -296,7 +296,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
         missing.append("digest-bound external-host release evidence")
     if missing:
         raise ValueError(
-            "PKA012 .NET feature planning is incomplete for the external ProgramKit.Host profile; "
+            "PKA012 .NET feature planning is incomplete for the external Orbyss.Foundation.Host profile; "
             "missing " + ", ".join(missing) + "."
         )
     validate_runtime_composition(feature_dir, manifest)
@@ -464,7 +464,7 @@ def validate_runtime_composition(feature_dir: Path, manifest: dict) -> None:
         for identity in feature_identities:
             identity_value = str(identity)
             if identity_value in identities:
-                errors.append(f"PKA015 duplicate ProgramKitFeatureIdentity owner: {identity_value}")
+                errors.append(f"PKA015 duplicate FoundationFeatureIdentity owner: {identity_value}")
             identities[identity_value] = path
 
     missing_projects = sorted(declared_artifact_projects - set(declared_projects))
@@ -641,7 +641,7 @@ def validate_authorization_ownership(feature_dir: Path, manifest: dict, include_
             if provider_shape.search(text):
                 errors.append(
                     f"PKA016 {source.relative_to(root).as_posix()} parses provider roles/token shapes; "
-                    "the selected ProgramKit.Authentication feature must normalize them to canonical permissions"
+                    "the selected Orbyss.Foundation.Authentication feature must normalize them to canonical permissions"
                 )
             if canonical_permission_parser.search(text):
                 errors.append(
@@ -725,13 +725,13 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
     tool_manifest_path = root / ".program-kit/eng/.config/dotnet-tools.json"
     try:
         tool_manifest = json.loads(tool_manifest_path.read_text(encoding="utf-8"))
-        exporter_version = tool_manifest["tools"]["programkit.openapi.exporter"]["version"]
+        exporter_version = tool_manifest["tools"]["orbyss.foundation.openapi.exporter"]["version"]
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise ValueError(
             f"PKA014 OpenAPI planning requires the managed exporter tool pin at {tool_manifest_path}: {error}"
         ) from error
     if not isinstance(exporter_version, str) or not exporter_version:
-        raise ValueError("PKA014 managed ProgramKit.OpenApi.Exporter version pin is invalid")
+        raise ValueError("PKA014 managed Orbyss.Foundation.OpenApi.Exporter version pin is invalid")
     oasdiff_pin_path = root / ".oasdiff-version"
     try:
         oasdiff_version = oasdiff_pin_path.read_text(encoding="utf-8").strip().removeprefix("v")
@@ -774,11 +774,11 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
         producer = contract.get("producer")
         if (
             not isinstance(producer, dict)
-            or producer.get("kind") != "ProgramKit.OpenApi.Exporter"
+            or producer.get("kind") != "Orbyss.Foundation.OpenApi.Exporter"
             or producer.get("version") != exporter_version
         ):
             raise ValueError(
-                "PKA014 OpenAPI plans must select the exact managed ProgramKit.OpenApi.Exporter producer"
+                "PKA014 OpenAPI plans must select the exact managed Orbyss.Foundation.OpenApi.Exporter producer"
             )
         features = contract.get("features")
         if not isinstance(features, list) or not features or any(not isinstance(item, str) or not item for item in features):

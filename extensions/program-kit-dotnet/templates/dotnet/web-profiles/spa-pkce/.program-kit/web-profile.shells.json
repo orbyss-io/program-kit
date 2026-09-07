@@ -3,14 +3,14 @@
     "Shells": {
       "default": {
         "Features": {
-          "ProgramKit.Authentication": {},
-          "ProgramKit.Authentication.SpaPkce": {},
-          "ProgramKit.WebDefaults": {},
-          "ProgramKit.Web.OpenApi": {},
-          "ProgramKit.Web.ProblemDetails": {}
+          "Orbyss.Foundation.Authentication": {},
+          "Orbyss.Foundation.Authentication.SpaPkce": {},
+          "Orbyss.Foundation.WebDefaults": {},
+          "Orbyss.Foundation.Web.OpenApi": {},
+          "Orbyss.Foundation.Web.ProblemDetails": {}
         },
         "Configuration": {
-          "ProgramKit": {
+          "Foundation": {
             "Web": {
               "Authority": "http://localhost:8080/realms/program-kit",
               "ClientId": "program-kit-spa",

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "status": "confirmed",
   "project": {
     "name": "Greeting CLI",
@@ -13,13 +13,13 @@
     },
     "architecture_map": {
       "path": "docs/architecture/architecture-map.json",
-      "sha256": "ff972ad86a8cc1a93222e024c8f1cbc11b6b055970e21f004b4b7e6c9af58460",
-      "bytes": 3372
+      "sha256": "711cc5a79e511407759199d9b80856f1e5cebb07debe21768820a35dd614297a",
+      "bytes": 12352
     },
     "c4_projection": {
       "path": "docs/architecture/workspace.dsl",
-      "sha256": "a4daebad97d4b3a3a02f2f3f19ffae572005d95f35cf305071c2db0104a0d3ea",
-      "bytes": 2482
+      "sha256": "1359365240d07e911b0317d89684e057212e42fddf5ea1bc54eca2b9f4c48da0",
+      "bytes": 4323
     }
   },
   "evidence": [
@@ -44,7 +44,7 @@
     {
       "id": "e-slice",
       "source": "architecture_map",
-      "locator": "views[domain-context]",
+      "locator": "views[context-map]",
       "summary": "The complete greeting journey forms one candidate bounded context and slice."
     }
   ],
@@ -125,20 +125,82 @@
     {
       "id": "capability-slicing",
       "need": "Shape the complete greeting journey as an independently verifiable vertical slice.",
-      "coverage": "guided",
-      "program_kit_capability": "vertical-slicing",
-      "disposition": "program-kit-default",
+      "mechanism_coverage": "guided",
+      "program_kit_capabilities": ["vertical-slicing"],
+      "semantic_owner": "greeting-context",
+      "semantic_profile": "The consumer owns the exact greeting, argument, and console outcome semantics.",
+      "integration_owner": "not-applicable",
+      "provider_selection": "",
+      "decision_state": "program-kit-default",
       "evidence": ["e-slice"]
     },
     {
       "id": "capability-python",
       "need": "Implement and verify a Python 3.13 standard-library command.",
-      "coverage": "external",
-      "program_kit_capability": "",
-      "disposition": "project-owned-design",
+      "mechanism_coverage": "external",
+      "program_kit_capabilities": [],
+      "semantic_owner": "greeting-context",
+      "semantic_profile": "The consumer owns the Python command implementation semantics.",
+      "integration_owner": "greeting-context",
+      "provider_selection": "Python 3.13 standard library",
+      "decision_state": "project-owned-design",
       "evidence": ["e-behavior"]
     }
   ],
+  "domain_analysis": {
+    "subdomains": [
+      {
+        "id": "greeting-domain",
+        "name": "Greeting",
+        "classification": "core",
+        "vision": "Deliver the exact observable greeting contract for local maintainers.",
+        "ownership": "Owns greeting text, argument policy, exit codes, and console-channel behavior.",
+        "non_ownership": "Does not own web, network, identity, persistence, or deployment concerns.",
+        "language_terms": ["greeting", "invocation", "usage error"],
+        "data_ownership": ["No durable data; owns invocation inputs and output values in memory."],
+        "invariants": ["An argument-free invocation emits the exact greeting once.", "Invalid arguments emit a concise usage error and a non-zero exit code."],
+        "lifecycle": "Changes only with the command's externally observable contract.",
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-boundaries"]
+      }
+    ],
+    "candidate_contexts": [
+      {
+        "id": "greeting-context",
+        "name": "Greeting",
+        "boundary_kind": "domain-model",
+        "vision": "Own the complete greeting command model and its observable outcomes.",
+        "responsibilities": ["Validate arguments.", "Produce exact standard output, standard error, and exit codes."],
+        "non_responsibilities": ["No network, identity, persistence, deployment, or third-party behavior."],
+        "language_terms": ["greeting", "invocation", "usage error"],
+        "subdomains": ["greeting-domain"],
+        "data_ownership": ["Ephemeral invocation arguments and output result."],
+        "invariants": ["One invocation has one terminal outcome."],
+        "lifecycle": "The context and command contract version together.",
+        "separation_rationale": "One coherent language and consistency boundary covers the entire journey.",
+        "split_triggers": ["Split only if a distinct owner, lifecycle, language, or durable consistency boundary appears."],
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-boundaries", "e-slice"]
+      }
+    ],
+    "founding_decision_candidates": [
+      {
+        "id": "decision-greeting-boundary",
+        "title": "Keep one greeting model boundary",
+        "question": "How many model boundaries does the complete greeting journey require?",
+        "recommended_option": "Use one Greeting bounded context with one owned command module.",
+        "alternatives": ["Use no explicit domain boundary.", "Split valid and invalid invocations into separate contexts."],
+        "rationale": "The journey has one language, owner, lifecycle, and consistency boundary.",
+        "consequences": ["Architecture must challenge this candidate and create a Proposed founding ADR.", "No network, storage, or deployment boundary is invented."],
+        "confidence": "high",
+        "affected_elements": ["greeting-context"],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-boundaries", "e-slice"]
+      }
+    ],
+    "boundary_challenges": []
+  },
   "open_items": [],
   "candidate_slice_signals": [
     {

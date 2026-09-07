@@ -11,6 +11,12 @@
 7. Plans and tasks: delivery design and work decomposition.
 8. Implementation and verification evidence.
 
+The confirmed intake may contain founding decision candidates. They are evidence-backed prepwork,
+not authority. Architecture verifies them against the constitution, narrows research to material
+uncertainties, and creates one real Proposed ADR per candidate with its alternatives and
+consequences intact. The final architecture gate hash-binds and accepts that exact founding bundle;
+unrelated Proposed ADRs remain outside the approval.
+
 Later artifacts cannot silently contradict earlier accepted authority. When a valid new insight changes architecture, propose an ADR, obtain human acceptance, update the baseline and traceability, then continue the Spec Kit flow.
 
 The constitution is not an ordinary feature specification and never enters the feature
@@ -49,6 +55,9 @@ separate approval ceremony.
 Choices outside that reviewed baseline begin `Proposed`. Only an Accepted ADR promotes those
 project-specific choices to `Accepted`. Rejected, Deprecated, and Superseded items retain links to
 the decision history.
+
+During bootstrap, the post-architecture approval is that human acceptance event for the explicitly
+enumerated founding ADR bundle. Intake confirmation never is.
 
 ## Living architecture
 

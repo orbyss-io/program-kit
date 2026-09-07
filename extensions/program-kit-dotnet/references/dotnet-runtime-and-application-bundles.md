@@ -1,10 +1,10 @@
 # .NET runtime and runnable-host release profile
 
-Apply this reference when .NET is selected unless intake explicitly opts out of the Program Kit runtime.
+Apply this reference when .NET is selected unless intake explicitly opts out of the Orbyss Foundation building blocks.
 
 ## Host boundary
 
-- `ProgramKit.Host` is application-neutral plumbing: Nuplane package loading, the
+- `Orbyss.Foundation.Host` is application-neutral plumbing: Nuplane package loading, the
   Nuplane-to-CShells assembly provider, CShells configuration/routing, CShells-only eager activation,
   and the versioned Program Kit secure-web profile selected from host configuration.
 - It has no application-bundle parser, package/feature policy, database client, business endpoint,
@@ -23,7 +23,7 @@ consumer-owned `shells.json`. Add a reviewed selection deterministically with:
 python .program-kit/eng/feature_metadata.py activate --shells shells.json --shell <name> --feature <identity>
 ```
 
-An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `ProgramKitFeatureIdentity`, declares an exact matching `[ShellFeature("<ProgramKitFeatureIdentity>")]`, and sets
+An activatable implementation/provider/bridge/composition project is packable, belongs to the solution, sets `FoundationFeatureIdentity`, declares an exact matching `[ShellFeature("<FoundationFeatureIdentity>")]`, and sets
 `AssemblyName` equal to `PackageId`. It references host-supplied CShells/framework abstractions with
 `PrivateAssets=all`; it does not reference the host, Nuplane runtime, or peer runtime implementations.
 Optional dependency, route, and dormant metadata is embedded during pack.
@@ -35,13 +35,13 @@ enforces those constraints while assembling image inputs. The host does not know
 ## Runnable-host release
 
 One application release produces one runnable image. Its Dockerfile derives from the approved digest-pinned
-`ProgramKit.Host`, copies the validated package closure to `/app/packages`, and adds the consumer-owned
+`Orbyss.Foundation.Host`, copies the validated package closure to `/app/packages`, and adds the consumer-owned
 `hostsettings.json` plus `shells.json`. Secrets stay in deployment configuration.
 
 After the registry supplies the immutable image digest, the release workflow emits `runnable-host.json`.
 The descriptor contains the application ID/version/source commit, image repository/tag/digest/reference,
 and the exact secret-free settings plus their hashes. This descriptor is deployment/release evidence; it is
-not a manifest interpreted by `ProgramKit.Host`.
+not a manifest interpreted by `Orbyss.Foundation.Host`.
 
 Production package feeds, watching, reconciliation, and reload policy are application deployment choices.
 Container health is also selected by the application once its feature-health contract is known.

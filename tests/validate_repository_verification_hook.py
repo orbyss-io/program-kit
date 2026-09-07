@@ -39,7 +39,10 @@ def main() -> int:
         wrapper = managed / SOURCE.name
         shutil.copyfile(SOURCE, wrapper)
         shutil.copyfile(RESTORE_SOURCE, managed / RESTORE_SOURCE.name)
-        shutil.copyfile(ROOT / "NuGet.config", repository / "NuGet.config")
+        shutil.copyfile(
+            ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/NuGet.config",
+            repository / "NuGet.config",
+        )
         marker = repository / "verification.marker"
         environment = os.environ.copy()
         environment["PROGRAMKIT_TEST_VERIFICATION_MARKER"] = str(marker)

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { beginProgramKitBffLogout } from '../bff-session.js';
+import { beginFoundationBffLogout } from '../bff-session.js';
 
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
 const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
@@ -17,7 +17,7 @@ test.afterEach(() => {
 });
 
 test('rejects non-local contract paths before opening provider logout', async () => {
-  await expect(beginProgramKitBffLogout({ logoutPath: 'https://attacker.example/logout' }))
+  await expect(beginFoundationBffLogout({ logoutPath: 'https://attacker.example/logout' }))
     .rejects.toThrow('logoutPath must be an application-local absolute path.');
 });
 
@@ -70,7 +70,7 @@ test('submits the managed antiforgery form and waits for local termination', asy
   Object.defineProperty(globalThis, 'document', { value: documentStub, configurable: true });
   Object.defineProperty(globalThis, 'fetch', { value: fetchStub, configurable: true });
 
-  await beginProgramKitBffLogout();
+  await beginFoundationBffLogout();
 
   expect(requests).toEqual(['/bff/antiforgery', '/bff/user']);
   expect(form).toMatchObject({
@@ -101,7 +101,7 @@ test('closes the provider window when the antiforgery contract fails', async () 
     configurable: true,
   });
 
-  await expect(beginProgramKitBffLogout()).rejects.toThrow(
+  await expect(beginFoundationBffLogout()).rejects.toThrow(
     'The BFF antiforgery response does not match the managed contract.',
   );
   expect(closed).toBe(true);

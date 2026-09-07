@@ -5,7 +5,7 @@ services:
     image: program-kit-consumer:local
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      CShells__Shells__default__Configuration__ProgramKit__Web__BackchannelAuthority: http://program-kit-identity:8080/realms/program-kit
+      CShells__Shells__default__Configuration__Foundation__Web__BackchannelAuthority: http://program-kit-identity:8080/realms/program-kit
     networks:
       - program-kit-local
     ports:

@@ -318,8 +318,8 @@ def main() -> int:
         "Bootstrap promise",
         "Explicit intake",
         "Program Kit default",
-        "ProgramKit.Host",
-        "preview packages",
+        "Orbyss.Foundation.Host",
+        "independently pinned Orbyss Foundation and Forms packages",
         "Managed toolchain precedence",
         "managed-toolchain-version",
     )
@@ -348,15 +348,15 @@ def main() -> int:
     )
     require_text(
         dotnet_root / "references/dotnet-runtime-and-application-bundles.md",
-        "ProgramKit.Host",
+        "Orbyss.Foundation.Host",
         "application-neutral plumbing",
         "runnable-host.json",
     )
     require_text(
         dotnet_root / "commands/speckit.program-kit-dotnet.sync.md",
         "--profile-selected",
-        "--host-runtime-accepted",
-        "--preview-sources-approved",
+        "--foundation-host-accepted",
+        "--building-block-sources-approved",
         "not a prerequisite",
         "Never overwrite",
     )
@@ -368,7 +368,7 @@ def main() -> int:
         "Before reading the confirmed intake or writing any project artifact",
         "Run those commands in the displayed order",
         "bootstrap-decisions.json",
-        "program-kit-preview-dependencies",
+        "orbyss-building-block-dependencies",
         "program-kit-web-threat-model-v1",
         "program-kit-web-security-evidence-v1",
     )
@@ -449,12 +449,10 @@ def main() -> int:
         "PENDING_RATIFICATION",
         "WEB_SECURITY_EVIDENCE",
     )
-    for release_script in (
-        root / "scripts/write_host_image_release_evidence.py",
-        root / "scripts/verify_nuget_publication.py",
-    ):
-        if not release_script.is_file():
-            raise AssertionError(f"Release verification script is missing: {release_script}")
+    retirement_script = root / "scripts/retire_programkit_nuget.py"
+    if not retirement_script.is_file():
+        raise AssertionError(f"NuGet retirement script is missing: {retirement_script}")
+    require_text(retirement_script, "verify_replacements", "dotnet", "nuget", "delete")
     updater = root / "scripts/upgrade_program_kit.py"
     reconciliation = root / "scripts/openapi_upgrade_reconciliation.py"
     require_text(
@@ -485,7 +483,7 @@ def main() -> int:
     require_text(
         reconciliation,
         "PKU110",
-        "ProgramKit.OpenApi.Exporter",
+        "Orbyss.Foundation.OpenApi.Exporter",
         "afterTasksAnalysis",
         "atomic_replace",
     )

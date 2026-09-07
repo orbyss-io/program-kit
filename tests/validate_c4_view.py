@@ -154,6 +154,7 @@ def model(intent: Path, documentation: Path) -> dict:
 def create_project(
     root: Path,
     architecture,
+    semantic,
     value: dict | None = None,
     status: str = "confirmed",
 ) -> dict:
@@ -161,32 +162,16 @@ def create_project(
     documentation = root / "docs/architecture/README.md"
     write(intent, "# Intent\n\nA reviewer inspects the system.\n")
     write(documentation, "# Architecture\n")
-    value = value or model(intent, documentation)
+    value = value or semantic.semantic_model(intent)
+    value["documentation"] = [
+        {"id": "architecture-readme", "path": "docs/architecture/README.md",
+         "sha256": digest(documentation), "scope": "Architecture review"}
+    ]
     map_path = root / "docs/architecture/architecture-map.json"
     dsl_path = root / "docs/architecture/workspace.dsl"
     write(map_path, json.dumps(value, indent=2) + "\n")
     write(dsl_path, architecture.StructurizrDslExporter().export(value))
-    intake = {
-        "schema_version": "1.0",
-        "status": status,
-        "artifacts": {
-            "project_intent": {
-                "path": "docs/architecture/project-intent.md",
-                "sha256": digest(intent),
-                "bytes": intent.stat().st_size,
-            },
-            "architecture_map": {
-                "path": "docs/architecture/architecture-map.json",
-                "sha256": digest(map_path),
-                "bytes": map_path.stat().st_size,
-            },
-            "c4_projection": {
-                "path": "docs/architecture/workspace.dsl",
-                "sha256": digest(dsl_path),
-                "bytes": dsl_path.stat().st_size,
-            },
-        },
-    }
+    intake = semantic.intake_for(root, value, status)
     write(root / "docs/architecture/bootstrap-intake.json", json.dumps(intake, indent=2) + "\n")
     return value
 
@@ -214,6 +199,7 @@ def main() -> int:
     scripts = repository / "extensions/program-kit-governance/scripts"
     architecture = load_module(scripts / "architecture_map.py", "test_c4_architecture")
     viewer = load_module(scripts / "c4_view.py", "test_c4_viewer")
+    semantic = load_module(repository / "tests/validate_bootstrap_semantics.py", "test_c4_semantic_fixture")
 
     viewer_skill = (
         repository
@@ -261,7 +247,7 @@ def main() -> int:
         tests_root = Path(directory)
         os.environ[viewer.STATE_ENVIRONMENT] = str(tests_root / "viewer state")
         project = tests_root / "consumer repository with spaces"
-        value = create_project(project, architecture, status="draft")
+        value = create_project(project, architecture, semantic, status="draft")
 
         valid = viewer.validate_projection(project)
         if (
@@ -397,7 +383,7 @@ def main() -> int:
         write(intake_path, json.dumps(registered, indent=2) + "\n")
         expect_failure(lambda: viewer.validate_projection(project), "partial architecture drift")
 
-        create_project(project, architecture, model(project / "docs/architecture/project-intent.md", project / "docs/architecture/README.md"))
+        create_project(project, architecture, semantic, semantic.semantic_model(project / "docs/architecture/project-intent.md"))
         state = {
             "schema_version": "1.0",
             "project_root": str(project),

@@ -56,7 +56,7 @@ adapter:
 - attack simulation, session deletion by opaque session identifier, and event deletion are not mixed
   into ordinary user features; the supported maintenance actions remain in `RealmOperations`;
 - preview or rapidly evolving workflow endpoints are deferred until their stability and migration
-  contract is suitable for a stable Program Kit feature.
+  contract is suitable for a stable Orbyss Foundation feature.
 
 Additional provider-specific feature packages should be introduced only with an endpoint inventory,
 least-privilege role mapping, typed or deliberately exact provider representation, negative tests, and a

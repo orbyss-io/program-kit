@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -57,7 +59,18 @@ EXPECTED_STEPS = [
 
 
 def run(*args: str, cwd: Path) -> None:
-    subprocess.run(args, cwd=cwd, check=True)
+    command = args
+    specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
+    if args and args[0] == "specify" and specify_site_packages:
+        command = (
+            sys.executable,
+            str(Path(__file__).resolve().parents[1] / "scripts/invoke_specify.py"),
+            "--site-packages",
+            specify_site_packages,
+            "--",
+            *args[1:],
+        )
+    subprocess.run(command, cwd=cwd, check=True)
 
 
 def snapshot(root: Path) -> dict[str, str]:
@@ -133,7 +146,6 @@ def main() -> int:
         required_runtime = {
             "bundle.yml",
             "VERSION",
-            "RUNTIME_VERSION",
             "scripts/upgrade_program_kit.py",
             "scripts/invoke_specify.py",
             "scripts/openapi_upgrade_reconciliation.py",
@@ -399,7 +411,7 @@ def main() -> int:
         )
         if (
             draft_bootstrap_validation.returncode == 0
-            or "confirmation status" not in draft_bootstrap_validation.stderr
+            or "not confirmed" not in draft_bootstrap_validation.stderr
         ):
             raise AssertionError("The packaged outer bootstrap validator accepted a draft intake")
 

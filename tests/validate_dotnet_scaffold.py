@@ -39,18 +39,18 @@ def assert_profile(repository: Path, expected: str) -> None:
     )["CShells"]["Shells"]["default"]
     features = set(shell["Features"])
     if expected == "none":
-        assert not any(feature.startswith("ProgramKit.Authentication") for feature in features)
+        assert not any(feature.startswith("Orbyss.Foundation.Authentication") for feature in features)
         assert not (repository / "deploy/keycloak/program-kit-realm.json").exists()
     else:
         selected = (
-            "ProgramKit.Authentication.BffCookie"
+            "Orbyss.Foundation.Authentication.BffCookie"
             if expected == "bff-cookie"
-            else "ProgramKit.Authentication.SpaPkce"
+            else "Orbyss.Foundation.Authentication.SpaPkce"
         )
         alternative = (
-            "ProgramKit.Authentication.SpaPkce"
+            "Orbyss.Foundation.Authentication.SpaPkce"
             if expected == "bff-cookie"
-            else "ProgramKit.Authentication.BffCookie"
+            else "Orbyss.Foundation.Authentication.BffCookie"
         )
         assert selected in features and alternative not in features
         realm = json.loads(
@@ -92,7 +92,7 @@ def seed_legacy_root_web_settings(repository: Path, profile: str) -> None:
     )
     hostsettings_path = repository / "hostsettings.json"
     hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
-    hostsettings["ProgramKit"]["Web"] = fixture
+    hostsettings.setdefault("ProgramKit", {})["Web"] = fixture
     hostsettings_path.write_text(json.dumps(hostsettings, indent=2) + "\n", encoding="utf-8")
     state_path = repository / ".program-kit/managed.json"
     state = json.loads(state_path.read_text(encoding="utf-8"))
@@ -145,17 +145,17 @@ def main() -> int:
         assert not (target / "global.json").exists(), "The .NET scaffold ran without an accepted runtime ADR."
 
         preview_unapproved = run(
-            "--target", str(target), "--profile-selected", "--host-runtime-accepted"
+            "--target", str(target), "--profile-selected", "--foundation-host-accepted"
         )
         assert preview_unapproved.returncode == 5, preview_unapproved.stderr
-        assert not (target / "global.json").exists(), "The .NET scaffold ran without preview-source approval."
+        assert not (target / "global.json").exists(), "The .NET scaffold ran without building-block source approval."
 
         missing_target = target / "missing"
         unchecked = run("--target", str(missing_target), "--profile-selected", "--check")
         assert unchecked.returncode == 1, unchecked.stderr
         assert not missing_target.exists(), "A read-only drift check changed the repository."
 
-        approvals = ("--profile-selected", "--host-runtime-accepted", "--preview-sources-approved")
+        approvals = ("--profile-selected", "--foundation-host-accepted", "--building-block-sources-approved")
         installed = run("--target", str(target), *approvals)
         assert installed.returncode == 0, installed.stderr
         state = json.loads((target / ".program-kit/managed.json").read_text(encoding="utf-8"))
@@ -386,13 +386,13 @@ def main() -> int:
         assert browser_state["webThreatModel"] == "program-kit-web-threat-model-v1"
         assert browser_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
         bff_settings = json.loads((browser_target / "hostsettings.json").read_text(encoding="utf-8"))
-        assert "Web" not in bff_settings["ProgramKit"]
+        assert "Web" not in bff_settings["Foundation"]
         bff_shell = json.loads(
             (browser_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )["CShells"]["Shells"]["default"]
-        assert "ProgramKit.Authentication.BffCookie" in bff_shell["Features"]
-        assert "ProgramKit.Authentication.SpaPkce" not in bff_shell["Features"]
-        assert bff_shell["Configuration"]["ProgramKit"]["Web"]["ClientId"] == "program-kit-bff"
+        assert "Orbyss.Foundation.Authentication.BffCookie" in bff_shell["Features"]
+        assert "Orbyss.Foundation.Authentication.SpaPkce" not in bff_shell["Features"]
+        assert bff_shell["Configuration"]["Foundation"]["Web"]["ClientId"] == "program-kit-bff"
         assert (browser_target / "deploy/keycloak/program-kit-realm.json").is_file()
         bff_realm = json.loads(
             (browser_target / "deploy/keycloak/program-kit-realm.json").read_text(encoding="utf-8")
@@ -424,8 +424,8 @@ def main() -> int:
             "localSession": "cleared",
         }
         bff_compose = (browser_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
-        assert "CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret" in bff_compose
-        assert "CShells__Shells__default__Configuration__ProgramKit__Web__BackchannelAuthority" in bff_compose
+        assert "CShells__Shells__default__Configuration__Foundation__Web__ClientSecret" in bff_compose
+        assert "CShells__Shells__default__Configuration__Foundation__Web__BackchannelAuthority" in bff_compose
         assert "program-kit-identity:8080/realms/program-kit" in bff_compose
         assert "extra_hosts" not in bff_compose and "localhost:host-gateway" not in bff_compose
         assert (browser_target / ".program-kit/eng/web/package-lock.json").is_file()
@@ -522,12 +522,12 @@ def main() -> int:
         assert spa_state["webThreatModel"] == "program-kit-web-threat-model-v1"
         assert spa_state["webSecurityEvidence"] == "program-kit-web-security-evidence-v1"
         spa_settings = json.loads((spa_target / "hostsettings.json").read_text(encoding="utf-8"))
-        assert "Web" not in spa_settings["ProgramKit"]
+        assert "Web" not in spa_settings["Foundation"]
         spa_shell = json.loads(
             (spa_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )["CShells"]["Shells"]["default"]
-        assert "ProgramKit.Authentication.SpaPkce" in spa_shell["Features"]
-        assert "ProgramKit.Authentication.BffCookie" not in spa_shell["Features"]
+        assert "Orbyss.Foundation.Authentication.SpaPkce" in spa_shell["Features"]
+        assert "Orbyss.Foundation.Authentication.BffCookie" not in spa_shell["Features"]
         spa_configuration_path = spa_target / ".program-kit/spa-pkce.json"
         spa_configuration = json.loads(spa_configuration_path.read_text(encoding="utf-8"))
         assert spa_state["files"][".program-kit/spa-pkce.json"]["ownership"] == "configuration"
@@ -547,7 +547,7 @@ def main() -> int:
         assert not any("*" in uri for uri in spa_client["redirectUris"])
         compose = (spa_target / "deploy/compose.application.yml").read_text(encoding="utf-8")
         assert "ClientSecret" not in compose and "local-program-kit-secret" not in compose
-        assert "CShells__Shells__default__Configuration__ProgramKit__Web__BackchannelAuthority" in compose
+        assert "CShells__Shells__default__Configuration__Foundation__Web__BackchannelAuthority" in compose
         assert "program-kit-identity:8080/realms/program-kit" in compose
         assert "extra_hosts" not in compose and "localhost:host-gateway" not in compose
         playwright = (spa_target / ".program-kit/eng/web/playwright.config.ts").read_text(encoding="utf-8")
@@ -588,7 +588,7 @@ def main() -> int:
             (spa_target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )
         assert (
-            customized_shell["CShells"]["Shells"]["default"]["Configuration"]["ProgramKit"]["Web"]
+            customized_shell["CShells"]["Shells"]["default"]["Configuration"]["Foundation"]["Web"]
             ["AllowedOrigins"]
             == ["http://localhost:4173"]
         )

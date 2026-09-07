@@ -276,7 +276,7 @@
   "configurableDefaults": [
     {
       "id": "WEB-D01",
-      "setting": "ProgramKit:Web:DiscoveryTimeoutSeconds",
+      "setting": "Foundation:Web:DiscoveryTimeoutSeconds",
       "default": 3,
       "unit": "seconds",
       "classification": "risk-based-operational-default",
@@ -296,7 +296,7 @@
     },
     {
       "id": "WEB-D03",
-      "setting": "ProgramKit:Web:RemoteAuthenticationTimeoutSeconds",
+      "setting": "Foundation:Web:RemoteAuthenticationTimeoutSeconds",
       "default": 10,
       "unit": "seconds",
       "classification": "risk-based-operational-default",
@@ -306,7 +306,7 @@
     },
     {
       "id": "WEB-D04",
-      "setting": "ProgramKit:Web:SessionIdleMinutes",
+      "setting": "Foundation:Web:SessionIdleMinutes",
       "default": 30,
       "unit": "minutes",
       "classification": "risk-based-session-default",
@@ -316,7 +316,7 @@
     },
     {
       "id": "WEB-D05",
-      "setting": "ProgramKit:Web:SessionAbsoluteMinutes",
+      "setting": "Foundation:Web:SessionAbsoluteMinutes",
       "default": 480,
       "unit": "minutes",
       "classification": "risk-based-session-default",
@@ -326,7 +326,7 @@
     },
     {
       "id": "WEB-D06",
-      "setting": "ProgramKit:Web:SupportedLocales",
+      "setting": "Foundation:Web:SupportedLocales",
       "default": ["en", "nl", "fr", "de", "es"],
       "unit": "locale tags",
       "classification": "product-scaffold-default",

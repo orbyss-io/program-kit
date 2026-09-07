@@ -11,7 +11,7 @@ ownership rules are profile requirements.
   unbounded producer queues, or unbounded fan-out.
 - Propagate cancellation and define timeout, retry, idempotency, fault, terminal-state, and observability policy.
 - `IHostedService` and `BackgroundService` are root-provider, process-global facilities. A CShells feature must
-  register shell-owned work through `ProgramKit.Tasks`; the Generic Host does not start services registered in
+  register shell-owned work through `Orbyss.Foundation.Tasks`; the Generic Host does not start services registered in
   a shell provider.
 - Startup tasks may be scoped. Background and recurring tasks are shell-singletons owned by the task manager.
   Shutdown is idempotent, cancels, awaits with a bound, drains before provider disposal, and has disposal fallback.
@@ -123,7 +123,7 @@ not automatically justified: it must make the caller easier to read or own an in
 - Named-argument Policy B: require names for ambiguous booleans, enums, null/default literals, adjacent same-typed
   primitives, and project-defined calls with four or more arguments. Keep one- and two-argument obvious calls
   positional. Public parameter renames remain a source-compatibility concern.
-- Built-in formatting and analyzers remain primary. `ProgramKit.Analyzers` supplies only semantic Program Kit
+- Built-in formatting and analyzers remain primary. `Orbyss.Foundation.Analyzers` supplies only semantic Program Kit
   rules that the SDK cannot express; generated repositories reference it centrally with `PrivateAssets=all`.
 
 ## Enforcement classification

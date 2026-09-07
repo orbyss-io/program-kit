@@ -36,9 +36,21 @@ def run(*args: str, cwd: Path, input_text: str | None = None) -> subprocess.Comp
     # Desktop hosts can inject a named-pipe TLS key logger that crashes the
     # Windows Specify/OpenSSL process before catalog I/O begins.
     environment.pop("SSLKEYLOGFILE", None)
+    command = args
+    specify_site_packages = environment.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
+    if args and args[0] == "specify" and specify_site_packages:
+        command = (
+            sys.executable,
+            str(Path(__file__).resolve().parents[1] / "scripts/invoke_specify.py"),
+            "--site-packages",
+            specify_site_packages,
+            "--loopback-http-only",
+            "--",
+            *args[1:],
+        )
     try:
         return subprocess.run(
-            args,
+            command,
             cwd=cwd,
             env=environment,
             input=input_text,

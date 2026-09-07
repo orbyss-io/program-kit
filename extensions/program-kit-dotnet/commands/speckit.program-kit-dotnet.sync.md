@@ -15,16 +15,20 @@ only after the owning capability's persistence admission record is complete.
 
 ## Work
 
+Read `references/orbyss-building-blocks.md` and its JSON companion before selecting or synchronizing
+packages. Treat the Foundation and Forms pins as independent compatibility inputs, never as the
+Program Kit extension version.
+
 1. Confirm that the approved bootstrap decision register selects .NET and has not explicitly opted out
-   of `ProgramKit.Host`. The hash-bound assessment approval plus Accepted bootstrap-baseline decision
-   satisfy host/runtime selection and acknowledgement of the pinned preview packages and the
+   of `Orbyss.Foundation.Host`. The hash-bound assessment approval plus Accepted bootstrap-baseline decision
+   satisfy host/runtime selection and acknowledgement of the independently pinned packages and the
    `CShells Preview` and `Nuplane Preview` NuGet sources. Outside bootstrap, equivalent Accepted ADR
    and explicit acknowledgement evidence are required.
    The Program Kit-managed SDK pin remains authoritative unless that register contains the explicit
    `managed-toolchain-version` override. A different locally installed SDK is not implicit approval
    to downgrade the managed baseline.
 2. For a write, run `{SCRIPT}` with `--target <repository-root> --profile-selected
-   --host-runtime-accepted --preview-sources-approved`. Pass a confirmation flag only when its corresponding
+   --foundation-host-accepted --building-block-sources-approved`. Pass a confirmation flag only when its corresponding
    evidence exists. For a read-only drift report, pass `--check --profile-selected`; the two write approvals
    are not required because check mode changes no files.
    Pass `--web-profile spa-pkce` only when explicit intake or an Accepted ADR requires a direct
@@ -60,12 +64,12 @@ contradictory lifetimes, and non-public SPA client configuration fail synchroniz
 The scaffolded NuGet configuration uses nuget.org as the default public-package source while more-specific
 patterns protect the approved CShells and Nuplane preview namespaces. Consumers remain authoritative over
 their dependencies and may add private sources with namespace-specific mappings; they must preserve the
-protected Program Kit mappings and must not map those namespaces to multiple sources.
+protected Orbyss, CShells, and Nuplane mappings and must not map those namespaces to multiple sources.
 Treat a consumer-extended configuration that passes those routing invariants as current, not as drift.
 The selected secure web profile additionally owns its shell feature/configuration overlay, identity
 Compose/realm fixture, web contract, and Playwright harness. `hostsettings.json` remains a clean,
 scaffold-once Nuplane/host input. The BFF secret must be supplied through
-`CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret`.
+`CShells__Shells__default__Configuration__Foundation__Web__ClientSecret`.
 The identity fixture contains the bearer-only API audience plus exactly one interactive client for
 the selected authenticated profile. The alternative client's registration and profile-only files
 must be absent, not retained in a disabled state. `none` removes the identity fixture entirely.

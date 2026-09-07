@@ -7,10 +7,10 @@
   "required": [
     "schema_version", "status", "project", "artifacts", "evidence", "facts", "scope",
     "actors", "journeys", "quality_requirements", "integrations", "choices",
-    "capability_assessments", "open_items", "candidate_slice_signals", "routing"
+    "capability_assessments", "domain_analysis", "open_items", "candidate_slice_signals", "routing"
   ],
   "properties": {
-    "schema_version": { "const": "1.0" },
+    "schema_version": { "const": "1.1" },
     "status": { "enum": ["draft", "confirmed"] },
     "project": {
       "type": "object",
@@ -80,17 +80,22 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "need", "coverage", "program_kit_capability", "disposition", "evidence"],
+        "required": ["id", "need", "mechanism_coverage", "program_kit_capabilities", "semantic_owner", "semantic_profile", "integration_owner", "provider_selection", "decision_state", "evidence"],
         "properties": {
           "id": { "$ref": "#/$defs/id" },
           "need": { "$ref": "#/$defs/text" },
-          "coverage": { "enum": ["managed", "guided", "external", "conflict", "not-declared", "insufficient-evidence"] },
-          "program_kit_capability": { "type": "string", "maxLength": 120 },
-          "disposition": { "enum": ["explicit-user-decision", "program-kit-default", "derived-default", "human-answer-required", "research-required", "project-owned-design", "deferred", "excluded"] },
+          "mechanism_coverage": { "enum": ["managed", "guided", "external", "conflict", "not-declared", "insufficient-evidence"] },
+          "program_kit_capabilities": { "$ref": "#/$defs/string_list" },
+          "semantic_owner": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "semantic_profile": { "type": "string", "maxLength": 500 },
+          "integration_owner": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "provider_selection": { "type": "string", "maxLength": 240 },
+          "decision_state": { "enum": ["explicit-user-decision", "program-kit-default", "derived-default", "human-answer-required", "research-required", "project-owned-design", "deferred", "excluded"] },
           "evidence": { "$ref": "#/$defs/id_list" }
         }
       }
     },
+    "domain_analysis": { "$ref": "#/$defs/domain_analysis" },
     "open_items": {
       "type": "array",
       "items": {
@@ -151,7 +156,69 @@
         }
       }
     },
+    "domain_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subdomains", "candidate_contexts", "founding_decision_candidates", "boundary_challenges"],
+      "properties": {
+        "subdomains": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/subdomain" } },
+        "candidate_contexts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/candidate_context" } },
+        "founding_decision_candidates": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/founding_decision" } },
+        "boundary_challenges": { "type": "array", "items": { "$ref": "#/$defs/boundary_challenge" } }
+      }
+    },
+    "subdomain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "classification", "vision", "ownership", "non_ownership", "language_terms", "data_ownership", "invariants", "lifecycle", "status", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "name": { "$ref": "#/$defs/text" },
+        "classification": { "enum": ["core", "supporting", "generic"] },
+        "vision": { "$ref": "#/$defs/text" }, "ownership": { "$ref": "#/$defs/text" },
+        "non_ownership": { "$ref": "#/$defs/text" }, "language_terms": { "$ref": "#/$defs/text_list" },
+        "data_ownership": { "$ref": "#/$defs/text_list" }, "invariants": { "$ref": "#/$defs/text_list" },
+        "lifecycle": { "$ref": "#/$defs/text" }, "status": { "$ref": "#/$defs/provisional_status" },
+        "evidence": { "$ref": "#/$defs/nonempty_id_list" }
+      }
+    },
+    "candidate_context": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "boundary_kind", "vision", "responsibilities", "non_responsibilities", "language_terms", "subdomains", "data_ownership", "invariants", "lifecycle", "separation_rationale", "split_triggers", "status", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "name": { "$ref": "#/$defs/text" },
+        "boundary_kind": { "enum": ["domain-model", "cross-cutting-concern"] },
+        "vision": { "$ref": "#/$defs/text" }, "responsibilities": { "$ref": "#/$defs/text_list" },
+        "non_responsibilities": { "$ref": "#/$defs/text_list" }, "language_terms": { "$ref": "#/$defs/text_list" },
+        "subdomains": { "$ref": "#/$defs/nonempty_id_list" }, "data_ownership": { "$ref": "#/$defs/text_list" },
+        "invariants": { "$ref": "#/$defs/text_list" }, "lifecycle": { "$ref": "#/$defs/text" },
+        "separation_rationale": { "$ref": "#/$defs/text" }, "split_triggers": { "$ref": "#/$defs/text_list" },
+        "status": { "$ref": "#/$defs/provisional_status" }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }
+      }
+    },
+    "founding_decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "question", "recommended_option", "alternatives", "rationale", "consequences", "confidence", "affected_elements", "affected_relationships", "status", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "title": { "$ref": "#/$defs/text" },
+        "question": { "$ref": "#/$defs/text" }, "recommended_option": { "$ref": "#/$defs/text" },
+        "alternatives": { "$ref": "#/$defs/text_list" }, "rationale": { "$ref": "#/$defs/text" },
+        "consequences": { "$ref": "#/$defs/text_list" }, "confidence": { "enum": ["high", "medium", "low"] },
+        "affected_elements": { "$ref": "#/$defs/id_list" }, "affected_relationships": { "$ref": "#/$defs/id_list" },
+        "status": { "enum": ["proposed", "unresolved"] }, "evidence": { "$ref": "#/$defs/nonempty_id_list" }
+      }
+    },
+    "boundary_challenge": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "boundary", "concern", "finding", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "boundary": { "$ref": "#/$defs/id" },
+        "concern": { "$ref": "#/$defs/text" }, "finding": { "$ref": "#/$defs/text" },
+        "evidence": { "$ref": "#/$defs/nonempty_id_list" }
+      }
+    },
+    "provisional_status": { "enum": ["explicit", "derived", "proposed", "unresolved"] },
     "id_list": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+    "nonempty_id_list": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+    "text_list": { "type": "array", "minItems": 1, "maxItems": 128, "items": { "$ref": "#/$defs/text" }, "uniqueItems": true },
     "string_list": { "type": "array", "maxItems": 64, "items": { "type": "string", "minLength": 1, "maxLength": 120 }, "uniqueItems": true }
   }
 }

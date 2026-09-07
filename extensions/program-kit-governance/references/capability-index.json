@@ -4,15 +4,15 @@
     {"id":"architecture-governance","coverage":"managed","reference":"references/architecture-method.md","signals":["architecture","adr","governance","decision","modularity"]},
     {"id":"vertical-slicing","coverage":"guided","reference":"references/vertical-slicing.md","signals":["journey","workflow","use case","feature","slice"]},
     {"id":"modularity-contracts","coverage":"guided","reference":"references/modularity-and-contracts.md","signals":["module","bounded context","contract","ownership","dependency"]},
-    {"id":"dotnet-host-runtime","coverage":"managed","reference":"references/default-adoption.md","signals":[".net","asp.net","c#","web api","worker"]},
-    {"id":"authenticated-browser-bff","coverage":"managed","reference":"references/default-adoption.md","signals":["browser","react","spa","login","authentication"]},
-    {"id":"browser-spa-pkce","coverage":"managed","reference":"references/default-adoption.md","signals":["static hosting","direct api","pkce","browser token"]},
+    {"id":"dotnet-host-runtime","coverage":"managed","reference":"references/orbyss-building-blocks.md","signals":[".net","asp.net","c#","web api","worker"]},
+    {"id":"authenticated-browser-bff","coverage":"managed","reference":"references/orbyss-building-blocks.md","signals":["browser","react","spa","login","authentication"]},
+    {"id":"browser-spa-pkce","coverage":"managed","reference":"references/orbyss-building-blocks.md","signals":["static hosting","direct api","pkce","browser token"]},
     {"id":"ui-experience","coverage":"managed","reference":"references/ui-experience-v1.md","signals":["ui","browser","branding","accessibility","public discovery"]},
     {"id":"programming-guardrails","coverage":"guided","reference":"references/programming-guardrails.md","signals":["code quality","testing","errors","concurrency"]},
     {"id":"tool-selection","coverage":"guided","reference":"references/tool-selection.md","signals":["tooling","ci","architecture as code","c4","structurizr"]},
-    {"id":"forms","coverage":"managed","reference":"references/modularity-and-contracts.md","signals":["json forms","forms","schema-driven ui","form modeler"]},
-    {"id":"localization","coverage":"managed","reference":"references/modularity-and-contracts.md","signals":["localization","translation","locale","multilingual"]},
-    {"id":"domain-events","coverage":"managed","reference":"references/modularity-and-contracts.md","signals":["domain event","integration event","outbox","message"]},
-    {"id":"openapi-contracts","coverage":"managed","reference":"references/tool-selection.md","signals":["openapi","api contract","typescript client","compatibility"]}
+    {"id":"forms","coverage":"managed","reference":"references/orbyss-building-blocks.md","managed_mechanism":"Orbyss Forms supplies schema contracts, rendering, validation, editor integration, lookups, actions, localization hooks, and operational form lifecycle.","consumer_semantic_boundary":"The consumer owns what a form means: domain fields, item and catalog references, pricing and VAT meaning, quantification rules, visibility policy, publication policy, and workflow orchestration. Model these in consumer contexts/modules and explicit bridges; never assign them to Orbyss Forms.","signals":["json forms","forms","schema-driven ui","form modeler"]},
+    {"id":"localization","coverage":"managed","reference":"references/orbyss-building-blocks.md","signals":["localization","translation","locale","multilingual"]},
+    {"id":"domain-events","coverage":"managed","reference":"references/orbyss-building-blocks.md","signals":["domain event","integration event","outbox","message"]},
+    {"id":"openapi-contracts","coverage":"managed","reference":"references/orbyss-building-blocks.md","signals":["openapi","api contract","typescript client","compatibility"]}
   ]
 }

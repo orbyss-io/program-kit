@@ -105,8 +105,8 @@ def validate_contract(
             f"PKO204 unsupported or incomplete OpenAPI contract {path}; missing: {', '.join(missing)}."
         )
     producer = value.get("producer")
-    if not isinstance(producer, dict) or producer.get("kind") != "ProgramKit.OpenApi.Exporter":
-        raise ValueError("PKO204 producer.kind must be ProgramKit.OpenApi.Exporter.")
+    if not isinstance(producer, dict) or producer.get("kind") != "Orbyss.Foundation.OpenApi.Exporter":
+        raise ValueError("PKO204 producer.kind must be Orbyss.Foundation.OpenApi.Exporter.")
     if producer.get("version") != exporter_version:
         raise ValueError(
             f"PKO204 contract exporter version must equal managed tool pin {exporter_version!r}."
@@ -245,10 +245,10 @@ def tool_version(repository: Path) -> tuple[Path, str]:
     manifest = repository / ".program-kit/eng/.config/dotnet-tools.json"
     value = load_json(manifest, "managed .NET tool manifest")
     tools = value.get("tools")
-    entry = tools.get("programkit.openapi.exporter") if isinstance(tools, dict) else None
+    entry = tools.get("orbyss.foundation.openapi.exporter") if isinstance(tools, dict) else None
     version = entry.get("version") if isinstance(entry, dict) else None
     if not isinstance(version, str) or not version:
-        raise ValueError("PKO206 managed tool manifest does not pin ProgramKit.OpenApi.Exporter.")
+        raise ValueError("PKO206 managed tool manifest does not pin Orbyss.Foundation.OpenApi.Exporter.")
     return manifest, version
 
 
@@ -319,7 +319,7 @@ def execute_contract(
     )
     export_evidence = repository / f".program-kit/evidence/openapi/{identity}-export.json"
     exporter_command = [dotnet, str(exporter)] if exporter else [
-        dotnet, "tool", "run", "programkit-openapi-export", "--"
+        dotnet, "tool", "run", "orbyss-foundation-openapi-export", "--"
     ]
     run(
         exporter_command
@@ -440,7 +440,7 @@ def main() -> int:
             json.dumps(
                 {
                     "schemaVersion": 1,
-                    "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": version},
+                    "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": version},
                     "registrySha256": sha256(registry_path),
                     "contracts": evidence,
                     "satisfied": True,

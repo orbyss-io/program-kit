@@ -21,7 +21,7 @@ are verification artifacts, not permission to publish another candidate under an
   consume the same tokens; their framework-specific adapter remains consumer-owned.
 - Independent consent-gated analytics controller and GA4 injected-transport adapter. No transport,
   automatic tracking or remote fonts are loaded by the default pages.
-- Provider-neutral `ProgramKit.Web.Discovery.Abstractions` plus optional `ProgramKit.Web.Discovery`
+- Provider-neutral `Orbyss.Foundation.Web.Discovery.Abstractions` plus optional `Orbyss.Foundation.Web.Discovery`
   CShells feature. Exact public GET/HEAD allowlist; bounded, hash-verified files; no Host edits.
 - Optional local multi-provider evaluation scorer, with lexical/citation metrics explicitly
   distinguished from factual entailment, ranking or universal model compatibility.

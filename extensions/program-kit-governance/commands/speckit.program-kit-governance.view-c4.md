@@ -12,6 +12,8 @@ generated, read-only review projection. Never import viewer or DSL changes into 
 Inspection may accept either a current `draft` intake for informed pre-confirmation review or a
 `confirmed` intake for baseline review. A draft must match every registered artifact hash exactly.
 Viewing never changes intake status, creates approval evidence, or accepts proposed architecture.
+During bootstrap intake it supports informed review of the proposed contexts, journeys, and founding
+decision candidates; the user approves neither the candidates nor future ADRs by opening the view.
 
 ## View workflow
 

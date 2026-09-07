@@ -1,5 +1,5 @@
 {
-  "ProgramKit": {
+  "Foundation": {
     "Boot": {
       "EagerShellActivation": true,
       "FailOnShellActivationError": true
@@ -12,7 +12,7 @@
         {
           "Name": "runtime-packages",
           "DirectoryPath": "packages",
-          "IncludePatterns": [ "ProgramKit.*" ],
+          "IncludePatterns": [ "Orbyss.*" ],
           "Directory": {
             "Watch": false
           }

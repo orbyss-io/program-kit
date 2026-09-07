@@ -77,9 +77,27 @@ contents approved again.
 Treat `docs/architecture/architecture-map.json` as the canonical living architecture model and the
 confirmed intake map as its provisional starting state. Refine it with accepted assessment choices,
 the ratified constitution, and architecture evidence. Maintain its C4 System Context and Domain
-Context Map as the first review views; add container, component, dynamic, deployment, filtered,
-custom, or image views only when they clarify evidenced structure or behavior. Diagrams are views of
-the canonical model, never independent sources of truth.
+Context Map as the first review views. Preserve the intake's domain/subdomain landscape,
+context/module decomposition, and one dynamic view for every separately named source journey.
+Add C4 container, component, or deployment levels only when evidence supports those physical or
+runtime boundaries; a bounded context or capability must never be projected as a peer software
+system merely to fit a C4 level. Diagrams are views of the canonical model, never independent
+sources of truth.
+
+Read the intake's founding decision candidates before doing broad architecture research. For each
+candidate, verify the evidence and assumptions against the ratified constitution and relevant
+technical constraints, retain genuine alternatives and consequences, then materialize the result as
+a real Proposed ADR carrying the candidate ID. Research only the uncertainties that remain material;
+do not repeat already bounded intake discovery. Every candidate must end as a Proposed ADR,
+an explicitly unresolved architecture item, or a documented rejection with rationale. List the exact
+founding ADR paths and hashes in the post-architecture approval packet. That approval accepts the
+reviewed founding ADR bundle; it does not accept unrelated Proposed ADRs.
+
+Each founding ADR must include a machine-readable line shaped as
+`- **Founding decision candidate**: candidate-id` and the exact lifecycle line
+`- **Status**: Proposed`. Add it to the canonical map decision catalog using the same candidate ID.
+The approval transition changes only that enumerated bundle to Accepted, updates the affected map
+semantics and ADR hashes, and regenerates the DSL; never pre-accept these ADRs in the architecture command.
 
 Maintain the model's first-class decision catalog. Every linked ADR records its repository-relative
 path, SHA-256, title, date, lifecycle status, scope, owner, and supersession links. Add typed
@@ -143,7 +161,7 @@ Resolve the decision backlog through focused design tasks before implementation 
 Architecture documents must clearly distinguish facts confirmed by intake evidence, derived constraints, proposals, accepted decisions, and unresolved questions.
 
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
-bootstrap-baseline decision must adopt the application-neutral `ProgramKit.Host` and runnable-host release model as
+bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and runnable-host release model as
 Accepted. Do not scaffold or restore packages during this command.
 
 When the decision register selects a browser UI, the architecture runtime, deployment,
@@ -164,7 +182,7 @@ and map explicitly to one or more canonical controls; they never redefine a `WEB
 For `ui-experience-v1`, include consumer-owned branding/content, generated semantic tokens and
 initial-render metadata, optional public discovery projection, and independent analytics adapters.
 Map each page's public/private/indexing intent; no private body may enter public build artifacts.
-Keep .NET endpoints in `ProgramKit.Web.Discovery` or consumer-owned IWebShellFeature adapters,
-never in ProgramKit.Host. Accepted frontend frameworks consume the same contracts through their
+Keep .NET endpoints in `Orbyss.Foundation.Web.Discovery` or consumer-owned IWebShellFeature adapters,
+never in Orbyss.Foundation.Host. Accepted frontend frameworks consume the same contracts through their
 own initial-render adapter. Do not duplicate route/head owners or replace Keycloak flows to share
 branding. SVG/logo/icon assets retain license and accessibility semantics.

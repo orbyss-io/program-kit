@@ -65,7 +65,7 @@ if (-not $SkipBuild) {
 }
 
 if ([string]::IsNullOrWhiteSpace($env:PROGRAMKIT_HOST_IMAGE)) {
-    throw 'Set PROGRAMKIT_HOST_IMAGE to the approved digest-pinned ProgramKit.Host image, then rerun Dev.ps1. Identity remains ready.'
+    throw 'Set PROGRAMKIT_HOST_IMAGE to the approved digest-pinned Orbyss.Foundation.Host image, then rerun Dev.ps1. Identity remains ready.'
 }
 
 $applicationImage = 'program-kit-consumer:local'

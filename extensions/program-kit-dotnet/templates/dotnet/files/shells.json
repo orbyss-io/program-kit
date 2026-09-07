@@ -4,7 +4,7 @@
       "default": {
         "Name": "default",
         "Features": {
-          "ProgramKitTasks": {}
+          "FoundationTasks": {}
         },
         "Configuration": {
           "WebRouting": {

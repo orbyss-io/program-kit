@@ -27,7 +27,7 @@
       "type": "object",
       "required": ["kind", "version"],
       "properties": {
-        "kind": { "const": "ProgramKit.OpenApi.Exporter" },
+        "kind": { "const": "Orbyss.Foundation.OpenApi.Exporter" },
         "version": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false

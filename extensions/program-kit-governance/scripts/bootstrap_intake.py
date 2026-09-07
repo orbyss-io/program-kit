@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 CANONICAL_INTAKE = Path("docs/architecture/bootstrap-intake.json")
 CANONICAL_ARTIFACTS = {
     "project_intent": Path("docs/architecture/project-intent.md"),
@@ -44,6 +44,7 @@ TOP_LEVEL = {
     "open_items",
     "candidate_slice_signals",
     "routing",
+    "domain_analysis",
 }
 
 
@@ -98,6 +99,13 @@ def _list(value: object, label: str, maximum: int = 128) -> list:
 
 def _string_list(value: object, label: str, maximum_items: int = 64) -> list[str]:
     result = [_text(item, f"{label}[{index}]", 120) for index, item in enumerate(_list(value, label, maximum_items), 1)]
+    if len(set(result)) != len(result):
+        raise IntakeError(f"{label} contains duplicates")
+    return result
+
+
+def _text_list(value: object, label: str, maximum_items: int = 128) -> list[str]:
+    result = [_text(item, f"{label}[{index}]", 500) for index, item in enumerate(_list(value, label, maximum_items), 1)]
     if len(set(result)) != len(result):
         raise IntakeError(f"{label} contains duplicates")
     return result
@@ -161,10 +169,154 @@ def _validate_evidence_items(
             raise IntakeError(f"{item_label} references unknown evidence")
 
 
+def _validate_domain_analysis(
+    value: object,
+    evidence_ids: set[str],
+    all_ids: set[str],
+) -> None:
+    expected = {
+        "subdomains", "candidate_contexts", "founding_decision_candidates",
+        "boundary_challenges",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise IntakeError("domain_analysis has an invalid shape")
+
+    subdomain_ids: set[str] = set()
+    for index, item in enumerate(_list(value["subdomains"], "domain_analysis.subdomains"), 1):
+        label = f"domain_analysis.subdomains[{index}]"
+        fields = {
+            "id", "name", "classification", "vision", "ownership", "non_ownership",
+            "language_terms", "data_ownership", "invariants", "lifecycle", "status", "evidence",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise IntakeError(f"{label} has an invalid shape")
+        item_id = _id(item.get("id"), f"{label}.id")
+        if item_id in all_ids:
+            raise IntakeError(f"Duplicate intake ID: {item_id}")
+        all_ids.add(item_id)
+        subdomain_ids.add(item_id)
+        _text(item.get("name"), f"{label}.name", 240)
+        if item.get("classification") not in {"core", "supporting", "generic"}:
+            raise IntakeError(f"{label}.classification is invalid")
+        for field in ("vision", "ownership", "non_ownership", "lifecycle"):
+            _text(item.get(field), f"{label}.{field}")
+        for field in ("language_terms", "data_ownership", "invariants"):
+            if not _text_list(item.get(field), f"{label}.{field}"):
+                raise IntakeError(f"{label}.{field} must preserve at least one domain signal")
+        references = _string_list(item.get("evidence"), f"{label}.evidence")
+        if not references or any(reference not in evidence_ids for reference in references):
+            raise IntakeError(f"{label} must reference valid source evidence")
+        if item.get("status") not in {"explicit", "derived", "proposed", "unresolved"}:
+            raise IntakeError(f"{label}.status must remain provisional during intake")
+
+    context_ids: set[str] = set()
+    cross_cutting: set[str] = set()
+    for index, item in enumerate(_list(value["candidate_contexts"], "domain_analysis.candidate_contexts"), 1):
+        label = f"domain_analysis.candidate_contexts[{index}]"
+        fields = {
+            "id", "name", "boundary_kind", "vision", "responsibilities",
+            "non_responsibilities", "language_terms", "subdomains", "data_ownership",
+            "invariants", "lifecycle", "separation_rationale", "split_triggers", "status",
+            "evidence",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise IntakeError(f"{label} has an invalid shape")
+        item_id = _id(item.get("id"), f"{label}.id")
+        if item_id in all_ids:
+            raise IntakeError(f"Duplicate intake ID: {item_id}")
+        all_ids.add(item_id)
+        context_ids.add(item_id)
+        _text(item.get("name"), f"{label}.name", 240)
+        if item.get("boundary_kind") not in {"domain-model", "cross-cutting-concern"}:
+            raise IntakeError(f"{label}.boundary_kind is invalid")
+        if item["boundary_kind"] == "cross-cutting-concern":
+            cross_cutting.add(item_id)
+        for field in ("vision", "lifecycle", "separation_rationale"):
+            _text(item.get(field), f"{label}.{field}")
+        for field in (
+            "responsibilities", "non_responsibilities", "language_terms", "data_ownership",
+            "invariants", "split_triggers",
+        ):
+            if not _text_list(item.get(field), f"{label}.{field}"):
+                raise IntakeError(f"{label}.{field} must contain at least one boundary signal")
+        linked_subdomains = _string_list(item.get("subdomains"), f"{label}.subdomains")
+        if not linked_subdomains or any(item_id not in subdomain_ids for item_id in linked_subdomains):
+            raise IntakeError(f"{label}.subdomains must reference classified subdomains")
+        references = _string_list(item.get("evidence"), f"{label}.evidence")
+        if not references or any(reference not in evidence_ids for reference in references):
+            raise IntakeError(f"{label} must reference valid source evidence")
+        if item.get("status") not in {"explicit", "derived", "proposed", "unresolved"}:
+            raise IntakeError(f"{label}.status must remain provisional during intake")
+
+    decision_coverage: set[str] = set()
+    for index, item in enumerate(
+        _list(value["founding_decision_candidates"], "domain_analysis.founding_decision_candidates"), 1
+    ):
+        label = f"domain_analysis.founding_decision_candidates[{index}]"
+        fields = {
+            "id", "title", "question", "recommended_option", "alternatives", "rationale",
+            "consequences", "confidence", "affected_elements", "affected_relationships",
+            "status", "evidence",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise IntakeError(f"{label} has an invalid shape")
+        item_id = _id(item.get("id"), f"{label}.id")
+        if item_id in all_ids:
+            raise IntakeError(f"Duplicate intake ID: {item_id}")
+        all_ids.add(item_id)
+        _text(item.get("title"), f"{label}.title", 240)
+        _text(item.get("question"), f"{label}.question")
+        recommendation = _text(item.get("recommended_option"), f"{label}.recommended_option")
+        alternatives = _text_list(item.get("alternatives"), f"{label}.alternatives")
+        if not alternatives or recommendation in alternatives:
+            raise IntakeError(f"{label} must record at least one genuinely different alternative")
+        _text(item.get("rationale"), f"{label}.rationale")
+        if not _text_list(item.get("consequences"), f"{label}.consequences"):
+            raise IntakeError(f"{label}.consequences must not be empty")
+        if item.get("confidence") not in {"high", "medium", "low"}:
+            raise IntakeError(f"{label}.confidence is invalid")
+        if item.get("status") not in {"proposed", "unresolved"}:
+            raise IntakeError(f"{label}.status cannot imply ADR acceptance during intake")
+        affected = _string_list(item.get("affected_elements"), f"{label}.affected_elements")
+        if any(element not in context_ids for element in affected):
+            raise IntakeError(f"{label}.affected_elements must reference candidate contexts")
+        decision_coverage.update(affected)
+        _string_list(item.get("affected_relationships"), f"{label}.affected_relationships")
+        references = _string_list(item.get("evidence"), f"{label}.evidence")
+        if not references or any(reference not in evidence_ids for reference in references):
+            raise IntakeError(f"{label} must reference valid source evidence")
+    if decision_coverage != context_ids:
+        raise IntakeError("Every candidate context must be explained by a founding decision candidate")
+
+    challenged: set[str] = set()
+    for index, item in enumerate(_list(value["boundary_challenges"], "domain_analysis.boundary_challenges"), 1):
+        label = f"domain_analysis.boundary_challenges[{index}]"
+        if not isinstance(item, dict) or set(item) != {"id", "boundary", "concern", "finding", "evidence"}:
+            raise IntakeError(f"{label} has an invalid shape")
+        item_id = _id(item.get("id"), f"{label}.id")
+        if item_id in all_ids:
+            raise IntakeError(f"Duplicate intake ID: {item_id}")
+        all_ids.add(item_id)
+        boundary = _id(item.get("boundary"), f"{label}.boundary")
+        if boundary not in context_ids:
+            raise IntakeError(f"{label}.boundary references an unknown candidate context")
+        challenged.add(boundary)
+        _text(item.get("concern"), f"{label}.concern")
+        _text(item.get("finding"), f"{label}.finding")
+        references = _string_list(item.get("evidence"), f"{label}.evidence")
+        if not references or any(reference not in evidence_ids for reference in references):
+            raise IntakeError(f"{label} must reference valid source evidence")
+    if cross_cutting - challenged:
+        raise IntakeError(
+            "Every cross-cutting-concern boundary must be explicitly challenged against the source evidence"
+        )
+
+
 def validate_intake(
     project_root: Path,
     intake_path: Path = CANONICAL_INTAKE,
     allow_architecture_evolution: bool = False,
+    allowed_statuses: set[str] | None = None,
 ) -> dict:
     if intake_path != CANONICAL_INTAKE:
         raise IntakeError(f"Bootstrap intake path must be {CANONICAL_INTAKE.as_posix()}")
@@ -174,7 +326,11 @@ def validate_intake(
     if path.stat().st_size > MAX_BYTES:
         raise IntakeError(f"Bootstrap intake exceeds {MAX_BYTES} bytes")
     intake = load_object(path)
-    if set(intake) != TOP_LEVEL or intake.get("schema_version") != SCHEMA_VERSION or intake.get("status") != "confirmed":
+    version = intake.get("schema_version")
+    if allowed_statuses is None and intake.get("status") != "confirmed":
+        raise IntakeError("Bootstrap intake is not confirmed")
+    statuses = allowed_statuses or {"confirmed"}
+    if set(intake) != TOP_LEVEL or version != SCHEMA_VERSION or intake.get("status") not in statuses:
         raise IntakeError("Bootstrap intake has an invalid top-level shape, schema version, or confirmation status")
     project = intake.get("project")
     if not isinstance(project, dict) or set(project) != {"name", "summary"}:
@@ -258,7 +414,11 @@ def validate_intake(
     assessments = _list(intake.get("capability_assessments"), "capability_assessments")
     for index, item in enumerate(assessments, 1):
         label = f"capability_assessments[{index}]"
-        expected = {"id", "need", "coverage", "program_kit_capability", "disposition", "evidence"}
+        expected = {
+            "id", "need", "mechanism_coverage", "program_kit_capabilities",
+            "semantic_owner", "semantic_profile", "integration_owner",
+            "provider_selection", "decision_state", "evidence",
+        }
         if not isinstance(item, dict) or set(item) != expected:
             raise IntakeError(f"{label} has an invalid shape")
         item_id = _id(item.get("id"), f"{label}.id")
@@ -266,18 +426,34 @@ def validate_intake(
             raise IntakeError(f"Duplicate intake ID: {item_id}")
         all_ids.add(item_id)
         _text(item.get("need"), f"{label}.need")
-        coverage = item.get("coverage")
-        disposition = item.get("disposition")
+        coverage = item.get("mechanism_coverage")
+        disposition = item.get("decision_state")
         if coverage not in coverage_values or disposition not in dispositions:
             raise IntakeError(f"{label} has invalid coverage or disposition")
-        capability = _text(item.get("program_kit_capability"), f"{label}.program_kit_capability", 120, allow_empty=True)
-        if coverage in {"managed", "guided", "conflict"} and not capability:
+        capabilities = _string_list(item.get("program_kit_capabilities"), f"{label}.program_kit_capabilities")
+        if coverage in {"managed", "guided", "conflict"} and not any(capabilities):
             raise IntakeError(f"{label} must name the relevant Program Kit capability")
         if coverage == "not-declared" and disposition == "program-kit-default":
             raise IntakeError(f"{label} cannot apply a Program Kit default to undeclared coverage")
+        semantic_owner = _text(item.get("semantic_owner"), f"{label}.semantic_owner", 120)
+        semantic_profile = _text(
+            item.get("semantic_profile"), f"{label}.semantic_profile", 500, allow_empty=True
+        )
+        _text(item.get("integration_owner"), f"{label}.integration_owner", 120)
+        _text(item.get("provider_selection"), f"{label}.provider_selection", 240, allow_empty=True)
+        if coverage == "managed" and semantic_owner != "program-kit" and not semantic_profile:
+            raise IntakeError(
+                f"{label} must preserve consumer-owned semantics separately from a managed mechanism"
+            )
+        if "forms" in capabilities and semantic_owner == "program-kit":
+            raise IntakeError(
+                f"{label} cannot assign consumer form, item, pricing, or workflow semantics to Program Kit Forms"
+            )
         references = _string_list(item.get("evidence"), f"{label}.evidence")
         if any(reference not in evidence_ids for reference in references):
             raise IntakeError(f"{label} references unknown evidence")
+
+    _validate_domain_analysis(intake.get("domain_analysis"), evidence_ids, all_ids)
 
     classifications = {"human-decision", "research", "project-owned-design", "deferred"}
     open_items = _list(intake.get("open_items"), "open_items")
@@ -315,6 +491,7 @@ def validate_intake(
     architecture_module = _load_architecture_module()
     architecture_map = architecture_module.load_object(artifact_paths["architecture_map"])
     architecture_module.validate_model(architecture_map, project_root)
+    architecture_module.validate_bootstrap_alignment(architecture_map, intake)
     expected_projection = architecture_module.StructurizrDslExporter().export(architecture_map)
     actual_projection = artifact_paths["c4_projection"].read_text(encoding="utf-8")
     if actual_projection != expected_projection:

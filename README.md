@@ -11,6 +11,13 @@ The executable behavior lives in Spec Kit extensions and a workflow. `program-ki
 versioned distribution layer: it installs the governance extension, the .NET extension, the
 governance template preset, and the bootstrap workflow as separate components.
 
+Program Kit is the AI extension, not an application platform or a component runtime. The reusable
+technical building blocks it understands are independently developed and released from
+[`orbyss-io/dotnet-foundation`](https://github.com/orbyss-io/dotnet-foundation) and
+[`orbyss-io/forms`](https://github.com/orbyss-io/forms). Orbyss is a software factory and AI
+consultancy; the Foundation and Forms names describe reusable engineering assets, not a platform
+product.
+
 ## Install in a repository
 
 Prerequisites:
@@ -44,7 +51,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.9.11/Initialize-ProgramKit-0.9.11.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.10.0/Initialize-ProgramKit-0.10.0.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -63,7 +70,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.9.11/Initialize-ProgramKit-0.9.11.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.10.0/Initialize-ProgramKit-0.10.0.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -144,8 +151,8 @@ Download and verify the full `program-kit-<version>.zip` release asset, extract 
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.9.11\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.9.11 `
+python C:\path\to\program-kit-0.10.0\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.10.0 `
   --target . `
   --integration codex
 ```
@@ -158,7 +165,7 @@ the bundle record, workflow manifest/registry, both extension manifests, preset 
 and managed-baseline version. It reports success only when every value converges. Do not run
 `workflow`, `extension`, `preset`, or `bundle` mutations concurrently with it.
 
-If the target release changes the managed `ProgramKit.OpenApi.Exporter` pin while registered
+If the target release changes the managed `Orbyss.Foundation.OpenApi.Exporter` pin while registered
 consumer contracts still name the older version, the updater stops before mutation with `PKU110`.
 It lists every affected contract and specification/planning/research file. Review that list, then
 explicitly rerun the same command with:
@@ -314,11 +321,10 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 ### .NET profile
 
 The .NET profile maps these generic rules to project and assembly boundaries. When .NET is selected,
-the application-neutral `ProgramKit.Host` and its CShells/Nuplane composition model are adopted automatically
-unless intake explicitly opts out. The assessment packet prominently discloses its pinned preview
-packages and preview sources; approval does not restore packages or contact feeds. Feature projects
-reference abstraction packages; only the host references the CShells and Nuplane runtimes. HTTP,
-identity, persistence, tasks, and health behavior remains feature-owned.
+the application-neutral `Orbyss.Foundation.Host` and its CShells/Nuplane composition model are adopted
+unless intake explicitly opts out. Foundation and Forms versions are pinned independently from the
+Program Kit version. Approval does not restore packages or contact feeds. Feature projects reference
+the smallest required building-block closure; business behavior remains consumer-owned.
 
 ASP.NET Core Minimal APIs are the default built-in HTTP candidate. Each public operation owns stable
 route and operation identity, authorization, wire contracts, validation, status/error schemas,
@@ -326,15 +332,16 @@ cancellation behavior, OpenAPI compatibility evidence, and traceability to its v
 Project-specific technology choices outside the approved bootstrap baseline remain Proposed until
 their ADR is accepted.
 
-Selecting the .NET profile adopts `ProgramKit.Host` by default and makes
+Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default and makes
 `speckit.program-kit-dotnet.sync` available. The sync command scaffolds central build/package management,
 safe managed-file synchronization, runnable-image staging, and release workflows. The generated application
 image layers packages and configuration onto a digest-pinned application-neutral host; the host never parses release
 metadata. A write requires the approved,
-hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of its pinned preview
-packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
+hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of the independently
+pinned packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
-never creates .NET files. See `docs/dotnet-runtime.md`.
+never creates .NET files. See the [building-block selection guide](extensions/program-kit-dotnet/references/orbyss-building-blocks.md)
+and its [machine-readable composition manifest](extensions/program-kit-dotnet/references/orbyss-building-blocks.json).
 
 Generated Program Kit state and managed engineering tooling share the `.program-kit/` root. The
 operational scripts live in `.program-kit/eng/`; consumers should invoke them through the documented
@@ -396,11 +403,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.9.11.md`](docs/releasing-0.9.11.md).
+[`docs/releasing-0.10.0.md`](docs/releasing-0.10.0.md).
 
 ```powershell
-git tag v0.9.11
-git push origin v0.9.11
+git tag v0.10.0
+git push origin v0.10.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -422,8 +429,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.9.11.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.9.11.zip -Algorithm SHA256
+gh attestation verify program-kit-0.10.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.10.0.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery
@@ -432,7 +439,7 @@ Browser projects can adopt the versioned [UI experience profile](extensions/prog
 through `/speckit.program-kit-governance.ui`. It separates layout, branding (including optional SVG
 logos and Lucide/custom icons), semantic tokens, CSS adapters, page intent, public metadata and
 consent-gated analytics. Generated native HTML is a reference renderer; accepted frontend frameworks
-retain ownership through an initial-render adapter. The optional `ProgramKit.Web.Discovery` NuGet
+retain ownership through an initial-render adapter. The optional `Orbyss.Foundation.Web.Discovery` NuGet
 feature serves an explicit public projection through CShells, without adding logic to the Host.
 
 Consumer-owned profile/content inputs generate reproducible, conflict-protected outputs. Core
@@ -440,44 +447,13 @@ tests cover contrast, SVG safety, metadata/private-export boundaries, browser ac
 keyboard/reflow behavior. [Evidence and implementation status](docs/ui-experience-plan.md) distinguish
 automated evidence from consumer journey, screen-reader and deployment acceptance.
 
-Forms and localization are split into provider-neutral .NET contracts, compiler, application
-orchestration, bridge and replaceable storage packages plus an isolated frontend workspace. The frontend boundary validates
-immutable artifacts before rendering, uses JSON Forms behind framework adapters, compiles AJV
-validators during the build, and provides CodeMirror 6 as the dependency-light default JSON editor;
-Monaco is a separately installed adapter and is not part of the default graph. Both use governed
-two-space Tab indentation behind one editor contract. The React adapter includes semantic low-rank core controls
-that design systems and specialized packages can override, while the form and schema modelers expose
-synchronized visual, source and graph views and the form modeler exposes the same
-validated reorder/reparent operation through pointer, touch and keyboard interactions. Localization management and immutable runtime HTTP
-surfaces are independently selected CShells feature packages; neither adds middleware or behavior
-to `ProgramKit.Host`. See the
-[implementation plan](docs/forms-localization-implementation-plan.md) and
-[deterministic evidence](docs/forms-localization-evidence.md). Management components share a
-[CSS-first theming contract](docs/ui-theming.md) with semantic tokens, stable slots, typed class
-maps and an unstyled integration mode. Frontend packages will eventually be
-published under `@orbyss` through the tagged GitHub Packages release path described in the
-[publication decision](docs/frontend-package-publication.md); publishing remains disabled while the
-package set is under construction.
-
-Complete bounded in-memory storage packages support deterministic UI, API, MCP, and application
-tests without selecting a consumer database. They are intentionally non-durable. Program Kit does
-not impose EF Core, SQLite, database migrations, or an object-storage SDK; production persistence
-remains behind the narrow Forms and Localization storage ports. The filesystem packages are
-explicit optional adapters, not a production default.
-
-Optional form operations now add resumable owner-scoped drafts, authoritative immutable
-submissions, quarantined/scanned attachments, governed release migration, streamed CShells endpoints,
-and eleven governed MCP tools
-over those same application services. The MCP route is a normal protected API surface: a selected
-authentication profile owns schemes and middleware, while the endpoint requires authorization and
-derives ownership from the validated principal. No form endpoint or MCP behavior lives in the Host.
-
-The governed administration plane now adds durable form authoring through immutable publication,
-separate retirement state, compatibility analysis, authenticated management endpoints, and
-cacheable runtime releases. One shared authenticated stateless MCP transport composes twelve Forms
-management tools, sixteen Localization management/runtime tools, and the optional eleven owner-scoped
-form-operation tools from independently selected CShell features. Tool contributors do not map
-middleware or endpoints, and every mutation derives its actor from the validated principal.
+Forms and localization are supplied by the independently versioned
+[`orbyss-io/forms`](https://github.com/orbyss-io/forms) repository. Program Kit retains the knowledge
+needed to choose its semantic contracts, compiler, runtime, authoring, operations, localization,
+storage, MCP, and Angular/React/Vue packages without compiling their source. The consumer still owns
+field meaning, business validation, authorization, persistence durability, workflow, and publication
+policy. Program Kit compatibility changes therefore update only selection knowledge, templates, and
+consumer-facing checks; Forms implementation and release tests remain in the Forms repository.
 
 ## License
 

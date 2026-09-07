@@ -95,6 +95,17 @@ def architecture_module():
     return module
 
 
+def bootstrap_intake_module():
+    path = Path(__file__).with_name("bootstrap_intake.py")
+    spec = importlib.util.spec_from_file_location("program_kit_c4_bootstrap_intake", path)
+    if spec is None or spec.loader is None:
+        raise C4ViewError(f"Cannot load bootstrap-intake support: {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def canonical_project_root(value: str | Path) -> Path:
     root = Path(value).resolve()
     if not root.is_dir():
@@ -149,6 +160,8 @@ def validate_projection(project_root: Path) -> dict:
         )
 
     intake = load_json(intake_path, "bootstrap intake")
+    if intake.get("schema_version") != "1.1":
+        raise C4ViewError("Bootstrap intake must use the current schema_version 1.1")
     intake_status = intake.get("status")
     if intake_status not in {"draft", "confirmed"}:
         raise C4ViewError(
@@ -194,6 +207,16 @@ def validate_projection(project_root: Path) -> dict:
             )
         binding = "confirmed-intake" if map_match else "evolved-together-from-confirmed-intake"
         review_mode = "confirmed-baseline-review"
+    intake_support = bootstrap_intake_module()
+    try:
+        intake_support.validate_intake(
+            project_root,
+            BOOTSTRAP_INTAKE,
+            allow_architecture_evolution=intake_status == "confirmed",
+            allowed_statuses={intake_status},
+        )
+    except (intake_support.IntakeError, OSError, UnicodeError) as exc:
+        raise C4ViewError(f"Bootstrap intake is invalid for visual review: {exc}") from exc
     view_keys = [view["key"] for view in model["views"]]
     return {
         "project_root": str(project_root),
@@ -557,6 +580,22 @@ def choose_runtime(runtimes: dict, requested: str) -> str:
     raise C4ViewError("No supported local Structurizr runtime is ready. " + " | ".join(diagnostics))
 
 
+def reuse_session(state: dict, validation: dict, open_browser: bool) -> dict:
+    if state.get("projection_sha256") != validation["projection_sha256"]:
+        raise C4ViewError(
+            "A viewer for an older projection is already running; stop it before starting the current projection"
+        )
+    state["reused"] = True
+    state["url"] = diagram_url(state["port"], validation["primary_view_key"])
+    state["intake_status"] = validation["intake_status"]
+    state["review_mode"] = validation["review_mode"]
+    state["confirmation_performed"] = False
+    state["architecture_acceptance_performed"] = False
+    if open_browser:
+        webbrowser.open(state["url"])
+    return state
+
+
 def start_session(
     project_root: Path,
     requested_runtime: str,
@@ -567,8 +606,11 @@ def start_session(
 ) -> dict:
     profile = load_profile()
     validation = validate_projection(project_root)
-    runtimes = discover_runtimes(profile, war)
     existing = load_state(project_root)
+    if existing and existing.get("runtime") == "java" and session_active(existing):
+        return reuse_session(existing, validation, open_browser)
+
+    runtimes = discover_runtimes(profile, war)
     if (
         existing
         and existing.get("runtime") == "docker"
@@ -579,19 +621,7 @@ def start_session(
             "the session state was preserved so it can be stopped safely"
         )
     if existing and session_active(existing, runtimes):
-        if existing.get("projection_sha256") != validation["projection_sha256"]:
-            raise C4ViewError(
-                "A viewer for an older projection is already running; stop it before starting the current projection"
-            )
-        existing["reused"] = True
-        existing["url"] = diagram_url(existing["port"], validation["primary_view_key"])
-        existing["intake_status"] = validation["intake_status"]
-        existing["review_mode"] = validation["review_mode"]
-        existing["confirmation_performed"] = False
-        existing["architecture_acceptance_performed"] = False
-        if open_browser:
-            webbrowser.open(existing["url"])
-        return existing
+        return reuse_session(existing, validation, open_browser)
     if existing:
         cleanup_directory(project_root)
 

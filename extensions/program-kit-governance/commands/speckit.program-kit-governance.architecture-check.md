@@ -109,12 +109,12 @@ contract checks the mandatory governance sections and selected runtime profile; 
 - Managed `.program-kit/eng/**` files are never implementation targets. OpenAPI, feature metadata,
   SPA serving security, toolchain, and persistence are configured only from their documented
   consumer-owned MSBuild, Vite, feature-adapter, or deployment extension points.
-- When the selected .NET baseline has not explicitly opted out of `ProgramKit.Host`, reject every
+- When the selected .NET baseline has not explicitly opted out of `Orbyss.Foundation.Host`, reject every
   repository-owned host project, `.Host` source directory, application `Program.cs`, or plan/task
-  that runs a custom host. Require packable feature projects with `ProgramKitFeatureIdentity`,
-  an exact `[ShellFeature("<ProgramKitFeatureIdentity>")]` CLR declaration, reviewed `shells.json`
+  that runs a custom host. Require packable feature projects with `FoundationFeatureIdentity`,
+  an exact `[ShellFeature("<FoundationFeatureIdentity>")]` CLR declaration, reviewed `shells.json`
   activation, consumer `hostsettings.json`, validated package-closure staging
-  through `runnable_host.py stage`, digest-bound external `ProgramKit.Host` release evidence, and
+  through `runnable_host.py stage`, digest-bound external `Orbyss.Foundation.Host` release evidence, and
   a `PKA015`-valid runtime composition/project graph contract.
 - An exact npm dependency graph is implementation-ready only with recorded registry-metadata and
   isolated lockfile-resolution evidence. Peer conflicts cannot be waived with `--force` or
@@ -123,7 +123,7 @@ contract checks the mandatory governance sections and selected runtime profile; 
   .program-kit/evidence/npm-graph.json` before approving a plan or task set that adopts such a graph.
 - An externally consumed .NET OpenAPI contract is implementation-ready only when
   `.program-kit/openapi-contracts.json` registers a complete producer-first chain. Require the exact
-  managed `ProgramKit.OpenApi.Exporter` and `.oasdiff-version` pins, the validated `artifacts/runnable-host/packages`
+  managed `Orbyss.Foundation.OpenApi.Exporter` and `.oasdiff-version` pins, the validated `artifacts/runnable-host/packages`
   feature closure, side-effect-free endpoint composition, raw and normalized/baseline artifacts,
   pinned compatibility checking, an isolated generator package/lockfile, generated types, and the
   consuming application's own TypeScript compile. A plan that merely names a presumed generated

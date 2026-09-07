@@ -174,6 +174,7 @@ def main() -> int:
     scripts = root / "extensions/program-kit-governance/scripts"
     architecture = load_module(scripts / "architecture_map.py", "test_architecture_map")
     intake_module = load_module(scripts / "bootstrap_intake.py", "test_bootstrap_intake")
+    semantic = load_module(root / "tests/validate_bootstrap_semantics.py", "test_intake_semantic_fixture")
 
     skill = (
         root
@@ -194,12 +195,21 @@ def main() -> int:
         decision = project / "docs/architecture/decisions/ADR-001.md"
         write(intent, "# Greeting\n\n[E-001] A visitor receives a greeting.\n")
         write(decision, "# ADR-001: System boundary\n\n- **Status**: Accepted\n")
-        value = model(intent, decision)
+        value = semantic.semantic_model(intent)
+        value["decisions"] = [
+            {"id": "adr-001", "path": "docs/architecture/decisions/ADR-001.md",
+             "sha256": digest(decision), "title": "System boundary", "date": "2026-09-06",
+             "status": "Accepted", "scope": "Price Calculator", "owner": "Maintainers", "supersedes": []}
+        ]
+        value["extensions"] = [
+            {"id": "blocked-script", "kind": "structurizr-script", "content": "!script unsafe.groovy",
+             "policy": "blocked-executable", "source": "workspace.dsl:1"}
+        ]
         architecture.validate_model(value, project)
         dsl = architecture.StructurizrDslExporter().export(value)
-        if "greeting-context =" in dsl or "greeting_context =" not in dsl:
+        if "calculator-forms =" in dsl or "calculator_forms =" not in dsl:
             raise AssertionError("C4 projection did not translate canonical IDs into portable DSL identifiers")
-        if "ProgramKitId:greeting-context" not in dsl:
+        if "ProgramKitId:calculator-forms" not in dsl:
             raise AssertionError("C4 projection did not retain the canonical Program Kit identity")
         if "!adrs \"docs/architecture/decisions\"" not in dsl:
             raise AssertionError("Structurizr projection did not attach the ADR catalog")
@@ -232,14 +242,14 @@ def main() -> int:
         detailed["elements"].extend(
             [
                 {
-                    "id": "greeting-api",
+                    "id": "calculator-api",
                     "type": "container",
                     "name": "Greeting API",
                     "description": "Receives greeting requests.",
                     "status": "proposed",
                     "ownership": "Project",
                     "technology": "HTTP",
-                    "parent": "greeting",
+                    "parent": "price-calculator",
                     "evidence": ["e-001"],
                     "decision_refs": [],
                     "tags": [],
@@ -250,14 +260,14 @@ def main() -> int:
                     "archetype": "",
                 },
                 {
-                    "id": "greeting-handler",
+                    "id": "calculator-handler",
                     "type": "component",
                     "name": "Greeting handler",
                     "description": "Produces the greeting response.",
                     "status": "proposed",
                     "ownership": "Project",
                     "technology": "Python",
-                    "parent": "greeting-api",
+                    "parent": "calculator-api",
                     "evidence": ["e-001"],
                     "decision_refs": [],
                     "tags": [],
@@ -276,8 +286,8 @@ def main() -> int:
                     "type": "container",
                     "title": "Greeting containers",
                     "description": "Container detail",
-                    "scope": "greeting",
-                    "elements": ["greeting-api"],
+                    "scope": "price-calculator",
+                    "elements": ["calculator-api"],
                     "relationships": [],
                     "decision_refs": [],
                     "filters": [],
@@ -291,8 +301,8 @@ def main() -> int:
                     "type": "component",
                     "title": "Greeting components",
                     "description": "Component detail",
-                    "scope": "greeting-api",
-                    "elements": ["greeting-handler"],
+                    "scope": "calculator-api",
+                    "elements": ["calculator-handler"],
                     "relationships": [],
                     "decision_refs": [],
                     "filters": [],
@@ -310,7 +320,7 @@ def main() -> int:
         parent_by_id = {
             item["id"]: item.get("parent") for item in detailed_roundtrip["elements"]
         }
-        if parent_by_id.get("greeting-api") != "greeting" or parent_by_id.get("greeting-handler") != "greeting-api":
+        if parent_by_id.get("calculator-api") != "price-calculator" or parent_by_id.get("calculator-handler") != "calculator-api":
             raise AssertionError("C4 container/component round trip lost hierarchy")
 
         stale = json.loads(json.dumps(value))

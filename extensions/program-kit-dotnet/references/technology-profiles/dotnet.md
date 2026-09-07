@@ -35,7 +35,7 @@ the bootstrap decision contract; current-version research alone is not an overri
 Apply `modularity-and-contracts.md` and `vertical-slicing.md`. A default solution graph is:
 
 ```text
-external ProgramKit.Host
+external Orbyss.Foundation.Host
   -> packaged activatable implementations selected by shells.json
 
 Application.Context.Core
@@ -101,13 +101,14 @@ ADR. Name it for the business language it owns rather than `Shared`.
   produced a CLR type dependency. Exact Accepted exceptions are allowlisted; naming conventions
   alone are insufficient enforcement.
 
-## Program Kit host and CShells profile mapping
+## Orbyss Foundation host and CShells profile mapping
 
-When .NET is selected, adopt the application-neutral `ProgramKit.Host` and its CShells/Nuplane composition model as the
+When .NET is selected, adopt the application-neutral `Orbyss.Foundation.Host` and its CShells/Nuplane composition model as the
 automatic Program Kit default unless intake explicitly opts out. This default uses CShells as the
 runtime composition mechanism; it does not imply that shells are tenants or bounded contexts.
-Record the preview packages and package sources as a material acknowledgement in the assessment
-review packet. Do not download or restore them merely by approving architecture.
+Record the independently pinned building-block packages, their third-party dependencies, and package
+sources as a material acknowledgement in the assessment review packet. Do not download or restore
+them merely by approving architecture.
 
 Treat Package Source Mapping as source routing, not as a Program Kit dependency allowlist. The
 scaffolded configuration maps the protected `CShells` and `Nuplane` namespaces to their approved
@@ -116,7 +117,7 @@ closures. Consumers own dependency selection and may add private sources with sp
 mappings. Keep dependency approval in the consumer's version pins, lock files, architecture rules,
 security checks, and accepted decisions rather than requiring Program Kit to enumerate package IDs.
 
-An explicit opt-out may select a conventional ASP.NET Core host. Record why the Program Kit host is
+An explicit opt-out may select a conventional ASP.NET Core host. Record why the Orbyss Foundation host is
 not suitable and which composition, packaging, task, and deployment responsibilities the project
 then owns.
 
@@ -127,7 +128,7 @@ When accepted:
 - only the host/composition project references the full `CShells` and `CShells.AspNetCore` runtimes;
 - the host bridges Nuplane-loaded feature assemblies into CShells and owns only its runtime configuration;
 - an `IShellFeature` or `IWebShellFeature` is a composition adapter, not the domain model;
-- every packaged feature declares `[ShellFeature("<exact ProgramKitFeatureIdentity>")]`; CLR,
+- every packaged feature declares `[ShellFeature("<exact FoundationFeatureIdentity>")]`; CLR,
   package, runtime-catalog, and `shells.json` identities are one case-sensitive contract;
 - `ConfigureServices` registers implementations of owned domain or contract interfaces and contains
   no business policy;
@@ -188,7 +189,7 @@ and dynamic endpoint refresh when those CShells capabilities are used.
 For an externally consumed OpenAPI surface, register a consumer-owned contract in
 `.program-kit/openapi-contracts.json` before implementation readiness. The contract names the shell and
 every route-contributing feature, uses `artifacts/runnable-host/packages` as its package closure, and pins
-the managed `ProgramKit.OpenApi.Exporter` and oasdiff versions. Start an empty registry with
+the managed `Orbyss.Foundation.OpenApi.Exporter` and oasdiff versions. Start an empty registry with
 `.program-kit/eng/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
 ADR. `.program-kit/eng/Build.ps1` then composes those feature packages
 without opening a listener or running shell initializers, normalizes and compatibility-checks the result,
@@ -197,7 +198,7 @@ The exporter tool is restored only when the registry is non-empty; its dependenc
 projects or the application. Generator dependencies remain consumer-selected inside the isolated generator
 package, subject to strict peer/engine resolution evidence.
 
-When the application has an authenticated browser boundary, the selected Program Kit host web
+When the application has an authenticated browser boundary, the selected Orbyss Foundation host web
 profile owns the versioned runtime contract in `../secure-web-profiles.md`. Feature endpoints declare
 a stable application permission/policy or explicit anonymous access; they do not select schemes,
 parse provider token shapes, implement login/logout, or return tokens. Deployment configuration maps
@@ -234,9 +235,9 @@ or admits protected business state additionally invokes the owning resource/stat
 
 ## Domain and integration events
 
-Domain-owned Core projects may reference `ProgramKit.DomainEvents.Abstractions` and declare immutable
+Domain-owned Core projects may reference `Orbyss.Foundation.DomainEvents.Abstractions` and declare immutable
 past-tense events. Activatable implementations register typed handlers; the selected
-`ProgramKit.DomainEvents` feature supplies awaited, scoped, sequential in-process dispatch. Handler
+`Orbyss.Foundation.DomainEvents` feature supplies awaited, scoped, sequential in-process dispatch. Handler
 order is not a workflow contract. Use an explicit orchestrator when reactions require ordering,
 results, retries, compensation, or lifecycle state.
 
@@ -260,14 +261,14 @@ profile as a package-version pin. Primary sources accessed 2026-08-25:
 - [.NET DDD domain-model guidance](https://learn.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/net-core-microservice-domain-model)
   and [infrastructure dependency guidance](https://learn.microsoft.com/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design).
 
-## Program Kit runtime and engineering companions
+## Orbyss Foundation building blocks and engineering companions
 
 When .NET is selected, `../dotnet-engineering.md` is the mandatory language/runtime profile and
 `../dotnet-runtime-and-application-bundles.md` is the mandatory CShells hosting and deployment profile.
 Installing Program Kit does not select .NET and does not scaffold these files. The optional sync is not a
 prerequisite for technology-neutral governance or proposed quality gates. Run
 `speckit.program-kit-dotnet.sync` in write mode only after an Accepted .NET technology decision, an Accepted
-ADR selecting the Program Kit host/runtime, and explicit human approval for the pinned preview packages and
-preview NuGet sources. The command installs or updates the hash-tracked repository baseline. The standard
-runtime is `ProgramKit.Host`; consuming repositories generate
+ADR selecting the Orbyss Foundation host and building blocks, and explicit human approval for the independently
+pinned packages and NuGet sources. The command installs or updates the hash-tracked repository baseline. The standard
+runtime is `Orbyss.Foundation.Host`; consuming repositories generate
 feature packages and a digest-identified runnable application image, not a custom host project.

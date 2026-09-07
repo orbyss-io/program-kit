@@ -308,7 +308,7 @@ def validate_feature_activation() -> None:
     with tempfile.TemporaryDirectory(prefix="program-kit-feature-") as value:
         shells = Path(value) / "shells.json"
         shells.write_text(
-            json.dumps({"CShells": {"Shells": {"default": {"Features": {"ProgramKitTasks": {}}}}}}),
+            json.dumps({"CShells": {"Shells": {"default": {"Features": {"FoundationTasks": {}}}}}}),
             encoding="utf-8",
         )
         command = [sys.executable, str(feature), "activate", "--shells", str(shells), "--shell", "default", "--feature", "Orders"]
@@ -317,7 +317,7 @@ def validate_feature_activation() -> None:
         if duplicate.returncode == 0 or "PKF006" not in duplicate.stderr:
             raise AssertionError("duplicate feature activation was not rejected")
         result = json.loads(shells.read_text(encoding="utf-8"))
-        if set(result["CShells"]["Shells"]["default"]["Features"]) != {"ProgramKitTasks", "Orders"}:
+        if set(result["CShells"]["Shells"]["default"]["Features"]) != {"FoundationTasks", "Orders"}:
             raise AssertionError("CShells feature activation shape drifted")
 
 
@@ -350,13 +350,13 @@ def validate_release_feature_closure() -> None:
                     archive.writestr("program-kit/feature.json", json.dumps(descriptor))
             return path
 
-        tasks = package("ProgramKit.Tasks")
-        domain_events = package("ProgramKit.DomainEvents")
+        tasks = package("Orbyss.Foundation.Tasks")
+        domain_events = package("Orbyss.Foundation.DomainEvents")
         orders = package("Orders.Feature", "Orders", routes=["/orders"])
-        identities = {("ProgramKit.Tasks", "1.0.0"): tasks, ("Orders.Feature", "1.0.0"): orders}
+        identities = {("Orbyss.Foundation.Tasks", "1.0.0"): tasks, ("Orders.Feature", "1.0.0"): orders}
         shells = root / "shells.json"
         shells.write_text(
-            json.dumps({"CShells": {"Shells": {"default": {"Features": {"ProgramKitTasks": {}, "Orders": {}}}}}}),
+            json.dumps({"CShells": {"Shells": {"default": {"Features": {"FoundationTasks": {}, "Orders": {}}}}}}),
             encoding="utf-8",
         )
         release.validate_feature_closure(shells, identities)
@@ -430,8 +430,8 @@ def validate_release_feature_closure() -> None:
         managed.mkdir(parents=True)
         (managed / "ProgramKit.Packages.props").write_text(
             '<Project><ItemGroup>'
-            '<PackageVersion Include="ProgramKit.Tasks" Version="1.0.0" />'
-            '<PackageVersion Include="ProgramKit.DomainEvents" Version="1.0.0" />'
+            '<PackageVersion Include="Orbyss.Foundation.Tasks" Version="1.0.0" />'
+            '<PackageVersion Include="Orbyss.Foundation.DomainEvents" Version="1.0.0" />'
             '</ItemGroup></Project>\n',
             encoding="utf-8",
         )
@@ -441,7 +441,7 @@ def validate_release_feature_closure() -> None:
                     "CShells": {
                         "Shells": {
                             "default": {
-                                "Features": {"ProgramKitTasks": {}, "ProgramKit.DomainEvents": {}}
+                                "Features": {"FoundationTasks": {}, "Orbyss.Foundation.DomainEvents": {}}
                             }
                         }
                     }
@@ -458,9 +458,9 @@ def validate_release_feature_closure() -> None:
         release.package_base_addresses = lambda sources: ["https://example.invalid/flat"]
 
         def seed_built_in(package_id: str, version: str, bases: list[str], destination: Path) -> None:
-            if version != "1.0.0" or package_id not in {"ProgramKit.Tasks", "ProgramKit.DomainEvents"}:
+            if version != "1.0.0" or package_id not in {"Orbyss.Foundation.Tasks", "Orbyss.Foundation.DomainEvents"}:
                 raise AssertionError(f"unexpected built-in package request: {package_id} {version}")
-            source = tasks if package_id == "ProgramKit.Tasks" else domain_events
+            source = tasks if package_id == "Orbyss.Foundation.Tasks" else domain_events
             shutil.copyfile(source, destination)
 
         release.download_package = seed_built_in
@@ -469,10 +469,10 @@ def validate_release_feature_closure() -> None:
         finally:
             release.package_base_addresses = original_bases
             release.download_package = original_download
-        if not (clean_output / "packages/ProgramKit.Tasks.1.0.0.nupkg").is_file():
-            raise AssertionError("activated ProgramKitTasks was not seeded from its managed package pin")
-        if not (clean_output / "packages/ProgramKit.DomainEvents.1.0.0.nupkg").is_file():
-            raise AssertionError("activated ProgramKit.DomainEvents was not seeded from its managed package pin")
+        if not (clean_output / "packages/Orbyss.Foundation.Tasks.1.0.0.nupkg").is_file():
+            raise AssertionError("activated FoundationTasks was not seeded from its managed package pin")
+        if not (clean_output / "packages/Orbyss.Foundation.DomainEvents.1.0.0.nupkg").is_file():
+            raise AssertionError("activated Orbyss.Foundation.DomainEvents was not seeded from its managed package pin")
         closure_evidence = clean_repository / ".program-kit/evidence/runtime-closure.json"
         closure = json.loads(closure_evidence.read_text(encoding="utf-8"))
         if (
@@ -871,7 +871,7 @@ def validate_managed_sources() -> None:
         raise AssertionError("legacy consumer-supplied OpenAPI document target remains active")
     pipeline = (template / "files/.program-kit/eng/openapi_pipeline.py").read_text(encoding="utf-8")
     for phrase in (
-        "ProgramKit.OpenApi.Exporter",
+        "Orbyss.Foundation.OpenApi.Exporter",
         "artifacts/runnable-host/packages",
         "--strict-peer-deps",
         "generatedTypes",
@@ -904,8 +904,8 @@ def validate_managed_sources() -> None:
     tool_manifest = json.loads(
         (template / "files/.program-kit/eng/.config/dotnet-tools.json").read_text(encoding="utf-8")
     )
-    exporter = tool_manifest.get("tools", {}).get("programkit.openapi.exporter", {})
-    if exporter.get("commands") != ["programkit-openapi-export"] or not exporter.get("version"):
+    exporter = tool_manifest.get("tools", {}).get("orbyss.foundation.openapi.exporter", {})
+    if exporter.get("commands") != ["orbyss-foundation-openapi-export"] or not exporter.get("version"):
         raise AssertionError("managed OpenAPI exporter tool pin is incomplete")
     runnable_schema = json.loads(
         (template / "files/.program-kit/runnable-host.schema.json").read_text(encoding="utf-8")
@@ -1014,7 +1014,7 @@ def validate_openapi_initialization() -> None:
         manifest.parent.mkdir(parents=True)
         manifest.write_text(
             json.dumps({
-                "tools": {"programkit.openapi.exporter": {"version": "0.9.9-preview.1"}}
+                "tools": {"orbyss.foundation.openapi.exporter": {"version": "0.1.0"}}
             }),
             encoding="utf-8",
         )
@@ -1036,7 +1036,7 @@ def validate_openapi_initialization() -> None:
             (repository / contract["generator"]["packageJson"]).read_text(encoding="utf-8")
         )
         if (
-            contract["producer"]["version"] != "0.9.9-preview.1"
+            contract["producer"]["version"] != "0.1.0"
             or contract["compatibility"]["oasdiffVersion"] != "1.29.1"
             or contract["generator"]["directory"] == contract["application"]["directory"]
             or generator_package["devDependencies"] != {"openapi-typescript": "7.13.0"}
@@ -1214,8 +1214,8 @@ def validate_sync_preservation() -> None:
             "--target",
             str(repository),
             "--profile-selected",
-            "--host-runtime-accepted",
-            "--preview-sources-approved",
+            "--foundation-host-accepted",
+            "--building-block-sources-approved",
             "--persistence-profile",
             "ef-postgresql",
         ]
@@ -1295,7 +1295,7 @@ def validate_artifact_ownership() -> None:
         (root / ".specify").mkdir()
         (feature / "spec.md").write_text(
             "## Governance Traceability\n- **Specification roadmap entry**: SPEC-101\n"
-            "- **Architecture constraints**: ProgramKit.Host\n- **Owned contracts and data**: API\n",
+            "- **Architecture constraints**: Orbyss.Foundation.Host\n- **Owned contracts and data**: API\n",
             encoding="utf-8",
         )
         (feature / "plan.md").write_text(
@@ -1358,9 +1358,9 @@ def validate_artifact_ownership() -> None:
             "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
             "- **Vertical-slice path**: request to response\n"
             "- **Artifact ownership manifest**: artifact-ownership.json\n"
-            "Pack `src/Catalog/Catalog.csproj` with ProgramKitFeatureIdentity; activate it in "
+            "Pack `src/Catalog/Catalog.csproj` with FoundationFeatureIdentity; activate it in "
             "`shells.json`, configure `hostsettings.json`, run `.program-kit/eng/runnable_host.py stage` for "
-            "package-closure staging, and publish digest-pinned ProgramKit.Host evidence to "
+            "package-closure staging, and publish digest-pinned Orbyss.Foundation.Host evidence to "
             "`.program-kit/evidence/host-image.json`.\n",
             encoding="utf-8",
         )
@@ -1472,9 +1472,9 @@ def validate_artifact_ownership() -> None:
             "## Architecture Realization\n- **Roadmap entry and status transition**: SPEC-101\n"
             "- **Vertical-slice path**: request to response\n"
             "- **Artifact ownership manifest**: artifact-ownership.json\n"
-            "Pack projects with ProgramKitFeatureIdentity; activate them in `shells.json`, configure "
+            "Pack projects with FoundationFeatureIdentity; activate them in `shells.json`, configure "
             "`hostsettings.json`, run `.program-kit/eng/runnable_host.py stage` for package-closure staging, "
-            "and publish digest-pinned ProgramKit.Host evidence to `.program-kit/evidence/host-image.json`.\n",
+            "and publish digest-pinned Orbyss.Foundation.Host evidence to `.program-kit/evidence/host-image.json`.\n",
             encoding="utf-8",
         )
         try:
@@ -1663,7 +1663,7 @@ def validate_artifact_ownership() -> None:
             "identity": "catalog-v1",
             "documentName": "v1",
             "shell": "default",
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": "0.9.9-preview.1"},
+            "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": "0.1.0"},
             "features": ["Catalog.Api"],
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -1697,9 +1697,9 @@ def validate_artifact_ownership() -> None:
                     "version": 1,
                     "isRoot": True,
                     "tools": {
-                        "programkit.openapi.exporter": {
-                            "version": "0.9.9-preview.1",
-                            "commands": ["programkit-openapi-export"],
+                        "orbyss.foundation.openapi.exporter": {
+                            "version": "0.1.0",
+                            "commands": ["orbyss-foundation-openapi-export"],
                         }
                     },
                 }
@@ -1722,7 +1722,7 @@ def validate_artifact_ownership() -> None:
         try:
             ownership.validate_openapi_pipeline(feature, openapi_manifest, True)
         except ValueError as error:
-            if "PKA014" not in str(error) or "ProgramKit.OpenApi.Exporter" not in str(error):
+            if "PKA014" not in str(error) or "Orbyss.Foundation.OpenApi.Exporter" not in str(error):
                 raise
         else:
             raise AssertionError("OpenAPI planning passed without the managed producer")
@@ -1770,7 +1770,7 @@ def validate_authorization_boundaries() -> None:
         ownership.validate_authorization_ownership(feature, manifest, False)
 
         endpoint.write_text(
-            'var allowed = user.HasClaim(ProgramKitWebOptions.PermissionClaim, requiredPermission);\n',
+            'var allowed = user.HasClaim(FoundationWebOptions.PermissionClaim, requiredPermission);\n',
             encoding="utf-8",
         )
         try:

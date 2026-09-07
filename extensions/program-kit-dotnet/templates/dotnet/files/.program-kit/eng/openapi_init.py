@@ -34,7 +34,7 @@ def main() -> int:
         tsconfig = relative_path(args.application_tsconfig, "application-tsconfig")
         defaults = json.loads((repository / ".program-kit/openapi-defaults.json").read_text(encoding="utf-8"))
         tool_manifest = json.loads((repository / ".program-kit/eng/.config/dotnet-tools.json").read_text(encoding="utf-8"))
-        exporter = tool_manifest["tools"]["programkit.openapi.exporter"]["version"]
+        exporter = tool_manifest["tools"]["orbyss.foundation.openapi.exporter"]["version"]
         oasdiff = defaults["compatibility"]["version"]
         generator_default = defaults["typescriptGenerator"]
         generator_package = generator_default["package"]
@@ -72,7 +72,7 @@ def main() -> int:
             "identity": args.identity,
             "documentName": args.document_name,
             "shell": args.shell,
-            "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": exporter},
+            "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": exporter},
             "features": list(dict.fromkeys(args.feature)),
             "packageClosure": "artifacts/runnable-host/packages",
             "rawDocument": f"artifacts/openapi/{args.identity}.raw.json",

@@ -12,6 +12,12 @@ freshness and registered-pair drift checks. Neither mode changes intake status, 
 acceptance evidence, or accepts proposed architecture; the outer bootstrap workflow still requires
 a confirmed intake.
 
+Draft viewing is therefore part of informed intake review, not bootstrap approval. Review the
+System Context, domain/subdomain landscape, strategic Context Map, context/module decompositions,
+and each named journey view together with the text summary of founding decision candidates and
+alternatives. The architecture phase later creates real Proposed ADRs, and the existing
+post-architecture approval pause governs their acceptance.
+
 ## Runtime policy
 
 The managed viewer profile is `c4-viewer-tool.json`. Prefer its exact Docker image when Docker is

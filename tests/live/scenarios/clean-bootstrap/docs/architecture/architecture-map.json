@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "model_id": "greeting-cli",
   "title": "Greeting CLI",
   "sources": [
@@ -8,7 +8,7 @@
       "path": "docs/architecture/project-intent.md",
       "sha256": "b95f7a9bb6a8c3cd752f1429b3e34c8ec53089283e394b9b172d5b416dd8b704",
       "format": "program-kit-intent-markdown",
-      "importer": { "id": "program-kit-intake", "version": "1.0" }
+      "importer": { "id": "program-kit-intake", "version": "1.1" }
     }
   ],
   "decisions": [],
@@ -26,6 +26,24 @@
       "evidence": ["e-actor"],
       "decision_refs": [],
       "tags": [],
+      "properties": {},
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "greeting-operation",
+      "type": "domain-capability",
+      "name": "Greeting operation",
+      "description": "Owns the complete command invocation, exact output, and invalid-argument behavior.",
+      "status": "proposed",
+      "ownership": "Local maintainer",
+      "technology": "Python 3.13 standard library",
+      "parent": "greeting-context",
+      "evidence": ["e-behavior", "e-slice"],
+      "decision_refs": [],
+      "tags": ["DomainModule"],
       "properties": {},
       "perspectives": [],
       "url": "",
@@ -57,6 +75,7 @@
       "status": "proposed",
       "ownership": "Local maintainer",
       "technology": "",
+      "parent": "greeting-cli",
       "evidence": ["e-slice"],
       "decision_refs": [],
       "tags": ["Domain"],
@@ -75,6 +94,20 @@
       "description": "Invokes the greeting command",
       "technology": "Local process",
       "status": "explicit",
+      "evidence": ["e-behavior"],
+      "decision_refs": [],
+      "tags": [],
+      "properties": {},
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "cli-delegates-greeting",
+      "source": "greeting-cli",
+      "target": "greeting-operation",
+      "description": "Delegates the validated invocation",
+      "technology": "In-process call",
+      "status": "proposed",
       "evidence": ["e-behavior"],
       "decision_refs": [],
       "tags": [],
@@ -100,16 +133,61 @@
       "properties": {}
     },
     {
-      "key": "domain-context",
-      "type": "domain-context",
-      "title": "Greeting CLI Domain Context Map",
-      "description": "The provisional single greeting context.",
-      "scope": "",
-      "elements": ["greeting-cli", "greeting-context"],
+      "key": "domain-landscape",
+      "type": "domain-landscape",
+      "title": "Greeting domain landscape",
+      "description": "The provisional classified greeting subdomain and context.",
+      "scope": "greeting-cli",
+      "elements": ["greeting-context"],
       "relationships": [],
       "decision_refs": [],
       "filters": [],
       "order": [],
+      "layout": { "rankDirection": "lr" },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "context-map",
+      "type": "context-map",
+      "title": "Greeting strategic Context Map",
+      "description": "The single context has no cross-context dependencies.",
+      "scope": "greeting-cli",
+      "elements": ["greeting-context"],
+      "relationships": [],
+      "decision_refs": [],
+      "filters": [],
+      "order": [],
+      "layout": { "rankDirection": "lr" },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "greeting-decomposition",
+      "type": "context-decomposition",
+      "title": "Greeting context modules",
+      "description": "The context and its owned command module.",
+      "scope": "greeting-context",
+      "elements": ["greeting-context", "greeting-operation"],
+      "relationships": [],
+      "decision_refs": [],
+      "filters": [],
+      "order": [],
+      "layout": { "rankDirection": "lr" },
+      "animations": [],
+      "properties": {}
+    },
+    {
+      "key": "journey-greeting",
+      "type": "dynamic",
+      "title": "Invoke greeting command",
+      "description": "The complete valid or invalid invocation journey.",
+      "scope": "",
+      "elements": [],
+      "relationships": ["maintainer-invokes-cli", "cli-delegates-greeting"],
+      "decision_refs": [],
+      "filters": [],
+      "order": ["maintainer-invokes-cli", "cli-delegates-greeting"],
       "layout": { "rankDirection": "lr" },
       "animations": [],
       "properties": {}
@@ -122,5 +200,149 @@
     "branding": {},
     "properties": {}
   },
-  "extensions": []
+  "extensions": [],
+  "strategic_model": {
+    "version": "1.0",
+    "status": "proposed",
+    "decision_refs": [],
+    "founding_decisions": [
+      {
+        "id": "decision-greeting-boundary",
+        "title": "Keep one greeting model boundary",
+        "question": "How many model boundaries does the complete greeting journey require?",
+        "recommended_option": "Use one Greeting bounded context with one owned command module.",
+        "alternatives": ["Use no explicit domain boundary.", "Split valid and invalid invocations into separate contexts."],
+        "rationale": "The journey has one language, owner, lifecycle, and consistency boundary.",
+        "consequences": ["Architecture must challenge this candidate and create a Proposed founding ADR.", "No network, storage, or deployment boundary is invented."],
+        "confidence": "high",
+        "affected_elements": ["greeting-context"],
+        "affected_relationships": [],
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-boundaries", "e-slice"]
+      }
+    ],
+    "subdomains": [
+      {
+        "id": "greeting-domain",
+        "name": "Greeting",
+        "classification": "core",
+        "vision": "Deliver the exact observable greeting contract for local maintainers.",
+        "ownership": "Owns greeting text, argument policy, exit codes, and console-channel behavior.",
+        "non_ownership": "Does not own web, network, identity, persistence, or deployment concerns.",
+        "language_terms": ["greeting", "invocation", "usage error"],
+        "data_ownership": ["No durable data; owns invocation inputs and output values in memory."],
+        "invariants": ["An argument-free invocation emits the exact greeting once.", "Invalid arguments emit a concise usage error and a non-zero exit code."],
+        "lifecycle": "Changes only with the command's externally observable contract.",
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-boundaries"],
+        "decision_refs": []
+      }
+    ],
+    "bounded_contexts": [
+      {
+        "element": "greeting-context",
+        "boundary_kind": "domain-model",
+        "vision": "Own the complete greeting command model and its observable outcomes.",
+        "responsibilities": ["Validate arguments.", "Produce exact standard output, standard error, and exit codes."],
+        "non_responsibilities": ["No network, identity, persistence, deployment, or third-party behavior."],
+        "language_terms": ["greeting", "invocation", "usage error"],
+        "subdomains": ["greeting-domain"],
+        "data_ownership": ["Ephemeral invocation arguments and output result."],
+        "invariants": ["One invocation has one terminal outcome."],
+        "lifecycle": "The context and command contract version together.",
+        "separation_rationale": "One coherent language and consistency boundary covers the entire journey.",
+        "split_triggers": ["Split only if a distinct owner, lifecycle, language, or durable consistency boundary appears."],
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-boundaries", "e-slice"],
+        "decision_refs": []
+      }
+    ],
+    "modules": [
+      {
+        "element": "greeting-operation",
+        "context": "greeting-context",
+        "kind": "domain-module",
+        "responsibilities": ["Execute the complete validated greeting operation."],
+        "non_responsibilities": ["Does not introduce persistence, networking, or provider integration."],
+        "contracts": ["greeting-command-contract"],
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-slice"],
+        "decision_refs": []
+      }
+    ],
+    "contracts": [
+      {
+        "id": "greeting-command-contract",
+        "name": "Greeting command contract",
+        "kind": "command",
+        "owner": "greeting-operation",
+        "version": "candidate-1",
+        "description": "Argument and console outcome contract for one invocation.",
+        "status": "proposed",
+        "evidence": ["e-behavior"],
+        "decision_refs": []
+      }
+    ],
+    "context_relationships": [],
+    "capability_bindings": [
+      {
+        "assessment": "capability-slicing",
+        "module": "greeting-operation",
+        "mechanism_coverage": "guided",
+        "program_kit_capabilities": ["vertical-slicing"],
+        "semantic_owner": "greeting-context",
+        "semantic_profile": "The consumer owns the exact greeting, argument, and console outcome semantics.",
+        "integration_owner": "not-applicable",
+        "provider_selection": "",
+        "decision_state": "program-kit-default",
+        "status": "proposed",
+        "evidence": ["e-slice"],
+        "decision_refs": []
+      },
+      {
+        "assessment": "capability-python",
+        "module": "greeting-operation",
+        "mechanism_coverage": "external",
+        "program_kit_capabilities": [],
+        "semantic_owner": "greeting-context",
+        "semantic_profile": "The consumer owns the Python command implementation semantics.",
+        "integration_owner": "greeting-context",
+        "provider_selection": "Python 3.13 standard library",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": ["e-behavior"],
+        "decision_refs": []
+      }
+    ],
+    "journeys": [
+      {
+        "id": "mapped-journey-greeting",
+        "name": "Invoke greeting command",
+        "source_journey": "journey-greeting",
+        "actor_or_trigger": "Local maintainer invokes the command.",
+        "outcome": "The exact greeting or concise usage error is observable with the correct exit code.",
+        "view": "journey-greeting",
+        "steps": [
+          {"order": 1, "relationship": "maintainer-invokes-cli", "description": "Invokes the command.", "contract": ""},
+          {"order": 2, "relationship": "cli-delegates-greeting", "description": "Executes the greeting operation.", "contract": "greeting-command-contract"}
+        ],
+        "status": "proposed",
+        "evidence": ["e-behavior", "e-actor"],
+        "decision_refs": []
+      }
+    ],
+    "candidate_slices": [
+      {
+        "id": "slice-greeting",
+        "name": "Complete greeting journey",
+        "journey": "mapped-journey-greeting",
+        "actor_or_trigger": "Local maintainer invocation.",
+        "outcome": "Exact standard output/error and exit code.",
+        "contexts": ["greeting-context"],
+        "status": "proposed",
+        "evidence": ["e-slice", "e-behavior"],
+        "decision_refs": []
+      }
+    ]
+  }
 }

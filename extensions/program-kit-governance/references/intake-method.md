@@ -17,9 +17,10 @@ Begin with the user's natural description. Reflect the understood intent before 
 Ask one to three related questions per round and incorporate each answer before choosing the next
 round. Do not run a fixed questionnaire or ask about excluded and irrelevant capability categories.
 
-Prioritize observable value, actors, scope, trust and data boundaries, external integrations,
-operational constraints, material Program Kit deviations, and the thinnest meaningful proving
-journey. Apply a Program Kit default without asking when it is safe and applicable. Explain a
+Prioritize observable value, actors, scope, domain language and invariants, trust and data
+boundaries, external integrations, operational constraints, material Program Kit deviations, and
+the thinnest meaningful proving journey. Preserve every named source journey independently. Apply a
+Program Kit default without asking when it is safe and applicable. Explain a
 material acknowledgement or override before requesting a decision.
 
 For a need with no declared Program Kit capability, say exactly that; do not claim incompatibility.
@@ -35,10 +36,28 @@ ordering, layout and animation; styles, themes, terminology and branding; docume
 hash-bound architecture decisions. Features not yet understood by a registered importer remain
 typed extensions rather than being discarded.
 
-Its C4 System Context view contains the system in scope, people, and directly connected external
-systems. Its Domain Context view adds candidate business capabilities, bounded contexts, ownership,
-public contracts, data ownership, and directional relationships. Mark inferred boundaries
-`proposed` or `unresolved`; intake never promotes them to Accepted architecture.
+Its C4 System Context view contains only the system in scope, people, and directly connected external
+systems. Strategic custom views show the classified domain/subdomain landscape, bounded contexts,
+owned modules and bridges, and a typed Context Map. One dynamic view preserves each named journey in
+source order. Do not represent a bounded context or capability as a peer software system, and do not
+invent container/component/deployment views until evidence supports those C4 levels.
+
+Classify subdomains as Core, Supporting, or Generic from evidence. Derive candidate bounded contexts
+from differences in model, ubiquitous language, ownership, lifecycle, and consistency—not nouns,
+screens, or cross-cutting concerns. Each context records responsibilities, non-responsibilities,
+language, data, invariants, lifecycle, rationale, and split triggers. Every cross-context dependency
+records direction, Context Map patterns, interaction mode, owned contract, translation/ACL bridge,
+data owner, consistency owner, failure owner, and atomicity. Every module belongs to one context.
+
+Keep Program Kit mechanism coverage separate from the consumer semantic profile, provider choice,
+and adapter/integration ownership. Managed Forms mechanisms never absorb consumer-owned item,
+pricing, VAT, quantification, publication, or workflow meaning.
+
+Founding decision candidates accompany the map with a question, recommendation, alternatives,
+trade-offs, evidence, confidence, and affected map IDs. They stay `proposed` or `unresolved` during
+intake. Confirmation attests that the provisional synthesis is accurate; it does not create or
+accept ADRs. The architecture phase uses the candidates to narrow research, creates real Proposed
+ADRs, and submits the exact founding ADR bundle at the existing post-architecture approval pause.
 
 Every architecture decision records its ID, repository-relative path, SHA-256, title, date, status,
 scope, owner and supersession links. Elements, relationships, views and constraints carry typed

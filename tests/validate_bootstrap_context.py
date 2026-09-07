@@ -25,7 +25,7 @@ def write_json(path: Path, value: dict) -> None:
     write(path, json.dumps(value, indent=2) + "\n")
 
 
-def seed_project(project: Path, module, run_id: str) -> None:
+def seed_project(project: Path, module, semantic, run_id: str) -> None:
     run = project / ".specify/workflows/runs" / run_id
     write(project / "docs/architecture/project-intent.md", "# Tiny application\n\n[E-001] A visitor sees a greeting.\n")
     architecture = {
@@ -90,6 +90,7 @@ def seed_project(project: Path, module, run_id: str) -> None:
         "configuration": {"styles": [], "themes": [], "terminology": {}, "branding": {}, "properties": {}},
         "extensions": [],
     }
+    architecture = semantic.semantic_model(project / "docs/architecture/project-intent.md")
     write_json(project / "docs/architecture/architecture-map.json", architecture)
     architecture_module = module._load_intake_module()._load_architecture_module()
     write(
@@ -139,6 +140,7 @@ def seed_project(project: Path, module, run_id: str) -> None:
             "capabilities": ["vertical-slicing"],
         },
     }
+    intake = semantic.intake_for(project, architecture, "confirmed")
     write_json(project / module.INTAKE_PATH, intake)
     write_json(run / "inputs.json", {"inputs": {"bootstrap_intake": module.INTAKE_PATH.as_posix()}})
     markdown = {
@@ -173,18 +175,26 @@ def seed_project(project: Path, module, run_id: str) -> None:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     module = load_module(root)
+    semantic_path = root / "tests/validate_bootstrap_semantics.py"
+    spec = importlib.util.spec_from_file_location("bootstrap_context_semantic_fixture", semantic_path)
+    if spec is None or spec.loader is None:
+        raise AssertionError(f"Cannot load {semantic_path}")
+    semantic = importlib.util.module_from_spec(spec)
+    import sys
+    sys.modules[spec.name] = semantic
+    spec.loader.exec_module(semantic)
     with tempfile.TemporaryDirectory(prefix="program-kit-context-test-") as directory:
         project = Path(directory)
         run_id = "context-test-1"
-        seed_project(project, module, run_id)
+        seed_project(project, module, semantic, run_id)
         module.validate_intake(project, run_id)
 
         for stage in module.STAGE_ARTIFACTS:
             path, payload = module.build_context(project, run_id, stage)
             if not path.is_file() or payload["stage"] != stage:
                 raise AssertionError(f"{stage} context was not written")
-            if path.stat().st_size >= 20 * 1024:
-                raise AssertionError(f"{stage} compact stage brief exceeds 20 KiB")
+            if path.stat().st_size >= 48 * 1024:
+                raise AssertionError(f"{stage} compact semantic stage brief exceeds 48 KiB")
             if payload["bootstrap_intake"]["path"] != "docs/architecture/bootstrap-intake.json":
                 raise AssertionError("Bootstrap-intake provenance is not canonical")
             if payload["intake"]["status"] != "confirmed":
@@ -193,7 +203,7 @@ def main() -> int:
                 raise AssertionError("Stage context did not use the compact intake projection")
             if "evidence" in payload["intake"] or "artifacts" in payload["intake"]:
                 raise AssertionError("Stage context embedded full intake provenance collections")
-            if payload["architecture_map"]["model_id"] != "tiny-application":
+            if payload["architecture_map"]["model_id"] != "price-calculator":
                 raise AssertionError("Stage context did not preserve the architecture-map identity")
             if payload["architecture_map"].get("projection") != "stage-summary":
                 raise AssertionError("Stage context did not use the compact architecture projection")
@@ -309,7 +319,7 @@ constitution:
 
         managed_project = project / "managed-profile"
         managed_run_id = "managed-profile-test"
-        seed_project(managed_project, module, managed_run_id)
+        seed_project(managed_project, module, semantic, managed_run_id)
         for relative in (
             module.DOTNET_SDK_MANIFEST,
             module.NODE_VERSION_MANIFEST,

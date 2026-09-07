@@ -12,8 +12,8 @@ transaction, durability, compatibility, retry, and failure semantics.
 
 ## Decision
 
-Publish `ProgramKit.DomainEvents.Abstractions` for domain-owned event and handler contracts and
-`ProgramKit.DomainEvents` for the default awaited, scoped, sequential, non-durable dispatcher.
+Publish `Orbyss.Foundation.DomainEvents.Abstractions` for domain-owned event and handler contracts and
+`Orbyss.Foundation.DomainEvents` for the default awaited, scoped, sequential, non-durable dispatcher.
 Handlers are independent; required ordering, returned results, retries, or compensation use an
 explicit capability or orchestrator. Technical dispatch metadata remains separate from immutable
 past-tense business events.

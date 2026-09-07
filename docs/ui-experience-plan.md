@@ -26,7 +26,7 @@ head updates. Private page bodies are never emitted into public exports.
   light/dark/system, reduced motion, forced colors, RTL and keyboard behavior.
 - [x] Safe initial HTML/head renderer, JSON-LD, canonical/locales, sitemap, crawler policies,
   optional Markdown/llms exports, separate consent-gated analytics adapters.
-- [x] Optional `ProgramKit.Web.Discovery` CShells NuGet feature serving only validated public
+- [x] Optional `Orbyss.Foundation.Web.Discovery` CShells NuGet feature serving only validated public
   generated routes. No new Host middleware or privileged test assembly access.
 - [x] Deterministic contract/security/upgrade tests, browser accessibility and interaction suite,
   measured asset budgets, local comprehension-evaluation contract and honest manual evidence.

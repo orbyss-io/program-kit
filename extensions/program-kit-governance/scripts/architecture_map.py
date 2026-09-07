@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import re
@@ -10,8 +11,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 IMPORTER_VERSION = "1.0"
+STRATEGIC_MODEL_VERSION = "1.0"
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ELEMENT_TYPES = {
@@ -36,6 +38,9 @@ VIEW_TYPES = {
     "container",
     "component",
     "domain-context",
+    "domain-landscape",
+    "context-map",
+    "context-decomposition",
     "dynamic",
     "deployment",
     "filtered",
@@ -85,6 +90,11 @@ DEFAULT_PROJECTION_STYLES = (
         "element",
         "ProgramKitType:bounded-context",
         ("background #7C3AED", "color #FFFFFF", "stroke #6D28D9", "strokeWidth 2"),
+    ),
+    (
+        "element",
+        "ProgramKitType:domain-capability",
+        ("background #ECFDF5", "color #134E4A", "stroke #14B8A6", "strokeWidth 2"),
     ),
     ("element", "ProgramKitStatus:proposed", ("stroke #F97316", "border dashed")),
     (
@@ -204,6 +214,628 @@ def _relative_file(project_root: Path, value: object, label: str) -> Path:
     return resolved
 
 
+def _semantic_ids(
+    value: object,
+    label: str,
+    allowed: set[str] | None = None,
+    require_one: bool = False,
+) -> list[str]:
+    result = _unique_strings(value, label, 64)
+    for index, item in enumerate(result, 1):
+        _id(item, f"{label}[{index}]")
+    if require_one and not result:
+        raise ArchitectureMapError(f"{label} must contain at least one item")
+    if allowed is not None and any(item not in allowed for item in result):
+        raise ArchitectureMapError(f"{label} contains an unknown identity")
+    return result
+
+
+def _semantic_texts(
+    value: object,
+    label: str,
+    require_one: bool = False,
+) -> list[str]:
+    if not isinstance(value, list) or len(value) > 128:
+        raise ArchitectureMapError(f"{label} must be a list of at most 128 items")
+    result = [_text(item, f"{label}[{index}]", 500) for index, item in enumerate(value, 1)]
+    if len(set(result)) != len(result):
+        raise ArchitectureMapError(f"{label} contains duplicates")
+    if require_one and not result:
+        raise ArchitectureMapError(f"{label} must contain at least one item")
+    return result
+
+
+def _semantic_status(
+    item: dict,
+    label: str,
+    decision_ids: set[str],
+    decision_statuses: dict[str, str],
+) -> tuple[str, list[str]]:
+    status = item.get("status")
+    if status not in STATUSES:
+        raise ArchitectureMapError(f"{label}.status is invalid")
+    references = _semantic_ids(
+        item.get("decision_refs"), f"{label}.decision_refs", decision_ids
+    )
+    if status == "accepted" and (
+        not references
+        or not any(decision_statuses[reference] == "Accepted" for reference in references)
+    ):
+        raise ArchitectureMapError(
+            f"{label}.decision_refs must cite an Accepted decision for accepted semantics"
+        )
+    return status, references
+
+
+def _validate_strategic_model(
+    strategic: object,
+    elements: dict[str, dict],
+    relationships: dict[str, dict],
+    views: dict[str, dict],
+    decision_ids: set[str],
+    decision_statuses: dict[str, str],
+) -> None:
+    expected = {
+        "version",
+        "status",
+        "decision_refs",
+        "founding_decisions",
+        "subdomains",
+        "bounded_contexts",
+        "modules",
+        "contracts",
+        "context_relationships",
+        "capability_bindings",
+        "journeys",
+        "candidate_slices",
+    }
+    if not isinstance(strategic, dict) or set(strategic) != expected:
+        raise ArchitectureMapError("strategic_model has an invalid shape")
+    if strategic.get("version") != STRATEGIC_MODEL_VERSION:
+        raise ArchitectureMapError(
+            f"strategic_model.version must be {STRATEGIC_MODEL_VERSION}"
+        )
+    _semantic_status(strategic, "strategic_model", decision_ids, decision_statuses)
+
+    founding_ids: set[str] = set()
+    founding_decisions = strategic.get("founding_decisions")
+    if not isinstance(founding_decisions, list) or not founding_decisions:
+        raise ArchitectureMapError(
+            "strategic_model.founding_decisions must be a non-empty list"
+        )
+    for index, item in enumerate(founding_decisions, 1):
+        label = f"strategic_model.founding_decisions[{index}]"
+        fields = {
+            "id", "title", "question", "recommended_option", "alternatives", "rationale",
+            "consequences", "confidence", "affected_elements", "affected_relationships",
+            "status", "evidence",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        item_id = _id(item.get("id"), f"{label}.id")
+        if item_id in founding_ids:
+            raise ArchitectureMapError(f"Duplicate founding decision ID: {item_id}")
+        founding_ids.add(item_id)
+        _text(item.get("title"), f"{label}.title", 240)
+        _text(item.get("question"), f"{label}.question")
+        _text(item.get("recommended_option"), f"{label}.recommended_option")
+        alternatives = _semantic_texts(
+            item.get("alternatives"), f"{label}.alternatives", require_one=True
+        )
+        if item["recommended_option"] in alternatives:
+            raise ArchitectureMapError(
+                f"{label}.alternatives must describe genuinely different options"
+            )
+        _text(item.get("rationale"), f"{label}.rationale")
+        _semantic_texts(item.get("consequences"), f"{label}.consequences", require_one=True)
+        if item.get("confidence") not in {"high", "medium", "low"}:
+            raise ArchitectureMapError(f"{label}.confidence is invalid")
+        if item.get("status") not in {"proposed", "unresolved"}:
+            raise ArchitectureMapError(
+                f"{label}.status must remain proposed or unresolved during intake"
+            )
+        _semantic_ids(
+            item.get("affected_elements"), f"{label}.affected_elements", set(elements)
+        )
+        _semantic_ids(
+            item.get("affected_relationships"),
+            f"{label}.affected_relationships",
+            set(relationships),
+        )
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+
+    subdomain_ids: set[str] = set()
+    subdomains = strategic.get("subdomains")
+    if not isinstance(subdomains, list) or not subdomains:
+        raise ArchitectureMapError("strategic_model.subdomains must be a non-empty list")
+    for index, item in enumerate(subdomains, 1):
+        label = f"strategic_model.subdomains[{index}]"
+        fields = {
+            "id", "name", "classification", "vision", "ownership", "non_ownership",
+            "language_terms", "data_ownership", "invariants", "lifecycle", "status",
+            "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        item_id = _id(item.get("id"), f"{label}.id")
+        if item_id in subdomain_ids:
+            raise ArchitectureMapError(f"Duplicate subdomain ID: {item_id}")
+        subdomain_ids.add(item_id)
+        _text(item.get("name"), f"{label}.name", 240)
+        if item.get("classification") not in {"core", "supporting", "generic"}:
+            raise ArchitectureMapError(f"{label}.classification is invalid")
+        for field in ("vision", "ownership", "non_ownership", "lifecycle"):
+            _text(item.get(field), f"{label}.{field}")
+        for field in ("language_terms", "data_ownership", "invariants"):
+            _semantic_texts(item.get(field), f"{label}.{field}", require_one=True)
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+
+    context_ids: set[str] = set()
+    contexts = strategic.get("bounded_contexts")
+    if not isinstance(contexts, list) or not contexts:
+        raise ArchitectureMapError("strategic_model.bounded_contexts must be a non-empty list")
+    for index, item in enumerate(contexts, 1):
+        label = f"strategic_model.bounded_contexts[{index}]"
+        fields = {
+            "element", "boundary_kind", "vision", "responsibilities", "non_responsibilities", "language_terms",
+            "subdomains", "data_ownership", "invariants", "lifecycle", "separation_rationale",
+            "split_triggers", "status", "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        element_id = _id(item.get("element"), f"{label}.element")
+        element = elements.get(element_id)
+        if element is None or element["type"] != "bounded-context":
+            raise ArchitectureMapError(f"{label}.element must reference a bounded-context element")
+        parent = elements.get(element.get("parent", ""))
+        if parent is None or parent["type"] != "software-system":
+            raise ArchitectureMapError(f"Bounded context {element_id} must be contained by the application system")
+        if element_id in context_ids:
+            raise ArchitectureMapError(f"Duplicate bounded-context semantic record: {element_id}")
+        context_ids.add(element_id)
+        if item.get("boundary_kind") not in {"domain-model", "cross-cutting-concern"}:
+            raise ArchitectureMapError(f"{label}.boundary_kind is invalid")
+        for field in ("vision", "lifecycle", "separation_rationale"):
+            _text(item.get(field), f"{label}.{field}")
+        for field in (
+            "responsibilities", "non_responsibilities", "language_terms", "data_ownership",
+            "invariants", "split_triggers",
+        ):
+            _semantic_texts(item.get(field), f"{label}.{field}", require_one=True)
+        _semantic_ids(item.get("subdomains"), f"{label}.subdomains", subdomain_ids, require_one=True)
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+    bounded_context_elements = {
+        item_id for item_id, item in elements.items() if item["type"] == "bounded-context"
+    }
+    if context_ids != bounded_context_elements:
+        raise ArchitectureMapError(
+            "Every bounded-context element must have exactly one strategic ownership record"
+        )
+    covered_contexts = {
+        element_id
+        for item in founding_decisions
+        for element_id in item["affected_elements"]
+        if element_id in context_ids
+    }
+    if covered_contexts != context_ids:
+        raise ArchitectureMapError(
+            "Every candidate bounded context must be explained by a founding decision"
+        )
+
+    contract_ids: set[str] = set()
+    contracts = strategic.get("contracts")
+    if not isinstance(contracts, list) or not contracts:
+        raise ArchitectureMapError("strategic_model.contracts must be a non-empty list")
+    for index, item in enumerate(contracts, 1):
+        label = f"strategic_model.contracts[{index}]"
+        fields = {
+            "id", "name", "kind", "owner", "version", "description", "status", "evidence",
+            "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        contract_id = _id(item.get("id"), f"{label}.id")
+        if contract_id in contract_ids:
+            raise ArchitectureMapError(f"Duplicate strategic contract ID: {contract_id}")
+        contract_ids.add(contract_id)
+        _text(item.get("name"), f"{label}.name", 240)
+        if item.get("kind") not in {
+            "synchronous-capability", "event", "published-language", "command", "query", "data-contract"
+        }:
+            raise ArchitectureMapError(f"{label}.kind is invalid")
+        owner = _id(item.get("owner"), f"{label}.owner")
+        if owner not in elements:
+            raise ArchitectureMapError(f"{label}.owner references a missing element")
+        _text(item.get("version"), f"{label}.version", 120)
+        _text(item.get("description"), f"{label}.description")
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+
+    module_ids: set[str] = set()
+    module_kinds: dict[str, str] = {}
+    module_contexts: dict[str, str] = {}
+    modules = strategic.get("modules")
+    if not isinstance(modules, list) or not modules:
+        raise ArchitectureMapError("strategic_model.modules must be a non-empty list")
+    for index, item in enumerate(modules, 1):
+        label = f"strategic_model.modules[{index}]"
+        fields = {
+            "element", "context", "kind", "responsibilities", "non_responsibilities",
+            "contracts", "status", "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        element_id = _id(item.get("element"), f"{label}.element")
+        context_id = _id(item.get("context"), f"{label}.context")
+        element = elements.get(element_id)
+        if (
+            element is None
+            or element["type"] != "domain-capability"
+            or context_id not in context_ids
+            or element.get("parent") != context_id
+        ):
+            raise ArchitectureMapError(
+                f"Module {element_id} must be a domain-capability visibly contained by {context_id}"
+            )
+        if element_id in module_ids:
+            raise ArchitectureMapError(f"Duplicate module semantic record: {element_id}")
+        module_ids.add(element_id)
+        kind = item.get("kind")
+        if kind not in {"domain-module", "application-module", "bridge", "adapter", "managed-platform"}:
+            raise ArchitectureMapError(f"{label}.kind is invalid")
+        module_kinds[element_id] = kind
+        module_contexts[element_id] = context_id
+        for field in ("responsibilities", "non_responsibilities"):
+            _semantic_texts(item.get(field), f"{label}.{field}", require_one=True)
+        _semantic_ids(item.get("contracts"), f"{label}.contracts", contract_ids)
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+    capability_elements = {
+        item_id for item_id, item in elements.items() if item["type"] == "domain-capability"
+    }
+    if module_ids != capability_elements:
+        raise ArchitectureMapError(
+            "Every domain-capability element must be owned and classified as a strategic module"
+        )
+
+    def context_for(element_id: str) -> str | None:
+        element = elements[element_id]
+        if element["type"] == "bounded-context":
+            return element_id
+        if element["type"] == "domain-capability":
+            return element.get("parent")
+        return None
+
+    strategic_relationship_ids: set[str] = set()
+    context_relationships = strategic.get("context_relationships")
+    if not isinstance(context_relationships, list):
+        raise ArchitectureMapError("strategic_model.context_relationships must be a list")
+    for index, item in enumerate(context_relationships, 1):
+        label = f"strategic_model.context_relationships[{index}]"
+        fields = {
+            "relationship", "upstream", "downstream", "patterns", "interaction", "contract",
+            "contract_owner", "translation_policy", "bridge", "data_owner", "consistency_owner",
+            "failure_owner", "atomicity", "status", "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        relationship_id = _id(item.get("relationship"), f"{label}.relationship")
+        relationship = relationships.get(relationship_id)
+        if relationship is None or relationship_id in strategic_relationship_ids:
+            raise ArchitectureMapError(f"{label}.relationship is missing or duplicated")
+        strategic_relationship_ids.add(relationship_id)
+        upstream = _id(item.get("upstream"), f"{label}.upstream")
+        downstream = _id(item.get("downstream"), f"{label}.downstream")
+        if upstream not in context_ids or downstream not in context_ids or upstream == downstream:
+            raise ArchitectureMapError(f"{label} must name distinct upstream/downstream contexts")
+        endpoint_contexts = {
+            context_for(relationship["source"]), context_for(relationship["target"])
+        }
+        if endpoint_contexts != {upstream, downstream}:
+            raise ArchitectureMapError(f"{label} does not match the relationship endpoint contexts")
+        patterns = _semantic_ids(item.get("patterns"), f"{label}.patterns", require_one=True)
+        allowed_patterns = {
+            "customer-supplier", "partnership", "shared-kernel", "open-host-service",
+            "published-language", "acl", "conformist",
+        }
+        if any(pattern not in allowed_patterns for pattern in patterns):
+            raise ArchitectureMapError(f"{label}.patterns contains an invalid Context Map pattern")
+        if item.get("interaction") not in {"synchronous-capability", "event", "orchestrator"}:
+            raise ArchitectureMapError(f"{label}.interaction is invalid")
+        contract = _id(item.get("contract"), f"{label}.contract")
+        if contract not in contract_ids:
+            raise ArchitectureMapError(f"{label}.contract references a missing strategic contract")
+        contract_owner = _id(item.get("contract_owner"), f"{label}.contract_owner")
+        if contract_owner not in elements:
+            raise ArchitectureMapError(f"{label}.contract_owner references a missing element")
+        translation = item.get("translation_policy")
+        if translation not in {"acl", "conformist", "published-language", "none", "unresolved"}:
+            raise ArchitectureMapError(f"{label}.translation_policy is invalid")
+        bridge = _text(item.get("bridge"), f"{label}.bridge", 64, allow_empty=True)
+        if translation == "acl":
+            if bridge not in module_ids or module_kinds.get(bridge) != "bridge" or module_contexts.get(bridge) != downstream:
+                raise ArchitectureMapError(
+                    f"{label}.bridge must name a downstream-owned bridge module for ACL translation"
+                )
+        elif bridge:
+            raise ArchitectureMapError(f"{label}.bridge is only valid with ACL translation")
+        for field in ("data_owner", "consistency_owner", "failure_owner"):
+            owner = _id(item.get(field), f"{label}.{field}")
+            if owner not in context_ids:
+                raise ArchitectureMapError(f"{label}.{field} must name a bounded context")
+        atomicity = item.get("atomicity")
+        if atomicity not in {"local-to-owner", "eventual", "read-only", "unresolved-adr", "cross-context-atomic"}:
+            raise ArchitectureMapError(f"{label}.atomicity is invalid")
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        status, decision_refs = _semantic_status(item, label, decision_ids, decision_statuses)
+        if atomicity == "cross-context-atomic" and (
+            status not in {"unresolved", "accepted"} or not decision_refs
+        ):
+            raise ArchitectureMapError(
+                f"{label} cross-context atomic writes must be unresolved/ADR-gated or explicitly accepted"
+            )
+        if any(pattern in {"partnership", "shared-kernel"} for pattern in patterns) and status != "accepted":
+            raise ArchitectureMapError(
+                f"{label} cannot propose Partnership or Shared Kernel without an Accepted ADR"
+            )
+
+    cross_context_relationship_ids = {
+        relationship_id
+        for relationship_id, relationship in relationships.items()
+        if context_for(relationship["source"])
+        and context_for(relationship["target"])
+        and context_for(relationship["source"]) != context_for(relationship["target"])
+    }
+    if strategic_relationship_ids != cross_context_relationship_ids:
+        raise ArchitectureMapError(
+            "Every cross-context dependency must have exactly one typed Context Map relationship"
+        )
+
+    assessment_ids: set[str] = set()
+    bindings = strategic.get("capability_bindings")
+    if not isinstance(bindings, list):
+        raise ArchitectureMapError("strategic_model.capability_bindings must be a list")
+    for index, item in enumerate(bindings, 1):
+        label = f"strategic_model.capability_bindings[{index}]"
+        fields = {
+            "assessment", "module", "mechanism_coverage", "program_kit_capabilities",
+            "semantic_owner", "semantic_profile", "integration_owner", "provider_selection",
+            "decision_state", "status", "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        assessment = _id(item.get("assessment"), f"{label}.assessment")
+        if assessment in assessment_ids:
+            raise ArchitectureMapError(f"Duplicate capability assessment binding: {assessment}")
+        assessment_ids.add(assessment)
+        module = _text(item.get("module"), f"{label}.module", 64, allow_empty=True)
+        if module and module not in module_ids:
+            raise ArchitectureMapError(f"{label}.module references a missing strategic module")
+        coverage = item.get("mechanism_coverage")
+        if coverage not in {"managed", "guided", "external", "conflict", "not-declared", "insufficient-evidence"}:
+            raise ArchitectureMapError(f"{label}.mechanism_coverage is invalid")
+        capabilities = _semantic_ids(
+            item.get("program_kit_capabilities"), f"{label}.program_kit_capabilities"
+        )
+        if coverage in {"managed", "guided", "conflict"} and not capabilities:
+            raise ArchitectureMapError(f"{label} must name the relevant Program Kit capability")
+        semantic_owner = _text(item.get("semantic_owner"), f"{label}.semantic_owner", 120)
+        if semantic_owner not in {"program-kit", "external", "unresolved"} and semantic_owner not in context_ids:
+            raise ArchitectureMapError(f"{label}.semantic_owner must name a context or declared external owner")
+        semantic_profile = _text(
+            item.get("semantic_profile"), f"{label}.semantic_profile", 500, allow_empty=True
+        )
+        if coverage == "managed" and semantic_owner in context_ids and not semantic_profile:
+            raise ArchitectureMapError(
+                f"{label} needs a consumer-owned semantic profile in addition to managed mechanism coverage"
+            )
+        integration_owner = _text(item.get("integration_owner"), f"{label}.integration_owner", 120)
+        if integration_owner not in {"program-kit", "external", "not-applicable", "unresolved"} and integration_owner not in context_ids:
+            raise ArchitectureMapError(f"{label}.integration_owner is invalid")
+        _text(item.get("provider_selection"), f"{label}.provider_selection", 240, allow_empty=True)
+        if item.get("decision_state") not in {
+            "explicit-user-decision", "program-kit-default", "derived-default", "human-answer-required",
+            "research-required", "project-owned-design", "deferred", "excluded",
+        }:
+            raise ArchitectureMapError(f"{label}.decision_state is invalid")
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+
+    journey_ids: set[str] = set()
+    journey_views: set[str] = set()
+    journeys = strategic.get("journeys")
+    if not isinstance(journeys, list) or not journeys:
+        raise ArchitectureMapError("strategic_model.journeys must be a non-empty list")
+    for index, item in enumerate(journeys, 1):
+        label = f"strategic_model.journeys[{index}]"
+        fields = {
+            "id", "name", "source_journey", "actor_or_trigger", "outcome", "view", "steps",
+            "status", "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        journey_id = _id(item.get("id"), f"{label}.id")
+        if journey_id in journey_ids:
+            raise ArchitectureMapError(f"Duplicate strategic journey ID: {journey_id}")
+        journey_ids.add(journey_id)
+        _text(item.get("name"), f"{label}.name", 240)
+        _id(item.get("source_journey"), f"{label}.source_journey")
+        _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
+        _text(item.get("outcome"), f"{label}.outcome")
+        view_key = _id(item.get("view"), f"{label}.view")
+        if view_key in journey_views or views.get(view_key, {}).get("type") != "dynamic":
+            raise ArchitectureMapError(f"{label}.view must name one unique dynamic view")
+        journey_views.add(view_key)
+        steps = item.get("steps")
+        if not isinstance(steps, list) or not steps:
+            raise ArchitectureMapError(f"{label}.steps must be a non-empty list")
+        step_relationships: list[str] = []
+        for step_index, step in enumerate(steps, 1):
+            step_label = f"{label}.steps[{step_index}]"
+            if not isinstance(step, dict) or set(step) != {"order", "relationship", "description", "contract"}:
+                raise ArchitectureMapError(f"{step_label} has an invalid shape")
+            if step.get("order") != step_index:
+                raise ArchitectureMapError(f"{step_label}.order must be contiguous and start at 1")
+            relationship_id = _id(step.get("relationship"), f"{step_label}.relationship")
+            if relationship_id not in relationships:
+                raise ArchitectureMapError(f"{step_label}.relationship is missing")
+            step_relationships.append(relationship_id)
+            _text(step.get("description"), f"{step_label}.description")
+            contract = _text(step.get("contract"), f"{step_label}.contract", 64, allow_empty=True)
+            if contract and contract not in contract_ids:
+                raise ArchitectureMapError(f"{step_label}.contract references a missing contract")
+        if len(set(step_relationships)) != len(step_relationships):
+            raise ArchitectureMapError(f"{label}.steps must use distinct relationship identities")
+        view = views[view_key]
+        if view["relationships"] != step_relationships or view["order"] != step_relationships:
+            raise ArchitectureMapError(
+                f"Dynamic view {view_key} must preserve the journey relationship selection and order"
+            )
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+
+    slices = strategic.get("candidate_slices")
+    if not isinstance(slices, list) or not slices:
+        raise ArchitectureMapError("strategic_model.candidate_slices must be a non-empty list")
+    slice_ids: set[str] = set()
+    for index, item in enumerate(slices, 1):
+        label = f"strategic_model.candidate_slices[{index}]"
+        fields = {
+            "id", "name", "journey", "actor_or_trigger", "outcome", "contexts", "status",
+            "evidence", "decision_refs",
+        }
+        if not isinstance(item, dict) or set(item) != fields:
+            raise ArchitectureMapError(f"{label} has an invalid shape")
+        slice_id = _id(item.get("id"), f"{label}.id")
+        if slice_id in slice_ids:
+            raise ArchitectureMapError(f"Duplicate candidate slice ID: {slice_id}")
+        slice_ids.add(slice_id)
+        _text(item.get("name"), f"{label}.name", 240)
+        if _id(item.get("journey"), f"{label}.journey") not in journey_ids:
+            raise ArchitectureMapError(f"{label}.journey references a missing strategic journey")
+        _text(item.get("actor_or_trigger"), f"{label}.actor_or_trigger")
+        _text(item.get("outcome"), f"{label}.outcome")
+        _semantic_ids(item.get("contexts"), f"{label}.contexts", context_ids, require_one=True)
+        _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
+        _semantic_status(item, label, decision_ids, decision_statuses)
+
+    required_view_types = {
+        "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
+    }
+    actual_view_types = {view["type"] for view in views.values()}
+    if not required_view_types.issubset(actual_view_types):
+        raise ArchitectureMapError(
+            "Strategic architecture requires System Context, domain landscape, Context Map, decomposition, and dynamic views"
+        )
+    for required_type in ("domain-landscape", "context-map"):
+        matching = [view for view in views.values() if view["type"] == required_type]
+        if len(matching) != 1 or not context_ids.issubset(set(matching[0]["elements"])):
+            raise ArchitectureMapError(f"The {required_type} view must show every bounded context")
+    context_map = next(view for view in views.values() if view["type"] == "context-map")
+    if not strategic_relationship_ids.issubset(set(context_map["relationships"])):
+        raise ArchitectureMapError("The Context Map view must show every typed cross-context relationship")
+    visible_modules = {
+        element_id
+        for view in views.values()
+        if view["type"] == "context-decomposition"
+        for element_id in view["elements"]
+    }
+    if module_ids - visible_modules:
+        raise ArchitectureMapError(
+            "Every strategic module or bridge must be visible in a context-decomposition view"
+        )
+
+
+def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
+    """Validate cross-artifact semantic completeness for new bootstrap intake contracts."""
+    if intake.get("schema_version") != "1.1":
+        raise ArchitectureMapError(
+            "Bootstrap intake 1.1 requires an architecture map 1.1 with strategic_model 1.0"
+        )
+    strategic = model["strategic_model"]
+    journey_ids = {item["id"] for item in intake.get("journeys", [])}
+    mapped_journeys = {item["source_journey"] for item in strategic["journeys"]}
+    if journey_ids != mapped_journeys:
+        raise ArchitectureMapError(
+            "Every intake journey must remain separately traceable to one strategic dynamic journey"
+        )
+    analysis = intake.get("domain_analysis", {})
+    subdomains = {item["id"] for item in analysis.get("subdomains", [])}
+    mapped_subdomains = {item["id"] for item in strategic["subdomains"]}
+    if subdomains != mapped_subdomains:
+        raise ArchitectureMapError("Intake and architecture-map subdomain analyses do not match")
+    expected_subdomains = [
+        {key: value for key, value in item.items() if key != "decision_refs"}
+        for item in strategic["subdomains"]
+    ]
+    if analysis.get("subdomains") != expected_subdomains:
+        raise ArchitectureMapError("Intake and architecture-map subdomain evidence is not identical")
+    contexts = {item["id"] for item in analysis.get("candidate_contexts", [])}
+    mapped_contexts = {item["element"] for item in strategic["bounded_contexts"]}
+    if contexts != mapped_contexts:
+        raise ArchitectureMapError("Intake and architecture-map candidate bounded contexts do not match")
+    expected_contexts = [
+        {
+            "id": item["element"],
+            "name": next(
+                element["name"] for element in model["elements"] if element["id"] == item["element"]
+            ),
+            **{
+                key: value
+                for key, value in item.items()
+                if key not in {"element", "decision_refs"}
+            },
+        }
+        for item in strategic["bounded_contexts"]
+    ]
+    if analysis.get("candidate_contexts") != expected_contexts:
+        raise ArchitectureMapError("Intake and architecture-map bounded-context evidence is not identical")
+    assessments = {item["id"] for item in intake.get("capability_assessments", [])}
+    bindings = {item["assessment"] for item in strategic["capability_bindings"]}
+    if assessments != bindings:
+        raise ArchitectureMapError(
+            "Every capability assessment must have one strategic mechanism/semantics binding"
+        )
+    intake_bindings = [
+        {key: value for key, value in item.items() if key not in {"id", "need"}}
+        for item in intake.get("capability_assessments", [])
+    ]
+    expected_bindings = [
+        {
+            key: value
+            for key, value in item.items()
+            if key not in {"assessment", "module", "status", "decision_refs"}
+        }
+        for item in strategic["capability_bindings"]
+    ]
+    if intake_bindings != expected_bindings:
+        raise ArchitectureMapError("Intake and architecture-map capability semantics are not identical")
+    intake_decisions = {
+        item["id"] for item in analysis.get("founding_decision_candidates", [])
+    }
+    mapped_decisions = {item["id"] for item in strategic["founding_decisions"]}
+    if intake_decisions != mapped_decisions:
+        raise ArchitectureMapError(
+            "Intake and architecture-map founding decision candidates do not match"
+        )
+    if analysis.get("founding_decision_candidates") != strategic["founding_decisions"]:
+        raise ArchitectureMapError(
+            "Intake and architecture-map founding decision evidence is not identical"
+        )
+    evidence_ids = {item["id"] for item in intake.get("evidence", [])}
+    semantic_evidence: set[str] = set()
+    for collection in (
+        "founding_decisions", "subdomains", "bounded_contexts", "modules", "contracts", "context_relationships",
+        "capability_bindings", "journeys", "candidate_slices",
+    ):
+        for item in strategic[collection]:
+            semantic_evidence.update(item["evidence"])
+    if not semantic_evidence.issubset(evidence_ids):
+        raise ArchitectureMapError("Strategic architecture references unknown intake evidence")
+
+
 def validate_model(model: dict, project_root: Path | None = None) -> dict:
     required = {
         "schema_version",
@@ -219,6 +851,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         "configuration",
         "extensions",
     }
+    required.add("strategic_model")
     if set(model) != required or model.get("schema_version") != SCHEMA_VERSION:
         raise ArchitectureMapError("Architecture map has an invalid top-level shape or schema version")
     _id(model.get("model_id"), "model_id")
@@ -342,6 +975,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
     if not isinstance(elements, list) or not elements:
         raise ArchitectureMapError("elements must be a non-empty list")
     element_ids: set[str] = set()
+    elements_by_id: dict[str, dict] = {}
     parents: dict[str, str] = {}
     for index, element in enumerate(elements, 1):
         label = f"elements[{index}]"
@@ -357,6 +991,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         if element_id in element_ids:
             raise ArchitectureMapError(f"Duplicate element ID: {element_id}")
         element_ids.add(element_id)
+        elements_by_id[element_id] = element
         if element.get("type") not in ELEMENT_TYPES:
             raise ArchitectureMapError(f"{label}.type is invalid")
         _text(element.get("name"), f"{label}.name", 240)
@@ -406,6 +1041,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
     if not isinstance(relationships, list):
         raise ArchitectureMapError("relationships must be a list")
     relationship_ids: set[str] = set()
+    relationships_by_id: dict[str, dict] = {}
     for index, relationship in enumerate(relationships, 1):
         label = f"relationships[{index}]"
         expected = {
@@ -418,6 +1054,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         if relationship_id in relationship_ids:
             raise ArchitectureMapError(f"Duplicate relationship ID: {relationship_id}")
         relationship_ids.add(relationship_id)
+        relationships_by_id[relationship_id] = relationship
         source = _id(relationship.get("source"), f"{label}.source")
         target = _id(relationship.get("target"), f"{label}.target")
         if source not in element_ids or target not in element_ids or source == target:
@@ -437,6 +1074,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
     if not isinstance(views, list) or len(views) < 2:
         raise ArchitectureMapError("views must contain at least System Context and Domain Context views")
     view_keys: set[str] = set()
+    views_by_key: dict[str, dict] = {}
     view_types: set[str] = set()
     for index, view in enumerate(views, 1):
         label = f"views[{index}]"
@@ -450,6 +1088,7 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         if key in view_keys:
             raise ArchitectureMapError(f"Duplicate view key: {key}")
         view_keys.add(key)
+        views_by_key[key] = view
         view_type = view.get("type")
         if view_type not in VIEW_TYPES:
             raise ArchitectureMapError(f"{label}.type is invalid")
@@ -459,6 +1098,18 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         scope = _text(view.get("scope"), f"{label}.scope", 240, allow_empty=True)
         if view_type == "system-context" and scope not in element_ids:
             raise ArchitectureMapError(f"System Context view {key} must name an element scope")
+        if view_type in {"domain-landscape", "context-map"} and (
+            scope not in elements_by_id or elements_by_id[scope]["type"] != "software-system"
+        ):
+            raise ArchitectureMapError(f"{view_type} view {key} must name the application system scope")
+        if view_type == "context-decomposition" and (
+            scope not in elements_by_id or elements_by_id[scope]["type"] != "bounded-context"
+        ):
+            raise ArchitectureMapError(
+                f"Context decomposition view {key} must name a bounded-context scope"
+            )
+        if view_type == "dynamic" and scope and scope not in element_ids:
+            raise ArchitectureMapError(f"Dynamic view {key} has an unknown scope")
         for element_id in _unique_strings(view.get("elements"), f"{label}.elements", 64):
             if element_id not in element_ids:
                 raise ArchitectureMapError(f"View {key} references missing element {element_id}")
@@ -479,8 +1130,19 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
                 if animated_id not in element_ids and animated_id not in relationship_ids:
                     raise ArchitectureMapError(f"View {key} animation references missing identity {animated_id}")
         _properties(view.get("properties"), f"{label}.properties")
-    if not {"system-context", "domain-context"}.issubset(view_types):
-        raise ArchitectureMapError("Architecture map requires system-context and domain-context views")
+    if not {
+        "system-context", "domain-landscape", "context-map", "context-decomposition", "dynamic"
+    }.issubset(view_types):
+        raise ArchitectureMapError("Architecture map 1.1 requires the full strategic view set")
+
+    _validate_strategic_model(
+        model["strategic_model"],
+        elements_by_id,
+        relationships_by_id,
+        views_by_key,
+        decision_ids,
+        decision_statuses,
+    )
 
     configuration = model.get("configuration")
     if not isinstance(configuration, dict) or set(configuration) != {
@@ -563,9 +1225,13 @@ def _element_declaration(element: dict) -> str:
     if element_type == "person":
         keyword = "person"
         values = (element["name"], element["description"], _tags(element))
-    elif element_type in {"software-system", "external-system", "domain-capability", "bounded-context"}:
+    elif element_type in {"software-system", "external-system"}:
         keyword = "softwareSystem"
         values = (element["name"], element["description"], _tags(element))
+    elif element_type in {"domain-capability", "bounded-context"}:
+        keyword = "element"
+        metadata = "Bounded Context" if element_type == "bounded-context" else "Module / Bridge"
+        values = (element["name"], metadata, element["description"], _tags(element))
     elif element_type in {"container", "data-store"}:
         keyword = "container"
         values = (element["name"], element["description"], element["technology"], _tags(element))
@@ -593,9 +1259,12 @@ class StructurizrDslExporter(ArchitectureMapExporter):
         by_id = {element["id"]: element for element in model["elements"]}
         children: dict[str, list[dict]] = {}
         roots: list[dict] = []
+        custom_types = {"domain-capability", "bounded-context"}
         for element in model["elements"]:
             parent = element.get("parent")
-            if parent:
+            if element["type"] in custom_types:
+                roots.append(element)
+            elif parent and by_id[parent]["type"] not in custom_types:
                 children.setdefault(parent, []).append(element)
             else:
                 roots.append(element)
@@ -662,6 +1331,10 @@ class StructurizrDslExporter(ArchitectureMapExporter):
                 )
             elif view["type"] in {"system-landscape", "domain-context"}:
                 lines.append(f"        systemLandscape {_escape(view['key'])} {{")
+            elif view["type"] in {"domain-landscape", "context-map", "context-decomposition", "custom"}:
+                lines.append(f"        custom {_escape(view['key'])} {{")
+            elif view["type"] == "dynamic":
+                lines.append(f"        dynamic * {_escape(view['key'])} {{")
             elif view["type"] in {"container", "component"}:
                 lines.append(
                     f"        {view['type']} {_dsl_identifier(view['scope'])} {_escape(view['key'])} {{"
@@ -671,11 +1344,32 @@ class StructurizrDslExporter(ArchitectureMapExporter):
                     f"Structurizr DSL exporter does not yet render {view['type']} view {view['key']}; "
                     "the canonical model remains intact"
                 )
-            if view["elements"]:
+            lines.append(f"            title {_escape(view['title'])}")
+            if view["description"]:
+                lines.append(f"            description {_escape(view['description'])}")
+            if view["type"] == "dynamic":
+                for order, relationship_id in enumerate(view["order"], 1):
+                    relationship = next(
+                        item for item in model["relationships"] if item["id"] == relationship_id
+                    )
+                    lines.append(
+                        f"            {order}: {_dsl_identifier(relationship_id)} "
+                        f"{_escape(relationship['description'])}"
+                    )
+            elif view["elements"]:
                 lines.append(
                     "            include "
                     + " ".join(_dsl_identifier(element_id) for element_id in view["elements"])
                 )
+                if view["relationships"]:
+                    lines.append('            exclude "relationship.tag==Relationship"')
+                    lines.append(
+                        "            include "
+                        + " ".join(
+                            _dsl_identifier(relationship_id)
+                            for relationship_id in view["relationships"]
+                        )
+                    )
             lines.extend(("            autolayout lr", "        }"))
         lines.append("")
         lines.append("        styles {")
@@ -692,6 +1386,9 @@ DSL_IDENTIFIER = r"[A-Za-z_][A-Za-z0-9_]*"
 ELEMENT_LINE = re.compile(
     rf'^({DSL_IDENTIFIER})\s*=\s*(person|softwareSystem)\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s*(\{{)?\s*$'
 )
+CUSTOM_ELEMENT_LINE = re.compile(
+    rf'^({DSL_IDENTIFIER})\s*=\s*element\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s*$'
+)
 DETAIL_ELEMENT_LINE = re.compile(
     rf'^({DSL_IDENTIFIER})\s*=\s*(container|component)\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")\s*(\{{)?\s*$'
 )
@@ -705,6 +1402,14 @@ SYSTEM_LANDSCAPE_LINE = re.compile(r'^systemLandscape\s+("(?:[^"\\]|\\.)*")\s*\{
 SCOPED_STATIC_VIEW_LINE = re.compile(
     rf'^(container|component)\s+({DSL_IDENTIFIER})\s+("(?:[^"\\]|\\.)*")\s*\{{$'
 )
+CUSTOM_VIEW_LINE = re.compile(r'^custom\s+("(?:[^"\\]|\\.)*")\s*\{$')
+DYNAMIC_VIEW_LINE = re.compile(
+    rf'^dynamic\s+(\*|{DSL_IDENTIFIER})\s+("(?:[^"\\]|\\.)*")\s*\{{$'
+)
+DYNAMIC_RELATIONSHIP_LINE = re.compile(
+    rf'^(\d+):\s+({DSL_IDENTIFIER})(?:\s+("(?:[^"\\]|\\.)*"))?\s*$'
+)
+VIEW_TEXT_LINE = re.compile(r'^(title|description)\s+("(?:[^"\\]|\\.)*")\s*$')
 WORKSPACE_LINE = re.compile(
     r'^workspace\s+("(?:[^"\\]|\\.)*")(?:\s+("(?:[^"\\]|\\.)*"))?\s*\{$'
 )
@@ -780,6 +1485,7 @@ class StructurizrDslImporter(ArchitectureMapImporter):
         base_elements = {item["id"]: item for item in (base or {}).get("elements", [])}
         base_relationships = {item["id"]: item for item in (base or {}).get("relationships", [])}
         identifiers: dict[str, str] = {}
+        relationship_identifiers: dict[str, str] = {}
         current_view: dict | None = None
         element_stack: list[str] = []
         in_model = False
@@ -841,6 +1547,40 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                     f"Unsupported Structurizr DSL style statement at line {line_number}: {line}"
                 )
             if in_model:
+                match = CUSTOM_ELEMENT_LINE.fullmatch(line)
+                if match:
+                    dsl_element_id, name, metadata, description, tags = match.groups()
+                    element_type, status, ownership, retained, decision_refs, tagged_id = _tag_metadata(
+                        _quoted(tags), "domain-capability"
+                    )
+                    if element_type not in {"domain-capability", "bounded-context"}:
+                        raise ArchitectureMapError(
+                            f"Custom element at line {line_number} has incompatible Program Kit type"
+                        )
+                    element_id = tagged_id or _canonical_identifier(dsl_element_id)
+                    identifiers[dsl_element_id] = element_id
+                    previous = base_elements.get(element_id, {})
+                    element = {
+                        "id": element_id,
+                        "type": element_type,
+                        "name": _quoted(name),
+                        "description": _quoted(description),
+                        "status": status,
+                        "ownership": ownership,
+                        "technology": previous.get("technology", ""),
+                        "evidence": previous.get("evidence", []),
+                        "decision_refs": decision_refs or previous.get("decision_refs", []),
+                        "tags": retained,
+                        "properties": previous.get("properties", {}),
+                        "perspectives": previous.get("perspectives", []),
+                        "url": previous.get("url", ""),
+                        "group": previous.get("group", ""),
+                        "archetype": previous.get("archetype", _quoted(metadata)),
+                    }
+                    if "parent" in previous:
+                        element["parent"] = previous["parent"]
+                    elements.append(element)
+                    continue
                 match = ELEMENT_LINE.fullmatch(line)
                 if match:
                     dsl_element_id, keyword, name, description, tags, opens = match.groups()
@@ -936,6 +1676,7 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                     if status not in STATUSES:
                         raise ArchitectureMapError(f"Invalid relationship status at line {line_number}")
                     rel_id = tagged_id or _canonical_identifier(dsl_rel_id)
+                    relationship_identifiers[dsl_rel_id] = rel_id
                     source = identifiers.get(dsl_source, _canonical_identifier(dsl_source))
                     target = identifiers.get(dsl_target, _canonical_identifier(dsl_target))
                     previous = base_relationships.get(rel_id, {})
@@ -960,6 +1701,35 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                     f"Unsupported Structurizr DSL model statement at line {line_number}: {line}"
                 )
             if in_views:
+                match = CUSTOM_VIEW_LINE.fullmatch(line)
+                if match:
+                    key = _quoted(match.group(1))
+                    base_view = next(
+                        (item for item in (base or {}).get("views", []) if item["key"] == key),
+                        {},
+                    )
+                    current_view = {
+                        "key": key,
+                        "type": base_view.get("type", "custom"),
+                        "title": key,
+                        "description": "",
+                        "scope": base_view.get("scope", ""),
+                        "elements": [], "relationships": [], "decision_refs": [], "filters": [],
+                        "order": [], "layout": {"rankDirection": "lr"}, "animations": [],
+                        "properties": {},
+                    }
+                    continue
+                match = DYNAMIC_VIEW_LINE.fullmatch(line)
+                if match:
+                    key = _quoted(match.group(2))
+                    current_view = {
+                        "key": key, "type": "dynamic", "title": key, "description": "",
+                        "scope": "" if match.group(1) == "*" else identifiers.get(match.group(1), _canonical_identifier(match.group(1))),
+                        "elements": [], "relationships": [], "decision_refs": [], "filters": [],
+                        "order": [], "layout": {"rankDirection": "lr"}, "animations": [],
+                        "properties": {},
+                    }
+                    continue
                 match = SYSTEM_CONTEXT_LINE.fullmatch(line)
                 if match:
                     current_view = {
@@ -1018,10 +1788,27 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                     }
                     continue
                 if current_view is not None and line.startswith("include "):
-                    current_view["elements"] = [
-                        identifiers.get(token, _canonical_identifier(token))
-                        for token in line.split()[1:]
-                    ]
+                    for token in line.split()[1:]:
+                        if token in relationship_identifiers:
+                            current_view["relationships"].append(relationship_identifiers[token])
+                        else:
+                            current_view["elements"].append(
+                                identifiers.get(token, _canonical_identifier(token))
+                            )
+                    continue
+                if current_view is not None and line.startswith("exclude "):
+                    continue
+                match = VIEW_TEXT_LINE.fullmatch(line)
+                if current_view is not None and match:
+                    current_view[match.group(1)] = _quoted(match.group(2))
+                    continue
+                match = DYNAMIC_RELATIONSHIP_LINE.fullmatch(line)
+                if current_view is not None and current_view["type"] == "dynamic" and match:
+                    relationship_id = relationship_identifiers.get(
+                        match.group(2), _canonical_identifier(match.group(2))
+                    )
+                    current_view["relationships"].append(relationship_id)
+                    current_view["order"].append(relationship_id)
                     continue
                 if current_view is not None and line.startswith("autolayout "):
                     continue
@@ -1072,11 +1859,12 @@ class StructurizrDslImporter(ArchitectureMapImporter):
         rel_ids = {item["id"] for item in relationships}
         element_ids = {item["id"] for item in elements}
         for view in views:
-            view["relationships"] = [
-                item["id"]
-                for item in relationships
-                if item["source"] in view["elements"] and item["target"] in view["elements"]
-            ]
+            if not view["relationships"] and view["type"] != "dynamic":
+                view["relationships"] = [
+                    item["id"]
+                    for item in relationships
+                    if item["source"] in view["elements"] and item["target"] in view["elements"]
+                ]
         title = (base or {}).get("title") or title_from_dsl or path.stem
         extensions_by_signature: dict[tuple[str, str, str], dict] = {}
         for extension in [*(base or {}).get("extensions", []), *imported_extensions]:
@@ -1100,6 +1888,7 @@ class StructurizrDslImporter(ArchitectureMapImporter):
                 )
             ),
             "extensions": list(extensions_by_signature.values()),
+            "strategic_model": copy.deepcopy((base or {}).get("strategic_model")),
         }
         validate_model(model)
         diagnostics.insert(

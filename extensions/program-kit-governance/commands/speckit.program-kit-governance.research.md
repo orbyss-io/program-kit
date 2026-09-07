@@ -84,7 +84,7 @@ For the accepted Program Kit .NET OpenAPI chain, treat the managed exporter, `.o
 isolated generator defaults as adopted; do not describe oasdiff as an unresolved candidate or create
 a tooling ADR unless the project proposes an override.
 
-For a selected .NET profile, `ProgramKit.Host` is already the Program Kit default unless intake
+For a selected .NET profile, `Orbyss.Foundation.Host` is already the Program Kit default unless intake
 explicitly opted out. Evaluate compatibility and disclose the preview dependency/source risk; do
 not replace that default with a conventional host merely because runtime multitenancy is absent.
 

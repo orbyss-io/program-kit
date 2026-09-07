@@ -319,14 +319,16 @@ def main() -> int:
         help="Confirms that the consuming repository accepted the .NET technology profile",
     )
     parser.add_argument(
-        "--host-runtime-accepted",
+        "--foundation-host-accepted", "--host-runtime-accepted",
+        dest="foundation_host_accepted",
         action="store_true",
-        help="Confirms that the approved bootstrap baseline or a later Accepted override selects ProgramKit.Host",
+        help="Confirms that the approved bootstrap baseline or a later Accepted override selects Orbyss.Foundation.Host",
     )
     parser.add_argument(
-        "--preview-sources-approved",
+        "--building-block-sources-approved", "--preview-sources-approved",
+        dest="building_block_sources_approved",
         action="store_true",
-        help="Confirms explicit approval to add the Program Kit preview packages and NuGet sources",
+        help="Confirms explicit approval to add the independently pinned building-block packages and NuGet sources",
     )
     parser.add_argument(
         "--persistence-profile",
@@ -339,16 +341,16 @@ def main() -> int:
     if not args.profile_selected:
         print("Refusing to scaffold: the .NET technology profile was not explicitly selected.", file=sys.stderr)
         return 3
-    if not args.check and not args.host_runtime_accepted:
+    if not args.check and not args.foundation_host_accepted:
         print(
-            "Refusing to scaffold: the Program Kit host/runtime choice is not confirmed by the approved "
+            "Refusing to scaffold: the Orbyss Foundation host choice is not confirmed by the approved "
             "bootstrap baseline or a later Accepted override.",
             file=sys.stderr,
         )
         return 4
-    if not args.check and not args.preview_sources_approved:
+    if not args.check and not args.building_block_sources_approved:
         print(
-            "Refusing to scaffold: adding preview packages and NuGet sources was not explicitly approved.",
+            "Refusing to scaffold: adding independently versioned building-block packages and NuGet sources was not explicitly approved.",
             file=sys.stderr,
         )
         return 5

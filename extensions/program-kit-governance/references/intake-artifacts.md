@@ -11,9 +11,9 @@ specific diagnostic cannot be resolved from this contract.
 
 `schema_version`, `status`, `project`, `artifacts`, `evidence`, `facts`, `scope`, `actors`,
 `journeys`, `quality_requirements`, `integrations`, `choices`, `capability_assessments`,
-`open_items`, `candidate_slice_signals`, and `routing`.
+`domain_analysis`, `open_items`, `candidate_slice_signals`, and `routing`.
 
-- Use schema version `1.0`; status is `draft` before review and becomes `confirmed` only after
+- Use schema version `1.1`; status is `draft` before review and becomes `confirmed` only after
   explicit confirmation. Draft viewing does not perform that transition.
 - `project` contains `name` and `summary`.
 - `artifacts` contains `project_intent`, `architecture_map`, and `c4_projection`; each contains only
@@ -25,11 +25,24 @@ specific diagnostic cannot be resolved from this contract.
 - `scope` contains the arrays `included`, `excluded`, and `deferred`.
 - `choices` contain `id`, `decision`, `source`, `rationale`, and `evidence`. Source is
   `explicit-intake`, `program-kit-default`, `derived-default`, or `override`.
-- `capability_assessments` contain `id`, `need`, `coverage`, `program_kit_capability`,
-  `disposition`, and `evidence`. Coverage is `managed`, `guided`, `external`, `conflict`,
+- `capability_assessments` contain `id`, `need`, `mechanism_coverage`,
+  `program_kit_capabilities`, `semantic_owner`, `semantic_profile`, `integration_owner`,
+  `provider_selection`, `decision_state`, and `evidence`. Mechanism coverage is `managed`, `guided`, `external`, `conflict`,
   `not-declared`, or `insufficient-evidence`. Disposition is `explicit-user-decision`,
   `program-kit-default`, `derived-default`, `human-answer-required`, `research-required`,
   `project-owned-design`, `deferred`, or `excluded`.
+- `domain_analysis` contains non-empty `subdomains`, `candidate_contexts`, and
+  `founding_decision_candidates`, plus `boundary_challenges`.
+- Subdomains record `id`, `name`, Core/Supporting/Generic `classification`, `vision`, `ownership`,
+  `non_ownership`, `language_terms`, `data_ownership`, `invariants`, `lifecycle`, provisional
+  `status`, and `evidence`.
+- Candidate contexts record `id`, `name`, `boundary_kind`, `vision`, responsibilities and
+  non-responsibilities, language terms, classified subdomains, data and invariant ownership,
+  lifecycle, separation rationale, split triggers, provisional status, and evidence. Explicitly
+  challenge every proposed cross-cutting-concern boundary.
+- Founding decision candidates record `id`, `title`, `question`, `recommended_option`, genuine
+  `alternatives`, `rationale`, `consequences`, `confidence`, affected element/relationship IDs,
+  provisional `status`, and evidence. These are architecture prepwork, not ADRs or approval evidence.
 - `open_items` contain `id`, `question`, `classification`, `disposition`, `blocks`, `trigger`, and
   `evidence`. Classification is `human-decision`, `research`, `project-owned-design`, or `deferred`.
 - `routing` contains string arrays named `languages`, `frameworks`, `interfaces`,
@@ -43,9 +56,9 @@ does not apply; do not invent filler records.
 `architecture-map.json` has exactly these top-level fields:
 
 `schema_version`, `model_id`, `title`, `sources`, `decisions`, `documentation`, `constraints`,
-`elements`, `relationships`, `views`, `configuration`, and `extensions`.
+`elements`, `relationships`, `views`, `configuration`, `extensions`, and `strategic_model`.
 
-Use schema version `1.0`. All IDs use lowercase letters, digits, and hyphens. Status values for map
+Use schema version `1.1`. All IDs use lowercase letters, digits, and hyphens. Status values for map
 facts are `explicit`, `derived`, `proposed`, `unresolved`, and `accepted`; intake-created domain
 boundaries remain `proposed` or `unresolved`.
 
@@ -64,13 +77,22 @@ boundaries remain `proposed` or `unresolved`.
 - Extensions: `id`, `kind`, `content`, `policy`, and `source`; policy is `preserve`,
   `blocked-executable`, or `approved-external`.
 
+`strategic_model` version `1.0` is mandatory and contains `status`, `decision_refs`, the same
+`founding_decisions`, classified `subdomains`, enriched `bounded_contexts`, owned `modules`, typed
+`contracts`, typed `context_relationships`, multidimensional `capability_bindings`, traced
+`journeys`, and `candidate_slices`. Follow the JSON schema for exact nested fields. Every module is
+visibly contained in a context; every cross-context dependency is typed; every journey has one
+ordered dynamic view; every candidate context is supported by a founding decision candidate.
+
 Element types are `person`, `software-system`, `external-system`, `container`, `component`,
 `domain-capability`, `bounded-context`, `data-store`, `deployment-node`, `infrastructure-node`,
 `software-system-instance`, and `container-instance`. View types are `system-context`,
-`system-landscape`, `container`, `component`, `domain-context`, `dynamic`, `deployment`, `filtered`,
-`custom`, and `image`. Perspectives contain `name`, `description`, and `value`.
+`system-landscape`, `container`, `component`, `domain-context`, `domain-landscape`, `context-map`,
+`context-decomposition`, `dynamic`, `deployment`, `filtered`, `custom`, and `image`. Perspectives
+contain `name`, `description`, and `value`.
 
-Include at least the required `system-context` and `domain-context` views. Use empty collections and
+Include the required System Context, domain landscape, Context Map, context decomposition, and
+dynamic journey views. Use empty collections and
 strings for required fields that do not apply. Do not add containers, deployment nodes, integrations,
 or decisions without intake evidence.
 

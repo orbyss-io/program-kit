@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -19,7 +20,6 @@ MAX_BUNDLE_ENTRIES = 512
 BUNDLE_ROOT_FILES = {
     "LICENSE",
     "README.md",
-    "RUNTIME_VERSION",
     "THIRD-PARTY-NOTICES.md",
     "VERSION",
     "bundle.yml",
@@ -147,9 +147,19 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
             destination = staging / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / relative, destination)
+        specify_site_packages = os.environ.get("PROGRAM_KIT_SPECIFY_SITE_PACKAGES")
+        specify_command = ["specify"]
+        if specify_site_packages:
+            specify_command = [
+                sys.executable,
+                str(root / "scripts/invoke_specify.py"),
+                "--site-packages",
+                specify_site_packages,
+                "--",
+            ]
         subprocess.run(
             [
-                "specify",
+                *specify_command,
                 "bundle",
                 "build",
                 "--path",

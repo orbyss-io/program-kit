@@ -30,12 +30,12 @@ jobs:
       - name: Verify tag and host image policy
         shell: bash
         env:
-          PROGRAMKIT_HOST_IMAGE: ${{ vars.PROGRAMKIT_HOST_IMAGE }}
+          ORBYSS_FOUNDATION_HOST_IMAGE: ${{ vars.ORBYSS_FOUNDATION_HOST_IMAGE }}
         run: |
           expected="v$(tr -d '\r\n' < VERSION)"
           [[ "$GITHUB_REF_NAME" == "$expected" ]] || { echo "Tag must equal $expected" >&2; exit 1; }
-          if [[ "$PROGRAMKIT_HOST_IMAGE" != *@sha256:* ]]; then
-            echo "PROGRAMKIT_HOST_IMAGE must name the approved application-neutral host by digest." >&2
+          if [[ "$ORBYSS_FOUNDATION_HOST_IMAGE" != *@sha256:* ]]; then
+            echo "ORBYSS_FOUNDATION_HOST_IMAGE must name the approved application-neutral host by digest." >&2
             exit 1
           fi
 
@@ -61,11 +61,11 @@ jobs:
         id: image
         shell: bash
         env:
-          PROGRAMKIT_HOST_IMAGE: ${{ vars.PROGRAMKIT_HOST_IMAGE }}
+          ORBYSS_FOUNDATION_HOST_IMAGE: ${{ vars.ORBYSS_FOUNDATION_HOST_IMAGE }}
         run: |
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
           docker buildx build \
-            --build-arg "PROGRAMKIT_HOST_IMAGE=$PROGRAMKIT_HOST_IMAGE" \
+            --build-arg "ORBYSS_FOUNDATION_HOST_IMAGE=$ORBYSS_FOUNDATION_HOST_IMAGE" \
             --platform linux/amd64,linux/arm64 \
             --provenance=mode=max \
             --sbom=true \

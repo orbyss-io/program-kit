@@ -192,7 +192,7 @@ def decisions() -> dict:
         "default_profile": {"id": "program-kit-standard", "version": "0.3.1"},
         "selected_profiles": ["dotnet", "typescript-web"],
         "dotnet": {
-            "host_runtime": "ProgramKit.Host",
+            "host_runtime": "Orbyss.Foundation.Host",
             "host_source": "program-kit-default",
             "program_kit_host_opt_out": False,
             "opt_out_reason": "",
@@ -219,7 +219,7 @@ def decisions() -> dict:
         "choices": [
             {
                 "id": "runtime-host",
-                "decision": "Use ProgramKit.Host as the .NET runtime",
+                "decision": "Use Orbyss.Foundation.Host as the .NET runtime",
                 "source": "program-kit-default",
                 "rationale": "It is the automatic Program Kit .NET baseline",
                 "override": "Record an explicit intake opt-out or superseding ADR",
@@ -235,8 +235,8 @@ def decisions() -> dict:
         "overrides": [],
         "acknowledgements": [
             {
-                "id": "program-kit-preview-dependencies",
-                "summary": "The managed runtime uses pinned preview packages and sources",
+                "id": "orbyss-building-block-dependencies",
+                "summary": "The managed baseline uses independently pinned Orbyss building blocks and package sources",
             }
         ],
         "unresolved": [],
@@ -244,12 +244,21 @@ def decisions() -> dict:
     }
 
 
-def write_assessment(module, project: Path) -> None:
+def write_assessment(module, project: Path, semantic, architecture_module) -> None:
     intake_path = project / module.BOOTSTRAP_INTAKE
     intake_path.parent.mkdir(parents=True, exist_ok=True)
-    intake_path.write_text('{"schema_version":"1.0","status":"confirmed"}\n', encoding="utf-8")
     intent_path = project / module.PROJECT_INTENT
-    intent_path.write_text("# Confirmed project intent\n", encoding="utf-8")
+    intent_path.write_text("# Confirmed project intent\n\nSix governed calculator journeys.\n", encoding="utf-8")
+    architecture = semantic.semantic_model(intent_path)
+    map_path = project / module.ARCHITECTURE_MAP
+    map_path.write_text(json.dumps(architecture, indent=2) + "\n", encoding="utf-8")
+    (project / module.WORKSPACE_DSL).write_text(
+        architecture_module.StructurizrDslExporter().export(architecture), encoding="utf-8"
+    )
+    intake_path.write_text(
+        json.dumps(semantic.intake_for(project, architecture, "confirmed"), indent=2) + "\n",
+        encoding="utf-8",
+    )
     for relative in (module.ASSESSMENT, module.DECISION_BACKLOG, module.TOOLING_EVALUATION):
         path = project / relative
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -266,22 +275,20 @@ def write_assessment(module, project: Path) -> None:
     module.accept_assessment("approve")
 
 
-def write_bootstrap_artifacts(module, project: Path) -> None:
+def write_bootstrap_artifacts(module, project: Path, architecture_module) -> None:
     assessment_approval = json.loads(
         (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
     )
     decision_hash = assessment_approval["artifacts"][module.BOOTSTRAP_DECISIONS.as_posix()]
     contents = {
         "docs/architecture/README.md": "# Architecture navigation\n",
-        "docs/architecture/architecture-map.json": "{}\n",
-        "docs/architecture/workspace.dsl": "workspace \"Review\" {\n}\n",
         "docs/architecture/architecture.md": (
-            "# Architecture\n\nProgramKit.Host is the accepted runtime.\n\n"
+            "# Architecture\n\nOrbyss.Foundation.Host is the accepted runtime.\n\n"
             "The browser boundary inherits program-kit-web-threat-model-v1 and "
             "program-kit-web-security-evidence-v1.\n"
         ),
         "docs/architecture/quality-attributes.md": "# Quality attributes\n",
-        "docs/architecture/technology-radar.md": "# Technology radar\n\nProgramKit.Host — Accepted\n",
+        "docs/architecture/technology-radar.md": "# Technology radar\n\nOrbyss.Foundation.Host — Accepted\n",
         "docs/architecture/traceability.md": "# Traceability\n",
         "docs/architecture/quality-system.md": "# Quality system\n",
         "docs/architecture/decisions/README.md": "# Decisions\n",
@@ -291,17 +298,40 @@ def write_bootstrap_artifacts(module, project: Path) -> None:
         "docs/architecture/decisions/bootstrap-baseline.md": (
             "# Bootstrap baseline\n\n- Status: Accepted\n\n"
             f"Profile: program-kit-standard 0.3.1\n\nDecision register: {decision_hash}\n\n"
-            "runtime-host: ProgramKit.Host is adopted.\n\n"
+            "runtime-host: Orbyss.Foundation.Host is adopted.\n\n"
             "secure-web-profile: bff-cookie-v1 is adopted.\n\n"
             "Security assurance: program-kit-web-threat-model-v1 and "
             "program-kit-web-security-evidence-v1 are inherited.\n\n"
-            "program-kit-preview-dependencies is acknowledged.\n"
+            "orbyss-building-block-dependencies is acknowledged.\n"
         ),
     }
     for relative, text in contents.items():
         path = project / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
+    founding_path = project / "docs/architecture/decisions/decision-context-boundaries.md"
+    founding_path.write_text(
+        "# Candidate model boundaries\n\n"
+        "- **Status**: Proposed\n"
+        "- **Founding decision candidate**: decision-context-boundaries\n\n"
+        "## Context\n\nThe intake found distinct model, language, ownership, lifecycle, and consistency boundaries.\n\n"
+        "## Decision\n\nUse Calculator Forms, Estimation, Quantification, and Offer Catalog boundaries.\n\n"
+        "## Alternatives\n\n- One calculator context.\n- Page and feature contexts.\n\n"
+        "## Consequences\n\nThe final bootstrap approval governs this exact decision.\n",
+        encoding="utf-8",
+    )
+    map_path = project / module.ARCHITECTURE_MAP
+    architecture = json.loads(map_path.read_text(encoding="utf-8"))
+    architecture["decisions"] = [
+        {"id": "decision-context-boundaries", "path": "docs/architecture/decisions/decision-context-boundaries.md",
+         "sha256": module.sha256(founding_path), "title": "Candidate model boundaries",
+         "date": "2026-09-07", "status": "Proposed", "scope": "Strategic context boundaries",
+         "owner": "Architecture", "supersedes": []}
+    ]
+    map_path.write_text(json.dumps(architecture, indent=2) + "\n", encoding="utf-8")
+    (project / module.WORKSPACE_DSL).write_text(
+        architecture_module.StructurizrDslExporter().export(architecture), encoding="utf-8"
+    )
 
 
 def roadmap(required_adrs: str = "None", status: str = "Ready") -> str:
@@ -331,6 +361,18 @@ def placeholder_roadmap() -> str:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     module = load_validator(root)
+    semantic_path = root / "tests/validate_bootstrap_semantics.py"
+    semantic_spec = importlib.util.spec_from_file_location("governance_semantic_fixture", semantic_path)
+    architecture_path = root / "extensions/program-kit-governance/scripts/architecture_map.py"
+    architecture_spec = importlib.util.spec_from_file_location("governance_architecture", architecture_path)
+    if semantic_spec is None or semantic_spec.loader is None or architecture_spec is None or architecture_spec.loader is None:
+        raise AssertionError("Cannot load semantic governance fixtures")
+    semantic = importlib.util.module_from_spec(semantic_spec)
+    architecture_module = importlib.util.module_from_spec(architecture_spec)
+    sys.modules[semantic_spec.name] = semantic
+    sys.modules[architecture_spec.name] = architecture_module
+    semantic_spec.loader.exec_module(semantic)
+    architecture_spec.loader.exec_module(architecture_module)
     for status_line in (
         "Status: Accepted",
         "- Status: Accepted",
@@ -464,7 +506,7 @@ def main() -> int:
             )
             module.validate_bootstrap_decisions()
 
-            write_assessment(module, project)
+            write_assessment(module, project, semantic, architecture_module)
             assessment_record = json.loads(
                 (project / module.ASSESSMENT_APPROVAL).read_text(encoding="utf-8")
             )
@@ -614,7 +656,7 @@ def main() -> int:
             roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             module.validate_roadmap(True)
 
-            write_bootstrap_artifacts(module, project)
+            write_bootstrap_artifacts(module, project, architecture_module)
             baseline_path = project / "docs/architecture/decisions/bootstrap-baseline.md"
             baseline_text = baseline_path.read_text(encoding="utf-8")
             approval = json.loads(
@@ -649,7 +691,7 @@ def main() -> int:
                 "duplicates authoritative status",
             )
             architecture_path.write_text(
-                "# Architecture\n\nProgramKit.Host is the accepted runtime.\n\n"
+                "# Architecture\n\nOrbyss.Foundation.Host is the accepted runtime.\n\n"
                 "The browser boundary inherits program-kit-web-threat-model-v1 and "
                 "program-kit-web-security-evidence-v1.\n",
                 encoding="utf-8",
@@ -663,14 +705,25 @@ def main() -> int:
             review_text = (project / module.BOOTSTRAP_REVIEW).read_text(encoding="utf-8")
             if "- Accepted ADRs: 2" not in review_text:
                 raise AssertionError("Bootstrap review did not count actual Accepted ADRs")
-            if "- Proposed ADRs requiring separate later decisions: 0" not in review_text:
+            if "- Proposed ADRs requiring separate later decisions: 1" not in review_text:
                 raise AssertionError("Bootstrap review counted the ADR template as a decision")
+            if "decision-context-boundaries.md" not in review_text:
+                raise AssertionError("Bootstrap review did not bind the founding ADR bundle")
             module.accept_bootstrap("approve", "automatic")
             bootstrap_approval = json.loads(
                 (project / module.BOOTSTRAP_APPROVAL).read_text(encoding="utf-8")
             )
             if bootstrap_approval.get("approval_mode") != "automatic":
                 raise AssertionError("Automatic bootstrap approval was not recorded")
+            accepted_founding = bootstrap_approval.get("accepted_founding_adrs", [])
+            if [item.get("candidate_id") for item in accepted_founding] != ["decision-context-boundaries"]:
+                raise AssertionError("Bootstrap approval did not enumerate the accepted founding ADR")
+            founding_text = (project / "docs/architecture/decisions/decision-context-boundaries.md").read_text(encoding="utf-8")
+            if not module._has_decision_status(founding_text, "Accepted"):
+                raise AssertionError("Final architecture approval did not promote the founding ADR")
+            accepted_map = json.loads((project / module.ARCHITECTURE_MAP).read_text(encoding="utf-8"))
+            if accepted_map["decisions"][0]["status"] != "Accepted":
+                raise AssertionError("Founding ADR acceptance was not reflected in the canonical map")
             readiness = project / module.READINESS_REPORT
             readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")
             module.complete_bootstrap()

@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+## 0.10.0 - 2026-09-07
+
+- Split reusable runtime components into independently versioned Orbyss Foundation and Orbyss Forms
+  repositories, remove their source and publication pipelines from Program Kit, and reserve this
+  repository for the AI extension, governance, generators, and release assets.
+- Replace published `ProgramKit.*` dependencies with `Orbyss.Foundation.*`, `Orbyss.Forms.*`, and
+  `Orbyss.Localization.*` pins. Add a machine-readable inventory and composition guide so Program Kit
+  can select complete, compatible building-block closures without owning their implementations.
+- Prepare the old `ProgramKit.*` NuGet family for retirement only after the replacement packages have
+  been published and verified; consumers migrate explicitly because package identities are immutable.
+- Replace noun-and-page bootstrap decomposition with evidence-backed subdomain classification,
+  enriched bounded-context ownership, typed Context Map relationships, explicit module/contract
+  containment, and one ordered dynamic view per source journey.
+- Separate Program Kit mechanism coverage from consumer domain semantics, integration ownership,
+  provider choice, and human/research decision state; keep calculator form, item, pricing, VAT, and
+  quantification meaning outside the managed Forms mechanism.
+- Present provisional founding decision candidates and alternatives with draft visual review,
+  materialize them as real Proposed ADRs during architecture, and let the existing final architecture
+  gate accept only the exact hash-bound founding ADR bundle.
+- Introduce the single current bootstrap-intake and architecture-map 1.1 contracts and reject the
+  earlier exploratory skinny shape instead of carrying a compatibility path.
+
 ## 0.9.11 - 2026-09-07
 
 - Allow a current, hash-bound draft bootstrap intake to open its generated C4 projection for

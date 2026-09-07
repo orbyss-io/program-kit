@@ -194,7 +194,7 @@ def render_realm(source: bytes, configuration: dict) -> bytes:
 
 def render_shell_profile(source: bytes, configuration: dict) -> bytes:
     settings = json.loads(source.decode("utf-8"))
-    web = settings["CShells"]["Shells"]["default"]["Configuration"]["ProgramKit"]["Web"]
+    web = settings["CShells"]["Shells"]["default"]["Configuration"]["Foundation"]["Web"]
     web["Authority"] = configuration["identityAuthority"]
     web["ClientId"] = configuration["clientId"]
     web["Audience"] = configuration["audience"]
@@ -254,18 +254,18 @@ def verify_outputs(repository: Path, configuration: dict) -> None:
         .get("Shells", {})
         .get("default", {})
         .get("Configuration", {})
-        .get("ProgramKit", {})
+        .get("Foundation", {})
         .get("Web", {})
     )
     for name, expected_value in expected.items():
         if shell_web.get(name) != expected_value:
             raise ValueError(
-                f"PKW107 shell ProgramKit:Web:{name} does not match {CONFIGURATION_PATH}"
+                f"PKW107 shell Foundation:Web:{name} does not match {CONFIGURATION_PATH}"
             )
     features = (
         shell_profile.get("CShells", {}).get("Shells", {}).get("default", {}).get("Features", {})
     )
-    if "ProgramKit.Authentication.SpaPkce" not in features or "ProgramKit.Authentication.BffCookie" in features:
+    if "Orbyss.Foundation.Authentication.SpaPkce" not in features or "Orbyss.Foundation.Authentication.BffCookie" in features:
         raise ValueError("PKW108 the shell must activate only the selected SPA-PKCE authentication feature")
 
     realm = load_object(repository / "deploy/keycloak/program-kit-realm.json")

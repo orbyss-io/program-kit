@@ -51,9 +51,13 @@ Ask one to three cohesive questions per round. Incorporate each answer before se
 round. Stop asking when every bootstrap-relevant uncertainty is answered, defaulted, assigned to a
 human or research/design owner, excluded, or deferred to a named trigger.
 
-For every detected need classify Program Kit coverage as `managed`, `guided`, `external`, `conflict`,
-`not-declared`, or `insufficient-evidence`, then assign one allowed disposition from
-`references/intake-artifacts.md`. Apply an applicable ordinary Program Kit default without
+For every detected need separately record mechanism coverage, any Program Kit capability,
+consumer domain-semantic ownership and profile, integration ownership, provider selection, and
+decision state using `references/intake-artifacts.md`. Never infer that a managed mechanism owns
+the consumer's business language or rules. In particular, Program Kit Forms may own rendering,
+validation, editor, and schema mechanisms, while consumer form meaning, item references, pricing,
+quantification, publication, and workflow semantics remain in consumer-owned modules and bridges.
+Apply an applicable ordinary Program Kit default without
 asking. Explain material acknowledgements and consequences before asking about an override. Say
 "Program Kit has no declared managed capability for this need" for an unmatched need; do not claim
 that Program Kit or the project cannot support it.
@@ -62,6 +66,20 @@ Keep user intent, Program Kit defaults, derived conclusions, proposals, and unre
 distinct. Do not turn a suggested default into explicit user intent. Candidate vertical slices are
 discovery signals only and begin with an actor or trigger and end in an observable outcome.
 
+Before authoring, perform evidence-backed strategic analysis. Classify every subdomain as Core,
+Supporting, or Generic. Propose bounded contexts only where model, language, ownership, lifecycle,
+or consistency boundaries support them; do not turn pages, nouns, or cross-cutting concerns into
+contexts. Record responsibilities, explicit non-responsibilities, language, owned data, invariants,
+lifecycle, separation rationale, and split triggers. Challenge suspicious boundaries explicitly.
+Preserve every separately named source journey and its observable outcome.
+
+Prepare **founding decision candidates** for the proposed architecture: decision question,
+recommended option, genuine alternatives, rationale, consequences, confidence, source evidence,
+and affected map identities. Present these alongside the draft map. They are focused prepwork for
+the architecture phase, not ADRs and not accepted decisions. Intake confirmation confirms an
+accurate provisional synthesis only. The architecture phase must challenge/refine the candidates,
+materialize them as Proposed ADRs, and include those exact ADRs in the post-architecture approval.
+
 ## Required artifacts
 
 After the questions converge, create or update:
@@ -69,8 +87,9 @@ After the questions converge, create or update:
 - `docs/architecture/project-intent.md`, including stable Q&A/evidence IDs and a compact coverage and
   disposition summary;
 - `docs/architecture/architecture-map.json`, matching
-  `references/architecture-map.schema.json` and containing both `system-context` and
-  `domain-context` views;
+  `references/architecture-map.schema.json` and containing the strategic model plus System Context,
+  domain/subdomain landscape, Context Map, context/module decomposition, and one dynamic view per
+  source journey;
 - `docs/architecture/workspace.dsl`, generated from the canonical map with
   `python .specify/extensions/program-kit-governance/scripts/architecture_map.py export --map docs/architecture/architecture-map.json --format structurizr-dsl --output docs/architecture/workspace.dsl --force`; and
 - a draft synthesis of `docs/architecture/bootstrap-intake.json` matching
@@ -91,8 +110,10 @@ After generating the projection, tell the user: "To open the C4 diagrams safely 
 freshness and the draft artifact hashes first and does not change the canonical architecture map,
 confirm the intake, or accept the architecture."
 
-Present the concise synthesis and map changes to the user. Ask for confirmation only after there are
-no invisible or unclassified gaps. Do not mark the intake `confirmed` from silence or inference.
+Present the concise synthesis, subdomain classifications, context challenges, founding decision
+candidates and alternatives, and map changes to the user. Ask for confirmation only after the
+semantic gates pass and there are no invisible or unclassified gaps. State explicitly that this
+confirmation does not approve architecture or ADRs. Do not mark the intake `confirmed` from silence or inference.
 After explicit confirmation, set its status to `confirmed`, refresh every artifact hash and byte
 count, and run:
 

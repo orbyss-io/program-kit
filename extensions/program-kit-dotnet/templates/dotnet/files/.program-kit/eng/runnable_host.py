@@ -21,19 +21,19 @@ from program_kit_version import PROGRAM_KIT_VERSION
 
 
 BUILT_IN_FEATURE_PACKAGES = {
-    "ProgramKit.Authentication": "ProgramKit.Authentication",
-    "ProgramKit.Authentication.Assurance": "ProgramKit.Authentication.Assurance",
-    "ProgramKit.Authentication.BffCookie": "ProgramKit.Authentication.BffCookie",
-    "ProgramKit.Authentication.ClientCredentials": "ProgramKit.Authentication.ClientCredentials",
-    "ProgramKit.Authentication.DownstreamApi": "ProgramKit.Authentication.DownstreamApi",
-    "ProgramKit.Authentication.DPoP": "ProgramKit.Authentication.DPoP",
-    "ProgramKit.Authentication.SpaPkce": "ProgramKit.Authentication.SpaPkce",
-    "ProgramKit.Authentication.TokenExchange": "ProgramKit.Authentication.TokenExchange",
-    "ProgramKit.DomainEvents": "ProgramKit.DomainEvents",
-    "ProgramKitTasks": "ProgramKit.Tasks",
-    "ProgramKit.WebDefaults": "ProgramKit.WebDefaults",
-    "ProgramKit.Web.OpenApi": "ProgramKit.Web.OpenApi",
-    "ProgramKit.Web.ProblemDetails": "ProgramKit.Web.ProblemDetails",
+    "Orbyss.Foundation.Authentication": "Orbyss.Foundation.Authentication",
+    "Orbyss.Foundation.Authentication.Assurance": "Orbyss.Foundation.Authentication.Assurance",
+    "Orbyss.Foundation.Authentication.BffCookie": "Orbyss.Foundation.Authentication.BffCookie",
+    "Orbyss.Foundation.Authentication.ClientCredentials": "Orbyss.Foundation.Authentication.ClientCredentials",
+    "Orbyss.Foundation.Authentication.DownstreamApi": "Orbyss.Foundation.Authentication.DownstreamApi",
+    "Orbyss.Foundation.Authentication.DPoP": "Orbyss.Foundation.Authentication.DPoP",
+    "Orbyss.Foundation.Authentication.SpaPkce": "Orbyss.Foundation.Authentication.SpaPkce",
+    "Orbyss.Foundation.Authentication.TokenExchange": "Orbyss.Foundation.Authentication.TokenExchange",
+    "Orbyss.Foundation.DomainEvents": "Orbyss.Foundation.DomainEvents",
+    "FoundationTasks": "Orbyss.Foundation.Tasks",
+    "Orbyss.Foundation.WebDefaults": "Orbyss.Foundation.WebDefaults",
+    "Orbyss.Foundation.Web.OpenApi": "Orbyss.Foundation.Web.OpenApi",
+    "Orbyss.Foundation.Web.ProblemDetails": "Orbyss.Foundation.Web.ProblemDetails",
 }
 IDENTITY_RUNTIME_PACKAGES = {
     ("Microsoft.Bcl.Cryptography", "10.0.2"),
@@ -46,13 +46,13 @@ IDENTITY_RUNTIME_PACKAGES = {
     ("System.IdentityModel.Tokens.Jwt", "8.19.2"),
 }
 BUILT_IN_FEATURE_RUNTIME_PACKAGES = {
-    "ProgramKit.Authentication.BffCookie": IDENTITY_RUNTIME_PACKAGES
+    "Orbyss.Foundation.Authentication.BffCookie": IDENTITY_RUNTIME_PACKAGES
     | {("Microsoft.AspNetCore.Authentication.OpenIdConnect", "10.0.11")},
-    "ProgramKit.Authentication.SpaPkce": IDENTITY_RUNTIME_PACKAGES
+    "Orbyss.Foundation.Authentication.SpaPkce": IDENTITY_RUNTIME_PACKAGES
     | {("Microsoft.AspNetCore.Authentication.JwtBearer", "10.0.11")},
-    "ProgramKit.Authentication.DPoP": IDENTITY_RUNTIME_PACKAGES
+    "Orbyss.Foundation.Authentication.DPoP": IDENTITY_RUNTIME_PACKAGES
     | {("Microsoft.AspNetCore.Authentication.JwtBearer", "10.0.11")},
-    "ProgramKit.Web.OpenApi": {
+    "Orbyss.Foundation.Web.OpenApi": {
         ("Microsoft.AspNetCore.OpenApi", "10.0.11"),
         ("Microsoft.OpenApi", "2.7.5"),
     },

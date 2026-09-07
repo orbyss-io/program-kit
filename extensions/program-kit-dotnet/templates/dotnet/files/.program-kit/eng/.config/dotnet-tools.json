@@ -2,10 +2,10 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "programkit.openapi.exporter": {
-      "version": "0.9.9-preview.1",
+    "orbyss.foundation.openapi.exporter": {
+      "version": "0.1.0",
       "commands": [
-        "programkit-openapi-export"
+        "orbyss-foundation-openapi-export"
       ]
     }
   }

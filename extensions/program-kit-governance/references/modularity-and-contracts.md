@@ -24,6 +24,12 @@ a generic segment; a feature implementation type may use the `Feature` suffix.
 ## Proportional domain-driven design
 
 Use strategic DDD to discover bounded contexts, ownership, relationships, and ubiquitous language.
+First classify evidenced subdomains as Core (product differentiation), Supporting (necessary but
+not differentiating), or Generic (commodity/managed mechanism). A bounded context is not a synonym
+for a subdomain: draw it where a model, language, owner, lifecycle, or consistency boundary changes.
+Record responsibilities, non-responsibilities, language, data, invariants, lifecycle, separation
+rationale, and split triggers. Challenge boundaries named after pages, nouns, history/access, or
+cross-cutting concerns unless evidence demonstrates an independently owned model.
 Use aggregates, entities, value objects, domain services, policies, lifecycle models, and semantic
 capability interfaces only where business complexity warrants them. Simple transformations and CRUD
 behavior may remain transaction scripts inside a well-owned slice.
@@ -109,6 +115,18 @@ A direct Core-to-Core reference is appropriate only when:
 Typical valid cases are cohesive subdomains inside one bounded context, a deliberately published
 upstream language adopted by a downstream context, or a small jointly owned semantic kernel. Needing
 another context's internal aggregate or avoiding a small adapter is never sufficient.
+
+For every cross-context edge, record upstream and downstream, Context Map patterns, synchronous
+capability/event/orchestrator mode, contract and contract owner, translation/ACL policy and bridge,
+data owner, consistency owner, failure owner, and atomicity. Partnership and Shared Kernel are not
+neutral defaults; require explicit accepted evidence. Cross-context atomic writes remain unresolved
+until an ADR justifies the consistency and failure semantics.
+
+Managed capability coverage describes a mechanism, never automatic ownership of consumer meaning.
+Program Kit Forms owns reusable schema/rendering/validation/editor/lookup/action mechanisms. A
+calculator's form configuration, item references, pricing/VAT meaning, quantification visibility,
+publication, and workflow are consumer semantics. Keep them in consumer-owned contexts/modules and
+connect them to the mechanism through a named semantic profile and adapter/bridge.
 
 ## Domain and integration events
 

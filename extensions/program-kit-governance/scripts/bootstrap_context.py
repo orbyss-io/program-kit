@@ -101,7 +101,7 @@ INTAKE_STAGE_FIELDS = {
     ),
     "architecture": (
         "facts", "scope", "actors", "journeys", "quality_requirements", "integrations",
-        "open_items", "candidate_slice_signals", "routing",
+        "domain_analysis", "open_items", "candidate_slice_signals", "routing",
     ),
     "tooling": (
         "scope", "quality_requirements", "open_items", "routing",

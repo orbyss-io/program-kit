@@ -59,7 +59,7 @@ Confirm:
 - domain-event handlers are awaited and independent; required results/order use a semantic
   capability or orchestrator. Reliable post-commit/background/cross-process event requirements are
   blocked on the tracked Integration Events/outbox design;
-- a selected external `ProgramKit.Host` profile has no repository-owned `.Host` project or
+- a selected external `Orbyss.Foundation.Host` profile has no repository-owned `.Host` project or
   application `Program.cs`; feature identity metadata, `shells.json`, `hostsettings.json`, package
   closure staging, and digest-bound external-host evidence are planned instead;
 - exact npm graphs have successful peer/engine/platform resolution evidence without `--force` or

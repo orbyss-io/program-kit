@@ -3,7 +3,7 @@
 ## Purpose
 
 This is an implementation contract, not a menu of unanswered questions. Once a profile is selected,
-the Program Kit host web runtime supplies its authentication, common authorization, HTTP,
+the Orbyss Foundation web building blocks supplies its authentication, common authorization, HTTP,
 configuration, operational, and test behavior. An application `.Api` implementation supplies route
 ownership, wire contracts, stable permission/policy metadata or an explicit anonymous declaration,
 and its business outcomes; it does not create an application-root web-boundary feature.
@@ -49,15 +49,15 @@ architecture; it can and normally should use the BFF profile.
 
 ### Runtime configuration
 
-Configuration binds to the selected shell's `ProgramKit:Web` section and is validated when that
+Configuration binds to the selected shell's `Foundation:Web` section and is validated when that
 shell activates. Secret values come from the environment or a secret provider and never from
 committed settings. For the scaffolded `default` shell, the BFF client-secret environment key is
-`CShells__Shells__default__Configuration__ProgramKit__Web__ClientSecret`. For `spa-pkce-v1`, the
+`CShells__Shells__default__Configuration__Foundation__Web__ClientSecret`. For `spa-pkce-v1`, the
 scaffold-owned `.program-kit/spa-pkce.json` is the typed security input; synchronization validates it
 and derives the managed shell overlay, Keycloak registration, and browser contract. Consumers
 change that input and resynchronize rather than editing a derived managed file.
 
-- The active `ProgramKit.Authentication.BffCookie` or `ProgramKit.Authentication.SpaPkce` feature is
+- The active `Orbyss.Foundation.Authentication.BffCookie` or `Orbyss.Foundation.Authentication.SpaPkce` feature is
   the profile discriminator; runtime code does not branch on a profile enum.
 - `Authority`: HTTPS issuer URL; HTTP is permitted only by an explicit local-development setting.
 - `BackchannelAuthority`: optional server-reachable discovery authority. It changes only metadata
@@ -84,7 +84,7 @@ must be supplied by deployment.
 
 ### Provider-neutral capability boundary
 
-Program Kit runtime features model standards-based authentication capabilities, never the currently
+Orbyss Foundation features model standards-based authentication capabilities, never the currently
 bundled identity-provider product. Interactive OIDC/OAuth, client credentials, downstream API token
 attachment, RFC 8693 token exchange, DPoP sender constraint, assurance/step-up (`acr`/`amr`), and
 discovery/JWKS key rollover use provider-neutral options and contracts. Their package names, public
@@ -136,10 +136,10 @@ identity adapter/theme, or the pinned provider version changes.
 
 ### Identity administration boundary
 
-`ProgramKit.Identity.Admin.Abstractions` owns the provider-neutral business-orchestration contracts.
+`Orbyss.Foundation.Identity.Admin.Abstractions` owns the provider-neutral business-orchestration contracts.
 Consumers can create and maintain users and applications, manage reusable scopes and user-attribute
 claim mappings, assign realm roles and groups, initiate credential/enrollment actions, and observe or
-revoke sessions without referencing a provider product. `ProgramKit.Identity.Keycloak.Admin` implements
+revoke sessions without referencing a provider product. `Orbyss.Foundation.Identity.Keycloak.Admin` implements
 those contracts and contributes separate CShell features for Users, Applications, Scopes, Access,
 Enrollment, and Sessions. Selecting one subdomain does not register another.
 
@@ -195,7 +195,7 @@ must be tightened or minimally adapted to the actual frontend resource model.
   and a profile-appropriate CSP. HSTS is enabled outside local development.
 - CORS is disabled for the same-origin BFF. SPA PKCE permits only configured exact origins, headers,
   and methods; credentials are not combined with wildcard origins.
-- `ProgramKit.Host` does not expose or aggregate application health. Until CShells defines a feature-health
+- `Orbyss.Foundation.Host` does not expose or aggregate application health. Until CShells defines a feature-health
   contribution interface, selected features own any liveness/readiness surface and its redaction contract.
 - identity-provider navigation is outside app-controlled response budgets. Product SLOs for
   discovery, JWKS, callback, API, and session operations are feature/deployment decisions and are
@@ -225,10 +225,10 @@ registrations are rejected before Compose starts.
 
 ## `bff-cookie-v1`
 
-- The profile activates `ProgramKit.Authentication.BffCookie`, an `IWebShellFeature` plus ordered
+- The profile activates `Orbyss.Foundation.Authentication.BffCookie`, an `IWebShellFeature` plus ordered
   `IMiddlewareShellFeature`; the generic host contains no BFF endpoints, authentication handlers,
   antiforgery middleware, or response-format policy.
-- The selected Program Kit host web runtime is a confidential OIDC client using authorization code
+- The selected Orbyss Foundation web building blocks is a confidential OIDC client using authorization code
   flow and PKCE.
 - Access and refresh tokens remain in a server-side `ITicketStore`; the browser cookie contains only
   an opaque protected session key.
@@ -258,7 +258,7 @@ registrations are rejected before Compose starts.
 
 ## `spa-pkce-v1`
 
-- The profile activates `ProgramKit.Authentication.SpaPkce`, an ordered `IMiddlewareShellFeature`
+- The profile activates `Orbyss.Foundation.Authentication.SpaPkce`, an ordered `IMiddlewareShellFeature`
   (and endpoint-capable `IWebShellFeature`); the generic host contains no bearer handler, CORS
   policy, or authentication response formatting.
 - The browser is a public authorization-code client with PKCE S256 and no client secret.
@@ -285,7 +285,7 @@ registrations are rejected before Compose starts.
   identity origins. A production static server or edge must translate the checked
   `spa-security.json` contract; the production TLS terminator separately owns HTTPS and HSTS, so
   local HTTP never claims them.
-- `bff-cookie-v1` serves the browser and API through the Program Kit host's same-origin security-
+- `bff-cookie-v1` serves the browser and API through the Orbyss Foundation host's same-origin security-
   header middleware. Its WEB-V3 suite asserts those headers on a BFF response. `Test-Web.ps1`
   rejects `-ViteConfig` for BFF consumers because that adapter is exclusive to an independently
   hosted `spa-pkce-v1` client.
@@ -349,22 +349,22 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 | `.program-kit/eng/web/playwright.config.ts` | Managed secret-safe authentication-test configuration. Authentication capture remains off. |
 | Consumer `vite.config` | Consumer-owned adapter point importing `programKitSpaSecurity` and the SPA session adapter. |
 | `.program-kit/web-profile.shells.json` | Managed selected-profile contribution: activates exactly one authentication feature and supplies its shell-scoped configuration. |
-| `shells.json` | Consumer-owned CShells composition. It is loaded after the managed profile contribution, so a consumer can set `ProgramKit.Web.ProblemDetails` to `false` and activate its own exception feature. |
+| `shells.json` | Consumer-owned CShells composition. It is loaded after the managed profile contribution, so a consumer can set `Orbyss.Foundation.Web.ProblemDetails` to `false` and activate its own exception feature. |
 
 ## CShells feature composition
 
-`ProgramKit.Host` owns only Nuplane/CShells bootstrapping, eager shell activation, `MapShells()`, and
+`Orbyss.Foundation.Host` owns only Nuplane/CShells bootstrapping, eager shell activation, `MapShells()`, and
 process lifetime. Web behavior is package-owned:
 
-- `ProgramKit.Authentication.BffCookie` owns confidential OIDC/cookie configuration, server-side
+- `Orbyss.Foundation.Authentication.BffCookie` owns confidential OIDC/cookie configuration, server-side
   tickets, antiforgery middleware, and `/bff/*` endpoints.
-- `ProgramKit.Authentication.SpaPkce` owns JWT bearer validation and exact-origin CORS.
-- `ProgramKit.Authentication` is the shared dependency for canonical permission mapping and exposes
+- `Orbyss.Foundation.Authentication.SpaPkce` owns JWT bearer validation and exact-origin CORS.
+- `Orbyss.Foundation.Authentication` is the shared dependency for canonical permission mapping and exposes
   `IAuthenticationErrorWriter`; consumers may replace its default error representation.
-- `ProgramKit.WebDefaults` owns the default localization, HSTS, correlation, and security-header
+- `Orbyss.Foundation.WebDefaults` owns the default localization, HSTS, correlation, and security-header
   middleware.
-- `ProgramKit.Web.OpenApi` owns the optional shell OpenAPI endpoint.
-- `ProgramKit.Web.ProblemDetails` owns the optional default exception/status response format. It is
+- `Orbyss.Foundation.Web.OpenApi` owns the optional shell OpenAPI endpoint.
+- `Orbyss.Foundation.Web.ProblemDetails` owns the optional default exception/status response format. It is
   deliberately not an authentication-feature dependency, so consumers can deactivate it and bring
   their own global exception-handler feature without forking the host or an auth package.
 

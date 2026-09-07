@@ -1,4 +1,4 @@
-export interface ProgramKitBffSession {
+export interface FoundationBffSession {
   authenticated: boolean;
 }
 
@@ -8,7 +8,7 @@ export interface ProgramKitAntiforgeryToken {
   requestToken: string;
 }
 
-export interface ProgramKitBffLogoutOptions {
+export interface FoundationBffLogoutOptions {
   antiforgeryPath?: string;
   logoutPath?: string;
   sessionPath?: string;
@@ -29,7 +29,7 @@ async function waitForLocalTermination(path: string, timeoutMilliseconds: number
   while (Date.now() < deadline) {
     const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('The BFF session endpoint did not return a successful response.');
-    const session = await response.json() as ProgramKitBffSession;
+    const session = await response.json() as FoundationBffSession;
     if (session.authenticated === false) return;
     await new Promise(resolve => setTimeout(resolve, 50));
   }
@@ -40,8 +40,8 @@ async function waitForLocalTermination(path: string, timeoutMilliseconds: number
  * Invoke directly from a trusted user gesture. It opens provider logout in a separate top-level
  * context, then keeps the application window on the deterministic same-origin signed-out route.
  */
-export async function beginProgramKitBffLogout(
-  options: ProgramKitBffLogoutOptions = {},
+export async function beginFoundationBffLogout(
+  options: FoundationBffLogoutOptions = {},
 ): Promise<void> {
   const antiforgeryPath = localPath(options.antiforgeryPath ?? '/bff/antiforgery', 'antiforgeryPath');
   const logoutPath = localPath(options.logoutPath ?? '/bff/logout', 'logoutPath');

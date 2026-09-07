@@ -558,7 +558,24 @@ def preflight_mutation_destinations(
         ) from error
 
 
-def stale_program_kit_locks(target: Path, runtime_version: str) -> list[Path]:
+def building_block_versions(release: Path) -> dict[str, str]:
+    path = release / "extensions/program-kit-dotnet/references/orbyss-building-blocks.json"
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        foundation = value["families"]["foundation"]
+        forms = value["families"]["forms"]
+        versions = {
+            **{package: foundation["version"] for package in foundation["packages"]},
+            **{package: forms["version"] for package in forms["nuget_packages"]},
+        }
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
+        raise UpgradeError(f"PKU101 release building-block manifest is invalid: {path}: {error}") from error
+    if not versions or any(not package.startswith("Orbyss.") or not version for package, version in versions.items()):
+        raise UpgradeError("PKU101 release building-block package pins are empty or invalid")
+    return versions
+
+
+def stale_program_kit_locks(target: Path, component_versions: dict[str, str]) -> list[Path]:
     ignored = {".git", ".specify", "artifacts", "node_modules"}
     stale: list[Path] = []
     for path in target.rglob("packages.lock.json"):
@@ -577,11 +594,16 @@ def stale_program_kit_locks(target: Path, runtime_version: str) -> list[Path]:
             for dependencies in frameworks.values()
             if isinstance(dependencies, dict)
             for package_id, dependency in dependencies.items()
-            if isinstance(package_id, str)
-            and package_id.startswith("ProgramKit.")
-            and isinstance(dependency, dict)
+            if isinstance(package_id, str) and isinstance(dependency, dict)
         ]
-        if any(str(dependency.get("resolved", "")) != runtime_version for _, dependency in entries):
+        if any(
+            package_id.startswith("ProgramKit.")
+            or (
+                package_id in component_versions
+                and str(dependency.get("resolved", "")) != component_versions[package_id]
+            )
+            for package_id, dependency in entries
+        ):
             stale.append(path)
     return sorted(stale)
 
@@ -611,7 +633,7 @@ def lock_renewal_commands(target: Path, locks: list[Path]) -> list[str]:
     return commands
 
 
-def write_lock_renewal(target: Path, runtime_version: str, locks: list[Path]) -> list[str]:
+def write_lock_renewal(target: Path, component_versions: dict[str, str], locks: list[Path]) -> list[str]:
     commands = lock_renewal_commands(target, locks)
     path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -619,10 +641,10 @@ def write_lock_renewal(target: Path, runtime_version: str, locks: list[Path]) ->
         json.dumps(
             {
                 "schemaVersion": 1,
-                "targetRuntimeVersion": runtime_version,
+                "targetPackageVersions": dict(sorted(component_versions.items())),
                 "affectedLocks": [item.relative_to(target).as_posix() for item in locks],
                 "renewalCommands": commands,
-                "reason": "program-kit-runtime-pin-upgrade",
+                "reason": "orbyss-building-block-pin-upgrade",
                 "satisfied": False,
             },
             indent=2,
@@ -635,7 +657,7 @@ def write_lock_renewal(target: Path, runtime_version: str, locks: list[Path]) ->
     return commands
 
 
-def satisfy_lock_renewal(target: Path, runtime_version: str) -> None:
+def satisfy_lock_renewal(target: Path, component_versions: dict[str, str]) -> None:
     path = target / ".program-kit/evidence/dotnet-lock-renewal.json"
     if not path.is_file():
         return
@@ -645,8 +667,9 @@ def satisfy_lock_renewal(target: Path, runtime_version: str) -> None:
         raise UpgradeError(f"PKU113 cannot verify NuGet lock renewal evidence {path}: {error}") from error
     if not isinstance(value, dict) or value.get("schemaVersion") != 1:
         raise UpgradeError(f"PKU113 NuGet lock renewal evidence is malformed: {path}")
-    value["targetRuntimeVersion"] = runtime_version
-    value["reason"] = "program-kit-runtime-locks-verified"
+    value["targetPackageVersions"] = dict(sorted(component_versions.items()))
+    value.pop("targetRuntimeVersion", None)
+    value["reason"] = "orbyss-building-block-locks-verified"
     value["satisfied"] = True
     path.write_text(
         json.dumps(value, indent=2, sort_keys=True) + "\n",
@@ -689,9 +712,7 @@ def main() -> int:
         release = Path(args.release_root).resolve()
         target = Path(args.target).resolve()
         version = validate_release(release)
-        runtime_version = (release / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
-        if not runtime_version:
-            raise UpgradeError("PKU101 release RUNTIME_VERSION is empty")
+        component_versions = building_block_versions(release)
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
@@ -711,7 +732,7 @@ def main() -> int:
         integration = selected_integration(target, args.integration)
         specify = resolve_specify_command(args.specify_command, args.specify_command_json)
         specify = preflight_specify(specify, target, release)
-        stale_locks = stale_program_kit_locks(target, runtime_version)
+        stale_locks = stale_program_kit_locks(target, component_versions)
         preflight_mutation_destinations(
             target,
             release,
@@ -745,7 +766,7 @@ def main() -> int:
             sync = target / ".specify/extensions/program-kit-dotnet/scripts/dotnet_sync.py"
             write = [
                 sys.executable, str(sync), "--target", str(target), "--profile-selected",
-                "--host-runtime-accepted", "--preview-sources-approved",
+                "--foundation-host-accepted", "--building-block-sources-approved",
                 "--persistence-profile", persistence, "--web-profile", web,
             ]
             check = [
@@ -790,17 +811,17 @@ def main() -> int:
             )
             renewal_required = True
         if stale_locks:
-            commands = write_lock_renewal(target, runtime_version, stale_locks)
+            commands = write_lock_renewal(target, component_versions, stale_locks)
             print(
-                "PKU113 Program Kit runtime pins changed while consumer NuGet lock files still resolve "
-                f"an older version: {', '.join(path.relative_to(target).as_posix() for path in stale_locks)}. "
+                "PKU113 Orbyss building-block pins changed while consumer NuGet lock files still resolve "
+                f"retired or older package identities: {', '.join(path.relative_to(target).as_posix() for path in stale_locks)}. "
                 "No network restore was run implicitly. Renew and verify with: "
                 + " ; then ".join(commands),
                 file=sys.stderr,
             )
             renewal_required = True
         else:
-            satisfy_lock_renewal(target, runtime_version)
+            satisfy_lock_renewal(target, component_versions)
         if renewal_required:
             return 3
         print(

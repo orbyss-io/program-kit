@@ -1,0 +1,360 @@
+{
+  "schema_version": "1.0",
+  "policy": {
+    "source_ownership": "Program Kit owns AI guidance, scaffolding, selection rules, and compatibility tests; runtime source and release tests belong to the component repositories.",
+    "versioning": "Pin each family independently. Never infer a component version from the Program Kit version.",
+    "compatibility": "Program Kit may advance a family pin only after its consumer compatibility suite passes against published immutable packages."
+  },
+  "families": {
+    "foundation": {
+      "repository": "https://github.com/orbyss-io/dotnet-foundation",
+      "version": "0.1.0",
+      "package_source": "https://api.nuget.org/v3/index.json",
+      "packages": [
+        "Orbyss.Foundation.Analyzers",
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.DomainEvents",
+        "Orbyss.Foundation.DomainEvents.Abstractions",
+        "Orbyss.Foundation.Identity.Admin.Abstractions",
+        "Orbyss.Foundation.Identity.Keycloak.Admin",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Foundation.OpenApi.Exporter",
+        "Orbyss.Foundation.Tasks",
+        "Orbyss.Foundation.Tasks.Abstractions",
+        "Orbyss.Foundation.Web.Discovery",
+        "Orbyss.Foundation.Web.Discovery.Abstractions",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults"
+      ],
+      "package_roles": {
+        "Orbyss.Foundation.Analyzers": "Compile-time enforcement of Foundation feature identity and composition conventions.",
+        "Orbyss.Foundation.Authentication": "Provider-neutral bearer authentication, permission policies, claims transformation, and authentication errors.",
+        "Orbyss.Foundation.Authentication.Assurance": "Authentication-assurance and step-up authorization requirements.",
+        "Orbyss.Foundation.Authentication.BffCookie": "Server-managed browser session, distributed ticket storage, and antiforgery profile.",
+        "Orbyss.Foundation.Authentication.ClientCredentials": "Cached OAuth client-credentials tokens for machine callers.",
+        "Orbyss.Foundation.Authentication.DownstreamApi": "Authenticated downstream HTTP calls using current, exchanged, or machine tokens.",
+        "Orbyss.Foundation.Authentication.DPoP": "DPoP proof generation, validation, nonce, and replay protection.",
+        "Orbyss.Foundation.Authentication.SpaPkce": "Public-client SPA authorization-code plus PKCE profile marker and validation.",
+        "Orbyss.Foundation.Authentication.TokenExchange": "RFC 8693 token exchange service and configuration.",
+        "Orbyss.Foundation.DomainEvents.Abstractions": "In-process domain-event, handler, publisher, and dispatch-context contracts.",
+        "Orbyss.Foundation.DomainEvents": "Default awaited, scoped, sequential in-process domain-event dispatcher.",
+        "Orbyss.Foundation.Identity.Admin.Abstractions": "Provider-neutral identity administration contracts.",
+        "Orbyss.Foundation.Identity.Keycloak.Admin": "Opt-in Keycloak Admin REST adapter for identity administration.",
+        "Orbyss.Foundation.Mcp.AspNetCore": "Shared authenticated stateless MCP Streamable HTTP transport.",
+        "Orbyss.Foundation.OpenApi.Exporter": "Pinned CLI tool that exports the composed application OpenAPI contract.",
+        "Orbyss.Foundation.Tasks.Abstractions": "Startup, background, recurring, and shell-lifetime task contracts.",
+        "Orbyss.Foundation.Tasks": "Default task discovery and shell-lifetime execution.",
+        "Orbyss.Foundation.Web.Discovery.Abstractions": "Public-document catalog contracts.",
+        "Orbyss.Foundation.Web.Discovery": "Explicit public discovery document publication feature.",
+        "Orbyss.Foundation.Web.OpenApi": "Shell-owned ASP.NET Core OpenAPI endpoint composition.",
+        "Orbyss.Foundation.Web.ProblemDetails": "Shell-owned Problem Details response composition.",
+        "Orbyss.Foundation.WebDefaults": "Correlation, security headers, and application-neutral ASP.NET Core defaults."
+      },
+      "host_image": "ghcr.io/orbyss-io/foundation-host:v0.1.0",
+      "configuration_root": "Foundation"
+    },
+    "forms": {
+      "repository": "https://github.com/orbyss-io/forms",
+      "version": "0.1.0",
+      "nuget_source": "https://api.nuget.org/v3/index.json",
+      "nuget_packages": [
+        "Orbyss.Forms.Abstractions",
+        "Orbyss.Forms.Application",
+        "Orbyss.Forms.Core",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Forms.Management.Tool",
+        "Orbyss.Forms.Mcp.AspNetCore",
+        "Orbyss.Forms.Storage.Abstractions",
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Tool",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Localization.Abstractions",
+        "Orbyss.Localization.Application",
+        "Orbyss.Localization.Core",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Mcp.AspNetCore",
+        "Orbyss.Localization.Storage.Abstractions",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Tool",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime"
+      ],
+      "nuget_package_roles": {
+        "Orbyss.Forms.Abstractions": "Form definitions, releases, drafts, submissions, actions, attachments, and lifecycle contracts.",
+        "Orbyss.Forms.Application": "Application orchestration and catalog query services.",
+        "Orbyss.Forms.Core": "Definition validation and compatibility analysis.",
+        "Orbyss.Forms.JsonForms": "Deterministic compilation to JSON Forms-compatible artifacts.",
+        "Orbyss.Forms.Localization": "Bridge from form-localized text references to localization services.",
+        "Orbyss.Forms.Management.Mcp.AspNetCore": "Forms management MCP tool contributor for the shared Foundation transport.",
+        "Orbyss.Forms.Management.Tool": "Trusted form authoring, validation, publication, and retirement tools.",
+        "Orbyss.Forms.Mcp.AspNetCore": "Owner-scoped form operations MCP contributor for the shared Foundation transport.",
+        "Orbyss.Forms.Storage.Abstractions": "Replaceable form definition, release, draft, submission, and attachment storage ports.",
+        "Orbyss.Forms.Storage.FileSystem": "Non-database filesystem adapter for form storage ports.",
+        "Orbyss.Forms.Storage.InMemory": "Non-durable in-memory form storage adapter for tests and development.",
+        "Orbyss.Forms.Submissions": "Draft, submission, attachment, review, and release-migration application operations.",
+        "Orbyss.Forms.Tool": "Form operations tool catalog independent of MCP transport.",
+        "Orbyss.Forms.Web.Management": "Authenticated form management HTTP endpoints.",
+        "Orbyss.Forms.Web.Runtime": "Cacheable immutable form catalog and release HTTP endpoints.",
+        "Orbyss.Forms.Web.Submissions": "Authenticated owner-scoped draft, submission, and attachment HTTP endpoints.",
+        "Orbyss.Localization.Abstractions": "Localization catalog, text, culture, import/export, and storage contracts.",
+        "Orbyss.Localization.Application": "Localization application orchestration.",
+        "Orbyss.Localization.Core": "Localization resolution, fallback, validation, and catalog behavior.",
+        "Orbyss.Localization.Formats": "Portable localization import and export formats.",
+        "Orbyss.Localization.Mcp.AspNetCore": "Localization MCP contributor for the shared Foundation transport.",
+        "Orbyss.Localization.Storage.Abstractions": "Replaceable localization catalog storage ports.",
+        "Orbyss.Localization.Storage.FileSystem": "Filesystem localization storage adapter.",
+        "Orbyss.Localization.Storage.InMemory": "Non-durable in-memory localization adapter for tests and development.",
+        "Orbyss.Localization.Tool": "Localization management and runtime tool catalog independent of MCP transport.",
+        "Orbyss.Localization.Web.Management": "Authenticated localization management HTTP endpoints.",
+        "Orbyss.Localization.Web.Runtime": "Cacheable localization runtime HTTP endpoints."
+      },
+      "npm_source": "https://npm.pkg.github.com",
+      "npm_packages": [
+        "@orbyss-io/forms-actions",
+        "@orbyss-io/forms-ajv-build",
+        "@orbyss-io/forms-angular",
+        "@orbyss-io/forms-contracts",
+        "@orbyss-io/forms-editor-contracts",
+        "@orbyss-io/forms-jsonforms-runtime",
+        "@orbyss-io/forms-lookups",
+        "@orbyss-io/forms-react",
+        "@orbyss-io/forms-renderer-registry",
+        "@orbyss-io/forms-ui-theme",
+        "@orbyss-io/forms-vue",
+        "@orbyss-io/forms-wizard"
+      ],
+      "npm_package_roles": {
+        "@orbyss-io/forms-actions": "Framework-neutral governed form action execution contracts.",
+        "@orbyss-io/forms-ajv-build": "Build-time AJV validator compilation for form schemas.",
+        "@orbyss-io/forms-angular": "Thin Angular renderer binding.",
+        "@orbyss-io/forms-contracts": "Frontend form artifact and runtime contracts.",
+        "@orbyss-io/forms-editor-contracts": "Shared editor and modeler integration contracts.",
+        "@orbyss-io/forms-jsonforms-runtime": "Framework-neutral JSON Forms runtime adapter.",
+        "@orbyss-io/forms-lookups": "Lookup-provider contracts and runtime support.",
+        "@orbyss-io/forms-react": "Thin React renderer binding and reference controls.",
+        "@orbyss-io/forms-renderer-registry": "Renderer registration, ranking, and selection.",
+        "@orbyss-io/forms-ui-theme": "CSS-first semantic tokens, slots, class maps, and unstyled mode.",
+        "@orbyss-io/forms-vue": "Thin Vue renderer binding.",
+        "@orbyss-io/forms-wizard": "Framework-neutral wizard navigation and progress behavior."
+      }
+    }
+  },
+  "compositions": {
+    "api_baseline": {
+      "when": "A .NET HTTP API or modular host is selected.",
+      "required": [
+        "Orbyss.Foundation.Analyzers",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.Web.OpenApi"
+      ],
+      "notes": [
+        "Use the Foundation host image only for runnable package composition; application behavior remains in consumer-owned packages.",
+        "Keep FoundationFeatureIdentity, assembly name, package ID, and ShellFeature identity equal."
+      ]
+    },
+    "browser_bff": {
+      "when": "A browser application uses server-managed authentication and cookies.",
+      "required": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.WebDefaults"
+      ],
+      "optional": [
+        "Orbyss.Foundation.Authentication.Assurance"
+      ],
+      "incompatible_with": [
+        "browser_spa_pkce"
+      ]
+    },
+    "browser_spa_pkce": {
+      "when": "A static or independently hosted SPA holds access tokens.",
+      "required": [
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.WebDefaults"
+      ],
+      "optional": [
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.Assurance"
+      ],
+      "incompatible_with": [
+        "browser_bff"
+      ]
+    },
+    "service_to_service": {
+      "when": "A service calls an authenticated downstream API.",
+      "required": [
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DownstreamApi"
+      ],
+      "optional": [
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.Authentication.DPoP"
+      ]
+    },
+    "identity_administration": {
+      "when": "Trusted services administer users, clients, scopes, sessions, or provider configuration.",
+      "required": [
+        "Orbyss.Foundation.Identity.Admin.Abstractions"
+      ],
+      "optional": [
+        "Orbyss.Foundation.Identity.Keycloak.Admin"
+      ],
+      "notes": [
+        "Select the Keycloak adapter only when Keycloak is an accepted provider decision; business authorization remains outside the adapter."
+      ]
+    },
+    "openapi_export": {
+      "when": "A composed API contract must be exported for compatibility analysis or client generation.",
+      "required": [
+        "Orbyss.Foundation.OpenApi.Exporter",
+        "Orbyss.Foundation.Web.OpenApi"
+      ]
+    },
+    "public_discovery": {
+      "when": "The application explicitly publishes validated public metadata or documents.",
+      "required": [
+        "Orbyss.Foundation.Web.Discovery.Abstractions",
+        "Orbyss.Foundation.Web.Discovery"
+      ]
+    },
+    "domain_events": {
+      "when": "A bounded context needs in-process domain-event dispatch.",
+      "required": [
+        "Orbyss.Foundation.DomainEvents.Abstractions",
+        "Orbyss.Foundation.DomainEvents"
+      ],
+      "notes": [
+        "Do not use domain events as durable integration events or as an outbox contract."
+      ]
+    },
+    "background_tasks": {
+      "when": "A shell owns startup, background, or recurring work.",
+      "required": [
+        "Orbyss.Foundation.Tasks.Abstractions",
+        "Orbyss.Foundation.Tasks"
+      ]
+    },
+    "forms_runtime": {
+      "when": "A product renders immutable, schema-driven forms.",
+      "required": [
+        "Orbyss.Forms.Abstractions",
+        "Orbyss.Forms.Core",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Localization.Abstractions",
+        "Orbyss.Localization.Core",
+        "Orbyss.Localization.Web.Runtime",
+        "@orbyss-io/forms-contracts",
+        "@orbyss-io/forms-jsonforms-runtime",
+        "@orbyss-io/forms-renderer-registry"
+      ],
+      "choose_one_renderer": [
+        "@orbyss-io/forms-angular",
+        "@orbyss-io/forms-react",
+        "@orbyss-io/forms-vue"
+      ],
+      "optional": [
+        "@orbyss-io/forms-actions",
+        "@orbyss-io/forms-lookups",
+        "@orbyss-io/forms-wizard",
+        "@orbyss-io/forms-ui-theme"
+      ]
+    },
+    "forms_operations": {
+      "when": "A product stores drafts, submissions, or attachments.",
+      "required": [
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Forms.Storage.Abstractions"
+      ],
+      "choose_one_storage": [
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory"
+      ],
+      "optional_mcp": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Forms.Tool",
+        "Orbyss.Forms.Mcp.AspNetCore"
+      ],
+      "notes": [
+        "InMemory is a reference/development adapter, not a durable production choice."
+      ]
+    },
+    "forms_management": {
+      "when": "Trusted operators author, validate, publish, or retire forms and localization catalogs.",
+      "required": [
+        "Orbyss.Forms.Application",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Localization.Application",
+        "Orbyss.Localization.Web.Management"
+      ],
+      "optional_mcp": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Forms.Management.Tool",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Tool",
+        "Orbyss.Localization.Mcp.AspNetCore"
+      ]
+    },
+    "forms_authoring_frontend": {
+      "when": "Trusted operators need visual and source authoring or modeler integration.",
+      "required": [
+        "@orbyss-io/forms-contracts",
+        "@orbyss-io/forms-editor-contracts",
+        "@orbyss-io/forms-jsonforms-runtime",
+        "@orbyss-io/forms-renderer-registry"
+      ],
+      "choose_one_renderer": [
+        "@orbyss-io/forms-angular",
+        "@orbyss-io/forms-react",
+        "@orbyss-io/forms-vue"
+      ],
+      "optional": [
+        "@orbyss-io/forms-ajv-build",
+        "@orbyss-io/forms-ui-theme"
+      ]
+    },
+    "localization_storage": {
+      "when": "Localization catalogs require a selected persistence adapter.",
+      "required": [
+        "Orbyss.Localization.Storage.Abstractions"
+      ],
+      "choose_one_storage": [
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory"
+      ],
+      "optional": [
+        "Orbyss.Localization.Formats"
+      ],
+      "notes": [
+        "InMemory is a reference/development adapter, not a durable production choice."
+      ]
+    }
+  },
+  "non_negotiable_boundaries": [
+    "Orbyss is a software factory and AI consultancy; these packages are reusable building blocks, not an Orbyss platform.",
+    "Program Kit must not copy or compile Foundation or Forms runtime source.",
+    "Consumer bounded contexts own business semantics, authorization meaning, pricing, workflow, and publication policy.",
+    "Select one browser authentication profile and one concrete storage adapter per owned storage contract.",
+    "MCP tool contributors depend on Orbyss.Foundation.Mcp.AspNetCore; they do not own transport or anonymous access.",
+    "Keep locked restore, central package management, explicit package-source mapping, and exact family pins."
+  ]
+}

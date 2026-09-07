@@ -24,8 +24,8 @@ layer and keep private content out of the public projection.
 Run the generated pinned `acceptance/tests` suite using the approved exact Node/npm toolchain and
 scripts-disabled npm restore. Capture the real-browser evidence and require the actual consumer
 journey and deployment/manual checks listed in the profile before claiming product acceptance.
-For .NET, enable `ProgramKit.Web.Discovery` only in an appropriate public root shell if this feature
-owns those routes; do not modify ProgramKit.Host or duplicate another framework's routes.
+For .NET, enable `Orbyss.Foundation.Web.Discovery` only in an appropriate public root shell if this feature
+owns those routes; do not modify Orbyss.Foundation.Host or duplicate another framework's routes.
 
 Report source/generated paths, passed evidence, unresolved consumer adapter/manual/deployment
 checks, and exactly which assumptions were adopted. Never claim universal psychological response,

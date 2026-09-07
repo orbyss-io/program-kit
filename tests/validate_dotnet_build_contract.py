@@ -16,7 +16,6 @@ RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-
 
 def main() -> int:
     for path in (
-        ROOT / "global.json",
         ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
     ):
         value = json.loads(path.read_text(encoding="utf-8"))

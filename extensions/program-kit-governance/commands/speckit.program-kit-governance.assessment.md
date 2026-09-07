@@ -79,7 +79,7 @@ validator after writing and use a specific diagnostic only if repair is needed.
   "default_profile": { "id": "program-kit-standard", "version": "<installed-version>" },
   "selected_profiles": ["dotnet", "typescript-web"],
   "dotnet": {
-    "host_runtime": "ProgramKit.Host",
+    "host_runtime": "Orbyss.Foundation.Host",
     "host_source": "program-kit-default",
     "program_kit_host_opt_out": false,
     "opt_out_reason": ""
@@ -125,11 +125,11 @@ Do not guess exact toolchain versions during intake. The research stage receives
 profile manifests through its generated `managed_profile_pins` authority and adds the schema's
 `toolchain` block from those exact values before deterministic validation.
 
-When .NET is selected, set `ProgramKit.Host` automatically unless intake explicitly opts out. An
+When .NET is selected, set `Orbyss.Foundation.Host` automatically unless intake explicitly opts out. An
 opt-out requires a non-empty reason and alternate host. Without an opt-out, add acknowledgement ID
-`program-kit-preview-dependencies` explaining that the managed baseline uses pinned Program Kit,
-CShells, and Nuplane preview packages and preview package sources; assessment approval acknowledges
-this fact but does not restore packages or contact those feeds.
+`orbyss-building-block-dependencies` explaining that the managed baseline uses independently pinned
+Orbyss Foundation and Forms packages plus its pinned CShells/Nuplane dependencies and package sources;
+assessment approval acknowledges this fact but does not restore packages or contact those feeds.
 
 When a browser UI is selected, include the `web` block and set `secure_profile` to
 `bff-cookie-v1` unless explicit intake requires a separately hosted browser OAuth client or records

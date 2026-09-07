@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.9.11"
+  version: "0.10.0"
   author: "Orbyss"
   description: "Consumes a confirmed conversational intake and orchestrates Program Kit assessment, ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -233,7 +233,7 @@ steps:
     default:
       - id: review-bootstrap
         type: gate
-        message: "Gate 3/3 — Final bootstrap approval. Review the concise packet and every listed artifact. To open the C4 diagrams, ask 'View the C4 projection' or invoke $speckit-program-kit-governance-view-c4; Program Kit validates freshness and uses a temporary localhost viewer without changing the canonical map. Approval accepts the generated baseline and reviewed defaults but does not promote separately Proposed ADRs. Reject keeps the run paused for revision and packet regeneration."
+        message: "Gate 3/3 — Final bootstrap approval. Review the concise packet, every listed artifact, and the exact hash-bound founding ADR bundle. To open the diagrams, ask 'View the C4 projection' or invoke $speckit-program-kit-governance-view-c4; Program Kit validates freshness and uses a temporary localhost viewer without changing the canonical map. Approval deterministically promotes only the listed founding ADRs and refreshes their canonical map projection; unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision and packet regeneration."
         show_file: "docs/architecture/reviews/bootstrap-review.md"
         options: [approve, reject]
         on_reject: retry

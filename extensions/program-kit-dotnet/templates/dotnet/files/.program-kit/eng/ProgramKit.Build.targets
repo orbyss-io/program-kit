@@ -5,7 +5,7 @@
     <_ProgramKitFeatureMetadataFile>$(IntermediateOutputPath)program-kit/feature.json</_ProgramKitFeatureMetadataFile>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(ProgramKitFeatureIdentity)' != ''">
+  <ItemGroup Condition="'$(FoundationFeatureIdentity)' != ''">
     <None Include="$(_ProgramKitFeatureMetadataFile)" Pack="true" PackagePath="program-kit/feature.json" Visible="false" />
   </ItemGroup>
 
@@ -15,14 +15,14 @@
 
   <Target Name="ProgramKitFeatureMetadata"
           BeforeTargets="GenerateNuspec"
-          Condition="'$(ProgramKitFeatureIdentity)' != ''">
+          Condition="'$(FoundationFeatureIdentity)' != ''">
     <Error Condition="'$(IsPackable)' != 'true'" Text="PKF100 a Program Kit feature project must be packable." />
     <Error Condition="'$(AssemblyName)' != '$(PackageId)'"
            Text="PKF101 Program Kit feature AssemblyName must equal PackageId so Nuplane can resolve the package main assembly deterministically." />
     <Error Condition="('%(PackageReference.Identity)' == 'CShells.Abstractions' or '%(PackageReference.Identity)' == 'CShells.AspNetCore.Abstractions' or '%(PackageReference.Identity)' == 'Microsoft.Extensions.DependencyInjection.Abstractions' or '%(PackageReference.Identity)' == 'Microsoft.Extensions.Logging.Abstractions') and '%(PackageReference.PrivateAssets)' != 'all'"
            Text="PKF102 feature host-abstraction PackageReference '%(PackageReference.Identity)' must set PrivateAssets=all; the host supplies the shared contract." />
     <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_ProgramKitFeatureMetadataFile)'))" />
-    <Exec Command="&quot;$(ProgramKitPythonCommand)&quot; &quot;$(MSBuildThisFileDirectory)feature_metadata.py&quot; emit --output &quot;$(_ProgramKitFeatureMetadataFile)&quot; --identity &quot;$(ProgramKitFeatureIdentity)&quot; --package-id &quot;$(PackageId)&quot; --feature-dependencies &quot;$(ProgramKitFeatureDependencies)&quot; --runtime-dependencies &quot;$(ProgramKitRuntimeDependencies)&quot; --routes &quot;$(ProgramKitFeatureRoutes)&quot; --dormant &quot;$(ProgramKitFeatureDormant)&quot;" />
+    <Exec Command="&quot;$(ProgramKitPythonCommand)&quot; &quot;$(MSBuildThisFileDirectory)feature_metadata.py&quot; emit --output &quot;$(_ProgramKitFeatureMetadataFile)&quot; --identity &quot;$(FoundationFeatureIdentity)&quot; --package-id &quot;$(PackageId)&quot; --feature-dependencies &quot;$(ProgramKitFeatureDependencies)&quot; --runtime-dependencies &quot;$(ProgramKitRuntimeDependencies)&quot; --routes &quot;$(ProgramKitFeatureRoutes)&quot; --dormant &quot;$(ProgramKitFeatureDormant)&quot;" />
   </Target>
 
 </Project>

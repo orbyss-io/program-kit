@@ -147,7 +147,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         "- **Roadmap entry and status transition**: SPC-001\n"
         "- **Vertical-slice path**: Catalog.Api OpenAPI to generated client\n"
         "- **Artifact ownership manifest**: artifact-ownership.json\n"
-        f"Use ProgramKit.OpenApi.Exporter {old_runtime} for Catalog.Api OpenAPI.\n",
+        f"Use Orbyss.Foundation.OpenApi.Exporter {old_runtime} for Catalog.Api OpenAPI.\n",
         encoding="utf-8",
     )
     tasks.write_text(
@@ -159,7 +159,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         encoding="utf-8",
     )
     research.write_text(
-        f"# Research\nUse ProgramKit.OpenApi.Exporter {old_runtime}.\n",
+        f"# Research\nUse Orbyss.Foundation.OpenApi.Exporter {old_runtime}.\n",
         encoding="utf-8",
     )
     canonical = {
@@ -200,7 +200,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
                 "identity": "catalog-v1",
                 "documentName": "v1",
                 "shell": "default",
-                "producer": {"kind": "ProgramKit.OpenApi.Exporter", "version": old_runtime},
+                "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": old_runtime},
                 "features": ["Catalog.Api"],
                 "packageClosure": "artifacts/runnable-host/packages",
                 "rawDocument": "artifacts/openapi/catalog.raw.json",
@@ -521,7 +521,10 @@ def main() -> int:
             raise AssertionError(f"Updater did not record governed version authority: {accepted}")
 
         old_runtime = "0.0.0-preview.1"
-        target_runtime = (ROOT / "RUNTIME_VERSION").read_text(encoding="utf-8").strip()
+        building_blocks = json.loads(
+            (ROOT / "extensions/program-kit-dotnet/references/orbyss-building-blocks.json").read_text(encoding="utf-8")
+        )
+        target_runtime = building_blocks["families"]["foundation"]["version"]
         feature = seed_openapi_lifecycle(project, old_runtime)
         (project / "Program.slnx").write_text("<Solution />\n", encoding="utf-8")
         (project / "packages.lock.json").write_text(
@@ -530,7 +533,7 @@ def main() -> int:
                     "version": 1,
                     "dependencies": {
                         "net10.0": {
-                            "ProgramKit.Authentication": {
+                            "Orbyss.Foundation.Authentication": {
                                 "type": "Direct",
                                 "requested": f"[{old_runtime}, )",
                                 "resolved": old_runtime,
@@ -597,7 +600,7 @@ def main() -> int:
             "pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject Program.slnx -LockedMode",
         ]
         if (
-            lock_renewal.get("targetRuntimeVersion") != target_runtime
+            lock_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
             or lock_renewal.get("affectedLocks") != ["packages.lock.json"]
             or lock_renewal.get("renewalCommands") != expected_commands
             or lock_renewal.get("satisfied") is not False
@@ -692,7 +695,7 @@ def main() -> int:
         )
 
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))
-        dependency = lock_value["dependencies"]["net10.0"]["ProgramKit.Authentication"]
+        dependency = lock_value["dependencies"]["net10.0"]["Orbyss.Foundation.Authentication"]
         dependency["requested"] = f"[{target_runtime}, )"
         dependency["resolved"] = target_runtime
         (project / "packages.lock.json").write_text(
@@ -704,8 +707,8 @@ def main() -> int:
             (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         if (
-            satisfied_renewal.get("targetRuntimeVersion") != target_runtime
-            or satisfied_renewal.get("reason") != "program-kit-runtime-locks-verified"
+            satisfied_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
+            or satisfied_renewal.get("reason") != "orbyss-building-block-locks-verified"
             or satisfied_renewal.get("satisfied") is not True
         ):
             raise AssertionError(f"NuGet lock renewal did not converge: {satisfied_renewal}")

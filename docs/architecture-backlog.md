@@ -20,6 +20,6 @@ runtime integration, and provider-specific outbox packages only after resolving:
 - metrics, tracing, lag, failure alerts, replay evidence, and deterministic tests; and
 - mapping from internal domain events to stable integration contracts.
 
-Architecture and implementation checks must reject use of `ProgramKit.DomainEvents` as durable
+Architecture and implementation checks must reject use of `Orbyss.Foundation.DomainEvents` as durable
 delivery. This item becomes blocking as soon as a trigger is present; it is not a license to defer a
 required reliability decision during feature implementation.

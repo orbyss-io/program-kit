@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import re
 import sys
@@ -109,6 +110,16 @@ def recorded_approval_mode(record: dict, label: str) -> str:
 
 def bootstrap_artifacts() -> tuple[Path, ...]:
     """Resolve configurable roadmap and decision paths at operation time."""
+    decision_files: tuple[Path, ...] = ()
+    decision_root = project_path(DECISIONS)
+    if decision_root.is_dir():
+        decision_files = tuple(
+            sorted(
+                path.relative_to(Path.cwd().resolve())
+                for path in decision_root.glob("*.md")
+                if path.name.lower() not in {"readme.md", "template.md", "bootstrap-baseline.md"}
+            )
+        )
     return (
         Path("docs/architecture/README.md"),
         ARCHITECTURE,
@@ -123,6 +134,7 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
         ROADMAP,
         DECISIONS / "README.md",
         DECISIONS / "bootstrap-baseline.md",
+        *decision_files,
         BOOTSTRAP_DECISIONS,
         BOOTSTRAP_REVIEW,
     )
@@ -525,6 +537,122 @@ def _has_decision_status(text: str, status: str) -> bool:
     return re.search(pattern, text, re.MULTILINE | re.IGNORECASE) is not None
 
 
+FOUNDING_DECISION_MARKER = re.compile(
+    r"^[-*]\s+\*\*Founding decision candidate\*\*:\s+`?([a-z0-9][a-z0-9-]{0,63})`?\s*$",
+    re.MULTILINE,
+)
+
+
+def founding_adr_records(required_status: str = "Proposed") -> list[dict[str, str]]:
+    intake = read_json(project_path(BOOTSTRAP_INTAKE))
+    if intake.get("schema_version") != "1.1":
+        raise GovernanceStateError("Bootstrap intake must use schema_version 1.1")
+    analysis = intake.get("domain_analysis")
+    candidates = analysis.get("founding_decision_candidates") if isinstance(analysis, dict) else None
+    if not isinstance(candidates, list) or not candidates:
+        raise GovernanceStateError("Bootstrap intake has no founding decision candidates")
+    expected = {str(item.get("id")) for item in candidates if isinstance(item, dict)}
+    records: list[dict[str, str]] = []
+    observed: set[str] = set()
+    for path in sorted(project_path(DECISIONS).glob("*.md")):
+        if path.name.lower() in {"readme.md", "template.md", "bootstrap-baseline.md"}:
+            continue
+        text = path.read_text(encoding="utf-8")
+        marker = FOUNDING_DECISION_MARKER.search(text)
+        if marker is None:
+            continue
+        candidate_id = marker.group(1)
+        if candidate_id in observed:
+            raise GovernanceStateError(f"Duplicate founding ADR candidate marker: {candidate_id}")
+        if not _has_decision_status(text, required_status):
+            raise GovernanceStateError(
+                f"Founding ADR {path.relative_to(Path.cwd()).as_posix()} must be {required_status}"
+            )
+        observed.add(candidate_id)
+        records.append(
+            {
+                "candidate_id": candidate_id,
+                "path": path.relative_to(Path.cwd().resolve()).as_posix(),
+                "sha256": sha256(path),
+            }
+        )
+    if observed != expected:
+        missing = sorted(expected - observed)
+        extra = sorted(observed - expected)
+        raise GovernanceStateError(
+            "Founding ADR bundle does not exactly match intake candidates"
+            + (f"; missing: {', '.join(missing)}" if missing else "")
+            + (f"; unexpected: {', '.join(extra)}" if extra else "")
+        )
+    return records
+
+
+def _load_architecture_module():
+    path = Path(__file__).with_name("architecture_map.py")
+    spec = importlib.util.spec_from_file_location("program_kit_governance_architecture_map", path)
+    if spec is None or spec.loader is None:
+        raise GovernanceStateError(f"Cannot load architecture-map support from {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def accept_founding_adrs(records: list[dict[str, str]]) -> list[dict[str, str]]:
+    architecture = _load_architecture_module()
+    map_path = project_path(ARCHITECTURE_MAP)
+    model = architecture.load_object(map_path)
+    architecture.validate_model(model, Path.cwd().resolve())
+    decisions = {item["id"]: item for item in model["decisions"]}
+    candidates = {
+        item["id"]: item for item in model["strategic_model"]["founding_decisions"]
+    }
+    accepted: list[dict[str, str]] = []
+    for record in records:
+        candidate_id = record["candidate_id"]
+        decision = decisions.get(candidate_id)
+        if decision is None or decision.get("path") != record["path"] or decision.get("status") != "Proposed":
+            raise GovernanceStateError(
+                f"Architecture decision catalog does not bind Proposed founding ADR {candidate_id}"
+            )
+        path = project_path(Path(record["path"]))
+        text = path.read_text(encoding="utf-8")
+        pattern = re.compile(
+            r"^([-*]\s+)?(?:\*\*)?Status(?:\*\*)?:?(?:\*\*)?\s*:\s*Proposed\s*$",
+            re.MULTILINE | re.IGNORECASE,
+        )
+        if len(pattern.findall(text)) != 1:
+            raise GovernanceStateError(f"Founding ADR {record['path']} has no unique Proposed status")
+        updated = pattern.sub("- **Status**: Accepted", text, count=1)
+        write_text(path, updated)
+        decision["status"] = "Accepted"
+        decision["sha256"] = sha256(path)
+        candidate = candidates[candidate_id]
+        for element in model["elements"]:
+            if element["id"] in candidate["affected_elements"]:
+                element["status"] = "accepted"
+                element["decision_refs"] = list(dict.fromkeys([*element["decision_refs"], candidate_id]))
+        for relationship in model["relationships"]:
+            if relationship["id"] in candidate["affected_relationships"]:
+                relationship["status"] = "accepted"
+                relationship["decision_refs"] = list(dict.fromkeys([*relationship["decision_refs"], candidate_id]))
+        for collection, identity in (("bounded_contexts", "element"), ("modules", "element")):
+            for item in model["strategic_model"][collection]:
+                if item[identity] in candidate["affected_elements"]:
+                    item["status"] = "accepted"
+                    item["decision_refs"] = list(dict.fromkeys([*item["decision_refs"], candidate_id]))
+        for item in model["strategic_model"]["context_relationships"]:
+            if item["relationship"] in candidate["affected_relationships"]:
+                item["status"] = "accepted"
+                item["decision_refs"] = list(dict.fromkeys([*item["decision_refs"], candidate_id]))
+        accepted.append({"candidate_id": candidate_id, "path": record["path"], "sha256": decision["sha256"]})
+    architecture.validate_model(model, Path.cwd().resolve())
+    write_json(map_path, model)
+    projection = architecture.StructurizrDslExporter().export(model)
+    write_text(project_path(WORKSPACE_DSL), projection)
+    return accepted
+
+
 def _upgrade_records(value: dict, decision_hash: str) -> list[dict]:
     if set(value) != {"schema_version", "upgrades"} or value.get("schema_version") != "1.0":
         raise GovernanceStateError("Program Kit upgrade evidence must use the 1.0 schema")
@@ -786,24 +914,24 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
             )
         if opted_out:
             _require_string(dotnet.get("opt_out_reason"), "Bootstrap dotnet.opt_out_reason")
-            if host == "ProgramKit.Host":
+            if host == "Orbyss.Foundation.Host":
                 raise GovernanceStateError(
-                    "A ProgramKit.Host opt-out must select an alternate host runtime"
+                    "A Orbyss.Foundation.Host opt-out must select an alternate host runtime"
                 )
             if host_source not in {"explicit-intake", "override"}:
                 raise GovernanceStateError(
-                    "A ProgramKit.Host opt-out must come from explicit intake or an override"
+                    "A Orbyss.Foundation.Host opt-out must come from explicit intake or an override"
                 )
-        elif host != "ProgramKit.Host":
+        elif host != "Orbyss.Foundation.Host":
             raise GovernanceStateError(
-                "ProgramKit.Host is the automatic .NET default; select it or record an explicit opt-out"
+                "Orbyss.Foundation.Host is the automatic .NET default; select it or record an explicit opt-out"
             )
         if not opted_out:
             acknowledgements = value.get("acknowledgements", [])
             ids = {item.get("id") for item in acknowledgements if isinstance(item, dict)}
-            if "program-kit-preview-dependencies" not in ids:
+            if not ids.intersection({"orbyss-building-block-dependencies", "program-kit-preview-dependencies"}):
                 raise GovernanceStateError(
-                    "ProgramKit.Host selection must disclose the pinned preview packages and package sources"
+                    "Orbyss.Foundation.Host selection must disclose the independently pinned building-block packages and package sources"
                 )
     browser_selected = "typescript-web" in normalized_profiles or "browser-web" in normalized_profiles
     web = value.get("web")
@@ -1008,7 +1136,7 @@ def write_review(stage: str) -> None:
             f"- Review basis SHA-256: `{_review_basis(required)}`",
             "- Required assessment artifacts exist.",
             "- The bootstrap decision register is structurally valid.",
-            "- For .NET, `ProgramKit.Host` is selected unless an explicit intake opt-out is recorded.",
+            "- For .NET, `Orbyss.Foundation.Host` is selected unless an explicit intake opt-out is recorded.",
         ]
         write_text(project_path(ASSESSMENT_REVIEW), "\n".join(lines) + "\n")
         print(f"Assessment review packet written: {project_path(ASSESSMENT_REVIEW)}")
@@ -1063,6 +1191,7 @@ def write_review(stage: str) -> None:
         return
     if stage == "bootstrap":
         validate_bootstrap(False, False)
+        founding_adrs = founding_adr_records("Proposed")
         artifacts = bootstrap_artifacts()
         rows = []
         for relative in artifacts[:-1]:
@@ -1088,7 +1217,7 @@ def write_review(stage: str) -> None:
             "",
             "## Decision requested",
             "",
-            "Approve the generated architecture baseline and its adoption of explicit intake choices and Program Kit defaults. Approval does not accept separately Proposed ADRs. Reject keeps the run paused for revision.",
+            "Approve the generated architecture baseline, its adoption of explicit intake choices and Program Kit defaults, and the exact founding ADR bundle listed below. Approval deterministically promotes only those founding ADRs to Accepted and refreshes their canonical map bindings. Unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision.",
             "",
             "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the approval evidence is marked automatic.",
             "",
@@ -1101,6 +1230,13 @@ def write_review(stage: str) -> None:
             f"- Accepted ADRs: {accepted}",
             f"- Proposed ADRs requiring separate later decisions: {proposed}",
             f"- Roadmap statuses: {', '.join(roadmap_statuses) if roadmap_statuses else 'none'}",
+            "",
+            "## Founding ADRs accepted by this approval",
+            "",
+            *[
+                f"- `{item['candidate_id']}`: `{item['path']}` (`{item['sha256']}`)"
+                for item in founding_adrs
+            ],
             "",
             "## Exceptions and unresolved decisions",
             "",
@@ -1125,7 +1261,8 @@ def write_review(stage: str) -> None:
             "- Constitution ratification is current and hash-valid.",
             "- Every required architecture, decision, tooling, quality, traceability, and roadmap artifact exists.",
             "- The bootstrap baseline ADR is Accepted.",
-            "- ProgramKit.Host appears in the accepted baseline when .NET is selected without an opt-out.",
+            "- Every intake founding decision candidate has one hash-bound Proposed ADR.",
+            "- Orbyss.Foundation.Host appears in the accepted baseline when .NET is selected without an opt-out.",
             "- The roadmap is structurally valid.",
         ]
         write_text(project_path(BOOTSTRAP_REVIEW), "\n".join(lines) + "\n")
@@ -1383,9 +1520,9 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
                 + "\n"
                 + baseline_text
             )
-            if "ProgramKit.Host" not in combined:
+            if "Orbyss.Foundation.Host" not in combined:
                 raise GovernanceStateError(
-                    "The accepted .NET baseline must adopt ProgramKit.Host unless intake explicitly opts out"
+                    "The accepted .NET baseline must adopt Orbyss.Foundation.Host unless intake explicitly opts out"
                 )
     web = decisions.get("web")
     if isinstance(web, dict) and web.get("browser_ui") is True:
@@ -1435,6 +1572,10 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
         artifacts[:-1],
         "Bootstrap",
     )
+    reviewed_basis = _review_basis(artifacts[:-1])
+    founding_adrs = founding_adr_records("Proposed")
+    accepted_founding_adrs = accept_founding_adrs(founding_adrs)
+    artifacts = bootstrap_artifacts()
     write_json(
         project_path(BOOTSTRAP_APPROVAL),
         {
@@ -1442,6 +1583,8 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
             "status": "Approved",
             "gate_verdict": verdict,
             "approval_mode": approval_mode,
+            "review_basis_sha256": reviewed_basis,
+            "accepted_founding_adrs": accepted_founding_adrs,
             "artifacts": _artifact_hashes(artifacts),
         },
     )

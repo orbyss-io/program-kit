@@ -65,6 +65,7 @@ def main() -> int:
         "preset": artifacts / f"program-kit-governance-preset-{version}.zip",
         "workflow": artifacts / f"program-kit-bootstrap-{version}.zip",
     }
+    bootstrap_fixture = root / "tests/live/scenarios/clean-bootstrap/docs/architecture"
     missing = [str(path) for path in required_archives.values() if not path.is_file()]
     if missing:
         raise AssertionError(f"Build release assets before the clean-consumer test: {missing}")
@@ -158,11 +159,11 @@ def main() -> int:
         )
         write(
             project / "docs/architecture/project-intent.md",
-            "# Confirmed price-calculator intent\n",
+            (bootstrap_fixture / "project-intent.md").read_text(encoding="utf-8"),
         )
         write(
             project / "docs/architecture/bootstrap-intake.json",
-            '{"schema_version":"1.0","status":"confirmed"}\n',
+            (bootstrap_fixture / "bootstrap-intake.json").read_text(encoding="utf-8"),
         )
 
         for relative in (
@@ -236,8 +237,12 @@ Amendments require human approval. Version changes follow semantic versioning. C
         ]
         artifacts_text = {
             "docs/architecture/README.md": "# Architecture navigation\n",
-            "docs/architecture/architecture-map.json": "{}\n",
-            "docs/architecture/workspace.dsl": "workspace \"Price Calculator\" {\n}\n",
+            "docs/architecture/architecture-map.json": (
+                bootstrap_fixture / "architecture-map.json"
+            ).read_text(encoding="utf-8"),
+            "docs/architecture/workspace.dsl": (
+                bootstrap_fixture / "workspace.dsl"
+            ).read_text(encoding="utf-8"),
             "docs/architecture/architecture.md": (
                 "# Architecture\n\nSLC-CALCULATE-001 owns the calculation outcome and contract.\n"
             ),
@@ -258,6 +263,31 @@ Amendments require human approval. Version changes follow semantic versioning. C
         }
         for relative, text in artifacts_text.items():
             write(project / relative, text)
+
+        founding_path = project / "docs/architecture/decisions/decision-greeting-boundary.md"
+        write(
+            founding_path,
+            "# Keep one greeting model boundary\n\n"
+            "- **Status**: Proposed\n"
+            "- **Founding decision candidate**: decision-greeting-boundary\n\n"
+            "## Decision\n\nUse one Greeting bounded context with one owned command module.\n",
+        )
+        architecture_map_path = project / "docs/architecture/architecture-map.json"
+        architecture_map = json.loads(architecture_map_path.read_text(encoding="utf-8"))
+        architecture_map["decisions"] = [
+            {
+                "id": "decision-greeting-boundary",
+                "path": "docs/architecture/decisions/decision-greeting-boundary.md",
+                "sha256": sha256(founding_path),
+                "title": "Keep one greeting model boundary",
+                "date": "2026-09-07",
+                "status": "Proposed",
+                "scope": "Strategic context boundaries",
+                "owner": "Architecture",
+                "supersedes": [],
+            }
+        ]
+        write(architecture_map_path, json.dumps(architecture_map, indent=2) + "\n")
 
         run_state(project, "synchronize-roadmap")
         run_state(project, "validate-bootstrap-consistency")
