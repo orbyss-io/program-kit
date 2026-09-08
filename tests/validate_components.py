@@ -78,10 +78,12 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 14:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 14")
+    if len(command_names) != 15:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 15")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
+    if "speckit.program-kit-governance.grilling" not in command_names:
+        raise AssertionError("Governance extension does not expose the grilling skill")
     extension_catalog = yaml.safe_load(
         (root / "catalogs/extensions.json").read_text(encoding="utf-8")
     )
@@ -569,6 +571,13 @@ def main() -> int:
         "including informed review before bootstrap confirmation",
         "never performs bootstrap approval",
         "Viewing never changes intake status",
+    )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.grilling.md",
+        "design tree",
+        "The **frontier**",
+        "dispatch a sub-agent",
+        "Do not act on it until the user confirms",
     )
     require_text(
         intake_authoring,

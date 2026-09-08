@@ -174,6 +174,7 @@ def main() -> int:
             "scripts/architecture_map.py",
             "scripts/c4_view.py",
             "commands/speckit.program-kit-governance.assessment.md",
+            "commands/speckit.program-kit-governance.grilling.md",
             "commands/speckit.program-kit-governance.view-c4.md",
             "references/bootstrap-intake.schema.json",
             "references/architecture-map.schema.json",
@@ -329,6 +330,16 @@ def main() -> int:
         c4_view_skill = project / ".agents/skills/speckit-program-kit-governance-view-c4/SKILL.md"
         if not c4_view_skill.is_file():
             raise AssertionError("C4 projection viewing skill was not installed")
+        grilling_skill = project / ".agents/skills/speckit-program-kit-governance-grilling/SKILL.md"
+        if not grilling_skill.is_file():
+            raise AssertionError("Decision grilling skill was not installed")
+        grilling_skill_text = grilling_skill.read_text(encoding="utf-8")
+        if (
+            "design tree" not in grilling_skill_text
+            or "The **frontier**" not in grilling_skill_text
+            or "Do not act on it until the user confirms" not in grilling_skill_text
+        ):
+            raise AssertionError("Installed decision grilling skill lost its interaction contract")
         c4_view_skill_text = c4_view_skill.read_text(encoding="utf-8")
         if (
             "including informed review before bootstrap confirmation" not in c4_view_skill_text

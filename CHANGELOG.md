@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Distribute an isolated, standalone decision-grilling skill through the Program Kit governance
+  extension without coupling it to bootstrap workflows, lifecycle hooks, or a developer's personal
+  Codex skill installation.
+
 ## 0.10.0 - 2026-09-07
 
 - Split reusable runtime components into independently versioned Orbyss Foundation, Orbyss Forms,

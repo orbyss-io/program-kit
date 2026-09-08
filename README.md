@@ -206,6 +206,11 @@ To inspect the generated diagrams before confirming intake or approving a review
 validates `workspace.dsl` against the canonical JSON map, uses pinned Structurizr Local on an
 available localhost port starting at 8081, and keeps viewer-created state outside the repository.
 
+To stress-test a plan, decision, or idea before acting on it, invoke
+`$speckit-program-kit-governance-grilling`. The standalone skill works through a dependency-aware
+design tree in question rounds and waits for shared understanding before permitting action; no
+bootstrap workflow or lifecycle hook invokes it automatically.
+
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:
 
