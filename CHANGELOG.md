@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+- Introduce the consumer-owned Accepted building-block selection, executable catalog `1.0`, pure
+  cross-ecosystem resolver, hash-bound lock, exact project-specific NuGet/npm/tool/registry/CShell/
+  host/configuration materialization, durable rollback, and selected/catalog public-availability gates.
+- Narrow the .NET baseline to toolchain pins plus the sole global Foundation analyzer exception;
+  selected functional building-block pins and direct references are now generated visibly from
+  accepted architecture instead of being pre-pinned indiscriminately.
 - Distribute an isolated, standalone decision-grilling skill through the Program Kit governance
   extension without coupling it to bootstrap workflows, lifecycle hooks, or a developer's personal
   Codex skill installation.
+- Make legacy `ProgramKit.*` package handling permanently read-only: retain compatibility and public
+  availability evidence, remove all package-hiding capability and credentials, and distinguish the
+  packaged-release and source-tree disposable Specify installations in Release output.
 
 ## 0.10.0 - 2026-09-07
 
@@ -14,8 +23,9 @@
 - Replace published `ProgramKit.*` dependencies with `Orbyss.Foundation.*`, `Orbyss.Forms.*`, and
   `Orbyss.Localization.*` pins. Add a machine-readable inventory and composition guide so Program Kit
   can select complete, compatible building-block closures without owning their implementations.
-- Prepare the old `ProgramKit.*` NuGet family for retirement only after the replacement packages have
-  been published and verified; consumers migrate explicitly because package identities are immutable.
+- Record the old `ProgramKit.*` NuGet family as a read-only compatibility inventory after verifying
+  replacement publication; Program Kit never removes or hides package versions, and consumers
+  migrate explicitly because package identities are immutable.
 - Split validation into a bounded default Development suite and an explicitly approved, human-run
   Release suite with a preserved transcript; keep paid coding-agent acceptance separate and optional.
 - Replace noun-and-page bootstrap decomposition with evidence-backed subdomain classification,

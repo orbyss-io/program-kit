@@ -16,6 +16,8 @@ provides:
   extensions:
     - id: "program-kit-governance"
       version: "0.10.0"
+    - id: "program-kit-building-blocks"
+      version: "0.10.0"
     - id: "program-kit-dotnet"
       version: "0.10.0"
   presets:

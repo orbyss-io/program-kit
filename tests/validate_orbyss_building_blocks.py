@@ -8,7 +8,7 @@ from xml.etree import ElementTree
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REFERENCE = ROOT / "extensions/program-kit-dotnet/references/orbyss-building-blocks.json"
+REFERENCE = ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
 
 
 def package_versions(path: Path) -> dict[str, str]:
@@ -22,69 +22,121 @@ def package_versions(path: Path) -> dict[str, str]:
 
 def main() -> int:
     manifest = json.loads(REFERENCE.read_text(encoding="utf-8"))
-    foundation = manifest["families"]["foundation"]
-    forms = manifest["families"]["forms"]
-    localization = manifest["families"]["localization"]
-
-    if foundation["repository"] != "https://github.com/orbyss-io/dotnet-foundation":
-        raise AssertionError("Foundation repository identity drifted.")
-    if forms["repository"] != "https://github.com/orbyss-io/forms":
-        raise AssertionError("Forms repository identity drifted.")
-    if localization["repository"] != "https://github.com/orbyss-io/localization":
-        raise AssertionError("Localization repository identity drifted.")
-    for family in (foundation, forms, localization):
-        if not re.fullmatch(r"\d+\.\d+\.\d+", family["version"]):
+    families = manifest["families"]
+    expected_repositories = {
+        "foundation": "https://github.com/orbyss-io/dotnet-foundation",
+        "forms": "https://github.com/orbyss-io/forms",
+        "localization": "https://github.com/orbyss-io/localization",
+    }
+    if set(families) != set(expected_repositories):
+        raise AssertionError("The executable catalog must name exactly the three independent families.")
+    for family_id, repository in expected_repositories.items():
+        family = families[family_id]
+        if family["repository"] != repository:
+            raise AssertionError(f"{family_id} repository identity drifted.")
+        if not re.fullmatch(r"\d+\.\d+\.\d+", family["releaseVersion"]):
             raise AssertionError("Building-block family versions must be exact stable SemVer pins.")
 
-    foundation_packages = set(foundation["packages"])
-    forms_packages = set(forms["nuget_packages"])
-    localization_packages = set(localization["packages"])
-    npm_packages = set(forms["npm_packages"])
-    if len(foundation_packages) != 22 or not all(item.startswith("Orbyss.Foundation.") for item in foundation_packages):
-        raise AssertionError("Foundation must expose the exact 22-package Orbyss.Foundation family.")
-    if len(forms_packages) != 15 or not all(item.startswith("Orbyss.Forms.") for item in forms_packages):
-        raise AssertionError("Forms must expose the exact 15-package Orbyss.Forms NuGet family.")
-    if len(localization_packages) != 13 or not all(item.startswith("Orbyss.Localization.") for item in localization_packages):
-        raise AssertionError("Localization must expose the exact 13-package Orbyss.Localization family.")
-    if len(npm_packages) != 12 or not all(item.startswith("@orbyss-io/forms-") for item in npm_packages):
-        raise AssertionError("Forms must expose the exact 12-package npm family.")
-    if set(foundation["package_roles"]) != foundation_packages:
-        raise AssertionError("Every Foundation package must have selection knowledge.")
-    if set(forms["nuget_package_roles"]) != forms_packages:
-        raise AssertionError("Every Forms NuGet package must have selection knowledge.")
-    if set(localization["package_roles"]) != localization_packages:
-        raise AssertionError("Every Localization package must have selection knowledge.")
-    if set(forms["npm_package_roles"]) != npm_packages:
-        raise AssertionError("Every Forms frontend package must have selection knowledge.")
-
-    known = foundation_packages | forms_packages | localization_packages | npm_packages
-    for name, composition in manifest["compositions"].items():
-        selected: list[str] = []
-        for field in ("required", "optional", "optional_mcp", "choose_one_renderer", "choose_one_storage"):
-            selected.extend(composition.get(field, []))
-        unknown = set(selected) - known
-        if unknown:
-            raise AssertionError(f"{name} selects unknown building blocks: {sorted(unknown)}")
-    selected_by_compositions = {
-        package
-        for composition in manifest["compositions"].values()
-        for field in ("required", "optional", "optional_mcp", "choose_one_renderer", "choose_one_storage")
-        for package in composition.get(field, [])
+    packages = manifest["packages"]
+    by_family_ecosystem: dict[tuple[str, str], set[str]] = {}
+    for key, package in packages.items():
+        if key != f'{package["ecosystem"]}:{package["packageId"]}':
+            raise AssertionError(f"Package key is not canonical: {key}")
+        if package["version"] != families[package["family"]]["releaseVersion"]:
+            raise AssertionError(f"Package version is not pinned to its independent family release: {key}")
+        by_family_ecosystem.setdefault((package["family"], package["ecosystem"]), set()).add(package["packageId"])
+    expected_counts = {
+        ("foundation", "nuget"): 22,
+        ("foundation", "oci"): 1,
+        ("forms", "nuget"): 15,
+        ("forms", "npm"): 12,
+        ("localization", "nuget"): 13,
     }
-    if selected_by_compositions != known:
-        raise AssertionError(f"Composition knowledge does not cover every building block: {sorted(known - selected_by_compositions)}")
+    actual_counts = {key: len(value) for key, value in by_family_ecosystem.items()}
+    if actual_counts != expected_counts:
+        raise AssertionError(f"Building-block family inventory drifted: {actual_counts}")
+    if len(manifest["compositions"]) != 16:
+        raise AssertionError("The executable catalog must retain all 16 governed compositions.")
+
+    expected_activated_packages = {
+        "Orbyss.Foundation.Authentication",
+        "Orbyss.Foundation.Authentication.Assurance",
+        "Orbyss.Foundation.Authentication.BffCookie",
+        "Orbyss.Foundation.Authentication.ClientCredentials",
+        "Orbyss.Foundation.Authentication.DownstreamApi",
+        "Orbyss.Foundation.Authentication.DPoP",
+        "Orbyss.Foundation.Authentication.SpaPkce",
+        "Orbyss.Foundation.Authentication.TokenExchange",
+        "Orbyss.Foundation.DomainEvents",
+        "Orbyss.Foundation.Identity.Keycloak.Admin",
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Foundation.Tasks",
+        "Orbyss.Foundation.Web.Discovery",
+        "Orbyss.Foundation.Web.OpenApi",
+        "Orbyss.Foundation.Web.ProblemDetails",
+        "Orbyss.Foundation.WebDefaults",
+        "Orbyss.Forms.JsonForms",
+        "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management",
+        "Orbyss.Forms.Management.Mcp.AspNetCore",
+        "Orbyss.Forms.Storage.FileSystem",
+        "Orbyss.Forms.Storage.InMemory",
+        "Orbyss.Forms.Submissions",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Forms.Web.Management",
+        "Orbyss.Forms.Web.Runtime",
+        "Orbyss.Forms.Web.Submissions",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime",
+    }
+    activated_packages = {package["packageId"] for package in packages.values() if package.get("activations")}
+    if activated_packages != expected_activated_packages:
+        raise AssertionError(f"CShell activation package inventory drifted: {sorted(activated_packages)}")
+    keycloak_features = {
+        activation["featureIdentity"]
+        for activation in packages["nuget:Orbyss.Foundation.Identity.Keycloak.Admin"]["activations"]
+    }
+    if len(keycloak_features) != 10:
+        raise AssertionError("The Keycloak adapter must retain its ten independently activated shell features.")
+
+    def package_closure(requirements: list[dict], found: set[str] | None = None) -> set[str]:
+        found = set() if found is None else found
+        for requirement in requirements:
+            key = requirement["package"]
+            if key not in found:
+                found.add(key)
+                package_closure(packages[key]["requires"], found)
+        return found
+
+    for composition_id, composition in manifest["compositions"].items():
+        possible = list(composition["requirements"])
+        for group in composition["optionGroups"]:
+            for option in group["options"].values():
+                possible.extend(option["requirements"])
+        if any(packages[key].get("activations") for key in package_closure(possible)):
+            shell = composition["targetSlots"].get("shell")
+            if shell != {"kind": "cshell-shell", "allowedRoles": ["composition"]}:
+                raise AssertionError(f"{composition_id} can select shell features but has no exact shell target slot.")
 
     pins = package_versions(
         ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/ProgramKit.Packages.props"
     )
-    expected_pins = {
-        **{item: foundation["version"] for item in foundation_packages},
-        **{item: forms["version"] for item in forms_packages},
-        **{item: localization["version"] for item in localization_packages},
-    }
-    actual_orbyss = {key: value for key, value in pins.items() if key.startswith("Orbyss.")}
-    if actual_orbyss != expected_pins:
-        raise AssertionError("The generated .NET baseline does not exactly mirror the independently pinned manifest.")
+    orbyss_pins = {key: value for key, value in pins.items() if key.startswith("Orbyss.")}
+    expected_analyzer = {"Orbyss.Foundation.Analyzers": families["foundation"]["releaseVersion"]}
+    if orbyss_pins != expected_analyzer:
+        raise AssertionError("The managed .NET baseline must pin only the repository-wide analyzer exception.")
+    directory_packages = (
+        ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/Directory.Packages.props"
+    ).read_text(encoding="utf-8")
+    if "ProgramKit.BuildingBlocks.props" not in directory_packages:
+        raise AssertionError("The .NET baseline no longer imports selected-only building-block pins.")
     if any(key.startswith("ProgramKit.") for key in pins):
         raise AssertionError("Published ProgramKit.* package IDs remain in the generated baseline.")
 
@@ -97,8 +149,7 @@ def main() -> int:
         raise AssertionError("NuGet source mapping does not explicitly cover Orbyss building blocks.")
     if "Foundation" not in host or "ProgramKit" in host:
         raise AssertionError("Host configuration must use the Foundation configuration root.")
-    patterns = host["Nuplane"]["Setup"]["Feeds"][0]["IncludePatterns"]
-    if patterns != ["Orbyss.*"]:
+    if host["Nuplane"]["Setup"]["Feeds"][0]["IncludePatterns"] != ["Orbyss.*"]:
         raise AssertionError("Runnable package discovery must be constrained to Orbyss building blocks.")
     for value in (dockerfile, release):
         if "ORBYSS_FOUNDATION_HOST_IMAGE" not in value or "PROGRAMKIT_HOST_IMAGE" in value:
@@ -114,11 +165,7 @@ def main() -> int:
     if tracked_runtime:
         raise AssertionError("Program Kit regained ownership of component runtime source or implementation probes.")
     forbidden_workflows = {
-        "dotnet-ci.yml",
-        "frontend-ci.yml",
-        "publish-nuget.yml",
-        "publish-frontend.yml",
-        "publish-host-image.yml",
+        "dotnet-ci.yml", "frontend-ci.yml", "publish-nuget.yml", "publish-frontend.yml", "publish-host-image.yml"
     }
     present = {path.name for path in (ROOT / ".github/workflows").glob("*.yml")}
     if present & forbidden_workflows:
@@ -129,9 +176,8 @@ def main() -> int:
         "software factory and AI consultancy",
         "independently versioned",
         "consumer owns",
-        "Choose exactly one browser authentication profile",
-        "Forms MCP contributors require Foundation MCP transport",
-        "Localization MCP contributors require Foundation MCP transport",
+        "choose-one",
+        "MCP transport",
     ):
         if required not in knowledge:
             raise AssertionError(f"Building-block knowledge lost required guidance: {required}")
@@ -142,12 +188,15 @@ def main() -> int:
     routed = {
         item["id"]: item["reference"]
         for item in capability_index["capabilities"]
-        if item["id"] in {"dotnet-host-runtime", "authenticated-browser-bff", "browser-spa-pkce", "forms", "localization", "domain-events", "openapi-contracts"}
+        if item["id"] in {
+            "dotnet-host-runtime", "authenticated-browser-bff", "browser-spa-pkce", "forms",
+            "localization", "domain-events", "openapi-contracts"
+        }
     }
     if set(routed.values()) != {"references/orbyss-building-blocks.md"} or len(routed) != 7:
-        raise AssertionError("Intake no longer routes all relevant capabilities to Orbyss building-block knowledge.")
+        raise AssertionError("Intake no longer routes relevant capabilities to building-block knowledge.")
 
-    print("Program Kit building-block inventory, composition knowledge, pins, and repository boundary passed.")
+    print("Program Kit executable building-block inventory, selected-only pin boundary, and repository split passed.")
     return 0
 
 

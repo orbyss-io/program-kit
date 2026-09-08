@@ -61,6 +61,7 @@ def main() -> int:
     artifacts = root / "artifacts"
     required_archives = {
         "governance": artifacts / f"program-kit-governance-{version}.zip",
+        "building-blocks": artifacts / f"program-kit-building-blocks-{version}.zip",
         "dotnet": artifacts / f"program-kit-dotnet-{version}.zip",
         "preset": artifacts / f"program-kit-governance-preset-{version}.zip",
         "workflow": artifacts / f"program-kit-bootstrap-{version}.zip",
@@ -74,6 +75,7 @@ def main() -> int:
         project = Path(directory)
         destinations = {
             "governance": project / ".specify/extensions/program-kit-governance",
+            "building-blocks": project / ".specify/extensions/program-kit-building-blocks",
             "dotnet": project / ".specify/extensions/program-kit-dotnet",
             "preset": project / ".specify/presets/program-kit-governance-preset",
             "workflow": project / ".specify/workflows/program-kit-bootstrap",
@@ -128,6 +130,11 @@ def main() -> int:
                                 {
                                     "kind": "extensions",
                                     "id": "program-kit-governance",
+                                    "version": version,
+                                },
+                                {
+                                    "kind": "extensions",
+                                    "id": "program-kit-building-blocks",
                                     "version": version,
                                 },
                                 {

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import importlib.util
 import os
 import subprocess
 import sys
@@ -167,6 +168,36 @@ def main() -> int:
             (target / ".program-kit/web-profile.shells.json").read_text(encoding="utf-8")
         )
         assert none_shell_profile["CShells"]["Shells"]["default"]["Features"] == {}
+        shell_spec = importlib.util.spec_from_file_location(
+            "program_kit_shell_composition",
+            target / ".program-kit/eng/shell_composition.py",
+        )
+        assert shell_spec and shell_spec.loader
+        shell_composition = importlib.util.module_from_spec(shell_spec)
+        shell_spec.loader.exec_module(shell_composition)
+        building_overlay = target / ".program-kit/building-blocks.shells.json"
+        building_overlay.write_text(
+            json.dumps(
+                {
+                    "CShells": {
+                        "Shells": {
+                            "default": {
+                                "Features": {"Orbyss.Foundation.DomainEvents": {}}
+                            }
+                        }
+                    }
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        try:
+            composed = shell_composition.compose(target)
+            assert composed["CShells"]["Shells"]["default"]["Features"] == {
+                "Orbyss.Foundation.DomainEvents": {},
+            }
+        finally:
+            building_overlay.unlink()
         assert (target / ".program-kit/eng/ProgramKit.Build.props").is_file()
         assert not (target / "eng").exists()
         assert (target / "Directory.Build.props").is_file()

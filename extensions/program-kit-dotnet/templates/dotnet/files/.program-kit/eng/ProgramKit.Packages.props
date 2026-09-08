@@ -1,55 +1,7 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Orbyss.Forms.Abstractions" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.JsonForms" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Localization" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Management" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Management.Mcp.AspNetCore" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Management.Tool" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Storage.Abstractions" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Storage.FileSystem" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Storage.InMemory" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Submissions" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Submissions.Mcp.AspNetCore" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Submissions.Tool" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Web.Management" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Web.Runtime" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Forms.Web.Submissions" Version="0.1.1" />
+    <!-- The analyzer is the sole repository-wide building-block exception. -->
     <PackageVersion Include="Orbyss.Foundation.Analyzers" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.Assurance" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.BffCookie" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.ClientCredentials" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.DPoP" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.DownstreamApi" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.SpaPkce" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Authentication.TokenExchange" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.DomainEvents" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.DomainEvents.Abstractions" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Identity.Admin.Abstractions" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Identity.Keycloak.Admin" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Mcp.AspNetCore" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.OpenApi.Exporter" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Tasks" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Tasks.Abstractions" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Web.Discovery" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Web.Discovery.Abstractions" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Web.OpenApi" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.Web.ProblemDetails" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Foundation.WebDefaults" Version="0.1.0" />
-    <PackageVersion Include="Orbyss.Localization.Abstractions" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Formats" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Management" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Management.Mcp.AspNetCore" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Management.Tool" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Runtime" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Runtime.Mcp.AspNetCore" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Runtime.Tool" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Storage.Abstractions" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Storage.FileSystem" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Storage.InMemory" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Web.Management" Version="0.1.1" />
-    <PackageVersion Include="Orbyss.Localization.Web.Runtime" Version="0.1.1" />
     <PackageVersion Include="CShells.Abstractions" Version="0.0.29-preview.147" />
     <PackageVersion Include="CShells.AspNetCore.Abstractions" Version="0.0.29-preview.147" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />

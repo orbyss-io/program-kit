@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/orbyss-building-blocks.schema.json",
+  "title": "Program Kit executable Orbyss building-block catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "catalogId", "resolutionRevision", "policy", "sources", "families", "packages", "capabilities", "compositions", "boundaries"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": "1.0" },
+    "catalogId": { "const": "orbyss-building-blocks" },
+    "resolutionRevision": { "type": "integer", "minimum": 1 },
+    "policy": { "type": "object", "minProperties": 1 },
+    "sources": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/source" }
+    },
+    "families": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/family" }
+    },
+    "packages": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/package" }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/capability" }
+    },
+    "compositions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/composition" }
+    },
+    "boundaries": { "type": "array", "items": { "$ref": "#/$defs/text" }, "minItems": 1, "uniqueItems": true }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "version": { "type": "string", "pattern": "^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$" },
+    "idList": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ecosystem", "url", "authentication", "availability"],
+      "properties": {
+        "ecosystem": { "enum": ["nuget", "npm", "oci"] },
+        "url": { "type": "string", "format": "uri" },
+        "patterns": { "type": "array", "items": { "$ref": "#/$defs/text" }, "uniqueItems": true },
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "secret"],
+          "properties": {
+            "required": { "type": "boolean" },
+            "secret": { "const": true },
+            "credentialEnvironment": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,127}$" },
+            "requiredScope": { "type": "string" }
+          }
+        },
+        "availability": { "enum": ["nuget-listed-restorable", "npm-metadata-tarball", "oci-manifest-digest"] }
+      }
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "releaseVersion"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "releaseVersion": { "$ref": "#/$defs/version" }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packageId", "family", "ecosystem", "version", "source", "role", "materialization", "requires", "configuration"],
+      "properties": {
+        "packageId": { "$ref": "#/$defs/text" },
+        "family": { "$ref": "#/$defs/id" },
+        "ecosystem": { "enum": ["nuget", "npm", "oci"] },
+        "version": { "$ref": "#/$defs/version" },
+        "source": { "$ref": "#/$defs/id" },
+        "role": { "$ref": "#/$defs/text" },
+        "materialization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "allowedTargetKinds", "allowedRoles"],
+          "properties": {
+            "kind": { "enum": ["nuget-project", "nuget-global-analyzer", "dotnet-tool", "npm-dependency", "npm-dev-dependency", "host-image"] },
+            "allowedTargetKinds": { "$ref": "#/$defs/idList" },
+            "allowedRoles": { "$ref": "#/$defs/idList" },
+            "commands": { "type": "array", "items": { "$ref": "#/$defs/text" }, "minItems": 1, "uniqueItems": true },
+            "tagTemplate": { "type": "string", "pattern": "\\{version\\}" },
+            "allowedEnvironments": { "type": "array", "items": { "enum": ["development", "test", "production"] }, "uniqueItems": true }
+          }
+        },
+        "requires": { "type": "array", "items": { "$ref": "#/$defs/packageRequirement" }, "uniqueItems": true },
+        "activations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/activation" },
+          "uniqueItems": true
+        },
+        "configuration": { "type": "array", "items": { "$ref": "#/$defs/configuration" } }
+      }
+    },
+    "packageRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "targetSlot"],
+      "properties": {
+        "package": { "type": "string", "minLength": 1 },
+        "targetSlot": { "$ref": "#/$defs/id" }
+      }
+    },
+    "activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["featureIdentity", "targetSlot"],
+      "properties": {
+        "featureIdentity": { "$ref": "#/$defs/text" },
+        "targetSlot": { "$ref": "#/$defs/id" }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "required", "valueType", "sensitive", "owner", "validationPhase"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "path": { "$ref": "#/$defs/text" },
+        "required": { "type": "boolean" },
+        "requiredWhen": { "type": "string" },
+        "valueType": { "enum": ["string", "boolean", "integer", "number", "array", "object"] },
+        "default": true,
+        "allowedValues": { "type": "array", "items": true },
+        "sensitive": { "type": "boolean" },
+        "owner": { "enum": ["consumer", "deployment"] },
+        "validationPhase": { "enum": ["apply", "restore", "runtime"] }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suggestedCompositions"],
+      "properties": {
+        "suggestedCompositions": { "$ref": "#/$defs/idList" }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["when", "scopeKind", "targetSlots", "requirements", "optionGroups", "conflicts", "configuration"],
+      "properties": {
+        "when": { "$ref": "#/$defs/text" },
+        "scopeKind": { "$ref": "#/$defs/id" },
+        "targetSlots": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/targetSlot" }
+        },
+        "requirements": { "type": "array", "items": { "$ref": "#/$defs/packageRequirement" } },
+        "optionGroups": { "type": "array", "items": { "$ref": "#/$defs/optionGroup" } },
+        "conflicts": { "type": "array", "items": { "$ref": "#/$defs/conflict" } },
+        "configuration": { "type": "array", "items": { "$ref": "#/$defs/configuration" } },
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+      }
+    },
+    "targetSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "allowedRoles"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/id" },
+        "allowedRoles": { "$ref": "#/$defs/idList" }
+      }
+    },
+    "optionGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "minimum", "options"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "minimum": { "type": "integer", "minimum": 0 },
+        "maximum": { "type": "integer", "minimum": 1 },
+        "options": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["requirements"],
+            "properties": {
+              "requirements": { "type": "array", "items": { "$ref": "#/$defs/packageRequirement" } },
+              "allowedEnvironments": { "type": "array", "items": { "enum": ["development", "test", "production"] }, "uniqueItems": true }
+            }
+          }
+        }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["composition", "scopeKind"],
+      "properties": {
+        "composition": { "$ref": "#/$defs/id" },
+        "scopeKind": { "$ref": "#/$defs/id" }
+      }
+    }
+  }
+}

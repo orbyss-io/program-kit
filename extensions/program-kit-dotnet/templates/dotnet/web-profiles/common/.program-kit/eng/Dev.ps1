@@ -11,6 +11,27 @@ $compose = Join-Path $repository 'deploy\compose.identity.yml'
 $applicationCompose = Join-Path $repository 'deploy\compose.application.yml'
 $topologyValidator = Join-Path $PSScriptRoot 'compose_topology.py'
 
+function Test-ProgramKitPathWithinRoot {
+    param(
+        [Parameter(Mandatory)] [string]$RootPath,
+        [Parameter(Mandatory)] [string]$CandidatePath
+    )
+
+    $rootPrefix = [System.IO.Path]::GetFullPath($RootPath)
+    $separator = [System.IO.Path]::DirectorySeparatorChar.ToString()
+    if (-not $rootPrefix.EndsWith($separator)) {
+        $rootPrefix += $separator
+    }
+    $candidateFullPath = [System.IO.Path]::GetFullPath($CandidatePath)
+    $comparison = if ($env:OS -eq 'Windows_NT') {
+        [System.StringComparison]::OrdinalIgnoreCase
+    }
+    else {
+        [System.StringComparison]::Ordinal
+    }
+    return $candidateFullPath.StartsWith($rootPrefix, $comparison)
+}
+
 python (Join-Path $PSScriptRoot 'preflight.py')
 if ($LASTEXITCODE -ne 0) { throw 'Program Kit pre-host prerequisites failed.' }
 $profileRecord = Join-Path $repository '.program-kit\web-profile.json'
@@ -34,8 +55,10 @@ $applicationComposeArguments = @('compose', '-f', $applicationCompose)
 $overlay = $null
 if (-not [string]::IsNullOrWhiteSpace($ComposeOverlay)) {
     $overlay = [System.IO.Path]::GetFullPath((Join-Path $repository $ComposeOverlay))
-    $relativeOverlay = [System.IO.Path]::GetRelativePath($repository, $overlay)
-    if ($relativeOverlay.StartsWith('..') -or -not (Test-Path -LiteralPath $overlay -PathType Leaf)) {
+    if (
+        -not (Test-ProgramKitPathWithinRoot -RootPath $repository -CandidatePath $overlay) -or
+        -not (Test-Path -LiteralPath $overlay -PathType Leaf)
+    ) {
         throw 'ComposeOverlay must name a consumer-owned file inside the repository.'
     }
     $applicationComposeArguments += @('-f', $overlay)

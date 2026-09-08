@@ -130,7 +130,7 @@ MAP_RECORD_FIELDS = {
     "decisions": (
         "id", "path", "sha256", "title", "date", "status", "scope", "owner", "supersedes",
     ),
-    "documentation": ("id", "path", "sha256", "scope"),
+    "documentation": ("id", "path", "sha256", "canonicalSha256", "scope"),
     "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
     "elements": (
         "id", "type", "name", "description", "status", "ownership", "technology",
@@ -177,12 +177,14 @@ OUTPUT_CONTRACTS = {
             "docs/architecture/technology-radar.md",
             "docs/architecture/traceability.md",
             "docs/architecture/architecture-map.json",
+            "docs/architecture/building-block-selection.json",
             "docs/architecture/workspace.dsl",
             "docs/architecture/decisions/README.md",
             "docs/architecture/decisions/bootstrap-baseline.md",
         ],
         "contract_references": [
-            ".specify/extensions/program-kit-governance/references/architecture-map.schema.json"
+            ".specify/extensions/program-kit-governance/references/architecture-map.schema.json",
+            ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
         ],
         "validation_commands": [
             "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate"

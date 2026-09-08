@@ -22,11 +22,16 @@ def main() -> int:
         if value.get("test", {}).get("runner") != "Microsoft.Testing.Platform":
             raise AssertionError(f"{path} does not select Microsoft.Testing.Platform")
 
-    shell = shutil.which("pwsh") or shutil.which("powershell")
+    shell = (
+        (shutil.which("powershell") if os.name == "nt" else None)
+        or shutil.which("pwsh")
+        or shutil.which("powershell")
+    )
     if not shell:
         raise AssertionError("PowerShell is required to validate the managed Build.ps1 contract")
     with tempfile.TemporaryDirectory(prefix="program-kit-build-contract-") as value:
-        repository = Path(value)
+        workspace = Path(value)
+        repository = workspace / "consumer"
         managed = repository / ".program-kit/eng"
         managed.mkdir(parents=True)
         shutil.copyfile(BUILD, managed / "Build.ps1")
@@ -83,7 +88,15 @@ def main() -> int:
         (hostile_profile / "NuGet.Config").write_text("<malformed", encoding="utf-8")
         environment["APPDATA"] = str(hostile_profile.parent)
         result = subprocess.run(
-            [shell, "-NoProfile", "-File", str(managed / "Build.ps1"), "-SkipRunnableHost"],
+            [
+                shell,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(managed / "Build.ps1"),
+                "-SkipRunnableHost",
+            ],
             cwd=repository,
             env=environment,
             capture_output=True,
@@ -92,6 +105,31 @@ def main() -> int:
         )
         if result.returncode != 0:
             raise AssertionError(f"managed Build.ps1 failed in restricted-profile fixture: {result.stdout}{result.stderr}")
+        outside_subject = workspace / "Outside.csproj"
+        outside_subject.write_text("<Project Sdk=\"Microsoft.NET.Sdk\" />\n", encoding="utf-8")
+        rejected = subprocess.run(
+            [
+                shell,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(managed / "Restore.ps1"),
+                "-Subject",
+                str(outside_subject),
+            ],
+            cwd=repository,
+            env=environment,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if rejected.returncode == 0 or "inside the repository" not in rejected.stdout + rejected.stderr:
+            raise AssertionError(
+                "PowerShell 5.1-compatible restore containment accepted an outside subject: "
+                + rejected.stdout
+                + rejected.stderr
+            )
         entries = log.read_text(encoding="utf-8").splitlines()
         restore = next((line for line in entries if line.startswith("restore ")), "")
         if "--configfile" not in restore or str(nuget_config) not in restore:
@@ -128,7 +166,14 @@ def main() -> int:
             managed / "Invoke-RepositoryVerification.ps1",
         )
         verification = subprocess.run(
-            [shell, "-NoProfile", "-File", str(managed / "Invoke-RepositoryVerification.ps1")],
+            [
+                shell,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(managed / "Invoke-RepositoryVerification.ps1"),
+            ],
             cwd=repository,
             env=environment,
             capture_output=True,
@@ -194,6 +239,8 @@ def main() -> int:
                     [
                         shell,
                         "-NoProfile",
+                        "-ExecutionPolicy",
+                        "Bypass",
                         "-File",
                         str(managed / "Restore.ps1"),
                         "-Subject",

@@ -85,6 +85,7 @@ def candidate_catalogs(root: Path, artifacts: Path | None) -> Iterator[str]:
         "workflows.json": root / "catalogs/workflows.json",
         "bundles.json": root / "catalogs/bundles.json",
         f"program-kit-governance-{version}.zip": artifacts / f"program-kit-governance-{version}.zip",
+        f"program-kit-building-blocks-{version}.zip": artifacts / f"program-kit-building-blocks-{version}.zip",
         f"program-kit-dotnet-{version}.zip": artifacts / f"program-kit-dotnet-{version}.zip",
         f"program-kit-governance-preset-{version}.zip": artifacts / f"program-kit-governance-preset-{version}.zip",
         f"program-kit-{version}.zip": artifacts / f"program-kit-{version}.zip",
@@ -330,6 +331,15 @@ def installed_versions(project: Path) -> dict[str, str]:
         component["kind"] == "extensions" and component["id"] == "program-kit-dotnet"
         for component in bundle["contributed_components"]
     ) else None
+    building_block_record = next(
+        component
+        for component in bundle["contributed_components"]
+        if component["kind"] == "extensions"
+        and component["id"] == "program-kit-building-blocks"
+    ) if any(
+        component["kind"] == "extensions" and component["id"] == "program-kit-building-blocks"
+        for component in bundle["contributed_components"]
+    ) else None
     versions = {
         "extension": manifest_version(
             specify / "extensions/program-kit-governance/extension.yml", "extension"
@@ -346,6 +356,11 @@ def installed_versions(project: Path) -> dict[str, str]:
             specify / "extensions/program-kit-dotnet/extension.yml", "extension"
         )
         versions["bundle .NET extension record"] = dotnet_extension_record["version"]
+    if building_block_record is not None:
+        versions["building-block extension"] = manifest_version(
+            specify / "extensions/program-kit-building-blocks/extension.yml", "extension"
+        )
+        versions["bundle building-block extension record"] = building_block_record["version"]
     return versions
 
 

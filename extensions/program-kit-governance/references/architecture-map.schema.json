@@ -62,6 +62,7 @@
           "id": { "$ref": "#/$defs/id" },
           "path": { "$ref": "#/$defs/path" },
           "sha256": { "$ref": "#/$defs/sha256" },
+          "canonicalSha256": { "$ref": "#/$defs/sha256" },
           "scope": { "$ref": "#/$defs/text" }
         }
       }

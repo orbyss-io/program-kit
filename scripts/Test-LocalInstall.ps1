@@ -6,6 +6,76 @@ $sourceRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $testsRoot = [System.IO.Path]::GetFullPath((Join-Path $sourceRoot 'tests'))
 $testRoot = [System.IO.Path]::GetFullPath((Join-Path $testsRoot '.lifecycle'))
 
+function Invoke-ProgramKitNative {
+    param(
+        [Parameter(Mandatory)] [string]$Executable,
+        [Parameter(Mandatory)] [object[]]$ArgumentList,
+        [Parameter(Mandatory)] [string]$FailureMessage
+    )
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $Executable @ArgumentList 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                Write-Host $_.Exception.Message
+            }
+            else {
+                Write-Host $_.ToString()
+            }
+        }
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
+    if ($exitCode -ne 0) {
+        throw "$FailureMessage (exit code $exitCode)"
+    }
+}
+
+function Get-ProgramKitRelativePath {
+    param(
+        [Parameter(Mandatory)] [string]$RootPath,
+        [Parameter(Mandatory)] [string]$CandidatePath
+    )
+
+    $rootPrefix = [System.IO.Path]::GetFullPath($RootPath)
+    $separator = [System.IO.Path]::DirectorySeparatorChar.ToString()
+    if (-not $rootPrefix.EndsWith($separator)) {
+        $rootPrefix += $separator
+    }
+    $candidateFullPath = [System.IO.Path]::GetFullPath($CandidatePath)
+    $comparison = if ($env:OS -eq 'Windows_NT') {
+        [System.StringComparison]::OrdinalIgnoreCase
+    }
+    else {
+        [System.StringComparison]::Ordinal
+    }
+    if (-not $candidateFullPath.StartsWith($rootPrefix, $comparison)) {
+        throw "Path escaped the expected root: $CandidatePath"
+    }
+    return $candidateFullPath.Substring($rootPrefix.Length)
+}
+
+function Write-ProgramKitUtf8NoBom {
+    param(
+        [Parameter(Mandatory)] [string]$LiteralPath,
+        [Parameter(Mandatory)] [string]$Value
+    )
+
+    # Windows PowerShell 5.1's `-Encoding utf8` emits a BOM. Program Kit JSON is
+    # canonical UTF-8 without a BOM across PowerShell editions and operating systems.
+    $encoding = New-Object System.Text.UTF8Encoding($false)
+    $resolvedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
+        $LiteralPath
+    )
+    [System.IO.File]::WriteAllText(
+        $resolvedPath,
+        $Value + [System.Environment]::NewLine,
+        $encoding
+    )
+}
+
 if (-not $testRoot.StartsWith($testsRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "Test target escaped the tests directory: $testRoot"
 }
@@ -14,20 +84,40 @@ if (Test-Path -LiteralPath $testRoot) {
 }
 
 New-Item -ItemType Directory -Path $testRoot | Out-Null
+$previousConsoleOutputEncoding = [Console]::OutputEncoding
+$previousPowerShellOutputEncoding = $OutputEncoding
+$previousPythonUtf8 = $env:PYTHONUTF8
+$previousPythonIoEncoding = $env:PYTHONIOENCODING
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[Console]::OutputEncoding = $utf8NoBom
+$OutputEncoding = $utf8NoBom
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 try {
     Push-Location $testRoot
-    specify init . --force --non-interactive --integration codex --script py --ignore-agent-tools `
-        --extension (Join-Path $sourceRoot 'extensions\program-kit-governance')
-    if ($LASTEXITCODE -ne 0) { throw 'Disposable Spec Kit initialization failed.' }
+    $specifyExecutable = (Get-Command specify -ErrorAction Stop).Source
+    $pythonExecutable = (Get-Command python -ErrorAction Stop).Source
+    Write-Host "Initializing source-tree disposable consumer: $testRoot"
+    Invoke-ProgramKitNative $specifyExecutable @(
+        'init', '.', '--force', '--non-interactive', '--integration', 'codex', '--script', 'py',
+        '--ignore-agent-tools', '--extension', (Join-Path $sourceRoot 'extensions\program-kit-governance')
+    ) 'Disposable Spec Kit initialization failed.'
 
-    specify extension add (Join-Path $sourceRoot 'extensions\program-kit-dotnet') --dev
-    if ($LASTEXITCODE -ne 0) { throw 'Local .NET extension installation failed.' }
+    Invoke-ProgramKitNative $specifyExecutable @(
+        'extension', 'add', (Join-Path $sourceRoot 'extensions\program-kit-dotnet'), '--dev'
+    ) 'Local .NET extension installation failed.'
 
-    specify preset add --dev (Join-Path $sourceRoot 'presets\program-kit-governance-preset')
-    if ($LASTEXITCODE -ne 0) { throw 'Local governance preset installation failed.' }
+    Invoke-ProgramKitNative $specifyExecutable @(
+        'extension', 'add', (Join-Path $sourceRoot 'extensions\program-kit-building-blocks'), '--dev'
+    ) 'Local building-block extension installation failed.'
 
-    specify workflow add (Join-Path $sourceRoot 'workflows\program-kit-bootstrap') --dev
-    if ($LASTEXITCODE -ne 0) { throw 'Local workflow installation failed.' }
+    Invoke-ProgramKitNative $specifyExecutable @(
+        'preset', 'add', '--dev', (Join-Path $sourceRoot 'presets\program-kit-governance-preset')
+    ) 'Local governance preset installation failed.'
+
+    Invoke-ProgramKitNative $specifyExecutable @(
+        'workflow', 'add', (Join-Path $sourceRoot 'workflows\program-kit-bootstrap'), '--dev'
+    ) 'Local workflow installation failed.'
 
     $extensionConfig = Get-Content -Raw -LiteralPath '.specify\extensions.yml'
     foreach ($expected in @('before_constitution', 'before_specify', 'after_specify', 'after_plan', 'after_tasks', 'before_implement', 'after_implement')) {
@@ -82,10 +172,10 @@ try {
     $intakePath = 'docs\architecture\bootstrap-intake.json'
     $draftIntake = Get-Content -Raw -LiteralPath $intakePath | ConvertFrom-Json
     $draftIntake.status = 'draft'
-    $draftIntake | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $intakePath -Encoding utf8
+    Write-ProgramKitUtf8NoBom -LiteralPath $intakePath -Value ($draftIntake | ConvertTo-Json -Depth 100)
     $beforeView = @(
         Get-ChildItem -File -Recurse | Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' } | ForEach-Object {
-            $relative = [System.IO.Path]::GetRelativePath($testRoot, $_.FullName)
+            $relative = Get-ProgramKitRelativePath -RootPath $testRoot -CandidatePath $_.FullName
             "$relative|$((Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash)"
         }
     )
@@ -101,7 +191,7 @@ try {
     }
     $afterView = @(
         Get-ChildItem -File -Recurse | Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' } | ForEach-Object {
-            $relative = [System.IO.Path]::GetRelativePath($testRoot, $_.FullName)
+            $relative = Get-ProgramKitRelativePath -RootPath $testRoot -CandidatePath $_.FullName
             "$relative|$((Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash)"
         }
     )
@@ -113,11 +203,11 @@ try {
         throw 'Installed view-only C4 inspection confirmed the draft intake.'
     }
     $afterReviewIntake.status = 'confirmed'
-    $afterReviewIntake | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $intakePath -Encoding utf8
-    & python '.specify\extensions\program-kit-governance\scripts\bootstrap_intake.py' validate --project-root . --json
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Explicitly confirmed intake failed final installed validation.'
-    }
+    Write-ProgramKitUtf8NoBom -LiteralPath $intakePath -Value ($afterReviewIntake | ConvertTo-Json -Depth 100)
+    Invoke-ProgramKitNative $pythonExecutable @(
+        '.specify\extensions\program-kit-governance\scripts\bootstrap_intake.py',
+        'validate', '--project-root', '.', '--json'
+    ) 'Explicitly confirmed intake failed final installed validation.'
     $dotnetSync = '.specify\extensions\program-kit-dotnet\scripts\dotnet_sync.py'
     if (-not (Test-Path -LiteralPath $dotnetSync -PathType Leaf)) {
         throw 'Installed .NET sync extension was not found.'
@@ -125,6 +215,14 @@ try {
     $dotnetSkill = '.agents\skills\speckit-program-kit-dotnet-sync\SKILL.md'
     if (-not (Test-Path -LiteralPath $dotnetSkill -PathType Leaf)) {
         throw 'Installed .NET sync skill was not found.'
+    }
+    $buildingBlocksSync = '.specify\extensions\program-kit-building-blocks\scripts\building_blocks.py'
+    if (-not (Test-Path -LiteralPath $buildingBlocksSync -PathType Leaf)) {
+        throw 'Installed building-block resolver was not found.'
+    }
+    $buildingBlocksSkill = '.agents\skills\speckit-program-kit-building-blocks-sync\SKILL.md'
+    if (-not (Test-Path -LiteralPath $buildingBlocksSkill -PathType Leaf)) {
+        throw 'Installed building-block sync skill was not found.'
     }
 
     if ($env:CODEX_SESSION_ID -or $env:CODEX_THREAD_ID -or $env:CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {
@@ -159,6 +257,20 @@ try {
     }
     if (Test-Path -LiteralPath $resolvedCleanup) {
         Remove-Item -LiteralPath $resolvedCleanup -Recurse -Force
+    }
+    [Console]::OutputEncoding = $previousConsoleOutputEncoding
+    $OutputEncoding = $previousPowerShellOutputEncoding
+    if ($null -eq $previousPythonUtf8) {
+        Remove-Item Env:PYTHONUTF8 -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:PYTHONUTF8 = $previousPythonUtf8
+    }
+    if ($null -eq $previousPythonIoEncoding) {
+        Remove-Item Env:PYTHONIOENCODING -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:PYTHONIOENCODING = $previousPythonIoEncoding
     }
 }
 

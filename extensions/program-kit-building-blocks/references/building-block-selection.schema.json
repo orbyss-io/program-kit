@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/building-block-selection.schema.json",
+  "title": "Program Kit accepted building-block selection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "selectionId", "revision", "status", "catalog", "authority", "scopes", "targets", "instances"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": "1.0" },
+    "selectionId": { "$ref": "#/$defs/id" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["Draft", "Accepted", "Superseded"] },
+    "draftSuggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "compositions"],
+        "properties": {
+          "capability": { "$ref": "#/$defs/id" },
+          "compositions": { "$ref": "#/$defs/nonemptyIds" }
+        }
+      }
+    },
+    "supersedes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectionId", "revision", "canonicalSha256"],
+      "properties": {
+        "selectionId": { "$ref": "#/$defs/id" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "canonicalSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "schemaVersion", "resolutionRevision", "resolutionSha256", "familyReleases"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "schemaVersion": { "const": "1.0" },
+        "resolutionRevision": { "type": "integer", "minimum": 1 },
+        "resolutionSha256": { "$ref": "#/$defs/sha256" },
+        "familyReleases": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/version" },
+          "minProperties": 1
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architectureMap", "decisionIds", "rationale"],
+      "properties": {
+        "architectureMap": { "$ref": "#/$defs/path" },
+        "decisionIds": { "$ref": "#/$defs/nonemptyIds" },
+        "rationale": { "$ref": "#/$defs/text" }
+      }
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "environment"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "kind": { "enum": ["repository", "application", "browser-boundary", "shell", "storage-contract", "tooling"] },
+          "parent": { "$ref": "#/$defs/id" },
+          "environment": { "enum": ["development", "test", "production"] }
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "path", "role", "scope"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "kind": { "enum": ["repository", "dotnet-project", "dotnet-tool-manifest", "npm-package", "cshell-shell", "host-image"] },
+          "path": { "$ref": "#/$defs/path" },
+          "role": { "$ref": "#/$defs/id" },
+          "scope": { "$ref": "#/$defs/id" },
+          "lockRoot": { "$ref": "#/$defs/path" },
+          "shell": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "instances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "composition", "scope", "targetBindings", "options"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "composition": { "$ref": "#/$defs/id" },
+          "scope": { "$ref": "#/$defs/id" },
+          "targetBindings": {
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": {
+              "oneOf": [
+                { "$ref": "#/$defs/id" },
+                { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1, "uniqueItems": true }
+              ]
+            }
+          },
+          "options": {
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$" },
+    "nonemptyIds": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1, "uniqueItems": true },
+    "path": { "type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\.\.(?:/|$)).+$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "version": { "type": "string", "pattern": "^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$" }
+  }
+}

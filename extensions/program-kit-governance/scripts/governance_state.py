@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -24,6 +25,7 @@ PROJECT_INTENT = Path("docs/architecture/project-intent.md")
 DECISION_BACKLOG = Path("docs/architecture/decision-backlog.md")
 TOOLING_EVALUATION = Path("docs/architecture/tooling-evaluation.md")
 BOOTSTRAP_DECISIONS = Path("docs/architecture/bootstrap-decisions.json")
+BUILDING_BLOCK_SELECTION = Path("docs/architecture/building-block-selection.json")
 ASSESSMENT_REVIEW = Path("docs/architecture/reviews/assessment-review.md")
 CONSTITUTION_REVIEW = Path("docs/architecture/reviews/constitution-review.md")
 BOOTSTRAP_REVIEW = Path("docs/architecture/reviews/bootstrap-review.md")
@@ -39,6 +41,7 @@ LOCAL_CONFIGURATION = Path(
     ".specify/extensions/program-kit-governance/program-kit-governance-config.local.yml"
 )
 EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-governance/extension.yml")
+BUILDING_BLOCK_EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-building-blocks/extension.yml")
 DOTNET_EXTENSION_MANIFEST = Path(".specify/extensions/program-kit-dotnet/extension.yml")
 PRESET_MANIFEST = Path(".specify/presets/program-kit-governance-preset/preset.yml")
 PRESET_REGISTRY = Path(".specify/presets/.registry")
@@ -120,6 +123,7 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
                 if path.name.lower() not in {"readme.md", "template.md", "bootstrap-baseline.md"}
             )
         )
+    optional_selection = (BUILDING_BLOCK_SELECTION,) if project_path(BUILDING_BLOCK_SELECTION).is_file() else ()
     return (
         Path("docs/architecture/README.md"),
         ARCHITECTURE,
@@ -135,6 +139,7 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
         DECISIONS / "README.md",
         DECISIONS / "bootstrap-baseline.md",
         *decision_files,
+        *optional_selection,
         BOOTSTRAP_DECISIONS,
         BOOTSTRAP_REVIEW,
     )
@@ -254,6 +259,9 @@ def validate_installation() -> dict[str, str]:
         "extension": manifest_version(
             project_path(EXTENSION_MANIFEST), "Program Kit Governance extension"
         ),
+        "building-block extension": manifest_version(
+            project_path(BUILDING_BLOCK_EXTENSION_MANIFEST), "Program Kit building-block extension"
+        ),
         "dotnet extension": manifest_version(
             project_path(DOTNET_EXTENSION_MANIFEST), "Program Kit .NET extension"
         ),
@@ -339,6 +347,22 @@ def validate_installation() -> dict[str, str]:
             f"Repair the installation, in this order:\n{repair_commands()}"
         )
     versions["bundle governance extension record"] = governance_extension["version"]
+    building_block_extension = next(
+        (
+            component
+            for component in components or []
+            if isinstance(component, dict)
+            and component.get("kind") == "extensions"
+            and component.get("id") == "program-kit-building-blocks"
+        ),
+        None,
+    )
+    if not isinstance(building_block_extension, dict) or not isinstance(building_block_extension.get("version"), str):
+        raise GovernanceStateError(
+            "Program Kit building blocks are absent from the Program Kit bundle record.\n"
+            f"Repair the installation, in this order:\n{repair_commands()}"
+        )
+    versions["bundle building-block extension record"] = building_block_extension["version"]
     dotnet_extension = next(
         (
             component
@@ -1217,7 +1241,7 @@ def write_review(stage: str) -> None:
             "",
             "## Decision requested",
             "",
-            "Approve the generated architecture baseline, its adoption of explicit intake choices and Program Kit defaults, and the exact founding ADR bundle listed below. Approval deterministically promotes only those founding ADRs to Accepted and refreshes their canonical map bindings. Unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision.",
+            "Approve the generated architecture baseline, its adoption of explicit intake choices and Program Kit defaults, the exact founding ADR bundle listed below, and any complete Draft building-block selection listed in this packet. Approval deterministically promotes only those founding ADRs, then binds the reviewed selection to them as Accepted and refreshes canonical map bindings. It does not materialize or restore dependencies. Unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision.",
             "",
             "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the approval evidence is marked automatic.",
             "",
@@ -1262,6 +1286,7 @@ def write_review(stage: str) -> None:
             "- Every required architecture, decision, tooling, quality, traceability, and roadmap artifact exists.",
             "- The bootstrap baseline ADR is Accepted.",
             "- Every intake founding decision candidate has one hash-bound Proposed ADR.",
+            "- Any building-block Draft resolves offline with explicit scopes, options, and target bindings.",
             "- Orbyss.Foundation.Host appears in the accepted baseline when .NET is selected without an opt-out.",
             "- The roadmap is structurally valid.",
         ]
@@ -1574,7 +1599,57 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
     )
     reviewed_basis = _review_basis(artifacts[:-1])
     founding_adrs = founding_adr_records("Proposed")
-    accepted_founding_adrs = accept_founding_adrs(founding_adrs)
+    selection = project_path(BUILDING_BLOCK_SELECTION)
+    resolver: Path | None = None
+    if selection.is_file():
+        resolver = project_path(
+            Path(".specify/extensions/program-kit-building-blocks/scripts/building_blocks.py")
+        )
+        if not resolver.is_file():
+            raise GovernanceStateError(
+                "Building-block selection exists but the installed resolver is missing"
+            )
+        draft_validation = subprocess.run(
+            [sys.executable, str(resolver), "validate-draft", "--target", str(Path.cwd().resolve())],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if draft_validation.returncode != 0:
+            raise GovernanceStateError(
+                "Building-block Draft must resolve before bootstrap approval: "
+                + (draft_validation.stderr.strip() or draft_validation.stdout.strip())
+            )
+    mutable_paths = [project_path(ARCHITECTURE_MAP), *(project_path(Path(item["path"])) for item in founding_adrs)]
+    if selection.is_file():
+        mutable_paths.append(selection)
+    originals = {path: path.read_bytes() for path in mutable_paths}
+    try:
+        accepted_founding_adrs = accept_founding_adrs(founding_adrs)
+        if selection.is_file():
+            assert resolver is not None
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(resolver),
+                    "accept",
+                    "--target",
+                    str(Path.cwd().resolve()),
+                    "--from-draft-authority",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                raise GovernanceStateError(
+                    "Building-block selection acceptance failed after founding ADR promotion: "
+                    + (result.stderr.strip() or result.stdout.strip())
+                )
+    except Exception:
+        for path, content in originals.items():
+            path.write_bytes(content)
+        raise
     artifacts = bootstrap_artifacts()
     write_json(
         project_path(BOOTSTRAP_APPROVAL),

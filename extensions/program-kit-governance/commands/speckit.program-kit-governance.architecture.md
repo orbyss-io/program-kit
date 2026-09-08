@@ -164,6 +164,17 @@ When .NET is selected without the recorded opt-out, the architecture, technology
 bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and runnable-host release model as
 Accepted. Do not scaffold or restore packages during this command.
 
+When any capability routes to the installed `program-kit-building-blocks` catalog, create
+`docs/architecture/building-block-selection.json` as a complete `Draft` using its shipped schema.
+Name every scope, composition instance, choose-one/optional answer, and exact repository/project/
+package/shell/host target; never infer placement from project names or apply packages globally. Bind
+its authority to the Proposed founding ADR IDs that decide those selections and include the concrete
+rationale. For a .NET selection without the recorded Foundation-host opt-out, bind the `api_baseline`
+host target and explicitly choose `foundation-host`; an empty optional answer is not the default.
+Run `building_blocks.py validate-draft --target .` before completing architecture. This
+offline validation proves closure and placement only. The final bootstrap approval promotes those
+ADRs and the reviewed Draft together; it still does not restore or materialize dependencies.
+
 When the decision register selects a browser UI, the architecture runtime, deployment,
 cross-cutting, and verification views must adopt the exact `web.secure_profile` and reference its
 versioned Program Kit contract. Do not restate its configuration and middleware decisions as open

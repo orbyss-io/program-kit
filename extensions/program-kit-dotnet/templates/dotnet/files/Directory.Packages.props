@@ -4,5 +4,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <Import Project=".program-kit/eng/ProgramKit.Packages.props" />
+  <Import Project=".program-kit/eng/ProgramKit.BuildingBlocks.props"
+          Condition="Exists('.program-kit/eng/ProgramKit.BuildingBlocks.props')" />
   <!-- Consumer-owned central package versions belong here. -->
 </Project>

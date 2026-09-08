@@ -457,11 +457,12 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
                 destination = staged_packages / f"{package_id}.{version}.nupkg"
                 download_package(package_id, version, bases, destination)
                 register_package(identities, destination)
-        for name in ("hostsettings.json", "shells.json"):
+        for name in ("hostsettings.json",):
             source = repository / name
             if not source.is_file():
                 raise FileNotFoundError(f"PKR016 required runnable-host configuration is missing: {source}")
             shutil.copyfile(source, staging / name)
+        shell_composition.write(repository, staging / "shells.json")
         profile_shells = repository / ".program-kit/web-profile.shells.json"
         if profile_shells.is_file():
             destination = staging / ".program-kit/web-profile.shells.json"

@@ -242,6 +242,8 @@ def main() -> int:
         raise AssertionError("Java runtime parsing did not recognize Java 21")
     if viewer.java_major('java version "1.8.0_411"') != 8:
         raise AssertionError("Java runtime parsing did not recognize legacy Java 8")
+    if not viewer.process_alive(os.getpid()):
+        raise AssertionError("C4 viewer did not recognize its current process as active")
 
     with tempfile.TemporaryDirectory(prefix="Program Kit C4 tests ") as directory:
         tests_root = Path(directory)

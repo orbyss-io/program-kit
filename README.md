@@ -346,8 +346,10 @@ metadata. A write requires the approved,
 hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of the independently
 pinned packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
-never creates .NET files. See the [building-block selection guide](extensions/program-kit-dotnet/references/orbyss-building-blocks.md)
-and its [machine-readable composition manifest](extensions/program-kit-dotnet/references/orbyss-building-blocks.json).
+never creates .NET files. See the [building-block selection guide](extensions/program-kit-building-blocks/references/orbyss-building-blocks.md)
+and its [machine-readable executable catalog](extensions/program-kit-building-blocks/references/orbyss-building-blocks.json).
+The [deterministic selection and materialization contract](docs/building-block-selection.md) documents
+the accepted consumer artifact, lock, direct-reference ownership, recovery, and public-availability gates.
 
 Generated Program Kit state and managed engineering tooling share the `.program-kit/` root. The
 operational scripts live in `.program-kit/eng/`; consumers should invoke them through the documented

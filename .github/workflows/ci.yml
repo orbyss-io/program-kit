@@ -48,7 +48,9 @@ jobs:
       - name: Validate Orbyss building-block knowledge and repository boundaries
         run: |
           python tests/validate_orbyss_building_blocks.py
-          python tests/validate_nuget_retirement.py
+          python tests/validate_building_blocks.py
+          python tests/validate_building_block_availability.py
+          python tests/validate_legacy_programkit_nuget.py
 
       - name: Validate Codex agent bootstrap boundary
         run: python tests/validate_codex_bootstrap.py

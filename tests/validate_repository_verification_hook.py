@@ -17,7 +17,16 @@ RESTORE_SOURCE = SOURCE.with_name("Restore.ps1")
 
 def run(shell: str, script: Path, environment: dict[str, str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [shell, "-NoProfile", "-File", str(script), "-Mode", "CI"],
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-Mode",
+            "CI",
+        ],
         capture_output=True,
         text=True,
         env=environment,
@@ -25,7 +34,11 @@ def run(shell: str, script: Path, environment: dict[str, str]) -> subprocess.Com
 
 
 def main() -> int:
-    shell = shutil.which("pwsh") or shutil.which("powershell")
+    shell = (
+        (shutil.which("powershell") if os.name == "nt" else None)
+        or shutil.which("pwsh")
+        or shutil.which("powershell")
+    )
     if shell is None:
         raise AssertionError("PowerShell is required to validate the repository verification hook")
     source_text = SOURCE.read_text(encoding="utf-8")

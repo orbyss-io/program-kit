@@ -2,13 +2,13 @@
 
 Orbyss is a software factory and AI consultancy. Orbyss Foundation, Orbyss Forms, and Orbyss Localization are reusable, independently versioned building blocks; they are not a platform and Program Kit does not own their runtime source.
 
-When one of the signals below is present, route the architecture and implementation work to the Program Kit .NET extension's full building-block reference:
+When one of the signals below is present, route the architecture and implementation work to the Program Kit building-block extension's full reference:
 
-`.specify/extensions/program-kit-dotnet/references/orbyss-building-blocks.md`
+`.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.md`
 
 Its machine-readable package, version, and composition contract is:
 
-`.specify/extensions/program-kit-dotnet/references/orbyss-building-blocks.json`
+`.specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json`
 
 Use the references for:
 

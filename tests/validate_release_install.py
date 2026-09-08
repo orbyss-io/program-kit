@@ -85,6 +85,7 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     version = (root / "VERSION").read_text(encoding="utf-8").strip()
     extension_zip = root / "artifacts" / f"program-kit-governance-{version}.zip"
+    building_blocks_zip = root / "artifacts" / f"program-kit-building-blocks-{version}.zip"
     dotnet_zip = root / "artifacts" / f"program-kit-dotnet-{version}.zip"
     preset_zip = root / "artifacts" / f"program-kit-governance-preset-{version}.zip"
     workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
@@ -97,6 +98,7 @@ def main() -> int:
         path.is_file()
         for path in (
             extension_zip,
+            building_blocks_zip,
             dotnet_zip,
             preset_zip,
             workflow_zip,
@@ -111,7 +113,7 @@ def main() -> int:
                 f"Versioned {suffix} consumer initializer differs from the root template"
             )
 
-    for release_zip in (extension_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
+    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:
             forbidden_entries = []
             for name in archive.namelist():
@@ -159,14 +161,27 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="program-kit-release-test-") as directory:
         project = Path(directory)
         extracted_extension = project / "release-extension"
+        extracted_building_blocks = project / "release-building-block-extension"
         extracted_dotnet = project / "release-dotnet-extension"
         extracted_preset = project / "release-governance-preset"
         with zipfile.ZipFile(extension_zip, "r") as archive:
             archive.extractall(extracted_extension)
+        with zipfile.ZipFile(building_blocks_zip, "r") as archive:
+            archive.extractall(extracted_building_blocks)
         if not (extracted_extension / "extension.yml").is_file():
             raise AssertionError("Extension release ZIP must contain extension.yml at its root")
         if not (extracted_extension / "scripts/governance_state.py").is_file():
             raise AssertionError("Extension release ZIP must contain the governance-state validator")
+        for path in (
+            "extension.yml",
+            "scripts/building_blocks.py",
+            "scripts/public_availability.py",
+            "references/building-block-selection.schema.json",
+            "references/building-blocks-lock.schema.json",
+            "references/orbyss-building-blocks.json",
+        ):
+            if not (extracted_building_blocks / path).is_file():
+                raise AssertionError(f"Building-block extension release ZIP is missing {path}")
         for path in (
             "scripts/codex_bootstrap_preflight.py",
             "scripts/bootstrap_context.py",
@@ -247,6 +262,7 @@ def main() -> int:
             if not (extracted_preset / path).is_file():
                 raise AssertionError(f"Governance preset release ZIP is missing {path}")
 
+        print(f"Initializing packaged-release disposable consumer: {project}")
         run(
             "specify",
             "init",
@@ -265,6 +281,14 @@ def main() -> int:
             "extension",
             "add",
             str(extracted_dotnet),
+            "--dev",
+            cwd=project,
+        )
+        run(
+            "specify",
+            "extension",
+            "add",
+            str(extracted_building_blocks),
             "--dev",
             cwd=project,
         )
@@ -487,10 +511,16 @@ def main() -> int:
             raise AssertionError("repeated Program Kit installation lost or duplicated unrelated hooks")
         if "program-kit-dotnet" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
+        if "program-kit-building-blocks" not in extension_config.get("installed", []):
+            raise AssertionError("Program Kit building-block extension was not registered")
         if not (
             project / ".agents/skills/speckit-program-kit-dotnet-sync/SKILL.md"
         ).is_file():
             raise AssertionError(".NET sync command was not installed as a namespaced skill")
+        if not (
+            project / ".agents/skills/speckit-program-kit-building-blocks-sync/SKILL.md"
+        ).is_file():
+            raise AssertionError("Building-block sync command was not installed as a namespaced skill")
 
         installed_workflow = yaml.safe_load(
             (
@@ -522,6 +552,7 @@ def main() -> int:
         }
         if component_graph != {
             ("extensions", "program-kit-governance"),
+            ("extensions", "program-kit-building-blocks"),
             ("extensions", "program-kit-dotnet"),
             ("presets", "program-kit-governance-preset"),
             ("workflows", "program-kit-bootstrap"),

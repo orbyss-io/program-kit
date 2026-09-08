@@ -22,9 +22,9 @@ Before the Program Kit stable tag, verify the already-published component releas
 propagation: `dotnet-foundation` `v0.1.0`, `forms` `v0.1.1`, and `localization` `v0.1.1`.
 
 Only after all three replacement families and the 12 Forms npm packages are public and verified
-should Program Kit `v0.10.0` be tagged. Legacy `ProgramKit.*` retirement remains a separate, local,
-explicitly confirmed operation after all 50 replacement NuGet packages are public and the Program Kit
-release workflow has validated public installation and upgrade.
+should Program Kit `v0.10.0` be tagged. Legacy `ProgramKit.*` handling is permanently read-only:
+Program Kit records and verifies compatibility, but neither release tooling nor consumer tooling may
+remove, hide, or otherwise mutate those package versions.
 
 The clean-consumer acceptance must generate 1.1 intake/map artifacts, review the current draft,
 confirm explicitly, and validate in that order. The pricing semantic regression must preserve six

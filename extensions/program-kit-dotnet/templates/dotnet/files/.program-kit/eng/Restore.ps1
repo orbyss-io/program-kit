@@ -9,6 +9,28 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+
+function Test-ProgramKitPathWithinRoot {
+    param(
+        [Parameter(Mandatory)] [string]$RootPath,
+        [Parameter(Mandatory)] [string]$CandidatePath
+    )
+
+    $rootPrefix = [System.IO.Path]::GetFullPath($RootPath)
+    $separator = [System.IO.Path]::DirectorySeparatorChar.ToString()
+    if (-not $rootPrefix.EndsWith($separator)) {
+        $rootPrefix += $separator
+    }
+    $candidateFullPath = [System.IO.Path]::GetFullPath($CandidatePath)
+    $comparison = if ($env:OS -eq 'Windows_NT') {
+        [System.StringComparison]::OrdinalIgnoreCase
+    }
+    else {
+        [System.StringComparison]::Ordinal
+    }
+    return $candidateFullPath.StartsWith($rootPrefix, $comparison)
+}
+
 $nugetConfig = Join-Path $root 'NuGet.config'
 if (-not (Test-Path -LiteralPath $nugetConfig -PathType Leaf)) {
     throw "PKN101 managed restore requires the reviewed repository NuGet.config: $nugetConfig"
@@ -55,11 +77,8 @@ if ($Subject) {
     else {
         [System.IO.Path]::GetFullPath((Join-Path $root $Subject))
     }
-    $relative = [System.IO.Path]::GetRelativePath($root, $candidate)
     if (
-        [System.IO.Path]::IsPathRooted($relative) -or
-        $relative -eq '..' -or
-        $relative.StartsWith("..$([System.IO.Path]::DirectorySeparatorChar)") -or
+        -not (Test-ProgramKitPathWithinRoot -RootPath $root -CandidatePath $candidate) -or
         -not (Test-Path -LiteralPath $candidate -PathType Leaf) -or
         [System.IO.Path]::GetExtension($candidate) -notin '.sln', '.slnx', '.csproj', '.fsproj'
     ) {

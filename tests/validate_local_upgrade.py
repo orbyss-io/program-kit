@@ -302,6 +302,7 @@ def main() -> int:
         primitive_commands = (
             ("specify", "workflow", "add", str(ROOT / "workflows/program-kit-bootstrap"), "--dev"),
             ("specify", "extension", "add", str(ROOT / "extensions/program-kit-governance"), "--dev", "--force"),
+            ("specify", "extension", "add", str(ROOT / "extensions/program-kit-building-blocks"), "--dev", "--force"),
             ("specify", "extension", "add", str(ROOT / "extensions/program-kit-dotnet"), "--dev", "--force"),
             ("specify", "preset", "add", "--dev", str(ROOT / "presets/program-kit-governance-preset")),
         )
@@ -310,6 +311,7 @@ def main() -> int:
         old = "0.0.0"
         manifests = (
             project / ".specify/extensions/program-kit-governance/extension.yml",
+            project / ".specify/extensions/program-kit-building-blocks/extension.yml",
             project / ".specify/extensions/program-kit-dotnet/extension.yml",
             project / ".specify/presets/program-kit-governance-preset/preset.yml",
             project / ".specify/workflows/program-kit-bootstrap/workflow.yml",
@@ -331,6 +333,7 @@ def main() -> int:
                 "version": old,
                 "contributed_components": [
                     {"kind": "extensions", "id": "program-kit-governance", "version": old},
+                    {"kind": "extensions", "id": "program-kit-building-blocks", "version": old},
                     {"kind": "extensions", "id": "program-kit-dotnet", "version": old},
                     {"kind": "presets", "id": "program-kit-governance-preset", "version": old},
                 ],
@@ -477,6 +480,7 @@ def main() -> int:
             "Resolve bundle composition record",
             "Install bootstrap workflow",
             "Install governance extension",
+            "Install building-block extension",
             "Install .NET extension",
             "Remove prior governance preset",
             "Install governance preset",
@@ -522,9 +526,9 @@ def main() -> int:
 
         old_runtime = "0.0.0-preview.1"
         building_blocks = json.loads(
-            (ROOT / "extensions/program-kit-dotnet/references/orbyss-building-blocks.json").read_text(encoding="utf-8")
+            (ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json").read_text(encoding="utf-8")
         )
-        target_runtime = building_blocks["families"]["foundation"]["version"]
+        target_runtime = building_blocks["families"]["foundation"]["releaseVersion"]
         feature = seed_openapi_lifecycle(project, old_runtime)
         (project / "Program.slnx").write_text("<Solution />\n", encoding="utf-8")
         (project / "packages.lock.json").write_text(

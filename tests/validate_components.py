@@ -66,12 +66,14 @@ def require_text(path: Path, *phrases: str) -> None:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     extension_path = root / "extensions" / "program-kit-governance" / "extension.yml"
+    building_blocks_extension_path = root / "extensions" / "program-kit-building-blocks" / "extension.yml"
     dotnet_extension_path = root / "extensions" / "program-kit-dotnet" / "extension.yml"
     preset_path = root / "presets" / "program-kit-governance-preset" / "preset.yml"
     workflow_path = root / "workflows" / "program-kit-bootstrap" / "workflow.yml"
     bundle_path = root / "bundle.yml"
 
     ExtensionManifest(extension_path)
+    ExtensionManifest(building_blocks_extension_path)
     ExtensionManifest(dotnet_extension_path)
     PresetManifest(preset_path)
     extension = yaml.safe_load(extension_path.read_text(encoding="utf-8"))
@@ -96,6 +98,32 @@ def main() -> int:
     hooks = set(extension.get("hooks", {}))
     if hooks != EXPECTED_HOOKS:
         raise AssertionError(f"Extension hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
+    building_blocks_extension = yaml.safe_load(building_blocks_extension_path.read_text(encoding="utf-8"))
+    building_block_commands = building_blocks_extension["provides"]["commands"]
+    if [command["name"] for command in building_block_commands] != ["speckit.program-kit-building-blocks.sync"]:
+        raise AssertionError("The building-block extension must expose only its namespaced synchronization command")
+    advertised_building_block_commands = extension_catalog["extensions"]["program-kit-building-blocks"]["provides"]["commands"]
+    if advertised_building_block_commands != len(building_block_commands):
+        raise AssertionError("Building-block extension catalog command count differs from its manifest")
+    building_blocks_root = building_blocks_extension_path.parent
+    required_building_block_files = {
+        "commands/speckit.program-kit-building-blocks.sync.md",
+        "references/building-block-selection.schema.json",
+        "references/building-blocks-lock.schema.json",
+        "references/orbyss-building-blocks.schema.json",
+        "references/orbyss-building-blocks.json",
+        "references/orbyss-building-blocks.md",
+        "scripts/building_blocks.py",
+        "scripts/public_availability.py",
+        "scripts/restore_dependencies.py",
+    }
+    missing_building_block_files = sorted(
+        relative for relative in required_building_block_files if not (building_blocks_root / relative).is_file()
+    )
+    if missing_building_block_files:
+        raise AssertionError(f"Building-block extension is incomplete: {missing_building_block_files}")
+    if (dotnet_extension_path.parent / "references/orbyss-building-blocks.json").exists():
+        raise AssertionError("The .NET extension retained a second building-block catalog authority")
     dotnet_extension = yaml.safe_load(dotnet_extension_path.read_text(encoding="utf-8"))
     dotnet_commands = dotnet_extension["provides"]["commands"]
     if [command["name"] for command in dotnet_commands] != ["speckit.program-kit-dotnet.sync"]:
@@ -112,8 +140,8 @@ def main() -> int:
         raise AssertionError("Governance template augmentation must compose through append")
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
     provided_extensions = {entry["id"] for entry in bundle["provides"]["extensions"]}
-    if provided_extensions != {"program-kit-governance", "program-kit-dotnet"}:
-        raise AssertionError("Program Kit must bundle governance and .NET as separate extensions")
+    if provided_extensions != {"program-kit-governance", "program-kit-building-blocks", "program-kit-dotnet"}:
+        raise AssertionError("Program Kit must bundle governance, building-block, and .NET concerns as separate extensions")
     provided_presets = bundle["provides"]["presets"]
     if provided_presets != [{
         "id": "program-kit-governance-preset",
@@ -451,10 +479,15 @@ def main() -> int:
         "PENDING_RATIFICATION",
         "WEB_SECURITY_EVIDENCE",
     )
-    retirement_script = root / "scripts/retire_programkit_nuget.py"
-    if not retirement_script.is_file():
-        raise AssertionError(f"NuGet retirement script is missing: {retirement_script}")
-    require_text(retirement_script, "verify_replacements", "dotnet", "nuget", "delete")
+    legacy_package_verifier = root / "scripts/verify_legacy_programkit_nuget.py"
+    if not legacy_package_verifier.is_file():
+        raise AssertionError(f"Legacy NuGet verification script is missing: {legacy_package_verifier}")
+    require_text(
+        legacy_package_verifier,
+        "verify_inventory",
+        "verify_replacements",
+        "Read-only legacy package compatibility verification passed.",
+    )
     updater = root / "scripts/upgrade_program_kit.py"
     reconciliation = root / "scripts/openapi_upgrade_reconciliation.py"
     require_text(

@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: read
   id-token: write
   attestations: write
 
@@ -47,7 +48,9 @@ jobs:
           python tests/validate_test_suites.py
           python tests/validate_ui_experience.py
           python tests/validate_orbyss_building_blocks.py
-          python tests/validate_nuget_retirement.py
+          python tests/validate_building_blocks.py
+          python tests/validate_building_block_availability.py
+          python tests/validate_legacy_programkit_nuget.py
           python tests/validate_governance_state.py
           python tests/validate_local_upgrade.py
           python tests/validate_bootstrap_context.py
@@ -75,6 +78,16 @@ jobs:
           python tests/validate_packaged_ui.py
           python tests/validate_release_install.py
           python tests/validate_public_upgrade.py --candidate-dir artifacts
+
+      - name: Verify complete public building-block catalog
+        env:
+          PROGRAM_KIT_NPM_TOKEN: ${{ github.token }}
+        run: |
+          python extensions/program-kit-building-blocks/scripts/public_availability.py \
+            --target . \
+            --catalog extensions/program-kit-building-blocks/references/orbyss-building-blocks.json \
+            --all \
+            --evidence artifacts/building-block-public-availability.json
 
       - name: Attest release assets
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4

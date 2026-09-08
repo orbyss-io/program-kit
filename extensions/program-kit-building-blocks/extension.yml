@@ -1,0 +1,29 @@
+schema_version: "1.0"
+
+extension:
+  id: "program-kit-building-blocks"
+  name: "Program Kit Building Blocks"
+  version: "0.10.0"
+  description: "Resolves accepted architecture selections into deterministic NuGet, npm, registry, tool, host-image, and CShell materialization plans."
+  author: "Orbyss"
+  repository: "https://github.com/orbyss-io/program-kit"
+  license: "MIT"
+  category: "process"
+  effect: "read-write"
+
+requires:
+  speckit_version: ">=1.0.1,<2.0.0"
+
+provides:
+  commands:
+    - name: "speckit.program-kit-building-blocks.sync"
+      file: "commands/speckit.program-kit-building-blocks.sync.md"
+      description: "Plan, check, or apply an accepted deterministic building-block selection."
+
+tags:
+  - "architecture"
+  - "dependencies"
+  - "dotnet"
+  - "npm"
+  - "governance"
+  - "scaffolding"

@@ -15,9 +15,10 @@ only after the owning capability's persistence admission record is complete.
 
 ## Work
 
-Read `references/orbyss-building-blocks.md` and its JSON companion before selecting or synchronizing
-packages. Treat the Foundation, Forms, and Localization pins as independent compatibility inputs, never as the
-Program Kit extension version.
+Read the sibling `program-kit-building-blocks` extension before selecting packages. This command owns only
+the managed .NET repository baseline; accepted building-block selection, exact package assignment, and
+cross-ecosystem materialization belong to `speckit.program-kit-building-blocks.sync`. Treat the Foundation,
+Forms, and Localization pins as independent compatibility inputs, never as the Program Kit extension version.
 
 1. Confirm that the approved bootstrap decision register selects .NET and has not explicitly opted out
    of `Orbyss.Foundation.Host`. The hash-bound assessment approval plus Accepted bootstrap-baseline decision

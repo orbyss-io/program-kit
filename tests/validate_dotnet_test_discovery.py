@@ -155,7 +155,15 @@ def run_build(shell: str, repository: Path, tools: Path) -> tuple[subprocess.Com
     environment["PATH"] = str(tools) + os.pathsep + environment.get("PATH", "")
     environment["PROGRAM_KIT_DISCOVERY_LOG"] = str(log)
     result = subprocess.run(
-        [shell, "-NoProfile", "-File", str(repository / ".program-kit/eng/Build.ps1"), "-SkipRunnableHost"],
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(repository / ".program-kit/eng/Build.ps1"),
+            "-SkipRunnableHost",
+        ],
         cwd=repository,
         env=environment,
         capture_output=True,
@@ -209,7 +217,11 @@ def validate_discovery_failures(shell: str) -> None:
 
 
 def main() -> int:
-    shell = shutil.which("pwsh") or shutil.which("powershell")
+    shell = (
+        (shutil.which("powershell") if os.name == "nt" else None)
+        or shutil.which("pwsh")
+        or shutil.which("powershell")
+    )
     if not shell:
         raise AssertionError("PowerShell is required to validate managed .NET test discovery")
     validate_topologies(shell)

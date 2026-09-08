@@ -15,11 +15,49 @@ param(
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 
+function Invoke-ProgramKitNative {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Executable,
+
+        [Parameter(Mandatory)]
+        [object[]]$ArgumentList,
+
+        [Parameter(Mandatory)]
+        [string]$FailureMessage
+    )
+
+    # Windows PowerShell 5.1 promotes any native stderr output to NativeCommandError. With the
+    # suite-wide Stop preference, harmless unittest progress on stderr would otherwise abort a
+    # successful validator. Merge and replay native output while retaining exit code as authority.
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $Executable @ArgumentList 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                Write-Host $_.Exception.Message
+            }
+            else {
+                Write-Host $_.ToString()
+            }
+        }
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
+    if ($exitCode -ne 0) {
+        throw "$FailureMessage (exit code $exitCode)"
+    }
+}
+
 $developmentValidators = @(
     'validate_components.py',
     'validate_test_suites.py',
     'validate_orbyss_building_blocks.py',
-    'validate_nuget_retirement.py',
+    'validate_building_blocks.py',
+    'validate_building_block_availability.py',
+    'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'
 )
 $releaseOnlyValidators = @(
@@ -57,11 +95,23 @@ if ($List) {
         Write-Host '  validate_release_install.py'
         Write-Host '  validate_public_upgrade.py --candidate-dir artifacts'
         Write-Host '  Test-LocalInstall.ps1'
-        Write-Host '  retire_programkit_nuget.py --verify-public (dry run)'
+        Write-Host '  public_availability.py --all'
+        Write-Host '  verify_legacy_programkit_nuget.py --verify-public (read-only)'
     } else {
         Write-Host '  specify bundle validate --offline'
     }
     return
+}
+
+if ($Suite -eq 'Release' -and $Host.Name -eq 'Windows PowerShell ISE Host') {
+    throw @'
+PROGRAM_KIT_RELEASE_VALIDATION_ISE_UNSUPPORTED
+
+Do not run the complete Release suite in Windows PowerShell ISE. Long-running native-process
+validation can terminate the ISE host without allowing the transcript or cleanup blocks to finish.
+Open a standalone Windows PowerShell console or a Windows Terminal Windows PowerShell profile, then
+run the approved Release command there.
+'@
 }
 
 if ($Suite -eq 'Release' -and -not $Approved) {
@@ -73,6 +123,16 @@ Run it only when the user has decided the candidate is ready for publication, th
 During development, omit -Suite Release and run focused validators for the files being changed.
 '@
 }
+
+$previousConsoleOutputEncoding = [Console]::OutputEncoding
+$previousPowerShellOutputEncoding = $OutputEncoding
+$previousPythonUtf8 = $env:PYTHONUTF8
+$previousPythonIoEncoding = $env:PYTHONIOENCODING
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[Console]::OutputEncoding = $utf8NoBom
+$OutputEncoding = $utf8NoBom
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 
 $transcribing = $false
 if ($Suite -eq 'Release') {
@@ -103,31 +163,24 @@ try {
 
     foreach ($validator in $validators) {
         Write-Host "Running $Suite validator: $validator"
-        & $python (Join-Path $projectRoot "tests\$validator")
-        if ($LASTEXITCODE -ne 0) {
-            throw "Program Kit validator failed: $validator"
-        }
+        Invoke-ProgramKitNative $python @((Join-Path $projectRoot "tests\$validator")) "Program Kit validator failed: $validator"
     }
 
-    & $specify.Source bundle validate --path $projectRoot --offline
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Bundle validation failed.'
-    }
+    Invoke-ProgramKitNative $specify.Source @('bundle', 'validate', '--path', $projectRoot, '--offline') 'Bundle validation failed.'
 
     if ($Suite -eq 'Development') {
         Write-Host 'Program Kit development checks passed. Release-only validation was not requested.'
         return
     }
 
-    & $python (Join-Path $projectRoot 'tests\validate_ui_browser.py') --install --install-browser --engines=$BrowserEngines
-    if ($LASTEXITCODE -ne 0) {
-        throw 'UI browser and analytics acceptance failed.'
-    }
+    Invoke-ProgramKitNative $python @(
+        (Join-Path $projectRoot 'tests\validate_ui_browser.py'),
+        '--install',
+        '--install-browser',
+        "--engines=$BrowserEngines"
+    ) 'UI browser and analytics acceptance failed.'
 
-    & $python (Join-Path $projectRoot 'scripts\build_release.py')
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Release build failed.'
-    }
+    Invoke-ProgramKitNative $python @((Join-Path $projectRoot 'scripts\build_release.py')) 'Release build failed.'
 
     foreach ($validator in @(
         'validate_bootstrap_consistency_e2e.py',
@@ -135,28 +188,52 @@ try {
         'validate_release_install.py'
     )) {
         Write-Host "Running packaged Release validator: $validator"
-        & $python (Join-Path $projectRoot "tests\$validator")
-        if ($LASTEXITCODE -ne 0) {
-            throw "Packaged Program Kit validator failed: $validator"
-        }
+        Invoke-ProgramKitNative $python @((Join-Path $projectRoot "tests\$validator")) "Packaged Program Kit validator failed: $validator"
     }
 
-    & $python (Join-Path $projectRoot 'tests\validate_public_upgrade.py') --candidate-dir (Join-Path $projectRoot 'artifacts')
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Candidate public-upgrade validation failed.'
-    }
+    Invoke-ProgramKitNative $python @(
+        (Join-Path $projectRoot 'tests\validate_public_upgrade.py'),
+        '--candidate-dir',
+        (Join-Path $projectRoot 'artifacts')
+    ) 'Candidate public-upgrade validation failed.'
 
+    Write-Host 'Running source-tree installation validator: Test-LocalInstall.ps1'
     & (Join-Path $PSScriptRoot 'Test-LocalInstall.ps1')
 
-    & $python (Join-Path $projectRoot 'scripts\retire_programkit_nuget.py') --verify-public
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Public component-package verification failed.'
-    }
+    Invoke-ProgramKitNative $python @(
+        (Join-Path $projectRoot 'extensions/program-kit-building-blocks/scripts/public_availability.py'),
+        '--target',
+        $projectRoot,
+        '--catalog',
+        (Join-Path $projectRoot 'extensions/program-kit-building-blocks/references/orbyss-building-blocks.json'),
+        '--all',
+        '--evidence',
+        'artifacts/building-block-public-availability.json'
+    ) 'Catalog-wide NuGet, npm, and host-image public availability failed.'
+
+    Invoke-ProgramKitNative $python @(
+        (Join-Path $projectRoot 'scripts\verify_legacy_programkit_nuget.py'),
+        '--verify-public'
+    ) 'Read-only legacy package compatibility verification failed.'
 
     Write-Host 'Program Kit complete deterministic Release suite passed.'
 }
 finally {
     if ($transcribing) {
         Stop-Transcript | Out-Null
+    }
+    [Console]::OutputEncoding = $previousConsoleOutputEncoding
+    $OutputEncoding = $previousPowerShellOutputEncoding
+    if ($null -eq $previousPythonUtf8) {
+        Remove-Item Env:PYTHONUTF8 -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:PYTHONUTF8 = $previousPythonUtf8
+    }
+    if ($null -eq $previousPythonIoEncoding) {
+        Remove-Item Env:PYTHONIOENCODING -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:PYTHONIOENCODING = $previousPythonIoEncoding
     }
 }

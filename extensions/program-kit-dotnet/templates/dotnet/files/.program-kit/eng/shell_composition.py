@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 PROFILE_SHELLS = Path(".program-kit/web-profile.shells.json")
+BUILDING_BLOCK_SHELLS = Path(".program-kit/building-blocks.shells.json")
 CONSUMER_SHELLS = Path("shells.json")
 
 
@@ -46,10 +47,11 @@ def compose(repository: Path) -> dict:
     repository = repository.resolve()
     profile = load(repository / PROFILE_SHELLS, required=False)
     consumer = load(repository / CONSUMER_SHELLS, required=True)
-    effective = merge_value(profile, consumer)
+    building_blocks = load(repository / BUILDING_BLOCK_SHELLS, required=False)
+    effective = merge_value(merge_value(profile, consumer), building_blocks)
     assert isinstance(effective, dict)
-    # Validate the merged shape too. Consumer values intentionally override managed profile values,
-    # including an explicit false used to deactivate an optional Program Kit feature.
+    # Consumer values may override profile defaults. An Accepted building-block activation is merged
+    # last and cannot be silently disabled in consumer-owned shells.json.
     shells = effective.get("CShells", {}).get("Shells")
     if not isinstance(shells, dict) or not shells:
         raise ValueError("PKC005 effective shell composition contains no named shells")

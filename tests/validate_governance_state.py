@@ -59,6 +59,12 @@ def write_installation(project: Path, version: str, *, workflow_version: str | N
         f'schema_version: "1.0"\n\nextension:\n  id: "program-kit-dotnet"\n  version: "{version}"\n',
         encoding="utf-8",
     )
+    building_block_manifest = project / ".specify/extensions/program-kit-building-blocks/extension.yml"
+    building_block_manifest.parent.mkdir(parents=True, exist_ok=True)
+    building_block_manifest.write_text(
+        f'schema_version: "1.0"\n\nextension:\n  id: "program-kit-building-blocks"\n  version: "{version}"\n',
+        encoding="utf-8",
+    )
     workflow_manifest = project / ".specify/workflows/program-kit-bootstrap/workflow.yml"
     workflow_manifest.parent.mkdir(parents=True, exist_ok=True)
     workflow_manifest.write_text(
@@ -100,6 +106,11 @@ def write_installation(project: Path, version: str, *, workflow_version: str | N
                     {
                         "kind": "extensions",
                         "id": "program-kit-governance",
+                        "version": version,
+                    },
+                    {
+                        "kind": "extensions",
+                        "id": "program-kit-building-blocks",
                         "version": version,
                     },
                     {

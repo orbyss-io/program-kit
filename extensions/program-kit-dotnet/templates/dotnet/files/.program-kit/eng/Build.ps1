@@ -20,6 +20,44 @@ if ($solutions.Count -ne 1) {
     throw "Expected exactly one solution in $root; found $($solutions.Count)."
 }
 
+function Invoke-ProgramKitDotNetCapture {
+    param(
+        [Parameter(Mandatory)]
+        [object[]]$ArgumentList
+    )
+
+    # Windows PowerShell 5.1 promotes native stderr to NativeCommandError. Capture
+    # diagnostics without letting that compatibility behavior preempt the exit-code
+    # checks that define this build contract.
+    $previousPreference = $ErrorActionPreference
+    $exitCode = $null
+    try {
+        $ErrorActionPreference = 'Continue'
+        $nativeOutput = @(& dotnet @ArgumentList 2>&1)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
+    if ($null -eq $exitCode) {
+        $exitCode = 1
+    }
+    $normalizedOutput = @(
+        $nativeOutput | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $_.Exception.Message
+            }
+            else {
+                $_.ToString()
+            }
+        }
+    )
+    return [PSCustomObject]@{
+        ExitCode = $exitCode
+        Output = $normalizedOutput
+    }
+}
+
 function Get-TestProjectCount {
     param(
         [Parameter(Mandatory)]
@@ -27,8 +65,11 @@ function Get-TestProjectCount {
     )
 
     $solutionDirectory = Split-Path -Parent $SolutionPath
-    $solutionProjectsOutput = @(& dotnet sln $SolutionPath list 2>&1)
-    if ($LASTEXITCODE -ne 0) {
+    $solutionProjectsResult = Invoke-ProgramKitDotNetCapture -ArgumentList @(
+        'sln', $SolutionPath, 'list'
+    )
+    $solutionProjectsOutput = @($solutionProjectsResult.Output)
+    if ($solutionProjectsResult.ExitCode -ne 0) {
         $solutionProjectsOutput | ForEach-Object { Write-Host $_ }
         throw "Could not enumerate projects in solution $SolutionPath."
     }
@@ -53,8 +94,12 @@ function Get-TestProjectCount {
             throw "Solution project does not exist: $projectPath"
         }
 
-        $testPropertyOutput = @(& dotnet msbuild $projectPath -nologo -verbosity:quiet -getProperty:IsTestProject 2>&1)
-        if ($LASTEXITCODE -ne 0) {
+        $testPropertyResult = Invoke-ProgramKitDotNetCapture -ArgumentList @(
+            'msbuild', $projectPath, '-nologo', '-verbosity:quiet',
+            '-getProperty:IsTestProject'
+        )
+        $testPropertyOutput = @($testPropertyResult.Output)
+        if ($testPropertyResult.ExitCode -ne 0) {
             $testPropertyOutput | ForEach-Object { Write-Host $_ }
             throw "Could not evaluate IsTestProject for $projectPath."
         }

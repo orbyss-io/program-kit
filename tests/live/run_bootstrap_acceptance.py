@@ -166,6 +166,7 @@ def prepare_local_catalog_server(
     server_root.mkdir(parents=True, exist_ok=False)
     archive_names = {
         "governance": f"program-kit-governance-{version}.zip",
+        "building-blocks": f"program-kit-building-blocks-{version}.zip",
         "dotnet": f"program-kit-dotnet-{version}.zip",
         "preset": f"program-kit-governance-preset-{version}.zip",
     }
@@ -184,6 +185,9 @@ def prepare_local_catalog_server(
     catalogs["extensions"]["catalog_url"] = f"{base_url}/extensions.json"
     catalogs["extensions"]["extensions"]["program-kit-governance"]["download_url"] = (
         f"{base_url}/{archive_names['governance']}"
+    )
+    catalogs["extensions"]["extensions"]["program-kit-building-blocks"]["download_url"] = (
+        f"{base_url}/{archive_names['building-blocks']}"
     )
     catalogs["extensions"]["extensions"]["program-kit-dotnet"]["download_url"] = (
         f"{base_url}/{archive_names['dotnet']}"
@@ -815,6 +819,7 @@ def install_candidate(
     artifacts = root / "artifacts"
     archives = {
         "governance": artifacts / f"program-kit-governance-{version}.zip",
+        "building-blocks": artifacts / f"program-kit-building-blocks-{version}.zip",
         "dotnet": artifacts / f"program-kit-dotnet-{version}.zip",
         "preset": artifacts / f"program-kit-governance-preset-{version}.zip",
         "workflow": artifacts / f"program-kit-bootstrap-{version}.zip",
@@ -1031,6 +1036,7 @@ def validate_result(
 MANAGED_BASELINE_PATTERNS = (
     ".specify/extensions/program-kit-governance/**/*",
     ".specify/extensions/program-kit-dotnet/**/*",
+    ".specify/extensions/program-kit-building-blocks/**/*",
     ".specify/presets/program-kit-governance-preset/**/*",
     ".specify/workflows/program-kit-bootstrap/**/*",
     ".specify/bundles/**/*",

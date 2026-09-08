@@ -3,9 +3,7 @@
     "Shells": {
       "default": {
         "Name": "default",
-        "Features": {
-          "FoundationTasks": {}
-        },
+        "Features": {},
         "Configuration": {
           "WebRouting": {
             "Path": ""

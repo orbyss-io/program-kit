@@ -26,6 +26,7 @@ BUNDLE_ROOT_FILES = {
 }
 BUNDLE_SOURCE_PREFIXES = (
     "extensions/program-kit-governance/",
+    "extensions/program-kit-building-blocks/",
     "extensions/program-kit-dotnet/",
     "presets/program-kit-governance-preset/",
     "workflows/program-kit-bootstrap/",
@@ -174,6 +175,7 @@ def build_bundle_from_source(root: Path, output: Path) -> None:
 def validate_metadata(root: Path, version: str) -> None:
     bundle = load_yaml(root / "bundle.yml")
     governance_extension = load_yaml(root / "extensions/program-kit-governance/extension.yml")
+    building_blocks_extension = load_yaml(root / "extensions/program-kit-building-blocks/extension.yml")
     dotnet_extension = load_yaml(root / "extensions/program-kit-dotnet/extension.yml")
     governance_preset = load_yaml(root / "presets/program-kit-governance-preset/preset.yml")
     workflow = load_yaml(root / "workflows/program-kit-bootstrap/workflow.yml")
@@ -184,6 +186,7 @@ def validate_metadata(root: Path, version: str) -> None:
 
     require_equal("bundle version", bundle["bundle"]["version"], version)
     require_equal("governance extension version", governance_extension["extension"]["version"], version)
+    require_equal("building-block extension version", building_blocks_extension["extension"]["version"], version)
     require_equal(".NET extension version", dotnet_extension["extension"]["version"], version)
     require_equal("governance preset version", governance_preset["preset"]["version"], version)
     require_equal("workflow version", workflow["workflow"]["version"], version)
@@ -198,24 +201,29 @@ def validate_metadata(root: Path, version: str) -> None:
                 f"{initializer_name} does not pin the current Program Kit release tag"
             )
     require_equal("governance extension repository", governance_extension["extension"]["repository"], REPOSITORY)
+    require_equal("building-block extension repository", building_blocks_extension["extension"]["repository"], REPOSITORY)
     require_equal(".NET extension repository", dotnet_extension["extension"]["repository"], REPOSITORY)
     require_equal("governance preset repository", governance_preset["preset"]["repository"], REPOSITORY)
     require_equal("bundle license", bundle["bundle"]["license"], "MIT")
     require_equal("governance extension license", governance_extension["extension"]["license"], "MIT")
+    require_equal("building-block extension license", building_blocks_extension["extension"]["license"], "MIT")
     require_equal(".NET extension license", dotnet_extension["extension"]["license"], "MIT")
     require_equal("governance preset license", governance_preset["preset"]["license"], "MIT")
 
     governance_extension_entry = extensions_catalog["extensions"]["program-kit-governance"]
+    building_blocks_extension_entry = extensions_catalog["extensions"]["program-kit-building-blocks"]
     dotnet_extension_entry = extensions_catalog["extensions"]["program-kit-dotnet"]
     preset_entry = presets_catalog["presets"]["program-kit-governance-preset"]
     workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
     bundle_entry = bundles_catalog["bundles"]["program-kit"]
     require_equal("governance extension catalog version", governance_extension_entry["version"], version)
+    require_equal("building-block extension catalog version", building_blocks_extension_entry["version"], version)
     require_equal(".NET extension catalog version", dotnet_extension_entry["version"], version)
     require_equal("governance preset catalog version", preset_entry["version"], version)
     require_equal("workflow catalog version", workflow_entry["version"], version)
     require_equal("bundle catalog version", bundle_entry["version"], version)
     require_equal("governance extension catalog license", governance_extension_entry["license"], "MIT")
+    require_equal("building-block extension catalog license", building_blocks_extension_entry["license"], "MIT")
     require_equal(".NET extension catalog license", dotnet_extension_entry["license"], "MIT")
     require_equal("governance preset catalog license", preset_entry["license"], "MIT")
     require_equal("workflow catalog license", workflow_entry["license"], "MIT")
@@ -226,6 +234,11 @@ def validate_metadata(root: Path, version: str) -> None:
         "governance extension release URL",
         governance_extension_entry["download_url"],
         f"{REPOSITORY}/releases/download/{tag}/program-kit-governance-{version}.zip",
+    )
+    require_equal(
+        "building-block extension release URL",
+        building_blocks_extension_entry["download_url"],
+        f"{REPOSITORY}/releases/download/{tag}/program-kit-building-blocks-{version}.zip",
     )
     require_equal(
         ".NET extension release URL",
@@ -269,6 +282,7 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=True)
     expected = [
         output / f"program-kit-governance-{version}.zip",
+        output / f"program-kit-building-blocks-{version}.zip",
         output / f"program-kit-dotnet-{version}.zip",
         output / f"program-kit-governance-preset-{version}.zip",
         output / f"program-kit-bootstrap-{version}.zip",
@@ -282,25 +296,26 @@ def main() -> int:
             path.unlink()
 
     deterministic_zip(root / "extensions/program-kit-governance", expected[0])
-    deterministic_zip(root / "extensions/program-kit-dotnet", expected[1])
-    deterministic_zip(root / "presets/program-kit-governance-preset", expected[2])
-    deterministic_zip(root / "workflows/program-kit-bootstrap", expected[3])
+    deterministic_zip(root / "extensions/program-kit-building-blocks", expected[1])
+    deterministic_zip(root / "extensions/program-kit-dotnet", expected[2])
+    deterministic_zip(root / "presets/program-kit-governance-preset", expected[3])
+    deterministic_zip(root / "workflows/program-kit-bootstrap", expected[4])
 
     build_bundle_from_source(root, output)
-    if not expected[4].is_file():
-        raise FileNotFoundError(f"Spec Kit did not create {expected[4]}")
-    with zipfile.ZipFile(expected[4], "r") as archive:
+    if not expected[5].is_file():
+        raise FileNotFoundError(f"Spec Kit did not create {expected[5]}")
+    with zipfile.ZipFile(expected[5], "r") as archive:
         entry_count = len(archive.namelist())
     if entry_count > MAX_BUNDLE_ENTRIES:
         raise ValueError(
             f"Program Kit bundle contains {entry_count} entries; Spec Kit permits at most "
             f"{MAX_BUNDLE_ENTRIES}."
         )
-    shutil.copyfile(root / "Initialize-ProgramKit.cmd", expected[5])
-    shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[6])
+    shutil.copyfile(root / "Initialize-ProgramKit.cmd", expected[6])
+    shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
 
-    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:7]]
-    expected[7].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
+    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:8]]
+    expected[8].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")
     return 0

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -21,6 +22,7 @@ from openapi_upgrade_reconciliation import (
 COMPONENTS = (
     ("bundle", Path("bundle.yml")),
     ("governance extension", Path("extensions/program-kit-governance/extension.yml")),
+    ("building-block extension", Path("extensions/program-kit-building-blocks/extension.yml")),
     (".NET extension", Path("extensions/program-kit-dotnet/extension.yml")),
     ("governance preset", Path("presets/program-kit-governance-preset/preset.yml")),
     ("bootstrap workflow", Path("workflows/program-kit-bootstrap/workflow.yml")),
@@ -559,22 +561,85 @@ def preflight_mutation_destinations(
 
 
 def building_block_versions(release: Path) -> dict[str, str]:
-    path = release / "extensions/program-kit-dotnet/references/orbyss-building-blocks.json"
+    path = release / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
-        foundation = value["families"]["foundation"]
-        forms = value["families"]["forms"]
-        localization = value["families"]["localization"]
         versions = {
-            **{package: foundation["version"] for package in foundation["packages"]},
-            **{package: forms["version"] for package in forms["nuget_packages"]},
-            **{package: localization["version"] for package in localization["packages"]},
+            package["packageId"]: package["version"]
+            for package in value["packages"].values()
+            if package.get("ecosystem") == "nuget"
         }
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise UpgradeError(f"PKU101 release building-block manifest is invalid: {path}: {error}") from error
     if not versions or any(not package.startswith("Orbyss.") or not version for package, version in versions.items()):
         raise UpgradeError("PKU101 release building-block package pins are empty or invalid")
     return versions
+
+
+def building_block_selection_is_compatible(target: Path, release: Path) -> bool:
+    selection_path = target / "docs/architecture/building-block-selection.json"
+    if not selection_path.is_file():
+        return False
+    lock_path = target / ".program-kit/building-blocks.lock.json"
+    if not lock_path.is_file():
+        raise UpgradeError(
+            "PKU116 an Accepted building-block selection exists without its generated lock; repair selection state before upgrading"
+        )
+    catalog_path = release / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+    resolver_path = release / "extensions/program-kit-building-blocks/scripts/building_blocks.py"
+    spec = importlib.util.spec_from_file_location("program_kit_upgrade_building_blocks", resolver_path)
+    if spec is None or spec.loader is None:
+        raise UpgradeError(f"PKU101 cannot load release building-block resolver: {resolver_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    if selection.get("status") != "Accepted":
+        raise UpgradeError("PKU116 building-block selection must be Accepted before Program Kit upgrade")
+    accepted_hash = selection.get("catalog", {}).get("resolutionSha256")
+    release_hash = module.catalog_resolution_sha256(catalog)
+    if accepted_hash != release_hash:
+        raise UpgradeError(
+            "PKU116 the release changes resolution-affecting building-block catalog state. "
+            "No Program Kit component mutation started. Use the release building-block resolver to prepare a Draft transition, "
+            "review changed packages/placements/activations/configuration, and renew architecture acceptance before retrying."
+        )
+    return True
+
+
+def resynchronize_building_block_provenance(target: Path) -> None:
+    resolver = target / ".specify/extensions/program-kit-building-blocks/scripts/building_blocks.py"
+    plan = subprocess.run(
+        [sys.executable, str(resolver), "plan", "--target", str(target)],
+        cwd=target,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if plan.returncode != 0:
+        raise UpgradeError(f"PKU116 building-block upgrade plan failed: {plan.stderr.strip()}")
+    try:
+        digest = json.loads(plan.stdout)["planDigest"]
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise UpgradeError("PKU116 building-block upgrade plan did not return a plan digest") from error
+    apply = subprocess.run(
+        [
+            sys.executable,
+            str(resolver),
+            "apply",
+            "--target",
+            str(target),
+            "--plan-digest",
+            digest,
+        ],
+        cwd=target,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if apply.returncode != 0:
+        raise UpgradeError(f"PKU116 compatible building-block provenance update failed: {apply.stderr.strip()}")
 
 
 def stale_program_kit_locks(target: Path, component_versions: dict[str, str]) -> list[Path]:
@@ -719,6 +784,7 @@ def main() -> int:
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
         previous_version = current_version(target)
+        has_building_block_selection = building_block_selection_is_compatible(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
         reconciliation = discover_openapi_reconciliation(target, release)
@@ -749,6 +815,7 @@ def main() -> int:
             (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
             (specify + ["extension", "add", str(release / "extensions/program-kit-governance"), "--dev", "--force"], "Install governance extension"),
+            (specify + ["extension", "add", str(release / "extensions/program-kit-building-blocks"), "--dev", "--force"], "Install building-block extension"),
             (specify + ["extension", "add", str(release / "extensions/program-kit-dotnet"), "--dev", "--force"], "Install .NET extension"),
             (specify + ["preset", "remove", "program-kit-governance-preset"], "Remove prior governance preset"),
             (specify + ["preset", "add", "--dev", str(release / "presets/program-kit-governance-preset")], "Install governance preset"),
@@ -756,6 +823,7 @@ def main() -> int:
         total = (
             len(steps)
             + (2 if profile else 0)
+            + (1 if has_building_block_selection else 0)
             + 1
             + (1 if has_bootstrap_decisions else 0)
             + (1 if reconciliation else 0)
@@ -778,6 +846,10 @@ def main() -> int:
             run_step(write, target, "Resynchronize managed .NET baseline", next_step, total)
             run_step(check, target, "Verify managed .NET baseline convergence", next_step + 1, total)
             next_step += 2
+        if has_building_block_selection:
+            print(f"[{next_step}/{total}] Refresh compatible building-block lock provenance")
+            resynchronize_building_block_provenance(target)
+            next_step += 1
         validator = target / ".specify/extensions/program-kit-governance/scripts/governance_state.py"
         run_step(
             [sys.executable, str(validator), "validate-installation"],

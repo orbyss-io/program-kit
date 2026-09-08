@@ -119,6 +119,8 @@ def main() -> int:
             raise AssertionError(f"Installed hooks {sorted(hooks)} != {sorted(EXPECTED_HOOKS)}")
         if "program-kit-governance" not in extensions.get("installed", []):
             raise AssertionError("Program Kit Governance extension was not registered")
+        if "program-kit-building-blocks" not in extensions.get("installed", []):
+            raise AssertionError("Program Kit building-block extension was not registered")
         if "program-kit-dotnet" not in extensions.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
 
@@ -141,6 +143,9 @@ def main() -> int:
         deployed_dotnet = project / ".specify/extensions/program-kit-dotnet"
         if not (deployed_dotnet / "scripts/dotnet_sync.py").is_file():
             raise AssertionError("Installed .NET sync extension is missing")
+        deployed_building_blocks = project / ".specify/extensions/program-kit-building-blocks"
+        if not (deployed_building_blocks / "scripts/building_blocks.py").is_file():
+            raise AssertionError("Installed building-block resolver is missing")
         if not (
             project
             / ".agents/skills/speckit-program-kit-governance-bootstrap/SKILL.md"

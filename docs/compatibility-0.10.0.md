@@ -8,8 +8,8 @@ Localization repositories. Program Kit pins Foundation `0.1.0`, Forms `0.1.1`, a
 
 Existing consumers do not receive an automatic package-ID migration. They must replace
 `ProgramKit.*` dependencies with the documented `Orbyss.Foundation.*`, `Orbyss.Forms.*`, and
-`Orbyss.Localization.*` packages. Legacy NuGet versions remain exact-version restorable even after
-they are unlisted, and unlisting is gated on public verification of all 50 replacement NuGet
+`Orbyss.Localization.*` packages. Program Kit never removes or hides legacy package versions. Its
+read-only compatibility gate verifies the recorded legacy inventory and all 50 replacement NuGet
 packages at their independently pinned family versions.
 
 Bootstrap intake and architecture-map schemas advance together to `1.1`. This deliberately replaces
