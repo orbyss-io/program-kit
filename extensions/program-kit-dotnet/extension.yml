@@ -4,7 +4,7 @@ extension:
   id: "program-kit-dotnet"
   name: "Program Kit .NET"
   version: "0.10.0"
-  description: "Provides the .NET engineering baseline, Orbyss Foundation and Forms selection knowledge, and reviewable managed-file synchronization."
+  description: "Provides the .NET engineering baseline, Orbyss Foundation, Forms, and Localization selection knowledge, and reviewable managed-file synchronization."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
   license: "MIT"

@@ -10,6 +10,24 @@ code to accommodate it. Where a validator exposes `--engines`, use the non-Firef
 report the known local-host limitation. Keep Firefox in the CI browser matrix; CI remains the
 authority for Firefox acceptance.
 
+## Development and release validation
+
+Ordinary development uses targeted validators plus the bounded default
+`./scripts/Test-ProgramKit.ps1` Development suite. Do not run the complete deterministic suite after
+each change and do not imply that it was skipped; it is a publication gate, not an edit-loop gate.
+
+Run `./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines
+'chromium,webkit'` only after the user explicitly decides the candidate should proceed toward
+publication. On this Windows host, do not start the complete Release suite from a Codex Desktop task;
+give the command to the user, let it finish in their user-owned terminal, then inspect the preserved
+`artifacts/release-validation-<version>.log` and generated artifacts. CI remains authoritative for
+the Firefox leg.
+
+The deterministic Development and Release suites do not invoke a coding agent. Tests whose names
+contain `codex` validate integration files, preflight behavior, and guarded harness contracts. Only
+`Test-LiveBootstrap.ps1 -Approved` starts coding-agent sessions, and it remains governed by the
+separate optional-live-acceptance rules below.
+
 ## Optional live acceptance
 
 The paid live bootstrap acceptance suite is entirely user-invoked. Do not ask whether to run it

@@ -1,30 +1,30 @@
 # Releasing Program Kit 0.10.0
 
 This release splits reusable technical building blocks out of Program Kit while advancing the AI
-extensions, governance, generators, preset, and workflow to `0.10.0`. Orbyss Foundation and Orbyss
-Forms are independently versioned at `0.1.0`; Program Kit no longer owns or publishes their runtime
-artifacts.
+extensions, governance, generators, preset, and workflow to `0.10.0`. Orbyss Foundation is pinned at
+`0.1.0`; Orbyss Forms and Orbyss Localization are pinned independently at `0.1.1`. Program Kit no
+longer owns or publishes their runtime artifacts.
 
 Before tagging, run the deterministic release gates:
 
 ```powershell
-./scripts/Test-ProgramKit.ps1 -BrowserEngines 'chromium,webkit'
-./scripts/Test-LocalInstall.ps1
-python tests/validate_orbyss_building_blocks.py
-python tests/validate_nuget_retirement.py
-python tests/validate_public_upgrade.py --candidate-dir artifacts
+./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
 ```
 
-Before any stable tag, create the matching GitHub environments and NuGet.org trusted-publishing
-policies: `dotnet-foundation/release.yml` with `nuget-production`, `forms/release.yml` with
-`forms-packages-production`, and `program-kit/retire-program-kit-nuget.yml` with
-`nuget-retirement`. Each environment requires `NUGET_USER`; the retirement policy's unlist scope
-must be restricted to `ProgramKit.*`.
+Run this complete suite from a normal user-owned terminal only after the user has decided the
+candidate should proceed toward publication. It includes the source validators, Chromium/WebKit,
+release build, packaged-install checks, previous-release upgrade, disposable local installation, and
+the read-only public component-package gate. It writes
+`artifacts/release-validation-0.10.0.log` for later inspection and does not run the optional paid
+Codex-worker suite.
 
-Tag and publish Foundation `v0.1.0` first, then Forms `v0.1.0`, waiting for each complete Release
-workflow and public NuGet propagation check. Only after both replacement families are public and
-verified should Program Kit `v0.10.0` be tagged. The manual retirement workflow remains a separate,
-explicitly confirmed operation after all 49 replacement NuGet packages are public.
+Before the Program Kit stable tag, verify the already-published component releases and public package
+propagation: `dotnet-foundation` `v0.1.0`, `forms` `v0.1.1`, and `localization` `v0.1.1`.
+
+Only after all three replacement families and the 12 Forms npm packages are public and verified
+should Program Kit `v0.10.0` be tagged. Legacy `ProgramKit.*` retirement remains a separate, local,
+explicitly confirmed operation after all 50 replacement NuGet packages are public and the Program Kit
+release workflow has validated public installation and upgrade.
 
 The clean-consumer acceptance must generate 1.1 intake/map artifacts, review the current draft,
 confirm explicitly, and validate in that order. The pricing semantic regression must preserve six

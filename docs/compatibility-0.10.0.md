@@ -2,15 +2,15 @@
 
 0.10.0 is a pre-1.0 product-boundary and governance release. Program Kit's AI extensions,
 governance, generators, preset, and workflow advance to `0.10.0`. Reusable runtime source and
-publication move to the independently versioned Orbyss Foundation and Orbyss Forms repositories,
-whose first releases are `0.1.0`. Program Kit no longer builds or publishes NuGet, npm, or host-image
-artifacts.
+publication move to the independently versioned Orbyss Foundation, Orbyss Forms, and Orbyss
+Localization repositories. Program Kit pins Foundation `0.1.0`, Forms `0.1.1`, and Localization
+`0.1.1`; it no longer builds or publishes NuGet, npm, or host-image artifacts.
 
 Existing consumers do not receive an automatic package-ID migration. They must replace
 `ProgramKit.*` dependencies with the documented `Orbyss.Foundation.*`, `Orbyss.Forms.*`, and
 `Orbyss.Localization.*` packages. Legacy NuGet versions remain exact-version restorable even after
-they are unlisted, and unlisting is gated on public verification of all 49 replacement NuGet
-packages at `0.1.0`.
+they are unlisted, and unlisting is gated on public verification of all 50 replacement NuGet
+packages at their independently pinned family versions.
 
 Bootstrap intake and architecture-map schemas advance together to `1.1`. This deliberately replaces
 the exploratory skinny 1.0 shape; there is no dual validator or migration path. This release targets

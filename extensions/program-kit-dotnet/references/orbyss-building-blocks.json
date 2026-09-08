@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "policy": {
     "source_ownership": "Program Kit owns AI guidance, scaffolding, selection rules, and compatibility tests; runtime source and release tests belong to the component repositories.",
-    "versioning": "Pin each family independently. Never infer a component version from the Program Kit version.",
+    "versioning": "Pin Foundation, Forms, and Localization independently. Never infer a component version from the Program Kit version.",
     "compatibility": "Program Kit may advance a family pin only after its consumer compatibility suite passes against published immutable packages."
   },
   "families": {
@@ -63,65 +63,41 @@
     },
     "forms": {
       "repository": "https://github.com/orbyss-io/forms",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "nuget_source": "https://api.nuget.org/v3/index.json",
       "nuget_packages": [
         "Orbyss.Forms.Abstractions",
-        "Orbyss.Forms.Application",
-        "Orbyss.Forms.Core",
         "Orbyss.Forms.JsonForms",
         "Orbyss.Forms.Localization",
+        "Orbyss.Forms.Management",
         "Orbyss.Forms.Management.Mcp.AspNetCore",
         "Orbyss.Forms.Management.Tool",
-        "Orbyss.Forms.Mcp.AspNetCore",
         "Orbyss.Forms.Storage.Abstractions",
         "Orbyss.Forms.Storage.FileSystem",
         "Orbyss.Forms.Storage.InMemory",
         "Orbyss.Forms.Submissions",
-        "Orbyss.Forms.Tool",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore",
+        "Orbyss.Forms.Submissions.Tool",
         "Orbyss.Forms.Web.Management",
         "Orbyss.Forms.Web.Runtime",
-        "Orbyss.Forms.Web.Submissions",
-        "Orbyss.Localization.Abstractions",
-        "Orbyss.Localization.Application",
-        "Orbyss.Localization.Core",
-        "Orbyss.Localization.Formats",
-        "Orbyss.Localization.Mcp.AspNetCore",
-        "Orbyss.Localization.Storage.Abstractions",
-        "Orbyss.Localization.Storage.FileSystem",
-        "Orbyss.Localization.Storage.InMemory",
-        "Orbyss.Localization.Tool",
-        "Orbyss.Localization.Web.Management",
-        "Orbyss.Localization.Web.Runtime"
+        "Orbyss.Forms.Web.Submissions"
       ],
       "nuget_package_roles": {
         "Orbyss.Forms.Abstractions": "Form definitions, releases, drafts, submissions, actions, attachments, and lifecycle contracts.",
-        "Orbyss.Forms.Application": "Application orchestration and catalog query services.",
-        "Orbyss.Forms.Core": "Definition validation and compatibility analysis.",
         "Orbyss.Forms.JsonForms": "Deterministic compilation to JSON Forms-compatible artifacts.",
         "Orbyss.Forms.Localization": "Bridge from form-localized text references to localization services.",
+        "Orbyss.Forms.Management": "Trusted definition validation, compatibility analysis, catalog queries, and publication orchestration.",
         "Orbyss.Forms.Management.Mcp.AspNetCore": "Forms management MCP tool contributor for the shared Foundation transport.",
         "Orbyss.Forms.Management.Tool": "Trusted form authoring, validation, publication, and retirement tools.",
-        "Orbyss.Forms.Mcp.AspNetCore": "Owner-scoped form operations MCP contributor for the shared Foundation transport.",
         "Orbyss.Forms.Storage.Abstractions": "Replaceable form definition, release, draft, submission, and attachment storage ports.",
         "Orbyss.Forms.Storage.FileSystem": "Non-database filesystem adapter for form storage ports.",
         "Orbyss.Forms.Storage.InMemory": "Non-durable in-memory form storage adapter for tests and development.",
         "Orbyss.Forms.Submissions": "Draft, submission, attachment, review, and release-migration application operations.",
-        "Orbyss.Forms.Tool": "Form operations tool catalog independent of MCP transport.",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore": "Owner-scoped submission MCP tool contributor for the shared Foundation transport.",
+        "Orbyss.Forms.Submissions.Tool": "Draft, submission, attachment, and review tools independent of MCP transport.",
         "Orbyss.Forms.Web.Management": "Authenticated form management HTTP endpoints.",
         "Orbyss.Forms.Web.Runtime": "Cacheable immutable form catalog and release HTTP endpoints.",
-        "Orbyss.Forms.Web.Submissions": "Authenticated owner-scoped draft, submission, and attachment HTTP endpoints.",
-        "Orbyss.Localization.Abstractions": "Localization catalog, text, culture, import/export, and storage contracts.",
-        "Orbyss.Localization.Application": "Localization application orchestration.",
-        "Orbyss.Localization.Core": "Localization resolution, fallback, validation, and catalog behavior.",
-        "Orbyss.Localization.Formats": "Portable localization import and export formats.",
-        "Orbyss.Localization.Mcp.AspNetCore": "Localization MCP contributor for the shared Foundation transport.",
-        "Orbyss.Localization.Storage.Abstractions": "Replaceable localization catalog storage ports.",
-        "Orbyss.Localization.Storage.FileSystem": "Filesystem localization storage adapter.",
-        "Orbyss.Localization.Storage.InMemory": "Non-durable in-memory localization adapter for tests and development.",
-        "Orbyss.Localization.Tool": "Localization management and runtime tool catalog independent of MCP transport.",
-        "Orbyss.Localization.Web.Management": "Authenticated localization management HTTP endpoints.",
-        "Orbyss.Localization.Web.Runtime": "Cacheable localization runtime HTTP endpoints."
+        "Orbyss.Forms.Web.Submissions": "Authenticated owner-scoped draft, submission, and attachment HTTP endpoints."
       },
       "npm_source": "https://npm.pkg.github.com",
       "npm_packages": [
@@ -151,6 +127,41 @@
         "@orbyss-io/forms-ui-theme": "CSS-first semantic tokens, slots, class maps, and unstyled mode.",
         "@orbyss-io/forms-vue": "Thin Vue renderer binding.",
         "@orbyss-io/forms-wizard": "Framework-neutral wizard navigation and progress behavior."
+      }
+    },
+    "localization": {
+      "repository": "https://github.com/orbyss-io/localization",
+      "version": "0.1.1",
+      "package_source": "https://api.nuget.org/v3/index.json",
+      "packages": [
+        "Orbyss.Localization.Abstractions",
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Management.Mcp.AspNetCore",
+        "Orbyss.Localization.Management.Tool",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime.Tool",
+        "Orbyss.Localization.Storage.Abstractions",
+        "Orbyss.Localization.Storage.FileSystem",
+        "Orbyss.Localization.Storage.InMemory",
+        "Orbyss.Localization.Web.Management",
+        "Orbyss.Localization.Web.Runtime"
+      ],
+      "package_roles": {
+        "Orbyss.Localization.Abstractions": "Provider-neutral localization catalog, text, culture, import, export, and runtime contracts.",
+        "Orbyss.Localization.Formats": "Portable localization import and export formats.",
+        "Orbyss.Localization.Management": "Trusted catalog validation, comparison, import, publication, and retirement orchestration.",
+        "Orbyss.Localization.Management.Mcp.AspNetCore": "Localization management MCP tool contributor for the shared Foundation transport.",
+        "Orbyss.Localization.Management.Tool": "Trusted localization authoring, validation, publication, and retirement tools.",
+        "Orbyss.Localization.Runtime": "Release-store-backed localization resolution and fallback implementation.",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore": "Read-only localization runtime MCP tool contributor for the shared Foundation transport.",
+        "Orbyss.Localization.Runtime.Tool": "Read-only localization resolution and bundle tools independent of MCP transport.",
+        "Orbyss.Localization.Storage.Abstractions": "Replaceable localization catalog and immutable release storage ports.",
+        "Orbyss.Localization.Storage.FileSystem": "Filesystem localization storage adapter.",
+        "Orbyss.Localization.Storage.InMemory": "Non-durable in-memory localization adapter for tests and development.",
+        "Orbyss.Localization.Web.Management": "Authenticated localization management HTTP endpoints.",
+        "Orbyss.Localization.Web.Runtime": "Cacheable localization runtime HTTP endpoints."
       }
     }
   },
@@ -255,12 +266,11 @@
       "when": "A product renders immutable, schema-driven forms.",
       "required": [
         "Orbyss.Forms.Abstractions",
-        "Orbyss.Forms.Core",
         "Orbyss.Forms.JsonForms",
         "Orbyss.Forms.Localization",
         "Orbyss.Forms.Web.Runtime",
         "Orbyss.Localization.Abstractions",
-        "Orbyss.Localization.Core",
+        "Orbyss.Localization.Runtime",
         "Orbyss.Localization.Web.Runtime",
         "@orbyss-io/forms-contracts",
         "@orbyss-io/forms-jsonforms-runtime",
@@ -291,27 +301,23 @@
       ],
       "optional_mcp": [
         "Orbyss.Foundation.Mcp.AspNetCore",
-        "Orbyss.Forms.Tool",
-        "Orbyss.Forms.Mcp.AspNetCore"
+        "Orbyss.Forms.Submissions.Tool",
+        "Orbyss.Forms.Submissions.Mcp.AspNetCore"
       ],
       "notes": [
         "InMemory is a reference/development adapter, not a durable production choice."
       ]
     },
     "forms_management": {
-      "when": "Trusted operators author, validate, publish, or retire forms and localization catalogs.",
+      "when": "Trusted operators author, validate, publish, or retire forms.",
       "required": [
-        "Orbyss.Forms.Application",
-        "Orbyss.Forms.Web.Management",
-        "Orbyss.Localization.Application",
-        "Orbyss.Localization.Web.Management"
+        "Orbyss.Forms.Management",
+        "Orbyss.Forms.Web.Management"
       ],
       "optional_mcp": [
         "Orbyss.Foundation.Mcp.AspNetCore",
         "Orbyss.Forms.Management.Tool",
-        "Orbyss.Forms.Management.Mcp.AspNetCore",
-        "Orbyss.Localization.Tool",
-        "Orbyss.Localization.Mcp.AspNetCore"
+        "Orbyss.Forms.Management.Mcp.AspNetCore"
       ]
     },
     "forms_authoring_frontend": {
@@ -347,11 +353,37 @@
       "notes": [
         "InMemory is a reference/development adapter, not a durable production choice."
       ]
+    },
+    "localization_runtime": {
+      "when": "A product resolves immutable localization releases at runtime.",
+      "required": [
+        "Orbyss.Localization.Abstractions",
+        "Orbyss.Localization.Runtime",
+        "Orbyss.Localization.Web.Runtime"
+      ],
+      "optional_mcp": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Localization.Runtime.Tool",
+        "Orbyss.Localization.Runtime.Mcp.AspNetCore"
+      ]
+    },
+    "localization_management": {
+      "when": "Trusted operators validate, import, publish, compare, or retire localization catalogs.",
+      "required": [
+        "Orbyss.Localization.Formats",
+        "Orbyss.Localization.Management",
+        "Orbyss.Localization.Web.Management"
+      ],
+      "optional_mcp": [
+        "Orbyss.Foundation.Mcp.AspNetCore",
+        "Orbyss.Localization.Management.Tool",
+        "Orbyss.Localization.Management.Mcp.AspNetCore"
+      ]
     }
   },
   "non_negotiable_boundaries": [
     "Orbyss is a software factory and AI consultancy; these packages are reusable building blocks, not an Orbyss platform.",
-    "Program Kit must not copy or compile Foundation or Forms runtime source.",
+    "Program Kit must not copy or compile Foundation, Forms, or Localization runtime source.",
     "Consumer bounded contexts own business semantics, authorization meaning, pricing, workflow, and publication policy.",
     "Select one browser authentication profile and one concrete storage adapter per owned storage contract.",
     "MCP tool contributors depend on Orbyss.Foundation.Mcp.AspNetCore; they do not own transport or anonymous access.",

@@ -79,7 +79,7 @@ configuration, package-closure, and release evidence—not a custom `.Host` proj
 `Program.cs`. Adopt this model unless the confirmed bootstrap intake explicitly opts out. An opt-out records the alternate
 host, reason, consequences, and affected managed baseline.
 
-The standard runtime introduces independently pinned Orbyss Foundation and Forms packages plus pinned
+The standard runtime introduces independently pinned Orbyss Foundation, Forms, and Localization packages plus pinned
 CShells/Nuplane dependencies and configured package sources. The assessment review packet must
 disclose that material supply-chain fact. Approving the assessment records the human acknowledgement;
 it does not download packages or run restore. Repository synchronization and networked restore remain

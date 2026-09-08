@@ -24,32 +24,40 @@ def main() -> int:
     manifest = json.loads(REFERENCE.read_text(encoding="utf-8"))
     foundation = manifest["families"]["foundation"]
     forms = manifest["families"]["forms"]
+    localization = manifest["families"]["localization"]
 
     if foundation["repository"] != "https://github.com/orbyss-io/dotnet-foundation":
         raise AssertionError("Foundation repository identity drifted.")
     if forms["repository"] != "https://github.com/orbyss-io/forms":
         raise AssertionError("Forms repository identity drifted.")
-    for family in (foundation, forms):
+    if localization["repository"] != "https://github.com/orbyss-io/localization":
+        raise AssertionError("Localization repository identity drifted.")
+    for family in (foundation, forms, localization):
         if not re.fullmatch(r"\d+\.\d+\.\d+", family["version"]):
             raise AssertionError("Building-block family versions must be exact stable SemVer pins.")
 
     foundation_packages = set(foundation["packages"])
     forms_packages = set(forms["nuget_packages"])
+    localization_packages = set(localization["packages"])
     npm_packages = set(forms["npm_packages"])
     if len(foundation_packages) != 22 or not all(item.startswith("Orbyss.Foundation.") for item in foundation_packages):
         raise AssertionError("Foundation must expose the exact 22-package Orbyss.Foundation family.")
-    if len(forms_packages) != 27 or not all(item.startswith(("Orbyss.Forms.", "Orbyss.Localization.")) for item in forms_packages):
-        raise AssertionError("Forms must expose the exact 27-package Forms/Localization NuGet family.")
+    if len(forms_packages) != 15 or not all(item.startswith("Orbyss.Forms.") for item in forms_packages):
+        raise AssertionError("Forms must expose the exact 15-package Orbyss.Forms NuGet family.")
+    if len(localization_packages) != 13 or not all(item.startswith("Orbyss.Localization.") for item in localization_packages):
+        raise AssertionError("Localization must expose the exact 13-package Orbyss.Localization family.")
     if len(npm_packages) != 12 or not all(item.startswith("@orbyss-io/forms-") for item in npm_packages):
         raise AssertionError("Forms must expose the exact 12-package npm family.")
     if set(foundation["package_roles"]) != foundation_packages:
         raise AssertionError("Every Foundation package must have selection knowledge.")
     if set(forms["nuget_package_roles"]) != forms_packages:
-        raise AssertionError("Every Forms/Localization NuGet package must have selection knowledge.")
+        raise AssertionError("Every Forms NuGet package must have selection knowledge.")
+    if set(localization["package_roles"]) != localization_packages:
+        raise AssertionError("Every Localization package must have selection knowledge.")
     if set(forms["npm_package_roles"]) != npm_packages:
         raise AssertionError("Every Forms frontend package must have selection knowledge.")
 
-    known = foundation_packages | forms_packages | npm_packages
+    known = foundation_packages | forms_packages | localization_packages | npm_packages
     for name, composition in manifest["compositions"].items():
         selected: list[str] = []
         for field in ("required", "optional", "optional_mcp", "choose_one_renderer", "choose_one_storage"):
@@ -72,6 +80,7 @@ def main() -> int:
     expected_pins = {
         **{item: foundation["version"] for item in foundation_packages},
         **{item: forms["version"] for item in forms_packages},
+        **{item: localization["version"] for item in localization_packages},
     }
     actual_orbyss = {key: value for key, value in pins.items() if key.startswith("Orbyss.")}
     if actual_orbyss != expected_pins:
@@ -121,7 +130,8 @@ def main() -> int:
         "independently versioned",
         "consumer owns",
         "Choose exactly one browser authentication profile",
-        "Forms and localization MCP contributors require Foundation MCP transport",
+        "Forms MCP contributors require Foundation MCP transport",
+        "Localization MCP contributors require Foundation MCP transport",
     ):
         if required not in knowledge:
             raise AssertionError(f"Building-block knowledge lost required guidance: {required}")

@@ -564,9 +564,11 @@ def building_block_versions(release: Path) -> dict[str, str]:
         value = json.loads(path.read_text(encoding="utf-8"))
         foundation = value["families"]["foundation"]
         forms = value["families"]["forms"]
+        localization = value["families"]["localization"]
         versions = {
             **{package: foundation["version"] for package in foundation["packages"]},
             **{package: forms["version"] for package in forms["nuget_packages"]},
+            **{package: localization["version"] for package in localization["packages"]},
         }
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise UpgradeError(f"PKU101 release building-block manifest is invalid: {path}: {error}") from error

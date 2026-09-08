@@ -4,7 +4,11 @@
   "inventorySource": "https://api.nuget.org/v3-flatcontainer/{lower-id}/index.json",
   "inventoriedAt": "2026-09-07",
   "requiredReplacementManifest": "extensions/program-kit-dotnet/references/orbyss-building-blocks.json",
-  "requiredReplacementVersion": "0.1.0",
+  "requiredReplacementVersions": {
+    "foundation": "0.1.0",
+    "forms": "0.1.1",
+    "localization": "0.1.1"
+  },
   "confirmation": "UNLIST ALL PROGRAMKIT PACKAGES",
   "versionSets": {
     "analyzers": [

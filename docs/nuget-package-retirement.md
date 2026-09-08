@@ -10,24 +10,15 @@ still restore the exact version. The immutable IDs therefore remain reserved and
 
 The exact retirement inventory is `operations/nuget/program-kit-retirement.json`: 49 package IDs
 and 213 published versions, queried from NuGet.org on 2026-09-07. The operation is deliberately
-gated. Before it mutates NuGet.org, it verifies that all 22 Foundation and 27 Forms/Localization
-replacement packages at version 0.1.0 are public.
+gated. Before it mutates NuGet.org, it verifies that all 22 Foundation packages at `0.1.0`, all 15
+Forms packages at `0.1.1`, and all 13 Localization packages at `0.1.1` are public and listed.
 
-## One-time trusted-publishing policy
+## Local retirement only
 
-Create a NuGet.org trusted-publishing policy with the unlist scope restricted to `ProgramKit.*`:
-
-- Repository owner: `orbyss-io`
-- Repository: `program-kit`
-- Workflow file: `retire-program-kit-nuget.yml`
-- Environment: `nuget-retirement`
-
-Create the matching GitHub environment and define its `NUGET_USER` variable as the NuGet.org profile
-name. Required reviewers are recommended because one run unlists the entire legacy family.
-
-After both replacement release workflows have succeeded and public propagation is verified, manually
-run **Retire ProgramKit NuGet packages** and enter the exact confirmation shown by the workflow. Do
-not run it from a tag or add it to the normal Program Kit release graph.
+Retirement is intentionally not a GitHub workflow and must never be added to the Program Kit release
+graph. After all component releases and Program Kit `v0.10.0` have succeeded, use a local NuGet.org
+API key whose package glob covers `ProgramKit.*` and grants unlist permission. Do not store or print
+the key.
 
 For a local, non-mutating audit:
 
@@ -35,5 +26,30 @@ For a local, non-mutating audit:
 python scripts/retire_programkit_nuget.py --verify-public
 ```
 
-The executing form additionally requires an unlist-scoped `NUGET_API_KEY` and the exact confirmation.
-Do not store that key in the repository or print it in logs.
+The executing form additionally requires an unlist-scoped `NUGET_API_KEY` and the exact confirmation
+`UNLIST ALL PROGRAMKIT PACKAGES`. It waits for NuGet.org propagation and succeeds only when all 213
+inventoried versions report unlisted. Do not store that key in the repository or print it in logs.
+
+```powershell
+$secureKey = Read-Host 'NuGet.org API key' -AsSecureString
+$keyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
+
+try {
+    $env:NUGET_API_KEY =
+        [Runtime.InteropServices.Marshal]::PtrToStringBSTR($keyPointer)
+
+    python .\scripts\retire_programkit_nuget.py `
+        --verify-public `
+        --execute `
+        --confirmation 'UNLIST ALL PROGRAMKIT PACKAGES'
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Package retirement failed with exit code $LASTEXITCODE."
+    }
+}
+finally {
+    Remove-Item Env:NUGET_API_KEY -ErrorAction SilentlyContinue
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($keyPointer)
+    Remove-Variable secureKey, keyPointer -ErrorAction SilentlyContinue
+}
+```

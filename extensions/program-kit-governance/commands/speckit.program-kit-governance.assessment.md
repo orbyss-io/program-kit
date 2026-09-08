@@ -128,7 +128,7 @@ profile manifests through its generated `managed_profile_pins` authority and add
 When .NET is selected, set `Orbyss.Foundation.Host` automatically unless intake explicitly opts out. An
 opt-out requires a non-empty reason and alternate host. Without an opt-out, add acknowledgement ID
 `orbyss-building-block-dependencies` explaining that the managed baseline uses independently pinned
-Orbyss Foundation and Forms packages plus its pinned CShells/Nuplane dependencies and package sources;
+Orbyss Foundation, Forms, and Localization packages plus its pinned CShells/Nuplane dependencies and package sources;
 assessment approval acknowledges this fact but does not restore packages or contact those feeds.
 
 When a browser UI is selected, include the `web` block and set `secure_profile` to

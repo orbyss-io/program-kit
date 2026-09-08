@@ -61,7 +61,7 @@ feature's public configuration/endpoint contracts. It verifies all 16 generated 
 body/content type/indexing headers, private/build-internal 404s, unsupported methods, hostile
 manifest paths/types/hashes/visibility and consumer adapter replacement. No friend assemblies.
 
-The deterministic `scripts/Test-ProgramKit.ps1` aggregate includes the UI tests and all existing
+The deterministic `scripts/Test-ProgramKit.ps1 -Suite Release -Approved` aggregate includes the UI tests and all existing
 governance/authentication/local build-and-install regressions. The .NET solution is restored in
 locked mode and built in Release; NuGet packing is verified separately under `artifacts/ui-nuget`.
 CI and the release gate include the new UI/browser/public-discovery tests. These local results do

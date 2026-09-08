@@ -4,14 +4,16 @@
 
 ## 0.10.0 - 2026-09-07
 
-- Split reusable runtime components into independently versioned Orbyss Foundation and Orbyss Forms
-  repositories, remove their source and publication pipelines from Program Kit, and reserve this
-  repository for the AI extension, governance, generators, and release assets.
+- Split reusable runtime components into independently versioned Orbyss Foundation, Orbyss Forms,
+  and Orbyss Localization repositories, remove their source and publication pipelines from Program
+  Kit, and reserve this repository for the AI extension, governance, generators, and release assets.
 - Replace published `ProgramKit.*` dependencies with `Orbyss.Foundation.*`, `Orbyss.Forms.*`, and
   `Orbyss.Localization.*` pins. Add a machine-readable inventory and composition guide so Program Kit
   can select complete, compatible building-block closures without owning their implementations.
 - Prepare the old `ProgramKit.*` NuGet family for retirement only after the replacement packages have
   been published and verified; consumers migrate explicitly because package identities are immutable.
+- Split validation into a bounded default Development suite and an explicitly approved, human-run
+  Release suite with a preserved transcript; keep paid coding-agent acceptance separate and optional.
 - Replace noun-and-page bootstrap decomposition with evidence-backed subdomain classification,
   enriched bounded-context ownership, typed Context Map relationships, explicit module/contract
   containment, and one ordered dynamic view per source journey.

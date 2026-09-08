@@ -319,7 +319,7 @@ def main() -> int:
         "Explicit intake",
         "Program Kit default",
         "Orbyss.Foundation.Host",
-        "independently pinned Orbyss Foundation and Forms packages",
+        "independently pinned Orbyss Foundation, Forms, and Localization packages",
         "Managed toolchain precedence",
         "managed-toolchain-version",
     )

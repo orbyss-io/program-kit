@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -18,6 +20,16 @@ def read_json(path: Path) -> dict:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"Expected a JSON object: {path}")
+    return value
+
+
+def read_url_json(response) -> dict:
+    payload = response.read()
+    if response.headers.get("Content-Encoding", "").lower() == "gzip" or payload.startswith(b"\x1f\x8b"):
+        payload = gzip.decompress(payload)
+    value = json.loads(payload.decode("utf-8-sig"))
+    if not isinstance(value, dict):
+        raise ValueError("NuGet.org returned a non-object JSON document.")
     return value
 
 
@@ -71,16 +83,50 @@ def verify_inventory(entries: list[tuple[str, str]]) -> None:
         raise RuntimeError("Legacy NuGet inventory verification failed:\n" + "\n".join(failures))
 
 
-def replacement_packages(manifest_path: Path, required_version: str) -> list[tuple[str, str]]:
+def replacement_packages(manifest_path: Path, required_versions: dict[str, str]) -> list[tuple[str, str]]:
     manifest = read_json(manifest_path)
     foundation = manifest["families"]["foundation"]
     forms = manifest["families"]["forms"]
-    if foundation["version"] != required_version or forms["version"] != required_version:
-        raise ValueError("Replacement manifest versions do not match the retirement gate.")
-    packages = list(foundation["packages"]) + list(forms["nuget_packages"])
-    if len(packages) != 49 or len(set(packages)) != 49:
-        raise ValueError("Replacement manifest must contain exactly 49 unique NuGet package IDs.")
-    return [(package_id, required_version) for package_id in sorted(packages)]
+    localization = manifest["families"]["localization"]
+    families = {
+        "foundation": list(foundation["packages"]),
+        "forms": list(forms["nuget_packages"]),
+        "localization": list(localization["packages"]),
+    }
+    if set(required_versions) != set(families):
+        raise ValueError("Replacement version gate must name Foundation, Forms, and Localization.")
+    replacements: list[tuple[str, str]] = []
+    for name, packages in families.items():
+        family = manifest["families"][name]
+        required_version = required_versions[name]
+        if family["version"] != required_version:
+            raise ValueError(f"{name} manifest version does not match the retirement gate.")
+        replacements.extend((package_id, required_version) for package_id in packages)
+    if len(replacements) != 50 or len({package_id for package_id, _ in replacements}) != 50:
+        raise ValueError("Replacement manifest must contain exactly 50 unique NuGet package IDs.")
+    return sorted(replacements)
+
+
+def listed_versions(package_id: str) -> set[str]:
+    url = f"https://api.nuget.org/v3/registration5-gz-semver2/{package_id.lower()}/index.json"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            registration = read_url_json(response)
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return set()
+        raise
+    listed: set[str] = set()
+    for page in registration.get("items", []):
+        items = page.get("items")
+        if items is None:
+            with urllib.request.urlopen(page["@id"], timeout=30) as response:
+                items = read_url_json(response).get("items", [])
+        for item in items:
+            catalog = item.get("catalogEntry", {})
+            if catalog.get("listed", True) is not False:
+                listed.add(str(catalog.get("version", "")))
+    return listed
 
 
 def verify_replacements(packages: list[tuple[str, str]]) -> None:
@@ -88,13 +134,41 @@ def verify_replacements(packages: list[tuple[str, str]]) -> None:
     for package_id, version in packages:
         try:
             available = package_versions(package_id)
+            listed = listed_versions(package_id)
         except (OSError, urllib.error.URLError, ValueError) as error:
             failures.append(f"{package_id}: query failed: {error}")
             continue
         if version not in available:
-            failures.append(f"{package_id}: {version} is not public")
+            failures.append(f"{package_id}: {version} is not publicly restorable")
+        elif version not in listed:
+            failures.append(f"{package_id}: {version} is not listed")
     if failures:
         raise RuntimeError("Replacement publication gate failed:\n" + "\n".join(failures))
+
+
+def verify_unlisted(entries: list[tuple[str, str]], timeout_seconds: int) -> None:
+    expected: dict[str, set[str]] = {}
+    for package_id, version in entries:
+        expected.setdefault(package_id, set()).add(version)
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        pending: dict[str, set[str]] = {}
+        for package_id, versions in sorted(expected.items()):
+            still_listed = versions & listed_versions(package_id)
+            if still_listed:
+                pending[package_id] = still_listed
+        if not pending:
+            return
+        if time.monotonic() >= deadline:
+            details = ", ".join(
+                f"{package_id} ({len(versions)})" for package_id, versions in pending.items()
+            )
+            raise TimeoutError("Legacy unlisting propagation timed out for: " + details)
+        print(
+            "Waiting for NuGet.org unlisting propagation: "
+            + ", ".join(f"{package_id} ({len(versions)})" for package_id, versions in pending.items())
+        )
+        time.sleep(15)
 
 
 def main() -> int:
@@ -103,19 +177,20 @@ def main() -> int:
     parser.add_argument("--verify-public", action="store_true", help="Query NuGet.org for inventory and replacements.")
     parser.add_argument("--execute", action="store_true", help="Perform the irreversible-at-scale unlisting operation.")
     parser.add_argument("--confirmation", default="")
+    parser.add_argument("--timeout-seconds", type=int, default=900)
     args = parser.parse_args()
 
     inventory_path = args.inventory.resolve()
     inventory = read_json(inventory_path)
     entries = retirement_entries(inventory)
     replacement_path = ROOT / inventory["requiredReplacementManifest"]
-    replacements = replacement_packages(replacement_path, inventory["requiredReplacementVersion"])
+    replacements = replacement_packages(replacement_path, inventory["requiredReplacementVersions"])
 
     print(f"Validated retirement inventory: 49 package IDs, {len(entries)} package versions.")
     if args.verify_public or args.execute:
         verify_inventory(entries)
         verify_replacements(replacements)
-        print("NuGet.org contains the complete legacy inventory and all 49 replacement packages.")
+        print("NuGet.org contains the complete legacy inventory and all 50 listed replacement packages.")
 
     if not args.execute:
         print("Dry run only; no packages were unlisted.")
@@ -140,7 +215,11 @@ def main() -> int:
             check=True,
         )
         completed += 1
-    print(f"Unlisted {completed} ProgramKit.* package versions. Exact-version restore remains available by NuGet design.")
+    verify_unlisted(entries, args.timeout_seconds)
+    print(
+        f"Unlisted and verified {completed} ProgramKit.* package versions. "
+        "Exact-version restore remains available by NuGet design."
+    )
     return 0
 
 

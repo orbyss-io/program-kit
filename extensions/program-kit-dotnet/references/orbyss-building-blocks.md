@@ -1,6 +1,6 @@
 # Orbyss building blocks
 
-Program Kit is the AI extension that reasons about architecture and implementation. Orbyss Foundation and Orbyss Forms are independently versioned technical building blocks that Program Kit can recommend and compose. They are not an "Orbyss platform"; Orbyss is a software factory and AI consultancy.
+Program Kit is the AI extension that reasons about architecture and implementation. Orbyss Foundation, Orbyss Forms, and Orbyss Localization are independently versioned technical building blocks that Program Kit can recommend and compose. They are not an "Orbyss platform"; Orbyss is a software factory and AI consultancy.
 
 The machine-readable source of truth is [orbyss-building-blocks.json](orbyss-building-blocks.json). Consult it during intake, architecture, planning, implementation, and managed .NET synchronization whenever a request selects .NET, authentication, APIs, tasks, domain events, forms, localization, or MCP.
 
@@ -9,7 +9,7 @@ The machine-readable source of truth is [orbyss-building-blocks.json](orbyss-bui
 1. Model the consumer's bounded contexts, journeys, business rules, security boundary, and operational constraints without assuming an Orbyss package.
 2. Match required technical capabilities to a composition in the manifest.
 3. Select the smallest package closure. Optional packages require an explicit need.
-4. Record the Foundation and Forms versions independently in architecture evidence and central package management.
+4. Record the Foundation, Forms, and Localization versions independently in architecture evidence and central package management.
 5. Preserve consumer ownership: building blocks implement technical mechanisms, never the product's business meaning.
 6. Validate the generated consumer against the pinned published packages. Program Kit does not reach into either component repository or copy its source.
 
@@ -30,11 +30,11 @@ Important rules:
 - `Orbyss.Foundation.Mcp.AspNetCore` owns the authenticated Streamable HTTP transport. Bounded contexts contribute explicit tool catalogs.
 - Configuration owned by these packages lives under the `Foundation` root.
 
-## Forms and localization
+## Forms
 
 Repository: https://github.com/orbyss-io/forms
 
-Forms supplies semantic contracts, deterministic JSON Forms compilation, runtime rendering contracts, draft/submission operations, managed authoring, localization, storage adapters, MCP tool contributors, and thin Angular/React/Vue bindings.
+Forms supplies semantic contracts, deterministic JSON Forms compilation, runtime rendering contracts, draft/submission operations, managed authoring, localization bridges, storage adapters, lifecycle-specific MCP tool contributors, and thin Angular/React/Vue bindings.
 
 Important rules:
 
@@ -42,16 +42,29 @@ Important rules:
 - Choose packages by lifecycle: immutable runtime, end-user operations, or trusted management. Do not install management packages into a public runtime without an explicit boundary.
 - Choose one renderer binding and only the optional UI capabilities actually used.
 - Choose one concrete storage adapter for each storage contract. In-memory adapters are for reference/testing and are not durable production storage.
-- Forms and localization MCP contributors require Foundation MCP transport; they do not map their own transport.
+- Forms MCP contributors require Foundation MCP transport; they do not map their own transport.
 - A compiled release is immutable and hash-bound. Changes create a new release and breaking changes require an explicit migration policy.
+
+## Localization
+
+Repository: https://github.com/orbyss-io/localization
+
+Localization supplies provider-neutral contracts, portable formats, trusted catalog management, immutable-release runtime resolution, replaceable storage adapters, HTTP features, and distinct management and read-only runtime MCP contributors.
+
+Important rules:
+
+- Consumers may reference abstractions without selecting or solidifying a concrete runtime, storage adapter, HTTP surface, or MCP transport.
+- Keep trusted management composition separate from public runtime composition.
+- Select exactly one storage adapter where the consumer owns localization persistence; the in-memory adapter is for reference/testing only.
+- Management and runtime implementation packages expose CShell feature registration; consumers should not reconstruct their service graphs manually.
+- Localization MCP contributors require Foundation MCP transport and retain their management-versus-runtime boundary.
 
 ## Version and release independence
 
-Program Kit's version describes AI-extension behavior. It never determines a Foundation or Forms version. The component pins in the manifest change only after:
+Program Kit's version describes AI-extension behavior. It never determines a Foundation, Forms, or Localization version. The component pins in the manifest change only after:
 
 - the component release is publicly available;
 - Program Kit's consumer compatibility tests pass against that exact release;
 - migrations and changed selection rules are reflected in this reference and the templates.
 
-Do not test Program Kit by building component source. Likewise, changes to Program Kit must not trigger Foundation or Forms publication pipelines.
-
+Do not test Program Kit by building component source. Likewise, changes to Program Kit must not trigger Foundation, Forms, or Localization publication pipelines.

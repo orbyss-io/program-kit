@@ -14,9 +14,10 @@ governance template preset, and the bootstrap workflow as separate components.
 Program Kit is the AI extension, not an application platform or a component runtime. The reusable
 technical building blocks it understands are independently developed and released from
 [`orbyss-io/dotnet-foundation`](https://github.com/orbyss-io/dotnet-foundation) and
-[`orbyss-io/forms`](https://github.com/orbyss-io/forms). Orbyss is a software factory and AI
-consultancy; the Foundation and Forms names describe reusable engineering assets, not a platform
-product.
+[`orbyss-io/forms`](https://github.com/orbyss-io/forms), with localization maintained separately in
+[`orbyss-io/localization`](https://github.com/orbyss-io/localization). Orbyss is a software factory
+and AI consultancy; the Foundation, Forms, and Localization names describe reusable engineering
+assets, not a platform product.
 
 ## Install in a repository
 
@@ -322,8 +323,8 @@ updates. Workflow overlays remain the appropriate mechanism for changing a workf
 
 The .NET profile maps these generic rules to project and assembly boundaries. When .NET is selected,
 the application-neutral `Orbyss.Foundation.Host` and its CShells/Nuplane composition model are adopted
-unless intake explicitly opts out. Foundation and Forms versions are pinned independently from the
-Program Kit version. Approval does not restore packages or contact feeds. Feature projects reference
+unless intake explicitly opts out. Foundation, Forms, and Localization versions are pinned
+independently from the Program Kit version. Approval does not restore packages or contact feeds. Feature projects reference
 the smallest required building-block closure; business behavior remains consumer-owned.
 
 ASP.NET Core Minimal APIs are the default built-in HTTP candidate. Each public operation owns stable
@@ -358,12 +359,27 @@ does not inherit those exact IDs.
 
 ## Development and release
 
-Run the local source checks and disposable install test:
+During development, run the bounded source-contract gate. It intentionally excludes browser,
+packaging, clean-install, upgrade, and public-registry release gates:
 
 ```powershell
 ./scripts/Test-ProgramKit.ps1
-./scripts/Test-LocalInstall.ps1
 ```
+
+When the candidate is explicitly ready to proceed toward publication, run the complete deterministic
+suite from a normal user-owned terminal. On this Windows host Firefox remains CI-owned:
+
+```powershell
+./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
+```
+
+The Release suite records its complete transcript under
+`artifacts/release-validation-<version>.log`, so a Codex task can inspect the human-run result without
+owning the long-running process.
+
+The deterministic suites do not invoke a coding agent. Tests named for Codex validate integration
+contracts and approval guards only. The paid live acceptance below is the sole suite that starts
+coding-agent sessions.
 
 The paid, local-only live bootstrap acceptance suite is completely optional and user-invoked.
 Publishing must not prompt for it or record it as skipped. When the user explicitly requests a live
@@ -448,12 +464,13 @@ keyboard/reflow behavior. [Evidence and implementation status](docs/ui-experienc
 automated evidence from consumer journey, screen-reader and deployment acceptance.
 
 Forms and localization are supplied by the independently versioned
-[`orbyss-io/forms`](https://github.com/orbyss-io/forms) repository. Program Kit retains the knowledge
-needed to choose its semantic contracts, compiler, runtime, authoring, operations, localization,
+[`orbyss-io/forms`](https://github.com/orbyss-io/forms) and
+[`orbyss-io/localization`](https://github.com/orbyss-io/localization) repositories. Program Kit retains
+the knowledge needed to choose their semantic contracts, compiler, runtime, authoring, operations,
 storage, MCP, and Angular/React/Vue packages without compiling their source. The consumer still owns
 field meaning, business validation, authorization, persistence durability, workflow, and publication
 policy. Program Kit compatibility changes therefore update only selection knowledge, templates, and
-consumer-facing checks; Forms implementation and release tests remain in the Forms repository.
+consumer-facing checks; implementation and release tests remain in the owning component repository.
 
 ## License
 
