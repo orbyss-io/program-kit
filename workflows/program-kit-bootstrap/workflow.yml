@@ -182,6 +182,11 @@ steps:
     input:
       args: "{{ inputs.bootstrap_intake }}; bootstrap context: {{ steps.prepare-architecture-context.output.data.path }}"
 
+  - id: validate-architecture-alignment
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-architecture-alignment --run-id {{ context.run_id }} --json"
+    output_format: json
+
   - id: prepare-tooling-context
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage tooling --run-id {{ context.run_id }} --json"

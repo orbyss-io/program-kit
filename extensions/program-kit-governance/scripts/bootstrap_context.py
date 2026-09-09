@@ -187,6 +187,7 @@ OUTPUT_CONTRACTS = {
             ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
         ],
         "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-architecture-alignment --run-id <workflow-run-id>",
             "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate"
         ],
     },
@@ -510,6 +511,15 @@ def validate_intake(
             raise
         raise ContextError(str(exc)) from exc
     return intake
+
+
+def validate_architecture_alignment(project_root: Path, run_id: str) -> dict:
+    """Validate the evolved architecture against immutable confirmed-intake semantics."""
+    return validate_intake(
+        project_root,
+        run_id,
+        allow_architecture_evolution=True,
+    )
 
 
 def intake_record(project_root: Path, run_id: str) -> dict:
@@ -855,7 +865,14 @@ def main() -> int:
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Build compact Program Kit bootstrap stage handoffs.")
     parser.add_argument(
-        "command", choices=("build", "validate", "validate-intake", "validate-profile-pins")
+        "command",
+        choices=(
+            "build",
+            "validate",
+            "validate-intake",
+            "validate-profile-pins",
+            "validate-architecture-alignment",
+        ),
     )
     parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
     parser.add_argument("--run-id", required=True)
@@ -881,6 +898,14 @@ def main() -> int:
                 "pins": authority["pins"],
                 "source_count": len(authority["sources"]),
             }
+        elif args.command == "validate-architecture-alignment":
+            payload = validate_architecture_alignment(project_root, args.run_id)
+            result = {
+                "path": INTAKE_PATH.as_posix(),
+                "fact_count": len(payload["facts"]),
+                "journey_count": len(payload["journeys"]),
+                "capability_count": len(payload["capability_assessments"]),
+            }
         else:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
@@ -901,6 +926,8 @@ def main() -> int:
             "Program Kit selected-profile pins are valid: "
             f"{len(result['pins'])} managed pin(s)"
         )
+    elif args.command == "validate-architecture-alignment":
+        print("Program Kit architecture remains aligned with the confirmed bootstrap intake")
     else:
         print(f"Program Kit {args.stage} context is valid: {result['path']}")
     return 0

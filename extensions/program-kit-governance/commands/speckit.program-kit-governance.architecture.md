@@ -78,14 +78,34 @@ the assessment review so the artifacts can be corrected, the packet regenerated,
 contents approved again.
 
 Treat `docs/architecture/architecture-map.json` as the canonical living architecture model and the
-confirmed intake map as its provisional starting state. Refine it with accepted assessment choices,
-the ratified constitution, and architecture evidence. Maintain its C4 System Context and Domain
+confirmed intake map as its provisional starting state. Refine fields that are not immutable
+confirmed-intake projections with accepted assessment choices, the ratified constitution, and
+architecture evidence. Maintain its C4 System Context and Domain
 Context Map as the first review views. Preserve the intake's domain/subdomain landscape,
 context/module decomposition, and one dynamic view for every separately named source journey.
 Add C4 container, component, or deployment levels only when evidence supports those physical or
 runtime boundaries; a bounded context or capability must never be projected as a peer software
 system merely to fit a C4 level. Diagrams are views of the canonical model, never independent
 sources of truth.
+
+The confirmed intake remains immutable evidence. Preserve these cross-artifact projections exactly:
+
+- `strategic_model.subdomains` is the intake `domain_analysis.subdomains`; only `decision_refs` may
+  be added to a map record.
+- Each `strategic_model.bounded_contexts` record is its intake
+  `domain_analysis.candidate_contexts` record with `id` and `name` represented by `element`; the
+  referenced element must retain the intake name, every other intake field remains identical, and
+  only `decision_refs` may be added.
+- Each `strategic_model.capability_bindings` record is its intake `capability_assessments` record
+  with `id` represented by `assessment` and `need` omitted; only `module`, `status`, and
+  `decision_refs` may be added. Preserve all other values exactly.
+- `strategic_model.founding_decisions` is exactly the intake
+  `domain_analysis.founding_decision_candidates` collection. Map every intake journey separately
+  through `source_journey`, and use only evidence IDs declared by the intake.
+
+Do not enrich, rewrite, or normalize those confirmed semantics in the architecture map. Put later
+detail in modules, contracts, relationships, constraints, ADRs, narrative documents, or another
+non-projection field.
 
 Read the intake's founding decision candidates before doing broad architecture research. For each
 candidate, verify the evidence and assumptions against the ratified constitution and relevant
@@ -123,6 +143,14 @@ freshness first and does not change the canonical architecture map."
 Then validate the canonical model with source and ADR hashes:
 
 `python .specify/extensions/program-kit-governance/scripts/architecture_map.py validate --map docs/architecture/architecture-map.json --project-root . --verify-sources`
+
+Finally, using the run ID from the stage brief, validate the evolved map against the confirmed
+intake before reporting success:
+
+`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-architecture-alignment --run-id <workflow-run-id>`
+
+Repair any alignment diagnostic in the architecture artifacts and rerun both validations. Never
+return success while this transition contract fails.
 
 The architecture baseline must also define:
 

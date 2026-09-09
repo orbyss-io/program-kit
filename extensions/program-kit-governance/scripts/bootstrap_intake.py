@@ -489,10 +489,13 @@ def validate_intake(
         _string_list(routing[key], f"routing.{key}")
 
     architecture_module = _load_architecture_module()
-    architecture_map = architecture_module.load_object(artifact_paths["architecture_map"])
-    architecture_module.validate_model(architecture_map, project_root)
-    architecture_module.validate_bootstrap_alignment(architecture_map, intake)
-    expected_projection = architecture_module.StructurizrDslExporter().export(architecture_map)
+    try:
+        architecture_map = architecture_module.load_object(artifact_paths["architecture_map"])
+        architecture_module.validate_model(architecture_map, project_root)
+        architecture_module.validate_bootstrap_alignment(architecture_map, intake)
+        expected_projection = architecture_module.StructurizrDslExporter().export(architecture_map)
+    except architecture_module.ArchitectureMapError as exc:
+        raise IntakeError(str(exc)) from exc
     actual_projection = artifact_paths["c4_projection"].read_text(encoding="utf-8")
     if actual_projection != expected_projection:
         raise IntakeError(

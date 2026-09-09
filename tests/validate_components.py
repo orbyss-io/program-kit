@@ -30,6 +30,7 @@ EXPECTED_STEPS = [
     "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture",
+    "validate-architecture-alignment",
     "prepare-tooling-context",
     "tooling",
     "prepare-roadmap-context",
@@ -219,6 +220,20 @@ def main() -> int:
         or pin_validation.get("output_format") != "json"
     ):
         raise AssertionError("Selected profile pins must be deterministically validated after research")
+    architecture_alignment = next(
+        step for step in steps if step["id"] == "validate-architecture-alignment"
+    )
+    if (
+        architecture_alignment.get("type") != "shell"
+        or "bootstrap_context.py validate-architecture-alignment"
+        not in architecture_alignment.get("run", "")
+        or architecture_alignment.get("output_format") != "json"
+        or step_ids.index("architecture") >= step_ids.index("validate-architecture-alignment")
+        or step_ids.index("validate-architecture-alignment") >= step_ids.index("prepare-tooling-context")
+    ):
+        raise AssertionError(
+            "Confirmed-intake alignment must be validated between architecture and tooling"
+        )
     constitution_step = next(step for step in steps if step["id"] == "constitution-draft")
     if constitution_step.get("command") != "speckit.constitution":
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")

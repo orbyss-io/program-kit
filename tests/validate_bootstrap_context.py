@@ -202,6 +202,38 @@ def main() -> int:
         run_id = "context-test-1"
         seed_project(project, module, semantic, run_id)
         module.validate_intake(project, run_id)
+        module.validate_architecture_alignment(project, run_id)
+
+        architecture_path = project / "docs/architecture/architecture-map.json"
+        architecture = json.loads(architecture_path.read_text(encoding="utf-8"))
+        original_responsibilities = architecture["strategic_model"]["bounded_contexts"][0][
+            "responsibilities"
+        ]
+        architecture["strategic_model"]["bounded_contexts"][0]["responsibilities"] = [
+            "A worker-enriched responsibility that was not confirmed by intake."
+        ]
+        write_json(architecture_path, architecture)
+        architecture_module = module._load_intake_module()._load_architecture_module()
+        write(
+            project / "docs/architecture/workspace.dsl",
+            architecture_module.StructurizrDslExporter().export(architecture),
+        )
+        try:
+            module.validate_architecture_alignment(project, run_id)
+        except module.ContextError as exc:
+            if "bounded-context evidence is not identical" not in str(exc):
+                raise
+        else:
+            raise AssertionError("Architecture alignment accepted enriched confirmed-intake semantics")
+        architecture["strategic_model"]["bounded_contexts"][0][
+            "responsibilities"
+        ] = original_responsibilities
+        write_json(architecture_path, architecture)
+        write(
+            project / "docs/architecture/workspace.dsl",
+            architecture_module.StructurizrDslExporter().export(architecture),
+        )
+        module.validate_architecture_alignment(project, run_id)
 
         for stage in module.STAGE_ARTIFACTS:
             path, payload = module.build_context(project, run_id, stage)
@@ -236,6 +268,13 @@ def main() -> int:
             ):
                 raise AssertionError(f"{stage} context does not require contract-first generation")
             output_contract = payload["output_contract"]
+            if stage == "architecture" and not any(
+                "bootstrap_context.py validate-architecture-alignment" in command
+                for command in output_contract["validation_commands"]
+            ):
+                raise AssertionError(
+                    "Architecture output contract omits confirmed-intake alignment validation"
+                )
             for artifact, budget in output_contract["artifact_byte_budgets"].items():
                 if artifact not in output_contract["write_paths"] or budget <= 0:
                     raise AssertionError(

@@ -42,6 +42,7 @@ EXPECTED_STEPS = [
     "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture",
+    "validate-architecture-alignment",
     "prepare-tooling-context",
     "tooling",
     "prepare-roadmap-context",
