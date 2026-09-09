@@ -24,6 +24,7 @@ from live.v2.cli import (
     supervisor_environment,
     validate_agent_launcher,
     validate_toolchain_binding,
+    workflow_failure_causes,
     worker_environment,
 )
 from live.v2.common import LiveContractError, atomic_write_json, load_object, sha256_file, validate
@@ -256,6 +257,37 @@ def main() -> int:
             raise AssertionError("Exit 130 without observed interruption was not classified as inconclusive")
         if "top-secret-token" in (temp / "process/workflow.stdout.log").read_text(encoding="utf-8"):
             raise AssertionError("Supervisor retained a raw secret")
+
+        workflow_project = temp / "workflow-failure"
+        workflow_run = workflow_project / ".specify/workflows/runs/failure-run"
+        workflow_run.mkdir(parents=True)
+        workflow_stdout = workflow_project / "workflow.stdout.log"
+        atomic_write_json(
+            workflow_stdout,
+            {
+                "run_id": "failure-run",
+                "status": "failed",
+                "current_step_id": "prepare-readiness-context",
+            },
+        )
+        atomic_write_json(
+            workflow_run / "state.json",
+            {
+                "step_results": {
+                    "prepare-readiness-context": {
+                        "type": "shell",
+                        "status": "failed",
+                    }
+                }
+            },
+        )
+        if workflow_failure_causes(workflow_project, workflow_stdout) != ["product"]:
+            raise AssertionError("A deterministic workflow-shell failure was not classified as product")
+        state = load_object(workflow_run / "state.json")
+        state["step_results"]["prepare-readiness-context"]["type"] = "command"
+        atomic_write_json(workflow_run / "state.json", state)
+        if workflow_failure_causes(workflow_project, workflow_stdout) != ["model-conformance"]:
+            raise AssertionError("An agent-command workflow failure was not classified as model conformance")
 
         previous_token = os.environ.get("PROGRAM_KIT_NPM_TOKEN")
         os.environ["PROGRAM_KIT_NPM_TOKEN"] = "worker-must-not-receive-this"

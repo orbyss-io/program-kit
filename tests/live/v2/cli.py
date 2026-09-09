@@ -168,6 +168,30 @@ def process_failure(result: ProcessResult) -> tuple[str, list[str]]:
     return "failed", ["model-conformance"]
 
 
+def workflow_failure_causes(project: Path, stdout_path: Path) -> list[str]:
+    try:
+        summary = load_object(stdout_path)
+        run_id = summary.get("run_id")
+        step_id = summary.get("current_step_id")
+        if not isinstance(run_id, str) or not isinstance(step_id, str):
+            return ["unclassified"]
+        state = load_object(project / ".specify/workflows/runs" / run_id / "state.json")
+        step_results = state.get("step_results")
+        if not isinstance(step_results, dict):
+            return ["unclassified"]
+        step = step_results.get(step_id)
+        if not isinstance(step, dict) or step.get("status") != "failed":
+            return ["unclassified"]
+        step_type = step.get("type")
+        if step_type == "command":
+            return ["model-conformance"]
+        if step_type in {"shell", "switch", "gate"}:
+            return ["product"]
+    except (OSError, json.JSONDecodeError, LiveContractError):
+        pass
+    return ["unclassified"]
+
+
 def worker_guidance(project: Path) -> None:
     excludes = "" if os.name == "nt" else os.devnull
     atomic_write_json(project / ".program-kit-live/worker-boundary.json", {"schemaVersion": "2.0", "network": "model-transport-only", "restoreOwner": "supervisor"})
@@ -309,6 +333,10 @@ def bootstrap(args: argparse.Namespace) -> int:
     checkpoint_path: Path | None = None
     try:
         if result.exitCode != 0:
+            if status == "failed" and causes == ["model-conformance"]:
+                causes = workflow_failure_causes(
+                    project, run_root / "worker" / result.stdout.path
+                )
             raise LiveContractError(f"LIVE_BOOTSTRAP_WORKER_EXIT: {result.exitCode}")
         validator = project / ".specify/extensions/program-kit-governance/scripts/governance_state.py"
         validation = subprocess.run([sys.executable, str(validator), "validate-bootstrap"], cwd=project, check=False)
