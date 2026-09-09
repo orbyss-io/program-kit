@@ -1575,6 +1575,18 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
             )
     validate_roadmap(require_ready)
     validate_bootstrap_consistency()
+    architecture = _load_architecture_module()
+    try:
+        model = architecture.load_object(project_path(ARCHITECTURE_MAP))
+        architecture.validate_model(model, Path.cwd().resolve())
+        expected_projection = architecture.StructurizrDslExporter().export(model)
+    except architecture.ArchitectureMapError as exc:
+        raise GovernanceStateError(str(exc)) from exc
+    if project_path(WORKSPACE_DSL).read_text(encoding="utf-8") != expected_projection:
+        raise GovernanceStateError(
+            f"C4 projection is stale: {WORKSPACE_DSL.as_posix()}; "
+            "regenerate it from the canonical architecture map"
+        )
     if require_approval:
         path = project_path(BOOTSTRAP_APPROVAL)
         record = read_json(path)
@@ -1859,7 +1871,10 @@ def _replace_roadmap_view(text: str, view: str, path: Path) -> str:
 def synchronize_roadmap_views() -> None:
     """Refresh non-authoritative roadmap navigation in architecture documents."""
     records = validate_roadmap(False)
-    _require_files((ARCHITECTURE, TRACEABILITY), "Roadmap synchronization")
+    _require_files(
+        (ARCHITECTURE, TRACEABILITY, ARCHITECTURE_MAP, WORKSPACE_DSL),
+        "Roadmap synchronization",
+    )
     view = _roadmap_view(records)
     updates: list[tuple[Path, str]] = []
     for relative in (ARCHITECTURE, TRACEABILITY):
@@ -1867,11 +1882,37 @@ def synchronize_roadmap_views() -> None:
         updates.append(
             (path, _replace_roadmap_view(path.read_text(encoding="utf-8"), view, relative))
         )
-    for path, updated in updates:
-        write_text(path, updated)
+    architecture = _load_architecture_module()
+    map_path = project_path(ARCHITECTURE_MAP)
+    projection_path = project_path(WORKSPACE_DSL)
+    model = architecture.load_object(map_path)
+    mutable_paths = [path for path, _ in updates] + [map_path, projection_path]
+    originals = {path: path.read_bytes() for path in mutable_paths}
+    try:
+        for path, updated in updates:
+            write_text(path, updated)
+        documentation = {
+            item.get("path"): item
+            for item in model.get("documentation", [])
+            if isinstance(item, dict)
+        }
+        for relative in (ARCHITECTURE, TRACEABILITY):
+            registered = documentation.get(relative.as_posix())
+            if registered is not None:
+                registered["sha256"] = sha256(project_path(relative))
+        architecture.validate_model(model, Path.cwd().resolve())
+        write_json(map_path, model)
+        write_text(projection_path, architecture.StructurizrDslExporter().export(model))
+    except Exception as exc:
+        for path, content in originals.items():
+            path.write_bytes(content)
+        if isinstance(exc, architecture.ArchitectureMapError):
+            raise GovernanceStateError(str(exc)) from exc
+        raise
     print(
         "Synchronized derived roadmap views in "
-        f"{ARCHITECTURE.as_posix()} and {TRACEABILITY.as_posix()}"
+        f"{ARCHITECTURE.as_posix()} and {TRACEABILITY.as_posix()}; "
+        "refreshed canonical documentation hashes and C4 projection"
     )
 
 
