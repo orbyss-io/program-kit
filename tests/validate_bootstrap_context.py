@@ -223,6 +223,20 @@ def main() -> int:
 
         architecture_path = project / "docs/architecture/architecture-map.json"
         architecture = json.loads(architecture_path.read_text(encoding="utf-8"))
+        intake = json.loads((project / module.INTAKE_PATH).read_text(encoding="utf-8"))
+        architecture_module = module._load_intake_module()._load_architecture_module()
+        accepted_architecture = json.loads(json.dumps(architecture))
+        accepted_architecture["strategic_model"]["bounded_contexts"][0]["status"] = "accepted"
+        architecture_module.validate_bootstrap_alignment(accepted_architecture, intake)
+        invalid_transition = json.loads(json.dumps(architecture))
+        invalid_transition["strategic_model"]["bounded_contexts"][0]["status"] = "unresolved"
+        try:
+            architecture_module.validate_bootstrap_alignment(invalid_transition, intake)
+        except architecture_module.ArchitectureMapError as exc:
+            if "status cannot transition" not in str(exc):
+                raise
+        else:
+            raise AssertionError("Architecture alignment accepted a non-monotonic context status")
         original_responsibilities = architecture["strategic_model"]["bounded_contexts"][0][
             "responsibilities"
         ]
@@ -230,7 +244,6 @@ def main() -> int:
             "A worker-enriched responsibility that was not confirmed by intake."
         ]
         write_json(architecture_path, architecture)
-        architecture_module = module._load_intake_module()._load_architecture_module()
         write(
             project / "docs/architecture/workspace.dsl",
             architecture_module.StructurizrDslExporter().export(architecture),

@@ -776,6 +776,7 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     mapped_contexts = {item["element"] for item in strategic["bounded_contexts"]}
     if contexts != mapped_contexts:
         raise ArchitectureMapError("Intake and architecture-map candidate bounded contexts do not match")
+    intake_contexts = analysis.get("candidate_contexts", [])
     expected_contexts = [
         {
             "id": item["element"],
@@ -785,13 +786,30 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
             **{
                 key: value
                 for key, value in item.items()
-                if key not in {"element", "decision_refs"}
+                if key not in {"element", "decision_refs", "status"}
             },
         }
         for item in strategic["bounded_contexts"]
     ]
-    if analysis.get("candidate_contexts") != expected_contexts:
+    intake_context_evidence = [
+        {key: value for key, value in item.items() if key != "status"}
+        for item in intake_contexts
+    ]
+    if intake_context_evidence != expected_contexts:
         raise ArchitectureMapError("Intake and architecture-map bounded-context evidence is not identical")
+    mapped_context_records = {
+        item["element"]: item for item in strategic["bounded_contexts"]
+    }
+    for item in intake_contexts:
+        intake_status = item["status"]
+        mapped_status = mapped_context_records[item["id"]]["status"]
+        if mapped_status == intake_status:
+            continue
+        if mapped_status == "accepted" and intake_status in {"explicit", "derived", "proposed"}:
+            continue
+        raise ArchitectureMapError(
+            f"Bounded-context {item['id']} status cannot transition from {intake_status} to {mapped_status}"
+        )
     assessments = {item["id"] for item in intake.get("capability_assessments", [])}
     bindings = {item["assessment"] for item in strategic["capability_bindings"]}
     if assessments != bindings:

@@ -139,5 +139,10 @@ cancelled, and inconclusive runs are evidence and must not be deleted automatica
 are classified as preflight, harness, environment, external service, model conformance, product,
 operator, or unclassified.
 
+The invoking terminal remains occupied until the authorized phase completes. During bootstrap it
+prints each observed workflow-step transition and a one-minute heartbeat for a long-running step;
+the full redacted worker streams continue to be written incrementally to the evidence directory.
+The final status line and restored PowerShell prompt are the completion signal.
+
 The old `Test-LiveBootstrap.ps1` and `tests/live/run_bootstrap_acceptance.py` entry points are
 retired. Historical v1 reports remain read-only evidence and are not converted or treated as v2.

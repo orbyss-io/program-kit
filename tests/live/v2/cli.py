@@ -8,6 +8,8 @@ import platform
 import shutil
 import subprocess
 import sys
+import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,6 +31,61 @@ from live.v2.validation import validate_consumer
 CI_KEYS = ("CI", "GITHUB_ACTIONS", "TF_BUILD", "BUILD_BUILDID")
 SECRET_KEYS = ("PROGRAM_KIT_NPM_TOKEN", "NPM_TOKEN", "NODE_AUTH_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
 LIVE_TOOLCHAINS = ("dotnet", "node", "npm", "git", "specify", "codex")
+
+
+class WorkflowProgress:
+    def __init__(self, project: Path, heartbeat_seconds: float = 60.0):
+        self.project = project
+        self.heartbeat_seconds = heartbeat_seconds
+        self._finished = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._last_signature: tuple[str, str] | None = None
+        self._last_report = 0.0
+
+    def start(self) -> None:
+        print("Live workflow: starting", flush=True)
+        self._last_report = time.monotonic()
+        self._thread.start()
+
+    def _state(self) -> tuple[str, str] | None:
+        run_root = self.project / ".specify/workflows/runs"
+        try:
+            states = list(run_root.glob("*/state.json"))
+            if not states:
+                return None
+            state = load_object(max(states, key=lambda path: path.stat().st_mtime_ns))
+            step = state.get("current_step_id")
+            if not isinstance(step, str) or not step:
+                return None
+            result = state.get("step_results", {}).get(step, {})
+            status = result.get("status", state.get("status", "running"))
+            return step, status if isinstance(status, str) else "running"
+        except (OSError, json.JSONDecodeError, LiveContractError):
+            return None
+
+    def _report(self, *, force: bool = False) -> None:
+        signature = self._state()
+        now = time.monotonic()
+        if signature is not None and signature != self._last_signature:
+            print(f"Live workflow: {signature[0]} ({signature[1]})", flush=True)
+            self._last_signature = signature
+            self._last_report = now
+        elif (
+            signature is not None
+            and signature[1] not in {"completed", "failed", "skipped", "cancelled"}
+            and (force or now - self._last_report >= self.heartbeat_seconds)
+        ):
+            print(f"Live workflow: {signature[0]} still running", flush=True)
+            self._last_report = now
+
+    def _run(self) -> None:
+        while not self._finished.wait(0.5):
+            self._report()
+
+    def stop(self) -> None:
+        self._finished.set()
+        self._thread.join(timeout=2)
+        self._report(force=True)
 
 
 def repository_root() -> Path:
@@ -324,11 +381,16 @@ def bootstrap(args: argparse.Namespace) -> int:
         "--input", "bootstrap_intake=docs/architecture/bootstrap-intake.json", "--input", "integration=codex",
         "--input", "auto_approve_and_ratify=true", "--json",
     ]
-    result = run_supervised(
-        command, cwd=project, environment=worker_environment(project, authorization["agentProfile"]),
-        evidence_directory=run_root / "worker", timeout_seconds=authorization["agentProfile"]["timeoutSeconds"],
-        secrets=[os.environ.get(key, "") for key in SECRET_KEYS],
-    )
+    progress = WorkflowProgress(project)
+    progress.start()
+    try:
+        result = run_supervised(
+            command, cwd=project, environment=worker_environment(project, authorization["agentProfile"]),
+            evidence_directory=run_root / "worker", timeout_seconds=authorization["agentProfile"]["timeoutSeconds"],
+            secrets=[os.environ.get(key, "") for key in SECRET_KEYS],
+        )
+    finally:
+        progress.stop()
     status, causes = process_failure(result)
     checkpoint_path: Path | None = None
     try:

@@ -55,10 +55,12 @@ class _CaptureThread(threading.Thread):
         try:
             self.destination.parent.mkdir(parents=True, exist_ok=True)
             with self.destination.open("wb") as output:
-                for chunk in iter(lambda: self.stream.read(65536), b""):
+                read_chunk = getattr(self.stream, "read1", self.stream.read)
+                for chunk in iter(lambda: read_chunk(65536), b""):
                     redacted = self.redactor.feed(chunk)
                     if redacted:
                         output.write(redacted)
+                        output.flush()
                 final, self.summary = self.redactor.finish()
                 output.write(final)
                 output.flush()

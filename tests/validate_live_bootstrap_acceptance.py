@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import shutil
@@ -9,6 +10,7 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
+from contextlib import redirect_stdout
 from pathlib import Path
 
 from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
@@ -19,6 +21,7 @@ from live.v2.candidate import (
 )
 from live.v2.checkpoint import materialize_checkpoint, seal_checkpoint
 from live.v2.cli import (
+    WorkflowProgress,
     process_failure,
     candidate_packages,
     execution_workspace,
@@ -320,6 +323,20 @@ def main() -> int:
         if workflow_failure_causes(workflow_project, workflow_stdout) != ["model-conformance"]:
             raise AssertionError("An agent-command workflow failure was not classified as model conformance")
 
+        state["current_step_id"] = "prepare-readiness-context"
+        state["step_results"]["prepare-readiness-context"]["status"] = "running"
+        atomic_write_json(workflow_run / "state.json", state)
+        progress = WorkflowProgress(workflow_project, heartbeat_seconds=0)
+        progress_output = io.StringIO()
+        with redirect_stdout(progress_output):
+            progress._report()
+            progress._report()
+        reported = progress_output.getvalue()
+        if "Live workflow: prepare-readiness-context (running)" not in reported:
+            raise AssertionError("Live workflow progress did not report a step transition")
+        if "Live workflow: prepare-readiness-context still running" not in reported:
+            raise AssertionError("Live workflow progress did not emit a heartbeat")
+
         previous_token = os.environ.get("PROGRAM_KIT_NPM_TOKEN")
         os.environ["PROGRAM_KIT_NPM_TOKEN"] = "worker-must-not-receive-this"
         try:
@@ -344,6 +361,7 @@ def main() -> int:
         raise AssertionError("Legacy paid runner was not retired before launch")
     runner_text = (ROOT / "tests/live/run_bootstrap_acceptance.py").read_text(encoding="utf-8")
     supervisor_text = (ROOT / "tests/live/v2/supervisor.py").read_text(encoding="utf-8")
+    cli_text = (ROOT / "tests/live/v2/cli.py").read_text(encoding="utf-8")
     if "LIVE_ACCEPTANCE_V1_RETIRED" not in runner_text:
         raise AssertionError("Legacy Python entrypoint can still claim authority")
     if "os.kill(pid, 0)" in supervisor_text or "CTRL_C_EVENT" in supervisor_text:
@@ -352,6 +370,10 @@ def main() -> int:
         raise AssertionError("Windows worker descendants are not Job Object-owned")
     if any(marker not in supervisor_text for marker in ("SetThreadExecutionState", "ES_CONTINUOUS", "ES_SYSTEM_REQUIRED", "_SystemAwakeLease")):
         raise AssertionError("Windows live supervision does not prevent idle sleep for the paid phase")
+    if any(marker not in supervisor_text for marker in ("read1", "output.flush()")):
+        raise AssertionError("Live worker evidence is no longer drained incrementally")
+    if any(marker not in cli_text for marker in ("class WorkflowProgress", "Live workflow: starting", "still running", "progress.stop()")):
+        raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
     if "write_release_receipt.py" not in aggregate:
         raise AssertionError("The deterministic Release suite does not emit a machine-bound receipt")
