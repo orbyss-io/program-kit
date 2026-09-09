@@ -16,7 +16,9 @@ unchanged bootstrap artifact, search other artifact directories, or enumerate in
 Use `governance.paths` and the exact writes and validation command in `output_contract`. The roadmap
 field contract is stated below. Do not search `.specify` or inspect `governance_state.py` to
 rediscover either contract; run the supplied validator and respond only to a specific diagnostic.
-Honor `output_contract.artifact_byte_budgets` after every write, including edits to existing files.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after every write, including edits to
+existing files.
 
 Validate the ratified constitution before doing any work:
 
@@ -75,7 +77,9 @@ Verification responsibility, or Recommended sequence while marking the record Re
 Design tasks remain separate. They produce evidence, alternatives, Proposed ADRs, updated views, and
 unlocked roadmap entries; they are not feature specifications or application implementation work.
 
-After writing the roadmap, run:
+After writing the roadmap, first run
+`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage roadmap`,
+then run:
 
 ```text
 {SCRIPT} validate-roadmap

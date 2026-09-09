@@ -6,11 +6,14 @@ scripts:
 
 ## Input
 
-`$ARGUMENTS` identifies the deterministically validated
-`docs/architecture/bootstrap-intake.json`. Read that contract first, followed by its bound
-`project-intent.md` and canonical `architecture-map.json`. If any artifact is absent, unreadable,
-unconfirmed, stale, or hash-inconsistent, stop and report the exact problem. The intake contract is
-the sole front-door authority; do not search for or accept a legacy initial-design artifact.
+`$ARGUMENTS` identifies the deterministically validated intake and the workflow-generated bootstrap
+context path. Read the compact stage brief first. It contains the confirmed intake projection,
+containment-preserving canonical-map projection, routed reference paths, output contract, and a
+link to a separate hash-bound evidence index. Do not print or read the evidence index in full. Open
+the canonical intake or map only for one decisive field omitted from the projection. If any bound
+artifact is absent, unreadable, unconfirmed, stale, or hash-inconsistent, stop and report the exact
+problem. The intake contract is the sole front-door authority; do not search for or accept a legacy
+initial-design artifact.
 
 ## Installation preflight
 
@@ -26,21 +29,16 @@ If validation fails, stop immediately and report the exact repair commands. Run 
 
 Treat the confirmed intake as the routing authority for this stage. Use its evidence IDs and bound
 artifacts when a fact is ambiguous or contradictory; do not print the complete intake or map. Read
-`references/default-adoption.md` and `references/capability-index.json`, then use this fixed routing map
-rather than searching the references tree: languages and interfaces use
-`references/software-language.md`; module, ownership, contract and domain-map boundaries use
-`references/modularity-and-contracts.md`; journeys and slice signals use
-`references/vertical-slicing.md`; explicit generic code-quality concerns use
-`references/programming-guardrails.md`. Do not read `architecture-method.md`, `tool-selection.md`,
-or `codex-desktop-windows.md` during assessment. An explicitly excluded surface is out of scope. A
-language or framework name is not evidence that its technology extension is installed. Read a
-technology profile only when the intake routing or installed skill guidance supplies its exact
-path; otherwise treat it as absent and do not probe guessed paths, manifests, catalogs, or the
-installed-extension tree. Never enumerate or bulk-read either references or installed extensions.
+only `reading_policy.required_full_reads`; the deterministic router already selected the applicable
+default, capability, language, module, slicing, .NET, secure-web, and UI references. Do not search
+the references tree, inspect `architecture-method.md`, `tool-selection.md`, or
+`codex-desktop-windows.md`, or probe guessed paths, manifests, catalogs, or the installed-extension
+tree. An explicitly excluded surface is out of scope. Never enumerate or bulk-read references or
+installed extensions.
 Read existing repository guidance and architecture artifacts only when they predate this bootstrap
 and could conflict with the confirmed intake; do not overwrite user-authored work.
 
-Apply `references/default-adoption.md`. Preserve the intake's distinction between explicit intent,
+Apply the routed `default-adoption.md` authority. Preserve the intake's distinction between explicit intent,
 Program Kit defaults, derived conclusions, proposals, examples, and future options.
 Do not reopen an explicit intake selection or an applicable Program Kit default merely because its
 implementation details still need a specification. A valid question is not automatically a human
@@ -150,8 +148,8 @@ architecture map, or C4 projection during assessment. If one is wrong, stop and 
 rerun the bootstrap front-door skill so the affected questions can be reopened and the artifacts
 reconfirmed.
 
-When a browser UI is in scope, also adopt `ui-experience-v1` from
-`references/ui-experience-v1.md` in selected_profiles and choice ID `ui-experience-profile`.
+When a browser UI is in scope, also adopt `ui-experience-v1` from the routed
+`ui-experience-v1.md` authority in selected_profiles and choice ID `ui-experience-profile`.
 Record independent layout, navigation, density, branding, CSS and page-intent choices with their
 sources. Branding optionally accepts SVG logo content or a logo URL, alt text, and a licensed icon
 family (Lucide default; custom SVGs supported). Do not require artwork before bootstrap can proceed.
@@ -160,9 +158,13 @@ inferred from framework names. Public discovery and analytics remain separate fr
 analytics defaults to none, training to disallowed, and llms/Markdown to opt-in. Do not make claimed
 psychological laws or universal AI/search ranking promises into consumer requirements.
 
-Keep the result proportional to the confirmed intake. Prefer compact tables over repeated prose,
+Keep the result proportional to the confirmed intake. Use
+`output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary. Prefer compact tables over repeated prose,
 and do not document excluded capability categories one by one. After writing, report file paths,
 byte sizes, and decision counts only; do not print complete generated artifacts or repository-wide
 diffs. For a single-interface, dependency-free local application, target at most 8 KiB for
 `bootstrap-assessment.md` and 6 KiB for `decision-backlog.md`. Prefer one routed read batch, one
 artifact-write batch, and one validation batch; expand only for a specific diagnostic.
+Run every command in `output_contract.validation_commands` in order before reporting completion.
+Repair only a specific diagnostic and never return success while a hard output budget fails.

@@ -41,6 +41,19 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
         target = project / destination
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source_root / source, target)
+    routed_references = tuple(dict.fromkeys(
+        module.ASSESSMENT_BASE_REFERENCES
+        + module.DOTNET_REFERENCES
+        + module.SECURE_WEB_REFERENCES
+        + module.UI_EXPERIENCE_REFERENCES
+        + (
+            ".specify/extensions/program-kit-governance/references/software-language.md",
+        )
+    ))
+    for relative in routed_references:
+        target = project / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_root / relative.removeprefix(".specify/"), target)
     write(project / "docs/architecture/project-intent.md", "# Tiny application\n\n[E-001] A visitor sees a greeting.\n")
     architecture = {
         "schema_version": "1.0",
@@ -159,15 +172,18 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     write_json(run / "inputs.json", {"inputs": {"bootstrap_intake": module.INTAKE_PATH.as_posix()}})
     markdown = {
         ".specify/memory/constitution.md": "# Constitution\n\n**Status**: Ratified\n",
+        "docs/architecture/README.md": "# Architecture navigation\n",
         "docs/architecture/bootstrap-assessment.md": "# Assessment\n\n## Actors\n\n- **Visitor** sees a greeting.\n",
         "docs/architecture/decision-backlog.md": "# Backlog\n\n## ADR-001\n\n**Status**: Deferred\n",
         "docs/architecture/tooling-evaluation.md": "# Tooling\n\n## Quality\n\n- **Decision**: built-in checks.\n",
         "docs/architecture/architecture.md": "# Architecture\n\n## Candidate slices\n\n- **SPC-001** greeting.\n",
         "docs/architecture/quality-attributes.md": "# Quality attributes\n\n## QA-001\n\n**Status**: Ready\n",
         "docs/architecture/quality-system.md": "# Quality system\n\n## Bootstrap gates\n",
+        "docs/architecture/readiness-report.md": "# Readiness\n\n**Verdict**: Ready\n",
         "docs/architecture/technology-radar.md": "# Technology radar\n\n## Accepted\n",
         "docs/architecture/traceability.md": "# Traceability\n\n| Design | SPC-001 |\n| --- | --- |\n",
         "docs/architecture/specification-roadmap.md": "# Roadmap\n\n### SPC-001: Greeting\n\n**Status**: Ready\n",
+        "docs/architecture/decisions/README.md": "# Architecture decisions\n",
         "docs/architecture/decisions/bootstrap-baseline.md": "# Bootstrap baseline\n\n**Status**: Accepted\n",
         "docs/architecture/decisions/ADR-001.md": "# ADR-001: Boundary\n\n**Status**: Proposed\n",
     }
@@ -189,6 +205,7 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     module = load_module(root)
+    context_sizes: dict[str, int] = {}
     semantic_path = root / "tests/validate_bootstrap_semantics.py"
     spec = importlib.util.spec_from_file_location("bootstrap_context_semantic_fixture", semantic_path)
     if spec is None or spec.loader is None:
@@ -237,10 +254,11 @@ def main() -> int:
 
         for stage in module.STAGE_ARTIFACTS:
             path, payload = module.build_context(project, run_id, stage)
+            context_sizes[stage] = path.stat().st_size
             if not path.is_file() or payload["stage"] != stage:
                 raise AssertionError(f"{stage} context was not written")
-            if path.stat().st_size >= 48 * 1024:
-                raise AssertionError(f"{stage} compact semantic stage brief exceeds 48 KiB")
+            if path.stat().st_size >= 32 * 1024:
+                raise AssertionError(f"{stage} compact semantic stage brief exceeds 32 KiB")
             if payload["bootstrap_intake"]["path"] != "docs/architecture/bootstrap-intake.json":
                 raise AssertionError("Bootstrap-intake provenance is not canonical")
             if payload["intake"]["status"] != "confirmed":
@@ -260,6 +278,8 @@ def main() -> int:
                 raise AssertionError("Architecture projection lost its canonical source")
             if payload["reading_policy"]["mode"] != "deny-by-default":
                 raise AssertionError(f"{stage} context does not enforce deny-by-default reading")
+            if not payload["stage_plan"].get("mode"):
+                raise AssertionError(f"{stage} context omits its bounded work plan")
             if "artifacts" in payload:
                 raise AssertionError(f"{stage} stage brief embeds the evidence index")
             if not any(
@@ -268,6 +288,62 @@ def main() -> int:
             ):
                 raise AssertionError(f"{stage} context does not require contract-first generation")
             output_contract = payload["output_contract"]
+            for artifact, target in output_contract["artifact_target_bytes"].items():
+                budget = output_contract["artifact_byte_budgets"].get(artifact)
+                if budget is None or target >= budget:
+                    raise AssertionError(
+                        f"{stage} target for {artifact} must leave hard-budget repair headroom"
+                    )
+            if stage == "assessment":
+                if output_contract["write_paths"] != [
+                    "docs/architecture/bootstrap-assessment.md",
+                    "docs/architecture/decision-backlog.md",
+                    "docs/architecture/bootstrap-decisions.json",
+                ]:
+                    raise AssertionError("Assessment context has the wrong bounded write set")
+                if not all(
+                    reference in payload["reading_policy"]["required_full_reads"]
+                    for reference in module.ASSESSMENT_BASE_REFERENCES
+                ):
+                    raise AssertionError("Assessment context omitted deterministic reference routing")
+            if stage == "architecture":
+                if "elements" in payload["architecture_map"]:
+                    raise AssertionError("Architecture brief duplicated a lossy canonical-map projection")
+                if "docs/architecture/architecture-map.json" not in payload["reading_policy"][
+                    "required_full_reads"
+                ]:
+                    raise AssertionError("Architecture must patch a required full read of the seed map")
+                invariants = payload["stage_plan"].get("modeling_invariants", [])
+                if not any("domain-capability" in item and "module" in item for item in invariants):
+                    raise AssertionError("Architecture plan omits strategic module containment")
+                if not any("C4 component" in item and "container parent" in item for item in invariants):
+                    raise AssertionError("Architecture plan omits C4 component containment")
+            if stage != "architecture":
+                projected_elements = payload["architecture_map"].get("elements", [])
+                source_map = json.loads(architecture_path.read_text(encoding="utf-8"))
+                source_parents = {
+                    item["id"]: item["parent"]
+                    for item in source_map["elements"]
+                    if "parent" in item
+                }
+                projected_ids = {item["id"] for item in projected_elements}
+                projected_parents = {
+                    item["id"]: item["parent"]
+                    for item in projected_elements
+                    if "parent" in item
+                }
+                expected_parents = {
+                    identifier: parent
+                    for identifier, parent in source_parents.items()
+                    if identifier in projected_ids
+                }
+                if projected_parents != expected_parents:
+                    raise AssertionError(f"{stage} architecture projection changed containment")
+            if stage == "research":
+                if payload["managed_profile_pins"] is None:
+                    raise AssertionError("Research context omitted managed profile pins")
+            elif payload["managed_profile_pins"] is not None:
+                raise AssertionError(f"{stage} context unnecessarily duplicated managed profile pins")
             if stage == "architecture" and not any(
                 "bootstrap_context.py validate-architecture-alignment" in command
                 for command in output_contract["validation_commands"]
@@ -305,6 +381,30 @@ def main() -> int:
                     for signal in artifact.get("signals", [])
                 ):
                     raise AssertionError("Evidence index contains an oversized signal")
+
+            budget_result = module.validate_stage_output(project, stage)
+            if budget_result["stage"] != stage or not budget_result["artifacts"]:
+                raise AssertionError(f"{stage} output budget validation produced no evidence")
+
+        assessment_path = project / "docs/architecture/bootstrap-assessment.md"
+        assessment_text = assessment_path.read_text(encoding="utf-8")
+        write(
+            assessment_path,
+            "# Oversized assessment\n\n" + "x" * (
+                module.ARTIFACT_BYTE_BUDGETS[
+                    "docs/architecture/bootstrap-assessment.md"
+                ]
+                + 1
+            ),
+        )
+        try:
+            module.validate_stage_output(project, "assessment")
+        except module.ContextError as exc:
+            if "exceeds its hard byte budget" not in str(exc):
+                raise
+        else:
+            raise AssertionError("Assessment output hard budget was not enforced")
+        write(assessment_path, assessment_text)
 
         roadmap_path = (
             project
@@ -462,7 +562,8 @@ constitution:
         else:
             raise AssertionError("Unsafe workflow run ID was accepted")
 
-    print("Bootstrap context generation and staleness checks passed.")
+    sizes = ", ".join(f"{stage}={size}" for stage, size in context_sizes.items())
+    print(f"Bootstrap context generation and staleness checks passed ({sizes} bytes).")
     return 0
 
 

@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 
-SCHEMA_VERSION = "3.0"
+SCHEMA_VERSION = "4.0"
 CONTEXT_DIRECTORY = Path(".specify/workflows/runs")
 INTAKE_PATH = Path("docs/architecture/bootstrap-intake.json")
 INTAKE_ARTIFACTS = (
@@ -20,6 +20,7 @@ INTAKE_ARTIFACTS = (
 )
 
 STAGE_ARTIFACTS: dict[str, tuple[str, ...]] = {
+    "assessment": (),
     "research": (
         "docs/architecture/bootstrap-assessment.md",
         "docs/architecture/bootstrap-decisions.json",
@@ -80,14 +81,19 @@ STAGE_ARTIFACTS: dict[str, tuple[str, ...]] = {
 }
 
 STAGE_FULL_READS = {
-    "research": (),
-    "architecture": (".specify/memory/constitution.md",),
+    "assessment": (),
+    "research": ("docs/architecture/bootstrap-decisions.json",),
+    "architecture": (
+        ".specify/memory/constitution.md",
+        "docs/architecture/architecture-map.json",
+    ),
     "tooling": (".specify/memory/constitution.md",),
     "roadmap": (".specify/memory/constitution.md",),
     "readiness": (".specify/memory/constitution.md",),
 }
 
 STAGE_FOCUS = {
+    "assessment": "Project confirmed intake into a proportional decision baseline without reopening accepted choices.",
     "research": "Verify only selected technologies and capabilities; excluded surfaces are out of scope.",
     "architecture": "Define the smallest governed architecture that realizes the confirmed intake journeys.",
     "tooling": "Adopt only controls required by selected capabilities and accepted boundaries.",
@@ -96,6 +102,11 @@ STAGE_FOCUS = {
 }
 
 INTAKE_STAGE_FIELDS = {
+    "assessment": (
+        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations",
+        "choices", "capability_assessments", "domain_analysis", "open_items",
+        "candidate_slice_signals", "routing",
+    ),
     "research": (
         "quality_requirements", "choices", "capability_assessments", "open_items", "routing",
     ),
@@ -115,11 +126,11 @@ INTAKE_STAGE_FIELDS = {
 }
 
 MAP_STAGE_FIELDS = {
+    "assessment": ("constraints", "elements", "relationships", "views"),
     "research": ("constraints", "elements", "relationships", "views"),
-    "architecture": (
-        "sources", "decisions", "documentation", "constraints", "elements", "relationships",
-        "views", "configuration", "extensions",
-    ),
+    # Architecture edits the canonical seed, so a second lossy copy in the brief is actively
+    # harmful. The seed is a required full read and this projection carries only its identity.
+    "architecture": (),
     "tooling": ("decisions", "constraints", "elements", "relationships"),
     "roadmap": ("decisions", "constraints", "elements", "relationships", "views"),
     "readiness": ("decisions", "constraints", "elements", "relationships", "views"),
@@ -134,7 +145,7 @@ MAP_RECORD_FIELDS = {
     "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
     "elements": (
         "id", "type", "name", "description", "status", "ownership", "technology",
-        "decision_refs", "properties",
+        "parent", "decision_refs", "properties",
     ),
     "relationships": (
         "id", "source", "target", "description", "technology", "status",
@@ -144,6 +155,29 @@ MAP_RECORD_FIELDS = {
         "key", "type", "title", "scope", "elements", "relationships", "decision_refs",
     ),
     "extensions": ("id", "kind", "policy", "source"),
+}
+
+STAGE_RECORD_FIELDS = {
+    "tooling": {
+        "decisions": ("id", "title", "status", "scope"),
+        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
+        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
+        "relationships": ("id", "source", "target", "status", "decision_refs"),
+    },
+    "roadmap": {
+        "decisions": ("id", "title", "status", "scope"),
+        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
+        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
+        "relationships": ("id", "source", "target", "status", "decision_refs"),
+        "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
+    },
+    "readiness": {
+        "decisions": ("id", "title", "status", "scope"),
+        "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
+        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
+        "relationships": ("id", "source", "target", "status", "decision_refs"),
+        "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
+    },
 }
 
 MAX_INDEX_HEADINGS = 24
@@ -156,6 +190,19 @@ GOVERNANCE_CONFIGS = (
 )
 
 OUTPUT_CONTRACTS = {
+    "assessment": {
+        "write_paths": [
+            "docs/architecture/bootstrap-assessment.md",
+            "docs/architecture/decision-backlog.md",
+            "docs/architecture/bootstrap-decisions.json",
+        ],
+        "contract_references": [
+            ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
+        ],
+        "validation_commands": [
+            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment"
+        ],
+    },
     "research": {
         "write_paths": [
             "docs/architecture/tooling-evaluation.md",
@@ -217,6 +264,8 @@ OUTPUT_CONTRACTS = {
 }
 
 ARTIFACT_BYTE_BUDGETS = {
+    "docs/architecture/bootstrap-assessment.md": 16 * 1024,
+    "docs/architecture/decision-backlog.md": 10 * 1024,
     "docs/architecture/tooling-evaluation.md": 8 * 1024,
     "docs/architecture/README.md": 4 * 1024,
     "docs/architecture/architecture.md": 10 * 1024,
@@ -231,6 +280,49 @@ ARTIFACT_BYTE_BUDGETS = {
     "docs/architecture/specification-roadmap.md": 6 * 1024,
     "docs/architecture/readiness-report.md": 4 * 1024,
 }
+
+# Generation targets deliberately leave repair headroom below the hard validator budgets.
+# Workers should not discover size constraints by writing to the boundary and rewriting.
+ARTIFACT_TARGET_BYTES = {
+    "docs/architecture/bootstrap-assessment.md": 10 * 1024,
+    "docs/architecture/decision-backlog.md": 7 * 1024,
+    "docs/architecture/tooling-evaluation.md": 6 * 1024,
+    "docs/architecture/README.md": 3 * 1024,
+    "docs/architecture/architecture.md": 8 * 1024,
+    "docs/architecture/architecture-map.json": 224 * 1024,
+    "docs/architecture/workspace.dsl": 224 * 1024,
+    "docs/architecture/quality-attributes.md": 5 * 1024,
+    "docs/architecture/technology-radar.md": 3 * 1024,
+    "docs/architecture/traceability.md": 5 * 1024,
+    "docs/architecture/decisions/README.md": 3 * 1024,
+    "docs/architecture/decisions/bootstrap-baseline.md": 5 * 1024,
+    "docs/architecture/quality-system.md": 6 * 1024,
+    "docs/architecture/specification-roadmap.md": 5 * 1024,
+    "docs/architecture/readiness-report.md": 3 * 1024,
+}
+
+ASSESSMENT_BASE_REFERENCES = (
+    ".specify/extensions/program-kit-governance/references/default-adoption.md",
+    ".specify/extensions/program-kit-governance/references/capability-index.json",
+    ".specify/extensions/program-kit-governance/references/modularity-and-contracts.md",
+    ".specify/extensions/program-kit-governance/references/vertical-slicing.md",
+)
+
+DOTNET_REFERENCES = (
+    ".specify/extensions/program-kit-dotnet/references/dotnet-engineering.md",
+    ".specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+)
+
+SECURE_WEB_REFERENCES = (
+    ".specify/extensions/program-kit-dotnet/references/secure-web-profiles.md",
+    ".specify/extensions/program-kit-dotnet/references/web-security-threat-model.md",
+    ".specify/extensions/program-kit-dotnet/references/web-security-evidence.json",
+)
+
+UI_EXPERIENCE_REFERENCES = (
+    ".specify/extensions/program-kit-governance/references/ui-experience-v1.md",
+    ".specify/extensions/program-kit-governance/references/ui-evidence-v1.json",
+)
 
 AUTHORITY_JSON = {
     "docs/architecture/bootstrap-decisions.json": "assessment_decisions",
@@ -573,7 +665,13 @@ def architecture_projection(project_root: Path, architecture_map: dict, stage: s
         "title": architecture_map["title"],
         **{
             field: [
-                {key: item[key] for key in MAP_RECORD_FIELDS[field] if key in item}
+                {
+                    key: item[key]
+                    for key in STAGE_RECORD_FIELDS.get(stage, {}).get(
+                        field, MAP_RECORD_FIELDS[field]
+                    )
+                    if key in item
+                }
                 for item in architecture_map[field]
             ]
             if field in MAP_RECORD_FIELDS
@@ -728,12 +826,125 @@ def resolved_output_contract(stage: str, paths: dict[str, str]) -> dict:
     return {
         "write_paths": write_paths,
         "contract_references": list(contract["contract_references"]),
-        "validation_commands": list(contract["validation_commands"]),
+        "validation_commands": [
+            f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage {stage}"
+        ] + list(contract["validation_commands"]),
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
             for path in contract["write_paths"]
             if path in ARTIFACT_BYTE_BUDGETS
         },
+        "artifact_target_bytes": {
+            replace_governance_path(path, paths): ARTIFACT_TARGET_BYTES[path]
+            for path in contract["write_paths"]
+            if path in ARTIFACT_TARGET_BYTES
+        },
+    }
+
+
+def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
+    if stage not in {"assessment", "research"}:
+        return ()
+    routing = intake["routing"]
+    languages = {item.casefold() for item in routing["languages"]}
+    frameworks = {item.casefold() for item in routing["frameworks"]}
+    interfaces = {item.casefold() for item in routing["interfaces"]}
+    capabilities = {item.casefold() for item in routing["capabilities"]}
+    surfaces = {item.casefold() for item in routing["included_surfaces"]}
+    result: list[str] = list(ASSESSMENT_BASE_REFERENCES if stage == "assessment" else ())
+    if stage == "assessment" and (languages or interfaces):
+        result.append(
+            ".specify/extensions/program-kit-governance/references/software-language.md"
+        )
+    if any(".net" in item for item in languages | frameworks) or "c#" in languages:
+        result.extend(DOTNET_REFERENCES)
+    secure_web = (
+        "authenticated-browser-bff" in capabilities
+        or any("bff" in item for item in interfaces | surfaces)
+    )
+    if secure_web:
+        result.extend(SECURE_WEB_REFERENCES)
+    browser_ui = any(
+        marker in item
+        for item in interfaces | surfaces
+        for marker in ("browser", "frontend", "react", "web")
+    )
+    if browser_ui:
+        result.extend(UI_EXPERIENCE_REFERENCES)
+    return tuple(dict.fromkeys(result))
+
+
+def required_routed_references(intake: dict, stage: str) -> tuple[str, ...]:
+    routed = routed_references(intake, stage)
+    if stage == "assessment":
+        return routed
+    if stage == "research":
+        return tuple(path for path in routed if path in UI_EXPERIENCE_REFERENCES)
+    return ()
+
+
+def stage_plan(intake: dict, stage: str) -> dict:
+    if stage == "assessment":
+        return {
+            "mode": "confirmed-intake-projection",
+            "rules": [
+                "Use the projected intake and map; do not reconstruct them from repository discovery.",
+                "Read only the routed references listed by the reading policy.",
+                "Write all three assessment outputs once, then run the supplied validator once.",
+            ],
+        }
+    if stage == "research":
+        questions = [
+            {
+                "id": item["id"],
+                "question": item["question"],
+                "classification": item["classification"],
+            }
+            for item in intake["open_items"]
+            if item["classification"] == "research"
+        ]
+        questions.extend(
+            {
+                "id": item["id"],
+                "question": item["need"],
+                "classification": item["decision_state"],
+            }
+            for item in intake["capability_assessments"]
+            if item["decision_state"] == "research-required"
+            or item["mechanism_coverage"] in {"conflict", "insufficient-evidence"}
+        )
+        return {
+            "mode": "focused-research" if questions else "baseline-verification",
+            "research_questions": questions,
+            "rules": [
+                "Do not survey alternatives unless a listed research question requires it.",
+                "For an accepted managed baseline, verify only material compatibility, support, license, or supply-chain risk.",
+                "Do not repeat product overviews or re-research accepted architecture choices.",
+            ],
+        }
+    if stage == "architecture":
+        return {
+            "mode": "patch-canonical-seed",
+            "required_order": [
+                "Read the canonical seed, constitution, and both output schemas once.",
+                "Write founding ADRs and patch the existing map; do not reconstruct it from scratch.",
+                "Validate the map structure, draft building-block selection, exported DSL, and intake alignment before narrative documents.",
+                "Write compact narrative documents, refresh their map hashes, then run the final validators.",
+            ],
+            "modeling_invariants": [
+                "Preserve every existing element parent unless an accepted decision explicitly changes containment.",
+                "Every strategic module references a domain-capability element whose parent equals module.context; every domain-capability has exactly one module record.",
+                "Every non-empty capability binding module references one of those strategic modules, never a container.",
+                "A C4 component has a container parent. A shell or host directly owned by the software system is a container, not a component.",
+                "Keep one unique dynamic view for every confirmed intake journey.",
+            ],
+        }
+    return {
+        "mode": "bounded-generation",
+        "rules": [
+            "Use the stage projections and open one source only for a decisive omitted field.",
+            "Make one write batch and one validation batch unless a specific diagnostic requires repair.",
+        ],
     }
 
 
@@ -743,6 +954,35 @@ def context_path(run_directory: Path, stage: str) -> Path:
 
 def evidence_path(run_directory: Path, stage: str) -> Path:
     return run_directory / "program-kit-context" / f"{stage}.evidence.json"
+
+
+def validate_stage_output(project_root: Path, stage: str) -> dict:
+    governance_paths = governance_contract(project_root)["paths"]
+    contract = resolved_output_contract(stage, governance_paths)
+    artifacts: list[dict] = []
+    for relative_path, budget in contract["artifact_byte_budgets"].items():
+        path = project_root / relative_path
+        if not path.is_file():
+            raise ContextError(f"Required {stage} output is missing: {relative_path}")
+        size = path.stat().st_size
+        if size > budget:
+            raise ContextError(
+                f"{stage} output exceeds its hard byte budget: "
+                f"{relative_path} is {size} bytes; maximum {budget}"
+            )
+        target = contract["artifact_target_bytes"][relative_path]
+        artifacts.append({
+            "path": relative_path,
+            "bytes": size,
+            "target_bytes": target,
+            "budget_bytes": budget,
+            "target_exceeded": size > target,
+        })
+    return {
+        "stage": stage,
+        "artifacts": artifacts,
+        "target_exceeded_count": sum(item["target_exceeded"] for item in artifacts),
+    }
 
 
 def compact_json(value: dict) -> str:
@@ -763,9 +1003,11 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     governance_paths = governance["paths"]
     output_contract = resolved_output_contract(stage, governance_paths)
     contract_references = tuple(output_contract["contract_references"])
+    routed = routed_references(intake, stage)
+    required_routed = required_routed_references(intake, stage)
     stage_artifacts = INTAKE_ARTIFACTS + tuple(
         replace_governance_path(path, governance_paths) for path in STAGE_ARTIFACTS[stage]
-    ) + contract_references
+    ) + routed + contract_references
     artifacts: list[dict] = []
     authorities: dict[str, dict] = {}
     authority_paths = dict(AUTHORITY_JSON)
@@ -777,6 +1019,17 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         artifacts.append(record)
         if authority:
             authorities[authority[0]] = compact_authority(authority[0], authority[1])
+    managed_pins = (
+        managed_profile_pin_authority(
+            project_root, authorities.get("assessment_decisions", {})
+        )
+        if stage == "research"
+        else None
+    )
+    # Research must edit and therefore fully read the decision register. Do not also spend model
+    # context on a lossy duplicate of that same authority.
+    if stage == "research":
+        authorities.pop("assessment_decisions", None)
     evidence = {
         "schema_version": SCHEMA_VERSION,
         "run_id": run_id,
@@ -790,13 +1043,12 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "run_id": run_id,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
+        "stage_plan": stage_plan(intake, stage),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),
         "architecture_map": architecture_projection(project_root, architecture_map, stage),
         "authorities": authorities,
-        "managed_profile_pins": managed_profile_pin_authority(
-            project_root, authorities.get("assessment_decisions", {})
-        ),
+        "managed_profile_pins": managed_pins,
         "decisions": decision_records(project_root, governance_paths["decisions"]),
         "governance": governance,
         "output_contract": output_contract,
@@ -809,7 +1061,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
             "mode": "deny-by-default",
             "required_full_reads": [
                 replace_governance_path(path, governance_paths) for path in STAGE_FULL_READS[stage]
-            ] + list(contract_references),
+            ] + list(required_routed) + list(contract_references),
             "allowed_sources": list(stage_artifacts),
             "rules": [
                 "Read this stage brief in full.",
@@ -819,6 +1071,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
                 "Read every listed contract reference once before the first write; do not inspect validator implementation.",
                 "Excluded intake routing surfaces are out of scope unless contradictory evidence is cited.",
                 "Prefer one targeted source-read batch, one write batch, and one validation batch; expand only for a specific failure.",
+                "Treat artifact_target_bytes as the generation ceiling and artifact_byte_budgets as the hard validation boundary.",
                 "After writes report only paths, byte counts, status, and targeted diagnostics; never print full files or diffs.",
             ],
             "provenance": "The evidence index binds optional source sections to paths and SHA-256 values.",
@@ -869,18 +1122,21 @@ def main() -> int:
         choices=(
             "build",
             "validate",
+            "validate-output",
             "validate-intake",
             "validate-profile-pins",
             "validate-architecture-alignment",
         ),
     )
     parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
-    parser.add_argument("--run-id", required=True)
+    parser.add_argument("--run-id")
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     project_root = Path(args.project_root).resolve()
     try:
+        if args.command != "validate-output" and not args.run_id:
+            raise ContextError(f"--run-id is required for {args.command}")
         if args.command == "validate-intake":
             payload = validate_intake(project_root, args.run_id)
             result = {
@@ -906,6 +1162,10 @@ def main() -> int:
                 "journey_count": len(payload["journeys"]),
                 "capability_count": len(payload["capability_assessments"]),
             }
+        elif args.command == "validate-output":
+            if not args.stage:
+                raise ContextError("--stage is required for validate-output")
+            result = validate_stage_output(project_root, args.stage)
         else:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
@@ -928,6 +1188,11 @@ def main() -> int:
         )
     elif args.command == "validate-architecture-alignment":
         print("Program Kit architecture remains aligned with the confirmed bootstrap intake")
+    elif args.command == "validate-output":
+        print(
+            f"Program Kit {args.stage} outputs are within hard byte budgets "
+            f"({result['target_exceeded_count']} above generation target)"
+        )
     else:
         print(f"Program Kit {args.stage} context is valid: {result['path']}")
     return 0

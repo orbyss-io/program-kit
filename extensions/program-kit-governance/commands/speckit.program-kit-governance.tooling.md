@@ -13,8 +13,9 @@ heading range only when the brief lacks a fact required by a quality-system deci
 bulk-read every unchanged architecture artifact or enumerate installed files.
 Use `governance.paths` and `output_contract` directly; do not search `.specify`, unrelated
 extensions, catalogs, or validator implementation for already supplied metadata.
-Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
-trade away a required control merely to reach a target.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
+counts; do not trade away a required control merely to reach a target.
 
 Validate and read the ratified constitution before producing the quality system. Stop when the
 constitution-ratification hash is missing or stale.
@@ -86,3 +87,6 @@ explicit many-to-many mapping to the inherited controls. Tool output must distin
 configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.
+
+Before reporting completion, run every command in `output_contract.validation_commands` in order.
+Repair only a specific diagnostic and never return success while a hard output budget fails.

@@ -9,18 +9,21 @@ scripts:
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
 Read the compact bootstrap stage brief first. It contains the confirmed intake, canonical
-architecture map, compact approved decisions and ratification records, and a link to a separate
-hash-bound evidence index. Read the
-ratified constitution in full. Do not print or read the evidence index in full; query one artifact
-and heading range only when the brief lacks a fact required for an architecture decision. Do not
+architecture-map identity, compact approved decisions and ratification records, a measured
+`stage_plan`, and a link to a separate hash-bound evidence index. Follow the stage plan in order.
+Read the canonical architecture map and ratified constitution in full exactly once; patch that
+validated seed rather than reconstructing a new map from the schema. Do not print or read the
+evidence index in full; query one artifact and heading range only when the brief lacks a fact
+required for an architecture decision. Do not
 bulk-read every unchanged assessment or research artifact or enumerate installed files.
 Use `governance.paths` and `output_contract` as the resolved path and validation authority. Do not
 search `.specify`, unrelated extensions, catalogs, or validator implementation to rediscover them.
 Before the first write, read each file listed by `output_contract.contract_references` exactly once
 and shape both JSON outputs from those schemas. Do not use repeated validator failures to discover
 required fields, allowed values, or nested record shapes.
-Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
-trade away required architecture evidence merely to reach a target.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
+counts; do not trade away required architecture evidence merely to reach a target.
 
 ## Constitutional authority
 
@@ -78,7 +81,10 @@ the assessment review so the artifacts can be corrected, the packet regenerated,
 contents approved again.
 
 Treat `docs/architecture/architecture-map.json` as the canonical living architecture model and the
-confirmed intake map as its provisional starting state. Refine fields that are not immutable
+confirmed intake map as its provisional starting state. Make the smallest patch that adds accepted
+decision and architecture evidence; do not synthesize the model from an empty object or copy a
+schema example over it. Preserve every existing element `parent` unless an accepted decision
+explicitly changes containment. Refine fields that are not immutable
 confirmed-intake projections with accepted assessment choices, the ratified constitution, and
 architecture evidence. Maintain its C4 System Context and Domain
 Context Map as the first review views. Preserve the intake's domain/subdomain landscape,
@@ -106,6 +112,25 @@ The confirmed intake remains immutable evidence. Preserve these cross-artifact p
 Do not enrich, rewrite, or normalize those confirmed semantics in the architecture map. Put later
 detail in modules, contracts, relationships, constraints, ADRs, narrative documents, or another
 non-projection field.
+
+Apply these executable containment rules before the first map write:
+
+- Every `strategic_model.modules[].element` identifies a `domain-capability` element whose `parent`
+  equals that module record's `context`; every domain-capability has exactly one module record.
+- Every non-empty `strategic_model.capability_bindings[].module` identifies one of those strategic
+  modules, never a container or an arbitrary runtime feature.
+- Every C4 `component` has a `container` parent. A CShell or host directly owned by the software
+  system is a container, not a component. Do not create a component view unless component
+  containment actually exists.
+- Keep one unique dynamic view for every confirmed intake journey.
+
+Write the founding ADRs and structurally patch the model before generating long narrative files.
+Run the map validator, building-block draft validator when applicable, DSL export, and intake
+alignment at that structural checkpoint. Only after it passes, write the compact narrative set,
+refresh its documentation hashes in the map, and run the final validation batch. This intentional
+two-check sequence prevents prose generation around an invalid model; additional validation loops
+must be driven by a specific diagnostic. The final batch includes every command in
+`output_contract.validation_commands`, in order.
 
 Read the intake's founding decision candidates before doing broad architecture research. For each
 candidate, verify the evidence and assumptions against the ratified constitution and relevant
