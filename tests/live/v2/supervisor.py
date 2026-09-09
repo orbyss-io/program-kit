@@ -74,6 +74,8 @@ if os.name == "nt":
 
     JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
     CREATE_SUSPENDED = 0x00000004
+    ES_CONTINUOUS = 0x80000000
+    ES_SYSTEM_REQUIRED = 0x00000001
     JobObjectBasicAccountingInformation = 1
     JobObjectExtendedLimitInformation = 9
 
@@ -130,6 +132,8 @@ if os.name == "nt":
     _kernel32.TerminateJobObject.argtypes = [wintypes.HANDLE, wintypes.UINT]
     _kernel32.QueryInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD, ctypes.c_void_p]
     _kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    _kernel32.SetThreadExecutionState.argtypes = [wintypes.DWORD]
+    _kernel32.SetThreadExecutionState.restype = wintypes.DWORD
     _ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
     _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
     _ntdll.NtResumeProcess.restype = wintypes.LONG
@@ -200,6 +204,18 @@ class _ProcessTree:
             self.job = None
 
 
+class _SystemAwakeLease:
+    def acquire(self) -> None:
+        if os.name != "nt":
+            return
+        if not _kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED):
+            raise LiveContractError(f"LIVE_SYSTEM_AWAKE_LEASE_FAILED: {ctypes.get_last_error()}")
+
+    def release(self) -> None:
+        if os.name == "nt":
+            _kernel32.SetThreadExecutionState(ES_CONTINUOUS)
+
+
 def _log_record(path: Path, summary: RedactionSummary) -> CapturedLog:
     return CapturedLog(
         path=path.name,
@@ -226,65 +242,70 @@ def run_supervised(
     stdout_path = evidence_directory / "workflow.stdout.log"
     stderr_path = evidence_directory / "workflow.stderr.log"
     started = utc_now()
-    tree = _ProcessTree()
-    process = subprocess.Popen(
-        command,
-        cwd=cwd,
-        env=environment,
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        **tree.popen_kwargs(),
-    )
-    tree.attach(process)
-    assert process.stdout is not None and process.stderr is not None
-    stdout_capture = _CaptureThread(process.stdout, stdout_path, secrets or [])
-    stderr_capture = _CaptureThread(process.stderr, stderr_path, secrets or [])
-    stdout_capture.start()
-    stderr_capture.start()
-    timed_out = False
-    operator_cancelled = False
-    forced_descendants = False
+    awake = _SystemAwakeLease()
+    awake.acquire()
     try:
-        process.wait(timeout=timeout_seconds)
-    except subprocess.TimeoutExpired:
-        timed_out = True
-        tree.terminate(process)
-    except KeyboardInterrupt:
-        operator_cancelled = True
-        tree.terminate(process)
-    finally:
+        tree = _ProcessTree()
+        process = subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            **tree.popen_kwargs(),
+        )
+        tree.attach(process)
+        assert process.stdout is not None and process.stderr is not None
+        stdout_capture = _CaptureThread(process.stdout, stdout_path, secrets or [])
+        stderr_capture = _CaptureThread(process.stderr, stderr_path, secrets or [])
+        stdout_capture.start()
+        stderr_capture.start()
+        timed_out = False
+        operator_cancelled = False
+        forced_descendants = False
         try:
-            process.wait(timeout=10)
+            process.wait(timeout=timeout_seconds)
         except subprocess.TimeoutExpired:
-            tree.force(process)
-            forced_descendants = True
-            process.wait(timeout=10)
-        active = tree.active_processes()
-        if active not in (None, 0):
-            tree.force(process)
-            forced_descendants = True
-            time.sleep(0.1)
-        stdout_capture.join(timeout=10)
-        stderr_capture.join(timeout=10)
-        logs_drained = not stdout_capture.is_alive() and not stderr_capture.is_alive()
-        cleanup_complete = process.poll() is not None and logs_drained
-        tree.close()
-    for capture in (stdout_capture, stderr_capture):
-        if capture.error is not None:
-            raise LiveContractError(f"LIVE_LOG_CAPTURE_FAILED: {capture.error}") from capture.error
-        if capture.summary is None:
-            raise LiveContractError("LIVE_LOG_CAPTURE_INCOMPLETE")
-    return ProcessResult(
-        pid=process.pid,
-        exitCode=process.returncode,
-        startedAt=started,
-        finishedAt=utc_now(),
-        timedOut=timed_out,
-        operatorCancellationRecorded=operator_cancelled,
-        forcedDescendantCleanup=forced_descendants,
-        cleanupComplete=cleanup_complete,
-        logsDrained=logs_drained,
-        stdout=_log_record(stdout_path, stdout_capture.summary),
-        stderr=_log_record(stderr_path, stderr_capture.summary),
-    )
+            timed_out = True
+            tree.terminate(process)
+        except KeyboardInterrupt:
+            operator_cancelled = True
+            tree.terminate(process)
+        finally:
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                tree.force(process)
+                forced_descendants = True
+                process.wait(timeout=10)
+            active = tree.active_processes()
+            if active not in (None, 0):
+                tree.force(process)
+                forced_descendants = True
+                time.sleep(0.1)
+            stdout_capture.join(timeout=10)
+            stderr_capture.join(timeout=10)
+            logs_drained = not stdout_capture.is_alive() and not stderr_capture.is_alive()
+            cleanup_complete = process.poll() is not None and logs_drained
+            tree.close()
+        for capture in (stdout_capture, stderr_capture):
+            if capture.error is not None:
+                raise LiveContractError(f"LIVE_LOG_CAPTURE_FAILED: {capture.error}") from capture.error
+            if capture.summary is None:
+                raise LiveContractError("LIVE_LOG_CAPTURE_INCOMPLETE")
+        return ProcessResult(
+            pid=process.pid,
+            exitCode=process.returncode,
+            startedAt=started,
+            finishedAt=utc_now(),
+            timedOut=timed_out,
+            operatorCancellationRecorded=operator_cancelled,
+            forcedDescendantCleanup=forced_descendants,
+            cleanupComplete=cleanup_complete,
+            logsDrained=logs_drained,
+            stdout=_log_record(stdout_path, stdout_capture.summary),
+            stderr=_log_record(stderr_path, stderr_capture.summary),
+        )
+    finally:
+        awake.release()

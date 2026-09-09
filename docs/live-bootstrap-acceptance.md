@@ -112,6 +112,11 @@ signal. This avoids the host-closing defect previously caused by POSIX-style sig
 Windows. `KeyboardInterrupt` records operator cancellation; exit code 130 without that provenance is
 `inconclusive`, not `cancelled`.
 
+While a supervised phase is active on Windows, the harness also holds a scoped
+`ES_SYSTEM_REQUIRED` execution-state lease. This prevents idle Modern Standby from suspending a paid
+worker or pausing its timeout. The lease is released in `finally` after process-tree cleanup and does
+not change the machine's persistent power-plan settings.
+
 The disposable `AGENTS.md` requires command-scoped Git ownership handling:
 `git -c safe.directory=<absolute-project> -c core.excludesFile= <command>` on Windows, and
 `core.excludesFile=/dev/null` on POSIX. The harness never changes global Git configuration or

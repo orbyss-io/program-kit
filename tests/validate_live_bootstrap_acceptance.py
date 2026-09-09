@@ -350,6 +350,8 @@ def main() -> int:
         raise AssertionError("Windows process liveness regressed to signalling the console group")
     if any(marker not in supervisor_text for marker in ("CreateJobObjectW", "JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE", "CREATE_SUSPENDED", "NtResumeProcess")):
         raise AssertionError("Windows worker descendants are not Job Object-owned")
+    if any(marker not in supervisor_text for marker in ("SetThreadExecutionState", "ES_CONTINUOUS", "ES_SYSTEM_REQUIRED", "_SystemAwakeLease")):
+        raise AssertionError("Windows live supervision does not prevent idle sleep for the paid phase")
     aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
     if "write_release_receipt.py" not in aggregate:
         raise AssertionError("The deterministic Release suite does not emit a machine-bound receipt")
