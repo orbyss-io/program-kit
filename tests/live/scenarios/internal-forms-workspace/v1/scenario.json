@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "2.0",
+  "id": "internal-forms-workspace",
+  "version": "1",
+  "claim": "A real Codex worker can bootstrap governed intent and adopt the reviewed API, BFF, Forms React, CShell, and Foundation host building blocks through the shipped Program Kit workflow.",
+  "fixture": "fixture",
+  "acceptedDecisionIds": [
+    "decision-internal-forms-topology",
+    "decision-server-managed-browser-session",
+    "decision-schema-driven-forms"
+  ],
+  "selectionTemplate": "selection-template.json",
+  "activeExpectation": "expectations/catalog-8017cec0.json"
+}

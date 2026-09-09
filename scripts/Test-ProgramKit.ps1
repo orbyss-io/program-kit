@@ -14,6 +14,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+$script:releaseReceiptSteps = @()
+$script:releaseReceiptStartedAt = [DateTimeOffset]::UtcNow.ToString('o')
 
 function Invoke-ProgramKitNative {
     param(
@@ -30,6 +32,7 @@ function Invoke-ProgramKitNative {
     # Windows PowerShell 5.1 promotes any native stderr output to NativeCommandError. With the
     # suite-wide Stop preference, harmless unittest progress on stderr would otherwise abort a
     # successful validator. Merge and replay native output while retaining exit code as authority.
+    $stepStartedAt = [DateTimeOffset]::UtcNow.ToString('o')
     $previousPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
@@ -48,6 +51,15 @@ function Invoke-ProgramKitNative {
     }
     if ($exitCode -ne 0) {
         throw "$FailureMessage (exit code $exitCode)"
+    }
+    if ($Suite -eq 'Release') {
+        $script:releaseReceiptSteps += [ordered]@{
+            id = "step-$($script:releaseReceiptSteps.Count + 1)"
+            command = @($Executable) + @($ArgumentList | ForEach-Object { $_.ToString() })
+            exitCode = 0
+            startedAt = $stepStartedAt
+            finishedAt = [DateTimeOffset]::UtcNow.ToString('o')
+        }
     }
 }
 
@@ -97,6 +109,7 @@ if ($List) {
         Write-Host '  Test-LocalInstall.ps1'
         Write-Host '  public_availability.py --all'
         Write-Host '  verify_legacy_programkit_nuget.py --verify-public (read-only)'
+        Write-Host '  write_release_receipt.py'
     } else {
         Write-Host '  specify bundle validate --offline'
     }
@@ -198,7 +211,15 @@ try {
     ) 'Candidate public-upgrade validation failed.'
 
     Write-Host 'Running source-tree installation validator: Test-LocalInstall.ps1'
+    $localInstallStartedAt = [DateTimeOffset]::UtcNow.ToString('o')
     & (Join-Path $PSScriptRoot 'Test-LocalInstall.ps1')
+    $script:releaseReceiptSteps += [ordered]@{
+        id = "step-$($script:releaseReceiptSteps.Count + 1)"
+        command = @((Join-Path $PSScriptRoot 'Test-LocalInstall.ps1'))
+        exitCode = 0
+        startedAt = $localInstallStartedAt
+        finishedAt = [DateTimeOffset]::UtcNow.ToString('o')
+    }
 
     Invoke-ProgramKitNative $python @(
         (Join-Path $projectRoot 'extensions/program-kit-building-blocks/scripts/public_availability.py'),
@@ -216,6 +237,25 @@ try {
         '--verify-public'
     ) 'Read-only legacy package compatibility verification failed.'
 
+    $receiptJournal = Join-Path $projectRoot 'artifacts\release-validation-steps.json'
+    $receiptJournalJson = $script:releaseReceiptSteps | ConvertTo-Json -Depth 8
+    [System.IO.File]::WriteAllText($receiptJournal, $receiptJournalJson, $utf8NoBom)
+    try {
+        Invoke-ProgramKitNative $python @(
+            (Join-Path $projectRoot 'scripts\write_release_receipt.py'),
+            '--root',
+            $projectRoot,
+            '--journal',
+            $receiptJournal,
+            '--browser-engines',
+            $BrowserEngines,
+            '--started-at',
+            $script:releaseReceiptStartedAt
+        ) 'Release receipt generation failed.'
+    }
+    finally {
+        Remove-Item -LiteralPath $receiptJournal -Force -ErrorAction SilentlyContinue
+    }
     Write-Host 'Program Kit complete deterministic Release suite passed.'
 }
 finally {

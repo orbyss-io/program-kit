@@ -1,160 +1,133 @@
-# Live bootstrap acceptance suite
+# Live acceptance v2
 
-The live bootstrap acceptance suite proves that a packaged Program Kit candidate can complete the
-real agentic workflow from initialization through final readiness. It is intentionally separate
-from deterministic source, packaging, and simulated lifecycle tests.
+Live acceptance v2 is an optional, paid, local diagnostic for a packaged Program Kit candidate. It
+does not replace the deterministic Development or Release suites, is never a publication
+prerequisite, and must never run in CI or from an unattended hook.
 
-## Cost and request boundary
+The protocol separates bootstrap from later diagnostics. A successfully bootstrapped consumer is
+sealed as a content-addressed checkpoint; every additional phase starts from a verified copy of
+that checkpoint. Repeating a building-block diagnostic therefore does not repeat the paid bootstrap.
 
-The suite launches paid coding-agent sessions, may run for more than an hour, and is never executed
-by CI. It is entirely user-invoked: publication must not prompt for it, require it, or record its
-absence as a skip. An explicit user request for a live bootstrap acceptance run in the current
-conversation authorizes one run.
+## Implemented phases
 
-The runner refuses to start without `-Approved` and refuses known CI environments. `-Approved` is
-an assertion that the current user explicitly requested this particular run; it is not a persistent
-preference and must not be inferred from an earlier run.
+The first v2 scenario is `internal-forms-workspace` v1. Its bootstrap fixture describes an internal
+forms workspace with an API, BFF, Forms integration, React frontend, shared shell, Foundation host,
+and root solution. The scenario and its deterministic expectation bind the architecture decisions,
+catalog resolution hash, 18 Program Kit-selected artifacts, 10 shell activations, six BFF
+configuration records, exact consumer-owned npm dependencies, and a non-Orbyss `Microsoft.OpenApi`
+NuGet sentinel.
 
-## Current scenario
+Two independently authorized phases are implemented:
 
-`clean-bootstrap` describes an intentionally tiny Python standard-library greeting CLI with no web,
-identity, persistence, network, deployment, or third-party runtime concerns. The ordinary mode uses
-a pre-confirmed intake fixture under `tests/live/scenarios/clean-bootstrap/docs/architecture/`.
-Passing `-ExerciseIntakeSkill` instead starts from `PROJECT_REQUEST.md`, adds one paid Codex session,
-and requires the installed bootstrap skill to create and validate the confirmed intake before the
-same bootstrap workflow runs. This keeps the acceptance target unambiguous while exercising:
+1. `bootstrap-checkpoint` installs the exact Release candidate, runs the real bootstrap workflow,
+   validates the result, binds the already-reviewed building-block selection, and seals a reusable
+   checkpoint.
+2. `building-block-consumer` copies that checkpoint, runs one Codex session to plan and apply the
+   accepted building blocks and emit a credential-free restore request, then lets the supervisor
+   verify selected public availability, perform renew and locked restores, build, run the npm
+   verification, apply the deterministic oracle, and seal a derived checkpoint.
 
-1. candidate release packaging;
-2. clean Spec Kit initialization and candidate installation through temporary loopback catalogs
-   and the real bundle provenance machinery;
-3. confirmed-intake validation, capability assessment, and research;
-4. the explicit automatic approval and ratification route across all three generated review packets;
-5. constitution drafting and ratification;
-6. architecture, quality-system, and roadmap generation;
-7. bootstrap-context handoffs;
-8. final readiness and deterministic governance validation.
+This is deliberately not a full feature vertical slice. A future Speckit lifecycle diagnostic can
+consume the same bootstrap checkpoint without changing or rerunning the bootstrap phase. Arbitrary
+existing-consumer intake, other agent providers, and POSIX qualification are also follow-up scope.
 
-On Windows, the installed Python runtime cannot construct its normal HTTPS handler on every host.
-For candidate setup only, the harness therefore invokes Specify with a process-scoped opener that
-disables HTTPS and rejects every non-loopback HTTP host. The real loopback catalog downloads and
-bundle contribution records remain exercised without opening a public-network path.
+## Candidate receipt
 
-The stronger intake mode additionally proves that the installed skill converts a raw description
-into the canonical project intent, architecture map, Structurizr projection, and confirmed intake;
-that deterministic validation accepts those generated artifacts; and that the skill returns the
-exact portable one-line workflow command. The harness preserves all intake worker streams and stops
-before bootstrap if any part of that seam fails.
+The complete deterministic Release suite creates
+`artifacts/release-receipt-<version>.json`. The receipt binds the clean Git commit and tree, platform
+and toolchains, successful Release steps, browser engines, catalog and public-availability hashes,
+and the exact current-version release artifacts. The live harness installs those artifacts and
+never builds a candidate itself. A phase refuses the receipt if the source commit, platform, or
+external Git, Specify, Codex, .NET, Node, or npm toolchain has changed since Release validation.
 
-The same clean consumer can optionally continue through its first complete feature lifecycle. Pass
-`-ContinueFirstSlice` to run `speckit.specify`, `speckit.plan`, `speckit.tasks`, and
-`speckit.implement` for the first Ready roadmap entry. This continuation deliberately supplies only
-the user intent and pointers to the approved repository artifacts: the installed commands and hooks
-must discover and apply the constitution, architecture, roadmap, ownership rules, and lifecycle
-evidence themselves. The mandatory clarify, analyze, architecture-check, ownership, and
-implementation-check hooks therefore remain part of what the live run proves.
-
-Run it only after an explicit user request:
+On this Windows host, run Release only after the candidate has been approved for publication and
+from a normal user-owned terminal:
 
 ```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
+./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
 ```
 
-To exercise the complete conversational front door through bootstrap:
+Firefox remains in CI and is the authority for that browser leg.
+
+## One-use authorization
+
+A paid phase requires a separately issued, short-lived authorization manifest. The interactive
+issuer displays and binds the phase, scenario, candidate receipt, optional parent checkpoint, exact
+Codex profile, timeout, and paid-session ceiling. It writes a nonce-bearing manifest only after the
+operator types `AUTHORIZE <phase>`. The runner atomically consumes the manifest immediately before
+the paid process; it cannot be reused. There is no boolean `-Approved` compatibility path.
+
+Issue and run a bootstrap checkpoint:
 
 ```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -ExerciseIntakeSkill -Approved
+./scripts/New-LiveAcceptanceAuthorization.ps1 `
+  -Phase bootstrap-checkpoint `
+  -ReleaseReceipt artifacts/release-receipt-0.10.0.json `
+  -Model gpt-5.6-sol `
+  -ReasoningEffort high
+
+./scripts/New-LiveBootstrapCheckpoint.ps1 `
+  -Authorization artifacts/live-acceptance/v2/authorizations/pending/<authorization>.json
 ```
 
-To include the optional first slice, which launches additional paid sessions and can consume a
-second two-hour timeout, install Python 3.13 and run:
+The run report prints the sealed checkpoint path. Issue a new authorization bound to that exact
+checkpoint, then run the single-session building-block consumer phase:
 
 ```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -ContinueFirstSlice -Approved
+./scripts/New-LiveAcceptanceAuthorization.ps1 `
+  -Phase building-block-consumer `
+  -ReleaseReceipt artifacts/release-receipt-0.10.0.json `
+  -Checkpoint artifacts/live-acceptance/v2/checkpoints/<checkpoint>.json `
+  -Model gpt-5.6-sol `
+  -ReasoningEffort high
+
+$env:PROGRAM_KIT_NPM_TOKEN = '<registry token>'
+./scripts/Test-LiveBuildingBlockConsumer.ps1 `
+  -Authorization artifacts/live-acceptance/v2/authorizations/pending/<authorization>.json `
+  -Checkpoint artifacts/live-acceptance/v2/checkpoints/<checkpoint>.json
+Remove-Item Env:PROGRAM_KIT_NPM_TOKEN
 ```
 
-The runner verifies Python 3.13 before starting any paid worker when this option is selected. Change
-the continuation timeout with `-FirstSliceTimeoutSeconds`.
+The current catalog uses authenticated GitHub npm publication. The credential belongs only to the
+supervisor's registry operations. It is removed from the Codex worker environment, redacted from
+captured streams, and is never written to a consumer file or evidence object. Consumer-facing
+anonymous distribution remains separate future work.
 
-The disposable localhost catalog install retries a transfer only when Spec Kit reports both a
-failed extension-archive save and that no changes were recorded. Other setup failures remain
-immediate failures so retries cannot conceal a partial installation.
+## Isolation and process ownership
 
-Use `-Integration claude` only when the Claude CLI is installed and the user selected it. The
-default timeout is two hours and can be changed with `-TimeoutSeconds`.
+Workers operate only in disposable repositories with `--sandbox workspace-write`. They are told not
+to run restores, request credentials, or start browsers, viewers, containers, Java, development
+servers, or other unrelated processes. Candidate installation uses temporary loopback catalogs;
+the worker's only permitted network purpose is model transport. Registry availability and restore
+belong to supervised child processes.
 
-## Evidence
+On Windows, every worker process starts suspended, is assigned to a private Job Object configured
+with `KILL_ON_JOB_CLOSE`, and resumes only after assignment. Timeout and cancellation terminate the
+whole Job. Liveness is determined from process handles and Job accounting—never by sending a console
+signal. This avoids the host-closing defect previously caused by POSIX-style signal probing on
+Windows. `KeyboardInterrupt` records operator cancellation; exit code 130 without that provenance is
+`inconclusive`, not `cancelled`.
 
-Each run is preserved below `artifacts/live-acceptance/<run>/`:
+The disposable `AGENTS.md` requires command-scoped Git ownership handling:
+`git -c safe.directory=<absolute-project> -c core.excludesFile= <command>` on Windows, and
+`core.excludesFile=/dev/null` on POSIX. The harness never changes global Git configuration or
+weakens the worker sandbox. Python output is forced to UTF-8.
 
-- `report.md` and `report.json`: overall verdict, duration, run ID, failures, warnings, performance
-  metrics, and artifact evidence;
-- `workflow.stdout.log`: structured Spec Kit workflow outcome;
-- `workflow.stderr.log`: live command, agent, and gate output stream;
-- `monitor.jsonl`: timestamped workflow step transitions and process ID;
-- `setup.log`: release build, initialization, and component-installation output;
-- `catalog-server/`: retained candidate catalogs and packages served only over loopback during setup;
-- `validation.log`: final approval/readiness governance validation;
-- `first-slice.workflow.stdout.log`, `first-slice.workflow.stderr.log`, and
-  `first-slice.monitor.jsonl`: the optional full lifecycle and its step transitions;
-- `first-slice.validation.log`: independent ownership validation, unittest results, and exact CLI
-  output/exit-code checks for the optional implemented slice;
-- `first-slice-managed-baseline.json`: before/after hashes proving the continuation did not edit
-  installed Program Kit-managed files;
-- `project/`: the disposable consumer repository for diagnosis;
-- `packages/`: the exact candidate component archives after extraction.
+## Evidence and diagnosis
 
-Failed runs are retained. Never delete their evidence automatically; compare their logs and
-artifacts before changing the workflow.
+Evidence is retained under `artifacts/live-acceptance/v2/`:
 
-## Narrow agent-session exception
+- `objects/sha256/<sha256>` contains content-addressed checkpoint objects and the redacted worker logs;
+- `runs/<run-id>/manifest.json` is the schema-validated phase verdict and hash chain;
+- `runs/<run-id>/workspace/` preserves the disposable consumer for troubleshooting;
+- `checkpoints/<checkpoint-id>.json` inventories every reusable checkpoint file and hash;
+- `authorizations/consumed/` records exactly which one-use authorization was consumed.
 
-Normal consumer initialization and outer bootstrap orchestration must still be launched by the
-human from a normal user-owned terminal. The live runner is a source-repository test harness: after
-an explicit user request it creates a disposable repository and removes Codex parent-session markers only
-from the owned workflow subprocess so the candidate's real nested command steps can execute.
-Codex workers receive a `workspace-write` sandbox. The parent workflow also receives a
-process-scoped `GIT_CONFIG_*` safe-directory value as a best-effort convenience, but Windows worker
-sandboxes may filter that environment before launching the agent. The harness therefore writes
-disposable worker guidance requiring every Git command to use the command-scoped form
-`git -c safe.directory=<absolute-disposable-project> -c core.excludesFile= <command>` on Windows or
-use `/dev/null` as the excludes value on POSIX. Windows Git rejects `NUL` as an excludes file. This is the reliable fallback observed in live
-runs: `safe.directory` handles the worker SID, while the null exclude file prevents a harmless
-permission warning when the sandbox cannot read the user's global Git ignore file. It never changes
-global Git configuration, never persists a safe-directory exception, never installs an approval
-rule, and never bypasses the coding agent's sandbox.
+The supervisor incrementally redacts secrets across stream chunk boundaries while retaining the
+original-stream hash, redaction count, redacted-file hash, cleanup result, and drain result. Failed,
+cancelled, and inconclusive runs are evidence and must not be deleted automatically. Failure causes
+are classified as preflight, harness, environment, external service, model conformance, product,
+operator, or unclassified.
 
-The harness sets `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` for its owned workflow process tree, and
-the workflow runs its UTF-8 preparation step before the first agent command. This prevents Windows
-legacy-console encoding from breaking Unicode diagnostics. Raw agent stderr is written to evidence
-without flooding the terminal; the terminal shows concise state transitions.
-
-When launching the harness from a sandboxed Codex Desktop task, allow the outer harness process to
-access the installed Codex CLI and its user-owned home. A run that fails immediately with
-`Error finding codex home: Could not find home directory` never started a paid worker; preserve its
-evidence and retry with external-process permission. Keep the inner `--sandbox workspace-write`
-setting unchanged—the outer launch permission is not a reason to weaken disposable workers.
-
-Each workflow stage receives a compact, hash-bound stage brief and a separate evidence index. The
-brief contains stage-specific intake and architecture projections rather than duplicating both
-canonical documents. Stage prompts query a source only for an omitted decisive fact and do not
-inspect schemas or validators to rediscover supplied contracts. Token usage by stage, intake JSON
-usage (including cached input), stage duration, stream size, and context size are included in the
-report. Their budgets are advisory: they expose regressions without converting a semantically
-correct bootstrap into a false failure.
-The clean scenario also tracks proportional byte targets for research, architecture, quality, and
-readiness artifacts; exceeding one produces a warning, not a failed run.
-
-When the first-slice continuation is selected, the report also records the feature artifacts,
-hash-bound clarify/analyze lifecycle evidence, application-test results, exact success and rejected-
-argument behavior, and a before/after hash comparison of installed Program Kit-managed files. A
-change to those managed files fails the run; legitimate feature-owned source, tests, feature
-documents, evidence, and roadmap lifecycle updates remain visible in the preserved repository.
-
-Stage briefs also carry resolved governance paths, exact intended writes, contract references,
-validation commands, and byte budgets for every size-sensitive output a stage may edit. Agents must
-use these instead of searching `.specify`, dumping catalogs, or reading validator implementation
-merely to rediscover an output format, and must recheck budgets after downstream link updates.
-
-This exception must not be generalized. Future scenarios such as mid-bootstrap and mid-spec upgrade
-tests belong under `tests/live/scenarios/` and must reuse the same explicit-request, isolation,
-logging, and CI-refusal boundary.
+The old `Test-LiveBootstrap.ps1` and `tests/live/run_bootstrap_acceptance.py` entry points are
+retired. Historical v1 reports remain read-only evidence and are not converted or treated as v2.

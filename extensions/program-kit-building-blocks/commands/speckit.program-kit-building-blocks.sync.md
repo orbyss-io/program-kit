@@ -18,7 +18,9 @@ The normal workflow is non-interactive and fail closed:
 3. Run `plan`; review the ordered lock and all managed-output ownership records.
 4. Run `apply` with the exact reviewed `planDigest`.
 5. Run `restore_dependencies.py renew --approved`, then `locked --approved`; both are explicit
-   networked operations and preserve separate native-lock evidence.
+   networked operations and preserve separate native-lock evidence. When a credential-owning
+   supervisor is present, use the read-only `request-renew` and `request-locked` modes instead; the
+   supervisor must recompute each request before performing the corresponding approved restore.
 6. Run `public_availability.py` against the selected lock; publication additionally uses `--all`.
 
 `plan` and `check` are read-only. `apply` never supplies an architectural default and refuses a

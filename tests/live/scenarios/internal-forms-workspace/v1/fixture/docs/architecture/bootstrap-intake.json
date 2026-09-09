@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.1",
+  "status": "confirmed",
+  "project": {
+    "name": "Internal Forms Workspace",
+    "summary": "An existing API, BFF, Forms integration, and React workspace for secure schema-driven internal forms."
+  },
+  "artifacts": {
+    "project_intent": {
+      "path": "docs/architecture/project-intent.md",
+      "sha256": "5699fe29e07c6eade95098ef8697cd64dba2496d5f3684358d69fee20f643aa9",
+      "bytes": 1778
+    },
+    "architecture_map": {
+      "path": "docs/architecture/architecture-map.json",
+      "sha256": "de59b7c019c07d941a4ee268943e6906c479ddf3f17015dff2bf1bec0f6364ea",
+      "bytes": 13144
+    },
+    "c4_projection": {
+      "path": "docs/architecture/workspace.dsl",
+      "sha256": "3ea138fce37e83e9f439f4778297d9fcda458b4dcb955605cb5e6698c61fcdd0",
+      "bytes": 5006
+    }
+  },
+  "evidence": [
+    {"id": "e-topology", "source": "project_intent", "locator": "Existing topology", "summary": "The consumer supplied and owns the API, BFF, Forms, frontend, shell, and host boundaries."},
+    {"id": "e-browser", "source": "project_intent", "locator": "Accepted technology choices", "summary": "The BFF owns the server-managed browser session."},
+    {"id": "e-forms", "source": "project_intent", "locator": "Accepted technology choices", "summary": "Immutable JSON Forms contracts use the React renderer."},
+    {"id": "e-outcome", "source": "architecture_map", "locator": "strategic_model.journeys[journey-complete-form]", "summary": "The internal employee completes one governed form journey."}
+  ],
+  "facts": [
+    {"id": "fact-existing-repository", "statement": "The repository topology already exists and must be preserved.", "evidence": ["e-topology"]},
+    {"id": "fact-consumer-dependencies", "statement": "Microsoft.OpenApi, React, JSON Forms, and TypeScript dependencies remain consumer-owned.", "evidence": ["e-topology", "e-forms"]}
+  ],
+  "scope": {
+    "included": [
+      {"id": "scope-bootstrap", "statement": "Bootstrap governance for the existing workspace without replacing its topology.", "evidence": ["e-topology"]},
+      {"id": "scope-materialization", "statement": "Prepare accepted API, BFF, Forms React, CShell, and Foundation host choices for later deterministic materialization.", "evidence": ["e-browser", "e-forms"]}
+    ],
+    "excluded": [
+      {"id": "scope-live-runtime", "statement": "Do not start browsers, identity providers, containers, viewers, or development servers.", "evidence": ["e-browser"]}
+    ],
+    "deferred": [
+      {"id": "scope-product-slice", "statement": "A complete product feature slice is deferred beyond building-block adoption.", "evidence": ["e-outcome"]}
+    ]
+  },
+  "actors": [
+    {"id": "actor-employee", "statement": "An internal employee completes governed forms through the React frontend.", "evidence": ["e-outcome"]}
+  ],
+  "journeys": [
+    {"id": "journey-complete-form", "statement": "The employee uses the frontend through the BFF and API to complete an internal form.", "evidence": ["e-outcome", "e-browser", "e-forms"]}
+  ],
+  "quality_requirements": [
+    {"id": "quality-preservation", "statement": "Bootstrap and later materialization preserve every consumer-owned target and dependency.", "evidence": ["e-topology"]},
+    {"id": "quality-secrets", "statement": "Configuration knowledge records sensitivity but never contains credential values.", "evidence": ["e-browser"]}
+  ],
+  "integrations": [
+    {"id": "integration-browser-bff", "statement": "The React frontend uses the server-managed BFF boundary.", "evidence": ["e-browser"]},
+    {"id": "integration-forms-react", "statement": "The frontend composes JSON Forms and the selected React renderer.", "evidence": ["e-forms"]}
+  ],
+  "choices": [
+    {"id": "choice-topology", "decision": "Preserve the supplied workspace topology.", "source": "explicit-intake", "rationale": "The repository and its owners already define these boundaries.", "evidence": ["e-topology"]},
+    {"id": "choice-browser-session", "decision": "Use a server-managed BFF browser session.", "source": "explicit-intake", "rationale": "The browser must not own access tokens.", "evidence": ["e-browser"]},
+    {"id": "choice-forms-renderer", "decision": "Use immutable JSON Forms contracts with React.", "source": "explicit-intake", "rationale": "The confirmed product surface is schema-driven React forms.", "evidence": ["e-forms"]}
+  ],
+  "capability_assessments": [
+    {
+      "id": "capability-api-baseline", "need": "Compose the existing .NET API with Foundation web defaults, Problem Details, OpenAPI, and the external host.",
+      "mechanism_coverage": "managed", "program_kit_capabilities": ["dotnet-host-runtime"], "semantic_owner": "forms-context",
+      "semantic_profile": "The consumer owns API behavior while Program Kit materializes selected infrastructure packages.", "integration_owner": "forms-context",
+      "provider_selection": "Foundation host", "decision_state": "explicit-user-decision", "evidence": ["e-topology"]
+    },
+    {
+      "id": "capability-browser-bff", "need": "Compose server-managed authentication for the existing browser boundary.",
+      "mechanism_coverage": "managed", "program_kit_capabilities": ["authenticated-browser-bff"], "semantic_owner": "forms-context",
+      "semantic_profile": "The BFF owns cookies and tokens.", "integration_owner": "forms-context", "provider_selection": "BFF cookie profile",
+      "decision_state": "explicit-user-decision", "evidence": ["e-browser"]
+    },
+    {
+      "id": "capability-forms", "need": "Compose Forms and Localization contracts with the React renderer.",
+      "mechanism_coverage": "managed", "program_kit_capabilities": ["forms", "localization"], "semantic_owner": "forms-context",
+      "semantic_profile": "The consumer owns form semantics and Program Kit supplies the selected integration packages.", "integration_owner": "forms-context",
+      "provider_selection": "React renderer", "decision_state": "explicit-user-decision", "evidence": ["e-forms"]
+    }
+  ],
+  "domain_analysis": {
+    "subdomains": [
+      {
+        "id": "internal-forms-domain", "name": "Internal Forms", "classification": "core", "vision": "Deliver governed internal forms.",
+        "ownership": "Owns form contracts and outcomes.", "non_ownership": "Does not own identity-provider operation.",
+        "language_terms": ["form", "definition", "submission"], "data_ownership": ["Form definitions and submissions."],
+        "invariants": ["Published form definitions are immutable."], "lifecycle": "Versions with the form contract.",
+        "status": "proposed", "evidence": ["e-forms"]
+      }
+    ],
+    "candidate_contexts": [
+      {
+        "id": "forms-context", "name": "Internal Forms", "boundary_kind": "domain-model", "vision": "Own internal form semantics.",
+        "responsibilities": ["Define and render forms."], "non_responsibilities": ["Operate identity infrastructure."],
+        "language_terms": ["form", "submission"], "subdomains": ["internal-forms-domain"], "data_ownership": ["Form contracts."],
+        "invariants": ["Definitions are immutable after publication."], "lifecycle": "Changes with form semantics.",
+        "separation_rationale": "One language and owner.", "split_triggers": ["A separate owner or lifecycle appears."],
+        "status": "proposed", "evidence": ["e-forms"]
+      }
+    ],
+    "founding_decision_candidates": [
+      {
+        "id": "decision-internal-forms-topology", "title": "Preserve the existing workspace topology", "question": "Which deployable and source boundaries form the workspace?",
+        "recommended_option": "Keep the supplied API, BFF, Forms integration, React frontend, shared shell, and host targets.",
+        "alternatives": ["Collapse the supplied boundaries.", "Create additional applications."], "rationale": "The consumer supplied and owns these boundaries.",
+        "consequences": ["Bootstrap must preserve every target."], "confidence": "high", "affected_elements": ["forms-context"],
+        "affected_relationships": [], "status": "proposed", "evidence": ["e-topology"]
+      },
+      {
+        "id": "decision-server-managed-browser-session", "title": "Use a server-managed browser session", "question": "Where is browser authentication state owned?",
+        "recommended_option": "The BFF owns cookies and tokens.", "alternatives": ["Let the SPA own access tokens."],
+        "rationale": "The confirmed boundary requires server ownership.", "consequences": ["The browser boundary selects BFF building blocks."], "confidence": "high",
+        "affected_elements": ["forms-context"], "affected_relationships": [], "status": "proposed", "evidence": ["e-browser"]
+      },
+      {
+        "id": "decision-schema-driven-forms", "title": "Use schema-driven React forms", "question": "How are internal forms represented and rendered?",
+        "recommended_option": "Use immutable JSON Forms contracts and React.", "alternatives": ["Use handwritten form-specific pages."],
+        "rationale": "The product intent explicitly selects schema-driven forms.", "consequences": ["Forms and React runtime packages must compose together."], "confidence": "high",
+        "affected_elements": ["forms-context"], "affected_relationships": [], "status": "proposed", "evidence": ["e-forms"]
+      }
+    ],
+    "boundary_challenges": []
+  },
+  "open_items": [],
+  "candidate_slice_signals": [
+    {"id": "slice-complete-form", "statement": "A later product slice can cover the complete form journey; it is not part of bootstrap acceptance.", "evidence": ["e-outcome"]}
+  ],
+  "routing": {
+    "languages": ["C#", "TypeScript"], "frameworks": [".NET 10", "React 19", "JSON Forms 3.8"],
+    "interfaces": ["HTTP API", "Server-managed BFF", "React frontend"],
+    "included_surfaces": ["API", "BFF", "Forms contracts", "Frontend", "CShell", "Foundation host"],
+    "excluded_surfaces": ["Live browser", "Identity-provider runtime", "Docker daemon", "C4 viewer"],
+    "capabilities": ["dotnet-host-runtime", "authenticated-browser-bff", "forms", "localization", "architecture-governance"]
+  }
+}

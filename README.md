@@ -385,39 +385,19 @@ The Release suite records its complete transcript under
 owning the long-running process.
 
 The deterministic suites do not invoke a coding agent. Tests named for Codex validate integration
-contracts and approval guards only. The paid live acceptance below is the sole suite that starts
-coding-agent sessions.
+contracts and guarded harness behavior only. Paid live acceptance v2 is a separate, completely
+optional local diagnostic: publishing must not prompt for it or record it as skipped.
 
-The paid, local-only live bootstrap acceptance suite is completely optional and user-invoked.
-Publishing must not prompt for it or record it as skipped. When the user explicitly requests a live
-bootstrap acceptance run, use:
+V2 starts from the machine-bound receipt produced by the complete Release suite. A phase-specific,
+interactive one-use authorization can run the real bootstrap once and seal a content-addressed
+checkpoint. A separately authorized building-block phase copies that checkpoint and uses one Codex
+session to adopt the reviewed Internal Forms Workspace selection; the supervisor owns registry
+availability, restore, build, and deterministic validation. Repeating that diagnostic does not
+repeat bootstrap. The worker never receives registry credentials.
 
-```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
-```
-
-The suite builds the candidate packages, executes a clean bootstrap against a minimal confirmed
-intake, preserves both workflow output streams and the disposable repository, reports advisory
-performance metrics, and validates final readiness. On Windows, its disposable Codex guidance
-keeps `workspace-write` enabled and handles Git ownership with command-scoped
-`git -c safe.directory=...` calls—never a global Git change or sandbox bypass. See
-[`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md).
-
-To prove the conversational front door as well as bootstrap consumption, explicitly add the paid
-intake-skill phase:
-
-```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -ExerciseIntakeSkill -Approved
-```
-
-To continue the same disposable consumer through the complete first Ready slice, explicitly add
-`-ContinueFirstSlice`. This optional mode requires Python 3.13 and exercises specification,
-clarification, planning, tasks, analysis, implementation, ownership enforcement, and exact
-application behavior while proving that installed Program Kit-managed files remain unchanged:
-
-```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -ContinueFirstSlice -Approved
-```
+See [`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md) for the authorization
+and execution commands, evidence model, Windows Job Object isolation, and current scope. The legacy
+combined `Test-LiveBootstrap.ps1 -Approved` entry point is retired.
 
 Build all release artifacts:
 
@@ -448,6 +428,9 @@ The release workflow validates all manifests and catalog metadata, creates deter
 - `Initialize-ProgramKit-<version>.cmd`: Windows initializer compatible with PowerShell
   `AllSigned` environments because it is a command script, not a PowerShell script.
 - `SHA256SUMS`: exact artifact digests.
+- `release-receipt-<version>.json`: clean source, successful deterministic Release steps,
+  toolchains, browser matrix, public-availability proof, and exact candidate artifact hashes used by
+  optional live acceptance.
 
 Verify a downloaded artifact:
 

@@ -15,8 +15,9 @@ Run this complete suite from a normal user-owned terminal only after the user ha
 candidate should proceed toward publication. It includes the source validators, Chromium/WebKit,
 release build, packaged-install checks, previous-release upgrade, disposable local installation, and
 the read-only public component-package gate. It writes
-`artifacts/release-validation-0.10.0.log` for later inspection and does not run the optional paid
-Codex-worker suite.
+`artifacts/release-validation-0.10.0.log` plus the machine-bound
+`artifacts/release-receipt-0.10.0.json` for later inspection and does not run an optional paid
+Codex-worker phase.
 
 Before the Program Kit stable tag, verify the already-published component releases and public package
 propagation: `dotnet-foundation` `v0.1.0`, `forms` `v0.1.1`, and `localization` `v0.1.1`.

@@ -25,29 +25,29 @@ the Firefox leg.
 
 The deterministic Development and Release suites do not invoke a coding agent. Tests whose names
 contain `codex` validate integration files, preflight behavior, and guarded harness contracts. Only
-`Test-LiveBootstrap.ps1 -Approved` starts coding-agent sessions, and it remains governed by the
-separate optional-live-acceptance rules below.
+an explicitly authorized live-acceptance v2 phase starts coding-agent sessions, and it remains
+governed by the separate optional-live-acceptance rules below.
 
 ## Optional live acceptance
 
-The paid live bootstrap acceptance suite is entirely user-invoked. Do not ask whether to run it
-during publication, and do not report it as skipped when it was not requested. Deterministic local
-and CI-compatible release tests remain mandatory.
+Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
+do not report it as skipped when it was not requested. Deterministic local and CI-compatible Release
+tests remain mandatory.
 
-- Run `./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved` (or the explicitly requested
-  installed integration) only when the user explicitly requests a live bootstrap acceptance run in
-  the current conversation. That request authorizes that run.
-- Wait for completion, inspect the generated report and output streams, repair in-scope defects,
-  and rerun when needed before reporting the result.
-- Never add the paid live suite to CI or run it from an unattended hook.
-- Never pass `-Approved` without an explicit user request for the live run in the current
-  conversation.
-- Pass `-ContinueFirstSlice` only when that request explicitly includes the paid first-slice
-  continuation; approval for a bootstrap-only run does not authorize the additional agent sessions.
+- A user request authorizes only issuance of the exact phase-specific manifest they confirm through
+  `New-LiveAcceptanceAuthorization.ps1`; it is not a reusable preference or authorization for a
+  different phase.
+- Run `New-LiveBootstrapCheckpoint.ps1` or `Test-LiveBuildingBlockConsumer.ps1` only with the matching
+  unexpired, unconsumed manifest. Building-block authorization must bind the exact parent checkpoint.
+- Wait for completion, inspect the generated manifest and redacted streams, repair in-scope defects,
+  and obtain a new one-use authorization before any rerun.
+- Never add a paid phase to CI or an unattended hook. Never recreate a boolean `-Approved` path.
+- `Test-LiveBootstrap.ps1` and the old Python entry point are retired; historical v1 evidence is
+  read-only and must not be upconverted.
 
 The live harness is the sole exception to the normal rule against agent-started outer Codex
 bootstrap orchestration. It may exercise that exception only for its generated disposable test
-repository and preserves evidence under `artifacts/live-acceptance/`. Do not copy its environment
+repository and preserves evidence under `artifacts/live-acceptance/v2/`. Do not copy its environment
 sanitization into consumer setup, bootstrap guidance, or another script.
 
 ## Failed stable-release recovery
@@ -87,10 +87,17 @@ when the sandbox cannot read the user's global Git ignore file. Never use `git c
 never persist a safe-directory exception, and never disable or bypass the sandbox. Keep Python
 output UTF-8 (`PYTHONUTF8=1`); the harness and workflow establish this for their owned process trees.
 
-The full worker output is evidence, not console progress. Preserve it in `workflow.stderr.log` and
-show concise workflow step transitions in the terminal. Treat token, stream-size, duration, and
-stage-brief budgets as advisory performance signals; functional completion and governance
-validation remain the pass/fail contract.
+Start each Windows worker suspended, assign it to the harness Job Object, and resume it only after
+assignment. Determine liveness from process handles and Job accounting. Never use `os.kill(pid, 0)`,
+`CTRL_C_EVENT`, or another signalling probe: a previous POSIX-style liveness check could close the
+Windows terminal host. Record cancellation only from observed operator interruption; exit code 130
+without that provenance is inconclusive. Terminate descendants, drain both streams, and record both
+outcomes before sealing evidence.
+
+The full worker output is redacted evidence, not console progress. Preserve both streams and their
+raw-stream hashes, redaction counts, cleanup, and drain results. Registry credentials belong only to
+the supervisor's exact availability/restore child processes and must never enter a worker environment
+or evidence payload.
 
 When the harness itself is started from a sandboxed Codex Desktop task, the outer task sandbox may
 hide the user-owned Codex home and produce `Error finding codex home: Could not find home directory`

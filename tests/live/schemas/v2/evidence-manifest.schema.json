@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/live/v2/evidence-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "phase", "status", "causes", "authorization", "candidate", "scenario", "agentProfile", "process", "logs", "receipts", "startedAt", "finishedAt"],
+  "properties": {
+    "schemaVersion": { "const": "2.0" },
+    "runId": { "type": "string", "minLength": 1 },
+    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer"] },
+    "status": { "enum": ["passed", "failed", "inconclusive", "cancelled", "not-started", "checkpoint-created"] },
+    "causes": { "type": "array", "items": { "enum": ["preflight", "harness", "environment", "external-service", "model-conformance", "product", "operator", "unclassified"] } },
+    "authorization": { "type": "object" },
+    "candidate": { "type": "object" },
+    "scenario": { "type": "object" },
+    "agentProfile": { "type": "object" },
+    "process": { "type": "object" },
+    "logs": { "type": "array", "items": { "type": "object" } },
+    "receipts": { "type": "array", "items": { "type": "object" } },
+    "oracle": { "type": "object" },
+    "checkpoint": { "type": ["null", "string"] },
+    "startedAt": { "type": "string", "minLength": 1 },
+    "finishedAt": { "type": "string", "minLength": 1 },
+    "sealedAt": { "type": "string", "minLength": 1 },
+    "manifestSha256": { "type": "string", "pattern": "[0-9a-f]{64}" }
+  }
+}

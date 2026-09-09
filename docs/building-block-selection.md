@@ -106,6 +106,18 @@ restore_dependencies.py renew --approved
 restore_dependencies.py locked --approved
 ```
 
+Automation supervisors that must keep registry credentials outside an agent process can emit the
+exact read-only requests without performing network access:
+
+```text
+restore_dependencies.py request-renew
+restore_dependencies.py request-locked
+```
+
+Each request binds the plan digest, lock hash, subjects, working directories, and native commands.
+The supervisor must recompute and validate it before executing an approved restore; a request is not
+authorization by itself.
+
 `draft` refuses to overwrite consumer architecture and records only catalog suggestions. Complete
 its scopes, targets, instances, and options, then use `accept`; acceptance updates the architecture
 documentation registration only when the cited decisions already exist as Accepted. `plan` emits

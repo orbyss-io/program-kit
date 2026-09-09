@@ -109,6 +109,7 @@ def main() -> int:
     required_building_block_files = {
         "commands/speckit.program-kit-building-blocks.sync.md",
         "references/building-block-selection.schema.json",
+        "references/building-block-restore-request.schema.json",
         "references/building-blocks-lock.schema.json",
         "references/orbyss-building-blocks.schema.json",
         "references/orbyss-building-blocks.json",

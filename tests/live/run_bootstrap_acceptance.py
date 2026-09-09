@@ -1542,6 +1542,12 @@ def write_report(
 
 
 def main() -> int:
+    print(
+        "LIVE_ACCEPTANCE_V1_RETIRED: use the v2 authorization and phase-specific wrappers; "
+        "this legacy entrypoint cannot start a coding agent.",
+        file=sys.stderr,
+    )
+    return 3
     parser = argparse.ArgumentParser(
         description="Run the opt-in, API-consuming Program Kit bootstrap acceptance suite."
     )

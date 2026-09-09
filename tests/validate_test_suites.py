@@ -39,6 +39,7 @@ def main() -> int:
             "validate_public_upgrade.py",
             "Test-LocalInstall.ps1",
             "verify_legacy_programkit_nuget.py",
+            "write_release_receipt.py",
             "release-validation-$version.log",
             "Start-Transcript",
             "[Console]::OutputEncoding = $utf8NoBom",
@@ -74,7 +75,8 @@ def main() -> int:
         (
             "Test-ProgramKit.ps1 -Suite Release -Approved",
             "do not start the complete Release suite from a Codex Desktop task",
-            "Only `Test-LiveBootstrap.ps1 -Approved` starts coding-agent sessions",
+            "Only an explicitly authorized live-acceptance v2 phase starts coding-agent sessions",
+            "Never recreate a boolean `-Approved` path",
         ),
     )
     for document, label in ((readme, "README"), (release_guide, "release guide")):

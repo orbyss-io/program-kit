@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/live/v2/checkpoint.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "status", "checkpointId", "phase", "parent", "candidate", "scenario", "expectation", "architectureMapSha256", "selectionSha256", "files", "createdAt"],
+  "properties": {
+    "schemaVersion": { "const": "2.0" },
+    "status": { "const": "checkpoint-created" },
+    "checkpointId": { "type": "string", "minLength": 1 },
+    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer"] },
+    "parent": { "type": ["null", "string"] },
+    "candidate": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "scenario": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "expectation": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "architectureMapSha256": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "selectionSha256": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "files": { "type": "array", "items": { "$ref": "#/$defs/file" } },
+    "createdAt": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "[0-9a-f]{64}" },
+        "size": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
