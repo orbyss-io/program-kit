@@ -88,5 +88,7 @@ configuration checks, protocol/boundary tests, real-browser/provider tests, and 
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.
 
-Before reporting completion, run every command in `output_contract.validation_commands` in order.
-Repair only a specific diagnostic and never return success while a hard output budget fails.
+Before reporting completion, run the single command in `output_contract.validation_commands`.
+It batches every deterministic tooling check. Repair only a named diagnostic and rerun that same
+batch once. After it passes, stop immediately: do not inspect a diff, remeasure files, read another
+source, or run another command. Report only paths, byte counts, and validation counts.

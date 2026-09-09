@@ -255,6 +255,17 @@ def main() -> int:
     constitution_step = next(step for step in steps if step["id"] == "constitution-draft")
     if constitution_step.get("command") != "speckit.constitution":
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")
+    constitution_args = constitution_step.get("input", {}).get("args", "")
+    if not all(
+        marker in constitution_args
+        for marker in (
+            "5,500 UTF-8 bytes",
+            "do not write an oversized draft",
+            "after hook owns deterministic validation",
+            "stop immediately",
+        )
+    ):
+        raise AssertionError("The constitution prompt does not prevent oversized rewrite loops")
     if "constitution-begin" in step_ids:
         raise AssertionError(
             "The workflow must rely on the mandatory before_constitution hook instead of invoking constitution-begin twice"
@@ -455,6 +466,10 @@ def main() -> int:
         "Read the compact bootstrap stage brief first",
         "specification-roadmap.md",
         "- **Status**: Accepted",
+        "stage_plan.structural_validation_command",
+        "stage_plan.building_blocks",
+        "stage_plan.managed_web_contract",
+        "stop immediately",
     )
     for command_name in ("research", "tooling", "roadmap", "readiness"):
         require_text(
@@ -470,16 +485,16 @@ def main() -> int:
     require_text(
         extension_root / "commands/speckit.program-kit-governance.research.md",
         "an acknowledgement contains only `id` and `summary`",
-        "governance_state.py validate-assessment",
-        "next deterministic workflow step is known to fail",
         "managed_profile_pins",
-        "validate-profile-pins",
+        "stage_plan.observed_toolchain",
+        "single command in `output_contract.validation_commands`",
         "Never create a separate ADR",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.assessment.md",
-        "deterministic router",
+        "routing authority",
         "reading_policy.required_full_reads",
+        "Optional routed references",
         "Never enumerate or bulk-read",
     )
     require_text(
@@ -489,12 +504,14 @@ def main() -> int:
         "PROGRAM-KIT:ROADMAP-VIEW",
         "Required Accepted ADRs",
         "Design tasks remain separate",
+        "single command in `output_contract.validation_commands`",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.readiness.md",
         "--require-roadmap --require-ready",
         "first feature specification",
         "program-kit-web-security-evidence-v1",
+        "single command in `output_contract.validation_commands`",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",
@@ -633,6 +650,14 @@ def main() -> int:
         "validate_profile_pin_decisions",
         "validate_stage_output",
         "validate-output",
+        "validate_stage_batch",
+        "validate-stage",
+        "validate_architecture_structure",
+        "validate-architecture-structure",
+        "building_block_target_inventory",
+        "managed_web_control_projection",
+        "observed_toolchain",
+        "terminal_condition",
         "ARTIFACT_TARGET_BYTES",
     )
     require_text(

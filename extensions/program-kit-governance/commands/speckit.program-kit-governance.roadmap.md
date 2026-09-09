@@ -77,13 +77,10 @@ Verification responsibility, or Recommended sequence while marking the record Re
 Design tasks remain separate. They produce evidence, alternatives, Proposed ADRs, updated views, and
 unlocked roadmap entries; they are not feature specifications or application implementation work.
 
-After writing the roadmap, first run
-`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage roadmap`,
-then run:
-
-```text
-{SCRIPT} validate-roadmap
-```
+After writing the roadmap, run the single command in `output_contract.validation_commands`. It
+batches the output-budget and roadmap-governance checks. Repair only a named diagnostic and rerun
+that same batch once. After it passes, stop immediately: do not inspect a diff, remeasure files,
+read another source, or run another command.
 
 Do not promote a record merely to make bootstrap pass. Keep a record `Candidate` or `Blocked` when
 its required ADR, dependency, ownership, contract, lifecycle, data, quality, or verification evidence

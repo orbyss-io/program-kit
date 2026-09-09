@@ -7,7 +7,9 @@ description: Research current architecture, delivery, and quality tooling for th
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
 Read the compact bootstrap stage brief first. Its confirmed intake routing, required full read of
-the decision register, and managed profile pins define the research scope. Follow `stage_plan.mode` and research only the enumerated
+the decision register, managed profile pins, and `stage_plan.observed_toolchain` define the research
+scope. Do not run local `--version`, runtime-list, repository-status, or source-tree probes; those
+observations and the normalized repository shape are already supplied. Follow `stage_plan.mode` and research only the enumerated
 `stage_plan.research_questions`. In `baseline-verification` mode, do not survey competing products:
 verify only a material compatibility, support, license, maintenance, or supply-chain risk for the
 already selected baseline. Do not print or read the linked evidence index in full. Query one
@@ -102,10 +104,8 @@ application, use the target supplied by `output_contract` and research only the 
 accepted verification mechanism. Report sources and counts after writing; do not print the complete
 artifact or a repository-wide diff.
 
-Before reporting completion, first run
-`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage research`, then run
-`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-profile-pins --run-id <workflow-run-id>`
-using the run ID from the stage brief, then run
-`python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment`.
-Repair any contract error in the artifacts you changed and rerun it; do not return success while the
-next deterministic workflow step is known to fail.
+Before reporting completion, run the single command in `output_contract.validation_commands` using
+the run ID from the stage brief. It performs output, managed-pin, and assessment-governance checks in
+one bounded process. If it passes, stop immediately: do not inspect a diff, remeasure files, read
+another source, or run another command. Repair only its named diagnostic, rerun that same batch once,
+and stop when it passes.

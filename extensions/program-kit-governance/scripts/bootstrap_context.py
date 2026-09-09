@@ -4,7 +4,10 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -183,6 +186,7 @@ STAGE_RECORD_FIELDS = {
 MAX_INDEX_HEADINGS = 24
 MAX_INDEX_SIGNALS = 8
 MAX_INDEX_SIGNAL_CHARS = 160
+MAX_BUILDING_BLOCK_TARGETS = 128
 
 GOVERNANCE_CONFIGS = (
     Path(".specify/extensions/program-kit-governance/program-kit-governance-config.yml"),
@@ -199,9 +203,6 @@ OUTPUT_CONTRACTS = {
         "contract_references": [
             ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
         ],
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment"
-        ],
     },
     "research": {
         "write_paths": [
@@ -210,10 +211,6 @@ OUTPUT_CONTRACTS = {
         ],
         "contract_references": [
             ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json"
-        ],
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-profile-pins --run-id <workflow-run-id>",
-            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment"
         ],
     },
     "architecture": {
@@ -233,15 +230,10 @@ OUTPUT_CONTRACTS = {
             ".specify/extensions/program-kit-governance/references/architecture-map.schema.json",
             ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
         ],
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-architecture-alignment --run-id <workflow-run-id>",
-            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate"
-        ],
     },
     "tooling": {
         "write_paths": ["docs/architecture/quality-system.md"],
         "contract_references": [],
-        "validation_commands": [],
     },
     "roadmap": {
         "write_paths": [
@@ -250,16 +242,10 @@ OUTPUT_CONTRACTS = {
             "docs/architecture/traceability.md",
         ],
         "contract_references": [],
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-roadmap"
-        ],
     },
     "readiness": {
         "write_paths": ["docs/architecture/readiness-report.md"],
         "contract_references": [],
-        "validation_commands": [
-            "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate --require-roadmap --require-ready"
-        ],
     },
 }
 
@@ -304,6 +290,9 @@ ARTIFACT_TARGET_BYTES = {
 ASSESSMENT_BASE_REFERENCES = (
     ".specify/extensions/program-kit-governance/references/default-adoption.md",
     ".specify/extensions/program-kit-governance/references/capability-index.json",
+)
+
+ASSESSMENT_OPTIONAL_REFERENCES = (
     ".specify/extensions/program-kit-governance/references/modularity-and-contracts.md",
     ".specify/extensions/program-kit-governance/references/vertical-slicing.md",
 )
@@ -827,8 +816,9 @@ def resolved_output_contract(stage: str, paths: dict[str, str]) -> dict:
         "write_paths": write_paths,
         "contract_references": list(contract["contract_references"]),
         "validation_commands": [
-            f"python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage {stage}"
-        ] + list(contract["validation_commands"]),
+            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+            f"validate-stage --stage {stage} --run-id <workflow-run-id>"
+        ],
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
             for path in contract["write_paths"]
@@ -851,7 +841,11 @@ def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
     interfaces = {item.casefold() for item in routing["interfaces"]}
     capabilities = {item.casefold() for item in routing["capabilities"]}
     surfaces = {item.casefold() for item in routing["included_surfaces"]}
-    result: list[str] = list(ASSESSMENT_BASE_REFERENCES if stage == "assessment" else ())
+    result: list[str] = list(
+        ASSESSMENT_BASE_REFERENCES + ASSESSMENT_OPTIONAL_REFERENCES
+        if stage == "assessment"
+        else ()
+    )
     if stage == "assessment" and (languages or interfaces):
         result.append(
             ".specify/extensions/program-kit-governance/references/software-language.md"
@@ -877,21 +871,199 @@ def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
 def required_routed_references(intake: dict, stage: str) -> tuple[str, ...]:
     routed = routed_references(intake, stage)
     if stage == "assessment":
-        return routed
+        return tuple(path for path in routed if path in ASSESSMENT_BASE_REFERENCES)
     if stage == "research":
         return tuple(path for path in routed if path in UI_EXPERIENCE_REFERENCES)
     return ()
 
 
-def stage_plan(intake: dict, stage: str) -> dict:
+def _observed_command(command: list[str]) -> str:
+    executable = shutil.which(command[0])
+    if executable is None:
+        return "unavailable"
+    try:
+        result = subprocess.run(
+            [executable, *command[1:]],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "unavailable"
+    lines = ((result.stdout or "") + (result.stderr or "")).strip().splitlines()
+    return lines[0] if result.returncode == 0 and lines else "unavailable"
+
+
+def observed_toolchain() -> dict[str, str]:
+    return {
+        "dotnet": _observed_command(["dotnet", "--version"]),
+        "node": _observed_command(["node", "--version"]),
+        "npm": _observed_command(["npm", "--version"]),
+        "python": sys.version.split()[0],
+    }
+
+
+def building_block_target_inventory(project_root: Path) -> dict:
+    ignored = {
+        ".git", ".idea", ".program-kit", ".pytest_cache", ".specify", ".venv", ".vs",
+        "artifacts", "bin", "build", "coverage", "dist", "node_modules", "obj", "packages",
+    }
+    candidates: list[dict[str, object]] = [{
+        "kind": "repository",
+        "path": "Directory.Build.props",
+        "exists": (project_root / "Directory.Build.props").is_file(),
+    }]
+    kinds = {
+        "package.json": "npm-package",
+        "shells.json": "cshell-shell",
+        "dotnet-tools.json": "dotnet-tool-manifest",
+    }
+    for directory, names, files in os.walk(project_root):
+        names[:] = [name for name in names if name.casefold() not in ignored]
+        base = Path(directory)
+        for name in files:
+            lowered = name.casefold()
+            kind = kinds.get(lowered)
+            if lowered.endswith(".csproj"):
+                kind = "dotnet-project"
+            elif lowered == "dockerfile" or lowered.startswith("dockerfile."):
+                kind = "host-image"
+            if kind is None:
+                continue
+            relative = (base / name).relative_to(project_root).as_posix()
+            if relative == "Directory.Build.props":
+                continue
+            candidates.append({"kind": kind, "path": relative, "exists": True})
+    candidates.sort(key=lambda item: (str(item["kind"]), str(item["path"]).casefold()))
+    truncated = len(candidates) > MAX_BUILDING_BLOCK_TARGETS
+    return {
+        "canonical_repository_path": "Directory.Build.props",
+        "candidates": candidates[:MAX_BUILDING_BLOCK_TARGETS],
+        "truncated": truncated,
+        "path_rule": (
+            "For a selection target value, use an exact forward-slash repository-relative file "
+            "path from this inventory. The draft command's repository-root '--target .' argument "
+            "is separate and valid. A directory, '.', absolute path, guessed path, or "
+            "repository-wide search is invalid as a selection target."
+        ),
+    }
+
+
+def building_block_stage_contract(project_root: Path, intake: dict) -> dict | None:
+    catalog_path = project_root / (
+        ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+    )
+    if not catalog_path.is_file():
+        return None
+    catalog = load_json(catalog_path)
+    capabilities = catalog.get("capabilities")
+    compositions = catalog.get("compositions")
+    if not isinstance(capabilities, dict) or not isinstance(compositions, dict):
+        raise ContextError("Installed building-block catalog has no capability/composition contract")
+    routed = intake.get("routing", {}).get("capabilities", [])
+    selected = sorted({item for item in routed if item in capabilities})
+    if not selected:
+        return None
+    composition_ids = sorted({
+        composition
+        for capability in selected
+        for composition in capabilities[capability].get("suggestedCompositions", [])
+    })
+    contracts: dict[str, dict] = {}
+    for composition_id in composition_ids:
+        composition = compositions.get(composition_id)
+        if not isinstance(composition, dict):
+            raise ContextError(f"Catalog capability names unknown composition {composition_id}")
+        option_groups = []
+        for group in composition.get("optionGroups", []):
+            option_groups.append({
+                "id": group["id"],
+                "minimum": group["minimum"],
+                "maximum": group["maximum"],
+                "options": sorted(group.get("options", {})),
+            })
+        contracts[composition_id] = {
+            "scope_kind": composition["scopeKind"],
+            "target_slots": composition["targetSlots"],
+            "option_groups": option_groups,
+        }
+    capability_arguments = " ".join(f"--capability {item}" for item in selected)
+    return {
+        "capabilities": selected,
+        "suggested_compositions": composition_ids,
+        "draft_command": (
+            "python .specify/extensions/program-kit-building-blocks/scripts/building_blocks.py "
+            f"draft --target . {capability_arguments}"
+        ),
+        "composition_contracts": contracts,
+        "target_inventory": building_block_target_inventory(project_root),
+        "rules": [
+            "Use this projection instead of running --help or searching/dumping the installed catalog.",
+            "After the draft command, replace its empty placement with the exact reviewed scopes, targets, bindings, and options.",
+        ],
+    }
+
+
+def managed_web_control_projection(project_root: Path, authorities: dict[str, dict]) -> dict | None:
+    decisions = authorities.get("assessment_decisions", {})
+    web = decisions.get("web") if isinstance(decisions, dict) else None
+    profile = web.get("secure_profile") if isinstance(web, dict) else None
+    if not isinstance(profile, str) or profile == "none-v1":
+        return None
+    evidence_path = project_root / (
+        ".specify/extensions/program-kit-dotnet/references/web-security-evidence.json"
+    )
+    evidence = load_json(evidence_path)
+    applicability = evidence.get("controlApplicability", {})
+    control_ids = applicability.get(profile) if isinstance(applicability, dict) else None
+    if not isinstance(control_ids, list):
+        raise ContextError(f"Managed web evidence has no control applicability for {profile}")
+    controls = {
+        item.get("id"): item
+        for item in evidence.get("controls", [])
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    return {
+        "profile": profile,
+        "threat_model": evidence.get("threatModel"),
+        "evidence_profile": evidence.get("id"),
+        "controls": [
+            {
+                "id": control_id,
+                "decision": controls[control_id]["decision"],
+                "verification": controls[control_id]["verification"],
+            }
+            for control_id in control_ids
+            if control_id in controls
+        ],
+    }
+
+
+def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict]) -> dict:
+    terminal = {
+        "command": (
+            "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+            f"validate-stage --stage {stage} --run-id <workflow-run-id>"
+        ),
+        "on_success": (
+            "Stop immediately. Do not read another file, inspect a diff, measure output again, "
+            "or run another command; report only artifact paths, byte counts, and validation counts."
+        ),
+        "on_failure": "Repair only the named diagnostic, rerun this same batch once, and stop when it passes.",
+    }
     if stage == "assessment":
         return {
             "mode": "confirmed-intake-projection",
             "rules": [
                 "Use the projected intake and map; do not reconstruct them from repository discovery.",
-                "Read only the routed references listed by the reading policy.",
-                "Write all three assessment outputs once, then run the supplied validator once.",
+                "Read required_full_reads once; routed optional references are diagnostic sources only.",
+                "Write all three assessment outputs once, then run the supplied validation batch once.",
+                "The assessment batch intentionally does not require tooling-evaluation.md; research owns that later prerequisite.",
             ],
+            "terminal_condition": terminal,
         }
     if stage == "research":
         questions = [
@@ -913,23 +1085,31 @@ def stage_plan(intake: dict, stage: str) -> dict:
             if item["decision_state"] == "research-required"
             or item["mechanism_coverage"] in {"conflict", "insufficient-evidence"}
         )
-        return {
+        plan = {
             "mode": "focused-research" if questions else "baseline-verification",
             "research_questions": questions,
             "rules": [
                 "Do not survey alternatives unless a listed research question requires it.",
                 "For an accepted managed baseline, verify only material compatibility, support, license, or supply-chain risk.",
                 "Do not repeat product overviews or re-research accepted architecture choices.",
+                "Use observed_toolchain below; do not run local --version, runtime-list, repository-status, or source-tree probes.",
             ],
+            "observed_toolchain": observed_toolchain(),
+            "terminal_condition": terminal,
         }
+        if not questions:
+            plan["rules"].append(
+                "No research question is open: use the managed pins and compact authorities without surveying optional references."
+            )
+        return plan
     if stage == "architecture":
         return {
             "mode": "patch-canonical-seed",
             "required_order": [
                 "Read the canonical seed, constitution, and both output schemas once.",
                 "Write founding ADRs and patch the existing map; do not reconstruct it from scratch.",
-                "Validate the map structure, draft building-block selection, exported DSL, and intake alignment before narrative documents.",
-                "Write compact narrative documents, refresh their map hashes, then run the final validators.",
+                "Run validate-architecture-structure once before narrative documents.",
+                "Write compact narrative documents, refresh their map hashes, then run the single final validation batch.",
             ],
             "modeling_invariants": [
                 "Preserve every existing element parent unless an accepted decision explicitly changes containment.",
@@ -938,13 +1118,21 @@ def stage_plan(intake: dict, stage: str) -> dict:
                 "A C4 component has a container parent. A shell or host directly owned by the software system is a container, not a component.",
                 "Keep one unique dynamic view for every confirmed intake journey.",
             ],
+            "structural_validation_command": (
+                "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+                "validate-architecture-structure --run-id <workflow-run-id>"
+            ),
+            "building_blocks": building_block_stage_contract(project_root, intake),
+            "managed_web_contract": managed_web_control_projection(project_root, authorities),
+            "terminal_condition": terminal,
         }
     return {
         "mode": "bounded-generation",
         "rules": [
             "Use the stage projections and open one source only for a decisive omitted field.",
-            "Make one write batch and one validation batch unless a specific diagnostic requires repair.",
+            "Make one write batch and run the single validation batch unless a specific diagnostic requires repair.",
         ],
+        "terminal_condition": terminal,
     }
 
 
@@ -982,6 +1170,120 @@ def validate_stage_output(project_root: Path, stage: str) -> dict:
         "stage": stage,
         "artifacts": artifacts,
         "target_exceeded_count": sum(item["target_exceeded"] for item in artifacts),
+    }
+
+
+def _run_project_validator(
+    project_root: Path,
+    relative_script: str,
+    arguments: list[str],
+    label: str,
+) -> None:
+    script = project_root / relative_script
+    if not script.is_file():
+        raise ContextError(f"{label} validator is missing: {relative_script}")
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script), *arguments],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ContextError(f"{label} validator could not run: {exc}") from exc
+    if result.returncode != 0:
+        diagnostic = (result.stderr or result.stdout or "no diagnostic").strip()
+        raise ContextError(f"{label} failed: {diagnostic[:4000]}")
+
+
+def validate_architecture_structure(project_root: Path, run_id: str) -> dict:
+    map_script = ".specify/extensions/program-kit-governance/scripts/architecture_map.py"
+    selection_script = (
+        ".specify/extensions/program-kit-building-blocks/scripts/building_blocks.py"
+    )
+    map_path = "docs/architecture/architecture-map.json"
+    dsl_path = "docs/architecture/workspace.dsl"
+    _run_project_validator(
+        project_root,
+        map_script,
+        ["validate", "--map", map_path, "--project-root", ".", "--verify-sources"],
+        "architecture map",
+    )
+    checks = ["architecture-map"]
+    selection_path = project_root / "docs/architecture/building-block-selection.json"
+    intake = load_json(project_root / INTAKE_PATH)
+    if building_block_stage_contract(project_root, intake) is not None or selection_path.is_file():
+        _run_project_validator(
+            project_root,
+            selection_script,
+            ["validate-draft", "--target", "."],
+            "building-block draft",
+        )
+        checks.append("building-block-draft")
+    _run_project_validator(
+        project_root,
+        map_script,
+        [
+            "export", "--map", map_path, "--format", "structurizr-dsl",
+            "--output", dsl_path, "--force",
+        ],
+        "architecture DSL export",
+    )
+    _run_project_validator(
+        project_root,
+        map_script,
+        ["validate", "--map", map_path, "--project-root", ".", "--verify-sources"],
+        "exported architecture map",
+    )
+    validate_architecture_alignment(project_root, run_id)
+    checks.extend([
+        "architecture-dsl-export",
+        "architecture-map-after-export",
+        "confirmed-intake-alignment",
+    ])
+    return {"checks": checks}
+
+
+def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
+    checks: list[str] = []
+    if stage == "architecture":
+        checks.extend(validate_architecture_structure(project_root, run_id)["checks"])
+    output = validate_stage_output(project_root, stage)
+    checks.append("output-contract")
+    governance_script = (
+        ".specify/extensions/program-kit-governance/scripts/governance_state.py"
+    )
+    if stage == "research":
+        validate_profile_pin_decisions(project_root, run_id)
+        checks.append("managed-profile-pins")
+        _run_project_validator(
+            project_root, governance_script, ["validate-assessment"], "assessment governance"
+        )
+        checks.append("assessment-governance")
+    elif stage == "architecture":
+        _run_project_validator(project_root, governance_script, ["validate"], "architecture governance")
+        checks.append("architecture-governance")
+    elif stage == "roadmap":
+        _run_project_validator(project_root, governance_script, ["validate-roadmap"], "roadmap governance")
+        checks.append("roadmap-governance")
+    elif stage == "readiness":
+        _run_project_validator(
+            project_root,
+            governance_script,
+            ["validate", "--require-roadmap", "--require-ready"],
+            "readiness governance",
+        )
+        checks.append("readiness-governance")
+    return {
+        "stage": stage,
+        "checks": checks,
+        "check_count": len(checks),
+        "artifact_count": len(output["artifacts"]),
+        "target_exceeded_count": output["target_exceeded_count"],
     }
 
 
@@ -1043,7 +1345,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "run_id": run_id,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
-        "stage_plan": stage_plan(intake, stage),
+        "stage_plan": stage_plan(project_root, intake, stage, authorities),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),
         "architecture_map": architecture_projection(project_root, architecture_map, stage),
@@ -1126,6 +1428,8 @@ def main() -> int:
             "validate-intake",
             "validate-profile-pins",
             "validate-architecture-alignment",
+            "validate-architecture-structure",
+            "validate-stage",
         ),
     )
     parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
@@ -1162,6 +1466,12 @@ def main() -> int:
                 "journey_count": len(payload["journeys"]),
                 "capability_count": len(payload["capability_assessments"]),
             }
+        elif args.command == "validate-architecture-structure":
+            result = validate_architecture_structure(project_root, args.run_id)
+        elif args.command == "validate-stage":
+            if not args.stage:
+                raise ContextError("--stage is required for validate-stage")
+            result = validate_stage_batch(project_root, args.run_id, args.stage)
         elif args.command == "validate-output":
             if not args.stage:
                 raise ContextError("--stage is required for validate-output")
@@ -1188,6 +1498,16 @@ def main() -> int:
         )
     elif args.command == "validate-architecture-alignment":
         print("Program Kit architecture remains aligned with the confirmed bootstrap intake")
+    elif args.command == "validate-architecture-structure":
+        print(
+            "Program Kit architecture structural batch passed "
+            f"({len(result['checks'])} checks)"
+        )
+    elif args.command == "validate-stage":
+        print(
+            f"Program Kit {args.stage} terminal validation batch passed "
+            f"({result['check_count']} checks; {result['target_exceeded_count']} above generation target)"
+        )
     elif args.command == "validate-output":
         print(
             f"Program Kit {args.stage} outputs are within hard byte budgets "

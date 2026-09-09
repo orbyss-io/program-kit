@@ -91,5 +91,7 @@ Keep the report decision-oriented: status, blocking evidence, remaining triggere
 the next specification. For a single Ready entry with no blockers, use the byte target supplied by
 `output_contract`. Report the
 path, status, and validation counts only; do not print the complete report or repository-wide diffs.
-Run every command in `output_contract.validation_commands` before reporting completion and repair
-only a specific diagnostic.
+Run the single command in `output_contract.validation_commands` before reporting completion. It
+batches the output-budget, roadmap, governance, and exact READY checks. Repair only a named
+diagnostic and rerun that same batch once. After it passes, stop immediately: do not inspect a diff,
+remeasure files, read another source, or run another command.

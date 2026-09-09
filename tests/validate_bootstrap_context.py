@@ -36,6 +36,8 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
             "extensions/program-kit-governance/references/architecture-map.schema.json",
         ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json":
             "extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
+        ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json":
+            "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json",
     }
     for destination, source in contract_references.items():
         target = project / destination
@@ -43,6 +45,7 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
         shutil.copyfile(source_root / source, target)
     routed_references = tuple(dict.fromkeys(
         module.ASSESSMENT_BASE_REFERENCES
+        + module.ASSESSMENT_OPTIONAL_REFERENCES
         + module.DOTNET_REFERENCES
         + module.SECURE_WEB_REFERENCES
         + module.UI_EXPERIENCE_REFERENCES
@@ -200,6 +203,9 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     }
     for relative, value in json_files.items():
         write_json(project / relative, value)
+    write(project / "Directory.Build.props", "<Project />\n")
+    write(project / "src/Price.Api/Price.Api.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\" />\n")
+    write_json(project / "web/package.json", {"name": "price-web", "private": True})
 
 
 def main() -> int:
@@ -293,6 +299,17 @@ def main() -> int:
                 raise AssertionError(f"{stage} context does not enforce deny-by-default reading")
             if not payload["stage_plan"].get("mode"):
                 raise AssertionError(f"{stage} context omits its bounded work plan")
+            expected_validation = (
+                "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+                f"validate-stage --stage {stage} --run-id <workflow-run-id>"
+            )
+            if payload["output_contract"]["validation_commands"] != [expected_validation]:
+                raise AssertionError(f"{stage} context does not expose one terminal validation batch")
+            terminal = payload["stage_plan"].get("terminal_condition", {})
+            if terminal.get("command") != expected_validation or "Stop immediately" not in terminal.get(
+                "on_success", ""
+            ):
+                raise AssertionError(f"{stage} context does not define its terminal condition")
             if "artifacts" in payload:
                 raise AssertionError(f"{stage} stage brief embeds the evidence index")
             if not any(
@@ -319,6 +336,25 @@ def main() -> int:
                     for reference in module.ASSESSMENT_BASE_REFERENCES
                 ):
                     raise AssertionError("Assessment context omitted deterministic reference routing")
+                optional_assessment_references = (
+                    module.ASSESSMENT_OPTIONAL_REFERENCES
+                    + module.DOTNET_REFERENCES
+                    + module.SECURE_WEB_REFERENCES
+                    + module.UI_EXPERIENCE_REFERENCES
+                )
+                if any(
+                    reference in payload["reading_policy"]["required_full_reads"]
+                    for reference in optional_assessment_references
+                ):
+                    raise AssertionError("Assessment still requires expensive optional reference reads")
+                if not all(
+                    reference in payload["reading_policy"]["allowed_sources"]
+                    for reference in module.ASSESSMENT_OPTIONAL_REFERENCES
+                ):
+                    raise AssertionError("Assessment removed routed diagnostic references entirely")
+                batch = module.validate_stage_batch(project, run_id, "assessment")
+                if batch["checks"] != ["output-contract"]:
+                    raise AssertionError("Assessment terminal batch acquired a research prerequisite")
             if stage == "architecture":
                 if "elements" in payload["architecture_map"]:
                     raise AssertionError("Architecture brief duplicated a lossy canonical-map projection")
@@ -331,6 +367,20 @@ def main() -> int:
                     raise AssertionError("Architecture plan omits strategic module containment")
                 if not any("C4 component" in item and "container parent" in item for item in invariants):
                     raise AssertionError("Architecture plan omits C4 component containment")
+                building_blocks = payload["stage_plan"].get("building_blocks")
+                if not building_blocks or "forms" not in building_blocks["capabilities"]:
+                    raise AssertionError("Architecture plan omitted the selected building-block projection")
+                if "--capability forms" not in building_blocks["draft_command"]:
+                    raise AssertionError("Architecture plan omitted the exact building-block draft command")
+                targets = {
+                    item["path"] for item in building_blocks["target_inventory"]["candidates"]
+                }
+                if not {
+                    "Directory.Build.props", "src/Price.Api/Price.Api.csproj", "web/package.json"
+                }.issubset(targets):
+                    raise AssertionError(f"Architecture target inventory is incomplete: {targets}")
+                if "selection target" not in building_blocks["target_inventory"]["path_rule"]:
+                    raise AssertionError("Architecture target inventory does not distinguish CLI target")
             if stage != "architecture":
                 projected_elements = payload["architecture_map"].get("elements", [])
                 source_map = json.loads(architecture_path.read_text(encoding="utf-8"))
@@ -355,15 +405,11 @@ def main() -> int:
             if stage == "research":
                 if payload["managed_profile_pins"] is None:
                     raise AssertionError("Research context omitted managed profile pins")
+                observed = payload["stage_plan"].get("observed_toolchain", {})
+                if set(observed) != {"dotnet", "node", "npm", "python"}:
+                    raise AssertionError("Research context omitted supervisor-observed toolchain facts")
             elif payload["managed_profile_pins"] is not None:
                 raise AssertionError(f"{stage} context unnecessarily duplicated managed profile pins")
-            if stage == "architecture" and not any(
-                "bootstrap_context.py validate-architecture-alignment" in command
-                for command in output_contract["validation_commands"]
-            ):
-                raise AssertionError(
-                    "Architecture output contract omits confirmed-intake alignment validation"
-                )
             for artifact, budget in output_contract["artifact_byte_budgets"].items():
                 if artifact not in output_contract["write_paths"] or budget <= 0:
                     raise AssertionError(
@@ -398,6 +444,15 @@ def main() -> int:
             budget_result = module.validate_stage_output(project, stage)
             if budget_result["stage"] != stage or not budget_result["artifacts"]:
                 raise AssertionError(f"{stage} output budget validation produced no evidence")
+
+        managed_web = module.managed_web_control_projection(
+            project,
+            {"assessment_decisions": {"web": {"secure_profile": "bff-cookie-v1"}}},
+        )
+        if managed_web is None or [item["id"] for item in managed_web["controls"]] != [
+            f"WEB-C{number:02d}" for number in range(1, 14)
+        ]:
+            raise AssertionError("Managed web control projection is incomplete")
 
         assessment_path = project / "docs/architecture/bootstrap-assessment.md"
         assessment_text = assessment_path.read_text(encoding="utf-8")

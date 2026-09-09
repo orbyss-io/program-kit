@@ -24,6 +24,11 @@ required fields, allowed values, or nested record shapes.
 Use `output_contract.artifact_target_bytes` as the generation ceiling and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required architecture evidence merely to reach a target.
+When `stage_plan.building_blocks` is present, use its exact draft command, composition slot/options
+projection, canonical repository path, and target inventory. Do not run `--help`, search or dump the
+catalog, or enumerate project files to rediscover those values. When
+`stage_plan.managed_web_contract` is present, use its exact applicable control decisions and
+verification statements; do not search the installed extensions for `WEB-Cxx` records.
 
 ## Constitutional authority
 
@@ -125,12 +130,13 @@ Apply these executable containment rules before the first map write:
 - Keep one unique dynamic view for every confirmed intake journey.
 
 Write the founding ADRs and structurally patch the model before generating long narrative files.
-Run the map validator, building-block draft validator when applicable, DSL export, and intake
-alignment at that structural checkpoint. Only after it passes, write the compact narrative set,
-refresh its documentation hashes in the map, and run the final validation batch. This intentional
-two-check sequence prevents prose generation around an invalid model; additional validation loops
-must be driven by a specific diagnostic. The final batch includes every command in
-`output_contract.validation_commands`, in order.
+Run only `stage_plan.structural_validation_command` at that structural checkpoint. It batches the
+map validator, building-block draft validator when applicable, DSL export, source revalidation, and
+intake alignment into one process. Only after it passes, write the compact narrative set, refresh
+its documentation hashes in the map, and run the single command in
+`output_contract.validation_commands`. This intentional two-check sequence prevents prose
+generation around an invalid model without repeatedly reintroducing the growing diff into agent
+context. Additional validation loops must be driven by a specific diagnostic.
 
 Read the intake's founding decision candidates before doing broad architecture research. For each
 candidate, verify the evidence and assumptions against the ratified constitution and relevant
@@ -157,25 +163,19 @@ retaining the provider-neutral canonical links.
 Preserve portable Structurizr semantics in the canonical fields and retain unknown statements as
 typed extensions. Never execute `!script`, `!plugin`, remote includes, or remote image/theme fetches
 during model import or export. Such features require a separate explicit policy decision and
-authorization. Generate the DSL projection only through:
-
-`python .specify/extensions/program-kit-governance/scripts/architecture_map.py export --map docs/architecture/architecture-map.json --format structurizr-dsl --output docs/architecture/workspace.dsl --force`
+authorization. Generate the DSL projection only through the structural and final validation batches
+supplied in the stage plan. They use the canonical exporter and never accept a hand-edited
+projection.
 
 After generating the projection, tell the user: "To open the C4 diagrams safely on localhost, ask
 `View the C4 projection` or invoke `$speckit-program-kit-governance-view-c4`. Program Kit validates
 freshness first and does not change the canonical architecture map."
 
-Then validate the canonical model with source and ADR hashes:
-
-`python .specify/extensions/program-kit-governance/scripts/architecture_map.py validate --map docs/architecture/architecture-map.json --project-root . --verify-sources`
-
-Finally, using the run ID from the stage brief, validate the evolved map against the confirmed
-intake before reporting success:
-
-`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-architecture-alignment --run-id <workflow-run-id>`
-
-Repair any alignment diagnostic in the architecture artifacts and rerun both validations. Never
-return success while this transition contract fails.
+The supplied batches validate the canonical model with source and ADR hashes and, using the stage
+brief run ID, validate the evolved map against the confirmed intake. Repair only a named diagnostic
+in architecture-owned artifacts. After the final batch passes, stop immediately: do not inspect a
+diff, remeasure files, read another source, or run another command. Report only paths, byte counts,
+and validation counts.
 
 The architecture baseline must also define:
 
@@ -227,9 +227,10 @@ package/shell/host target; never infer placement from project names or apply pac
 its authority to the Proposed founding ADR IDs that decide those selections and include the concrete
 rationale. For a .NET selection without the recorded Foundation-host opt-out, bind the `api_baseline`
 host target and explicitly choose `foundation-host`; an empty optional answer is not the default.
-Run `building_blocks.py validate-draft --target .` before completing architecture. This
-offline validation proves closure and placement only. The final bootstrap approval promotes those
-ADRs and the reviewed Draft together; it still does not restore or materialize dependencies.
+Use the exact draft command and placement paths supplied by `stage_plan.building_blocks`; the
+structural and final validation batches run the offline draft validation that proves closure and
+placement. The final bootstrap approval promotes those ADRs and the reviewed Draft together; it
+still does not restore or materialize dependencies.
 
 When the decision register selects a browser UI, the architecture runtime, deployment,
 cross-cutting, and verification views must adopt the exact `web.secure_profile` and reference its

@@ -29,8 +29,9 @@ If validation fails, stop immediately and report the exact repair commands. Run 
 
 Treat the confirmed intake as the routing authority for this stage. Use its evidence IDs and bound
 artifacts when a fact is ambiguous or contradictory; do not print the complete intake or map. Read
-only `reading_policy.required_full_reads`; the deterministic router already selected the applicable
-default, capability, language, module, slicing, .NET, secure-web, and UI references. Do not search
+only `reading_policy.required_full_reads`; the command contract and stage projection already carry
+the applicable language, module, slicing, .NET, secure-web, and UI rules. Optional routed references
+are diagnostic sources, not another mandatory reading list. Do not search
 the references tree, inspect `architecture-method.md`, `tool-selection.md`, or
 `codex-desktop-windows.md`, or probe guessed paths, manifests, catalogs, or the installed-extension
 tree. An explicitly excluded surface is out of scope. Never enumerate or bulk-read references or
@@ -166,5 +167,8 @@ byte sizes, and decision counts only; do not print complete generated artifacts 
 diffs. For a single-interface, dependency-free local application, target at most 8 KiB for
 `bootstrap-assessment.md` and 6 KiB for `decision-backlog.md`. Prefer one routed read batch, one
 artifact-write batch, and one validation batch; expand only for a specific diagnostic.
-Run every command in `output_contract.validation_commands` in order before reporting completion.
-Repair only a specific diagnostic and never return success while a hard output budget fails.
+Run the single command in `output_contract.validation_commands` exactly once after the write batch.
+This assessment batch intentionally does not require `tooling-evaluation.md`; the research stage owns
+that later prerequisite. If the batch passes, it is the terminal condition: do not inspect a diff,
+remeasure files, read another source, or run another command. Repair only a named diagnostic, rerun
+the same batch once, and stop when it passes.
