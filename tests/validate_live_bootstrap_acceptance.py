@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.request
 import zipfile
 from pathlib import Path
 
@@ -33,7 +34,7 @@ from live.v2.redaction import StreamingRedactor
 from live.v2.scenario import bind_selection, load_scenario, scenario_authority
 from live.v2.supervisor import run_supervised
 from live.v2.validation import validate_consumer
-from live.run_bootstrap_acceptance import specify_bridge_command
+from live.run_bootstrap_acceptance import prepare_local_catalog_server, specify_bridge_command
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -154,6 +155,36 @@ def main() -> int:
             path.name for path in extracted_packages.iterdir()
         } != set(CONTROL_ARCHIVE_KEYS):
             raise AssertionError("Candidate setup eagerly extracted component payload archives")
+
+        catalog_artifacts = temp / "catalog-artifacts"
+        catalog_artifacts.mkdir()
+        catalog_payload = b"program-kit-local-catalog-archive"
+        for name in (
+            "program-kit-governance-0.10.0.zip",
+            "program-kit-building-blocks-0.10.0.zip",
+            "program-kit-dotnet-0.10.0.zip",
+            "program-kit-governance-preset-0.10.0.zip",
+        ):
+            (catalog_artifacts / name).write_bytes(catalog_payload)
+        catalog_packages = temp / "catalog-packages"
+        (catalog_packages / "workflow").mkdir(parents=True)
+        (catalog_packages / "workflow/workflow.yml").write_text(
+            "schema_version: '1.0'\n", encoding="utf-8"
+        )
+        catalog_evidence = temp / "catalog-evidence"
+        catalog_server, catalog_url = prepare_local_catalog_server(
+            ROOT, catalog_artifacts, catalog_packages, catalog_evidence, "0.10.0"
+        )
+        try:
+            with urllib.request.urlopen(
+                f"{catalog_url}/program-kit-governance-0.10.0.zip", timeout=10
+            ) as response:
+                if response.read() != catalog_payload:
+                    raise AssertionError("Local candidate catalog corrupted an archive transfer")
+            if os.name == "nt" and catalog_server.mode != "process":
+                raise AssertionError("Windows candidate catalogs are not process-isolated")
+        finally:
+            catalog_server.close()
 
         changed_scenario = temp / "changed-scenario"
         shutil.copytree(SCENARIO, changed_scenario)

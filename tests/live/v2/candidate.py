@@ -120,7 +120,7 @@ def install_candidate_from_receipt(
     ]
     for index, command in enumerate(commands, 1):
         receipts.append(_run_setup(command, project, evidence, index).as_dict())
-    server, thread, base_url = prepare_local_catalog_server(root, artifacts, packages, evidence, version)
+    server, base_url = prepare_local_catalog_server(root, artifacts, packages, evidence, version)
     catalog_commands = [
         specify_bridge_command(root, "extension", "catalog", "add", f"{base_url}/extensions.json", "--name", "program-kit-live-candidate", "--priority", "1", "--install-allowed", loopback_http_only=os.name == "nt"),
         specify_bridge_command(root, "preset", "catalog", "add", f"{base_url}/presets.json", "--name", "program-kit-live-candidate", "--priority", "1", "--install-allowed", loopback_http_only=os.name == "nt"),
@@ -132,7 +132,5 @@ def install_candidate_from_receipt(
         for offset, command in enumerate(catalog_commands, len(commands) + 1):
             receipts.append(_run_setup(command, project, evidence, offset).as_dict())
     finally:
-        server.shutdown()
-        server.server_close()
-        thread.join(timeout=10)
+        server.close()
     return receipts
