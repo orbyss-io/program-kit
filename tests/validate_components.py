@@ -72,6 +72,12 @@ def main() -> int:
     workflow_path = root / "workflows" / "program-kit-bootstrap" / "workflow.yml"
     bundle_path = root / "bundle.yml"
 
+    for json_path in sorted((root / "extensions").rglob("*.json")):
+        try:
+            json.loads(json_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise AssertionError(f"Extension JSON is not strictly valid: {json_path}: {exc}") from exc
+
     ExtensionManifest(extension_path)
     ExtensionManifest(building_blocks_extension_path)
     ExtensionManifest(dotnet_extension_path)

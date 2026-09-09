@@ -751,9 +751,11 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     architecture_map = load_json(project_root / "docs/architecture/architecture-map.json")
     governance = governance_contract(project_root)
     governance_paths = governance["paths"]
+    output_contract = resolved_output_contract(stage, governance_paths)
+    contract_references = tuple(output_contract["contract_references"])
     stage_artifacts = INTAKE_ARTIFACTS + tuple(
         replace_governance_path(path, governance_paths) for path in STAGE_ARTIFACTS[stage]
-    )
+    ) + contract_references
     artifacts: list[dict] = []
     authorities: dict[str, dict] = {}
     authority_paths = dict(AUTHORITY_JSON)
@@ -787,7 +789,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         ),
         "decisions": decision_records(project_root, governance_paths["decisions"]),
         "governance": governance,
-        "output_contract": resolved_output_contract(stage, governance_paths),
+        "output_contract": output_contract,
         "evidence_index": {
             "path": evidence_destination.relative_to(project_root).as_posix(),
             "sha256": sha256_bytes(evidence_bytes),
@@ -797,14 +799,14 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
             "mode": "deny-by-default",
             "required_full_reads": [
                 replace_governance_path(path, governance_paths) for path in STAGE_FULL_READS[stage]
-            ],
+            ] + list(contract_references),
             "allowed_sources": list(stage_artifacts),
             "rules": [
                 "Read this stage brief in full.",
                 "Treat intake and architecture_map as stage projections; query the canonical source only for an omitted decisive fact.",
                 "Do not print or read the evidence index in full; query one artifact and heading range or JSON field at a time.",
                 "Do not open an allowed source unless this brief lacks a fact required for the current output.",
-                "Do not inspect schema or validator implementation; use the supplied contract and validation commands.",
+                "Read every listed contract reference once before the first write; do not inspect validator implementation.",
                 "Excluded intake routing surfaces are out of scope unless contradictory evidence is cited.",
                 "Prefer one targeted source-read batch, one write batch, and one validation batch; expand only for a specific failure.",
                 "After writes report only paths, byte counts, status, and targeted diagnostics; never print full files or diffs.",

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -27,6 +28,19 @@ def write_json(path: Path, value: dict) -> None:
 
 def seed_project(project: Path, module, semantic, run_id: str) -> None:
     run = project / ".specify/workflows/runs" / run_id
+    source_root = Path(module.__file__).resolve().parents[3]
+    contract_references = {
+        ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json":
+            "extensions/program-kit-governance/references/bootstrap-decisions.schema.json",
+        ".specify/extensions/program-kit-governance/references/architecture-map.schema.json":
+            "extensions/program-kit-governance/references/architecture-map.schema.json",
+        ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json":
+            "extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
+    }
+    for destination, source in contract_references.items():
+        target = project / destination
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_root / source, target)
     write(project / "docs/architecture/project-intent.md", "# Tiny application\n\n[E-001] A visitor sees a greeting.\n")
     architecture = {
         "schema_version": "1.0",
@@ -217,15 +231,24 @@ def main() -> int:
             if "artifacts" in payload:
                 raise AssertionError(f"{stage} stage brief embeds the evidence index")
             if not any(
-                "Do not inspect schema or validator implementation" in rule
+                "Read every listed contract reference once before the first write" in rule
                 for rule in payload["reading_policy"]["rules"]
             ):
-                raise AssertionError(f"{stage} context does not prevent contract rediscovery")
+                raise AssertionError(f"{stage} context does not require contract-first generation")
             output_contract = payload["output_contract"]
             for artifact, budget in output_contract["artifact_byte_budgets"].items():
                 if artifact not in output_contract["write_paths"] or budget <= 0:
                     raise AssertionError(
                         f"{stage} output contract contains an invalid artifact budget"
+                    )
+            for contract_reference in output_contract["contract_references"]:
+                if contract_reference not in payload["reading_policy"]["allowed_sources"]:
+                    raise AssertionError(
+                        f"{stage} contract reference is outside the deny-by-default reading boundary"
+                    )
+                if contract_reference not in payload["reading_policy"]["required_full_reads"]:
+                    raise AssertionError(
+                        f"{stage} contract reference is not a mandatory pre-write read"
                     )
             evidence_path = project / payload["evidence_index"]["path"]
             if not evidence_path.is_file():

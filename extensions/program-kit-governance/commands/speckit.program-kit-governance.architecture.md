@@ -16,6 +16,9 @@ and heading range only when the brief lacks a fact required for an architecture 
 bulk-read every unchanged assessment or research artifact or enumerate installed files.
 Use `governance.paths` and `output_contract` as the resolved path and validation authority. Do not
 search `.specify`, unrelated extensions, catalogs, or validator implementation to rediscover them.
+Before the first write, read each file listed by `output_contract.contract_references` exactly once
+and shape both JSON outputs from those schemas. Do not use repeated validator failures to discover
+required fields, allowed values, or nested record shapes.
 Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
 trade away required architecture evidence merely to reach a target.
 
