@@ -11,7 +11,13 @@ from pathlib import Path
 
 from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
 from live.v2.checkpoint import materialize_checkpoint, seal_checkpoint
-from live.v2.cli import process_failure, supervisor_environment, worker_environment
+from live.v2.cli import (
+    process_failure,
+    supervisor_environment,
+    validate_agent_launcher,
+    validate_toolchain_binding,
+    worker_environment,
+)
 from live.v2.common import LiveContractError, atomic_write_json, load_object, sha256_file, validate
 from live.v2.evidence import EvidenceStore
 from live.v2.redaction import StreamingRedactor
@@ -60,6 +66,9 @@ def main() -> int:
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
         raise AssertionError(f"Live v2 components are missing: {missing}")
+    issuer_text = (ROOT / "scripts/New-LiveAcceptanceAuthorization.ps1").read_text(encoding="utf-8")
+    if "^codex-cli\\s+\\S+" not in issuer_text or "--launcher-version" not in issuer_text:
+        raise AssertionError("Interactive authorization no longer displays and binds the actual Codex launcher version")
     scenario, expectation, expectation_path = load_scenario(SCENARIO, SCHEMAS)
     authority = scenario_authority(SCENARIO, SCHEMAS)
     if expectation["catalogSha256"] != "8017cec0be489e5a76c0a6a75a383f5785cdcfabaf358a322d18d20e3116539d":
@@ -71,6 +80,28 @@ def main() -> int:
         raise AssertionError("Candidate expectation is stale relative to the catalog")
     restore = load_module("live_v2_restore", RESTORE)
     receipt_writer = load_module("live_v2_release_receipt", ROOT / "scripts/write_release_receipt.py")
+
+    release_tools = {
+        "dotnet": "10.0.202", "node": "v20.11.1", "npm": "10.2.4",
+        "git": "git version 2.44.0.windows.1", "specify": "specify 1.0.4", "codex": "unavailable",
+    }
+    live_tools = {**release_tools, "codex": "codex-cli 0.150.1"}
+    validate_toolchain_binding(release_tools, live_tools)
+    expect_contract_error(
+        lambda: validate_toolchain_binding(
+            {**release_tools, "codex": "codex-cli 0.149.0"}, live_tools
+        ),
+        "LIVE_RELEASE_RECEIPT_TOOLCHAIN_MISMATCH",
+    )
+    expect_contract_error(
+        lambda: validate_toolchain_binding(release_tools, {**live_tools, "codex": "unavailable"}),
+        "LIVE_ACCEPTANCE_TOOL_UNUSABLE",
+    )
+    validate_agent_launcher({"launcherVersion": "codex-cli 0.150.1"}, "codex-cli 0.150.1")
+    expect_contract_error(
+        lambda: validate_agent_launcher({"launcherVersion": "codex-cli 0.149.0"}, "codex-cli 0.150.1"),
+        "LIVE_AUTHORIZATION_LAUNCHER_MISMATCH",
+    )
 
     with tempfile.TemporaryDirectory(prefix="program-kit-live-v2-") as directory:
         temp = Path(directory)
@@ -142,7 +173,7 @@ def main() -> int:
             scenario={key: authority[key] for key in ("id", "version", "digest")},
             candidate={"releaseReceipt": "artifacts/release-receipt.json", "releaseReceiptSha256": "a" * 64},
             checkpoint={"checkpointId": checkpoint["checkpointId"], "digest": sha256_file(checkpoint_path)},
-            agent_profile={"integration": "codex", "model": "test-model", "reasoningEffort": "high", "sandbox": "workspace-write", "timeoutSeconds": 60},
+            agent_profile={"integration": "codex", "launcherVersion": "codex-cli test", "model": "test-model", "reasoningEffort": "high", "sandbox": "workspace-write", "timeoutSeconds": 60},
         )
         validated = validate_authorization(
             authorization_path, authorization_schema, phase="building-block-consumer", scenario_digest=authority["digest"],

@@ -34,11 +34,14 @@ existing-consumer intake, other agent providers, and POSIX qualification are als
 ## Candidate receipt
 
 The complete deterministic Release suite creates
-`artifacts/release-receipt-<version>.json`. The receipt binds the clean Git commit and tree, platform
-and toolchains, successful Release steps, browser engines, catalog and public-availability hashes,
+`artifacts/release-receipt-<version>.json`. The receipt binds the clean Git commit and tree,
+platform and observed toolchains, successful Release steps, browser engines, catalog and
+public-availability hashes,
 and the exact current-version release artifacts. The live harness installs those artifacts and
-never builds a candidate itself. A phase refuses the receipt if the source commit, platform, or
-external Git, Specify, Codex, .NET, Node, or npm toolchain has changed since Release validation.
+never builds a candidate itself. A phase refuses the receipt if the source commit, platform, or any
+toolchain actually observed by Release has changed. An `unavailable` receipt value is explicitly
+unbound: the live preflight still requires every live tool to execute successfully, and the one-use
+authorization independently pins the exact Codex launcher version shown to the operator.
 
 On this Windows host, run Release only after the candidate has been approved for publication and
 from a normal user-owned terminal:
@@ -52,8 +55,9 @@ Firefox remains in CI and is the authority for that browser leg.
 ## One-use authorization
 
 A paid phase requires a separately issued, short-lived authorization manifest. The interactive
-issuer displays and binds the phase, scenario, candidate receipt, optional parent checkpoint, exact
-Codex profile, timeout, and paid-session ceiling. It writes a nonce-bearing manifest only after the
+issuer displays and binds the phase, scenario, candidate receipt, optional parent checkpoint,
+exact Codex profile and launcher version, timeout, and paid-session ceiling. It writes a
+nonce-bearing manifest only after the
 operator types `AUTHORIZE <phase>`. The runner atomically consumes the manifest immediately before
 the paid process; it cannot be reused. There is no boolean `-Approved` compatibility path.
 

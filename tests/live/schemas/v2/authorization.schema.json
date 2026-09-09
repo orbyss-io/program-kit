@@ -36,9 +36,10 @@
     "agentProfile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["integration", "model", "reasoningEffort", "sandbox", "timeoutSeconds"],
+      "required": ["integration", "launcherVersion", "model", "reasoningEffort", "sandbox", "timeoutSeconds"],
       "properties": {
         "integration": { "const": "codex" },
+        "launcherVersion": { "type": "string", "minLength": 1, "not": { "const": "unavailable" } },
         "model": { "type": "string", "minLength": 1 },
         "reasoningEffort": { "type": "string", "minLength": 1 },
         "sandbox": { "const": "workspace-write" },

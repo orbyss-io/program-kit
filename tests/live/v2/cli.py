@@ -28,6 +28,7 @@ from live.v2.validation import validate_consumer
 
 CI_KEYS = ("CI", "GITHUB_ACTIONS", "TF_BUILD", "BUILD_BUILDID")
 SECRET_KEYS = ("PROGRAM_KIT_NPM_TOKEN", "NPM_TOKEN", "NODE_AUTH_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
+LIVE_TOOLCHAINS = ("dotnet", "node", "npm", "git", "specify", "codex")
 
 
 def repository_root() -> Path:
@@ -64,6 +65,30 @@ def tool_version(name: str) -> str:
     return lines[0] if result.returncode == 0 and lines else "unavailable"
 
 
+def validate_toolchain_binding(receipt_tools: dict[str, str], current_tools: dict[str, str]) -> None:
+    unusable = [name for name in LIVE_TOOLCHAINS if current_tools.get(name) == "unavailable"]
+    if unusable:
+        raise LiveContractError(f"LIVE_ACCEPTANCE_TOOL_UNUSABLE: {unusable}")
+    mismatches = {
+        name: {"receipt": receipt_tools[name], "current": current_tools[name]}
+        for name in LIVE_TOOLCHAINS
+        if receipt_tools[name] != "unavailable" and receipt_tools[name] != current_tools[name]
+    }
+    if mismatches:
+        raise LiveContractError(f"LIVE_RELEASE_RECEIPT_TOOLCHAIN_MISMATCH: {mismatches}")
+
+
+def validate_agent_launcher(profile: dict[str, Any], current_version: str | None = None) -> None:
+    actual = current_version if current_version is not None else tool_version("codex")
+    if actual == "unavailable":
+        raise LiveContractError("LIVE_ACCEPTANCE_TOOL_UNUSABLE: ['codex']")
+    if profile.get("launcherVersion") != actual:
+        raise LiveContractError(
+            "LIVE_AUTHORIZATION_LAUNCHER_MISMATCH: "
+            f"authorized={profile.get('launcherVersion')} current={actual}"
+        )
+
+
 def preflight(root: Path, receipt: dict[str, Any]) -> None:
     active_ci = [key for key in CI_KEYS if os.environ.get(key)]
     if active_ci:
@@ -74,10 +99,9 @@ def preflight(root: Path, receipt: dict[str, Any]) -> None:
     current_platform = {"system": platform.system(), "release": platform.release(), "machine": platform.machine()}
     if receipt["platform"] != current_platform:
         raise LiveContractError(f"LIVE_RELEASE_RECEIPT_PLATFORM_MISMATCH: receipt={receipt['platform']} current={current_platform}")
-    current_tools = {name: tool_version(name) for name in ("dotnet", "node", "npm", "git", "specify", "codex")}
+    current_tools = {name: tool_version(name) for name in LIVE_TOOLCHAINS}
     receipt_tools = {name: receipt["toolchains"][name] for name in current_tools}
-    if receipt_tools != current_tools:
-        raise LiveContractError(f"LIVE_RELEASE_RECEIPT_TOOLCHAIN_MISMATCH: receipt={receipt_tools} current={current_tools}")
+    validate_toolchain_binding(receipt_tools, current_tools)
     if git(root, "rev-parse", "HEAD") != receipt["source"]["commit"]:
         raise LiveContractError("LIVE_RELEASE_RECEIPT_SOURCE_COMMIT_MISMATCH")
     if git(root, "rev-parse", "HEAD^{tree}") != receipt["source"]["tree"]:
@@ -186,7 +210,16 @@ def issue(args: argparse.Namespace) -> int:
         validate(checkpoint_value, load_object(schema_root / "checkpoint.schema.json"))
         validate_checkpoint_binding(checkpoint_value, scenario_root, authority, receipt_digest)
         checkpoint = {"checkpointId": checkpoint_value["checkpointId"], "digest": checkpoint_digest(checkpoint_path)}
-    profile = {"integration": "codex", "model": args.model, "reasoningEffort": args.reasoning_effort, "sandbox": "workspace-write", "timeoutSeconds": args.timeout_seconds}
+    launcher_version = tool_version("codex")
+    if args.launcher_version != launcher_version:
+        raise LiveContractError(
+            f"LIVE_AUTHORIZATION_LAUNCHER_MISMATCH: displayed={args.launcher_version} current={launcher_version}"
+        )
+    profile = {
+        "integration": "codex", "launcherVersion": launcher_version, "model": args.model,
+        "reasoningEffort": args.reasoning_effort, "sandbox": "workspace-write",
+        "timeoutSeconds": args.timeout_seconds,
+    }
     destination = Path(args.output).resolve()
     manifest = issue_authorization(
         destination, load_object(schema_root / "authorization.schema.json"), phase=args.phase,
@@ -232,6 +265,7 @@ def _phase_inputs(args: argparse.Namespace, phase: str) -> tuple[Path, Path, Evi
         authorization_path, load_object(schema_root / "authorization.schema.json"), phase=phase,
         scenario_digest=authority["digest"], candidate_receipt_digest=receipt_digest, checkpoint_digest=checkpoint_sha,
     )
+    validate_agent_launcher(authorization["agentProfile"])
     return root, scenario_root, store, scenario, expectation, receipt, receipt_digest, authorization
 
 
@@ -450,6 +484,7 @@ def parser() -> argparse.ArgumentParser:
     authorize.add_argument("--checkpoint")
     authorize.add_argument("--model", required=True)
     authorize.add_argument("--reasoning-effort", required=True)
+    authorize.add_argument("--launcher-version", required=True)
     authorize.add_argument("--timeout-seconds", type=int, default=7200)
     authorize.add_argument("--expires-minutes", type=int, default=30)
     authorize.add_argument("--output", required=True)
