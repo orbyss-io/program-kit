@@ -3,7 +3,7 @@
   "$id": "https://orbyss.io/program-kit/live/v2/evidence-manifest.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "runId", "phase", "status", "causes", "authorization", "candidate", "scenario", "agentProfile", "process", "logs", "receipts", "startedAt", "finishedAt"],
+  "required": ["schemaVersion", "runId", "phase", "status", "causes", "authorization", "candidate", "scenario", "agentProfile", "process", "logs", "receipts", "workspace", "startedAt", "finishedAt"],
   "properties": {
     "schemaVersion": { "const": "2.0" },
     "runId": { "type": "string", "minLength": 1 },
@@ -17,6 +17,7 @@
     "process": { "type": "object" },
     "logs": { "type": "array", "items": { "type": "object" } },
     "receipts": { "type": "array", "items": { "type": "object" } },
+    "workspace": { "type": "string", "pattern": "^artifacts/live-v2-w/[0-9a-f]{8}$" },
     "oracle": { "type": "object" },
     "checkpoint": { "type": ["null", "string"] },
     "startedAt": { "type": "string", "minLength": 1 },

@@ -7,12 +7,20 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
+from live.v2.candidate import (
+    CONTROL_ARCHIVE_KEYS,
+    extract_candidate_control_archives,
+    retryable_catalog_transfer,
+)
 from live.v2.checkpoint import materialize_checkpoint, seal_checkpoint
 from live.v2.cli import (
     process_failure,
+    candidate_packages,
+    execution_workspace,
     supervisor_environment,
     validate_agent_launcher,
     validate_toolchain_binding,
@@ -24,6 +32,7 @@ from live.v2.redaction import StreamingRedactor
 from live.v2.scenario import bind_selection, load_scenario, scenario_authority
 from live.v2.supervisor import run_supervised
 from live.v2.validation import validate_consumer
+from live.run_bootstrap_acceptance import specify_bridge_command
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,6 +90,28 @@ def main() -> int:
     restore = load_module("live_v2_restore", RESTORE)
     receipt_writer = load_module("live_v2_release_receipt", ROOT / "scripts/write_release_receipt.py")
 
+    transient_catalog_error = (
+        "Failed to save extension archive: [WinError 10054] connection reset. "
+        "No changes were recorded."
+    )
+    if not retryable_catalog_transfer(transient_catalog_error):
+        raise AssertionError("Known atomic loopback catalog reset is no longer retryable")
+    if retryable_catalog_transfer("Failed to install bundle after partial changes"):
+        raise AssertionError("Unsafe catalog failure became retryable")
+
+    bridge = specify_bridge_command(ROOT, "--version")
+    bridge_site_packages = Path(bridge[bridge.index("--site-packages") + 1])
+    if not (bridge_site_packages / "specify_cli/__init__.py").is_file():
+        raise AssertionError("Live setup did not bind the installed Specify environment")
+
+    path_token = "1234abcd"
+    workspace_path = execution_workspace(ROOT, path_token)
+    packages_path = candidate_packages(ROOT, path_token)
+    if workspace_path != ROOT / "artifacts/live-v2-w" / path_token:
+        raise AssertionError("Windows execution workspace lost its bounded short path")
+    if packages_path != ROOT / "artifacts/live-v2-p" / path_token:
+        raise AssertionError("Candidate package staging lost its bounded short path")
+
     release_tools = {
         "dotnet": "10.0.202", "node": "v20.11.1", "npm": "10.2.4",
         "git": "git version 2.44.0.windows.1", "specify": "specify 1.0.4", "codex": "unavailable",
@@ -105,6 +136,24 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="program-kit-live-v2-") as directory:
         temp = Path(directory)
+        candidate_artifacts = temp / "candidate-artifacts"
+        candidate_artifacts.mkdir()
+        archive_names = {
+            "governance": "governance.zip", "building-blocks": "building-blocks.zip",
+            "dotnet": "dotnet.zip", "preset": "preset.zip", "workflow": "workflow.zip",
+            "bundle": "bundle.zip",
+        }
+        with zipfile.ZipFile(candidate_artifacts / archive_names["workflow"], "w") as archive:
+            archive.writestr("workflow.yml", "name: test\n")
+        with zipfile.ZipFile(candidate_artifacts / archive_names["bundle"], "w") as archive:
+            archive.writestr("bundle.yml", "name: test\n")
+        extracted_packages = temp / "candidate-packages"
+        extract_candidate_control_archives(candidate_artifacts, extracted_packages, archive_names)
+        if CONTROL_ARCHIVE_KEYS != ("workflow", "bundle") or {
+            path.name for path in extracted_packages.iterdir()
+        } != set(CONTROL_ARCHIVE_KEYS):
+            raise AssertionError("Candidate setup eagerly extracted component payload archives")
+
         changed_scenario = temp / "changed-scenario"
         shutil.copytree(SCENARIO, changed_scenario)
         (changed_scenario / "fixture/PROJECT_REQUEST.md").write_text("changed fixture\n", encoding="utf-8")

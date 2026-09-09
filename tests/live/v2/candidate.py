@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -11,6 +12,9 @@ from live.run_bootstrap_acceptance import prepare_local_catalog_server, safe_ext
 
 from .common import LiveContractError, load_object, safe_relative, sha256_file, validate
 from .supervisor import ProcessResult, run_supervised
+
+
+CONTROL_ARCHIVE_KEYS = ("workflow", "bundle")
 
 
 def validate_release_receipt(root: Path, receipt_path: Path, schema: dict[str, Any]) -> tuple[dict[str, Any], str]:
@@ -47,17 +51,44 @@ def _setup_environment() -> dict[str, str]:
     return environment
 
 
-def _run_setup(command: list[str], cwd: Path, evidence: Path, index: int) -> ProcessResult:
-    result = run_supervised(
-        command,
-        cwd=cwd,
-        environment=_setup_environment(),
-        evidence_directory=evidence / f"setup-{index:02d}",
-        timeout_seconds=600,
+def retryable_catalog_transfer(output: str) -> bool:
+    return (
+        re.search(r"Failed to save extension\s+archive", output) is not None
+        and "No changes were recorded" in output
     )
-    if result.exitCode != 0 or not result.cleanupComplete or not result.logsDrained:
-        raise LiveContractError(f"LIVE_CANDIDATE_SETUP_FAILED: {command[0]} exited {result.exitCode}")
-    return result
+
+
+def _run_setup(command: list[str], cwd: Path, evidence: Path, index: int) -> ProcessResult:
+    for attempt in range(1, 4):
+        attempt_name = f"setup-{index:02d}" if attempt == 1 else f"setup-{index:02d}-retry-{attempt}"
+        attempt_evidence = evidence / attempt_name
+        result = run_supervised(
+            command,
+            cwd=cwd,
+            environment=_setup_environment(),
+            evidence_directory=attempt_evidence,
+            timeout_seconds=600,
+        )
+        if result.exitCode == 0 and result.cleanupComplete and result.logsDrained:
+            return result
+        output = "\n".join(
+            (attempt_evidence / name).read_text(encoding="utf-8", errors="replace")
+            for name in ("workflow.stdout.log", "workflow.stderr.log")
+        )
+        if not retryable_catalog_transfer(output) or attempt == 3:
+            raise LiveContractError(
+                f"LIVE_CANDIDATE_SETUP_FAILED: {command[0]} exited {result.exitCode}"
+            )
+    raise LiveContractError("LIVE_CANDIDATE_SETUP_RETRY_EXHAUSTED")
+
+
+def extract_candidate_control_archives(
+    artifacts: Path,
+    packages: Path,
+    names: dict[str, str],
+) -> None:
+    for key in CONTROL_ARCHIVE_KEYS:
+        safe_extract(artifacts / names[key], packages / key)
 
 
 def install_candidate_from_receipt(
@@ -78,10 +109,10 @@ def install_candidate_from_receipt(
         "bundle": f"program-kit-{version}.zip",
     }
     listed = {Path(record["path"]).name: record for record in receipt["artifacts"]}
-    for key, name in names.items():
+    for name in names.values():
         if name not in listed:
             raise LiveContractError(f"LIVE_CANDIDATE_RECEIPT_ARCHIVE_MISSING: {name}")
-        safe_extract(artifacts / name, packages / key)
+    extract_candidate_control_archives(artifacts, packages, names)
     receipts: list[dict[str, object]] = []
     commands = [
         ["git", "init"],

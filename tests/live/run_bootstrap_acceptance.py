@@ -123,12 +123,49 @@ def run_logged_with_catalog_retry(
         time.sleep(1)
 
 
+def uv_windows_specify_environment(command: list[str]) -> tuple[Path, Path] | None:
+    if os.name != "nt" or len(command) != 1:
+        return None
+    launcher = Path(command[0])
+    if launcher.suffix.lower() != ".exe" or not launcher.is_file():
+        return None
+    try:
+        payload = launcher.read_bytes()
+        marker = payload.rfind(b"#!")
+        if marker < 0:
+            return None
+        shebang = payload[marker + 2 :].splitlines()[0].decode("utf-8").strip().strip('"')
+        interpreter = Path(shebang)
+        environment = interpreter.parent.parent
+        configuration = (environment / "pyvenv.cfg").read_text(encoding="utf-8")
+        site_packages = environment / "Lib/site-packages"
+    except (OSError, UnicodeDecodeError, IndexError):
+        return None
+    if (
+        not interpreter.is_absolute()
+        or not interpreter.is_file()
+        or not re.search(r"(?m)^uv\s*=\s*\S+\s*$", configuration)
+        or not (site_packages / "specify_cli/__init__.py").is_file()
+        or b"from specify_cli import main" not in payload[marker:]
+    ):
+        return None
+    return interpreter.resolve(), site_packages.resolve()
+
+
 def specify_bridge_command(
     root: Path,
     *arguments: str,
     loopback_http_only: bool = False,
 ) -> list[str]:
     site_packages = Path(sysconfig.get_paths()["purelib"]).resolve()
+    if os.name == "nt":
+        launcher = shutil.which("specify")
+        environment = uv_windows_specify_environment([launcher]) if launcher else None
+        if environment is None:
+            raise AcceptanceError(
+                "Program Kit live setup could not bind the uv-managed Specify environment."
+            )
+        _, site_packages = environment
     command = [
         sys.executable,
         str(root / "scripts/invoke_specify.py"),

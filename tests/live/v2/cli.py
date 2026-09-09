@@ -43,6 +43,14 @@ def default_scenario(root: Path) -> Path:
     return root / "tests/live/scenarios/internal-forms-workspace/v1"
 
 
+def execution_workspace(root: Path, run_token: str) -> Path:
+    return root / "artifacts/live-v2-w" / run_token
+
+
+def candidate_packages(root: Path, run_token: str) -> Path:
+    return root / "artifacts/live-v2-p" / run_token
+
+
 def git(root: Path, *arguments: str) -> str:
     excludes = "" if os.name == "nt" else os.devnull
     result = subprocess.run(
@@ -271,10 +279,11 @@ def _phase_inputs(args: argparse.Namespace, phase: str) -> tuple[Path, Path, Evi
 
 def bootstrap(args: argparse.Namespace) -> int:
     root, scenario_root, store, scenario, expectation, receipt, receipt_digest, authorization = _phase_inputs(args, "bootstrap-checkpoint")
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-bootstrap-{uuid.uuid4().hex[:8]}"
+    run_token = uuid.uuid4().hex[:8]
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-bootstrap-{run_token}"
     run_root = store.runs / run_id
-    project = run_root / "workspace"
-    packages = run_root / "packages"
+    project = execution_workspace(root, run_token)
+    packages = candidate_packages(root, run_token)
     shutil.copytree(copied_fixture(scenario_root, scenario), project)
     setup_receipts = install_candidate_from_receipt(root, project, packages, receipt, run_root / "setup")
     worker_guidance(project)
@@ -327,6 +336,7 @@ def bootstrap(args: argparse.Namespace) -> int:
         "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest},
         "scenario": scenario_authority(scenario_root, schemas(root)), "agentProfile": authorization["agentProfile"],
         "process": result.as_dict(), "logs": logs, "receipts": setup_receipts,
+        "workspace": project.relative_to(root).as_posix(),
         "checkpoint": str(checkpoint_path) if checkpoint_path else None, "startedAt": result.startedAt, "finishedAt": utc_now(),
     }
     validate(manifest, load_object(schemas(root) / "evidence-manifest.schema.json"))
@@ -349,9 +359,10 @@ def building_blocks(args: argparse.Namespace) -> int:
     token = os.environ.get("PROGRAM_KIT_NPM_TOKEN")
     if not token:
         raise LiveContractError("LIVE_RESTORE_CREDENTIAL_MISSING")
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-building-blocks-{uuid.uuid4().hex[:8]}"
+    run_token = uuid.uuid4().hex[:8]
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-building-blocks-{run_token}"
     run_root = store.runs / run_id
-    project = run_root / "workspace"
+    project = execution_workspace(root, run_token)
     parent_path = Path(args.checkpoint).resolve()
     parent = materialize_checkpoint(store, parent_path, project, load_object(schemas(root) / "checkpoint.schema.json"))
     worker_guidance(project)
@@ -465,6 +476,7 @@ def building_blocks(args: argparse.Namespace) -> int:
         "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest},
         "scenario": scenario_authority(scenario_root, schemas(root)), "agentProfile": profile, "process": result.as_dict(),
         "logs": logs, "receipts": receipts, "oracle": validation_result if status == "passed" else {},
+        "workspace": project.relative_to(root).as_posix(),
         "checkpoint": str(derived_checkpoint) if derived_checkpoint else None,
         "startedAt": result.startedAt, "finishedAt": utc_now(),
     }

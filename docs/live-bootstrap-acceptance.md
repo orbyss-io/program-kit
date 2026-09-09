@@ -123,7 +123,8 @@ Evidence is retained under `artifacts/live-acceptance/v2/`:
 
 - `objects/sha256/<sha256>` contains content-addressed checkpoint objects and the redacted worker logs;
 - `runs/<run-id>/manifest.json` is the schema-validated phase verdict and hash chain;
-- `runs/<run-id>/workspace/` preserves the disposable consumer for troubleshooting;
+- `artifacts/live-v2-w/<run-token>/` preserves the disposable consumer at a bounded Windows-safe
+  execution path; each run manifest records that relative path;
 - `checkpoints/<checkpoint-id>.json` inventories every reusable checkpoint file and hash;
 - `authorizations/consumed/` records exactly which one-use authorization was consumed.
 
