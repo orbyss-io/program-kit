@@ -195,6 +195,8 @@ def main() -> int:
         decision = project / "docs/architecture/decisions/ADR-001.md"
         write(intent, "# Greeting\n\n[E-001] A visitor receives a greeting.\n")
         write(decision, "# ADR-001: System boundary\n\n- **Status**: Accepted\n")
+        selection = project / "docs/architecture/building-block-selection.json"
+        write(selection, '{"selectionId":"greeting-baseline"}\n')
         value = semantic.semantic_model(intent)
         value["decisions"] = [
             {"id": "adr-001", "path": "docs/architecture/decisions/ADR-001.md",
@@ -205,7 +207,25 @@ def main() -> int:
             {"id": "blocked-script", "kind": "structurizr-script", "content": "!script unsafe.groovy",
              "policy": "blocked-executable", "source": "workspace.dsl:1"}
         ]
+        value["documentation"] = [
+            {
+                "id": "building-block-selection",
+                "path": "docs/architecture/building-block-selection.json",
+                "sha256": digest(selection),
+                "canonicalSha256": "1" * 64,
+                "scope": "Accepted building-block selection",
+            }
+        ]
         architecture.validate_model(value, project)
+        invalid_canonical = json.loads(json.dumps(value))
+        invalid_canonical["documentation"][0]["canonicalSha256"] = "not-a-sha256"
+        try:
+            architecture.validate_model(invalid_canonical, project)
+        except architecture.ArchitectureMapError as exc:
+            if "canonicalSha256 is invalid" not in str(exc):
+                raise
+        else:
+            raise AssertionError("Architecture model accepted an invalid canonical documentation hash")
         dsl = architecture.StructurizrDslExporter().export(value)
         if "calculator-forms =" in dsl or "calculator_forms =" not in dsl:
             raise AssertionError("C4 projection did not translate canonical IDs into portable DSL identifiers")

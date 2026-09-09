@@ -945,7 +945,13 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
     documentation_ids: set[str] = set()
     for index, document in enumerate(documentation, 1):
         label = f"documentation[{index}]"
-        if not isinstance(document, dict) or set(document) != {"id", "path", "sha256", "scope"}:
+        required_fields = {"id", "path", "sha256", "scope"}
+        allowed_fields = required_fields | {"canonicalSha256"}
+        if (
+            not isinstance(document, dict)
+            or not required_fields.issubset(document)
+            or not set(document).issubset(allowed_fields)
+        ):
             raise ArchitectureMapError(f"{label} has an invalid shape")
         document_id = _id(document.get("id"), f"{label}.id")
         if document_id in documentation_ids:
@@ -955,6 +961,12 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         digest = _text(document.get("sha256"), f"{label}.sha256", 64)
         if not SHA256.fullmatch(digest):
             raise ArchitectureMapError(f"{label}.sha256 is invalid")
+        if "canonicalSha256" in document:
+            canonical_digest = _text(
+                document.get("canonicalSha256"), f"{label}.canonicalSha256", 64
+            )
+            if not SHA256.fullmatch(canonical_digest):
+                raise ArchitectureMapError(f"{label}.canonicalSha256 is invalid")
         _text(document.get("scope"), f"{label}.scope")
         if project_root is not None:
             document_path = _relative_file(project_root, document["path"], f"{label}.path")
