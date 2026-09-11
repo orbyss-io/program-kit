@@ -1,5 +1,34 @@
 # Interactive intake acceptance
 
+From the candidate checkout in a fresh user-owned PowerShell console:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSession.ps1
+```
+
+The launcher creates a new temporary Git consumer outside this repository, installs all candidate
+Program Kit components, asks for a product idea, and opens the installed skill in foreground Codex.
+Setup uses a short-lived loopback catalog of the current source packages and the real bundle
+installer, then validates installation coherence and removes the temporary catalog registrations.
+Use your existing Codex login and configured model, or pass `-Model <model>` explicitly. Normal
+model usage applies. No Release receipt is needed and no bootstrap workflow is run. Exit with
+`/quit` to save evidence and return to PowerShell. `-KeepWorkspace` retains the live directory;
+otherwise it is removed only after a verified full archive and captured conversation on normal
+exit. Interrupted/failed sessions or missing history retain the workspace. Abrupt terminal closure
+can prevent finalization; the printed evidence directory contains `session.json` with its location.
+After confirming Codex has exited, recover/finalize such a run from the candidate checkout with
+`python scripts/intake_session.py finish --record <evidence-directory> --exit-code 130`.
+This preserves the interrupted workspace as well as its review artifacts.
+
+Evidence lives under `artifacts/intake-sessions/<id>/`: `REVIEW.md`, `session.json`, the readable
+conversation and exact matching Codex rollout when available, intake artifacts, validation logs,
+and a full `consumer.zip`. Return to the development conversation with the printed `REVIEW.md`
+path for evaluation. Local Codex history formats can change; missing history is explicitly reported,
+not inferred from the agent's summary. Nothing reads unrelated conversation bodies or copies Codex
+authentication/configuration files. These local ignored artifacts may contain private product
+information and raw tool output: do not publish them. `-PrepareOnly` exercises installation,
+archiving and cleanup without asking questions or launching Codex; it is not interview acceptance.
+
 Run this exercise with a human in a fresh initialized consumer using the candidate Program Kit
 extension. Invoke `$speckit-program-kit-governance-bootstrap`. This evaluates the conversation
 before any full bootstrap workflow run; it does not launch a paid acceptance phase or simulate

@@ -216,6 +216,12 @@ design tree in question rounds and waits for shared understanding before executi
 plan. Bootstrap intake reuses this interview method; the bootstrap workflow and lifecycle hooks do
 not start a grilling session. No separately installed personal grilling skill is required.
 
+To evaluate the installed intake interactively from a candidate checkout, run
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSession.ps1`
+in a fresh user-owned terminal. It sets up a disposable consumer, asks for your product idea,
+and opens Codex for human Q&A. It preserves review evidence before cleanup and never starts
+bootstrap. See [interactive intake acceptance](tests/acceptance/intake-grilling.md).
+
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:
 

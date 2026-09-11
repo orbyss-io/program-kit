@@ -25,8 +25,13 @@ the Firefox leg.
 
 The deterministic Development and Release suites do not invoke a coding agent. Tests whose names
 contain `codex` validate integration files, preflight behavior, and guarded harness contracts. Only
-an explicitly authorized live-acceptance v2 phase starts coding-agent sessions, and it remains
+an explicitly authorized live-acceptance v2 phase starts automated coding-agent sessions, and it remains
 governed by the separate optional-live-acceptance rules below.
+
+`Start-IntakeSession.ps1` is a separate human-owned interactive intake exercise, not an automated
+acceptance phase. The user runs it in a normal foreground terminal and answers the installed skill.
+Never launch its interactive mode from an agent, CI, a deterministic suite, or an unattended hook.
+Its `-PrepareOnly` setup/evidence smoke test starts no coding agent. It never launches bootstrap.
 
 ## Optional live acceptance
 

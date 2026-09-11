@@ -48,7 +48,7 @@ def main() -> int:
             "Program Kit complete deterministic Release suite passed.",
         ),
     )
-    if "Test-LiveBootstrap.ps1" in aggregate or "run_bootstrap_acceptance.py" in aggregate:
+    if any(name in aggregate for name in ("Test-LiveBootstrap.ps1", "run_bootstrap_acceptance.py", "Start-IntakeSession.ps1")):
         raise AssertionError("The deterministic aggregate must never launch paid Codex workers.")
 
     development_match = re.search(
@@ -75,7 +75,8 @@ def main() -> int:
         (
             "Test-ProgramKit.ps1 -Suite Release -Approved",
             "do not start the complete Release suite from a Codex Desktop task",
-            "Only an explicitly authorized live-acceptance v2 phase starts coding-agent sessions",
+            "Only an explicitly authorized live-acceptance v2 phase starts automated coding-agent sessions",
+            "Never launch its interactive mode from an agent, CI, a deterministic suite, or an unattended hook",
             "Never recreate a boolean `-Approved` path",
         ),
     )
