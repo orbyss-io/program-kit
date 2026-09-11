@@ -7,6 +7,11 @@ longer owns or publishes their runtime artifacts.
 
 Before tagging, run the deterministic release gates:
 
+Commit the final candidate first and verify a clean working tree. The receipt binds the exact source
+commit/tree and candidate assets; a dirty tree cannot produce a successful receipt. Inspect the
+preserved transcript and receipt before preparing the approved publication commit/tag. Keep all
+human evaluation transcripts and disposable consumers in ignored local artifacts, outside the PR.
+
 ```powershell
 ./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
 ```

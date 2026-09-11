@@ -14,6 +14,10 @@ from pathlib import Path
 SCHEMA_VERSION = "1.1"
 IMPORTER_VERSION = "1.0"
 STRATEGIC_MODEL_VERSION = "1.0"
+CAPABILITY_OWNER_LITERALS = {
+    'semantic_owner': frozenset({'program-kit', 'external', 'unresolved'}),
+    'integration_owner': frozenset({'program-kit', 'external', 'not-applicable', 'unresolved'}),
+}
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ELEMENT_TYPES = {
@@ -625,7 +629,7 @@ def _validate_strategic_model(
         if coverage in {"managed", "guided", "conflict"} and not capabilities:
             raise ArchitectureMapError(f"{label} must name the relevant Program Kit capability")
         semantic_owner = _text(item.get("semantic_owner"), f"{label}.semantic_owner", 120)
-        if semantic_owner not in {"program-kit", "external", "unresolved"} and semantic_owner not in context_ids:
+        if semantic_owner not in CAPABILITY_OWNER_LITERALS['semantic_owner'] and semantic_owner not in context_ids:
             raise ArchitectureMapError(f"{label}.semantic_owner must name a context or declared external owner")
         semantic_profile = _text(
             item.get("semantic_profile"), f"{label}.semantic_profile", 500, allow_empty=True
@@ -635,7 +639,7 @@ def _validate_strategic_model(
                 f"{label} needs a consumer-owned semantic profile in addition to managed mechanism coverage"
             )
         integration_owner = _text(item.get("integration_owner"), f"{label}.integration_owner", 120)
-        if integration_owner not in {"program-kit", "external", "not-applicable", "unresolved"} and integration_owner not in context_ids:
+        if integration_owner not in CAPABILITY_OWNER_LITERALS['integration_owner'] and integration_owner not in context_ids:
             raise ArchitectureMapError(f"{label}.integration_owner is invalid")
         _text(item.get("provider_selection"), f"{label}.provider_selection", 240, allow_empty=True)
         if item.get("decision_state") not in {

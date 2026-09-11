@@ -25,7 +25,8 @@ another interview method.
 Keep discovery bounded. Do not enumerate the repository, `.specify`, installed skills, references,
 schemas, or implementation scripts. Inspect explicitly supplied sources and canonical intake paths.
 When the conversation converges, read `references/intake-artifacts.md` and its worked example.
-Use the schema-derived authoring descriptor for exact nested fields before writing them. A targeted
+Use the schema-derived authoring descriptor for unfamiliar nested fields; reuse shapes already
+established by the example. Its section list and compact root help navigation without bulk reads. A targeted
 schema lookup is allowed when the descriptor is insufficient; do not guess shapes or browse
 implementation broadly to rediscover them.
 
@@ -110,7 +111,8 @@ After the questions converge, create or update:
 
 Use `references/intake-artifacts.md` as the authoring contract. Author shared semantics once in
 `docs/architecture/intake-authoring.json` using the routed example and descriptor. Write the
-current intent record (including draft-review status) before building. Run
+current intent record (including draft-review status, reconciled corrections and explicit-requirement
+coverage from `references/intake-method.md`) before building. Run
 `python .specify/extensions/program-kit-governance/scripts/intake_authoring.py build-draft --source docs/architecture/intake-authoring.json`.
 The builder derives shared intake fields and dynamic-view ordering, exports DSL, refreshes hashes,
 and validates the staged draft before replacing outputs. It never confirms intake or replaces a

@@ -5,6 +5,7 @@ import argparse
 import copy
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -124,6 +125,88 @@ class AuthoringTests(unittest.TestCase):
         self.assertIn('acl', patterns)
         self.assertNotIn('anti-corruption-layer', patterns)
 
+    def test_descriptor_navigation_is_compact_and_inline_sections_are_discoverable(self):
+        for document in ('map', 'intake'):
+            root = shapes.describe(document, 'root')
+            self.assertLess(len(json.dumps(root)), 6000)
+            self.assertNotIn('properties', json.dumps(root['fields']))
+            self.assertEqual(root['sections'], shapes.sections(document))
+        for section in ('open_items', 'choices'):
+            self.assertIn(section, shapes.sections('intake'))
+            self.assertIn('id', shapes.describe('intake', section)['required'])
+        with self.assertRaisesRegex(ValueError, 'Valid sections:.*open_items'):
+            shapes.describe('intake', 'open_item')
+
+    def test_descriptor_reports_real_owner_options_without_modifying_source(self):
+        before = copy.deepcopy(self.source)
+        result = authoring.describe_authoring('map', 'capability_binding', self.source)
+        for field, literals in architecture.CAPABILITY_OWNER_LITERALS.items():
+            self.assertEqual(result['ownerOptions'][field], sorted({'request-handling'} | literals))
+            self.assertNotIn('registration', result['ownerOptions'][field])
+            self.assertEqual(result['semanticRules'][field]['literals'], sorted(literals))
+        self.assertEqual(self.source, before)
+
+    def test_descriptor_cli_lists_sections_and_returns_actionable_invalid_section(self):
+        command = [sys.executable, str(SCRIPTS / 'intake_authoring.py'), 'describe', '--document', 'intake']
+        result = subprocess.run(command + ['--list-sections'], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('open_items', json.loads(result.stdout)['sections'])
+        result = subprocess.run(command + ['--section', 'open_item'], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('open_items', result.stderr)
+
+    def semantic_fixture(self):
+        sys.path.insert(0, str(ROOT / 'tests'))
+        import validate_bootstrap_semantics as fixture
+        return fixture.semantic_model(self.intent)
+
+    def test_owner_and_cross_context_errors_are_batched_without_changing_outputs(self):
+        self.build()
+        before = {p.name: p.read_bytes() for p in self.intent.parent.iterdir() if p.name != self.source_path.name}
+        model = self.semantic_fixture()
+        self.source['map'] = model
+        bindings = model['strategic_model']['capability_bindings']
+        bindings[0]['semantic_owner'] = 'The team owns semantics'
+        bindings[0]['integration_owner'] = 'pk-forms-profile'
+        bindings[1]['integration_owner'] = 'Not a context'
+        records = model['strategic_model']['context_relationships']
+        missing = records.pop()['relationship']
+        duplicate = records[0]['relationship']
+        records.append(copy.deepcopy(records[0]))
+        with self.assertRaises(ValueError) as error:
+            self.build()
+        message = str(error.exception)
+        for expected in ('/capability_bindings/0/semantic_owner', '/capability_bindings/0/integration_owner',
+                         '/capability_bindings/1/integration_owner', missing, duplicate, 'calculator-forms'):
+            self.assertIn(expected, message)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.intent.parent.iterdir()
+                                  if p.name != self.source_path.name})
+
+    def test_preflight_preserves_valid_owners_and_covers_module_edges_individually(self):
+        model = self.semantic_fixture()
+        self.assertEqual(authoring.authoring_semantic_errors(model), [])
+        before = copy.deepcopy(model)
+        for field, options in authoring.owner_options(model).items():
+            for owner in options:
+                model['strategic_model']['capability_bindings'][0][field] = owner
+                self.assertEqual(authoring.authoring_semantic_errors(model), [])
+        model = before
+        edge = copy.deepcopy(model['relationships'][-1])
+        edge.update(id='module-edge', source='calculation', target='quantity-engine')
+        model['relationships'].append(edge)
+        self.assertIn('module-edge', '\n'.join(authoring.authoring_semantic_errors(model)))
+        record = copy.deepcopy(model['strategic_model']['context_relationships'][-1])
+        record['relationship'] = 'module-edge'
+        model['strategic_model']['context_relationships'].append(record)
+        self.assertEqual(authoring.authoring_semantic_errors(model), [])
+
+    def test_preflight_reports_non_cross_context_typed_records(self):
+        model = self.semantic_fixture()
+        model['strategic_model']['context_relationships'][0]['relationship'] = 'uses-calculator'
+        message = '\n'.join(authoring.authoring_semantic_errors(model))
+        self.assertIn("'uses-calculator' has 1 typed records; expected 0", message)
+        self.assertIn("'forms-catalog' has 0 typed records; expected 1", message)
+
     def test_ambiguous_capability_is_exposed_for_semantic_review(self):
         model = {'strategic_model': {
             'context_relationships': [{'relationship': 'texts', 'contract': 'resolve-text', 'atomicity': 'read-only'}],
@@ -133,6 +216,24 @@ class AuthoringTests(unittest.TestCase):
         self.assertEqual(review[0]['atomicity'], 'read-only')
         self.assertEqual(review[0]['journey_steps'][0]['journey'], 'edit-text')
         self.assertIn('manage', review[0]['journey_steps'][0]['description'])
+
+    def test_shared_contract_does_not_mix_relationship_journey_steps(self):
+        model = {'strategic_model': {
+            'context_relationships': [
+                {'relationship': relation, 'contract': 'shared-query', 'atomicity': 'read-only'}
+                for relation in ('catalog-texts', 'estimate-texts', 'unused-texts')],
+            'journeys': [{'id': journey, 'steps': [{'relationship': relation, 'contract': 'shared-query',
+                                                  'description': description}]}
+                         for journey, relation, description in (
+                             ('catalog', 'catalog-texts', 'Resolve catalog text.'),
+                             ('estimate', 'estimate-texts', 'Resolve estimate text.'),
+                             ('second-catalog', 'catalog-texts', 'Resolve another catalog label.'))]}}
+        before = copy.deepcopy(model)
+        review = authoring.semantic_review(model)
+        self.assertEqual([s['journey'] for s in review[0]['journey_steps']], ['catalog', 'second-catalog'])
+        self.assertEqual([s['journey'] for s in review[1]['journey_steps']], ['estimate'])
+        self.assertEqual(review[2]['journey_steps'], [])
+        self.assertEqual(before, model)
 
     def test_command_cannot_use_read_only_context_contract(self):
         sys.path.insert(0, str(ROOT / 'tests'))

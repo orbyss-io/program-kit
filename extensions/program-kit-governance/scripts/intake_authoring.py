@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import copy
 import json
 from pathlib import Path
@@ -11,7 +12,7 @@ import tempfile
 
 import architecture_map as architecture
 import bootstrap_intake as intake_contract
-from contract_shapes import describe, errors, schema_for
+from contract_shapes import describe, errors, schema_for, sections
 
 
 def encode(value: dict) -> str:
@@ -111,8 +112,64 @@ def semantic_review(model: dict) -> list[dict]:
              'check': 'Do all described operations fit this contract and atomicity? Separate lookup from management writes; preserve translation, consistency and failure ownership.',
              'journey_steps': [{'journey': journey['id'], 'description': step['description']}
                                for journey in strategic['journeys'] for step in journey['steps']
-                               if step['relationship'] == relation['relationship'] or step['contract'] == relation['contract']]}
+                               if step['relationship'] == relation['relationship']]}
             for relation in strategic['context_relationships']]
+
+
+def owner_options(model: dict) -> dict:
+    contexts = {item['element'] for item in model['strategic_model']['bounded_contexts']}
+    return {field: sorted(contexts | literals)
+            for field, literals in architecture.CAPABILITY_OWNER_LITERALS.items()}
+
+
+def describe_authoring(document: str, section: str, source: dict | None = None) -> dict:
+    result = describe(document, section)
+    if (document, section) in {('map', 'capability_binding'), ('intake', 'capability_assessments')}:
+        result['semanticRules'] = {
+            field: {'reference': 'map.strategic_model.bounded_contexts[].element',
+                    'literals': sorted(literals),
+                    'note': 'One context ID or literal, not a module ID, list, or prose. Explain responsibility in semantic_profile.'}
+            for field, literals in architecture.CAPABILITY_OWNER_LITERALS.items()}
+        if source is not None:
+            result['ownerOptions'] = owner_options(source['map'])
+    if document == 'map' and section == 'context_relationship':
+        result['semanticRules'] = [
+            'Every individual cross-context map relationship ID needs exactly one context_relationship record, including module-level edges.',
+            'A shared contract or context-level overview edge does not cover another relationship ID.',
+            'Use distinct existing context IDs for upstream/downstream and context IDs for data/consistency/failure owners.',
+            'ACL bridge must be a downstream-owned module of kind bridge; command contracts cannot have read-only atomicity.']
+    return result
+
+
+def authoring_semantic_errors(model: dict) -> list[str]:
+    """Batch common authoring mistakes after schema validation; the full validator remains authoritative."""
+    strategic = model['strategic_model']
+    diagnostics = []
+    options = owner_options(model)
+    for index, binding in enumerate(strategic['capability_bindings']):
+        for field, allowed in options.items():
+            if binding[field] not in allowed:
+                diagnostics.append(f'$.map/strategic_model/capability_bindings/{index}/{field}: '
+                                   f'{binding[field]!r} is invalid; allowed owners: {", ".join(allowed)}')
+    elements = {item['id']: item for item in model['elements']}
+    def context_for(identifier):
+        element = elements.get(identifier, {})
+        if element.get('type') == 'bounded-context':
+            return identifier
+        if element.get('type') == 'domain-capability':
+            return element.get('parent')
+        return None
+    cross = {item['id'] for item in model['relationships']
+             if context_for(item['source']) and context_for(item['target'])
+             and context_for(item['source']) != context_for(item['target'])}
+    counts = Counter(item['relationship'] for item in strategic['context_relationships'])
+    for identifier in sorted(cross | counts.keys()):
+        expected = 1 if identifier in cross else 0
+        if counts[identifier] != expected:
+            diagnostics.append(f'$.map/strategic_model/context_relationships: relationship {identifier!r} '
+                               f'has {counts[identifier]} typed records; expected {expected}. '
+                               'Every cross-context edge needs its own record; a shared contract does not cover another edge.')
+    return diagnostics
 
 
 def build(root: Path, source_path: Path) -> dict:
@@ -155,6 +212,9 @@ def build(root: Path, source_path: Path) -> dict:
     if structural:
         raise ValueError('\n'.join(structural))
     derive_structure(model)
+    semantic = authoring_semantic_errors(model)
+    if semantic:
+        raise ValueError('\n'.join(semantic))
     architecture.validate_model(model, root)
     document = project_intake(model, source['intake'])
     # Stage and validate all three outputs before replacing anything. Confirmed consumers are
@@ -201,6 +261,8 @@ def build(root: Path, source_path: Path) -> dict:
     return {'status': 'valid-draft', 'outputs': [str(path) for path in targets],
             'semanticReview': semantic_review(model),
             'review': ['Check every editing/import journey has a write-capable contract, not merely a read-only lookup.',
+                       'Trace each explicit requirement to a journey/step with actor, operation and observable outcome, or an explicit disposition; a capability label alone is not coverage.',
+                       'Reconcile the current intent summary and Q&A states with corrections; superseded answers must not remain current or open.',
                        'Check accepted conditional recommendations have evidence for their conditions.',
                        'Schema validity does not confirm intake or establish interview quality.']}
 
@@ -214,6 +276,8 @@ def main() -> int:
     describe_parser = commands.add_parser('describe')
     describe_parser.add_argument('--document', choices=('map', 'intake'), required=True)
     describe_parser.add_argument('--section', default='root')
+    describe_parser.add_argument('--list-sections', action='store_true')
+    describe_parser.add_argument('--source', type=Path, help='Optional authoring source for existing owner IDs; read-only.')
     check_parser = commands.add_parser('check')
     check_parser.add_argument('--document', choices=('map', 'intake'), required=True)
     check_parser.add_argument('--input', type=Path, required=True)
@@ -223,7 +287,9 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.command == 'describe':
-            result = describe(args.document, args.section)
+            result = ({'sections': sections(args.document)} if args.list_sections else
+                      describe_authoring(args.document, args.section,
+                                         intake_contract.load_object(args.source) if args.source else None))
         elif args.command == 'check':
             result = {'structuralErrors': errors(intake_contract.load_object(args.input), schema_for(args.document))}
         else:

@@ -18,8 +18,15 @@ def errors(value, schema, root=None, path='$'):
     return [f'{path}{item["instancePath"]}: {item["message"]}' for item in report['errors']]
 
 
+def sections(document):
+    schema = schema_for(document)
+    return sorted({'root', *schema.get('$defs', {}), *schema.get('properties', {})})
+
+
 def describe(document, section):
     schema = schema_for(document)
+    if section not in sections(document):
+        raise ValueError(f'Unknown {document} section {section!r}. Valid sections: {", ".join(sections(document))}')
     if section == 'root':
         selected = ''
     elif section in schema.get('$defs', {}):
@@ -28,5 +35,14 @@ def describe(document, section):
         selected = '/properties/' + section
         if schema['properties'][section].get('type') == 'array':
             selected += '/items'
+    if section == 'root':
+        # Navigation, not a recursively expanded dump of every nested record.
+        fields = {}
+        for name, field in schema['properties'].items():
+            fields[name] = {key: child for key, child in field.items()
+                            if key in {'type', '$ref', 'enum', 'const', 'minItems', 'maxItems'}}
+            fields[name]['describeSection'] = name
+        return {'required': schema.get('required', []), 'fields': fields,
+                'sections': sections(document)}
     value = describe_value(schema, selected)['schema']
     return {'required': value.get('required', []), 'fields': value.get('properties', {})}

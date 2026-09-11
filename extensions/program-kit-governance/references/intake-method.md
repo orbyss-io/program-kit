@@ -28,6 +28,12 @@ Prioritize observable value, actors, scope, domain language and invariants, trus
 boundaries, external integrations, operational constraints, material Program Kit deviations, and
 the thinnest meaningful proving journey. Preserve every named source journey independently.
 
+When a role name or central operation has multiple plausible meanings, establish who supplies the
+input, who uses the result, and what result they expect before recommending dependent policies.
+A small worked example using the user's domain can expose the difference more clearly than abstract
+labels. Reuse an example already supplied; do not make this a mandatory extra question. Preserve
+useful follow-up depth: question count and interview duration are not targets to minimize.
+
 Apply a clearly applicable Program Kit default automatically when user intent neither contradicts
 it nor leaves its applicability ambiguous. Do not ask users to select or re-approve obvious tools,
 packages, versions, or profiles. Record the default's source, rationale, and material consequences
@@ -62,6 +68,14 @@ this record on re-entry and reopen only affected branches when intent changes. D
 previously confirmed artifact merely to log a new answer; follow the re-analysis procedure below
 and stage revisions for review first.
 
+Maintain one current answer/disposition per Q ID. When corrected, update affected current answers,
+dependent pending states and the current summary together; keep the old interpretation only in a
+compact, explicitly superseded history entry linked to its replacement. Do not repeat the full
+answer in several running narratives. Batch the affected record edits after each answered round.
+At convergence, reconcile the ledger once, mark the document `draft awaiting review`, and ensure
+no settled branch remains labelled open or superseded interpretation remains labelled current.
+Keep stable evidence locators when compacting; preserve rationale, exceptions and uncertainty.
+
 Keep explicit answers, Program Kit defaults, derived conclusions, and architectural proposals
 distinct in the synthesis and JSON evidence. Accepting recommendations does not turn applied
 defaults into explicit user intent or turn founding candidates into Accepted ADRs.
@@ -77,6 +91,15 @@ contract coverage, consistency and failure owner, and preservation of historical
 separate read/write contracts when their effects differ; do not infer transactional guarantees
 from a managed package's presence. Resolve a material ambiguity or mark it visibly unresolved,
 rather than rewriting architectural meaning just to satisfy a validator.
+
+Also trace each explicit product requirement from the initial idea and subsequent corrections to
+an observable journey/step or a visible excluded, assigned, deferred or unresolved disposition.
+Record compact links in the intent coverage summary. A capability name or package assessment alone
+does not demonstrate behavioral coverage. For compound needs such as import/export, account for
+both operations: actor/trigger, relevant input or selected data, and observable result. Existing
+steps may cover multiple needs; do not invent a separate journey for every requirement. Ask only
+when the missing behavior changes intent or architecture; leave implementation detail at its named
+feature-specification trigger. This is a semantic review, not a keyword-matching acceptance gate.
 
 ## Architecture map
 

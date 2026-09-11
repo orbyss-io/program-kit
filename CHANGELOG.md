@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 - Unreleased
+
 - Introduce the consumer-owned Accepted building-block selection, executable catalog `1.0`, pure
   cross-ecosystem resolver, hash-bound lock, exact project-specific NuGet/npm/tool/registry/CShell/
   host/configuration materialization, durable rollback, and selected/catalog public-availability gates.
@@ -14,8 +16,6 @@
 - Make legacy `ProgramKit.*` package handling permanently read-only: retain compatibility and public
   availability evidence, remove all package-hiding capability and credentials, and distinguish the
   packaged-release and source-tree disposable Specify installations in Release output.
-
-## 0.10.0 - 2026-09-07
 
 - Split reusable runtime components into independently versioned Orbyss Foundation, Orbyss Forms,
   and Orbyss Localization repositories, remove their source and publication pipelines from Program
@@ -39,6 +39,21 @@
   gate accept only the exact hash-bound founding ADR bundle.
 - Introduce the single current bootstrap-intake and architecture-map 1.1 contracts and reject the
   earlier exploratory skinny shape instead of carrying a compatibility path.
+- Route conversational bootstrap intake through Program Kit's independent grilling skill, preserve
+  applicable technical defaults, distinguish accepted recommendations from unknown facts, and trace
+  explicit requirements into observable behavior or visible dispositions before draft review.
+- Build draft intake JSON, canonical maps, and DSL from one UTF-8 authoring source with generated
+  shared fields, hashes, and staged validation. Add compact schema discovery, contextual owner
+  guidance, batched relationship/ownership diagnostics, and relationship-specific semantic review.
+- Ship reusable local JSON Schema validation and description tools with pinned project-local
+  runtimes and independently installed consumer copies protected against silent local-edit loss.
+- Add a human-owned isolated intake launcher that installs the candidate, preserves local review
+  evidence, and cleans up only after verified archival; it never starts bootstrap.
+- Replace combined paid live acceptance with separately authorized bootstrap-checkpoint and
+  building-block-consumer phases. Reuse sealed checkpoints for subsequent diagnostics, keep registry
+  credentials with the supervisor, and preserve redacted evidence and Windows process-tree cleanup.
+- Reduce bootstrap context churn and repeated artifact rewrites through focused stage handoffs,
+  readiness alignment, architecture-hash refresh, and concise live progress reporting.
 
 ## 0.9.11 - 2026-09-07
 

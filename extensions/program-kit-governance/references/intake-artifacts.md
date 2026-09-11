@@ -28,7 +28,12 @@ The authoring JSON contains exactly `map` and `intake`:
   ownership are not guessed. A bounded-context element needs an explicit application-system
   `parent` (not `properties.parent`). A decomposition view's scope is one bounded context.
 
-For any unfamiliar nested record, get exact required fields, types, allowed values, and bounds:
+For any unfamiliar nested record, get exact required fields, types, allowed values, and bounds.
+Reuse known example shapes; do not prefetch every section. Discover valid names when uncertain:
+
+`python .specify/extensions/program-kit-governance/scripts/intake_authoring.py describe --document intake --list-sections`
+
+Then request only the needed record:
 
 `python .specify/extensions/program-kit-governance/scripts/intake_authoring.py describe --document map --section context_relationship`
 
@@ -37,6 +42,19 @@ For any unfamiliar nested record, get exact required fields, types, allowed valu
 `capability_binding`, `journey`, or `journey_step`. Use the section you need, not the whole schema.
 Targeted schema inspection is allowed if the descriptor leaves a question; implementation browsing
 is a last resort. Required JSON names and enum spellings must never be inferred from prose.
+`root` is a compact navigation summary, not a recursive schema dump. For inline intake records,
+use collection names such as `open_items` and `choices`, not invented singular section names.
+
+Capability owner fields contain a single existing context ID or a documented literal, not a
+module ID or explanatory prose. Keep explanations in the semantic profile. The descriptor exposes
+these semantic rules; after creating the authoring source, request its actual available owner IDs:
+
+`python .specify/extensions/program-kit-governance/scripts/intake_authoring.py describe --document map --section capability_binding --source docs/architecture/intake-authoring.json`
+
+Every individual cross-context relationship needs one typed Context Map record, including edges
+between modules. A context overview edge or shared contract does not cover another relationship ID.
+Reuse an existing relationship where it represents the same operation; do not add redundant edges
+solely for separate views. Preserve genuinely distinct dependencies and their ownership.
 
 For an existing canonical JSON, report all structural errors in one read-only operation:
 
@@ -155,6 +173,9 @@ or decisions without intake evidence.
 ## Write and validate
 
 Finish edits to the intent record before building; late status-summary edits invalidate its hashes.
+Reconcile current answers and requirement coverage using `intake-method.md` before this step.
+Use focused edits to the authoring source; format large records across lines so changing one owner
+does not require rewriting an entire record or analysis. Do not duplicate generated projections.
 Run:
 
 `python .specify/extensions/program-kit-governance/scripts/intake_authoring.py build-draft --source docs/architecture/intake-authoring.json`
@@ -163,6 +184,10 @@ The UTF-8-safe builder projects shared fields, exports `workspace.dsl`, binds ha
 and runs the draft semantic validator on staged files. Errors leave current canonical outputs
 unchanged. Confirmed intake cannot be overwritten. Make draft repairs in the authoring source and
 rebuild; do not maintain ad hoc PowerShell serializers, hash-copy commands, or ASCII substitutions.
+The builder batches common owner-reference and cross-context coverage errors after structural
+validation, before the full semantic validator. Repair all reported paths together; never change
+ownership or remove a real dependency simply to satisfy the allowed-ID list. These preflight checks
+are not a replacement for complete semantic validation or human review.
 
 Review the emitted cross-context operations against their contracts and atomicity. An explicit
 `command` contract cannot be `read-only`. Generic capability descriptions require a human/agent

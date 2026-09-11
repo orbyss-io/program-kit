@@ -48,11 +48,14 @@ or desired architecture. A reviewer should assess the resulting conversation and
 | --- | --- |
 | Give only the initial idea. | Intake uses Program Kit grilling's numbered rounds and recommendations. It clarifies consequential product ambiguity and does not ask the user to reselect obvious managed tooling. |
 | Describe a solution without explaining its purpose. | It establishes the business problem and observable success before dependent solution/lifecycle recommendations. It does not repeat already supplied purpose. |
+| Use a role name that could mean buyer, intermediary or supplier, with an ambiguous core operation. | It establishes input provider, result user and expected outcome before dependent policies; a relevant worked example may clarify this. Already clear roles do not trigger a canned questionnaire. |
 | Accept a recommendation that depends on an unknown condition. | The conditional policy is accepted, but its premise stays unknown until supported. Language fallback, existing providers, and planning estimates do not become organizational facts merely through blanket acceptance. |
 | Answer only part of a round. | Answered questions stay settled, unanswered ones stay open, and dependent questions wait. |
 | Say "accept all recommendations" with one explicit exception. | Only presented recommendations are adopted, the exception wins, future choices remain open, and intake stays unconfirmed. |
 | Resolve the audience as internal employees for the first release. | Applicable technical defaults are recorded for final review; speculative customer/tenant details are excluded or deferred with a named trigger. |
 | Later change the first-release audience to include external partner companies. | Affected trust, ownership, and data-isolation assumptions are reopened; unrelated answers are retained with stable evidence IDs. |
+| Correct a central assumption, then settle its dependent rules. | The final current summary and affected Q&A rows agree; obsolete interpretations are explicitly superseded and resolved questions no longer appear open. Evidence IDs survive consolidation. |
+| Include a compound requirement such as importing/exporting workbooks. | Each operation has an actor/trigger, relevant data and observable outcome in a journey/step, or a visible disposition. A capability label alone is not treated as coverage. |
 | Supply a project document contradicting an earlier answer. | The conflict is surfaced for resolution and neither source silently overrides the other. |
 | Require an existing non-Orbyss NuGet dependency, with its actual package ID and purpose. | Consumer ownership is preserved; available compatibility facts are investigated and unknowns assigned without inventing managed coverage. |
 | Leave exact form fields and review-screen layout undecided. | Details that can close in a feature specification are deferred there; any boundary-changing uncertainty is still investigated. |
@@ -79,3 +82,13 @@ python tests/validate_intake_authoring.py --session-evidence artifacts/intake-se
 This checks regeneration and preservation of strategic decisions and source journeys in a temporary
 consumer. It does not repair the user's architectural decisions or prove better interview behavior.
 Raw private conversations stay in ignored session evidence, not committed fixtures.
+
+## Efficiency review
+
+Preserve relevant questioning and assess discovery quality with the human; fewer questions or a
+shorter conversation do not prove improvement. Separately report agent-active time (including
+tools), user waiting time, last-answer-to-review synthesis time, tool calls, validation repairs and
+reported token usage. Exclude terminal idle time after the final answer. Note changed scope and
+corrections before comparing runs. Cached input volume is not unique input or a monetary cost.
+Inspect whether targeted descriptions replace bulk/truncated schema reads, diagnostics repair
+multiple authoring problems together, and ledger edits avoid repeated competing narratives.
