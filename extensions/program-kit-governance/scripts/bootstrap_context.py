@@ -732,7 +732,14 @@ def compact_authority(name: str, payload: dict) -> dict:
         "schema_version", "status", "constitution", "gate_verdict", "approval_mode",
         "approval_source",
     )
-    return {key: payload[key] for key in keys if key in payload}
+    result = {key: payload[key] for key in keys if key in payload}
+    if name == "assessment_approval":
+        artifacts = payload.get("artifacts")
+        if isinstance(artifacts, dict):
+            decision_hash = artifacts.get("docs/architecture/bootstrap-decisions.json")
+            if isinstance(decision_hash, str) and decision_hash:
+                result["bootstrap_decisions_sha256"] = decision_hash
+    return result
 
 
 def replace_governance_path(relative_path: str, paths: dict[str, str]) -> str:
@@ -1268,7 +1275,12 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
         _run_project_validator(project_root, governance_script, ["validate"], "architecture governance")
         checks.append("architecture-governance")
     elif stage == "roadmap":
-        _run_project_validator(project_root, governance_script, ["validate-roadmap"], "roadmap governance")
+        _run_project_validator(
+            project_root,
+            governance_script,
+            ["validate-roadmap", "--require-ready"],
+            "roadmap governance",
+        )
         checks.append("roadmap-governance")
     elif stage == "readiness":
         _run_project_validator(

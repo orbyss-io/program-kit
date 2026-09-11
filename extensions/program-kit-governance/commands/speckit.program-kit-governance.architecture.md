@@ -65,10 +65,11 @@ create the remaining missing artifacts under `docs/architecture/`:
 Create `decisions/bootstrap-baseline.md` as a consolidated Accepted decision recording the exact
 approved decision-register hash, default-profile version, explicit choices, applied defaults,
 overrides, material acknowledgements, and easy supersession path. Copy the decision-register
-SHA-256 from `.specify/governance/bootstrap-assessment-approval.json`; include the stable ID of every
-choice, override, and acknowledgement so validation can prove traceability. Ordinary reviewed
-defaults do not need one ADR each. Project-specific choices outside that baseline remain Proposed
-until their own human approval.
+SHA-256 directly from `authorities.assessment_approval.bootstrap_decisions_sha256` in the stage
+brief; do not probe or reopen the approval record solely to rediscover that hash. Include the stable
+ID of every choice, override, and acknowledgement so validation can prove traceability. Ordinary
+reviewed defaults do not need one ADR each. Project-specific choices outside that baseline remain
+Proposed until their own human approval.
 Write its status using the exact line `- **Status**: Accepted`. For every other ADR, use the same
 field syntax with its actual lifecycle value; keep the colon outside the bold marker.
 
@@ -183,7 +184,10 @@ The architecture baseline must also define:
 - module and feature ownership, public contracts, data ownership, and allowed dependency graph;
 - Core/helper/implementation/provider/bridge/composition roles, semantic capability ownership, and
   selected runtime feature identities without layer-marker project names;
-- a candidate slice catalog using the contract in `references/vertical-slicing.md`;
+- a compact candidate slice catalog that names the user journey and observable outcome, entry
+  point, participating boundaries, owned public contract/data/lifecycle portion, success and
+  material failure outcomes, executable verification, and any horizontal prerequisite; each slice
+  must cross the required layers end to end rather than becoming a layer or component backlog;
 - the distinction between compile-time modules, runtime features, shells, and endpoints;
 - shared-kernel and feature-family extension policies, including exact Accepted exceptions;
 - the cross-context decision rule for bridges, events, orchestrators, and deliberate Core-to-Core

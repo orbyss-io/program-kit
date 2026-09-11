@@ -203,6 +203,17 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     }
     for relative, value in json_files.items():
         write_json(project / relative, value)
+    write_json(
+        project / ".specify/governance/bootstrap-assessment-approval.json",
+        {
+            "status": "Approved",
+            "artifacts": {
+                "docs/architecture/bootstrap-decisions.json": module.sha256_file(
+                    project / "docs/architecture/bootstrap-decisions.json"
+                )
+            },
+        },
+    )
     write(project / "Directory.Build.props", "<Project />\n")
     write(project / "src/Price.Api/Price.Api.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\" />\n")
     write_json(project / "web/package.json", {"name": "price-web", "private": True})
@@ -381,6 +392,12 @@ def main() -> int:
                     raise AssertionError(f"Architecture target inventory is incomplete: {targets}")
                 if "selection target" not in building_blocks["target_inventory"]["path_rule"]:
                     raise AssertionError("Architecture target inventory does not distinguish CLI target")
+                approval = payload["authorities"].get("assessment_approval", {})
+                expected_hash = module.sha256_file(
+                    project / "docs/architecture/bootstrap-decisions.json"
+                )
+                if approval.get("bootstrap_decisions_sha256") != expected_hash:
+                    raise AssertionError("Architecture brief omitted the approved decision-register hash")
             if stage != "architecture":
                 projected_elements = payload["architecture_map"].get("elements", [])
                 source_map = json.loads(architecture_path.read_text(encoding="utf-8"))
@@ -453,6 +470,23 @@ def main() -> int:
             f"WEB-C{number:02d}" for number in range(1, 14)
         ]:
             raise AssertionError("Managed web control projection is incomplete")
+
+        validator_calls: list[tuple[str, list[str], str]] = []
+        original_validator = module._run_project_validator
+        try:
+            module._run_project_validator = (
+                lambda _root, script, arguments, label: validator_calls.append(
+                    (script, arguments, label)
+                )
+            )
+            roadmap_batch = module.validate_stage_batch(project, run_id, "roadmap")
+        finally:
+            module._run_project_validator = original_validator
+        if roadmap_batch["checks"] != ["output-contract", "roadmap-governance"] or not any(
+            arguments == ["validate-roadmap", "--require-ready"]
+            for _, arguments, _ in validator_calls
+        ):
+            raise AssertionError("Roadmap terminal batch does not require a Ready entry")
 
         assessment_path = project / "docs/architecture/bootstrap-assessment.md"
         assessment_text = assessment_path.read_text(encoding="utf-8")

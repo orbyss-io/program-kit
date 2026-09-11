@@ -1741,6 +1741,38 @@ def accepted_adr(adr_id: str) -> bool:
     return False
 
 
+def roadmap_required_adr_ids(value: str, record_id: str) -> list[str]:
+    if value.lower() in {"none", "n/a", "not applicable"}:
+        return []
+    identifiers = re.findall(r"`([A-Za-z0-9][A-Za-z0-9._-]{1,127})`", value)
+    remainder = re.sub(r"`[A-Za-z0-9][A-Za-z0-9._-]{1,127}`", " ", value)
+    bare = re.findall(r"\bADR-[A-Z0-9-]+\b", remainder, re.IGNORECASE)
+    identifiers.extend(bare)
+    remainder = re.sub(r"\bADR-[A-Z0-9-]+\b", " ", remainder, flags=re.IGNORECASE)
+    remainder = re.sub(r"(?i)\band\b|[,;]", " ", remainder)
+    if remainder.strip() or not identifiers:
+        raise GovernanceStateError(
+            f"Roadmap record {record_id} Required Accepted ADRs must be None or contain "
+            "only exact ADR identifiers (use backticks for non-ADR-* identifiers)"
+        )
+    return list(dict.fromkeys(identifiers))
+
+
+def pending_founding_adr_ids() -> set[str]:
+    if (
+        project_path(BOOTSTRAP_APPROVAL).is_file()
+        or not project_path(BOOTSTRAP_INTAKE).is_file()
+    ):
+        return set()
+    try:
+        records = founding_adr_records("Proposed")
+    except GovernanceStateError:
+        return set()
+    identifiers = {item["candidate_id"].lower() for item in records}
+    identifiers.update(Path(item["path"]).stem.lower() for item in records)
+    return identifiers
+
+
 def roadmap_records(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         raise GovernanceStateError(f"Specification roadmap is missing: {path}")
@@ -1780,22 +1812,24 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
 
 def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
     records = roadmap_records(project_path(ROADMAP))
+    pending_founding: set[str] | None = None
     for record in records:
+        identifiers = roadmap_required_adr_ids(
+            record["Required Accepted ADRs"], record["id"]
+        )
         if record["Status"] not in {"Ready", "Active"}:
             continue
-        adrs = record["Required Accepted ADRs"]
-        if adrs.lower() not in {"none", "n/a", "not applicable"}:
-            identifiers = re.findall(r"ADR-[A-Z0-9-]+", adrs, re.IGNORECASE)
-            if not identifiers:
-                raise GovernanceStateError(
-                    f"{record['Status']} roadmap record {record['id']} has unparseable required ADRs"
-                )
-            unresolved = [adr for adr in identifiers if not accepted_adr(adr)]
-            if unresolved:
-                raise GovernanceStateError(
-                    f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
-                    + ", ".join(unresolved)
-                )
+        if pending_founding is None:
+            pending_founding = pending_founding_adr_ids()
+        unresolved = [
+            adr for adr in identifiers
+            if not accepted_adr(adr) and adr.lower() not in pending_founding
+        ]
+        if unresolved:
+            raise GovernanceStateError(
+                f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
+                + ", ".join(unresolved)
+            )
         lifecycle_text = "\n".join(
             record[field]
             for field in (

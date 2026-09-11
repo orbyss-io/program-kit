@@ -47,6 +47,11 @@ Create or update `docs/architecture/quality-system.md` containing:
 6. Dependency enforcement for the accepted bounded-context, module, feature, and contract graph. Include forbidden project/package/assembly edges, cycles, shared-store access, exception allowlists, and ownership evidence.
 7. Slice-completeness evidence covering public schema compatibility, composition, authorization, observable outcomes, and architecture tests at the earliest reliable lifecycle stage.
 
+For a single-journey bootstrap, compose the first complete draft in at most 650 words and aim below
+5,500 UTF-8 bytes, leaving comfortable repair headroom under the supplied target. Do not write a long
+draft and trim it toward the byte ceiling, and do not measure it repeatedly. After one write,
+run the terminal validation batch directly; only a named diagnostic justifies one repair pass.
+
 Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
 
 Do not manufacture a tooling ADR for standard-library test/process utilities that directly realize

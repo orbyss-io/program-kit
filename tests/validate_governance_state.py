@@ -661,6 +661,15 @@ def main() -> int:
             roadmap_path.parent.mkdir(parents=True, exist_ok=True)
             roadmap_path.write_text(placeholder_roadmap(), encoding="utf-8")
             expect_error(module, lambda: module.validate_roadmap(True), "template placeholders")
+            roadmap_path.write_text(
+                roadmap("`decision-context-boundaries`; a future authorization ADR"),
+                encoding="utf-8",
+            )
+            expect_error(
+                module,
+                lambda: module.validate_roadmap(True),
+                "only exact ADR identifiers",
+            )
             roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             expect_error(module, lambda: module.validate_roadmap(True), "unresolved ADRs")
 
@@ -682,6 +691,11 @@ def main() -> int:
             module.validate_roadmap(True)
 
             write_bootstrap_artifacts(module, project, architecture_module)
+            roadmap_path.write_text(
+                roadmap("`decision-context-boundaries`"), encoding="utf-8"
+            )
+            module.validate_roadmap(True)
+            roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             baseline_path = project / "docs/architecture/decisions/bootstrap-baseline.md"
             baseline_text = baseline_path.read_text(encoding="utf-8")
             approval = json.loads(

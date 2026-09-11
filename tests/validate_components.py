@@ -224,13 +224,16 @@ def main() -> int:
     for stage in context_stages:
         validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
         validation_command = validation_step.get("run", "")
+        expected_validator = "validate-stage" if stage == "roadmap" else "validate-output"
         if (
             validation_step.get("type") != "shell"
             or validation_step.get("output_format") != "json"
-            or "bootstrap_context.py validate-output" not in validation_command
+            or f"bootstrap_context.py {expected_validator}" not in validation_command
             or f"--stage {stage}" not in validation_command
         ):
             raise AssertionError(f"{stage} output budgets are not deterministically validated")
+        if stage == "roadmap" and "--run-id {{ context.run_id }}" not in validation_command:
+            raise AssertionError("Roadmap validation must enforce the Ready-entry terminal contract")
     pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
     if (
         pin_validation.get("type") != "shell"
@@ -261,7 +264,9 @@ def main() -> int:
         for marker in (
             "5,500 UTF-8 bytes",
             "do not write an oversized draft",
-            "after hook owns deterministic validation",
+            "mandatory after hook owns deterministic validation",
+            "write-review --stage constitution",
+            "never use Delete File plus Add File",
             "stop immediately",
         )
     ):
@@ -378,6 +383,8 @@ def main() -> int:
         extension_root / "commands/speckit.program-kit-governance.constitution-review.md",
         "validate-constitution-draft",
         "write-review --stage constitution",
+        "Copy both commands verbatim",
+        "one shell batch",
         "before asking the user to",
     )
     require_text(
@@ -469,6 +476,8 @@ def main() -> int:
         "stage_plan.structural_validation_command",
         "stage_plan.building_blocks",
         "stage_plan.managed_web_contract",
+        "authorities.assessment_approval.bootstrap_decisions_sha256",
+        "must cross the required layers end to end",
         "stop immediately",
     )
     for command_name in ("research", "tooling", "roadmap", "readiness"):
@@ -505,6 +514,16 @@ def main() -> int:
         "Required Accepted ADRs",
         "Design tasks remain separate",
         "single command in `output_contract.validation_commands`",
+        "feature-owned decisions",
+        "pending founding bundle",
+        "only architecture-significant prerequisites",
+        "at most 550 words",
+    )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.tooling.md",
+        "at most 650 words",
+        "draft and trim it toward the byte ceiling",
+        "do not measure it repeatedly",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.readiness.md",
