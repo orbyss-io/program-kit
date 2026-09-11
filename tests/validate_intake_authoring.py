@@ -88,7 +88,7 @@ class AuthoringTests(unittest.TestCase):
         self.assertIn('classification', str(error.exception))
         self.assertIn('vision', str(error.exception))
         self.assertIn('context_id', str(error.exception))
-        self.assertIn('sources[0]', str(error.exception))
+        self.assertIn('sources/0', str(error.exception))
         self.assertIn('documentation', str(error.exception))
         self.assertFalse((self.root / intake.CANONICAL_INTAKE).exists())
 
@@ -111,16 +111,9 @@ class AuthoringTests(unittest.TestCase):
             self.build()
 
     def test_owned_schema_vocabulary_is_supported(self):
-        def visit(node):
-            self.assertFalse(set(node) - shapes.KEYWORDS, set(node) - shapes.KEYWORDS)
-            for key in ('$defs', 'properties'):
-                for child in node.get(key, {}).values():
-                    visit(child)
-            for key in ('items', 'additionalProperties', 'propertyNames'):
-                if isinstance(node.get(key), dict):
-                    visit(node[key])
+        from json_schema import engine
         for document in ('map', 'intake'):
-            visit(shapes.schema_for(document))
+            engine(shapes.schema_for(document))
 
     def test_descriptor_exposes_nested_exact_contract(self):
         descriptor = shapes.describe('map', 'bounded_context')

@@ -68,6 +68,7 @@ $developmentValidators = @(
     'validate_test_suites.py',
     'validate_intake_session.py',
     'validate_intake_authoring.py',
+    'validate_json_schema.py',
     'validate_orbyss_building_blocks.py',
     'validate_building_blocks.py',
     'validate_building_block_availability.py',
@@ -175,6 +176,11 @@ try {
     if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
         throw "Could not locate the specify-cli Python environment at $python"
     }
+
+    Invoke-ProgramKitNative $python @(
+        (Join-Path $projectRoot 'extensions/program-kit-governance/scripts/schema_runtime.py'),
+        'setup', '--offline'
+    ) 'Prepare the JSON Schema runtime for the suite interpreter using the command above; validation never downloads dependencies.'
 
     foreach ($validator in $validators) {
         Write-Host "Running $Suite validator: $validator"

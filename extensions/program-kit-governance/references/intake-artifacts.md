@@ -47,6 +47,10 @@ bounds. They supplement—not replace—the semantic and cross-artifact validato
 errors as a batch. Never discard affected element references, evidence, or architectural meaning
 merely to get validation to pass.
 
+These diagnostics now use the shared JSON Schema engine, not an intake-only schema interpreter.
+For arbitrary schema/input files and runtime setup, see [JSON Schema tools](json-schema-tools.md).
+Instance paths in diagnostics use RFC 6901 JSON Pointers with zero-based array indices.
+
 The following sections describe generated output. Do not author its shared fields a second time.
 
 ## Bootstrap intake

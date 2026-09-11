@@ -216,8 +216,8 @@ design tree in question rounds and waits for shared understanding before executi
 plan. Bootstrap intake reuses this interview method; the bootstrap workflow and lifecycle hooks do
 not start a grilling session. No separately installed personal grilling skill is required.
 
-To evaluate the installed intake interactively from a candidate checkout, run
-`powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSession.ps1`
+To evaluate the installed intake interactively from a candidate checkout, use the
+[documented interactive launcher command](tests/acceptance/intake-grilling.md)
 in a fresh user-owned terminal. It sets up a disposable consumer, asks for your product idea,
 and opens Codex for human Q&A. It preserves review evidence before cleanup and never starts
 bootstrap. See [interactive intake acceptance](tests/acceptance/intake-grilling.md).
@@ -376,6 +376,27 @@ residual risks that still require project judgement. Governance rejects a browse
 does not inherit those exact IDs.
 
 ## Development and release
+
+Prepare the pinned project-local JSON Schema runtime once before validation:
+
+```sh
+python extensions/program-kit-governance/scripts/schema_runtime.py setup
+```
+
+The PowerShell suite uses uv's Spec Kit interpreter. If that differs from `python`, prepare its
+cache too (Windows):
+
+```powershell
+& (Join-Path ((& uv tool dir).Trim()) 'specify-cli/Scripts/python.exe') extensions/program-kit-governance/scripts/schema_runtime.py setup
+```
+
+The suite only checks/reuses this runtime offline; it prints the exact setup command if missing.
+
+The reusable `json_schema.py validate --schema PATH --input PATH` and `describe --schema PATH
+--section '/$defs/record'` tools ship with the governance extension. Consumers use their installed
+`.specify/extensions/program-kit-governance/scripts/` copy; this checkout can use its source or
+an independently installed copy. See the extension's `references/json-schema-tools.md` for setup,
+offline upgrades, reference restrictions, and local-edit protection. No global tool install is needed.
 
 During development, run the bounded source-contract gate. It intentionally excludes browser,
 packaging, clean-install, upgrade, and public-registry release gates:

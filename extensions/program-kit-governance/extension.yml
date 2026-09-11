@@ -13,7 +13,17 @@ requires:
   speckit_version: ">=1.0.1,<2.0.0"
 
 provides:
+  scripts:
+    - name: "json-schema"
+      file: "scripts/json_schema.py"
+      description: "Read-only JSON Schema validation and focused descriptions."
+    - name: "schema-runtime"
+      file: "scripts/schema_runtime.py"
+      description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.json-schema"
+      file: "commands/speckit.program-kit-governance.json-schema.md"
+      description: "Validate a JSON file against a schema or inspect a schema section."
     - name: "speckit.program-kit-governance.view-c4"
       file: "commands/speckit.program-kit-governance.view-c4.md"
       description: "Safely inspect and open the generated C4 projection in a pinned localhost viewer."

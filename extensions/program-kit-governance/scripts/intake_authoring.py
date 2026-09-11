@@ -230,7 +230,7 @@ def main() -> int:
             result = build(args.project_root, args.source)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2 if result.get('structuralErrors') else 0
-    except (ValueError, KeyError, TypeError, OSError, intake_contract.IntakeError, architecture.ArchitectureMapError) as error:
+    except (ValueError, KeyError, TypeError, OSError, RuntimeError, intake_contract.IntakeError, architecture.ArchitectureMapError) as error:
         print(f'Intake authoring failed: {error}', file=sys.stderr)
         return 2
 

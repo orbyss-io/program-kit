@@ -183,6 +183,10 @@ def prepare(record: Path) -> None:
         shutil.copy2(source_commands / name, record / name)
     save(record / 'session.json', state)
     install_components(specify, git, workspace, record)
+    runtime = workspace / '.specify/extensions/program-kit-governance/scripts/schema_runtime.py'
+    for action in ('setup', 'record-copy'):
+        if run([sys.executable, str(runtime), action], workspace, record / 'setup.log'):
+            raise RuntimeError(f'Intake schema tool {action} failed; see setup.log.')
     for tool, arguments in ((specify, ['version']), (shutil.which('codex'), ['--version'])):
         if tool:
             run([tool, *arguments], workspace, record / 'setup.log')
