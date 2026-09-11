@@ -9,15 +9,26 @@ scripts:
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
 Read the compact bootstrap stage brief first. It contains the confirmed intake, canonical
-architecture map, compact approved decisions and ratification records, and a link to a separate
-hash-bound evidence index. Read the
-ratified constitution in full. Do not print or read the evidence index in full; query one artifact
-and heading range only when the brief lacks a fact required for an architecture decision. Do not
+architecture-map identity, compact approved decisions and ratification records, a measured
+`stage_plan`, and a link to a separate hash-bound evidence index. Follow the stage plan in order.
+Read the canonical architecture map and ratified constitution in full exactly once; patch that
+validated seed rather than reconstructing a new map from the schema. Do not print or read the
+evidence index in full; query one artifact and heading range only when the brief lacks a fact
+required for an architecture decision. Do not
 bulk-read every unchanged assessment or research artifact or enumerate installed files.
 Use `governance.paths` and `output_contract` as the resolved path and validation authority. Do not
 search `.specify`, unrelated extensions, catalogs, or validator implementation to rediscover them.
-Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
-trade away required architecture evidence merely to reach a target.
+Before the first write, read each file listed by `output_contract.contract_references` exactly once
+and shape both JSON outputs from those schemas. Do not use repeated validator failures to discover
+required fields, allowed values, or nested record shapes.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
+counts; do not trade away required architecture evidence merely to reach a target.
+When `stage_plan.building_blocks` is present, use its exact draft command, composition slot/options
+projection, canonical repository path, and target inventory. Do not run `--help`, search or dump the
+catalog, or enumerate project files to rediscover those values. When
+`stage_plan.managed_web_contract` is present, use its exact applicable control decisions and
+verification statements; do not search the installed extensions for `WEB-Cxx` records.
 
 ## Constitutional authority
 
@@ -54,10 +65,11 @@ create the remaining missing artifacts under `docs/architecture/`:
 Create `decisions/bootstrap-baseline.md` as a consolidated Accepted decision recording the exact
 approved decision-register hash, default-profile version, explicit choices, applied defaults,
 overrides, material acknowledgements, and easy supersession path. Copy the decision-register
-SHA-256 from `.specify/governance/bootstrap-assessment-approval.json`; include the stable ID of every
-choice, override, and acknowledgement so validation can prove traceability. Ordinary reviewed
-defaults do not need one ADR each. Project-specific choices outside that baseline remain Proposed
-until their own human approval.
+SHA-256 directly from `authorities.assessment_approval.bootstrap_decisions_sha256` in the stage
+brief; do not probe or reopen the approval record solely to rediscover that hash. Include the stable
+ID of every choice, override, and acknowledgement so validation can prove traceability. Ordinary
+reviewed defaults do not need one ADR each. Project-specific choices outside that baseline remain
+Proposed until their own human approval.
 Write its status using the exact line `- **Status**: Accepted`. For every other ADR, use the same
 field syntax with its actual lifecycle value; keep the colon outside the bold marker.
 
@@ -75,14 +87,64 @@ the assessment review so the artifacts can be corrected, the packet regenerated,
 contents approved again.
 
 Treat `docs/architecture/architecture-map.json` as the canonical living architecture model and the
-confirmed intake map as its provisional starting state. Refine it with accepted assessment choices,
-the ratified constitution, and architecture evidence. Maintain its C4 System Context and Domain
+confirmed intake map as its provisional starting state. Make the smallest patch that adds accepted
+decision and architecture evidence; do not synthesize the model from an empty object or copy a
+schema example over it. Preserve every existing element `parent` unless an accepted decision
+explicitly changes containment. Refine fields that are not immutable
+confirmed-intake projections with accepted assessment choices, the ratified constitution, and
+architecture evidence. Maintain its C4 System Context and Domain
 Context Map as the first review views. Preserve the intake's domain/subdomain landscape,
 context/module decomposition, and one dynamic view for every separately named source journey.
 Add C4 container, component, or deployment levels only when evidence supports those physical or
 runtime boundaries; a bounded context or capability must never be projected as a peer software
 system merely to fit a C4 level. Diagrams are views of the canonical model, never independent
 sources of truth.
+
+For every seed dynamic view bound to a confirmed intake journey, preserve its relationship selection
+and order exactly. Adding relationships to the model does not authorize appending them to
+that seed view; put supported additional detail in a separate view instead.
+
+The confirmed intake remains immutable evidence. Preserve these cross-artifact projections exactly:
+
+- `strategic_model.subdomains` is the intake `domain_analysis.subdomains`; only `decision_refs` may
+  be added to a map record.
+- Each `strategic_model.bounded_contexts` record is its intake
+  `domain_analysis.candidate_contexts` record with `id` and `name` represented by `element`; the
+  referenced element must retain the intake name, every other intake field remains identical, and
+  only `decision_refs` may be added.
+- Each `strategic_model.capability_bindings` record is its intake `capability_assessments` record
+  with `id` represented by `assessment` and `need` omitted; only `module`, `status`, and
+  `decision_refs` may be added. Preserve all other values exactly.
+- `strategic_model.founding_decisions` is exactly the intake
+  `domain_analysis.founding_decision_candidates` collection. Map every intake journey separately
+  through `source_journey`, and use only evidence IDs declared by the intake.
+
+Do not enrich, rewrite, or normalize those confirmed semantics in the architecture map. Put later
+detail in modules, contracts, relationships, constraints, ADRs, narrative documents, or another
+non-projection field.
+
+Apply these executable containment rules before the first map write:
+
+- Every `strategic_model.modules[].element` identifies a `domain-capability` element whose `parent`
+  equals that module record's `context`; every domain-capability has exactly one module record.
+- Every non-empty `strategic_model.capability_bindings[].module` identifies one of those strategic
+  modules, never a container or an arbitrary runtime feature.
+- Every C4 `component` has a `container` parent. A CShell or host directly owned by the software
+  system is a container, not a component. Do not create a component view unless component
+  containment actually exists.
+- Keep one unique dynamic view for every confirmed intake journey.
+
+Write the founding ADRs and structurally patch the model before generating long narrative files.
+Use the stage brief's artifact records to determine which architecture files already exist and
+their current byte counts. Do not construct a PowerShell file-inventory command or issue separate
+`Get-Item` length probes; the supplied validators report final output sizes.
+Run only `stage_plan.structural_validation_command` at that structural checkpoint. It batches the
+map validator, building-block draft validator when applicable, DSL export, source revalidation, and
+intake alignment into one process. Only after it passes, write the compact narrative set, refresh
+its documentation hashes in the map, and run the single command in
+`output_contract.validation_commands`. This intentional two-check sequence prevents prose
+generation around an invalid model without repeatedly reintroducing the growing diff into agent
+context. Additional validation loops must be driven by a specific diagnostic.
 
 Read the intake's founding decision candidates before doing broad architecture research. For each
 candidate, verify the evidence and assumptions against the ratified constitution and relevant
@@ -109,17 +171,19 @@ retaining the provider-neutral canonical links.
 Preserve portable Structurizr semantics in the canonical fields and retain unknown statements as
 typed extensions. Never execute `!script`, `!plugin`, remote includes, or remote image/theme fetches
 during model import or export. Such features require a separate explicit policy decision and
-authorization. Generate the DSL projection only through:
-
-`python .specify/extensions/program-kit-governance/scripts/architecture_map.py export --map docs/architecture/architecture-map.json --format structurizr-dsl --output docs/architecture/workspace.dsl --force`
+authorization. Generate the DSL projection only through the structural and final validation batches
+supplied in the stage plan. They use the canonical exporter and never accept a hand-edited
+projection.
 
 After generating the projection, tell the user: "To open the C4 diagrams safely on localhost, ask
 `View the C4 projection` or invoke `$speckit-program-kit-governance-view-c4`. Program Kit validates
 freshness first and does not change the canonical architecture map."
 
-Then validate the canonical model with source and ADR hashes:
-
-`python .specify/extensions/program-kit-governance/scripts/architecture_map.py validate --map docs/architecture/architecture-map.json --project-root . --verify-sources`
+The supplied batches validate the canonical model with source and ADR hashes and, using the stage
+brief run ID, validate the evolved map against the confirmed intake. Repair only a named diagnostic
+in architecture-owned artifacts. After the final batch passes, stop immediately: do not inspect a
+diff, remeasure files, read another source, or run another command. Report only paths, byte counts,
+and validation counts.
 
 The architecture baseline must also define:
 
@@ -127,7 +191,10 @@ The architecture baseline must also define:
 - module and feature ownership, public contracts, data ownership, and allowed dependency graph;
 - Core/helper/implementation/provider/bridge/composition roles, semantic capability ownership, and
   selected runtime feature identities without layer-marker project names;
-- a candidate slice catalog using the contract in `references/vertical-slicing.md`;
+- a compact candidate slice catalog that names the user journey and observable outcome, entry
+  point, participating boundaries, owned public contract/data/lifecycle portion, success and
+  material failure outcomes, executable verification, and any horizontal prerequisite; each slice
+  must cross the required layers end to end rather than becoming a layer or component backlog;
 - the distinction between compile-time modules, runtime features, shells, and endpoints;
 - shared-kernel and feature-family extension policies, including exact Accepted exceptions;
 - the cross-context decision rule for bridges, events, orchestrators, and deliberate Core-to-Core
@@ -171,9 +238,10 @@ package/shell/host target; never infer placement from project names or apply pac
 its authority to the Proposed founding ADR IDs that decide those selections and include the concrete
 rationale. For a .NET selection without the recorded Foundation-host opt-out, bind the `api_baseline`
 host target and explicitly choose `foundation-host`; an empty optional answer is not the default.
-Run `building_blocks.py validate-draft --target .` before completing architecture. This
-offline validation proves closure and placement only. The final bootstrap approval promotes those
-ADRs and the reviewed Draft together; it still does not restore or materialize dependencies.
+Use the exact draft command and placement paths supplied by `stage_plan.building_blocks`; the
+structural and final validation batches run the offline draft validation that proves closure and
+placement. The final bootstrap approval promotes those ADRs and the reviewed Draft together; it
+still does not restore or materialize dependencies.
 
 When the decision register selects a browser UI, the architecture runtime, deployment,
 cross-cutting, and verification views must adopt the exact `web.secure_profile` and reference its

@@ -132,6 +132,10 @@ call specify bundle install program-kit --integration %PROGRAM_KIT_INTEGRATION%
 if errorlevel 1 goto :failed
 call python ".specify\extensions\program-kit-governance\scripts\ensure_utf8.py" --target .
 if errorlevel 1 goto :failed
+call python ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" setup
+if errorlevel 1 goto :failed
+call python ".specify\extensions\program-kit-governance\scripts\schema_runtime.py" record-copy
+if errorlevel 1 goto :failed
 
 echo [8/8] Switching Program Kit catalogs to the update channel...
 call specify extension catalog remove program-kit

@@ -308,6 +308,15 @@ def main() -> int:
         )
         for primitive in primitive_commands:
             require_success(run(*primitive, cwd=project), f"seed {' '.join(primitive[1:3])}")
+        # Offline upgrade consumes an explicitly prepared target runtime, not network installs.
+        source_scripts = ROOT / 'extensions/program-kit-governance/scripts'
+        runtime_spec = importlib.util.spec_from_file_location('upgrade_test_runtime', source_scripts / 'schema_runtime.py')
+        runtime = importlib.util.module_from_spec(runtime_spec)
+        runtime_spec.loader.exec_module(runtime)
+        destination = runtime.runtime_path(project)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(runtime.runtime_path(), destination)
+        runtime.record_copy(project)
         old = "0.0.0"
         manifests = (
             project / ".specify/extensions/program-kit-governance/extension.yml",
@@ -343,7 +352,7 @@ def main() -> int:
             json.dumps(bundle_records), encoding="utf-8"
         )
         managed = project / ".program-kit/managed.json"
-        managed.parent.mkdir(parents=True)
+        managed.parent.mkdir(parents=True, exist_ok=True)
         managed.write_text(
             json.dumps({
                 "schemaVersion": 1,
@@ -388,6 +397,16 @@ def main() -> int:
             sys.executable, str(UPDATER), "--release-root", str(ROOT),
             "--target", str(project), "--integration", "codex",
         )
+        installed_tool = project / '.specify/extensions/program-kit-governance/scripts/json_schema.py'
+        original_tool = installed_tool.read_bytes()
+        edited_tool = original_tool + b'\n# consumer-owned edit\n'
+        installed_tool.write_bytes(edited_tool)
+        rejected_edit = run(*command, cwd=project)
+        if (rejected_edit.returncode != 2 or 'SCHEMA_TOOLS_LOCALLY_EDITED' not in rejected_edit.stderr
+                or 'Resolve bundle composition record' in rejected_edit.stdout
+                or installed_tool.read_bytes() != edited_tool):
+            raise AssertionError(f'Upgrade did not protect consumer tool edits: {rejected_edit.stdout}{rejected_edit.stderr}')
+        installed_tool.write_bytes(original_tool)
         blocked_cli = project / "blocked_specify.py"
         blocked_cli.write_text(
             "import sys\nprint('sandbox denied the installed Specify interpreter', file=sys.stderr)\n"

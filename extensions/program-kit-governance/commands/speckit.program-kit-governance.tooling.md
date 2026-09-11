@@ -13,8 +13,9 @@ heading range only when the brief lacks a fact required by a quality-system deci
 bulk-read every unchanged architecture artifact or enumerate installed files.
 Use `governance.paths` and `output_contract` directly; do not search `.specify`, unrelated
 extensions, catalogs, or validator implementation for already supplied metadata.
-Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
-trade away a required control merely to reach a target.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
+counts; do not trade away a required control merely to reach a target.
 
 Validate and read the ratified constitution before producing the quality system. Stop when the
 constitution-ratification hash is missing or stale.
@@ -45,6 +46,11 @@ Create or update `docs/architecture/quality-system.md` containing:
 5. Upgrade policy: pin versions, inspect release notes and scripts, exercise representative fixtures, and promote only after compatibility checks pass.
 6. Dependency enforcement for the accepted bounded-context, module, feature, and contract graph. Include forbidden project/package/assembly edges, cycles, shared-store access, exception allowlists, and ownership evidence.
 7. Slice-completeness evidence covering public schema compatibility, composition, authorization, observable outcomes, and architecture tests at the earliest reliable lifecycle stage.
+
+For a single-journey bootstrap, compose the first complete draft in at most 650 words and aim below
+5,500 UTF-8 bytes, leaving comfortable repair headroom under the supplied target. Do not write a long
+draft and trim it toward the byte ceiling, and do not measure it repeatedly. After one write,
+run the terminal validation batch directly; only a named diagnostic justifies one repair pass.
 
 Generic programming guardrails apply automatically. Project-specific tool selection and architecture choices remain Proposed until their ADR is accepted. Avoid duplicating capabilities already supplied effectively by the language toolchain, platform, or accepted repository tooling.
 
@@ -86,3 +92,8 @@ explicit many-to-many mapping to the inherited controls. Tool output must distin
 configuration checks, protocol/boundary tests, real-browser/provider tests, and deployment
 assurance. A skipped real-provider, conformance, vulnerability, or risk-proportional security test
 remains visible; it cannot be converted into passing evidence by a unit mock.
+
+Before reporting completion, run the single command in `output_contract.validation_commands`.
+It batches every deterministic tooling check. Repair only a named diagnostic and rerun that same
+batch once. After it passes, stop immediately: do not inspect a diff, remeasure files, read another
+source, or run another command. Report only paths, byte counts, and validation counts.

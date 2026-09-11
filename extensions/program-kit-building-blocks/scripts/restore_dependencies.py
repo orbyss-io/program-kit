@@ -116,45 +116,84 @@ def native_lock_records(repository: Path) -> list[dict]:
     return sorted(records, key=lambda item: item["path"].casefold())
 
 
+def write_json_atomic(path: Path, value: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8", newline="\n")
+    temporary.replace(path)
+
+
+def restore_request(repository: Path, lock_path: Path, lock: dict, mode: str) -> dict:
+    commands = []
+    for command in restore_commands(repository, lock, mode):
+        portable = dict(command)
+        portable["cwd"] = Path(command["cwd"]).resolve().relative_to(repository).as_posix() or "."
+        portable["args"] = [
+            Path(argument).resolve().relative_to(repository).as_posix()
+            if Path(argument).is_absolute() and Path(argument).resolve().is_relative_to(repository)
+            else argument
+            for argument in command["args"]
+        ]
+        commands.append(portable)
+    return {
+        "schemaVersion": "2.0",
+        "mode": mode,
+        "repository": ".",
+        "lock": lock_path.relative_to(repository).as_posix(),
+        "lockSha256": hashlib.sha256(lock_path.read_bytes()).hexdigest(),
+        "planDigest": lock.get("planDigest"),
+        "commands": commands,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Explicitly renew or verify native locks for selected building blocks.")
-    parser.add_argument("mode", choices=("renew", "locked"))
+    parser.add_argument("mode", choices=("renew", "locked", "request-renew", "request-locked"))
     parser.add_argument("--target", default=".")
     parser.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
-    parser.add_argument("--evidence", default=".program-kit/evidence/building-block-restore.json")
+    parser.add_argument("--evidence")
     parser.add_argument("--approved", action="store_true")
     args = parser.parse_args()
-    if not args.approved:
+    request_mode = args.mode.startswith("request-")
+    mode = args.mode.removeprefix("request-")
+    if not request_mode and not args.approved:
         print("PKB622 restore requires explicit --approved network and native-lock authorization", file=sys.stderr)
         return 2
     repository = Path(args.target).resolve()
-    evidence_path = safe_path(repository, args.evidence)
+    default_evidence = (
+        ".program-kit/evidence/building-block-restore-request.json"
+        if request_mode
+        else ".program-kit/evidence/building-block-restore.json"
+    )
+    evidence_path = safe_path(repository, args.evidence or default_evidence)
     try:
-        lock = load_json(safe_path(repository, args.lock))
+        lock_path = safe_path(repository, args.lock)
+        lock = load_json(lock_path)
         if evidence_path.is_file():
             evidence_path.unlink()
-        commands = restore_commands(repository, lock, args.mode)
+        if request_mode:
+            write_json_atomic(evidence_path, restore_request(repository, lock_path, lock, mode))
+            print(f"Building-block {mode} restore request written without network access: {evidence_path}")
+            return 0
+        commands = restore_commands(repository, lock, mode)
         environment = isolated_environment(repository)
         completed: list[dict] = []
         for command in commands:
             result = subprocess.run(command["args"], cwd=command["cwd"], env=environment, check=False)
             if result.returncode != 0:
                 raise RestoreError(
-                    f"PKB623 {command['ecosystem']} {args.mode} failed for {command['subject']} with exit code {result.returncode}"
+                    f"PKB623 {command['ecosystem']} {mode} failed for {command['subject']} with exit code {result.returncode}"
                 )
             completed.append({key: command[key] for key in ("ecosystem", "subject")})
         evidence = {
             "schemaVersion": "1.0",
-            "mode": args.mode,
+            "mode": mode,
             "planDigest": lock.get("planDigest"),
             "subjects": completed,
             "nativeLocks": native_lock_records(repository),
         }
-        evidence_path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = evidence_path.with_name(evidence_path.name + ".tmp")
-        temporary.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8", newline="\n")
-        temporary.replace(evidence_path)
-        print(f"Building-block {args.mode} restore evidence written: {evidence_path}")
+        write_json_atomic(evidence_path, evidence)
+        print(f"Building-block {mode} restore evidence written: {evidence_path}")
         return 0
     except (OSError, RestoreError) as error:
         print(str(error), file=sys.stderr)

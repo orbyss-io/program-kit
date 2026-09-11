@@ -9,6 +9,7 @@
     "run_id",
     "stage",
     "stage_focus",
+    "stage_plan",
     "bootstrap_intake",
     "intake",
     "architecture_map",
@@ -21,16 +22,17 @@
     "reading_policy"
   ],
   "properties": {
-    "schema_version": { "const": "3.0" },
+    "schema_version": { "const": "4.0" },
     "run_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
-    "stage": { "enum": ["research", "architecture", "tooling", "roadmap", "readiness"] },
+    "stage": { "enum": ["assessment", "research", "architecture", "tooling", "roadmap", "readiness"] },
     "stage_focus": { "type": "string", "minLength": 1 },
+    "stage_plan": { "type": "object", "required": ["mode"], "additionalProperties": true },
     "bootstrap_intake": { "$ref": "#/$defs/file" },
     "intake": { "$ref": "#/$defs/intake_projection" },
     "architecture_map": { "$ref": "#/$defs/architecture_projection" },
     "authorities": { "type": "object", "additionalProperties": { "type": "object" } },
     "managed_profile_pins": {
-      "type": "object",
+      "type": ["object", "null"],
       "additionalProperties": false,
       "required": ["precedence", "selected_profiles", "pins", "sources", "local_environment_policy"],
       "properties": {
@@ -108,12 +110,17 @@
     "output_contract": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["write_paths", "contract_references", "validation_commands", "artifact_byte_budgets"],
+      "required": ["write_paths", "contract_references", "validation_commands", "artifact_byte_budgets", "artifact_target_bytes"],
       "properties": {
         "write_paths": { "$ref": "#/$defs/string_list" },
         "contract_references": { "$ref": "#/$defs/string_list" },
         "validation_commands": { "$ref": "#/$defs/string_list" },
         "artifact_byte_budgets": {
+          "type": "object",
+          "propertyNames": { "type": "string", "minLength": 1 },
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "artifact_target_bytes": {
           "type": "object",
           "propertyNames": { "type": "string", "minLength": 1 },
           "additionalProperties": { "type": "integer", "minimum": 1 }
@@ -151,7 +158,7 @@
       "required": ["projection", "schema_version", "status", "project"],
       "properties": {
         "projection": { "const": "stage-summary" },
-        "schema_version": { "const": "1.0" },
+        "schema_version": { "const": "1.1" },
         "status": { "const": "confirmed" },
         "project": { "type": "object" }
       },
@@ -163,7 +170,7 @@
       "properties": {
         "projection": { "const": "stage-summary" },
         "source": { "$ref": "#/$defs/file" },
-        "schema_version": { "const": "1.0" },
+        "schema_version": { "const": "1.1" },
         "model_id": { "type": "string", "minLength": 1 },
         "title": { "type": "string", "minLength": 1 }
       },

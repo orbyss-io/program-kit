@@ -19,3 +19,26 @@ and leaves unrelated Proposed ADRs unchanged.
 Publication requires the complete source, release-package, clean-install, previous-stable upgrade,
 and public install/upgrade suites. A real pinned Structurizr container run additionally validates the
 generated custom strategic views and journey dynamics without importing viewer state.
+
+## Conversational intake and authoring
+
+The authoring regression checks UTF-8 preservation, stable semantic projections, exact references,
+batched structural and common ownership/relationship diagnostics, compact schema navigation, and
+relationship-specific journey review when contracts are shared. Failed builds preserve existing
+artifacts, partial replacement rolls back, and confirmed intakes cannot be replaced by draft builds.
+
+The interactive launcher has deterministic archive, ownership, cleanup and no-agent setup tests.
+Human evaluations have additionally exercised the installed intake skill and requirement-coverage
+review. Those observations support usability assessment, not a guarantee of complete business
+requirements or a substitute for human confirmation. Private conversations and generated consumer
+artifacts remain local and ignored; they are not release assets or committed product fixtures.
+
+JSON Schema regressions cover supported dialects, local reference restrictions, deterministic
+diagnostics, independent runtime setup, and protection of locally modified installed tool copies.
+Each receipt attests only to its recorded clean commit, tree and artifacts. A later test-only or
+non-shipped documentation correction may reuse that local evidence with a recorded packaging-impact
+assessment, targeted checks and green CI, under the
+[contributor evidence-reuse policy](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
+The original receipt is not changed or presented as an exact-commit receipt for the correction.
+The tagged Release workflow still validates the publication commit in full and writes its own
+receipt. Local Windows validation uses Chromium and WebKit; Firefox remains in CI.

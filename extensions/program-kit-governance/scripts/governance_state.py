@@ -1575,6 +1575,18 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
             )
     validate_roadmap(require_ready)
     validate_bootstrap_consistency()
+    architecture = _load_architecture_module()
+    try:
+        model = architecture.load_object(project_path(ARCHITECTURE_MAP))
+        architecture.validate_model(model, Path.cwd().resolve())
+        expected_projection = architecture.StructurizrDslExporter().export(model)
+    except architecture.ArchitectureMapError as exc:
+        raise GovernanceStateError(str(exc)) from exc
+    if project_path(WORKSPACE_DSL).read_text(encoding="utf-8") != expected_projection:
+        raise GovernanceStateError(
+            f"C4 projection is stale: {WORKSPACE_DSL.as_posix()}; "
+            "regenerate it from the canonical architecture map"
+        )
     if require_approval:
         path = project_path(BOOTSTRAP_APPROVAL)
         record = read_json(path)
@@ -1729,6 +1741,38 @@ def accepted_adr(adr_id: str) -> bool:
     return False
 
 
+def roadmap_required_adr_ids(value: str, record_id: str) -> list[str]:
+    if value.lower() in {"none", "n/a", "not applicable"}:
+        return []
+    identifiers = re.findall(r"`([A-Za-z0-9][A-Za-z0-9._-]{1,127})`", value)
+    remainder = re.sub(r"`[A-Za-z0-9][A-Za-z0-9._-]{1,127}`", " ", value)
+    bare = re.findall(r"\bADR-[A-Z0-9-]+\b", remainder, re.IGNORECASE)
+    identifiers.extend(bare)
+    remainder = re.sub(r"\bADR-[A-Z0-9-]+\b", " ", remainder, flags=re.IGNORECASE)
+    remainder = re.sub(r"(?i)\band\b|[,;]", " ", remainder)
+    if remainder.strip() or not identifiers:
+        raise GovernanceStateError(
+            f"Roadmap record {record_id} Required Accepted ADRs must be None or contain "
+            "only exact ADR identifiers (use backticks for non-ADR-* identifiers)"
+        )
+    return list(dict.fromkeys(identifiers))
+
+
+def pending_founding_adr_ids() -> set[str]:
+    if (
+        project_path(BOOTSTRAP_APPROVAL).is_file()
+        or not project_path(BOOTSTRAP_INTAKE).is_file()
+    ):
+        return set()
+    try:
+        records = founding_adr_records("Proposed")
+    except GovernanceStateError:
+        return set()
+    identifiers = {item["candidate_id"].lower() for item in records}
+    identifiers.update(Path(item["path"]).stem.lower() for item in records)
+    return identifiers
+
+
 def roadmap_records(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         raise GovernanceStateError(f"Specification roadmap is missing: {path}")
@@ -1768,22 +1812,24 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
 
 def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
     records = roadmap_records(project_path(ROADMAP))
+    pending_founding: set[str] | None = None
     for record in records:
+        identifiers = roadmap_required_adr_ids(
+            record["Required Accepted ADRs"], record["id"]
+        )
         if record["Status"] not in {"Ready", "Active"}:
             continue
-        adrs = record["Required Accepted ADRs"]
-        if adrs.lower() not in {"none", "n/a", "not applicable"}:
-            identifiers = re.findall(r"ADR-[A-Z0-9-]+", adrs, re.IGNORECASE)
-            if not identifiers:
-                raise GovernanceStateError(
-                    f"{record['Status']} roadmap record {record['id']} has unparseable required ADRs"
-                )
-            unresolved = [adr for adr in identifiers if not accepted_adr(adr)]
-            if unresolved:
-                raise GovernanceStateError(
-                    f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
-                    + ", ".join(unresolved)
-                )
+        if pending_founding is None:
+            pending_founding = pending_founding_adr_ids()
+        unresolved = [
+            adr for adr in identifiers
+            if not accepted_adr(adr) and adr.lower() not in pending_founding
+        ]
+        if unresolved:
+            raise GovernanceStateError(
+                f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
+                + ", ".join(unresolved)
+            )
         lifecycle_text = "\n".join(
             record[field]
             for field in (
@@ -1859,7 +1905,10 @@ def _replace_roadmap_view(text: str, view: str, path: Path) -> str:
 def synchronize_roadmap_views() -> None:
     """Refresh non-authoritative roadmap navigation in architecture documents."""
     records = validate_roadmap(False)
-    _require_files((ARCHITECTURE, TRACEABILITY), "Roadmap synchronization")
+    _require_files(
+        (ARCHITECTURE, TRACEABILITY, ARCHITECTURE_MAP, WORKSPACE_DSL),
+        "Roadmap synchronization",
+    )
     view = _roadmap_view(records)
     updates: list[tuple[Path, str]] = []
     for relative in (ARCHITECTURE, TRACEABILITY):
@@ -1867,11 +1916,37 @@ def synchronize_roadmap_views() -> None:
         updates.append(
             (path, _replace_roadmap_view(path.read_text(encoding="utf-8"), view, relative))
         )
-    for path, updated in updates:
-        write_text(path, updated)
+    architecture = _load_architecture_module()
+    map_path = project_path(ARCHITECTURE_MAP)
+    projection_path = project_path(WORKSPACE_DSL)
+    model = architecture.load_object(map_path)
+    mutable_paths = [path for path, _ in updates] + [map_path, projection_path]
+    originals = {path: path.read_bytes() for path in mutable_paths}
+    try:
+        for path, updated in updates:
+            write_text(path, updated)
+        documentation = {
+            item.get("path"): item
+            for item in model.get("documentation", [])
+            if isinstance(item, dict)
+        }
+        for relative in (ARCHITECTURE, TRACEABILITY):
+            registered = documentation.get(relative.as_posix())
+            if registered is not None:
+                registered["sha256"] = sha256(project_path(relative))
+        architecture.validate_model(model, Path.cwd().resolve())
+        write_json(map_path, model)
+        write_text(projection_path, architecture.StructurizrDslExporter().export(model))
+    except Exception as exc:
+        for path, content in originals.items():
+            path.write_bytes(content)
+        if isinstance(exc, architecture.ArchitectureMapError):
+            raise GovernanceStateError(str(exc)) from exc
+        raise
     print(
         "Synchronized derived roadmap views in "
-        f"{ARCHITECTURE.as_posix()} and {TRACEABILITY.as_posix()}"
+        f"{ARCHITECTURE.as_posix()} and {TRACEABILITY.as_posix()}; "
+        "refreshed canonical documentation hashes and C4 projection"
     )
 
 

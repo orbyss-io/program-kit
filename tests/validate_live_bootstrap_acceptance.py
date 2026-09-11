@@ -1,608 +1,419 @@
 from __future__ import annotations
 
-import json
+import importlib.util
 import io
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.request
+import zipfile
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
-import yaml
-
-from live.run_bootstrap_acceptance import (
-    AcceptanceError,
-    CI_ENVIRONMENT_KEYS,
-    analyze_metrics,
-    discover_run_state,
-    git_excludes_override,
-    performance_warnings,
-    run_logged_with_catalog_retry,
-    snapshot_managed_baseline,
-    specify_bridge_command,
-    validate_intake_skill_result,
-    validate_first_slice,
-    validate_result,
+from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
+from live.v2.candidate import (
+    CONTROL_ARCHIVE_KEYS,
+    extract_candidate_control_archives,
+    retryable_catalog_transfer,
 )
-from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+from live.v2.checkpoint import materialize_checkpoint, seal_checkpoint
+from live.v2.cli import (
+    WorkflowProgress,
+    process_failure,
+    candidate_packages,
+    execution_workspace,
+    supervisor_environment,
+    validate_agent_launcher,
+    validate_toolchain_binding,
+    workflow_failure_causes,
+    worker_environment,
+)
+from live.v2.common import LiveContractError, atomic_write_json, load_object, sha256_file, validate
+from live.v2.evidence import EvidenceStore
+from live.v2.redaction import StreamingRedactor
+from live.v2.scenario import bind_selection, load_scenario, scenario_authority
+from live.v2.supervisor import run_supervised
+from live.v2.validation import validate_consumer
+from live.run_bootstrap_acceptance import prepare_local_catalog_server, specify_bridge_command
 
 
-def run_guard(runner: Path, *args: str, env: dict[str, str] | None = None):
-    return subprocess.run(
-        [sys.executable, str(runner), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        env=env,
-        check=False,
-    )
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMAS = ROOT / "tests/live/schemas/v2"
+SCENARIO = ROOT / "tests/live/scenarios/internal-forms-workspace/v1"
+CATALOG = ROOT / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+RESOLVER = ROOT / "extensions/program-kit-building-blocks/scripts/building_blocks.py"
+RESTORE = ROOT / "extensions/program-kit-building-blocks/scripts/restore_dependencies.py"
 
 
-def require(path: Path, *phrases: str) -> None:
-    text = " ".join(path.read_text(encoding="utf-8").split())
-    missing = [phrase for phrase in phrases if " ".join(phrase.split()) not in text]
-    if missing:
-        raise AssertionError(f"{path} is missing live-acceptance policy text: {missing}")
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise AssertionError(f"Could not load {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def expect_contract_error(action, code: str) -> None:
+    try:
+        action()
+    except LiveContractError as error:
+        if code not in str(error):
+            raise AssertionError(f"Expected {code}, received {error}") from error
+        return
+    raise AssertionError(f"Expected {code}")
+
+
+def powershell_executable(platform: str = os.name) -> str:
+    names = ("powershell", "pwsh") if platform == "nt" else ("pwsh", "powershell")
+    for name in names:
+        executable = shutil.which(name)
+        if executable:
+            return executable
+    raise AssertionError("Retired-runner validation requires PowerShell (pwsh or powershell) on PATH")
+
+
+def validate_powershell_discovery() -> None:
+    for platform, installed, expected in (
+        ("nt", {"powershell": "windows-powershell", "pwsh": "powershell-core"}, "windows-powershell"),
+        ("posix", {"powershell": "windows-powershell", "pwsh": "powershell-core"}, "powershell-core"),
+        ("nt", {"pwsh": "powershell-core"}, "powershell-core"),
+        ("posix", {"pwsh": "powershell-core"}, "powershell-core"),
+        ("posix", {"powershell": "powershell-fallback"}, "powershell-fallback"),
+    ):
+        with patch.object(shutil, "which", side_effect=installed.get):
+            if powershell_executable(platform) != expected:
+                raise AssertionError(f"PowerShell discovery selected the wrong shell for {platform}")
+    with patch.object(shutil, "which", return_value=None):
+        try:
+            powershell_executable("posix")
+        except AssertionError as error:
+            if "requires PowerShell" not in str(error):
+                raise
+        else:
+            raise AssertionError("Missing PowerShell silently bypassed retired-runner validation")
 
 
 def main() -> int:
-    root = Path(__file__).resolve().parents[1]
-    runner = root / "tests/live/run_bootstrap_acceptance.py"
-    wrapper = root / "scripts/Test-LiveBootstrap.ps1"
-    scenario = root / "tests/live/scenarios/clean-bootstrap"
-    for path in (
-        runner,
-        wrapper,
-        scenario / "docs/architecture/project-intent.md",
-        scenario / "docs/architecture/architecture-map.json",
-        scenario / "docs/architecture/workspace.dsl",
-        scenario / "docs/architecture/bootstrap-intake.json",
-        scenario / "PROJECT_REQUEST.md",
-        scenario / "expectations.json",
-        scenario / "first-slice-workflow.yml",
-        root / "docs/live-bootstrap-acceptance.md",
-        root / "AGENTS.md",
-    ):
-        if not path.is_file():
-            raise AssertionError(f"Live bootstrap acceptance component is missing: {path}")
+    validate_powershell_discovery()
+    required = [
+        ROOT / "scripts/New-LiveAcceptanceAuthorization.ps1",
+        ROOT / "scripts/New-LiveBootstrapCheckpoint.ps1",
+        ROOT / "scripts/Test-LiveBuildingBlockConsumer.ps1",
+        ROOT / "scripts/write_release_receipt.py",
+        ROOT / "docs/live-bootstrap-acceptance.md",
+        *SCHEMAS.glob("*.schema.json"),
+    ]
+    missing = [str(path) for path in required if not path.is_file()]
+    if missing:
+        raise AssertionError(f"Live v2 components are missing: {missing}")
+    issuer_text = (ROOT / "scripts/New-LiveAcceptanceAuthorization.ps1").read_text(encoding="utf-8")
+    if "^codex-cli\\s+\\S+" not in issuer_text or "--launcher-version" not in issuer_text:
+        raise AssertionError("Interactive authorization no longer displays and binds the actual Codex launcher version")
+    scenario, expectation, expectation_path = load_scenario(SCENARIO, SCHEMAS)
+    authority = scenario_authority(SCENARIO, SCHEMAS)
+    if expectation["catalogSha256"] != "8017cec0be489e5a76c0a6a75a383f5785cdcfabaf358a322d18d20e3116539d":
+        raise AssertionError("Internal Forms expectation lost its reviewed catalog binding")
 
-    runner_text = runner.read_text(encoding="utf-8")
-    if "auto_approve_and_ratify=true" not in runner_text:
-        raise AssertionError("Live bootstrap must exercise the public automatic approval option")
-    for legacy_input in (
-        "assessment_verdict=approve",
-        "constitution_verdict=ratify",
-        "bootstrap_verdict=approve",
-    ):
-        if legacy_input in runner_text:
-            raise AssertionError(
-                f"Live bootstrap still bypasses the public option with {legacy_input}"
-            )
+    resolver = load_module("live_v2_building_blocks", RESOLVER)
+    catalog = load_object(CATALOG)
+    if resolver.catalog_resolution_sha256(catalog) != expectation["catalogSha256"]:
+        raise AssertionError("Candidate expectation is stale relative to the catalog")
+    restore = load_module("live_v2_restore", RESTORE)
+    receipt_writer = load_module("live_v2_release_receipt", ROOT / "scripts/write_release_receipt.py")
 
-    expectations = json.loads((scenario / "expectations.json").read_text(encoding="utf-8"))
-    intake_expectations = expectations.get("intake_skill", {})
-    if intake_expectations.get("project_name") != "Greeting CLI" or not intake_expectations.get("final_command"):
-        raise AssertionError("Clean-bootstrap scenario is missing conversational-intake assertions")
-
-    original_run = subprocess.run
-    expected_excludes = "" if os.name == "nt" else os.devnull
-    if git_excludes_override() != expected_excludes:
-        raise AssertionError("Live worker Git excludes override is not platform-safe")
-    git_probe = subprocess.run(
-        ["git", "-c", f"core.excludesFile={git_excludes_override()}", "status", "--short"],
-        cwd=root,
-        capture_output=True,
-        text=True,
+    transient_catalog_error = (
+        "Failed to save extension archive: [WinError 10054] connection reset. "
+        "No changes were recorded."
     )
-    if git_probe.returncode != 0 or "cannot use nul" in git_probe.stderr.lower():
-        raise AssertionError(f"Live worker Git excludes override is unusable: {git_probe.stderr}")
-    bridge = specify_bridge_command(root, "workflow", "add", "program-kit-bootstrap")
-    if (
-        bridge[0] != sys.executable
-        or Path(bridge[1]) != root / "scripts/invoke_specify.py"
-        or "--site-packages" not in bridge
-        or bridge[-3:] != ["workflow", "add", "program-kit-bootstrap"]
-    ):
-        raise AssertionError(f"Live setup does not use the installed Specify Python bridge: {bridge}")
-    loopback_bridge = specify_bridge_command(
-        root,
-        "workflow",
-        "add",
-        "program-kit-bootstrap",
-        loopback_http_only=True,
-    )
-    if "--loopback-http-only" not in loopback_bridge or loopback_bridge[-3:] != bridge[-3:]:
-        raise AssertionError(f"Live setup lost its loopback-only bridge mode: {loopback_bridge}")
-    retry_results = iter(
-        (
-            subprocess.CompletedProcess(
-                ["specify"],
-                1,
-                stdout="",
-                stderr=(
-                    "Failed to save extension\narchive: connection reset. "
-                    "No changes were recorded."
-                ),
-            ),
-            subprocess.CompletedProcess(["specify"], 0, stdout="installed\n", stderr=""),
-        )
-    )
-    try:
-        subprocess.run = lambda *args, **kwargs: next(retry_results)
-        retry_log = io.StringIO()
-        run_logged_with_catalog_retry(["specify"], root, retry_log)
-        if "attempt 2/3" not in retry_log.getvalue():
-            raise AssertionError("Transient local-catalog transfer was not retried")
-    finally:
-        subprocess.run = original_run
+    if not retryable_catalog_transfer(transient_catalog_error):
+        raise AssertionError("Known atomic loopback catalog reset is no longer retryable")
+    if retryable_catalog_transfer("Failed to install bundle after partial changes"):
+        raise AssertionError("Unsafe catalog failure became retryable")
 
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-guard-") as directory:
-        denied = run_guard(runner, "--exercise-intake-skill", "--output-root", directory)
-        if denied.returncode != 3 or "LIVE_ACCEPTANCE_APPROVAL_REQUIRED" not in denied.stderr:
-            raise AssertionError(f"Unapproved live run was not refused: {denied}")
-        if any(Path(directory).iterdir()):
-            raise AssertionError("Unapproved live run created output before refusing")
+    bridge = specify_bridge_command(ROOT, "--version")
+    bridge_site_packages = Path(bridge[bridge.index("--site-packages") + 1])
+    if not (bridge_site_packages / "specify_cli/__init__.py").is_file():
+        raise AssertionError("Live setup did not bind the installed Specify environment")
 
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-intake-mode-") as directory:
-        non_ci_environment = os.environ.copy()
-        for key in CI_ENVIRONMENT_KEYS:
-            non_ci_environment.pop(key, None)
-        denied = run_guard(
-            runner,
-            "--approved",
-            "--exercise-intake-skill",
-            "--integration",
-            "claude",
-            "--output-root",
-            directory,
-            env=non_ci_environment,
-        )
-        if denied.returncode != 3 or "INTAKE_SKILL_CODEX_REQUIRED" not in denied.stderr:
-            raise AssertionError(f"Unsupported live intake integration was not refused: {denied}")
-        if any(Path(directory).iterdir()):
-            raise AssertionError("Unsupported intake mode created output before refusing")
+    path_token = "1234abcd"
+    workspace_path = execution_workspace(ROOT, path_token)
+    packages_path = candidate_packages(ROOT, path_token)
+    if workspace_path != ROOT / "artifacts/live-v2-w" / path_token:
+        raise AssertionError("Windows execution workspace lost its bounded short path")
+    if packages_path != ROOT / "artifacts/live-v2-p" / path_token:
+        raise AssertionError("Candidate package staging lost its bounded short path")
 
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-intake-validation-") as directory:
-        temp_root = Path(directory)
-        project = temp_root / "project"
-        evidence = temp_root / "evidence"
-        shutil.copytree(scenario / "docs", project / "docs")
-        scripts = project / ".specify/extensions/program-kit-governance/scripts"
-        scripts.mkdir(parents=True)
-        for name in ("bootstrap_intake.py", "architecture_map.py"):
-            shutil.copy2(root / "extensions/program-kit-governance/scripts" / name, scripts / name)
-        evidence.mkdir()
-        (evidence / "intake.final.txt").write_text(
-            intake_expectations["final_command"] + "\n",
-            encoding="utf-8",
-        )
-        intake_result, intake_failures = validate_intake_skill_result(
-            project,
-            evidence,
-            expectations,
-        )
-        if intake_failures or not intake_result.get("final_command_verified"):
-            raise AssertionError(f"Generated-intake seam validation is invalid: {intake_failures}")
-
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-metrics-") as directory:
-        evidence = Path(directory)
-        (evidence / "workflow.stderr.log").write_text(
-            "tokens used\n1,200\ntokens used\n300\n", encoding="utf-8"
-        )
-        (evidence / "workflow.stdout.log").write_text("{}\n", encoding="utf-8")
-        (evidence / "intake.stdout.log").write_text(
-            json.dumps(
-                {
-                    "type": "turn.completed",
-                    "usage": {
-                        "input_tokens": 40,
-                        "cached_input_tokens": 30,
-                        "output_tokens": 10,
-                        "reasoning_output_tokens": 4,
-                    },
-                }
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        (evidence / "intake.stderr.log").write_text("", encoding="utf-8")
-        monitor = [
-            {"status": "running", "current_step_id": "assessment", "elapsed_seconds": 2.0},
-            {"status": "running", "current_step_id": "research", "elapsed_seconds": 7.0},
-        ]
-        (evidence / "monitor.jsonl").write_text(
-            "".join(json.dumps(record) + "\n" for record in monitor), encoding="utf-8"
-        )
-        metrics = analyze_metrics(evidence, None, workflow_duration=10.0)
-        if metrics["agent_tokens_by_stage"] != {"intake-skill": 50, "assessment": 1200, "research": 300}:
-            raise AssertionError(f"Agent token attribution is invalid: {metrics}")
-        if metrics["intake_agent_usage"]["cached_input_tokens"] != 30:
-            raise AssertionError(f"Intake JSON usage was not preserved: {metrics}")
-        if metrics["agent_session_count"] != 3:
-            raise AssertionError(f"Agent sessions were not counted correctly: {metrics}")
-        if metrics["stage_duration_seconds"] != {"assessment": 5.0, "research": 3.0}:
-            raise AssertionError(f"Stage duration attribution is invalid: {metrics}")
-        if performance_warnings(metrics, {"agent_tokens_total": 1000}) != [
-            "Agent token total 1550 exceeds advisory budget 1000"
-        ]:
-            raise AssertionError("Live advisory budgets are not reported predictably")
-        stage_warnings = performance_warnings(
-            metrics, {"agent_tokens_by_stage": {"assessment": 1000, "readiness": 1}}
-        )
-        if stage_warnings != [
-            "Agent stage assessment used 1200 tokens; advisory budget is 1000"
-        ]:
-            raise AssertionError(f"Per-stage advisory budgets are invalid: {stage_warnings}")
-
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-failure-") as directory:
-        project = Path(directory)
-        state_path = project / ".specify/workflows/runs/failed-run/state.json"
-        state_path.parent.mkdir(parents=True)
-        state_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "failed-run",
-                    "status": "failed",
-                    "step_results": {"research": {"status": "failed"}},
-                }
-            ),
-            encoding="utf-8",
-        )
-        _, failures = validate_result(
-            root,
-            project,
-            {
-                "required_files": ["downstream.md"],
-                "required_context_stages": ["readiness"],
-                "readiness_first_line": "**Status**: READY",
-            },
-            "failed-run",
-            project / "validation.log",
-        )
-        if failures != [
-            "Workflow status is 'failed', expected 'completed'",
-            "Workflow has non-completed steps: ['research']",
-        ]:
-            raise AssertionError(f"Failed live report cascaded downstream noise: {failures}")
-
-        second_state = project / ".specify/workflows/runs/second-run/state.json"
-        second_state.parent.mkdir(parents=True)
-        second_state.write_text(
-            json.dumps({"run_id": "second-run", "status": "completed"}),
-            encoding="utf-8",
-        )
-        selected_path, selected = discover_run_state(project, {"second-run"})
-        if (
-            selected_path != state_path
-            or not selected
-            or selected.get("run_id") != "failed-run"
-        ):
-            raise AssertionError("Workflow state exclusion did not isolate the continuation run")
-
-        _, first_slice_failures = validate_first_slice(
-            project,
-            {
-                "required_feature_files": [],
-                "expected_stdout": "Hello, Program Kit!\n",
-                "expected_argument_exit_code": 2,
-            },
-            "failed-run",
-            [sys.executable],
-            {},
-            project / "first-slice.validation.log",
-        )
-        if first_slice_failures != [
-            "First-slice workflow status is 'failed', expected 'completed'",
-            "First-slice workflow has non-completed steps: ['research']",
-        ]:
-            raise AssertionError(
-                f"Failed first-slice report cascaded downstream noise: {first_slice_failures}"
-            )
-
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-managed-") as directory:
-        project = Path(directory)
-        managed = (
-            project
-            / ".specify/extensions/program-kit-governance/commands/example.md"
-        )
-        managed.parent.mkdir(parents=True)
-        managed.write_text("managed\n", encoding="utf-8")
-        unrelated = project / "greeting/__main__.py"
-        unrelated.parent.mkdir(parents=True)
-        unrelated.write_text("print('hello')\n", encoding="utf-8")
-        snapshot = snapshot_managed_baseline(project)
-        if list(snapshot) != [
-            ".specify/extensions/program-kit-governance/commands/example.md"
-        ]:
-            raise AssertionError(f"Managed baseline snapshot has the wrong scope: {snapshot}")
-
-    with tempfile.TemporaryDirectory(prefix="program-kit-live-first-slice-") as directory:
-        project = Path(directory)
-        state_path = project / ".specify/workflows/runs/slice-run/state.json"
-        state_path.parent.mkdir(parents=True)
-        state_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "slice-run",
-                    "status": "completed",
-                    "step_results": {
-                        name: {"status": "completed"}
-                        for name in ("specify", "plan", "tasks", "implement")
-                    },
-                }
-            ),
-            encoding="utf-8",
-        )
-        feature = project / "specs/001-greeting"
-        feature.mkdir(parents=True)
-        (feature / "spec.md").write_text(
-            "## Governance Traceability\n"
-            "- **Specification roadmap entry**: SPC-001\n"
-            "- **Architecture constraints**: Constitution\n"
-            "- **Owned contracts and data**: CLI, no data\n",
-            encoding="utf-8",
-        )
-        (feature / "plan.md").write_text(
-            "## Architecture Realization\n"
-            "- **Roadmap entry and status transition**: SPC-001\n"
-            "- **Vertical-slice path**: user to output\n"
-            "- **Artifact ownership manifest**: artifact-ownership.json\n",
-            encoding="utf-8",
-        )
-        (feature / "tasks.md").write_text(
-            "## Governance Completion Evidence\n"
-            "- **Roadmap transition**: Delivered\n"
-            "- **Path and ownership protection**: validated\n",
-            encoding="utf-8",
-        )
-        (feature / "artifact-ownership.json").write_text("{}\n", encoding="utf-8")
-        lifecycle = project / ".program-kit/lifecycle/001-greeting.json"
-        lifecycle.parent.mkdir(parents=True)
-        lifecycle.write_text(
-            json.dumps(
-                {
-                    "schemaVersion": 1,
-                    "phases": {
-                        "afterSpecifyClarification": {"outcome": "no-questions"},
-                        "afterTasksAnalysis": {"readyForImplementation": True},
-                    },
-                }
-            ),
-            encoding="utf-8",
-        )
-        analysis = project / ".program-kit/evidence/after-tasks-analysis.md"
-        analysis.parent.mkdir(parents=True)
-        analysis.write_text(
-            "# Specification Analysis Report\n\n"
-            "| ID | Category | Severity | Location(s) | Summary | Recommendation |\n"
-            "|----|----------|----------|-------------|---------|----------------|\n"
-            "| — | — | — | — | No findings | Proceed |\n",
-            encoding="utf-8",
-        )
-        roadmap = project / "docs/architecture/specification-roadmap.md"
-        roadmap.parent.mkdir(parents=True)
-        roadmap.write_text("### SPC-001: Greeting\n\n**Status**: Delivered\n", encoding="utf-8")
-        greeting = project / "greeting/__main__.py"
-        greeting.parent.mkdir(parents=True)
-        greeting.write_text(
-            "import sys\n"
-            "if len(sys.argv) != 1:\n"
-            "    print('usage: python -m greeting', file=sys.stderr)\n"
-            "    raise SystemExit(2)\n"
-            "print('Hello, Program Kit!')\n",
-            encoding="utf-8",
-        )
-        consumer_test = project / "tests/test_greeting.py"
-        consumer_test.parent.mkdir(parents=True)
-        consumer_test.write_text(
-            "import unittest\n\n"
-            "class GreetingTests(unittest.TestCase):\n"
-            "    def test_fixture(self):\n"
-            "        self.assertTrue(True)\n",
-            encoding="utf-8",
-        )
-        ownership = (
-            project
-            / ".specify/extensions/program-kit-governance/scripts/artifact_ownership.py"
-        )
-        ownership.parent.mkdir(parents=True)
-        ownership.write_text("raise SystemExit(0)\n", encoding="utf-8")
-        managed_before = snapshot_managed_baseline(project)
-        cache = ownership.parent / "__pycache__/artifact_ownership.cpython-313.pyc"
-        cache.parent.mkdir()
-        cache.write_bytes(b"ephemeral bytecode")
-        if snapshot_managed_baseline(project) != managed_before:
-            raise AssertionError("ephemeral Python bytecode was treated as managed baseline drift")
-        result, success_failures = validate_first_slice(
-            project,
-            {
-                "required_feature_files": [
-                    "spec.md",
-                    "plan.md",
-                    "tasks.md",
-                    "artifact-ownership.json",
-                ],
-                "expected_stdout": "Hello, Program Kit!\n",
-                "expected_argument_exit_code": 2,
-            },
-            "slice-run",
-            [sys.executable],
-            managed_before,
-            project / "first-slice.validation.log",
-        )
-        if success_failures or result.get("managed_baseline_changes"):
-            raise AssertionError(
-                f"Valid first-slice evidence was rejected: {success_failures}, {result}"
-            )
-
-    ci_environment = os.environ.copy()
-    ci_environment["CI"] = "true"
-    denied_ci = run_guard(runner, "--approved", env=ci_environment)
-    if denied_ci.returncode != 3 or "LIVE_ACCEPTANCE_CI_FORBIDDEN" not in denied_ci.stderr:
-        raise AssertionError(f"CI live run was not refused: {denied_ci}")
-
-    expectations = json.loads((scenario / "expectations.json").read_text(encoding="utf-8"))
-    if expectations.get("scenario") != "clean-bootstrap":
-        raise AssertionError("Clean-bootstrap expectations have the wrong scenario ID")
-    if expectations.get("readiness_first_line") != "**Status**: READY":
-        raise AssertionError("Clean-bootstrap scenario does not require exact READY evidence")
-    first_slice = expectations.get("first_slice", {})
-    if (
-        not isinstance(first_slice, dict)
-        or "first Ready entry" not in first_slice.get("feature_description", "")
-        or first_slice.get("required_feature_files")
-        != ["spec.md", "plan.md", "tasks.md", "artifact-ownership.json"]
-        or first_slice.get("expected_stdout") != "Hello, Program Kit!\n"
-        or first_slice.get("expected_argument_exit_code") != 2
-    ):
-        raise AssertionError(f"Clean-bootstrap first-slice expectations are invalid: {first_slice}")
-
-    first_slice_workflow = WorkflowDefinition.from_yaml(
-        scenario / "first-slice-workflow.yml"
-    )
-    workflow_errors = validate_workflow(first_slice_workflow)
-    if workflow_errors:
-        raise AssertionError(f"First-slice workflow is invalid: {workflow_errors}")
-    first_slice_yaml = yaml.safe_load(
-        (scenario / "first-slice-workflow.yml").read_text(encoding="utf-8")
-    )
-    first_slice_steps = [step["id"] for step in first_slice_yaml["steps"]]
-    if first_slice_steps != [
-        "specify-first-slice",
-        "plan-first-slice",
-        "tasks-first-slice",
-        "implement-first-slice",
-    ]:
-        raise AssertionError(f"First-slice lifecycle is incomplete: {first_slice_steps}")
-    stages = expectations.get("required_context_stages")
-    if stages != ["research", "architecture", "tooling", "roadmap", "readiness"]:
-        raise AssertionError(f"Live scenario context coverage is incomplete: {stages}")
-    budgets = expectations.get("advisory_budgets", {})
-    scalar_budgets = {
-        key: value
-        for key, value in budgets.items()
-        if key not in {"artifact_bytes", "agent_tokens_by_stage"}
+    release_tools = {
+        "dotnet": "10.0.202", "node": "v20.11.1", "npm": "10.2.4",
+        "git": "git version 2.44.0.windows.1", "specify": "specify 1.0.4", "codex": "unavailable",
     }
-    artifact_budgets = budgets.get("artifact_bytes", {})
-    stage_budgets = budgets.get("agent_tokens_by_stage", {})
-    if (
-        not all(isinstance(value, int) and value > 0 for value in scalar_budgets.values())
-        or not isinstance(artifact_budgets, dict)
-        or not all(isinstance(value, int) and value > 0 for value in artifact_budgets.values())
-        or not isinstance(stage_budgets, dict)
-        or not all(isinstance(value, int) and value > 0 for value in stage_budgets.values())
-    ):
-        raise AssertionError(f"Live scenario advisory budgets are invalid: {budgets}")
+    live_tools = {**release_tools, "codex": "codex-cli 0.150.1"}
+    validate_toolchain_binding(release_tools, live_tools)
+    expect_contract_error(
+        lambda: validate_toolchain_binding(
+            {**release_tools, "codex": "codex-cli 0.149.0"}, live_tools
+        ),
+        "LIVE_RELEASE_RECEIPT_TOOLCHAIN_MISMATCH",
+    )
+    expect_contract_error(
+        lambda: validate_toolchain_binding(release_tools, {**live_tools, "codex": "unavailable"}),
+        "LIVE_ACCEPTANCE_TOOL_UNUSABLE",
+    )
+    validate_agent_launcher({"launcherVersion": "codex-cli 0.150.1"}, "codex-cli 0.150.1")
+    expect_contract_error(
+        lambda: validate_agent_launcher({"launcherVersion": "codex-cli 0.149.0"}, "codex-cli 0.150.1"),
+        "LIVE_AUTHORIZATION_LAUNCHER_MISMATCH",
+    )
 
-    require(
-        root / "AGENTS.md",
-        "entirely user-invoked",
-        "Do not ask",
-        "do not report it as skipped",
-        "Never add the paid live suite to CI",
-        "Never pass `-Approved` without an explicit user request",
-        "Pass `-ContinueFirstSlice` only when",
+    with tempfile.TemporaryDirectory(prefix="program-kit-live-v2-") as directory:
+        temp = Path(directory)
+        candidate_artifacts = temp / "candidate-artifacts"
+        candidate_artifacts.mkdir()
+        archive_names = {
+            "governance": "governance.zip", "building-blocks": "building-blocks.zip",
+            "dotnet": "dotnet.zip", "preset": "preset.zip", "workflow": "workflow.zip",
+            "bundle": "bundle.zip",
+        }
+        with zipfile.ZipFile(candidate_artifacts / archive_names["workflow"], "w") as archive:
+            archive.writestr("workflow.yml", "name: test\n")
+        with zipfile.ZipFile(candidate_artifacts / archive_names["bundle"], "w") as archive:
+            archive.writestr("bundle.yml", "name: test\n")
+        extracted_packages = temp / "candidate-packages"
+        extract_candidate_control_archives(candidate_artifacts, extracted_packages, archive_names)
+        if CONTROL_ARCHIVE_KEYS != ("workflow", "bundle") or {
+            path.name for path in extracted_packages.iterdir()
+        } != set(CONTROL_ARCHIVE_KEYS):
+            raise AssertionError("Candidate setup eagerly extracted component payload archives")
+
+        catalog_artifacts = temp / "catalog-artifacts"
+        catalog_artifacts.mkdir()
+        catalog_payload = b"program-kit-local-catalog-archive"
+        for name in (
+            "program-kit-governance-0.10.0.zip",
+            "program-kit-building-blocks-0.10.0.zip",
+            "program-kit-dotnet-0.10.0.zip",
+            "program-kit-governance-preset-0.10.0.zip",
+        ):
+            (catalog_artifacts / name).write_bytes(catalog_payload)
+        catalog_packages = temp / "catalog-packages"
+        (catalog_packages / "workflow").mkdir(parents=True)
+        (catalog_packages / "workflow/workflow.yml").write_text(
+            "schema_version: '1.0'\n", encoding="utf-8"
+        )
+        catalog_evidence = temp / "catalog-evidence"
+        catalog_server, catalog_url = prepare_local_catalog_server(
+            ROOT, catalog_artifacts, catalog_packages, catalog_evidence, "0.10.0"
+        )
+        try:
+            with urllib.request.urlopen(
+                f"{catalog_url}/program-kit-governance-0.10.0.zip", timeout=10
+            ) as response:
+                if response.read() != catalog_payload:
+                    raise AssertionError("Local candidate catalog corrupted an archive transfer")
+            if os.name == "nt" and catalog_server.mode != "process":
+                raise AssertionError("Windows candidate catalogs are not process-isolated")
+        finally:
+            catalog_server.close()
+
+        changed_scenario = temp / "changed-scenario"
+        shutil.copytree(SCENARIO, changed_scenario)
+        (changed_scenario / "fixture/PROJECT_REQUEST.md").write_text("changed fixture\n", encoding="utf-8")
+        if scenario_authority(changed_scenario, SCHEMAS)["digest"] == authority["digest"]:
+            raise AssertionError("Scenario authorization digest does not bind fixture content")
+        artifacts = temp / "artifacts"
+        artifacts.mkdir()
+        candidate_names = {
+            "program-kit-governance-9.9.9.zip", "program-kit-building-blocks-9.9.9.zip",
+            "program-kit-dotnet-9.9.9.zip", "program-kit-governance-preset-9.9.9.zip",
+            "program-kit-bootstrap-9.9.9.zip", "program-kit-9.9.9.zip",
+            "Initialize-ProgramKit-9.9.9.cmd", "Initialize-ProgramKit-9.9.9.sh", "SHA256SUMS",
+        }
+        for name in candidate_names | {"program-kit-stale-1.0.0.zip"}:
+            (artifacts / name).write_text(name, encoding="utf-8")
+        recorded_names = {Path(record["path"]).name for record in receipt_writer.artifact_records(artifacts, "9.9.9")}
+        if recorded_names != candidate_names:
+            raise AssertionError(f"Release receipt did not isolate the exact current candidate: {recorded_names}")
+        project = temp / "project"
+        shutil.copytree(SCENARIO / scenario["fixture"], project)
+        architecture_path = project / "docs/architecture/architecture-map.json"
+        architecture = load_object(architecture_path)
+        architecture["decisions"] = [
+            {"id": decision, "status": "Accepted"} for decision in scenario["acceptedDecisionIds"]
+        ]
+        atomic_write_json(architecture_path, architecture)
+        selection_path, selection_sha = bind_selection(SCENARIO, project, scenario)
+        plan = resolver.resolve(project, selection_path, CATALOG, "0.10.0")
+        lock_path = project / ".program-kit/building-blocks.lock.json"
+        resolver.apply_materialization(project, lock_path, plan, catalog)
+        result = validate_consumer(project, expectation)
+        if result["packageCount"] != 18 or result["activationCount"] < 10:
+            raise AssertionError(f"Internal Forms oracle coverage is incomplete: {result}")
+
+        request = restore.restore_request(project, lock_path, plan, "renew")
+        validate(request, load_object(SCHEMAS / "restore-request.schema.json"))
+        if request["lockSha256"] != sha256_file(lock_path) or not request["commands"]:
+            raise AssertionError("Restore request is not bound to the native restore plan")
+        if request["repository"] != "." or any(Path(item["cwd"]).is_absolute() or any(Path(argument).is_absolute() for argument in item["args"]) for item in request["commands"]):
+            raise AssertionError("Restore request leaked a machine-bound consumer path")
+        denied = subprocess.run([sys.executable, str(RESTORE), "renew", "--target", str(project)], capture_output=True, text=True)
+        if denied.returncode != 2 or "PKB622" not in denied.stderr:
+            raise AssertionError("Credential-bearing restore no longer requires explicit approval")
+        requested = subprocess.run([sys.executable, str(RESTORE), "request-renew", "--target", str(project)], capture_output=True, text=True)
+        if requested.returncode != 0 or "without network access" not in requested.stdout:
+            raise AssertionError(f"Read-only restore request failed: {requested}")
+
+        store = EvidenceStore(temp / "evidence")
+        store.initialize()
+        checkpoint_path, checkpoint = seal_checkpoint(
+            store, project, load_object(SCHEMAS / "checkpoint.schema.json"), phase="bootstrap-checkpoint",
+            candidate_digest="a" * 64, scenario_digest=authority["digest"], expectation_digest=sha256_file(expectation_path),
+            selection_sha256=selection_sha,
+        )
+        expected_web = (project / "web/package.json").read_bytes()
+        (project / "web/package.json").write_text('{"mutatedAfterSeal":true}\n', encoding="utf-8")
+        copied = temp / "copied"
+        materialize_checkpoint(store, checkpoint_path, copied, load_object(SCHEMAS / "checkpoint.schema.json"))
+        if (copied / "web/package.json").read_bytes() != expected_web:
+            raise AssertionError("Checkpoint object changed when the source workspace was modified")
+
+        authorization_path = temp / "authorization.json"
+        authorization_schema = load_object(SCHEMAS / "authorization.schema.json")
+        issued = issue_authorization(
+            authorization_path, authorization_schema, phase="building-block-consumer",
+            scenario={key: authority[key] for key in ("id", "version", "digest")},
+            candidate={"releaseReceipt": "artifacts/release-receipt.json", "releaseReceiptSha256": "a" * 64},
+            checkpoint={"checkpointId": checkpoint["checkpointId"], "digest": sha256_file(checkpoint_path)},
+            agent_profile={"integration": "codex", "launcherVersion": "codex-cli test", "model": "test-model", "reasoningEffort": "high", "sandbox": "workspace-write", "timeoutSeconds": 60},
+        )
+        validated = validate_authorization(
+            authorization_path, authorization_schema, phase="building-block-consumer", scenario_digest=authority["digest"],
+            candidate_receipt_digest="a" * 64, checkpoint_digest=sha256_file(checkpoint_path),
+        )
+        consume_authorization(authorization_path, validated, temp / "consumed")
+        expect_contract_error(lambda: consume_authorization(authorization_path, issued, temp / "consumed"), "LIVE_AUTHORIZATION_REPLAYED")
+
+        redactor = StreamingRedactor(["top-secret-token"])
+        first = redactor.feed(b"prefix top-sec")
+        second = redactor.feed(b"ret-token suffix")
+        final, summary = redactor.finish()
+        redacted = first + second + final
+        if b"top-secret-token" in redacted or b"[REDACTED]" not in redacted or summary.redaction_count != 1:
+            raise AssertionError("Streaming redaction failed across a chunk boundary")
+        crossing = StreamingRedactor(["boundary-secret"])
+        output = crossing.feed((b"x" * 510) + b"boundary-")
+        output += crossing.feed(b"secret tail" + (b"y" * 600))
+        ending, _ = crossing.finish()
+        output += ending
+        if b"boundary-secret" in output or b"boundary-" in output:
+            raise AssertionError("Streaming redaction split and leaked a secret at its flush boundary")
+
+        process = run_supervised(
+            [sys.executable, "-c", "import sys; print('top-secret-token'); sys.exit(130)"], cwd=temp,
+            environment=os.environ.copy(), evidence_directory=temp / "process", timeout_seconds=30, secrets=["top-secret-token"],
+        )
+        if process.exitCode != 130 or process.operatorCancellationRecorded or not process.cleanupComplete or not process.logsDrained:
+            raise AssertionError(f"Exit 130 was incorrectly classified as operator cancellation: {process}")
+        if process_failure(process) != ("inconclusive", ["unclassified"]):
+            raise AssertionError("Exit 130 without observed interruption was not classified as inconclusive")
+        if "top-secret-token" in (temp / "process/workflow.stdout.log").read_text(encoding="utf-8"):
+            raise AssertionError("Supervisor retained a raw secret")
+
+        workflow_project = temp / "workflow-failure"
+        workflow_run = workflow_project / ".specify/workflows/runs/failure-run"
+        workflow_run.mkdir(parents=True)
+        workflow_stdout = workflow_project / "workflow.stdout.log"
+        atomic_write_json(
+            workflow_stdout,
+            {
+                "run_id": "failure-run",
+                "status": "failed",
+                "current_step_id": "prepare-readiness-context",
+            },
+        )
+        atomic_write_json(
+            workflow_run / "state.json",
+            {
+                "step_results": {
+                    "prepare-readiness-context": {
+                        "type": "shell",
+                        "status": "failed",
+                    }
+                }
+            },
+        )
+        if workflow_failure_causes(workflow_project, workflow_stdout) != ["product"]:
+            raise AssertionError("A deterministic workflow-shell failure was not classified as product")
+        state = load_object(workflow_run / "state.json")
+        state["step_results"]["prepare-readiness-context"]["type"] = "command"
+        atomic_write_json(workflow_run / "state.json", state)
+        if workflow_failure_causes(workflow_project, workflow_stdout) != ["model-conformance"]:
+            raise AssertionError("An agent-command workflow failure was not classified as model conformance")
+
+        state["current_step_id"] = "prepare-readiness-context"
+        state["step_results"]["prepare-readiness-context"]["status"] = "running"
+        atomic_write_json(workflow_run / "state.json", state)
+        progress = WorkflowProgress(workflow_project, heartbeat_seconds=0)
+        progress_output = io.StringIO()
+        with redirect_stdout(progress_output):
+            progress._report()
+            progress._report()
+        reported = progress_output.getvalue()
+        if "Live workflow: prepare-readiness-context (running)" not in reported:
+            raise AssertionError("Live workflow progress did not report a step transition")
+        if "Live workflow: prepare-readiness-context still running" not in reported:
+            raise AssertionError("Live workflow progress did not emit a heartbeat")
+
+        previous_token = os.environ.get("PROGRAM_KIT_NPM_TOKEN")
+        os.environ["PROGRAM_KIT_NPM_TOKEN"] = "worker-must-not-receive-this"
+        try:
+            worker = worker_environment(temp, {"model": "test-model", "reasoningEffort": "high"})
+            clean = supervisor_environment()
+            registry = supervisor_environment("supervisor-only-token")
+        finally:
+            if previous_token is None:
+                os.environ.pop("PROGRAM_KIT_NPM_TOKEN", None)
+            else:
+                os.environ["PROGRAM_KIT_NPM_TOKEN"] = previous_token
+        if "PROGRAM_KIT_NPM_TOKEN" in worker or "PROGRAM_KIT_NPM_TOKEN" in clean:
+            raise AssertionError("Registry credential crossed into a worker or non-registry child")
+        if registry.get("PROGRAM_KIT_NPM_TOKEN") != "supervisor-only-token":
+            raise AssertionError("Supervisor registry child did not receive the exact injected credential")
+
+    legacy = subprocess.run(
+        [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(ROOT / "scripts/Test-LiveBootstrap.ps1"), "-Approved"],
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False, timeout=30,
     )
-    policy_files = (
-        root / "AGENTS.md",
-        root / "README.md",
-        root / "docs/live-bootstrap-acceptance.md",
-        root / "docs/releasing-0.8.1.md",
-        root / "docs/releasing-0.8.2.md",
-        root / "docs/releasing-0.8.3.md",
-        root / "docs/releasing-0.8.4.md",
-        root / "docs/releasing-0.9.6.md",
-        root / "docs/releasing-0.9.7.md",
-        root / "docs/releasing-0.9.9.md",
-        root / "docs/releasing-0.9.10.md",
-        root / "docs/releasing-0.10.0.md",
-        wrapper,
-        runner,
-    )
-    forbidden_policy = (
-        "Do you want me to run the paid live bootstrap acceptance suite before publishing",
-        "Before publishing, ask the user",
-        "If the user answers no",
-        "explicitly skipped",
-        "record that explicit skip",
-    )
-    for policy_file in policy_files:
-        policy_text = policy_file.read_text(encoding="utf-8")
-        for forbidden in forbidden_policy:
-            if forbidden in policy_text:
-                raise AssertionError(
-                    f"{policy_file} restores a forbidden publication prompt: {forbidden}"
-                )
-    require(
-        root / "README.md",
-        "completely optional and user-invoked",
-        "Publishing must not prompt for it or record it as skipped",
-    )
-    require(
-        root / "docs/live-bootstrap-acceptance.md",
-        "entirely user-invoked",
-        "publication must not prompt for it",
-        "clean-bootstrap",
-        "real bundle provenance machinery",
-        "workflow.stdout.log",
-        "workflow.stderr.log",
-        "monitor.jsonl",
-        "Failed runs are retained",
-        "must not be generalized",
-        "command-scoped",
-        "git -c safe.directory",
-        "core.excludesFile",
-        "never changes global Git configuration",
-        "advisory",
-        "Could not find home directory",
-        "outer harness process",
-        "inner `--sandbox workspace-write`",
-        "first complete feature lifecycle",
-        "first-slice.validation.log",
-        "first-slice-managed-baseline.json",
-        "-ExerciseIntakeSkill",
-        "exact portable one-line workflow command",
-    )
-    require(
-        wrapper,
-        "LIVE_ACCEPTANCE_APPROVAL_REQUIRED",
-        "only when the user explicitly requests",
-        "publication must not prompt",
-        "LIVE_ACCEPTANCE_CI_FORBIDDEN",
-        "--approved",
-        "--continue-first-slice",
-        "--exercise-intake-skill",
-    )
-    require(
-        runner,
-        "after an explicit user request",
-        "127.0.0.1",
-        "bundle",
-        "install",
-        "program-kit-live-candidate",
-        "--sandbox workspace-write",
-        "safe.directory",
-        "core.excludesFile",
-        "write_worker_guidance",
-        "PYTHONUTF8",
-        "analyze_metrics",
-        ".evidence.json",
-        "server.shutdown()",
-        "$speckit-program-kit-governance-bootstrap",
-        "specify_bridge_command",
-        "loopback_http_only=os.name == \"nt\"",
-        "validate_intake_skill_result",
-    )
-    require(
-        root / "scripts/invoke_specify.py",
-        "--loopback-http-only",
-        "LoopbackHTTPHandler",
-        "DisabledHTTPSHandler",
-        "rejected non-loopback HTTP",
-    )
-    print("Live bootstrap acceptance request, CI, fixture, and evidence contracts passed.")
+    if legacy.returncode == 0 or "LIVE_ACCEPTANCE_V1_RETIRED" not in (legacy.stdout + legacy.stderr):
+        raise AssertionError("Legacy paid runner was not retired before launch")
+    runner_text = (ROOT / "tests/live/run_bootstrap_acceptance.py").read_text(encoding="utf-8")
+    supervisor_text = (ROOT / "tests/live/v2/supervisor.py").read_text(encoding="utf-8")
+    cli_text = (ROOT / "tests/live/v2/cli.py").read_text(encoding="utf-8")
+    if "LIVE_ACCEPTANCE_V1_RETIRED" not in runner_text:
+        raise AssertionError("Legacy Python entrypoint can still claim authority")
+    if "os.kill(pid, 0)" in supervisor_text or "CTRL_C_EVENT" in supervisor_text:
+        raise AssertionError("Windows process liveness regressed to signalling the console group")
+    if any(marker not in supervisor_text for marker in ("CreateJobObjectW", "JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE", "CREATE_SUSPENDED", "NtResumeProcess")):
+        raise AssertionError("Windows worker descendants are not Job Object-owned")
+    if any(marker not in supervisor_text for marker in ("SetThreadExecutionState", "ES_CONTINUOUS", "ES_SYSTEM_REQUIRED", "_SystemAwakeLease")):
+        raise AssertionError("Windows live supervision does not prevent idle sleep for the paid phase")
+    if any(marker not in supervisor_text for marker in ("read1", "output.flush()")):
+        raise AssertionError("Live worker evidence is no longer drained incrementally")
+    if any(marker not in cli_text for marker in ("class WorkflowProgress", "Live workflow: starting", "still running", "progress.stop()")):
+        raise AssertionError("Bootstrap live progress is no longer visible in the invoking terminal")
+    aggregate = (ROOT / "scripts/Test-ProgramKit.ps1").read_text(encoding="utf-8")
+    if "write_release_receipt.py" not in aggregate:
+        raise AssertionError("The deterministic Release suite does not emit a machine-bound receipt")
+    release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    if "Test-Live" in release or "live.v2.cli" in release:
+        raise AssertionError("A paid live phase was added to CI")
+
+    print("Live acceptance v2 authorization, scenario, checkpoint, redaction, supervision, and restore contracts passed.")
     return 0
 
 

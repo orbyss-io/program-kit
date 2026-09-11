@@ -9,23 +9,97 @@ every future product decision to be made.
 
 Keep the intake proportional to the request. Do not inventory the repository or implementation
 internals to compensate for an already complete description. At authoring time use
-[intake-artifacts.md](intake-artifacts.md) instead of opening schemas or validator source.
+[intake-artifacts.md](intake-artifacts.md) and its schema-derived descriptor and worked example.
+Use targeted schema inspection when needed; never guess missing nested fields or learn them
+through repeated failing exports. Broad implementation discovery is still unnecessary.
 
 ## Question policy
 
 Begin with the user's natural description. Reflect the understood intent before asking questions.
-Ask one to three related questions per round and incorporate each answer before choosing the next
-round. Do not run a fixed questionnaire or ask about excluded and irrelevant capability categories.
+Establish the problem, intended value, actors, and observable success before dependent lifecycle
+or solution-design recommendations. Reuse explicit answers already supplied; this is a dependency
+rule, not a mandatory opening questionnaire. Keep conditional recommendations conditional after
+blanket acceptance until their premises are established, following Program Kit grilling.
+Use the round and answer-handling contract in the shipped Program Kit grilling command loaded by
+the front-door skill. This reference defines which branches matter to intake, not a second
+interview algorithm. Do not run a fixed questionnaire or ask about excluded capability categories.
 
 Prioritize observable value, actors, scope, domain language and invariants, trust and data
 boundaries, external integrations, operational constraints, material Program Kit deviations, and
-the thinnest meaningful proving journey. Preserve every named source journey independently. Apply a
-Program Kit default without asking when it is safe and applicable. Explain a
-material acknowledgement or override before requesting a decision.
+the thinnest meaningful proving journey. Preserve every named source journey independently.
+
+When a role name or central operation has multiple plausible meanings, establish who supplies the
+input, who uses the result, and what result they expect before recommending dependent policies.
+A small worked example using the user's domain can expose the difference more clearly than abstract
+labels. Reuse an example already supplied; do not make this a mandatory extra question. Preserve
+useful follow-up depth: question count and interview duration are not targets to minimize.
+
+Apply a clearly applicable Program Kit default automatically when user intent neither contradicts
+it nor leaves its applicability ambiguous. Do not ask users to select or re-approve obvious tools,
+packages, versions, or profiles. Record the default's source, rationale, and material consequences
+for the final synthesis, where the user can revisit it. Technical importance alone is not a reason
+to spend an interview question on an unambiguous default.
+
+Ask when intent is unclear, conflicts with a default, or leaves materially different candidates
+plausible. Clarify the product need first, then derive the technical consequence where evidence
+permits. Explain alternatives and consequences when an actual user choice remains. Preserve an
+explicit consumer package or provider choice, including non-Orbyss packages; assess its role and
+compatibility without silently replacing it with a managed default. Look up technical facts;
+ask the user about constraints, intent, and acceptable trade-offs.
 
 For a need with no declared Program Kit capability, say exactly that; do not claim incompatibility.
 Classify it as external, research-required, or project-owned design and ask only for information the
 project must supply. Defer questions that become material only at a named lifecycle trigger.
+
+Completion accounts for every bootstrap-relevant branch, not every future implementation choice.
+Business outcomes, semantic ownership, and architecture-significant trust, data, or consistency
+boundaries need enough evidence now to prepare a coherent map and founding candidates. Feature
+fields, detailed business rules, and implementation choices can remain assigned to the first
+feature specification when they do not change those boundaries. Record the closing artifact or
+owner/next action and trigger. Unanswered human decisions that block intake remain open; assigning
+them to someone does not make the intake ready to confirm.
+
+## Conversation evidence and final review
+
+Maintain a compact record in `project-intent.md` during the interview: stable Q IDs, prerequisite
+IDs, answers or pending state, recommendations accepted, rationale, source evidence, and any
+superseding correction. Retain the user's meaning without copying the entire conversation. Reuse
+this record on re-entry and reopen only affected branches when intent changes. Do not replace a
+previously confirmed artifact merely to log a new answer; follow the re-analysis procedure below
+and stage revisions for review first.
+
+Maintain one current answer/disposition per Q ID. When corrected, update affected current answers,
+dependent pending states and the current summary together; keep the old interpretation only in a
+compact, explicitly superseded history entry linked to its replacement. Do not repeat the full
+answer in several running narratives. Batch the affected record edits after each answered round.
+At convergence, reconcile the ledger once, mark the document `draft awaiting review`, and ensure
+no settled branch remains labelled open or superseded interpretation remains labelled current.
+Keep stable evidence locators when compacting; preserve rationale, exceptions and uncertainty.
+
+Keep explicit answers, Program Kit defaults, derived conclusions, and architectural proposals
+distinct in the synthesis and JSON evidence. Accepting recommendations does not turn applied
+defaults into explicit user intent or turn founding candidates into Accepted ADRs.
+
+Once the interview converges, author and validate the four draft artifacts. Present one final
+review covering the product intent, journeys, domain and context analysis, founding candidates and
+alternatives, applied defaults, and assigned/deferred items. Explain that defaults can be revised
+here. This review also satisfies grilling's shared-understanding gate. Confirmation attests to the
+accuracy of the provisional intake; the later architecture approval remains separate.
+Before synthesis, review read and write operations across each context boundary: translation
+editing/import cannot be represented solely by a read-only lookup contract. Check each journey's
+contract coverage, consistency and failure owner, and preservation of historical meaning. Use
+separate read/write contracts when their effects differ; do not infer transactional guarantees
+from a managed package's presence. Resolve a material ambiguity or mark it visibly unresolved,
+rather than rewriting architectural meaning just to satisfy a validator.
+
+Also trace each explicit product requirement from the initial idea and subsequent corrections to
+an observable journey/step or a visible excluded, assigned, deferred or unresolved disposition.
+Record compact links in the intent coverage summary. A capability name or package assessment alone
+does not demonstrate behavioral coverage. For compound needs such as import/export, account for
+both operations: actor/trigger, relevant input or selected data, and observable result. Existing
+steps may cover multiple needs; do not invent a separate journey for every requirement. Ask only
+when the missing behavior changes intent or architecture; leave implementation detail at its named
+feature-specification trigger. This is a semantic review, not a keyword-matching acceptance gate.
 
 ## Architecture map
 

@@ -357,6 +357,10 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "  >>\"%PROGRAM_KIT_TEST_LOG%\" echo python %*\n"
                 "  exit /b 0\n"
                 ")\n"
+                "if \"%~nx1\"==\"schema_runtime.py\" (\n"
+                "  >>\"%PROGRAM_KIT_TEST_LOG%\" echo python %*\n"
+                "  exit /b 0\n"
+                ")\n"
                 "exit /b 1\n",
                 encoding="utf-8",
             )
@@ -391,6 +395,7 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "  exit 0\n"
                 "fi\n"
                 "case \"${1:-}\" in *ensure_utf8.py) printf 'python %s\\n' \"$*\" >> \"$PROGRAM_KIT_TEST_LOG\"; exit 0;; esac\n"
+                "case \"${1:-}\" in *schema_runtime.py) printf 'python %s\\n' \"$*\" >> \"$PROGRAM_KIT_TEST_LOG\"; exit 0;; esac\n"
                 "exit 1\n",
                 encoding="utf-8",
             )
@@ -436,7 +441,8 @@ def validate_populated_repository_initializer(root: Path) -> None:
             errors="replace",
         )
         if missing_git.returncode != 2:
-            raise AssertionError(f"{suffix} initializer did not reject a non-Git directory")
+            raise AssertionError(f"{suffix} initializer did not reject a non-Git directory: "
+                                 f"exit={missing_git.returncode}\n{missing_git.stdout}{missing_git.stderr}")
         require_phrases(
             f"Missing Git {suffix} diagnostic",
             missing_git.stdout + missing_git.stderr,
@@ -497,6 +503,8 @@ def validate_populated_repository_initializer(root: Path) -> None:
                 "workflow add program-kit-bootstrap",
                 f"bundle install program-kit --integration {integration}",
                 "ensure_utf8.py",
+                "schema_runtime.py",
+                "record-copy",
                 "extension catalog remove program-kit",
                 "preset catalog remove program-kit",
                 "workflow catalog remove 0",

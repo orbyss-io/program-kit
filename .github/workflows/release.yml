@@ -42,10 +42,16 @@ jobs:
       - name: Install pinned Spec Kit
         run: python -m pip install --disable-pip-version-check "specify-cli==1.0.1"
 
+      - name: Prepare project-local JSON Schema runtime
+        run: python extensions/program-kit-governance/scripts/schema_runtime.py setup
+
       - name: Validate AI extension
         run: |
           python tests/validate_components.py
           python tests/validate_test_suites.py
+          python tests/validate_intake_session.py
+          python tests/validate_intake_authoring.py
+          python tests/validate_json_schema.py
           python tests/validate_ui_experience.py
           python tests/validate_orbyss_building_blocks.py
           python tests/validate_building_blocks.py
@@ -89,6 +95,9 @@ jobs:
             --all \
             --evidence artifacts/building-block-public-availability.json
 
+      - name: Write deterministic Release receipt
+        run: python scripts/write_release_receipt.py --browser-engines chromium,firefox,webkit
+
       - name: Attest release assets
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
@@ -97,13 +106,14 @@ jobs:
             artifacts/*.cmd
             artifacts/*.sh
             artifacts/SHA256SUMS
+            artifacts/release-receipt-*.json
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS)
+          assets=(artifacts/*.zip artifacts/*.cmd artifacts/*.sh artifacts/SHA256SUMS artifacts/release-receipt-*.json)
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
           elif ! gh release create "$GITHUB_REF_NAME" "${assets[@]}" --verify-tag --title "Program Kit $GITHUB_REF_NAME" --generate-notes; then

@@ -191,8 +191,12 @@ commands. Besides depending on live catalog transport, Spec Kit can advance a bu
 existing component remains old. Program Kit therefore does not treat a successful bundle message as
 upgrade evidence.
 
-Open the installed integration in the repository and describe what you want to build. Program Kit
-will ask only consequential questions, show the C4 System Context and Domain Context Map, and bind
+Open the installed integration in the repository, invoke
+`$speckit-program-kit-governance-bootstrap`, and describe what you want to build. Intake uses the
+shipped Program Kit grilling skill in the same conversation: numbered questions, recommendations,
+and rounds ordered by decision dependencies. Clearly applicable technical defaults are applied
+automatically and summarized in the final review; questions focus on ambiguous intent, conflicting
+requirements, and material choices. Program Kit will show the C4 System Context and Domain Context Map and bind
 the confirmed result in `docs/architecture/bootstrap-intake.json`. It always finishes with this
 single physical command line, which can be pasted into PowerShell, Command Prompt, Bash, or another
 normal user-owned terminal from the repository root:
@@ -208,8 +212,15 @@ available localhost port starting at 8081, and keeps viewer-created state outsid
 
 To stress-test a plan, decision, or idea before acting on it, invoke
 `$speckit-program-kit-governance-grilling`. The standalone skill works through a dependency-aware
-design tree in question rounds and waits for shared understanding before permitting action; no
-bootstrap workflow or lifecycle hook invokes it automatically.
+design tree in question rounds and waits for shared understanding before executing the proposed
+plan. Bootstrap intake reuses this interview method; the bootstrap workflow and lifecycle hooks do
+not start a grilling session. No separately installed personal grilling skill is required.
+
+To evaluate the installed intake interactively from a candidate checkout, use the
+[documented interactive launcher command](tests/acceptance/intake-grilling.md)
+in a fresh user-owned terminal. It sets up a disposable consumer, asks for your product idea,
+and opens Codex for human Q&A. It preserves review evidence before cleanup and never starts
+bootstrap. See [interactive intake acceptance](tests/acceptance/intake-grilling.md).
 
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:
@@ -366,6 +377,27 @@ does not inherit those exact IDs.
 
 ## Development and release
 
+Prepare the pinned project-local JSON Schema runtime once before validation:
+
+```sh
+python extensions/program-kit-governance/scripts/schema_runtime.py setup
+```
+
+The PowerShell suite uses uv's Spec Kit interpreter. If that differs from `python`, prepare its
+cache too (Windows):
+
+```powershell
+& (Join-Path ((& uv tool dir).Trim()) 'specify-cli/Scripts/python.exe') extensions/program-kit-governance/scripts/schema_runtime.py setup
+```
+
+The suite only checks/reuses this runtime offline; it prints the exact setup command if missing.
+
+The reusable `json_schema.py validate --schema PATH --input PATH` and `describe --schema PATH
+--section '/$defs/record'` tools ship with the governance extension. Consumers use their installed
+`.specify/extensions/program-kit-governance/scripts/` copy; this checkout can use its source or
+an independently installed copy. See the extension's `references/json-schema-tools.md` for setup,
+offline upgrades, reference restrictions, and local-edit protection. No global tool install is needed.
+
 During development, run the bounded source-contract gate. It intentionally excludes browser,
 packaging, clean-install, upgrade, and public-registry release gates:
 
@@ -385,39 +417,19 @@ The Release suite records its complete transcript under
 owning the long-running process.
 
 The deterministic suites do not invoke a coding agent. Tests named for Codex validate integration
-contracts and approval guards only. The paid live acceptance below is the sole suite that starts
-coding-agent sessions.
+contracts and guarded harness behavior only. Paid live acceptance v2 is a separate, completely
+optional local diagnostic: publishing must not prompt for it or record it as skipped.
 
-The paid, local-only live bootstrap acceptance suite is completely optional and user-invoked.
-Publishing must not prompt for it or record it as skipped. When the user explicitly requests a live
-bootstrap acceptance run, use:
+V2 starts from the machine-bound receipt produced by the complete Release suite. A phase-specific,
+interactive one-use authorization can run the real bootstrap once and seal a content-addressed
+checkpoint. A separately authorized building-block phase copies that checkpoint and uses one Codex
+session to adopt the reviewed Internal Forms Workspace selection; the supervisor owns registry
+availability, restore, build, and deterministic validation. Repeating that diagnostic does not
+repeat bootstrap. The worker never receives registry credentials.
 
-```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -Approved
-```
-
-The suite builds the candidate packages, executes a clean bootstrap against a minimal confirmed
-intake, preserves both workflow output streams and the disposable repository, reports advisory
-performance metrics, and validates final readiness. On Windows, its disposable Codex guidance
-keeps `workspace-write` enabled and handles Git ownership with command-scoped
-`git -c safe.directory=...` calls—never a global Git change or sandbox bypass. See
-[`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md).
-
-To prove the conversational front door as well as bootstrap consumption, explicitly add the paid
-intake-skill phase:
-
-```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -ExerciseIntakeSkill -Approved
-```
-
-To continue the same disposable consumer through the complete first Ready slice, explicitly add
-`-ContinueFirstSlice`. This optional mode requires Python 3.13 and exercises specification,
-clarification, planning, tasks, analysis, implementation, ownership enforcement, and exact
-application behavior while proving that installed Program Kit-managed files remain unchanged:
-
-```powershell
-./scripts/Test-LiveBootstrap.ps1 -Integration codex -ContinueFirstSlice -Approved
-```
+See [`docs/live-bootstrap-acceptance.md`](docs/live-bootstrap-acceptance.md) for the authorization
+and execution commands, evidence model, Windows Job Object isolation, and current scope. The legacy
+combined `Test-LiveBootstrap.ps1 -Approved` entry point is retired.
 
 Build all release artifacts:
 
@@ -448,6 +460,9 @@ The release workflow validates all manifests and catalog metadata, creates deter
 - `Initialize-ProgramKit-<version>.cmd`: Windows initializer compatible with PowerShell
   `AllSigned` environments because it is a command script, not a PowerShell script.
 - `SHA256SUMS`: exact artifact digests.
+- `release-receipt-<version>.json`: clean source, successful deterministic Release steps,
+  toolchains, browser matrix, public-availability proof, and exact candidate artifact hashes used by
+  optional live acceptance.
 
 Verify a downloaded artifact:
 

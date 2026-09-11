@@ -173,6 +173,7 @@ def _validate_domain_analysis(
     value: object,
     evidence_ids: set[str],
     all_ids: set[str],
+    element_ids: set[str] | None = None,
 ) -> None:
     expected = {
         "subdomains", "candidate_contexts", "founding_decision_candidates",
@@ -278,9 +279,9 @@ def _validate_domain_analysis(
         if item.get("status") not in {"proposed", "unresolved"}:
             raise IntakeError(f"{label}.status cannot imply ADR acceptance during intake")
         affected = _string_list(item.get("affected_elements"), f"{label}.affected_elements")
-        if any(element not in context_ids for element in affected):
-            raise IntakeError(f"{label}.affected_elements must reference candidate contexts")
-        decision_coverage.update(affected)
+        if any(element not in (element_ids if element_ids is not None else context_ids) for element in affected):
+            raise IntakeError(f"{label}.affected_elements must reference known architecture elements")
+        decision_coverage.update(set(affected) & context_ids)
         _string_list(item.get("affected_relationships"), f"{label}.affected_relationships")
         references = _string_list(item.get("evidence"), f"{label}.evidence")
         if not references or any(reference not in evidence_ids for reference in references):
@@ -453,7 +454,12 @@ def validate_intake(
         if any(reference not in evidence_ids for reference in references):
             raise IntakeError(f"{label} references unknown evidence")
 
-    _validate_domain_analysis(intake.get("domain_analysis"), evidence_ids, all_ids)
+    architecture_module = _load_architecture_module()
+    architecture_map = load_object(artifact_paths['architecture_map'])
+    elements = _list(architecture_map.get('elements'), 'architecture_map.elements')
+    element_ids = {item['id'] for item in elements
+                   if isinstance(item, dict) and isinstance(item.get('id'), str)}
+    _validate_domain_analysis(intake.get("domain_analysis"), evidence_ids, all_ids, element_ids)
 
     classifications = {"human-decision", "research", "project-owned-design", "deferred"}
     open_items = _list(intake.get("open_items"), "open_items")
@@ -488,11 +494,12 @@ def validate_intake(
     for key in routing_keys:
         _string_list(routing[key], f"routing.{key}")
 
-    architecture_module = _load_architecture_module()
-    architecture_map = architecture_module.load_object(artifact_paths["architecture_map"])
-    architecture_module.validate_model(architecture_map, project_root)
-    architecture_module.validate_bootstrap_alignment(architecture_map, intake)
-    expected_projection = architecture_module.StructurizrDslExporter().export(architecture_map)
+    try:
+        architecture_module.validate_model(architecture_map, project_root)
+        architecture_module.validate_bootstrap_alignment(architecture_map, intake)
+        expected_projection = architecture_module.StructurizrDslExporter().export(architecture_map)
+    except architecture_module.ArchitectureMapError as exc:
+        raise IntakeError(str(exc)) from exc
     actual_projection = artifact_paths["c4_projection"].read_text(encoding="utf-8")
     if actual_projection != expected_projection:
         raise IntakeError(
@@ -566,7 +573,7 @@ def main() -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Validate Program Kit conversational bootstrap intake.")
-    parser.add_argument("command", choices=("validate", "validate-run", "changes"))
+    parser.add_argument("command", choices=("validate", "validate-draft", "validate-run", "changes"))
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--intake", default=CANONICAL_INTAKE.as_posix())
     parser.add_argument("--run-id")
@@ -584,7 +591,10 @@ def main() -> int:
             payload = result(intake, project_root / path)
         else:
             intake_path = Path(args.intake)
-            intake = validate_intake(project_root, intake_path)
+            intake = validate_intake(
+                project_root, intake_path,
+                allowed_statuses={"draft"} if args.command == "validate-draft" else None,
+            )
             payload = result(intake, project_root / intake_path)
     except (IntakeError, OSError, UnicodeError) as exc:
         print(f"Program Kit bootstrap intake failed: {exc}", file=sys.stderr)

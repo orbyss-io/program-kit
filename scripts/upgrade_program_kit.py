@@ -811,6 +811,18 @@ def main() -> int:
             stale_locks,
         )
         descriptor, lock_path = acquire_lock(target)
+        # Load the release-owned guard, never code from a possibly edited consumer copy.
+        runtime_source = release / 'extensions/program-kit-governance/scripts/schema_runtime.py'
+        runtime_spec = importlib.util.spec_from_file_location('upgrade_schema_runtime', runtime_source)
+        runtime = importlib.util.module_from_spec(runtime_spec)
+        runtime_spec.loader.exec_module(runtime)
+        try:
+            runtime.check_copy(target)
+        except RuntimeError as error:
+            raise UpgradeError(str(error)) from error
+        if not (runtime.runtime_path(target) / '.ready').is_file():
+            raise UpgradeError('SCHEMA_RUNTIME_MISSING: prepare the target runtime before this offline upgrade: '
+                               f'python "{runtime_source}" setup --project-root "{target}"')
         steps = [
             (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
@@ -830,6 +842,7 @@ def main() -> int:
         )
         for number, (command, label) in enumerate(steps, 1):
             run_step(command, target, label, number, total)
+        runtime.record_copy(target)
         next_step = len(steps) + 1
         if profile:
             web, persistence = profile

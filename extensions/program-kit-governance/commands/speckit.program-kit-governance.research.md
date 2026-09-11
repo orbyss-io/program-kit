@@ -6,15 +6,28 @@ description: Research current architecture, delivery, and quality tooling for th
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
-Read the compact bootstrap stage brief first. Its confirmed intake routing and compact authority
-records define the research scope. Do not print or read the linked evidence index in full. Query one
+Read the compact bootstrap stage brief first. Its confirmed intake routing, required full read of
+the decision register, managed profile pins, and `stage_plan.observed_toolchain` define the research
+scope. Do not run local `--version`, runtime-list, repository-status, or source-tree probes; those
+observations and the normalized repository shape are already supplied. Follow `stage_plan.mode` and research only the enumerated
+`stage_plan.research_questions`. In `baseline-verification` mode, do not survey competing products:
+verify only a material compatibility, support, license, maintenance, or supply-chain risk for the
+already selected baseline. Do not print or read the linked evidence index in full. Query one
 indexed artifact and heading range only when the brief lacks a fact required for a current research
 claim. Do not bulk-read every unchanged bootstrap artifact or enumerate installed files. The source
 artifacts remain authoritative when the stage brief identifies missing detail or a hash mismatch.
 Use the brief's `governance.paths` and `output_contract` directly. Do not search `.specify`, dump
 catalogs, or inspect `governance_state.py` to rediscover paths or contracts already supplied there.
-Honor `output_contract.artifact_byte_budgets` after all writes and report final byte counts; do not
-trade away required evidence merely to reach a target.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
+counts; do not trade away required evidence merely to reach a target.
+
+For a single-journey baseline verification, compose the first complete
+`tooling-evaluation.md` draft in at most 700 words and aim below 5,500 UTF-8 bytes. Do not write a
+long draft and trim it toward the target, and do not measure it repeatedly. When updating multiple
+files in one patch, use exactly one patch operation per path; never target the same file twice in a
+single patch call. Run the supplied terminal validation batch after the write and repair only a
+named diagnostic.
 
 ## Rules
 
@@ -24,7 +37,12 @@ Use the versioned layout/token/icon/metadata defaults and the isolated pinned ac
 research compatibility and deviations, not another universal frontend stack. Treat npm download
 counts as a dated adoption signal, not market share or proof of design quality.
 
-Use current research rather than memory for version-sensitive claims. Prefer official documentation, specifications, project release notes, and original research. Record source URL, publication or release date when available, access date, relevant version, maintenance signals, license, adoption cost, and trust/supply-chain considerations.
+Use current research rather than memory for version-sensitive claims that are material to the
+bounded research plan. Prefer official documentation, specifications, project release notes, and
+original research. Record source URL, publication or release date when available, access date,
+relevant version, maintenance signals, license, adoption cost, and trust/supply-chain
+considerations. Do not repeat general product descriptions or re-research an accepted choice that
+has no listed uncertainty.
 
 Read and preserve `docs/architecture/bootstrap-decisions.json`. Research validates explicit intake
 choices and Program Kit defaults, supplies current version evidence, and records an override only
@@ -89,13 +107,12 @@ explicitly opted out. Evaluate compatibility and disclose the preview dependency
 not replace that default with a conventional host merely because runtime multitenancy is absent.
 
 Keep research proportional. For a single-language, single-interface, dependency-free local
-application, target at most 8 KiB and research only the runtime plus the accepted verification
-mechanism. Report sources and counts after writing; do not print the complete artifact or a
-repository-wide diff.
+application, use the target supplied by `output_contract` and research only the runtime plus the
+accepted verification mechanism. Report sources and counts after writing; do not print the complete
+artifact or a repository-wide diff.
 
-Before reporting completion, run
-`python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-profile-pins --run-id <workflow-run-id>`
-using the run ID from the stage brief, then run
-`python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-assessment`.
-Repair any contract error in the artifacts you changed and rerun it; do not return success while the
-next deterministic workflow step is known to fail.
+Before reporting completion, run the single command in `output_contract.validation_commands` using
+the run ID from the stage brief. It performs output, managed-pin, and assessment-governance checks in
+one bounded process. If it passes, stop immediately: do not inspect a diff, remeasure files, read
+another source, or run another command. Repair only its named diagnostic, rerun that same batch once,
+and stop when it passes.

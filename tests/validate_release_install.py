@@ -29,9 +29,12 @@ EXPECTED_STEPS = [
     "codex-execution-boundary",
     "prepare-utf8-runtime",
     "validate-bootstrap-intake",
+    "prepare-assessment-context",
     "assessment",
+    "validate-assessment-output",
     "prepare-research-context",
     "research",
+    "validate-research-output",
     "validate-profile-pins",
     "validate-assessment",
     "write-assessment-review",
@@ -42,10 +45,14 @@ EXPECTED_STEPS = [
     "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture",
+    "validate-architecture-output",
+    "validate-architecture-alignment",
     "prepare-tooling-context",
     "tooling",
+    "validate-tooling-output",
     "prepare-roadmap-context",
     "specification-roadmap",
+    "validate-roadmap-output",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
     "validate-bootstrap",
@@ -53,6 +60,7 @@ EXPECTED_STEPS = [
     "route-bootstrap-approval",
     "prepare-readiness-context",
     "readiness",
+    "validate-readiness-output",
     "complete-bootstrap",
     "report-completion-result",
 ]
@@ -357,13 +365,19 @@ def main() -> int:
         grilling_skill = project / ".agents/skills/speckit-program-kit-governance-grilling/SKILL.md"
         if not grilling_skill.is_file():
             raise AssertionError("Decision grilling skill was not installed")
-        grilling_skill_text = grilling_skill.read_text(encoding="utf-8")
-        if (
-            "design tree" not in grilling_skill_text
-            or "The **frontier**" not in grilling_skill_text
-            or "Do not act on it until the user confirms" not in grilling_skill_text
-        ):
-            raise AssertionError("Installed decision grilling skill lost its interaction contract")
+        grilling_reference = (
+            ".specify/extensions/program-kit-governance/commands/"
+            "speckit.program-kit-governance.grilling.md"
+        )
+        if grilling_reference not in bootstrap_skill.read_text(encoding="utf-8"):
+            raise AssertionError("Installed intake lost its Program Kit grilling dependency")
+        shipped_grilling = project / grilling_reference
+        expected_grilling = extracted_extension / "commands/speckit.program-kit-governance.grilling.md"
+        if shipped_grilling.read_bytes() != expected_grilling.read_bytes():
+            raise AssertionError("Installed intake resolves a different grilling contract")
+        method_body = shipped_grilling.read_text(encoding="utf-8").split("---", 2)[2].strip()
+        if method_body not in grilling_skill.read_text(encoding="utf-8"):
+            raise AssertionError("Standalone grilling and intake do not share the shipped method")
         c4_view_skill_text = c4_view_skill.read_text(encoding="utf-8")
         if (
             "including informed review before bootstrap confirmation" not in c4_view_skill_text

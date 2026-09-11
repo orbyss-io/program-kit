@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import sysconfig
@@ -35,6 +36,40 @@ class AcceptanceError(RuntimeError):
 class QuietCatalogHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args: object) -> None:
         return
+
+
+class LocalCatalogServer:
+    """Own either the normal thread server or the isolated Windows server process."""
+
+    def __init__(
+        self,
+        *,
+        server: http.server.ThreadingHTTPServer | None = None,
+        thread: threading.Thread | None = None,
+        process: subprocess.Popen | None = None,
+        logs: tuple[IO[bytes], ...] = (),
+    ) -> None:
+        self.server = server
+        self.thread = thread
+        self.process = process
+        self.logs = logs
+        self.mode = "process" if process is not None else "thread"
+
+    def close(self) -> None:
+        if self.server is not None:
+            self.server.shutdown()
+            self.server.server_close()
+        if self.thread is not None:
+            self.thread.join(timeout=10)
+        if self.process is not None and self.process.poll() is None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=10)
+        for log in self.logs:
+            log.close()
 
 
 def utc_now() -> str:
@@ -123,12 +158,49 @@ def run_logged_with_catalog_retry(
         time.sleep(1)
 
 
+def uv_windows_specify_environment(command: list[str]) -> tuple[Path, Path] | None:
+    if os.name != "nt" or len(command) != 1:
+        return None
+    launcher = Path(command[0])
+    if launcher.suffix.lower() != ".exe" or not launcher.is_file():
+        return None
+    try:
+        payload = launcher.read_bytes()
+        marker = payload.rfind(b"#!")
+        if marker < 0:
+            return None
+        shebang = payload[marker + 2 :].splitlines()[0].decode("utf-8").strip().strip('"')
+        interpreter = Path(shebang)
+        environment = interpreter.parent.parent
+        configuration = (environment / "pyvenv.cfg").read_text(encoding="utf-8")
+        site_packages = environment / "Lib/site-packages"
+    except (OSError, UnicodeDecodeError, IndexError):
+        return None
+    if (
+        not interpreter.is_absolute()
+        or not interpreter.is_file()
+        or not re.search(r"(?m)^uv\s*=\s*\S+\s*$", configuration)
+        or not (site_packages / "specify_cli/__init__.py").is_file()
+        or b"from specify_cli import main" not in payload[marker:]
+    ):
+        return None
+    return interpreter.resolve(), site_packages.resolve()
+
+
 def specify_bridge_command(
     root: Path,
     *arguments: str,
     loopback_http_only: bool = False,
 ) -> list[str]:
     site_packages = Path(sysconfig.get_paths()["purelib"]).resolve()
+    if os.name == "nt":
+        launcher = shutil.which("specify")
+        environment = uv_windows_specify_environment([launcher]) if launcher else None
+        if environment is None:
+            raise AcceptanceError(
+                "Program Kit live setup could not bind the uv-managed Specify environment."
+            )
+        _, site_packages = environment
     command = [
         sys.executable,
         str(root / "scripts/invoke_specify.py"),
@@ -161,7 +233,7 @@ def prepare_local_catalog_server(
     packages: Path,
     evidence: Path,
     version: str,
-) -> tuple[http.server.ThreadingHTTPServer, threading.Thread, str]:
+) -> tuple[LocalCatalogServer, str]:
     server_root = evidence / "catalog-server"
     server_root.mkdir(parents=True, exist_ok=False)
     archive_names = {
@@ -174,9 +246,16 @@ def prepare_local_catalog_server(
         shutil.copy2(artifacts / archive_name, server_root / archive_name)
     shutil.copy2(packages / "workflow" / "workflow.yml", server_root / "workflow.yml")
 
-    handler = functools.partial(QuietCatalogHandler, directory=str(server_root))
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-    base_url = f"http://127.0.0.1:{server.server_port}"
+    if os.name == "nt":
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as reservation:
+            reservation.bind(("127.0.0.1", 0))
+            port = reservation.getsockname()[1]
+        base_url = f"http://127.0.0.1:{port}"
+        server = None
+    else:
+        handler = functools.partial(QuietCatalogHandler, directory=str(server_root))
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        base_url = f"http://127.0.0.1:{server.server_port}"
 
     catalogs = {
         name: load_json(root / "catalogs" / f"{name}.json")
@@ -203,9 +282,48 @@ def prepare_local_catalog_server(
     for name, catalog in catalogs.items():
         write_json(server_root / f"{name}.json", catalog)
 
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    return server, thread, base_url
+    if server is not None:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        return LocalCatalogServer(server=server, thread=thread), base_url
+
+    stdout = (evidence / "catalog-server.stdout.log").open("wb")
+    stderr = (evidence / "catalog-server.stderr.log").open("wb")
+    try:
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "http.server",
+                str(port),
+                "--bind",
+                "127.0.0.1",
+                "--directory",
+                str(server_root),
+            ],
+            stdin=subprocess.DEVNULL,
+            stdout=stdout,
+            stderr=stderr,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            if process.poll() is not None:
+                raise AcceptanceError(
+                    f"Local catalog server exited before readiness with code {process.returncode}"
+                )
+            try:
+                with socket.create_connection(("127.0.0.1", port), timeout=0.2):
+                    return LocalCatalogServer(process=process, logs=(stdout, stderr)), base_url
+            except OSError:
+                time.sleep(0.05)
+        process.terminate()
+        process.wait(timeout=10)
+        raise AcceptanceError("Local catalog server did not become ready within 10 seconds")
+    except Exception:
+        stdout.close()
+        stderr.close()
+        raise
 
 
 def stream_pipe(pipe: IO[str], destination: Path, display: IO[str] | None = None) -> None:
@@ -848,7 +966,7 @@ def install_candidate(
             project,
             log,
         )
-        server, thread, base_url = prepare_local_catalog_server(
+        server, base_url = prepare_local_catalog_server(
             root, artifacts, packages, setup_log.parent, version
         )
         try:
@@ -928,9 +1046,7 @@ def install_candidate(
                 log,
             )
         finally:
-            server.shutdown()
-            server.server_close()
-            thread.join(timeout=10)
+            server.close()
 
 
 def validate_result(
@@ -1542,6 +1658,12 @@ def write_report(
 
 
 def main() -> int:
+    print(
+        "LIVE_ACCEPTANCE_V1_RETIRED: use the v2 authorization and phase-specific wrappers; "
+        "this legacy entrypoint cannot start a coding agent.",
+        file=sys.stderr,
+    )
+    return 3
     parser = argparse.ArgumentParser(
         description="Run the opt-in, API-consuming Program Kit bootstrap acceptance suite."
     )

@@ -126,6 +126,8 @@ specify workflow add program-kit-bootstrap
 printf '[7/8] Installing Program Kit...\n'
 specify bundle install program-kit --integration "$program_kit_integration"
 python .specify/extensions/program-kit-governance/scripts/ensure_utf8.py --target .
+python .specify/extensions/program-kit-governance/scripts/schema_runtime.py setup
+python .specify/extensions/program-kit-governance/scripts/schema_runtime.py record-copy
 
 printf '[8/8] Switching Program Kit catalogs to the update channel...\n'
 specify extension catalog remove program-kit

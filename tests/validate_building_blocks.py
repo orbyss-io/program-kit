@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXTENSION = ROOT / "extensions/program-kit-building-blocks"
 CATALOG = EXTENSION / "references/orbyss-building-blocks.json"
 RESOLVER = EXTENSION / "scripts/building_blocks.py"
+RESTORE = EXTENSION / "scripts/restore_dependencies.py"
 
 
 def load_module(path: Path):
@@ -132,6 +134,7 @@ def accepted_fixture(module, root: Path, catalog: dict, composition: str = "doma
 
 def main() -> int:
     module = load_module(RESOLVER)
+    restore_module = load_module(RESTORE)
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     module.validate_catalog(catalog)
     if catalog["schemaVersion"] != "1.0" or catalog["resolutionRevision"] != 1:
@@ -220,6 +223,21 @@ def main() -> int:
         lock_path = repository / ".program-kit/building-blocks.lock.json"
         module.apply_materialization(repository, lock_path, first, catalog)
         module.check_materialization(repository, first)
+        restore_request = restore_module.restore_request(repository, lock_path, first, "renew")
+        if restore_request["repository"] != "." or restore_request["lock"] != ".program-kit/building-blocks.lock.json":
+            raise AssertionError("Credential-free restore request is not repository-portable")
+        if any(Path(command["cwd"]).is_absolute() or any(Path(argument).is_absolute() for argument in command["args"]) for command in restore_request["commands"]):
+            raise AssertionError("Credential-free restore request leaked an absolute consumer path")
+        request_result = subprocess.run(
+            [sys.executable, str(RESTORE), "request-renew", "--target", str(repository)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if request_result.returncode != 0 or "without network access" not in request_result.stdout:
+            raise AssertionError(f"Credential-free restore request failed: {request_result.stderr}")
+        if not (repository / ".program-kit/evidence/building-block-restore-request.json").is_file():
+            raise AssertionError("Credential-free restore request evidence was not written")
         project_text = (repository / "src/Test.Feature/Test.Feature.csproj").read_text(encoding="utf-8")
         if "Consumer.Owned" not in project_text or project_text.count("ProgramKit.BuildingBlocks") != 1:
             raise AssertionError("Entry-level NuGet reconciliation did not preserve consumer-owned state")

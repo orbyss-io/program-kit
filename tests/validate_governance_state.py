@@ -333,6 +333,20 @@ def write_bootstrap_artifacts(module, project: Path, architecture_module) -> Non
     )
     map_path = project / module.ARCHITECTURE_MAP
     architecture = json.loads(map_path.read_text(encoding="utf-8"))
+    architecture["documentation"] = [
+        {
+            "id": "architecture-baseline",
+            "path": module.ARCHITECTURE.as_posix(),
+            "sha256": module.sha256(project / module.ARCHITECTURE),
+            "scope": "Living architecture baseline",
+        },
+        {
+            "id": "architecture-traceability",
+            "path": module.TRACEABILITY.as_posix(),
+            "sha256": module.sha256(project / module.TRACEABILITY),
+            "scope": "Evidence-to-verification traceability",
+        },
+    ]
     architecture["decisions"] = [
         {"id": "decision-context-boundaries", "path": "docs/architecture/decisions/decision-context-boundaries.md",
          "sha256": module.sha256(founding_path), "title": "Candidate model boundaries",
@@ -647,6 +661,15 @@ def main() -> int:
             roadmap_path.parent.mkdir(parents=True, exist_ok=True)
             roadmap_path.write_text(placeholder_roadmap(), encoding="utf-8")
             expect_error(module, lambda: module.validate_roadmap(True), "template placeholders")
+            roadmap_path.write_text(
+                roadmap("`decision-context-boundaries`; a future authorization ADR"),
+                encoding="utf-8",
+            )
+            expect_error(
+                module,
+                lambda: module.validate_roadmap(True),
+                "only exact ADR identifiers",
+            )
             roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             expect_error(module, lambda: module.validate_roadmap(True), "unresolved ADRs")
 
@@ -668,6 +691,11 @@ def main() -> int:
             module.validate_roadmap(True)
 
             write_bootstrap_artifacts(module, project, architecture_module)
+            roadmap_path.write_text(
+                roadmap("`decision-context-boundaries`"), encoding="utf-8"
+            )
+            module.validate_roadmap(True)
+            roadmap_path.write_text(roadmap("ADR-0042"), encoding="utf-8")
             baseline_path = project / "docs/architecture/decisions/bootstrap-baseline.md"
             baseline_text = baseline_path.read_text(encoding="utf-8")
             approval = json.loads(
@@ -709,6 +737,25 @@ def main() -> int:
             )
             traceability_path.write_text("# Traceability\n", encoding="utf-8")
             module.synchronize_roadmap_views()
+            synchronized_map = json.loads(
+                (project / module.ARCHITECTURE_MAP).read_text(encoding="utf-8")
+            )
+            synchronized_documentation = {
+                item["path"]: item["sha256"]
+                for item in synchronized_map["documentation"]
+            }
+            for relative in (module.ARCHITECTURE, module.TRACEABILITY):
+                if synchronized_documentation.get(relative.as_posix()) != module.sha256(
+                    project / relative
+                ):
+                    raise AssertionError(
+                        f"Roadmap synchronization did not refresh {relative.as_posix()} in the canonical map"
+                    )
+            expected_projection = architecture_module.StructurizrDslExporter().export(
+                synchronized_map
+            )
+            if (project / module.WORKSPACE_DSL).read_text(encoding="utf-8") != expected_projection:
+                raise AssertionError("Roadmap synchronization did not refresh the C4 projection")
             module.validate_bootstrap_consistency()
             module.validate_bootstrap(False, True)
             module.write_review("bootstrap")

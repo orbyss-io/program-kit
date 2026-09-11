@@ -5,7 +5,27 @@ extensions, governance, generators, preset, and workflow to `0.10.0`. Orbyss Fou
 `0.1.0`; Orbyss Forms and Orbyss Localization are pinned independently at `0.1.1`. Program Kit no
 longer owns or publishes their runtime artifacts.
 
-Before tagging, run the deterministic release gates:
+Before tagging, establish successful deterministic local Release evidence:
+
+Commit the final candidate first and verify a clean working tree. The receipt binds the exact source
+commit/tree and candidate assets; a dirty tree cannot produce a successful receipt. Inspect the
+preserved transcript and receipt before preparing the approved publication commit/tag. Keep all
+human evaluation transcripts and disposable consumers in ignored local artifacts, outside the PR.
+
+A different commit SHA alone does not require another local Release run or a new local receipt.
+For test-only corrections or non-shipped contributor/release documentation, follow
+[Reusing local Release evidence after non-shipping changes](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
+Verify the original receipt/log and artifact hashes, review the entire diff against actual packaging
+inputs, preserve gate coverage, run relevant targeted checks, and require green CI on the latest
+candidate. Record both commit IDs and the evidence for unchanged shipped content/build inputs in
+the PR. A test's cross-platform shell-discovery fix is an example; changing an installed skill or
+generator is not. If unchanged payloads cannot be established, obtain fresh local Release evidence.
+
+Preserve the original receipt unchanged; never regenerate it alone or relabel it for the new commit.
+The tagged Release workflow still runs in full and generates its own exact-commit receipt. This
+pre-tag evidence-reuse exception does not relax paid live-acceptance receipt checks or failed
+stable-release recovery. The command below is needed for the initial gate or a material candidate
+change, not merely to refresh a SHA after an eligible non-shipping correction.
 
 ```powershell
 ./scripts/Test-ProgramKit.ps1 -Suite Release -Approved -BrowserEngines 'chromium,webkit'
@@ -15,8 +35,9 @@ Run this complete suite from a normal user-owned terminal only after the user ha
 candidate should proceed toward publication. It includes the source validators, Chromium/WebKit,
 release build, packaged-install checks, previous-release upgrade, disposable local installation, and
 the read-only public component-package gate. It writes
-`artifacts/release-validation-0.10.0.log` for later inspection and does not run the optional paid
-Codex-worker suite.
+`artifacts/release-validation-0.10.0.log` plus the machine-bound
+`artifacts/release-receipt-0.10.0.json` for later inspection and does not run an optional paid
+Codex-worker phase.
 
 Before the Program Kit stable tag, verify the already-published component releases and public package
 propagation: `dotnet-foundation` `v0.1.0`, `forms` `v0.1.1`, and `localization` `v0.1.1`.

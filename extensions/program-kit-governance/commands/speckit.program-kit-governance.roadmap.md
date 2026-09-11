@@ -16,7 +16,9 @@ unchanged bootstrap artifact, search other artifact directories, or enumerate in
 Use `governance.paths` and the exact writes and validation command in `output_contract`. The roadmap
 field contract is stated below. Do not search `.specify` or inspect `governance_state.py` to
 rediscover either contract; run the supplied validator and respond only to a specific diagnostic.
-Honor `output_contract.artifact_byte_budgets` after every write, including edits to existing files.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after every write, including edits to
+existing files.
 
 Validate the ratified constitution before doing any work:
 
@@ -40,6 +42,10 @@ first vertical slice before their named trigger.
 Create or update `docs/architecture/specification-roadmap.md`. This is a portfolio—the specification
 of candidate specifications—not an implementable feature specification and never an input to
 `speckit.implement`.
+
+For a single confirmed journey, keep the first complete roadmap draft at most 550 words and aim
+below 4,500 UTF-8 bytes. Do not repeatedly measure or trim toward the target; run the supplied
+terminal validation batch after the write and repair only a named diagnostic.
 
 This file is the sole authoritative source for roadmap-entry lifecycle status. After writing it,
 update `docs/architecture/architecture.md` and `docs/architecture/traceability.md` so they contain no
@@ -66,25 +72,43 @@ the colon outside the bold label (for example `- **User-visible outcome**: ...`)
 - **Status**
 
 Statuses are `Candidate`, `Blocked`, `Ready`, `Active`, `Delivered`, and `Superseded`. Bootstrap may
-create Candidate, Blocked, and Ready records. A record is Ready only when every required ADR is
-Accepted, its dependencies and ownership are explicit, and the feature can proceed through
-planning and implementation without a hidden decision or approval prerequisite. Put every required
-ADR in `Required Accepted ADRs`; never hide a later implementation blocker in Dependencies,
-Verification responsibility, or Recommended sequence while marking the record Ready.
+create Candidate, Blocked, and Ready records. `Ready` means ready to write the feature specification,
+then proceed through planning, tasks, and implementation while making feature-owned decisions in
+those lifecycle artifacts. It does not mean every field-level, data-model, business-rule, failure,
+or implementation choice was decided during architecture bootstrap.
+
+Put only architecture-significant prerequisites in `Required Accepted ADRs`. Use `None` or a
+semicolon-separated list of exact existing ADR identifiers; wrap non-`ADR-*` identifiers in
+backticks. The Proposed founding ADRs named by the stage brief are bound to this same bootstrap
+review and will be promoted atomically before readiness, so they may be listed without making the
+record Blocked. Never invent a future ADR merely to move authorization rules, submission lifecycle,
+persistence, consistency, retention, retry, idempotency, or other feature-owned design out of the
+vertical slice. A decision-backlog item whose named closing artifact is the feature specification,
+feature contract, or feature tests belongs in Scope, Owned lifecycle portions, Owned data, Quality
+scenarios, or Verification responsibility and does not block specification readiness. Require a
+separate design task or ADR only when the evidence identifies an unresolved architecture choice
+outside the slice that changes an accepted boundary, shared store, cross-domain/public contract,
+security profile, or deployment topology.
+
+A record is Ready only when those architecture prerequisites, dependencies, and ownership are
+explicit and it has no hidden external decision or approval gate. Never hide such a gate in
+Dependencies, Verification responsibility, or Recommended sequence. When confirmed intake contains
+an end-to-end user journey and the accepted baseline or pending founding bundle supplies its system
+boundaries, produce at least one Ready entry unless you can cite the specific architecture-significant
+choice outside that slice that still prevents specification.
 
 Design tasks remain separate. They produce evidence, alternatives, Proposed ADRs, updated views, and
 unlocked roadmap entries; they are not feature specifications or application implementation work.
 
-After writing the roadmap, run:
-
-```text
-{SCRIPT} validate-roadmap
-```
+After writing the roadmap, run the single command in `output_contract.validation_commands`. It
+batches the output-budget and roadmap-governance checks. Repair only a named diagnostic and rerun
+that same batch once. After it passes, stop immediately: do not inspect a diff, remeasure files,
+read another source, or run another command.
 
 Do not promote a record merely to make bootstrap pass. Keep a record `Candidate` or `Blocked` when
-its required ADR, dependency, ownership, contract, lifecycle, data, quality, or verification evidence
-is unresolved. The later synchronization step only copies the status already justified here; it
-never chooses or promotes a status.
+an architecture-significant prerequisite outside the feature slice is unresolved. Do not block it
+on decisions the feature specification and plan are supposed to make. The later synchronization
+step only copies the status already justified here; it never chooses or promotes a status.
 
 Report blocked records and the exact design task or ADR that can unlock each one.
 

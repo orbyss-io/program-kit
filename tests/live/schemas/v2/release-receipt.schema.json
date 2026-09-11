@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/live/v2/release-receipt.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "status", "version", "source", "platform", "toolchains", "browserEngines", "steps", "artifacts", "catalog", "startedAt", "finishedAt"],
+  "properties": {
+    "schemaVersion": { "const": "2.0" },
+    "status": { "const": "release-validation-passed" },
+    "version": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "clean"],
+      "properties": {
+        "commit": { "type": "string", "pattern": "[0-9a-f]{40}" },
+        "tree": { "type": "string", "pattern": "[0-9a-f]{40}" },
+        "clean": { "const": true }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "release", "machine"],
+      "properties": {
+        "system": { "type": "string", "minLength": 1 },
+        "release": { "type": "string", "minLength": 1 },
+        "machine": { "type": "string", "minLength": 1 }
+      }
+    },
+    "toolchains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "dotnet", "node", "npm", "git", "specify", "codex"],
+      "properties": {
+        "python": { "type": "string", "minLength": 1 },
+        "dotnet": { "type": "string", "minLength": 1 },
+        "node": { "type": "string", "minLength": 1 },
+        "npm": { "type": "string", "minLength": 1 },
+        "git": { "type": "string", "minLength": 1 },
+        "specify": { "type": "string", "minLength": 1 },
+        "codex": { "type": "string", "minLength": 1 }
+      }
+    },
+    "browserEngines": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/step" } },
+    "artifacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/file" } },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "availabilityEvidenceSha256"],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "availabilityEvidenceSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "startedAt": { "type": "string", "minLength": 1 },
+    "finishedAt": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "size": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command", "exitCode", "startedAt", "finishedAt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "command": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "exitCode": { "const": 0 },
+        "startedAt": { "type": "string", "minLength": 1 },
+        "finishedAt": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

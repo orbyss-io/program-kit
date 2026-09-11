@@ -16,8 +16,9 @@ bulk-read every unchanged artifact, grep every status in the repository, or enum
 files.
 Use `governance.paths` and `output_contract` directly. Do not search `.specify`, unrelated
 extensions, catalogs, or validator implementation to rediscover paths or validation rules.
-Honor `output_contract.artifact_byte_budgets` after writing the report and report its final byte
-count; do not omit decisive evidence merely to reach a target.
+Use `output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_byte_budgets` as the hard boundary after writing the report. Report its
+final byte count; do not omit decisive evidence merely to reach a target.
 
 ## Constitutional and portfolio prerequisites
 
@@ -90,3 +91,7 @@ Keep the report decision-oriented: status, blocking evidence, remaining triggere
 the next specification. For a single Ready entry with no blockers, use the byte target supplied by
 `output_contract`. Report the
 path, status, and validation counts only; do not print the complete report or repository-wide diffs.
+Run the single command in `output_contract.validation_commands` before reporting completion. It
+batches the output-budget, roadmap, governance, and exact READY checks. Repair only a named
+diagnostic and rerun that same batch once. After it passes, stop immediately: do not inspect a diff,
+remeasure files, read another source, or run another command.

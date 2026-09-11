@@ -11,12 +11,17 @@ validation and a review packet bound to the exact current draft.
 
 ## Work
 
-From the project root, run these commands in order with an available Python 3 interpreter:
+From the project root, run these exact commands in one shell batch with an available Python 3
+interpreter:
 
 ```text
 {SCRIPT} validate-constitution-draft
 {SCRIPT} write-review --stage constitution
 ```
+
+Copy both commands verbatim, including `--stage constitution`. Do not substitute another
+`governance_state.py` subcommand, omit an argument, split validation into exploratory calls, inspect
+a diff, or measure the file separately. If the batch succeeds, stop immediately.
 
 Both commands must succeed after `speckit.constitution` finishes and before asking the user to
 ratify. Show the regenerated `docs/architecture/reviews/constitution-review.md` at the dedicated

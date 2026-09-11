@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/live/v2/candidate-expectation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "expectationId", "scenario", "catalogSha256", "compositions", "packages", "preservedDependencies", "targets", "minimumActivations", "configurationKnowledge"],
+  "properties": {
+    "schemaVersion": { "const": "2.0" },
+    "expectationId": { "type": "string", "minLength": 1 },
+    "scenario": { "const": "internal-forms-workspace@1" },
+    "catalogSha256": { "type": "string", "pattern": "[0-9a-f]{64}" },
+    "compositions": { "type": "array", "minItems": 3, "uniqueItems": true, "items": { "type": "string" } },
+    "packages": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+    "preservedDependencies": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+    "targets": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+    "minimumActivations": { "type": "integer", "minimum": 1 },
+    "configurationKnowledge": { "type": "array", "items": { "type": "string" } }
+  }
+}

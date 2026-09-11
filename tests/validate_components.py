@@ -17,9 +17,12 @@ EXPECTED_STEPS = [
     "codex-execution-boundary",
     "prepare-utf8-runtime",
     "validate-bootstrap-intake",
+    "prepare-assessment-context",
     "assessment",
+    "validate-assessment-output",
     "prepare-research-context",
     "research",
+    "validate-research-output",
     "validate-profile-pins",
     "validate-assessment",
     "write-assessment-review",
@@ -30,10 +33,14 @@ EXPECTED_STEPS = [
     "route-constitution-ratification",
     "prepare-architecture-context",
     "architecture",
+    "validate-architecture-output",
+    "validate-architecture-alignment",
     "prepare-tooling-context",
     "tooling",
+    "validate-tooling-output",
     "prepare-roadmap-context",
     "specification-roadmap",
+    "validate-roadmap-output",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
     "validate-bootstrap",
@@ -41,6 +48,7 @@ EXPECTED_STEPS = [
     "route-bootstrap-approval",
     "prepare-readiness-context",
     "readiness",
+    "validate-readiness-output",
     "complete-bootstrap",
     "report-completion-result",
 ]
@@ -72,6 +80,12 @@ def main() -> int:
     workflow_path = root / "workflows" / "program-kit-bootstrap" / "workflow.yml"
     bundle_path = root / "bundle.yml"
 
+    for json_path in sorted((root / "extensions").rglob("*.json")):
+        try:
+            json.loads(json_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise AssertionError(f"Extension JSON is not strictly valid: {json_path}: {exc}") from exc
+
     ExtensionManifest(extension_path)
     ExtensionManifest(building_blocks_extension_path)
     ExtensionManifest(dotnet_extension_path)
@@ -80,8 +94,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 15:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 15")
+    if len(command_names) != 16:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 16")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
     if "speckit.program-kit-governance.grilling" not in command_names:
@@ -109,6 +123,7 @@ def main() -> int:
     required_building_block_files = {
         "commands/speckit.program-kit-building-blocks.sync.md",
         "references/building-block-selection.schema.json",
+        "references/building-block-restore-request.schema.json",
         "references/building-blocks-lock.schema.json",
         "references/orbyss-building-blocks.schema.json",
         "references/orbyss-building-blocks.json",
@@ -183,7 +198,7 @@ def main() -> int:
         raise AssertionError("Governance assessment must consume the validated intake")
     if "initial_design" in workflow_path.read_text(encoding="utf-8"):
         raise AssertionError("The workflow must not retain the legacy initial_design route")
-    context_stages = ("research", "architecture", "tooling", "roadmap", "readiness")
+    context_stages = ("assessment", "research", "architecture", "tooling", "roadmap", "readiness")
     for stage in context_stages:
         context_id = f"prepare-{stage}-context"
         context_step = next(step for step in steps if step["id"] == context_id)
@@ -195,6 +210,7 @@ def main() -> int:
         if "--run-id {{ context.run_id }}" not in context_command or "inputs." in context_command:
             raise AssertionError(f"{context_id} must use only the engine-owned run id in its shell command")
     for command_id, stage in (
+        ("assessment", "assessment"),
         ("research", "research"),
         ("architecture", "architecture"),
         ("tooling", "tooling"),
@@ -205,6 +221,19 @@ def main() -> int:
         expected_context = f"steps.prepare-{stage}-context.output.data.path"
         if expected_context not in command_step.get("input", {}).get("args", ""):
             raise AssertionError(f"{command_id} does not consume its generated bootstrap context")
+    for stage in context_stages:
+        validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
+        validation_command = validation_step.get("run", "")
+        expected_validator = "validate-stage" if stage == "roadmap" else "validate-output"
+        if (
+            validation_step.get("type") != "shell"
+            or validation_step.get("output_format") != "json"
+            or f"bootstrap_context.py {expected_validator}" not in validation_command
+            or f"--stage {stage}" not in validation_command
+        ):
+            raise AssertionError(f"{stage} output budgets are not deterministically validated")
+        if stage == "roadmap" and "--run-id {{ context.run_id }}" not in validation_command:
+            raise AssertionError("Roadmap validation must enforce the Ready-entry terminal contract")
     pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
     if (
         pin_validation.get("type") != "shell"
@@ -212,9 +241,36 @@ def main() -> int:
         or pin_validation.get("output_format") != "json"
     ):
         raise AssertionError("Selected profile pins must be deterministically validated after research")
+    architecture_alignment = next(
+        step for step in steps if step["id"] == "validate-architecture-alignment"
+    )
+    if (
+        architecture_alignment.get("type") != "shell"
+        or "bootstrap_context.py validate-architecture-alignment"
+        not in architecture_alignment.get("run", "")
+        or architecture_alignment.get("output_format") != "json"
+        or step_ids.index("architecture") >= step_ids.index("validate-architecture-alignment")
+        or step_ids.index("validate-architecture-alignment") >= step_ids.index("prepare-tooling-context")
+    ):
+        raise AssertionError(
+            "Confirmed-intake alignment must be validated between architecture and tooling"
+        )
     constitution_step = next(step for step in steps if step["id"] == "constitution-draft")
     if constitution_step.get("command") != "speckit.constitution":
         raise AssertionError("The core speckit.constitution command must remain the canonical writer")
+    constitution_args = constitution_step.get("input", {}).get("args", "")
+    if not all(
+        marker in constitution_args
+        for marker in (
+            "5,500 UTF-8 bytes",
+            "do not write an oversized draft",
+            "mandatory after hook owns deterministic validation",
+            "write-review --stage constitution",
+            "never use Delete File plus Add File",
+            "stop immediately",
+        )
+    ):
+        raise AssertionError("The constitution prompt does not prevent oversized rewrite loops")
     if "constitution-begin" in step_ids:
         raise AssertionError(
             "The workflow must rely on the mandatory before_constitution hook instead of invoking constitution-begin twice"
@@ -327,6 +383,8 @@ def main() -> int:
         extension_root / "commands/speckit.program-kit-governance.constitution-review.md",
         "validate-constitution-draft",
         "write-review --stage constitution",
+        "Copy both commands verbatim",
+        "one shell batch",
         "before asking the user to",
     )
     require_text(
@@ -415,6 +473,14 @@ def main() -> int:
         "Read the compact bootstrap stage brief first",
         "specification-roadmap.md",
         "- **Status**: Accepted",
+        "stage_plan.structural_validation_command",
+        "stage_plan.building_blocks",
+        "stage_plan.managed_web_contract",
+        "authorities.assessment_approval.bootstrap_decisions_sha256",
+        "must cross the required layers end to end",
+        "preserve its relationship selection",
+        "Do not construct a PowerShell file-inventory command",
+        "stop immediately",
     )
     for command_name in ("research", "tooling", "roadmap", "readiness"):
         require_text(
@@ -425,21 +491,25 @@ def main() -> int:
             "`governance.paths`",
             "`output_contract`",
             "`output_contract.artifact_byte_budgets`",
+            "`output_contract.artifact_target_bytes`",
         )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.research.md",
         "an acknowledgement contains only `id` and `summary`",
-        "governance_state.py validate-assessment",
-        "next deterministic workflow step is known to fail",
         "managed_profile_pins",
-        "validate-profile-pins",
+        "stage_plan.observed_toolchain",
+        "single command in `output_contract.validation_commands`",
         "Never create a separate ADR",
+        "at most 700 words",
+        "never target the same file twice",
+        "do not measure it repeatedly",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.assessment.md",
-        "fixed routing map",
-        "not evidence that its technology extension is installed",
-        "do not probe guessed paths",
+        "routing authority",
+        "reading_policy.required_full_reads",
+        "Optional routed references",
+        "Never enumerate or bulk-read",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.roadmap.md",
@@ -448,12 +518,24 @@ def main() -> int:
         "PROGRAM-KIT:ROADMAP-VIEW",
         "Required Accepted ADRs",
         "Design tasks remain separate",
+        "single command in `output_contract.validation_commands`",
+        "feature-owned decisions",
+        "pending founding bundle",
+        "only architecture-significant prerequisites",
+        "at most 550 words",
+    )
+    require_text(
+        extension_root / "commands/speckit.program-kit-governance.tooling.md",
+        "at most 650 words",
+        "draft and trim it toward the byte ceiling",
+        "do not measure it repeatedly",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.readiness.md",
         "--require-roadmap --require-ready",
         "first feature specification",
         "program-kit-web-security-evidence-v1",
+        "single command in `output_contract.validation_commands`",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.architecture-check.md",
@@ -558,6 +640,15 @@ def main() -> int:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         if schema.get("$schema") != "https://json-schema.org/draft/2020-12/schema":
             raise AssertionError(f"Bootstrap schema has the wrong dialect: {schema_path}")
+    context_contract = json.loads(context_schema.read_text(encoding="utf-8"))
+    if (
+        context_contract["properties"]["schema_version"] != {"const": "4.0"}
+        or "assessment" not in context_contract["properties"]["stage"]["enum"]
+        or "stage_plan" not in context_contract["required"]
+        or "artifact_target_bytes"
+        not in context_contract["properties"]["output_contract"]["required"]
+    ):
+        raise AssertionError("Bootstrap context schema does not expose the optimized stage contract")
     intake_status = json.loads(intake_schema.read_text(encoding="utf-8"))["properties"]["status"]
     if intake_status != {"enum": ["draft", "confirmed"]}:
         raise AssertionError("Bootstrap intake schema must distinguish draft review from confirmation")
@@ -581,6 +672,17 @@ def main() -> int:
         "stale or invalid",
         "managed_profile_pin_authority",
         "validate_profile_pin_decisions",
+        "validate_stage_output",
+        "validate-output",
+        "validate_stage_batch",
+        "validate-stage",
+        "validate_architecture_structure",
+        "validate-architecture-structure",
+        "building_block_target_inventory",
+        "managed_web_control_projection",
+        "observed_toolchain",
+        "terminal_condition",
+        "ARTIFACT_TARGET_BYTES",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.assessment.md",
@@ -594,7 +696,8 @@ def main() -> int:
         "workspace.dsl",
         "intake-artifacts.md",
         "Do not enumerate the repository",
-        "Do not read either JSON schema",
+        "intake_authoring.py build-draft --source docs/architecture/intake-authoring.json",
+        "never confirms intake or replaces a",
         "exactly one physical",
         "bootstrap_intake=docs/architecture/bootstrap-intake.json",
         "draft artifact hashes",
@@ -605,16 +708,23 @@ def main() -> int:
         "never performs bootstrap approval",
         "Viewing never changes intake status",
     )
-    require_text(
-        extension_root / "commands/speckit.program-kit-governance.grilling.md",
-        "design tree",
-        "The **frontier**",
-        "dispatch a sub-agent",
-        "Do not act on it until the user confirms",
+    # The intake must resolve the same shipped interview contract as the standalone skill.
+    grilling_command = next(
+        item for item in extension["provides"]["commands"]
+        if item["name"] == "speckit.program-kit-governance.grilling"
     )
+    grilling_path = extension_root / grilling_command["file"]
+    installed_grilling_path = (
+        ".specify/extensions/program-kit-governance/" + grilling_command["file"]
+    )
+    if not grilling_path.is_file() or installed_grilling_path not in (
+        extension_root / "commands/speckit.program-kit-governance.bootstrap.md"
+    ).read_text(encoding="utf-8"):
+        raise AssertionError("Intake cannot resolve Program Kit's shipped grilling contract")
     require_text(
         intake_authoring,
-        "Treat the JSON schemas and Python implementations as executable contracts",
+        "intake_authoring.py describe --document map --section context_relationship",
+        "intake-authoring-example.json",
         "capability_assessments",
         "system-context",
         "domain-context",

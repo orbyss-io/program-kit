@@ -14,6 +14,10 @@ from pathlib import Path
 SCHEMA_VERSION = "1.1"
 IMPORTER_VERSION = "1.0"
 STRATEGIC_MODEL_VERSION = "1.0"
+CAPABILITY_OWNER_LITERALS = {
+    'semantic_owner': frozenset({'program-kit', 'external', 'unresolved'}),
+    'integration_owner': frozenset({'program-kit', 'external', 'not-applicable', 'unresolved'}),
+}
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ELEMENT_TYPES = {
@@ -566,6 +570,9 @@ def _validate_strategic_model(
             if owner not in context_ids:
                 raise ArchitectureMapError(f"{label}.{field} must name a bounded context")
         atomicity = item.get("atomicity")
+        contract_record = next(record for record in strategic['contracts'] if record['id'] == contract)
+        if atomicity == 'read-only' and contract_record['kind'] == 'command':
+            raise ArchitectureMapError(f'{label}: a command contract cannot use read-only atomicity')
         if atomicity not in {"local-to-owner", "eventual", "read-only", "unresolved-adr", "cross-context-atomic"}:
             raise ArchitectureMapError(f"{label}.atomicity is invalid")
         _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
@@ -622,7 +629,7 @@ def _validate_strategic_model(
         if coverage in {"managed", "guided", "conflict"} and not capabilities:
             raise ArchitectureMapError(f"{label} must name the relevant Program Kit capability")
         semantic_owner = _text(item.get("semantic_owner"), f"{label}.semantic_owner", 120)
-        if semantic_owner not in {"program-kit", "external", "unresolved"} and semantic_owner not in context_ids:
+        if semantic_owner not in CAPABILITY_OWNER_LITERALS['semantic_owner'] and semantic_owner not in context_ids:
             raise ArchitectureMapError(f"{label}.semantic_owner must name a context or declared external owner")
         semantic_profile = _text(
             item.get("semantic_profile"), f"{label}.semantic_profile", 500, allow_empty=True
@@ -632,7 +639,7 @@ def _validate_strategic_model(
                 f"{label} needs a consumer-owned semantic profile in addition to managed mechanism coverage"
             )
         integration_owner = _text(item.get("integration_owner"), f"{label}.integration_owner", 120)
-        if integration_owner not in {"program-kit", "external", "not-applicable", "unresolved"} and integration_owner not in context_ids:
+        if integration_owner not in CAPABILITY_OWNER_LITERALS['integration_owner'] and integration_owner not in context_ids:
             raise ArchitectureMapError(f"{label}.integration_owner is invalid")
         _text(item.get("provider_selection"), f"{label}.provider_selection", 240, allow_empty=True)
         if item.get("decision_state") not in {
@@ -748,6 +755,20 @@ def _validate_strategic_model(
         )
 
 
+def project_domain_analysis(model: dict) -> dict:
+    """Canonical shared intake projection; preserve all affected element references."""
+    strategic = model['strategic_model']
+    names = {item['id']: item['name'] for item in model['elements']}
+    return {
+        'subdomains': [{key: value for key, value in item.items() if key != 'decision_refs'}
+                      for item in strategic['subdomains']],
+        'candidate_contexts': [{'id': item['element'], 'name': names[item['element']],
+                               **{key: value for key, value in item.items() if key not in {'element', 'decision_refs'}}}
+                              for item in strategic['bounded_contexts']],
+        'founding_decision_candidates': strategic['founding_decisions'],
+    }
+
+
 def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     """Validate cross-artifact semantic completeness for new bootstrap intake contracts."""
     if intake.get("schema_version") != "1.1":
@@ -766,32 +787,36 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     mapped_subdomains = {item["id"] for item in strategic["subdomains"]}
     if subdomains != mapped_subdomains:
         raise ArchitectureMapError("Intake and architecture-map subdomain analyses do not match")
-    expected_subdomains = [
-        {key: value for key, value in item.items() if key != "decision_refs"}
-        for item in strategic["subdomains"]
-    ]
+    projected = project_domain_analysis(model)
+    expected_subdomains = projected['subdomains']
     if analysis.get("subdomains") != expected_subdomains:
         raise ArchitectureMapError("Intake and architecture-map subdomain evidence is not identical")
     contexts = {item["id"] for item in analysis.get("candidate_contexts", [])}
     mapped_contexts = {item["element"] for item in strategic["bounded_contexts"]}
     if contexts != mapped_contexts:
         raise ArchitectureMapError("Intake and architecture-map candidate bounded contexts do not match")
-    expected_contexts = [
-        {
-            "id": item["element"],
-            "name": next(
-                element["name"] for element in model["elements"] if element["id"] == item["element"]
-            ),
-            **{
-                key: value
-                for key, value in item.items()
-                if key not in {"element", "decision_refs"}
-            },
-        }
-        for item in strategic["bounded_contexts"]
+    intake_contexts = analysis.get("candidate_contexts", [])
+    expected_contexts = [{key: value for key, value in item.items() if key != 'status'}
+                         for item in projected['candidate_contexts']]
+    intake_context_evidence = [
+        {key: value for key, value in item.items() if key != "status"}
+        for item in intake_contexts
     ]
-    if analysis.get("candidate_contexts") != expected_contexts:
+    if intake_context_evidence != expected_contexts:
         raise ArchitectureMapError("Intake and architecture-map bounded-context evidence is not identical")
+    mapped_context_records = {
+        item["element"]: item for item in strategic["bounded_contexts"]
+    }
+    for item in intake_contexts:
+        intake_status = item["status"]
+        mapped_status = mapped_context_records[item["id"]]["status"]
+        if mapped_status == intake_status:
+            continue
+        if mapped_status == "accepted" and intake_status in {"explicit", "derived", "proposed"}:
+            continue
+        raise ArchitectureMapError(
+            f"Bounded-context {item['id']} status cannot transition from {intake_status} to {mapped_status}"
+        )
     assessments = {item["id"] for item in intake.get("capability_assessments", [])}
     bindings = {item["assessment"] for item in strategic["capability_bindings"]}
     if assessments != bindings:
@@ -820,7 +845,7 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
         raise ArchitectureMapError(
             "Intake and architecture-map founding decision candidates do not match"
         )
-    if analysis.get("founding_decision_candidates") != strategic["founding_decisions"]:
+    if analysis.get("founding_decision_candidates") != projected['founding_decision_candidates']:
         raise ArchitectureMapError(
             "Intake and architecture-map founding decision evidence is not identical"
         )
@@ -945,7 +970,13 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
     documentation_ids: set[str] = set()
     for index, document in enumerate(documentation, 1):
         label = f"documentation[{index}]"
-        if not isinstance(document, dict) or set(document) != {"id", "path", "sha256", "scope"}:
+        required_fields = {"id", "path", "sha256", "scope"}
+        allowed_fields = required_fields | {"canonicalSha256"}
+        if (
+            not isinstance(document, dict)
+            or not required_fields.issubset(document)
+            or not set(document).issubset(allowed_fields)
+        ):
             raise ArchitectureMapError(f"{label} has an invalid shape")
         document_id = _id(document.get("id"), f"{label}.id")
         if document_id in documentation_ids:
@@ -955,6 +986,12 @@ def validate_model(model: dict, project_root: Path | None = None) -> dict:
         digest = _text(document.get("sha256"), f"{label}.sha256", 64)
         if not SHA256.fullmatch(digest):
             raise ArchitectureMapError(f"{label}.sha256 is invalid")
+        if "canonicalSha256" in document:
+            canonical_digest = _text(
+                document.get("canonicalSha256"), f"{label}.canonicalSha256", 64
+            )
+            if not SHA256.fullmatch(canonical_digest):
+                raise ArchitectureMapError(f"{label}.canonicalSha256 is invalid")
         _text(document.get("scope"), f"{label}.scope")
         if project_root is not None:
             document_path = _relative_file(project_root, document["path"], f"{label}.path")

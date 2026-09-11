@@ -1,0 +1,56 @@
+{
+  "map": {
+    "model_id": "request-desk",
+    "title": "Request Desk — provisional example",
+    "elements": [
+      {"id":"requester","type":"person","name":"Requester","description":"Submits a request.","status":"explicit","ownership":"consumer","evidence":["e-product"]},
+      {"id":"request-desk","type":"software-system","name":"Request Desk","description":"Records requests for follow-up.","status":"proposed","ownership":"consumer","evidence":["e-product"]},
+      {"id":"request-handling","type":"bounded-context","parent":"request-desk","name":"Request Handling","description":"Owns request registration and its lifecycle.","status":"proposed","ownership":"consumer","evidence":["e-product"]},
+      {"id":"registration","type":"domain-capability","name":"Registration","description":"Validates and records requests.","status":"proposed","ownership":"request-handling","evidence":["e-product"]}
+    ],
+    "relationships": [
+      {"id":"submits-request","source":"requester","target":"request-desk","description":"Submits a request and receives its identifier.","status":"proposed","evidence":["e-product"]}
+    ],
+    "views": [
+      {"key":"system-context","type":"system-context","title":"System Context","scope":"request-desk","elements":["requester","request-desk"],"relationships":["submits-request"]},
+      {"key":"domain-landscape","type":"domain-landscape","title":"Domain Landscape","scope":"request-desk","elements":["request-handling"],"relationships":[]},
+      {"key":"context-map","type":"context-map","title":"Context Map","scope":"request-desk","elements":["request-handling"],"relationships":[]},
+      {"key":"request-decomposition","type":"context-decomposition","title":"Request Handling Modules","scope":"request-handling","elements":["request-handling","registration"],"relationships":[]},
+      {"key":"submit-view","type":"dynamic","title":"Submit Request","scope":"","elements":["requester","request-desk"],"relationships":[]}
+    ],
+    "strategic_model": {
+      "status": "proposed",
+      "founding_decisions": [
+        {"id":"founding-registration","title":"Initial request boundary","question":"Where should registration rules and lifecycle live?","recommended_option":"One request-handling context with a registration module.","alternatives":["Separate registration from request lifecycle."],"rationale":"The evidence identifies one owner and one lifecycle; there is no independent model requiring separation.","consequences":["Revisit the boundary when ownership or consistency requirements diverge."],"confidence":"medium","affected_elements":["request-handling","registration"],"affected_relationships":["submits-request"],"status":"proposed","evidence":["e-product"]}
+      ],
+      "subdomains": [
+        {"id":"request-registration","name":"Request Registration","classification":"supporting","vision":"Record requests reliably.","ownership":"Request identity and registration rules.","non_ownership":"Does not own external identity provisioning.","language_terms":["request","registration"],"data_ownership":["request records"],"invariants":["Every accepted request has a stable identifier."],"lifecycle":"Submitted to recorded.","status":"proposed","evidence":["e-product"]}
+      ],
+      "bounded_contexts": [
+        {"element":"request-handling","boundary_kind":"domain-model","vision":"Own the request lifecycle.","responsibilities":["Validate and register requests."],"non_responsibilities":["External identity provisioning."],"language_terms":["request","registration"],"subdomains":["request-registration"],"data_ownership":["request records"],"invariants":["A request is recorded once per accepted submission."],"lifecycle":"Submitted to recorded.","separation_rationale":"One request model and owner are known; no separate business model is established.","split_triggers":["An independent request-processing model and owner emerge."],"status":"proposed","evidence":["e-product"]}
+      ],
+      "modules": [
+        {"element":"registration","context":"request-handling","kind":"domain-module","responsibilities":["Validate and record requests."],"non_responsibilities":["External identity provisioning."],"contracts":["register-request"],"status":"proposed","evidence":["e-product"]}
+      ],
+      "contracts": [
+        {"id":"register-request","name":"Register Request","kind":"command","owner":"request-handling","version":"provisional-v1","description":"Accept request details and return the recorded identifier.","status":"proposed","evidence":["e-product"]}
+      ],
+      "context_relationships": [],
+      "capability_bindings": [],
+      "journeys": [
+        {"id":"submit-request","name":"Submit Request","source_journey":"journey-submit","actor_or_trigger":"Requester submits request details.","outcome":"The requester receives a recorded request identifier or a visible rejection.","view":"submit-view","steps":[{"order":1,"relationship":"submits-request","description":"Validate the submission, record it, and return its identifier or reject without recording.","contract":"register-request"}],"status":"proposed","evidence":["e-product"]}
+      ],
+      "candidate_slices": [
+        {"id":"slice-register","name":"Register Request","journey":"submit-request","actor_or_trigger":"Requester submits details.","outcome":"The request is recorded or visibly rejected.","contexts":["request-handling"],"status":"proposed","evidence":["e-product"]}
+      ]
+    }
+  },
+  "intake": {
+    "project":{"name":"Request Desk","summary":"A worked authoring example, not a recommended product architecture."},
+    "evidence":[{"id":"e-product","source":"project_intent","locator":"Purpose","summary":"The example intent describes a requester registering a request."}],
+    "facts":[],"scope":{"included":[],"excluded":[],"deferred":[]},"actors":[],
+    "quality_requirements":[],"integrations":[],"choices":[],"capability_assessments":[],
+    "domain_analysis":{"boundary_challenges":[]},"open_items":[],
+    "routing":{"languages":[],"frameworks":[],"interfaces":[],"included_surfaces":[],"excluded_surfaces":[],"capabilities":[]}
+  }
+}

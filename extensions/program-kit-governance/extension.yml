@@ -13,7 +13,17 @@ requires:
   speckit_version: ">=1.0.1,<2.0.0"
 
 provides:
+  scripts:
+    - name: "json-schema"
+      file: "scripts/json_schema.py"
+      description: "Read-only JSON Schema validation and focused descriptions."
+    - name: "schema-runtime"
+      file: "scripts/schema_runtime.py"
+      description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.json-schema"
+      file: "commands/speckit.program-kit-governance.json-schema.md"
+      description: "Validate a JSON file against a schema or inspect a schema section."
     - name: "speckit.program-kit-governance.view-c4"
       file: "commands/speckit.program-kit-governance.view-c4.md"
       description: "Safely inspect and open the generated C4 projection in a pinned localhost viewer."
@@ -25,7 +35,7 @@ provides:
       description: "Adopt or safely generate the versioned UI, branding and discoverability profile."
     - name: "speckit.program-kit-governance.bootstrap"
       file: "commands/speckit.program-kit-governance.bootstrap.md"
-      description: "Conduct conversational intake, maintain the C4-aligned domain map, and provide the one-line normal-shell bootstrap command."
+      description: "Use Program Kit grilling to prepare confirmed intake and its C4-aligned domain map, then provide the normal-shell bootstrap command."
     - name: "speckit.program-kit-governance.assessment"
       file: "commands/speckit.program-kit-governance.assessment.md"
       description: "Assess the confirmed intake and create the bootstrap decision baseline."

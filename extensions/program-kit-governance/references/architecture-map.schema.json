@@ -268,7 +268,7 @@
       "required": ["relationship", "upstream", "downstream", "patterns", "interaction", "contract", "contract_owner", "translation_policy", "bridge", "data_owner", "consistency_owner", "failure_owner", "atomicity", "status", "evidence", "decision_refs"],
       "properties": {
         "relationship": { "$ref": "#/$defs/id" }, "upstream": { "$ref": "#/$defs/id" }, "downstream": { "$ref": "#/$defs/id" },
-        "patterns": { "$ref": "#/$defs/nonempty_id_list" }, "interaction": { "enum": ["synchronous-capability", "event", "orchestrator"] },
+        "patterns": { "type": "array", "minItems": 1, "items": { "enum": ["customer-supplier", "partnership", "shared-kernel", "open-host-service", "published-language", "acl", "conformist"] } }, "interaction": { "enum": ["synchronous-capability", "event", "orchestrator"] },
         "contract": { "$ref": "#/$defs/id" }, "contract_owner": { "$ref": "#/$defs/id" },
         "translation_policy": { "enum": ["acl", "conformist", "published-language", "none", "unresolved"] },
         "bridge": { "type": "string", "maxLength": 64 }, "data_owner": { "$ref": "#/$defs/id" },
