@@ -23,10 +23,11 @@ If the shipped command is missing, report the incomplete installation instead of
 another interview method.
 
 Keep discovery bounded. Do not enumerate the repository, `.specify`, installed skills, references,
-schemas, or implementation scripts. Inspect only an explicitly supplied source artifact and existing
-canonical intake paths. Treat the JSON schemas and Python scripts as executable contracts; do not
-open them to rediscover shapes or behavior. When the conversation converges, read
-`references/intake-artifacts.md` once and author from its compact contract.
+schemas, or implementation scripts. Inspect explicitly supplied sources and canonical intake paths.
+When the conversation converges, read `references/intake-artifacts.md` and its worked example.
+Use the schema-derived authoring descriptor for exact nested fields before writing them. A targeted
+schema lookup is allowed when the descriptor is insufficient; do not guess shapes or browse
+implementation broadly to rediscover them.
 
 ## Execution boundary
 
@@ -107,9 +108,15 @@ After the questions converge, create or update:
 - a draft synthesis of `docs/architecture/bootstrap-intake.json` matching
   `references/bootstrap-intake.schema.json`.
 
-Use `references/intake-artifacts.md` as the authoring contract. Do not read either JSON schema or
-either Python implementation before writing. Prefer one focused read batch, one artifact-write
-batch, and one export/validation batch; expand only to resolve a concrete validator diagnostic.
+Use `references/intake-artifacts.md` as the authoring contract. Author shared semantics once in
+`docs/architecture/intake-authoring.json` using the routed example and descriptor. Write the
+current intent record (including draft-review status) before building. Run
+`python .specify/extensions/program-kit-governance/scripts/intake_authoring.py build-draft --source docs/architecture/intake-authoring.json`.
+The builder derives shared intake fields and dynamic-view ordering, exports DSL, refreshes hashes,
+and validates the staged draft before replacing outputs. It never confirms intake or replaces a
+confirmed intake. Do not hand-copy shared analyses or reserialize JSON in PowerShell; the builder
+preserves UTF-8 multilingual text. Corrections to generated draft JSON belong in the authoring
+source; rebuild instead of overwriting those corrections with an obsolete source.
 Never print whole generated artifacts or repository-wide diffs during verification.
 
 The canonical map owns semantics. The DSL is a reviewable C4 projection and an import source. Mark
@@ -138,7 +145,7 @@ Ask for confirmation only after the
 semantic gates pass and there are no invisible or unclassified gaps. State explicitly that this
 confirmation does not approve architecture or ADRs. Do not mark the intake `confirmed` from silence or inference.
 After explicit confirmation, set its status to `confirmed`, refresh every artifact hash and byte
-count, and run:
+count, and run (a narrow status edit is sufficient; do not reserialize the document):
 
 `python .specify/extensions/program-kit-governance/scripts/bootstrap_intake.py validate --json`
 

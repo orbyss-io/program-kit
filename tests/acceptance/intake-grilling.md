@@ -47,6 +47,8 @@ or desired architecture. A reviewer should assess the resulting conversation and
 | Intervention | Observable acceptance evidence |
 | --- | --- |
 | Give only the initial idea. | Intake uses Program Kit grilling's numbered rounds and recommendations. It clarifies consequential product ambiguity and does not ask the user to reselect obvious managed tooling. |
+| Describe a solution without explaining its purpose. | It establishes the business problem and observable success before dependent solution/lifecycle recommendations. It does not repeat already supplied purpose. |
+| Accept a recommendation that depends on an unknown condition. | The conditional policy is accepted, but its premise stays unknown until supported. Language fallback, existing providers, and planning estimates do not become organizational facts merely through blanket acceptance. |
 | Answer only part of a round. | Answered questions stay settled, unanswered ones stay open, and dependent questions wait. |
 | Say "accept all recommendations" with one explicit exception. | Only presented recommendations are adopted, the exception wins, future choices remain open, and intake stays unconfirmed. |
 | Resolve the audience as internal employees for the first release. | Applicable technical defaults are recorded for final review; speculative customer/tenant details are excluded or deferred with a named trigger. |
@@ -57,9 +59,23 @@ or desired architecture. A reviewer should assess the resulting conversation and
 | Pause and resume intake. | The compact record preserves answers, provenance, pending questions, corrections, and dependencies. Confirmed artifacts are not silently overwritten. |
 | Review the draft and revise one default. | One synthesis includes defaults and consequences, domain boundaries, founding candidates, and deferrals. The change updates affected evidence before confirmation. |
 | Confirm the final synthesis. | Draft validation passed first; the four artifacts validate after confirmation; architecture remains provisional; only the normal-shell handoff command is emitted. |
+| Review an editing journey backed only by a read-only cross-context contract. | The discrepancy is surfaced and resolved or explicitly recorded as unresolved. Schema validity alone is not accepted as semantic completeness. |
 
 Run the installed `bootstrap_intake.py validate-draft --json` before confirmation and
 `bootstrap_intake.py validate --json` afterward. Record diagnostics and repairs. Check that every
 named journey survives, each decision's provenance is accurate, and no unresolved bootstrap blocker
 was hidden behind a deferral. Report observed failures, not merely whether prescribed phrases
 appeared. A successful conversation can become a reviewed fixture for later regression work.
+
+## Deterministic authoring regression
+
+The authoring helper and its worked example are exercised by `tests/validate_intake_authoring.py`.
+To replay a preserved interview's final draft without any coding agent or edits to the evidence:
+
+```powershell
+python tests/validate_intake_authoring.py --session-evidence artifacts/intake-sessions/<id>
+```
+
+This checks regeneration and preservation of strategic decisions and source journeys in a temporary
+consumer. It does not repair the user's architectural decisions or prove better interview behavior.
+Raw private conversations stay in ignored session evidence, not committed fixtures.

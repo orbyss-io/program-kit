@@ -173,6 +173,7 @@ def _validate_domain_analysis(
     value: object,
     evidence_ids: set[str],
     all_ids: set[str],
+    element_ids: set[str] | None = None,
 ) -> None:
     expected = {
         "subdomains", "candidate_contexts", "founding_decision_candidates",
@@ -278,9 +279,9 @@ def _validate_domain_analysis(
         if item.get("status") not in {"proposed", "unresolved"}:
             raise IntakeError(f"{label}.status cannot imply ADR acceptance during intake")
         affected = _string_list(item.get("affected_elements"), f"{label}.affected_elements")
-        if any(element not in context_ids for element in affected):
-            raise IntakeError(f"{label}.affected_elements must reference candidate contexts")
-        decision_coverage.update(affected)
+        if any(element not in (element_ids if element_ids is not None else context_ids) for element in affected):
+            raise IntakeError(f"{label}.affected_elements must reference known architecture elements")
+        decision_coverage.update(set(affected) & context_ids)
         _string_list(item.get("affected_relationships"), f"{label}.affected_relationships")
         references = _string_list(item.get("evidence"), f"{label}.evidence")
         if not references or any(reference not in evidence_ids for reference in references):
@@ -453,7 +454,12 @@ def validate_intake(
         if any(reference not in evidence_ids for reference in references):
             raise IntakeError(f"{label} references unknown evidence")
 
-    _validate_domain_analysis(intake.get("domain_analysis"), evidence_ids, all_ids)
+    architecture_module = _load_architecture_module()
+    architecture_map = load_object(artifact_paths['architecture_map'])
+    elements = _list(architecture_map.get('elements'), 'architecture_map.elements')
+    element_ids = {item['id'] for item in elements
+                   if isinstance(item, dict) and isinstance(item.get('id'), str)}
+    _validate_domain_analysis(intake.get("domain_analysis"), evidence_ids, all_ids, element_ids)
 
     classifications = {"human-decision", "research", "project-owned-design", "deferred"}
     open_items = _list(intake.get("open_items"), "open_items")
@@ -488,9 +494,7 @@ def validate_intake(
     for key in routing_keys:
         _string_list(routing[key], f"routing.{key}")
 
-    architecture_module = _load_architecture_module()
     try:
-        architecture_map = architecture_module.load_object(artifact_paths["architecture_map"])
         architecture_module.validate_model(architecture_map, project_root)
         architecture_module.validate_bootstrap_alignment(architecture_map, intake)
         expected_projection = architecture_module.StructurizrDslExporter().export(architecture_map)

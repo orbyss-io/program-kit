@@ -9,11 +9,17 @@ every future product decision to be made.
 
 Keep the intake proportional to the request. Do not inventory the repository or implementation
 internals to compensate for an already complete description. At authoring time use
-[intake-artifacts.md](intake-artifacts.md) instead of opening schemas or validator source.
+[intake-artifacts.md](intake-artifacts.md) and its schema-derived descriptor and worked example.
+Use targeted schema inspection when needed; never guess missing nested fields or learn them
+through repeated failing exports. Broad implementation discovery is still unnecessary.
 
 ## Question policy
 
 Begin with the user's natural description. Reflect the understood intent before asking questions.
+Establish the problem, intended value, actors, and observable success before dependent lifecycle
+or solution-design recommendations. Reuse explicit answers already supplied; this is a dependency
+rule, not a mandatory opening questionnaire. Keep conditional recommendations conditional after
+blanket acceptance until their premises are established, following Program Kit grilling.
 Use the round and answer-handling contract in the shipped Program Kit grilling command loaded by
 the front-door skill. This reference defines which branches matter to intake, not a second
 interview algorithm. Do not run a fixed questionnaire or ask about excluded capability categories.
@@ -65,6 +71,12 @@ review covering the product intent, journeys, domain and context analysis, found
 alternatives, applied defaults, and assigned/deferred items. Explain that defaults can be revised
 here. This review also satisfies grilling's shared-understanding gate. Confirmation attests to the
 accuracy of the provisional intake; the later architecture approval remains separate.
+Before synthesis, review read and write operations across each context boundary: translation
+editing/import cannot be represented solely by a read-only lookup contract. Check each journey's
+contract coverage, consistency and failure owner, and preservation of historical meaning. Use
+separate read/write contracts when their effects differ; do not infer transactional guarantees
+from a managed package's presence. Resolve a material ambiguity or mark it visibly unresolved,
+rather than rewriting architectural meaning just to satisfy a validator.
 
 ## Architecture map
 

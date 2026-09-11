@@ -40,6 +40,11 @@ on another question still open belongs to a later round. Partial answers leave u
 open; continue independent branches without repeating settled questions. "Accept all recommendations"
 settles only the recommendations actually presented in the current round, subject to any explicit
 exceptions or corrections. It does not settle future questions or confirm an unseen final synthesis.
+Acceptance of a conditional recommendation does not establish its premise. Record the accepted
+policy separately from the unknown fact (for example, reuse an existing provider *if one exists*).
+Resolve the condition through evidence or a focused question only when it affects the requested
+outcome; otherwise retain it as explicitly assigned. Do not convert a planning estimate or a
+conditional fallback into an observed property of the user's organization.
 
 Challenge contradictions and weak assumptions with evidence. When the user changes a decision,
 invalidate only conclusions that depend on it, preserve unaffected answers, and reopen the affected

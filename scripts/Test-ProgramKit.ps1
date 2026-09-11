@@ -67,6 +67,7 @@ $developmentValidators = @(
     'validate_components.py',
     'validate_test_suites.py',
     'validate_intake_session.py',
+    'validate_intake_authoring.py',
     'validate_orbyss_building_blocks.py',
     'validate_building_blocks.py',
     'validate_building_block_availability.py',

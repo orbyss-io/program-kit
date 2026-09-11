@@ -31,6 +31,7 @@ jobs:
           python tests/validate_components.py
           python tests/validate_test_suites.py
           python tests/validate_intake_session.py
+          python tests/validate_intake_authoring.py
 
       - name: Set up pinned UI acceptance Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6

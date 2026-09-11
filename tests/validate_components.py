@@ -696,7 +696,8 @@ def main() -> int:
         "workspace.dsl",
         "intake-artifacts.md",
         "Do not enumerate the repository",
-        "Do not read either JSON schema",
+        "intake_authoring.py build-draft --source docs/architecture/intake-authoring.json",
+        "never confirms intake or replaces a",
         "exactly one physical",
         "bootstrap_intake=docs/architecture/bootstrap-intake.json",
         "draft artifact hashes",
@@ -722,7 +723,8 @@ def main() -> int:
         raise AssertionError("Intake cannot resolve Program Kit's shipped grilling contract")
     require_text(
         intake_authoring,
-        "Treat the JSON schemas and Python implementations as executable contracts",
+        "intake_authoring.py describe --document map --section context_relationship",
+        "intake-authoring-example.json",
         "capability_assessments",
         "system-context",
         "domain-context",

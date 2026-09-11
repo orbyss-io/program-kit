@@ -47,6 +47,7 @@ jobs:
           python tests/validate_components.py
           python tests/validate_test_suites.py
           python tests/validate_intake_session.py
+          python tests/validate_intake_authoring.py
           python tests/validate_ui_experience.py
           python tests/validate_orbyss_building_blocks.py
           python tests/validate_building_blocks.py

@@ -566,6 +566,9 @@ def _validate_strategic_model(
             if owner not in context_ids:
                 raise ArchitectureMapError(f"{label}.{field} must name a bounded context")
         atomicity = item.get("atomicity")
+        contract_record = next(record for record in strategic['contracts'] if record['id'] == contract)
+        if atomicity == 'read-only' and contract_record['kind'] == 'command':
+            raise ArchitectureMapError(f'{label}: a command contract cannot use read-only atomicity')
         if atomicity not in {"local-to-owner", "eventual", "read-only", "unresolved-adr", "cross-context-atomic"}:
             raise ArchitectureMapError(f"{label}.atomicity is invalid")
         _semantic_ids(item.get("evidence"), f"{label}.evidence", require_one=True)
@@ -748,6 +751,20 @@ def _validate_strategic_model(
         )
 
 
+def project_domain_analysis(model: dict) -> dict:
+    """Canonical shared intake projection; preserve all affected element references."""
+    strategic = model['strategic_model']
+    names = {item['id']: item['name'] for item in model['elements']}
+    return {
+        'subdomains': [{key: value for key, value in item.items() if key != 'decision_refs'}
+                      for item in strategic['subdomains']],
+        'candidate_contexts': [{'id': item['element'], 'name': names[item['element']],
+                               **{key: value for key, value in item.items() if key not in {'element', 'decision_refs'}}}
+                              for item in strategic['bounded_contexts']],
+        'founding_decision_candidates': strategic['founding_decisions'],
+    }
+
+
 def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     """Validate cross-artifact semantic completeness for new bootstrap intake contracts."""
     if intake.get("schema_version") != "1.1":
@@ -766,10 +783,8 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     mapped_subdomains = {item["id"] for item in strategic["subdomains"]}
     if subdomains != mapped_subdomains:
         raise ArchitectureMapError("Intake and architecture-map subdomain analyses do not match")
-    expected_subdomains = [
-        {key: value for key, value in item.items() if key != "decision_refs"}
-        for item in strategic["subdomains"]
-    ]
+    projected = project_domain_analysis(model)
+    expected_subdomains = projected['subdomains']
     if analysis.get("subdomains") != expected_subdomains:
         raise ArchitectureMapError("Intake and architecture-map subdomain evidence is not identical")
     contexts = {item["id"] for item in analysis.get("candidate_contexts", [])}
@@ -777,20 +792,8 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
     if contexts != mapped_contexts:
         raise ArchitectureMapError("Intake and architecture-map candidate bounded contexts do not match")
     intake_contexts = analysis.get("candidate_contexts", [])
-    expected_contexts = [
-        {
-            "id": item["element"],
-            "name": next(
-                element["name"] for element in model["elements"] if element["id"] == item["element"]
-            ),
-            **{
-                key: value
-                for key, value in item.items()
-                if key not in {"element", "decision_refs", "status"}
-            },
-        }
-        for item in strategic["bounded_contexts"]
-    ]
+    expected_contexts = [{key: value for key, value in item.items() if key != 'status'}
+                         for item in projected['candidate_contexts']]
     intake_context_evidence = [
         {key: value for key, value in item.items() if key != "status"}
         for item in intake_contexts
@@ -838,7 +841,7 @@ def validate_bootstrap_alignment(model: dict, intake: dict) -> None:
         raise ArchitectureMapError(
             "Intake and architecture-map founding decision candidates do not match"
         )
-    if analysis.get("founding_decision_candidates") != strategic["founding_decisions"]:
+    if analysis.get("founding_decision_candidates") != projected['founding_decision_candidates']:
         raise ArchitectureMapError(
             "Intake and architecture-map founding decision evidence is not identical"
         )
