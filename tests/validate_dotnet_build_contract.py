@@ -14,7 +14,35 @@ BUILD = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-ki
 RESTORE = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/.program-kit/eng/Restore.ps1"
 
 
+def assert_outside_subject_rejected(result: subprocess.CompletedProcess[str]) -> None:
+    # PowerShell Core decorates and wraps exception prose differently from Windows
+    # PowerShell. Bind to the stable diagnostic code, not a rendered sentence.
+    if result.returncode == 0 or "PKN101" not in result.stdout + result.stderr:
+        raise AssertionError(
+            "Restore containment did not reject an outside subject with PKN101: "
+            + result.stdout
+            + result.stderr
+        )
+
+
+def validate_containment_diagnostics() -> None:
+    for stdout, stderr in (
+        ("", "PKN101 restore subject must be one solution or project file inside the repository"),
+        ("", "\x1b[31;1mPKN101 restore subject must be one solution or project file inside the\n"
+         "\x1b[31;1m | repository: /tmp/Outside.csproj\x1b[0m"),
+        ("PKN101 invalid restore subject", ""),
+    ):
+        assert_outside_subject_rejected(subprocess.CompletedProcess([], 1, stdout, stderr))
+    for code, message in ((0, "PKN101"), (1, "PKN102 cannot prepare environment"), (1, "")):
+        try:
+            assert_outside_subject_rejected(subprocess.CompletedProcess([], code, "", message))
+        except AssertionError:
+            continue
+        raise AssertionError("Containment assertion accepted success or an unrelated failure")
+
+
 def main() -> int:
+    validate_containment_diagnostics()
     for path in (
         ROOT / "extensions/program-kit-dotnet/templates/dotnet/files/global.json",
     ):
@@ -107,6 +135,7 @@ def main() -> int:
             raise AssertionError(f"managed Build.ps1 failed in restricted-profile fixture: {result.stdout}{result.stderr}")
         outside_subject = workspace / "Outside.csproj"
         outside_subject.write_text("<Project Sdk=\"Microsoft.NET.Sdk\" />\n", encoding="utf-8")
+        before_rejection = log.read_bytes()
         rejected = subprocess.run(
             [
                 shell,
@@ -124,12 +153,9 @@ def main() -> int:
             text=True,
             timeout=60,
         )
-        if rejected.returncode == 0 or "inside the repository" not in rejected.stdout + rejected.stderr:
-            raise AssertionError(
-                "PowerShell 5.1-compatible restore containment accepted an outside subject: "
-                + rejected.stdout
-                + rejected.stderr
-            )
+        assert_outside_subject_rejected(rejected)
+        if log.read_bytes() != before_rejection:
+            raise AssertionError("Restore invoked dotnet for an outside-repository subject")
         entries = log.read_text(encoding="utf-8").splitlines()
         restore = next((line for line in entries if line.startswith("restore ")), "")
         if "--configfile" not in restore or str(nuget_config) not in restore:
