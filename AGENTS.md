@@ -35,13 +35,15 @@ Its `-PrepareOnly` setup/evidence smoke test starts no coding agent. It never la
 
 ### Reusing local Release evidence after non-shipping changes
 
-During pre-tag release preparation, a different commit SHA alone does not require another local
+During release preparation or eligible failed-tag recovery, a different commit SHA alone does not require another local
 Release run or a new local receipt. Reuse the existing successful local Release evidence when all
 of the following are verified and recorded in the PR or release review:
 
 - The original receipt and log are valid, and the recorded artifact hashes still match.
-- The complete diff from the receipt commit to the candidate contains only test-only corrections
-  or non-shipped contributor/release documentation. Check actual packaging inputs, not filename
+- The complete diff from the receipt commit to the candidate contains only test-only corrections,
+  non-shipped contributor/release documentation, or CI-only validation changes. CI-only changes must
+  preserve or add coverage and must not alter release build, packaging or publication behavior.
+  Check actual packaging inputs, not filename
   conventions: shipped skills, references and README content are product changes even if Markdown.
 - Shipped content and its build inputs are unchanged, including generators, installers, schemas,
   package/catalog/version pins and release packaging. The correction does not mask a product
@@ -59,7 +61,8 @@ of documented evidence, not a claim that the old receipt validates all later sou
 The tagged Release workflow still runs in full and creates its own exact-commit receipt before
 publication is considered successful. Live-acceptance receipt consumption retains its exact source,
 toolchain, platform and artifact checks; this exception cannot authorize a stale receipt for a paid
-run. The separate failed stable-release recovery procedure is unchanged.
+run. For failed-tag recovery, also satisfy the additional safeguards below; evidence reuse never
+authorizes moving a tag by itself.
 
 ## Optional live acceptance
 
@@ -93,7 +96,15 @@ those irreversible publication workflows.
 If the Release workflow fails for a stable tag:
 
 1. Preserve and inspect the failed run evidence.
-2. Repair the failure and complete the deterministic local release validation.
+2. Repair the failure and complete the deterministic local release validation, or reuse existing
+   successful local Release evidence under the non-shipping policy above. Failed-tag reuse is allowed
+   only when the failure is demonstrated to be a test/assertion or CI-only validation defect, not a
+   product failure, and nothing was published from the failed candidate. Preserve the failed run
+   evidence, verify publication steps did not run and no release assets or immutable registry artifacts
+   escaped, and record the diagnosis, original receipt commit, corrected commit, complete diff,
+   artifact hash verification, targeted checks and green CI for the latest candidate. If any condition
+   cannot be established, obtain fresh local Release evidence. Do not require another local receipt
+   merely because a non-shipping correction follows a failed stable tag.
 3. Obtain or confirm the user's approval for the exact corrected commit and same stable tag.
 4. Delete the failed tag locally and remotely, recreate it at the approved corrected commit, and push
    the corrected commit and recreated tag. Do not increment the stable version merely because the

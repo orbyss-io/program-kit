@@ -83,7 +83,12 @@ def main() -> int:
             "CI is green for the latest candidate commit",
             "Preserve the original receipt unchanged",
             "Live-acceptance receipt consumption retains its exact source",
-            "The separate failed stable-release recovery procedure is unchanged",
+            "must not alter release build, packaging or publication behavior",
+            "nothing was published from the failed candidate",
+            "not a product failure",
+            "If any condition cannot be established, obtain fresh local Release evidence",
+            "Obtain or confirm the user's approval for the exact corrected commit and same stable tag",
+            "evidence reuse never authorizes moving a tag by itself",
         ),
     )
     for document, label in ((readme, "README"), (release_guide, "release guide")):
@@ -106,6 +111,9 @@ def main() -> int:
             "../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes",
             "Preserve the original receipt unchanged",
             "The tagged Release workflow still runs in full",
+            "nothing was published from the failed candidate",
+            "Exact corrected-commit and same-tag approval is still required",
+            "If any reuse condition is unproven, obtain fresh local Release evidence",
         ),
     )
 

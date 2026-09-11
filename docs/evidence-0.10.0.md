@@ -36,9 +36,13 @@ artifacts remain local and ignored; they are not release assets or committed pro
 JSON Schema regressions cover supported dialects, local reference restrictions, deterministic
 diagnostics, independent runtime setup, and protection of locally modified installed tool copies.
 Each receipt attests only to its recorded clean commit, tree and artifacts. A later test-only or
-non-shipped documentation correction may reuse that local evidence with a recorded packaging-impact
+non-shipped documentation correction, or CI-only validation change that preserves or adds coverage
+without changing build/packaging/publication behavior, may reuse that local evidence with a recorded packaging-impact
 assessment, targeted checks and green CI, under the
 [contributor evidence-reuse policy](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
 The original receipt is not changed or presented as an exact-commit receipt for the correction.
+For a failed stable tag, reuse additionally requires a demonstrated validation-only defect and
+verified absence of any publication from the failed candidate. Preserve the failed run evidence and
+obtain approval for the exact corrected commit and same tag before repointing it.
 The tagged Release workflow still validates the publication commit in full and writes its own
 receipt. Local Windows validation uses Chromium and WebKit; Firefox remains in CI.
