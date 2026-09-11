@@ -478,6 +478,8 @@ def main() -> int:
         "stage_plan.managed_web_contract",
         "authorities.assessment_approval.bootstrap_decisions_sha256",
         "must cross the required layers end to end",
+        "preserve its relationship selection",
+        "Do not construct a PowerShell file-inventory command",
         "stop immediately",
     )
     for command_name in ("research", "tooling", "roadmap", "readiness"):
@@ -498,6 +500,9 @@ def main() -> int:
         "stage_plan.observed_toolchain",
         "single command in `output_contract.validation_commands`",
         "Never create a separate ADR",
+        "at most 700 words",
+        "never target the same file twice",
+        "do not measure it repeatedly",
     )
     require_text(
         extension_root / "commands/speckit.program-kit-governance.assessment.md",

@@ -100,6 +100,10 @@ runtime boundaries; a bounded context or capability must never be projected as a
 system merely to fit a C4 level. Diagrams are views of the canonical model, never independent
 sources of truth.
 
+For every seed dynamic view bound to a confirmed intake journey, preserve its relationship selection
+and order exactly. Adding relationships to the model does not authorize appending them to
+that seed view; put supported additional detail in a separate view instead.
+
 The confirmed intake remains immutable evidence. Preserve these cross-artifact projections exactly:
 
 - `strategic_model.subdomains` is the intake `domain_analysis.subdomains`; only `decision_refs` may
@@ -131,6 +135,9 @@ Apply these executable containment rules before the first map write:
 - Keep one unique dynamic view for every confirmed intake journey.
 
 Write the founding ADRs and structurally patch the model before generating long narrative files.
+Use the stage brief's artifact records to determine which architecture files already exist and
+their current byte counts. Do not construct a PowerShell file-inventory command or issue separate
+`Get-Item` length probes; the supplied validators report final output sizes.
 Run only `stage_plan.structural_validation_command` at that structural checkpoint. It batches the
 map validator, building-block draft validator when applicable, DSL export, source revalidation, and
 intake alignment into one process. Only after it passes, write the compact narrative set, refresh

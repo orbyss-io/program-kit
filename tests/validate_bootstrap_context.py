@@ -378,6 +378,11 @@ def main() -> int:
                     raise AssertionError("Architecture plan omits strategic module containment")
                 if not any("C4 component" in item and "container parent" in item for item in invariants):
                     raise AssertionError("Architecture plan omits C4 component containment")
+                if not any(
+                    "seed journey view" in item and "relationship selection and order" in item
+                    for item in invariants
+                ):
+                    raise AssertionError("Architecture plan omits immutable journey-view structure")
                 building_blocks = payload["stage_plan"].get("building_blocks")
                 if not building_blocks or "forms" not in building_blocks["capabilities"]:
                     raise AssertionError("Architecture plan omitted the selected building-block projection")
@@ -432,6 +437,10 @@ def main() -> int:
                     raise AssertionError(
                         f"{stage} output contract contains an invalid artifact budget"
                     )
+            if stage == "research" and output_contract["artifact_target_bytes"].get(
+                "docs/architecture/tooling-evaluation.md"
+            ) != 11 * 512:
+                raise AssertionError("Research generation target does not leave repair headroom")
             for contract_reference in output_contract["contract_references"]:
                 if contract_reference not in payload["reading_policy"]["allowed_sources"]:
                     raise AssertionError(

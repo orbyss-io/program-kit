@@ -22,6 +22,13 @@ Use `output_contract.artifact_target_bytes` as the generation ceiling and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required evidence merely to reach a target.
 
+For a single-journey baseline verification, compose the first complete
+`tooling-evaluation.md` draft in at most 700 words and aim below 5,500 UTF-8 bytes. Do not write a
+long draft and trim it toward the target, and do not measure it repeatedly. When updating multiple
+files in one patch, use exactly one patch operation per path; never target the same file twice in a
+single patch call. Run the supplied terminal validation batch after the write and repair only a
+named diagnostic.
+
 ## Rules
 
 For selected `ui-experience-v1`, read its profile and `ui-evidence-v1.json`. Preserve the distinction

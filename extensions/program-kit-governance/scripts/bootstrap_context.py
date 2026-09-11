@@ -272,7 +272,7 @@ ARTIFACT_BYTE_BUDGETS = {
 ARTIFACT_TARGET_BYTES = {
     "docs/architecture/bootstrap-assessment.md": 10 * 1024,
     "docs/architecture/decision-backlog.md": 7 * 1024,
-    "docs/architecture/tooling-evaluation.md": 6 * 1024,
+    "docs/architecture/tooling-evaluation.md": 11 * 512,
     "docs/architecture/README.md": 3 * 1024,
     "docs/architecture/architecture.md": 8 * 1024,
     "docs/architecture/architecture-map.json": 224 * 1024,
@@ -1123,7 +1123,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Every strategic module references a domain-capability element whose parent equals module.context; every domain-capability has exactly one module record.",
                 "Every non-empty capability binding module references one of those strategic modules, never a container.",
                 "A C4 component has a container parent. A shell or host directly owned by the software system is a container, not a component.",
-                "Keep one unique dynamic view for every confirmed intake journey.",
+                "Keep one unique dynamic view for every confirmed intake journey and preserve each seed journey view's relationship selection and order exactly.",
             ],
             "structural_validation_command": (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
