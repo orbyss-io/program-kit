@@ -13,7 +13,8 @@ preserved transcript and receipt before preparing the approved publication commi
 human evaluation transcripts and disposable consumers in ignored local artifacts, outside the PR.
 
 A different commit SHA alone does not require another local Release run or a new local receipt.
-For test-only corrections or non-shipped contributor/release documentation, follow
+For test-only corrections, non-shipped contributor/release documentation, or CI-only validation
+changes that preserve or add coverage without changing build/packaging/publication behavior, follow
 [Reusing local Release evidence after non-shipping changes](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
 Verify the original receipt/log and artifact hashes, review the entire diff against actual packaging
 inputs, preserve gate coverage, run relevant targeted checks, and require green CI on the latest
@@ -23,8 +24,14 @@ generator is not. If unchanged payloads cannot be established, obtain fresh loca
 
 Preserve the original receipt unchanged; never regenerate it alone or relabel it for the new commit.
 The tagged Release workflow still runs in full and generates its own exact-commit receipt. This
-pre-tag evidence-reuse exception does not relax paid live-acceptance receipt checks or failed
-stable-release recovery. The command below is needed for the initial gate or a material candidate
+evidence-reuse exception does not relax paid live-acceptance receipt checks. It also applies to
+failed-tag recovery only when the failure is a demonstrated test/assertion or CI-only validation defect,
+not a product failure, and nothing was published from the failed candidate. Preserve the failed run
+evidence and verify publication steps, release assets and immutable registry artifacts; record the
+diagnosis, complete diff, original and corrected commits, artifact hash verification, targeted checks
+and green CI for the latest candidate. Exact corrected-commit and same-tag approval is still required
+before moving a failed tag. If any reuse condition is unproven, obtain fresh local Release evidence.
+The command below is needed for the initial gate or a material candidate
 change, not merely to refresh a SHA after an eligible non-shipping correction.
 
 ```powershell
