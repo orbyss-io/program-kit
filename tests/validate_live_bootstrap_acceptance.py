@@ -12,6 +12,7 @@ import urllib.request
 import zipfile
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
 from live.v2.candidate import (
@@ -68,7 +69,38 @@ def expect_contract_error(action, code: str) -> None:
     raise AssertionError(f"Expected {code}")
 
 
+def powershell_executable(platform: str = os.name) -> str:
+    names = ("powershell", "pwsh") if platform == "nt" else ("pwsh", "powershell")
+    for name in names:
+        executable = shutil.which(name)
+        if executable:
+            return executable
+    raise AssertionError("Retired-runner validation requires PowerShell (pwsh or powershell) on PATH")
+
+
+def validate_powershell_discovery() -> None:
+    for platform, installed, expected in (
+        ("nt", {"powershell": "windows-powershell", "pwsh": "powershell-core"}, "windows-powershell"),
+        ("posix", {"powershell": "windows-powershell", "pwsh": "powershell-core"}, "powershell-core"),
+        ("nt", {"pwsh": "powershell-core"}, "powershell-core"),
+        ("posix", {"pwsh": "powershell-core"}, "powershell-core"),
+        ("posix", {"powershell": "powershell-fallback"}, "powershell-fallback"),
+    ):
+        with patch.object(shutil, "which", side_effect=installed.get):
+            if powershell_executable(platform) != expected:
+                raise AssertionError(f"PowerShell discovery selected the wrong shell for {platform}")
+    with patch.object(shutil, "which", return_value=None):
+        try:
+            powershell_executable("posix")
+        except AssertionError as error:
+            if "requires PowerShell" not in str(error):
+                raise
+        else:
+            raise AssertionError("Missing PowerShell silently bypassed retired-runner validation")
+
+
 def main() -> int:
+    validate_powershell_discovery()
     required = [
         ROOT / "scripts/New-LiveAcceptanceAuthorization.ps1",
         ROOT / "scripts/New-LiveBootstrapCheckpoint.ps1",
@@ -354,8 +386,8 @@ def main() -> int:
             raise AssertionError("Supervisor registry child did not receive the exact injected credential")
 
     legacy = subprocess.run(
-        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(ROOT / "scripts/Test-LiveBootstrap.ps1"), "-Approved"],
-        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
+        [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(ROOT / "scripts/Test-LiveBootstrap.ps1"), "-Approved"],
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False, timeout=30,
     )
     if legacy.returncode == 0 or "LIVE_ACCEPTANCE_V1_RETIRED" not in (legacy.stdout + legacy.stderr):
         raise AssertionError("Legacy paid runner was not retired before launch")
