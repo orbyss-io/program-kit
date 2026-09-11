@@ -78,6 +78,12 @@ def main() -> int:
             "Only an explicitly authorized live-acceptance v2 phase starts automated coding-agent sessions",
             "Never launch its interactive mode from an agent, CI, a deterministic suite, or an unattended hook",
             "Never recreate a boolean `-Approved` path",
+            "a different commit SHA alone does not require another local Release run or a new local receipt",
+            "Shipped content and its build inputs are unchanged",
+            "CI is green for the latest candidate commit",
+            "Preserve the original receipt unchanged",
+            "Live-acceptance receipt consumption retains its exact source",
+            "The separate failed stable-release recovery procedure is unchanged",
         ),
     )
     for document, label in ((readme, "README"), (release_guide, "release guide")):
@@ -92,6 +98,16 @@ def main() -> int:
     for workflow, label in ((ci, "CI"), (release, "Release workflow")):
         if "python tests/validate_test_suites.py" not in workflow:
             raise AssertionError(f"{label} does not enforce the test-tier contract.")
+
+    require(
+        "release evidence reuse",
+        release_guide,
+        (
+            "../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes",
+            "Preserve the original receipt unchanged",
+            "The tagged Release workflow still runs in full",
+        ),
+    )
 
     print("Development, release, and paid live test boundaries passed.")
     return 0

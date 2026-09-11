@@ -35,5 +35,10 @@ artifacts remain local and ignored; they are not release assets or committed pro
 
 JSON Schema regressions cover supported dialects, local reference restrictions, deterministic
 diagnostics, independent runtime setup, and protection of locally modified installed tool copies.
-The Release suite must validate the final clean candidate; earlier receipts are not evidence for
-later source changes. Local Windows validation uses Chromium and WebKit; Firefox remains in CI.
+Each receipt attests only to its recorded clean commit, tree and artifacts. A later test-only or
+non-shipped documentation correction may reuse that local evidence with a recorded packaging-impact
+assessment, targeted checks and green CI, under the
+[contributor evidence-reuse policy](../AGENTS.md#reusing-local-release-evidence-after-non-shipping-changes).
+The original receipt is not changed or presented as an exact-commit receipt for the correction.
+The tagged Release workflow still validates the publication commit in full and writes its own
+receipt. Local Windows validation uses Chromium and WebKit; Firefox remains in CI.

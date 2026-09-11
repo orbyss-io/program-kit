@@ -33,6 +33,34 @@ acceptance phase. The user runs it in a normal foreground terminal and answers t
 Never launch its interactive mode from an agent, CI, a deterministic suite, or an unattended hook.
 Its `-PrepareOnly` setup/evidence smoke test starts no coding agent. It never launches bootstrap.
 
+### Reusing local Release evidence after non-shipping changes
+
+During pre-tag release preparation, a different commit SHA alone does not require another local
+Release run or a new local receipt. Reuse the existing successful local Release evidence when all
+of the following are verified and recorded in the PR or release review:
+
+- The original receipt and log are valid, and the recorded artifact hashes still match.
+- The complete diff from the receipt commit to the candidate contains only test-only corrections
+  or non-shipped contributor/release documentation. Check actual packaging inputs, not filename
+  conventions: shipped skills, references and README content are product changes even if Markdown.
+- Shipped content and its build inputs are unchanged, including generators, installers, schemas,
+  package/catalog/version pins and release packaging. The correction does not mask a product
+  failure, remove coverage, or weaken a validation gate.
+- Relevant targeted checks pass, and CI is green for the latest candidate commit.
+
+Record both commit IDs, changed files, the non-shipping assessment and supplementary check results.
+Do not ask the user to repeat the complete local Release suite merely to refresh the commit SHA.
+If shipped content/build inputs changed, a relevant product failure was uncovered, or unchanged
+payloads cannot be established, this exception does not apply: obtain fresh local Release evidence.
+
+Preserve the original receipt unchanged. Never rewrite its commit, tree, timestamps or hashes, or
+invoke the receipt writer alone to imply the complete suite ran on a newer commit. This is reuse
+of documented evidence, not a claim that the old receipt validates all later source changes.
+The tagged Release workflow still runs in full and creates its own exact-commit receipt before
+publication is considered successful. Live-acceptance receipt consumption retains its exact source,
+toolchain, platform and artifact checks; this exception cannot authorize a stale receipt for a paid
+run. The separate failed stable-release recovery procedure is unchanged.
+
 ## Optional live acceptance
 
 Paid live acceptance is entirely user-invoked. Do not ask whether to run it during publication, and
