@@ -1,5 +1,5 @@
 ---
-description: Turn a natural project or system description into a confirmed Program Kit bootstrap intake through adaptive Q&A, a C4-aligned domain map, and change-aware re-analysis, then provide the safe one-line bootstrap command. Use for new Program Kit projects and for revisiting changed intake artifacts; do not use for ordinary feature specifications.
+description: Turn a product idea into a confirmed Program Kit bootstrap intake using Program Kit grilling for adaptive Q&A, a C4-aligned domain map, and change-aware re-analysis, then provide the safe one-line bootstrap command. Use for new Program Kit projects and for revisiting changed intake artifacts; do not use for ordinary feature specifications.
 ---
 
 ## Purpose
@@ -10,6 +10,17 @@ description and does not need to create or name an initial-design file. Read
 references routed by capabilities relevant to the user's description. Do not enumerate the entire
 extension or ask about capability categories that are absent or explicitly excluded.
 It conducts adaptive intake before the bootstrap workflow begins.
+
+Before the first interview round, read and follow Program Kit's own
+`speckit.program-kit-governance.grilling` skill at
+`.specify/extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md`
+(repository-relative in the initialized consumer). This shipped command is the canonical interview
+contract, also exposed as `$speckit-program-kit-governance-grilling`. Use it in this conversation;
+the user need not invoke a second skill. Its question ordering, recommendations, answer handling,
+and shared-understanding review apply with the intake scope and default policy in
+`references/intake-method.md`. Do not substitute an unrelated locally installed `$grilling` skill.
+If the shipped command is missing, report the incomplete installation instead of silently using
+another interview method.
 
 Keep discovery bounded. Do not enumerate the repository, `.specify`, installed skills, references,
 schemas, or implementation scripts. Inspect only an explicitly supplied source artifact and existing
@@ -47,9 +58,11 @@ On every invocation:
 
 ## Adaptive intake
 
-Ask one to three cohesive questions per round. Incorporate each answer before selecting the next
-round. Stop asking when every bootstrap-relevant uncertainty is answered, defaulted, assigned to a
-human or research/design owner, excluded, or deferred to a named trigger.
+Use Program Kit grilling's decision tree and frontier rounds with the bootstrap-relevant scope in
+`references/intake-method.md`. Apply clear Program Kit defaults automatically and summarize them
+in the final review. Ask about ambiguous intent, contradictory requirements, and material choices
+that the defaults cannot resolve. Keep a compact question/decision record in
+`docs/architecture/project-intent.md` so partial answers and changed decisions survive re-entry.
 
 For every detected need separately record mechanism coverage, any Program Kit capability,
 consumer domain-semantic ownership and profile, integration ownership, provider selection, and
@@ -57,8 +70,7 @@ decision state using `references/intake-artifacts.md`. Never infer that a manage
 the consumer's business language or rules. In particular, Program Kit Forms may own rendering,
 validation, editor, and schema mechanisms, while consumer form meaning, item references, pricing,
 quantification, publication, and workflow semantics remain in consumer-owned modules and bridges.
-Apply an applicable ordinary Program Kit default without
-asking. Explain material acknowledgements and consequences before asking about an override. Say
+Explain the consequences of a material deviation when asking about it. Say
 "Program Kit has no declared managed capability for this need" for an unmatched need; do not claim
 that Program Kit or the project cannot support it.
 
@@ -105,13 +117,24 @@ inferred bounded contexts, capabilities, ownership, and relationships `proposed`
 intake does not accept architecture. Preserve the exact hash, byte count, importer ID, and importer
 version for every source and bound artifact.
 
+After exporting the DSL and refreshing the draft artifact hashes and byte counts, run:
+
+`python .specify/extensions/program-kit-governance/scripts/bootstrap_intake.py validate-draft --json`
+
+This read-only check validates draft semantics and bound artifacts without confirming the intake.
+Repair its diagnostics before the final review; never mark an unreviewed draft confirmed to make
+validation pass.
+
 After generating the projection, tell the user: "To open the C4 diagrams safely on localhost, ask
 `View the C4 projection` or invoke `$speckit-program-kit-governance-view-c4`. Program Kit validates
 freshness and the draft artifact hashes first and does not change the canonical architecture map,
 confirm the intake, or accept the architecture."
 
 Present the concise synthesis, subdomain classifications, context challenges, founding decision
-candidates and alternatives, and map changes to the user. Ask for confirmation only after the
+candidates and alternatives, map changes, applied defaults with their rationale and consequences,
+and assigned/deferred questions with their triggers. This is also grilling's shared-understanding
+review; do not ask for a separate approval before preparing the draft artifacts.
+Ask for confirmation only after the
 semantic gates pass and there are no invisible or unclassified gaps. State explicitly that this
 confirmation does not approve architecture or ADRs. Do not mark the intake `confirmed` from silence or inference.
 After explicit confirmation, set its status to `confirmed`, refresh every artifact hash and byte

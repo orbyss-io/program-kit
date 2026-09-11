@@ -569,7 +569,7 @@ def main() -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description="Validate Program Kit conversational bootstrap intake.")
-    parser.add_argument("command", choices=("validate", "validate-run", "changes"))
+    parser.add_argument("command", choices=("validate", "validate-draft", "validate-run", "changes"))
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--intake", default=CANONICAL_INTAKE.as_posix())
     parser.add_argument("--run-id")
@@ -587,7 +587,10 @@ def main() -> int:
             payload = result(intake, project_root / path)
         else:
             intake_path = Path(args.intake)
-            intake = validate_intake(project_root, intake_path)
+            intake = validate_intake(
+                project_root, intake_path,
+                allowed_statuses={"draft"} if args.command == "validate-draft" else None,
+            )
             payload = result(intake, project_root / intake_path)
     except (IntakeError, OSError, UnicodeError) as exc:
         print(f"Program Kit bootstrap intake failed: {exc}", file=sys.stderr)

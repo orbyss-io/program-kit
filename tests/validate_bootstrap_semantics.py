@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import sys
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -306,6 +307,28 @@ def main() -> int:
         write(project / "docs/architecture/bootstrap-intake.json", json.dumps(intake, indent=2) + "\n")
 
         before = {p.relative_to(project).as_posix(): digest(p) for p in project.rglob("*") if p.is_file()}
+        def intake_cli(command: str) -> subprocess.CompletedProcess:
+            return subprocess.run(
+                [sys.executable, str(scripts / "bootstrap_intake.py"), command,
+                 "--project-root", str(project), "--json"],
+                capture_output=True, text=True, encoding="utf-8", check=False,
+            )
+
+        draft_check = intake_cli("validate-draft")
+        if draft_check.returncode != 0:
+            raise AssertionError(f"Draft CLI validation failed: {draft_check.stderr}")
+        json.loads(draft_check.stdout)
+        if intake_cli("validate").returncode == 0:
+            raise AssertionError("Ordinary intake validation accepted an unconfirmed draft")
+        write(project / ".specify/workflows/runs/draft-check/inputs.json", json.dumps({
+            "inputs": {"bootstrap_intake": "docs/architecture/bootstrap-intake.json"}
+        }))
+        expect_failure(lambda: intake_module.intake_from_run(project, "draft-check"), "not confirmed")
+        # Only the test-owned workflow input was added; intake CLI must leave its inputs untouched.
+        after_cli = {p.relative_to(project).as_posix(): digest(p) for p in project.rglob("*") if p.is_file()}
+        if any(after_cli.get(path) != sha for path, sha in before.items()):
+            raise AssertionError("Draft validation modified intake evidence")
+        before = after_cli
         review = viewer.validate_projection(project)
         after = {p.relative_to(project).as_posix(): digest(p) for p in project.rglob("*") if p.is_file()}
         if review["review_mode"] != "draft-intake-review" or before != after:
@@ -317,6 +340,8 @@ def main() -> int:
         confirmed["status"] = "confirmed"
         write(project / "docs/architecture/bootstrap-intake.json", json.dumps(confirmed, indent=2) + "\n")
         intake_module.validate_intake(project)
+        if intake_cli("validate-draft").returncode == 0:
+            raise AssertionError("Draft-only validation accepted a confirmed intake")
         if viewer.validate_projection(project)["review_mode"] != "confirmed-baseline-review":
             raise AssertionError("Confirmed strategic baseline no longer opens")
 
@@ -324,6 +349,11 @@ def main() -> int:
         missing_journey["journeys"].pop()
         write(project / "docs/architecture/bootstrap-intake.json", json.dumps(missing_journey, indent=2) + "\n")
         expect_failure(lambda: intake_module.validate_intake(project), "Every intake journey")
+        missing_journey["status"] = "draft"
+        write(project / "docs/architecture/bootstrap-intake.json", json.dumps(missing_journey) + "\n")
+        malformed_draft = intake_cli("validate-draft")
+        if malformed_draft.returncode == 0 or "Every intake journey" not in malformed_draft.stderr:
+            raise AssertionError("Draft validation bypassed strategic semantic checks")
 
         bad_forms = copy.deepcopy(confirmed)
         bad_forms["capability_assessments"][0]["semantic_owner"] = "program-kit"

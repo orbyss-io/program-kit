@@ -707,13 +707,19 @@ def main() -> int:
         "never performs bootstrap approval",
         "Viewing never changes intake status",
     )
-    require_text(
-        extension_root / "commands/speckit.program-kit-governance.grilling.md",
-        "design tree",
-        "The **frontier**",
-        "dispatch a sub-agent",
-        "Do not act on it until the user confirms",
+    # The intake must resolve the same shipped interview contract as the standalone skill.
+    grilling_command = next(
+        item for item in extension["provides"]["commands"]
+        if item["name"] == "speckit.program-kit-governance.grilling"
     )
+    grilling_path = extension_root / grilling_command["file"]
+    installed_grilling_path = (
+        ".specify/extensions/program-kit-governance/" + grilling_command["file"]
+    )
+    if not grilling_path.is_file() or installed_grilling_path not in (
+        extension_root / "commands/speckit.program-kit-governance.bootstrap.md"
+    ).read_text(encoding="utf-8"):
+        raise AssertionError("Intake cannot resolve Program Kit's shipped grilling contract")
     require_text(
         intake_authoring,
         "Treat the JSON schemas and Python implementations as executable contracts",

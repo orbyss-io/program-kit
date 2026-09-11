@@ -7,6 +7,11 @@ specific diagnostic cannot be resolved from this contract.
 
 ## Bootstrap intake
 
+The interview's compact Q&A and dependency record belongs in `project-intent.md`. Link its stable
+evidence IDs from the existing intake collections; do not add an interview tree or transcript field
+to either JSON contract. Keep default provenance distinct from explicit user answers and preserve
+the rationale and consequences for final review.
+
 `bootstrap-intake.json` has exactly these top-level fields:
 
 `schema_version`, `status`, `project`, `artifacts`, `evidence`, `facts`, `scope`, `actors`,
@@ -102,7 +107,10 @@ Write the intent and both JSON documents in one focused edit batch. Then:
 
 1. Export `workspace.dsl` through the exact command in the front-door skill.
 2. Refresh all three artifact hashes and byte counts in the draft intake.
-3. Validate the map, then validate the intake through the exact commands in the front-door skill.
+3. Run the front-door skill's `bootstrap_intake.py validate-draft --json` command. It checks draft
+   intake semantics, the map, and bound artifact hashes without confirming them.
+4. After the single explicit synthesis confirmation, set status to `confirmed`, refresh hashes and
+   byte counts, and run `bootstrap_intake.py validate --json` as the front-door skill directs.
 
 Use validator diagnostics for a targeted repair. Do not print whole artifacts, schemas,
 implementations, or repository-wide diffs during verification.

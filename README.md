@@ -191,8 +191,12 @@ commands. Besides depending on live catalog transport, Spec Kit can advance a bu
 existing component remains old. Program Kit therefore does not treat a successful bundle message as
 upgrade evidence.
 
-Open the installed integration in the repository and describe what you want to build. Program Kit
-will ask only consequential questions, show the C4 System Context and Domain Context Map, and bind
+Open the installed integration in the repository, invoke
+`$speckit-program-kit-governance-bootstrap`, and describe what you want to build. Intake uses the
+shipped Program Kit grilling skill in the same conversation: numbered questions, recommendations,
+and rounds ordered by decision dependencies. Clearly applicable technical defaults are applied
+automatically and summarized in the final review; questions focus on ambiguous intent, conflicting
+requirements, and material choices. Program Kit will show the C4 System Context and Domain Context Map and bind
 the confirmed result in `docs/architecture/bootstrap-intake.json`. It always finishes with this
 single physical command line, which can be pasted into PowerShell, Command Prompt, Bash, or another
 normal user-owned terminal from the repository root:
@@ -208,8 +212,9 @@ available localhost port starting at 8081, and keeps viewer-created state outsid
 
 To stress-test a plan, decision, or idea before acting on it, invoke
 `$speckit-program-kit-governance-grilling`. The standalone skill works through a dependency-aware
-design tree in question rounds and waits for shared understanding before permitting action; no
-bootstrap workflow or lifecycle hook invokes it automatically.
+design tree in question rounds and waits for shared understanding before executing the proposed
+plan. Bootstrap intake reuses this interview method; the bootstrap workflow and lifecycle hooks do
+not start a grilling session. No separately installed personal grilling skill is required.
 
 For an uninterrupted development bootstrap, explicitly opt in to automatic approval and
 ratification:

@@ -158,6 +158,20 @@ try {
     if (-not (Test-Path -LiteralPath $bootstrapSkill -PathType Leaf)) {
         throw 'Installed Codex-safe bootstrap skill was not found.'
     }
+    $grillingReference = '.specify/extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md'
+    if (-not (Get-Content -Raw -LiteralPath $bootstrapSkill).Contains($grillingReference)) {
+        throw 'Installed intake does not resolve the shipped Program Kit grilling skill.'
+    }
+    $sourceGrilling = Join-Path $sourceRoot 'extensions/program-kit-governance/commands/speckit.program-kit-governance.grilling.md'
+    if ((Get-FileHash -LiteralPath $grillingReference).Hash -ne (Get-FileHash -LiteralPath $sourceGrilling).Hash) {
+        throw 'Installed intake resolves a different grilling contract from source.'
+    }
+    $grillingSkill = '.agents/skills/speckit-program-kit-governance-grilling/SKILL.md'
+    $methodBody = (((Get-Content -Raw -LiteralPath $grillingReference) -replace "`r`n", "`n") -split '---', 3)[2].Trim()
+    $installedGrillingText = (Get-Content -Raw -LiteralPath $grillingSkill) -replace "`r`n", "`n"
+    if (-not $installedGrillingText.Contains($methodBody)) {
+        throw 'Standalone grilling and intake do not share the shipped interview method.'
+    }
     $c4ViewSkill = '.agents\skills\speckit-program-kit-governance-view-c4\SKILL.md'
     if (-not (Test-Path -LiteralPath $c4ViewSkill -PathType Leaf)) {
         throw 'Installed C4 projection viewing skill was not found.'

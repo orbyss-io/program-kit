@@ -14,18 +14,57 @@ internals to compensate for an already complete description. At authoring time u
 ## Question policy
 
 Begin with the user's natural description. Reflect the understood intent before asking questions.
-Ask one to three related questions per round and incorporate each answer before choosing the next
-round. Do not run a fixed questionnaire or ask about excluded and irrelevant capability categories.
+Use the round and answer-handling contract in the shipped Program Kit grilling command loaded by
+the front-door skill. This reference defines which branches matter to intake, not a second
+interview algorithm. Do not run a fixed questionnaire or ask about excluded capability categories.
 
 Prioritize observable value, actors, scope, domain language and invariants, trust and data
 boundaries, external integrations, operational constraints, material Program Kit deviations, and
-the thinnest meaningful proving journey. Preserve every named source journey independently. Apply a
-Program Kit default without asking when it is safe and applicable. Explain a
-material acknowledgement or override before requesting a decision.
+the thinnest meaningful proving journey. Preserve every named source journey independently.
+
+Apply a clearly applicable Program Kit default automatically when user intent neither contradicts
+it nor leaves its applicability ambiguous. Do not ask users to select or re-approve obvious tools,
+packages, versions, or profiles. Record the default's source, rationale, and material consequences
+for the final synthesis, where the user can revisit it. Technical importance alone is not a reason
+to spend an interview question on an unambiguous default.
+
+Ask when intent is unclear, conflicts with a default, or leaves materially different candidates
+plausible. Clarify the product need first, then derive the technical consequence where evidence
+permits. Explain alternatives and consequences when an actual user choice remains. Preserve an
+explicit consumer package or provider choice, including non-Orbyss packages; assess its role and
+compatibility without silently replacing it with a managed default. Look up technical facts;
+ask the user about constraints, intent, and acceptable trade-offs.
 
 For a need with no declared Program Kit capability, say exactly that; do not claim incompatibility.
 Classify it as external, research-required, or project-owned design and ask only for information the
 project must supply. Defer questions that become material only at a named lifecycle trigger.
+
+Completion accounts for every bootstrap-relevant branch, not every future implementation choice.
+Business outcomes, semantic ownership, and architecture-significant trust, data, or consistency
+boundaries need enough evidence now to prepare a coherent map and founding candidates. Feature
+fields, detailed business rules, and implementation choices can remain assigned to the first
+feature specification when they do not change those boundaries. Record the closing artifact or
+owner/next action and trigger. Unanswered human decisions that block intake remain open; assigning
+them to someone does not make the intake ready to confirm.
+
+## Conversation evidence and final review
+
+Maintain a compact record in `project-intent.md` during the interview: stable Q IDs, prerequisite
+IDs, answers or pending state, recommendations accepted, rationale, source evidence, and any
+superseding correction. Retain the user's meaning without copying the entire conversation. Reuse
+this record on re-entry and reopen only affected branches when intent changes. Do not replace a
+previously confirmed artifact merely to log a new answer; follow the re-analysis procedure below
+and stage revisions for review first.
+
+Keep explicit answers, Program Kit defaults, derived conclusions, and architectural proposals
+distinct in the synthesis and JSON evidence. Accepting recommendations does not turn applied
+defaults into explicit user intent or turn founding candidates into Accepted ADRs.
+
+Once the interview converges, author and validate the four draft artifacts. Present one final
+review covering the product intent, journeys, domain and context analysis, founding candidates and
+alternatives, applied defaults, and assigned/deferred items. Explain that defaults can be revised
+here. This review also satisfies grilling's shared-understanding gate. Confirmation attests to the
+accuracy of the provisional intake; the later architecture approval remains separate.
 
 ## Architecture map
 
