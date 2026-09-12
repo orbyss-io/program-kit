@@ -2,13 +2,19 @@
 
 ## Adoption status
 
-This is an unpublished maintenance candidate on `codex/runnable-host-central-pins`,
-based on main `0f5aa7a55a2502af9e8b938290b128165ef58b00`. No fixed supported release
-is available from this work. The local archives retain the development version
-0.11.0; their existence is not publication or authorization to install them.
-PriceCalculator must remain blocked at T023 until a containing release passes its
-publication gates and the user authorizes adoption. Merge, release, tag and paid
-test execution have not been authorized for this maintenance request.
+This repair targets Program Kit 0.11.0 and was developed from main
+`0f5aa7a55a2502af9e8b938290b128165ef58b00`. A local archive or pushed tag alone is
+not a supported release. The user authorized official publication first and consumer
+handoff only after it succeeds. PriceCalculator must remain blocked at T023 until
+the complete official 0.11.0 Release workflow succeeds and its published artifacts
+are verified. The handoff must cite the actual successful workflow, final source
+commit, published archive and checksum evidence, then require the supported upgrade
+from installed 0.10.2 to 0.11.0 before implementation resumes.
+
+No individual script copy, local override, source-checkout installation, managed-file
+patch, fabricated receipt or manual workflow-state edit is an authorized repair.
+If publication, upgrade, baseline synchronization or any continuation gate fails,
+remain blocked and return the diagnostic to Program Kit maintenance.
 
 ## Diagnosis and repair
 
@@ -58,8 +64,9 @@ Staging intentionally accepts a smaller, unambiguous literal subset.
 - Read-only resolution against the actual consumer resolves WebDefaults,
   Web.ProblemDetails and Web.OpenApi to 0.1.0. No consumer staging or mutation ran.
 
-CI and publication validation are pending. These deterministic packages/downloads
-are synthetic; they do not claim a real endpoint export or deployed RM-01 outcome.
+Attach exact-commit CI and publication evidence before issuing the consumer handoff.
+These deterministic packages/downloads are synthetic; they do not claim a real
+endpoint export or deployed RM-01 outcome.
 
 ## Supported continuation after a containing release is approved
 
@@ -76,7 +83,7 @@ only the release-root placeholder with the verified containing release directory
 
 ```powershell
 Set-Location C:\Code\Orbyss\PriceCalculator
-$releaseRoot = 'C:\path\to\verified-containing-release'
+$releaseRoot = 'C:\path\to\verified-program-kit-0.11.0'
 python "$releaseRoot\extensions\program-kit-governance\scripts\schema_runtime.py" setup --project-root .
 if ($LASTEXITCODE -ne 0) { throw 'Target schema runtime preparation failed.' }
 python "$releaseRoot\scripts\upgrade_program_kit.py" --release-root $releaseRoot --target . --integration codex
