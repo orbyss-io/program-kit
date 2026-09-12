@@ -114,7 +114,7 @@ INTAKE_STAGE_FIELDS = {
         "quality_requirements", "choices", "capability_assessments", "open_items", "routing",
     ),
     "architecture": (
-        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations",
+        "facts", "scope", "actors", "journeys", "quality_requirements", "integrations", "choices",
         "domain_analysis", "open_items", "candidate_slice_signals", "routing",
     ),
     "tooling": (
@@ -816,7 +816,7 @@ def governance_contract(project_root: Path) -> dict:
     return {"paths": values, "configuration_sources": sources}
 
 
-def resolved_output_contract(stage: str, paths: dict[str, str]) -> dict:
+def resolved_output_contract(stage: str, paths: dict[str, str], run_id: str = "") -> dict:
     contract = OUTPUT_CONTRACTS[stage]
     write_paths = [replace_governance_path(path, paths) for path in contract["write_paths"]]
     return {
@@ -824,7 +824,7 @@ def resolved_output_contract(stage: str, paths: dict[str, str]) -> dict:
         "contract_references": list(contract["contract_references"]),
         "validation_commands": [
             "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-            f"validate-stage --stage {stage} --run-id <workflow-run-id>"
+            f"validate-stage --stage {stage} --run-id {run_id}"
         ],
         "artifact_byte_budgets": {
             replace_governance_path(path, paths): ARTIFACT_BYTE_BUDGETS[path]
@@ -922,6 +922,7 @@ def building_block_target_inventory(project_root: Path) -> dict:
         "kind": "repository",
         "path": "Directory.Build.props",
         "exists": (project_root / "Directory.Build.props").is_file(),
+        "origin": "observed" if (project_root / "Directory.Build.props").is_file() else "convention",
     }]
     kinds = {
         "package.json": "npm-package",
@@ -943,7 +944,7 @@ def building_block_target_inventory(project_root: Path) -> dict:
             relative = (base / name).relative_to(project_root).as_posix()
             if relative == "Directory.Build.props":
                 continue
-            candidates.append({"kind": kind, "path": relative, "exists": True})
+            candidates.append({"kind": kind, "path": relative, "exists": True, "origin": "observed"})
     candidates.sort(key=lambda item: (str(item["kind"]), str(item["path"]).casefold()))
     truncated = len(candidates) > MAX_BUILDING_BLOCK_TARGETS
     return {
@@ -952,11 +953,24 @@ def building_block_target_inventory(project_root: Path) -> dict:
         "truncated": truncated,
         "path_rule": (
             "For a selection target value, use an exact forward-slash repository-relative file "
-            "path from this inventory. The draft command's repository-root '--target .' argument "
-            "is separate and valid. A directory, '.', absolute path, guessed path, or "
-            "repository-wide search is invalid as a selection target."
+            "path observed in this inventory or explicitly planned by architecture in the Draft target placement declaration. "
+            "The repository sentinel is a convention, not evidence of a file. The draft command's "
+            "repository-root '--target .' argument is separate. A directory, absolute path, "
+            "undeclared guess, or repository-wide search is invalid as a selection target."
         ),
     }
+
+
+def validate_placement_handoff(inventory: dict, contracts: dict, planning: dict) -> None:
+    available = {item["kind"] for item in inventory["candidates"] if item.get("exists")}
+    missing = sorted({slot["kind"] for contract in contracts.values()
+                      for slot in contract["target_slots"].values()} - available)
+    if missing and not (planning.get("authorized") is True
+                        and planning.get("owner") == "architecture"
+                        and planning.get("declaration")):
+        raise ContextError("Architecture placement prerequisite: no observed targets for "
+                           + ", ".join(missing)
+                           + "; provide the architecture-owned Draft placement planning contract before dispatch.")
 
 
 def building_block_stage_contract(project_root: Path, intake: dict) -> dict | None:
@@ -997,6 +1011,22 @@ def building_block_stage_contract(project_root: Path, intake: dict) -> dict | No
             "target_slots": composition["targetSlots"],
             "option_groups": option_groups,
         }
+    inventory = building_block_target_inventory(project_root)
+    available = {item["kind"] for item in inventory["candidates"] if item["exists"]}
+    planning = {
+        "owner": "architecture",
+        "declaration": "docs/architecture/building-block-selection.json#/targets/*/placement",
+        "authorized": True,
+        "missing_observed_kinds": sorted({slot["kind"] for contract in contracts.values()
+                                          for slot in contract["target_slots"].values()} - available),
+        "rules": [
+            "Derive physical layout from context/module ownership, deployment boundaries, repository conventions and explicit preferences. Do not ask users for filenames, target IDs or other mechanical placement details.",
+            "Each target declares placement.state (observed or planned), owner (canonical element ID with ownership), decisionIds (current owner-linked founding ADRs), and rationale. Planned paths need not exist.",
+            "Preserve observed paths, identities and ownership; new placements need an explicit Proposed or Accepted architecture decision. Do not copy extension templates into the observed inventory.",
+            "Keep selection Draft and ADRs Proposed pending review. Do not scaffold, restore or materialize during architecture. Ask only about consequential unresolved product constraints or trade-offs.",
+        ],
+    }
+    validate_placement_handoff(inventory, contracts, planning)
     capability_arguments = " ".join(f"--capability {item}" for item in selected)
     return {
         "capabilities": selected,
@@ -1006,10 +1036,12 @@ def building_block_stage_contract(project_root: Path, intake: dict) -> dict | No
             f"draft --target . {capability_arguments}"
         ),
         "composition_contracts": contracts,
-        "target_inventory": building_block_target_inventory(project_root),
+        "target_inventory": inventory,
+        "placement_planning": planning,
         "rules": [
             "Use this projection instead of running --help or searching/dumping the installed catalog.",
-            "After the draft command, replace its empty placement with the exact reviewed scopes, targets, bindings, and options.",
+            "The draft command initializes suggestions only. Architecture authors exact scopes, targets with placement provenance, instances, bindings, and compatible options before validation.",
+            "Managed option groups constrain research: an unsupported renderer (for example Blazor for forms_runtime) remains unresolved until architecture chooses a supported option or an explicitly reviewed custom adapter/override. Never silently substitute a renderer or change approved product semantics.",
         ],
     }
 
@@ -1049,11 +1081,11 @@ def managed_web_control_projection(project_root: Path, authorities: dict[str, di
     }
 
 
-def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict]) -> dict:
+def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict], run_id: str) -> dict:
     terminal = {
         "command": (
             "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-            f"validate-stage --stage {stage} --run-id <workflow-run-id>"
+            f"validate-stage --stage {stage} --run-id {run_id}"
         ),
         "on_success": (
             "Stop immediately. Do not read another file, inspect a diff, measure output again, "
@@ -1102,6 +1134,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
                 "Use observed_toolchain below; do not run local --version, runtime-list, repository-status, or source-tree probes.",
             ],
             "observed_toolchain": observed_toolchain(),
+            "building_blocks": building_block_stage_contract(project_root, intake),
             "terminal_condition": terminal,
         }
         if not questions:
@@ -1115,6 +1148,7 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             "required_order": [
                 "Read the canonical seed, constitution, and both output schemas once.",
                 "Write founding ADRs and patch the existing map; do not reconstruct it from scratch.",
+                "Declare observed/planned placement in the Draft, with semantic owners and decision provenance; choose only compatible managed options.",
                 "Run validate-architecture-structure once before narrative documents.",
                 "Write compact narrative documents, refresh their map hashes, then run the single final validation batch.",
             ],
@@ -1127,10 +1161,16 @@ def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[s
             ],
             "structural_validation_command": (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-                "validate-architecture-structure --run-id <workflow-run-id>"
+                f"validate-architecture-structure --run-id {run_id}"
             ),
             "building_blocks": building_block_stage_contract(project_root, intake),
             "managed_web_contract": managed_web_control_projection(project_root, authorities),
+            "blocked_result": {
+                "command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+                           f"record-architecture-blocked --run-id {run_id}",
+                "required_arguments": ["--reason", "--owner", "--resolution"],
+                "rule": "If a prerequisite prevents completion, record the specific reason, accountable owner and next action with this command, then report BLOCKED. Its exit 2 is intentional. Process/dispatch success is not validated architecture completion.",
+            },
             "terminal_condition": terminal,
         }
     return {
@@ -1151,9 +1191,47 @@ def evidence_path(run_directory: Path, stage: str) -> Path:
     return run_directory / "program-kit-context" / f"{stage}.evidence.json"
 
 
-def validate_stage_output(project_root: Path, stage: str) -> dict:
+ARCHITECTURE_BLOCKED = Path(".specify/governance/architecture-blocked.json")
+
+
+def record_architecture_blocked(project_root: Path, run_id: str, reason: str, owner: str, resolution: str) -> dict:
+    if not all(isinstance(value, str) and value.strip() for value in (reason, owner, resolution)):
+        raise ContextError("Blocked architecture requires reason, owner and resolution")
+    brief = context_path(safe_run_directory(project_root, run_id), "architecture")
+    payload = {"status": "blocked", "stage": "architecture", "run_id": run_id,
+               "context_sha256": sha256_file(brief), "reason": reason,
+               "owner": owner, "resolution": resolution}
+    destination = project_root / ARCHITECTURE_BLOCKED
+    if destination.exists():
+        raise ContextError("A blocked architecture report already exists; preserve it by rebuilding that run's context before retrying")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(compact_json(payload), encoding="utf-8")
+    return payload
+
+
+def check_architecture_blocked(project_root: Path, run_id: str = "") -> None:
+    path = project_root / ARCHITECTURE_BLOCKED
+    if not path.exists():
+        return
+    report = load_json(path)
+    if (report.get("status") != "blocked" or report.get("stage") != "architecture"
+            or not all(isinstance(report.get(key), str) and report[key].strip()
+                       for key in ("run_id", "context_sha256", "reason", "owner", "resolution"))):
+        raise ContextError("Invalid blocked architecture report; preserve and repair its diagnostic provenance")
+    if run_id and report.get("run_id") != run_id:
+        raise ContextError("Blocked architecture report belongs to another run; resolve that run before proceeding")
+    brief = context_path(safe_run_directory(project_root, report["run_id"]), "architecture")
+    if sha256_file(brief) != report.get("context_sha256"):
+        raise ContextError("Blocked architecture report has stale context provenance; rebuild its context before retrying")
+    raise ContextError(f"Architecture BLOCKED: {report['reason']} Owner: {report['owner']}. "
+                       f"Resolution: {report['resolution']}. Dispatch/process exit is not architecture completion.")
+
+
+def validate_stage_output(project_root: Path, stage: str, run_id: str = "") -> dict:
+    if stage == "architecture":
+        check_architecture_blocked(project_root, run_id)
     governance_paths = governance_contract(project_root)["paths"]
-    contract = resolved_output_contract(stage, governance_paths)
+    contract = resolved_output_contract(stage, governance_paths, run_id)
     artifacts: list[dict] = []
     for relative_path, budget in contract["artifact_byte_budgets"].items():
         path = project_root / relative_path
@@ -1208,6 +1286,7 @@ def _run_project_validator(
 
 
 def validate_architecture_structure(project_root: Path, run_id: str) -> dict:
+    check_architecture_blocked(project_root, run_id)
     map_script = ".specify/extensions/program-kit-governance/scripts/architecture_map.py"
     selection_script = (
         ".specify/extensions/program-kit-building-blocks/scripts/building_blocks.py"
@@ -1227,7 +1306,7 @@ def validate_architecture_structure(project_root: Path, run_id: str) -> dict:
         _run_project_validator(
             project_root,
             selection_script,
-            ["validate-draft", "--target", "."],
+            ["validate-draft", "--target", ".", "--require-placement-provenance"],
             "building-block draft",
         )
         checks.append("building-block-draft")
@@ -1259,7 +1338,7 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     checks: list[str] = []
     if stage == "architecture":
         checks.extend(validate_architecture_structure(project_root, run_id)["checks"])
-    output = validate_stage_output(project_root, stage)
+    output = validate_stage_output(project_root, stage, run_id)
     checks.append("output-contract")
     governance_script = (
         ".specify/extensions/program-kit-governance/scripts/governance_state.py"
@@ -1315,7 +1394,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     architecture_map = load_json(project_root / "docs/architecture/architecture-map.json")
     governance = governance_contract(project_root)
     governance_paths = governance["paths"]
-    output_contract = resolved_output_contract(stage, governance_paths)
+    output_contract = resolved_output_contract(stage, governance_paths, run_id)
     contract_references = tuple(output_contract["contract_references"])
     routed = routed_references(intake, stage)
     required_routed = required_routed_references(intake, stage)
@@ -1357,7 +1436,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "run_id": run_id,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
-        "stage_plan": stage_plan(project_root, intake, stage, authorities),
+        "stage_plan": stage_plan(project_root, intake, stage, authorities, run_id),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),
         "architecture_map": architecture_projection(project_root, architecture_map, stage),
@@ -1397,6 +1476,16 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
 def build_context(project_root: Path, run_id: str, stage: str) -> tuple[Path, dict]:
     destination, payload, evidence_destination, evidence = create_documents(project_root, run_id, stage)
     destination.parent.mkdir(parents=True, exist_ok=True)
+    blocked = project_root / ARCHITECTURE_BLOCKED
+    if stage == "architecture" and blocked.exists():
+        report = load_json(blocked)
+        if report.get("run_id") != run_id:
+            raise ContextError("Resolve the other run's blocked architecture before rebuilding context")
+        # Preserve the diagnostic as immutable attempt evidence before a deliberate retry.
+        archive = destination.parent / f"architecture.blocked-{sha256_file(blocked)}.json"
+        if not archive.exists():
+            archive.write_bytes(blocked.read_bytes())
+        blocked.unlink()
     evidence_destination.write_text(compact_json(evidence), encoding="utf-8", newline="\n")
     destination.write_text(compact_json(payload), encoding="utf-8", newline="\n")
     return destination, payload
@@ -1412,6 +1501,54 @@ def validate_context(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     if actual != expected or actual_evidence != expected_evidence:
         raise ContextError(f"Bootstrap context is stale or invalid: {destination}")
     return destination, actual
+
+
+def prepare_architecture_recovery(project_root: Path, run_id: str) -> dict:
+    """Preserve the failed handoff and refresh context; never edit workflow/approval state."""
+    run = safe_run_directory(project_root, run_id)
+    state = load_json(run / "state.json")
+    if (state.get("run_id") != run_id or state.get("workflow_id") != "program-kit-bootstrap" or state.get("status") != "failed"
+            or state.get("current_step_id") != "validate-architecture-output"):
+        raise ContextError("Architecture recovery requires a failed bootstrap at validate-architecture-output")
+    if (project_root / ".specify/governance/bootstrap-approval.json").exists():
+        raise ContextError("Architecture recovery cannot revise an already approved bootstrap")
+    # Validate before writing evidence or replacing context. This keeps confirmed intake and
+    # approved assessment semantics authoritative, including for old persisted workflow YAML.
+    create_documents(project_root, run_id, "architecture")
+    preserved = [run / name for name in ("state.json", "inputs.json", "workflow.yml", "log.jsonl")]
+    preserved += [context_path(run, "architecture"), evidence_path(run, "architecture")]
+    paths = governance_contract(project_root)["paths"]
+    preserved += [project_root / replace_governance_path(name, paths) for name in (
+        *INTAKE_ARTIFACTS, *STAGE_ARTIFACTS["architecture"],
+    )]
+    records = []
+    for source in dict.fromkeys(preserved):
+        if not source.is_file():
+            continue
+        digest = sha256_file(source)
+        backup = run / "architecture-recovery" / "sources" / digest
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        if not backup.exists():
+            backup.write_bytes(source.read_bytes())
+        elif sha256_file(backup) != digest:
+            raise ContextError(f"Preserved recovery evidence has an invalid hash: {backup}")
+        records.append({"path": source.relative_to(project_root).as_posix(), "sha256": digest,
+                        "preserved_path": backup.relative_to(project_root).as_posix()})
+    destination, payload = build_context(project_root, run_id, "architecture")
+    result = {
+        "run_id": run_id, "status": "ready-for-architecture-retry", "preserved": records,
+        "context": result_payload(project_root, destination, payload),
+        "architecture_skill_input": "$speckit-program-kit-governance-architecture "
+                                    "docs/architecture/bootstrap-intake.json; bootstrap context: "
+                                    + destination.relative_to(project_root).as_posix(),
+        "validate_command": "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
+                            f"validate-stage --stage architecture --run-id {run_id} --json",
+        "resume_after_validation": f"specify workflow resume {run_id}",
+        "boundary": "Run the installed architecture skill in a user-owned session, review its new Proposed decisions, then validate before resuming. Resume alone only retries the validator. No workflow state or approval was changed.",
+    }
+    manifest = run / "architecture-recovery" / (sha256_bytes(compact_json(result).encode()) + ".json")
+    manifest.write_text(compact_json(result), encoding="utf-8")
+    return result
 
 
 def result_payload(project_root: Path, path: Path, payload: dict) -> dict:
@@ -1442,18 +1579,28 @@ def main() -> int:
             "validate-architecture-alignment",
             "validate-architecture-structure",
             "validate-stage",
+            "record-architecture-blocked",
+            "prepare-architecture-recovery",
         ),
     )
     parser.add_argument("--stage", choices=tuple(STAGE_ARTIFACTS))
     parser.add_argument("--run-id")
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--reason")
+    parser.add_argument("--owner")
+    parser.add_argument("--resolution")
     args = parser.parse_args()
     project_root = Path(args.project_root).resolve()
     try:
         if args.command != "validate-output" and not args.run_id:
             raise ContextError(f"--run-id is required for {args.command}")
-        if args.command == "validate-intake":
+        if args.command == "prepare-architecture-recovery":
+            result = prepare_architecture_recovery(project_root, args.run_id)
+        elif args.command == "record-architecture-blocked":
+            record_architecture_blocked(project_root, args.run_id, args.reason, args.owner, args.resolution)
+            check_architecture_blocked(project_root, args.run_id)
+        elif args.command == "validate-intake":
             payload = validate_intake(project_root, args.run_id)
             result = {
                 "path": INTAKE_PATH.as_posix(),
@@ -1487,7 +1634,7 @@ def main() -> int:
         elif args.command == "validate-output":
             if not args.stage:
                 raise ContextError("--stage is required for validate-output")
-            result = validate_stage_output(project_root, args.stage)
+            result = validate_stage_output(project_root, args.stage, args.run_id or "")
         else:
             if not args.stage:
                 raise ContextError(f"--stage is required for {args.command}")
@@ -1499,7 +1646,7 @@ def main() -> int:
     except (ContextError, OSError, UnicodeError) as exc:
         print(f"Program Kit bootstrap context failed: {exc}", file=sys.stderr)
         return 2
-    if args.json:
+    if args.json or args.command == "prepare-architecture-recovery":
         print(json.dumps(result))
     elif args.command == "validate-intake":
         print(f"Program Kit confirmed bootstrap intake is valid: {result['path']}")

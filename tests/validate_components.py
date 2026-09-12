@@ -32,7 +32,7 @@ EXPECTED_STEPS = [
     "write-constitution-review",
     "route-constitution-ratification",
     "prepare-architecture-context",
-    "architecture",
+    "architecture-dispatch",
     "validate-architecture-output",
     "validate-architecture-alignment",
     "prepare-tooling-context",
@@ -212,7 +212,7 @@ def main() -> int:
     for command_id, stage in (
         ("assessment", "assessment"),
         ("research", "research"),
-        ("architecture", "architecture"),
+        ("architecture-dispatch", "architecture"),
         ("tooling", "tooling"),
         ("specification-roadmap", "roadmap"),
         ("readiness", "readiness"),
@@ -224,7 +224,7 @@ def main() -> int:
     for stage in context_stages:
         validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
         validation_command = validation_step.get("run", "")
-        expected_validator = "validate-stage" if stage == "roadmap" else "validate-output"
+        expected_validator = "validate-stage" if stage in {"architecture", "roadmap"} else "validate-output"
         if (
             validation_step.get("type") != "shell"
             or validation_step.get("output_format") != "json"
@@ -232,7 +232,7 @@ def main() -> int:
             or f"--stage {stage}" not in validation_command
         ):
             raise AssertionError(f"{stage} output budgets are not deterministically validated")
-        if stage == "roadmap" and "--run-id {{ context.run_id }}" not in validation_command:
+        if stage in {"architecture", "roadmap"} and "--run-id {{ context.run_id }}" not in validation_command:
             raise AssertionError("Roadmap validation must enforce the Ready-entry terminal contract")
     pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
     if (
@@ -249,7 +249,7 @@ def main() -> int:
         or "bootstrap_context.py validate-architecture-alignment"
         not in architecture_alignment.get("run", "")
         or architecture_alignment.get("output_format") != "json"
-        or step_ids.index("architecture") >= step_ids.index("validate-architecture-alignment")
+        or step_ids.index("architecture-dispatch") >= step_ids.index("validate-architecture-alignment")
         or step_ids.index("validate-architecture-alignment") >= step_ids.index("prepare-tooling-context")
     ):
         raise AssertionError(
@@ -279,7 +279,7 @@ def main() -> int:
     if not (
         step_ids.index("constitution-draft") < step_ids.index("validate-constitution-draft")
         < step_ids.index("write-constitution-review") < constitution_route
-        < step_ids.index("architecture")
+        < step_ids.index("architecture-dispatch")
     ):
         raise AssertionError(
             "Constitution validation and its review packet must precede ratification, which must precede architecture"

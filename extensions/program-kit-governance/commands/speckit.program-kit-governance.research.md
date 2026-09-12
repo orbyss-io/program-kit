@@ -31,6 +31,13 @@ named diagnostic.
 
 ## Rules
 
+Use `stage_plan.building_blocks.composition_contracts` when supplied to check managed capability
+options before proposing a stack. Distinguish supported managed options from unverified adapter
+ideas. If Forms lists Angular, React and Vue renderers, a Blazor proposal remains an explicit
+architecture compatibility question; it cannot silently become a selected managed renderer.
+Preserve explicit user preferences and assign incompatible proposals to architecture for a
+supported choice or a reviewed custom adapter/override, without asking users for placement files.
+
 For selected `ui-experience-v1`, read its profile and `ui-evidence-v1.json`. Preserve the distinction
 between standards, provider contracts, bounded empirical findings and experimental conventions.
 Use the versioned layout/token/icon/metadata defaults and the isolated pinned acceptance graph;

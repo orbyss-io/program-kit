@@ -312,7 +312,7 @@ def main() -> int:
                 raise AssertionError(f"{stage} context omits its bounded work plan")
             expected_validation = (
                 "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py "
-                f"validate-stage --stage {stage} --run-id <workflow-run-id>"
+                f"validate-stage --stage {stage} --run-id {run_id}"
             )
             if payload["output_contract"]["validation_commands"] != [expected_validation]:
                 raise AssertionError(f"{stage} context does not expose one terminal validation batch")

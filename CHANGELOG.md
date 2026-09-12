@@ -2,7 +2,20 @@
 
 ## Unreleased
 
-## 0.10.0 - Unreleased
+## 0.10.1 - 2026-09-12
+
+- Allow architecture to declare exact planned building-block targets before consumer manifests
+  exist, with semantic ownership, current ADR provenance and scope/role/path validation. Keep
+  placement decisions out of product intake and preserve later approval and materialization gates.
+- Project managed renderer options into research and architecture, substitute actual workflow run
+  IDs in validation commands, and report structured blocked prerequisites before missing outputs.
+- Distinguish architecture dispatch from validated completion and provide an evidence-preserving
+  recovery helper for failed runs at the architecture output gate, without rewriting approvals or
+  starting another bootstrap.
+- Add deterministic greenfield, mixed-placement, provenance and workflow-recovery regressions to
+  Development and CI. Orbyss Foundation, Forms and Localization release pins remain unchanged.
+
+## 0.10.0 - 2026-09-11
 
 - Introduce the consumer-owned Accepted building-block selection, executable catalog `1.0`, pure
   cross-ecosystem resolver, hash-bound lock, exact project-specific NuGet/npm/tool/registry/CShell/

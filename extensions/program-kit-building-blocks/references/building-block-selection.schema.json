@@ -87,7 +87,18 @@
           "role": { "$ref": "#/$defs/id" },
           "scope": { "$ref": "#/$defs/id" },
           "lockRoot": { "$ref": "#/$defs/path" },
-          "shell": { "$ref": "#/$defs/id" }
+          "shell": { "$ref": "#/$defs/id" },
+          "placement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["state", "owner", "decisionIds", "rationale"],
+            "properties": {
+              "state": { "enum": ["observed", "planned"] },
+              "owner": { "$ref": "#/$defs/id" },
+              "decisionIds": { "$ref": "#/$defs/nonemptyIds" },
+              "rationale": { "$ref": "#/$defs/text" }
+            }
+          }
         }
       }
     },

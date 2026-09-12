@@ -44,7 +44,7 @@ EXPECTED_STEPS = [
     "write-constitution-review",
     "route-constitution-ratification",
     "prepare-architecture-context",
-    "architecture",
+    "architecture-dispatch",
     "validate-architecture-output",
     "validate-architecture-alignment",
     "prepare-tooling-context",

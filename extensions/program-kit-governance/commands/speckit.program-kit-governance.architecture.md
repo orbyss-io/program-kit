@@ -25,7 +25,9 @@ Use `output_contract.artifact_target_bytes` as the generation ceiling and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required architecture evidence merely to reach a target.
 When `stage_plan.building_blocks` is present, use its exact draft command, composition slot/options
-projection, canonical repository path, and target inventory. Do not run `--help`, search or dump the
+projection, canonical repository convention, observed target inventory, and authorized
+`placement_planning` contract. Missing application files are a planning input: architecture owns
+the exact future layout and may declare it without creating those files. Do not run `--help`, search or dump the
 catalog, or enumerate project files to rediscover those values. When
 `stage_plan.managed_web_contract` is present, use its exact applicable control decisions and
 verification statements; do not search the installed extensions for `WEB-Cxx` records.
@@ -238,10 +240,40 @@ package/shell/host target; never infer placement from project names or apply pac
 its authority to the Proposed founding ADR IDs that decide those selections and include the concrete
 rationale. For a .NET selection without the recorded Foundation-host opt-out, bind the `api_baseline`
 host target and explicitly choose `foundation-host`; an empty optional answer is not the default.
-Use the exact draft command and placement paths supplied by `stage_plan.building_blocks`; the
+Use the exact draft command supplied by `stage_plan.building_blocks` to initialize suggestions;
+it does not decide placement. Derive each path from semantic context/module ownership, deployment
+boundaries, repository conventions and explicit preferences. Preserve observed paths, identities
+and ownership. Declare new paths explicitly as proposals, never infer a global package drop from
+project names. Never ask product users for .csproj paths, package.json locations, shell filenames,
+target IDs or other mechanical bookkeeping, including through intake. Ask only about consequential
+product constraints or trade-offs that context and applicable defaults cannot resolve.
+
+For every target, author `placement` with `state: observed|planned`, `owner` (canonical architecture
+element ID with nonempty ownership), `decisionIds`, and `rationale`. The owner must reference those
+decisions through `decision_refs`, and the selection authority must include them. Register each
+current Proposed or Accepted ADR with its path and SHA-256 in the map. State records origin at
+design time: planned targets may later exist after an approved scaffold. It is not permission to
+materialize. Keep kind, role, scope and shell explicit; slot bindings must remain within the
+composition's required scope. The validator checks provenance, containment, collisions, slot
+compatibility and managed options without creating consumer manifests.
+
+Reconcile research proposals against the projected managed option groups before selecting a stack.
+For example, Blazor is not a `forms_runtime.renderer` managed option when that group lists only
+Angular, React and Vue. Keep such a proposal unresolved until architecture chooses a compatible
+option or produces an explicitly reviewed custom adapter/override design; do not silently replace
+the renderer or rewrite approved product semantics.
+
+The
 structural and final validation batches run the offline draft validation that proves closure and
 placement. The final bootstrap approval promotes those ADRs and the reviewed Draft together; it
 still does not restore or materialize dependencies.
+
+If a prerequisite prevents completion, run `stage_plan.blocked_result.command`, supplying its
+required `--reason`, `--owner` and `--resolution` arguments, then report BLOCKED. The command exits
+2 intentionally and preserves a structured diagnostic for the next output gate. A successful
+worker process or dispatch is not completed architecture; only passing the final validation batch
+establishes deliverable completion. Rebuilding this run's architecture context archives the prior
+blocked report before a deliberate retry.
 
 When the decision register selects a browser UI, the architecture runtime, deployment,
 cross-cutting, and verification views must adopt the exact `web.secure_profile` and reference its
