@@ -1,8 +1,10 @@
 # Team delivery development
 
-Program Kit includes a disabled-by-default `program-kit-delivery` extension. Phase 1 supplies
-offline preparation, profiles, four work-item templates and the common core authority boundary.
-Azure/GitHub consumer activation, synchronization and execution claims are not available yet.
+Program Kit includes a disabled-by-default `program-kit-delivery` extension with offline
+preparation, profiles, four work-item templates and the common core authority boundary.
+The Phase 2 implementation adds reviewed Azure setup, discovery, planning and repository activation
+for refinement. Its real human portal acceptance case passed. GitHub activation,
+full synchronization and execution claims belong to later phases.
 Installing or upgrading the kit performs no delivery-provider calls or writes.
 
 Use `speckit.program-kit-delivery.configure` to prepare a shared policy and repository binding,
@@ -21,7 +23,11 @@ continue to work without the delivery extension. An enabled consumer with missin
 provider admission fails explicitly at governed checkpoints, including direct implementation
 preflight. A missing connected configuration does not silently restore local authority.
 
-Phase 1 has no activation, profile-change or disconnect receipt writer. It also cannot verify a
-disconnect claim and therefore cannot use hand-written history to restore local authority. Local
-drafting, profile checks and technical-only validation remain useful while provider admission is
-unavailable. This development branch is not a release announcement.
+Use `speckit.program-kit-delivery.azure` for the reviewed Azure journey described in the
+[Azure reference](../extensions/program-kit-delivery/references/azure-planning.md). Untagged portal
+epics are discoverable within the selected project and areas; discovery does not approve them.
+Activation verifies native capabilities, identities, the pinned profile and coordinator permissions.
+Only refinement admission is implemented. Profile changes and disconnection still require later
+reviewed operations; hand-written history cannot restore local authority. See the
+[Phase 2 decisions](backlog-delivery-phase-2-decisions.md) and [acceptance evidence](delivery/phase-2-evidence.md).
+This development branch is not a release announcement.

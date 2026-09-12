@@ -114,7 +114,7 @@
         "speckit_version": ">=1.0.1,<2.0.0"
       },
       "provides": {
-        "commands": 2,
+        "commands": 3,
         "hooks": 0
       },
       "tags": [

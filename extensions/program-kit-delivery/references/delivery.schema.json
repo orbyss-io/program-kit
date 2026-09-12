@@ -190,6 +190,9 @@
         "tagNamespace": {
           "type": "string",
           "minLength": 1
+        },
+        "azure": {
+          "$ref": "azure-planning.schema.json#/$defs/profile"
         }
       },
       "required": [

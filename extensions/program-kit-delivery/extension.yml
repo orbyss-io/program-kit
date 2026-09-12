@@ -17,9 +17,18 @@ provides:
     - name: "speckit.program-kit-delivery.refine"
       file: "commands/speckit.program-kit-delivery.refine.md"
       description: "Draft or refine epics, features, requirements and meaningful tasks."
+    - name: "speckit.program-kit-delivery.azure"
+      file: "commands/speckit.program-kit-delivery.azure.md"
+      description: "Connect an Azure planning space and apply reviewed backlog proposals."
   scripts:
     - name: "delivery"
       file: "scripts/delivery.py"
       description: "Offline profile/work validation and delivery-authority inspection."
+    - name: "azure"
+      file: "scripts/azure.py"
+      description: "Verified Azure planning, recovery and repository activation."
+    - name: "azure-setup"
+      file: "scripts/azure_setup.py"
+      description: "Reviewed minimum Azure project setup."
 hooks: {}
 tags: [delivery, backlog, governance]

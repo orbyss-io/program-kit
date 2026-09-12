@@ -1,6 +1,6 @@
 # Program Kit team delivery: development plan
 
-Date: 2026-09-12. Status: Phases 0 and 1 complete; Phase 2 interview is next. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the contract and provider capability proof; [Phase 1 evidence](delivery/phase-1-evidence.md) records the installed foundation. Consumer cloud activation and later-phase acceptance are not yet implemented.
+Date: 2026-09-12. Status: Phases 0, 1 and 2 complete. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the provider capability proof; [Phase 1 evidence](delivery/phase-1-evidence.md) records the installed foundation. [Phase 2 evidence](delivery/phase-2-evidence.md) records Azure setup, planning and activation, including the completed human portal Epic journey. The Phase 3 grilling interview is next.
 
 The supporting [template research](backlog-delivery-template-research.md) contains the source evidence, field mappings, four work-item templates, and a worked requirement. Product choices below were accepted during the interview. Technical mechanisms remain subject to the explicit verification gates in this plan.
 
@@ -191,4 +191,6 @@ Use chromium/webkit where local browser checks apply; Firefox acceptance remains
 
 The product direction is settled. Exact adapter transports, durable coordination storage, capability fallbacks, schemas, and packaging are technical decisions to resolve with the user in the relevant phase's grilling interview, informed by repository research and the phase-0 proof. If a required guarantee cannot be met within the accepted boundary, report the concrete limitation and return the affected scope decision for review rather than silently weakening behavior.
 
-Phases 0 and 1 produced the provider proof and installed optional-module foundation. The next step is the Phase 2 interview for Azure activation, capability discovery and the approved epic-to-requirement journey in Unfussiness. Resolve those decisions with the user before implementing or activating the provider adapter.
+Phase 2 passed deterministic, synthetic Azure and real human portal acceptance. Its implementation
+lands on `codex/backlog-delivery` as one completed phase. Hold the next grilling interview before
+starting Phase 3 reconciliation; do not merge the integration branch to main yet.

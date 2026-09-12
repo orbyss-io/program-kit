@@ -183,7 +183,7 @@ def current_review(repository: Path, entry: str, *, later: bool = False) -> tupl
 
 def confirm(repository: Path, entry: str, review_hash: str, source: str, answer: str) -> dict:
     import delivery_authority
-    delivery_authority.require_admission(repository, "refinement")
+    delivery_authority.require_admission(repository, "refinement", entry)
     folder, expected = current_review(repository, entry)
     require(review_hash == expected["reviewHash"], "Confirmation must name the exact presented review hash")
     require(nonempty(source) and nonempty(answer), "Record the explicit user confirmation and its conversation source")
@@ -196,7 +196,7 @@ def confirm(repository: Path, entry: str, review_hash: str, source: str, answer:
 
 def check(repository: Path, entry: str, *, later: bool = False) -> dict:
     import delivery_authority
-    delivery_authority.require_admission(repository, "refinement")
+    delivery_authority.require_admission(repository, "refinement", entry)
     folder, expected = current_review(repository, entry, later=later)
     receipt = read(folder / "confirmation.json")
     require(receipt.get("schemaVersion") == 1 and receipt.get("roadmapEntry") == entry,
@@ -213,8 +213,6 @@ def spec_entries(text: str) -> list[str]:
 
 
 def check_spec(repository: Path, spec_path: Path) -> dict:
-    import delivery_authority
-    delivery_authority.require_admission(repository, "refinement")
     require(spec_path.resolve().is_relative_to(repository), "Spec must stay inside the repository")
     text = spec_path.read_text(encoding="utf-8")
     identities = spec_entries(text)

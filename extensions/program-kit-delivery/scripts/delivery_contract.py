@@ -5,6 +5,9 @@ import json
 import sys
 
 CORE = Path(__file__).resolve().parents[2] / 'program-kit-governance/scripts'
+SCRIPTS = Path(__file__).resolve().parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
 if str(CORE) not in sys.path:
     sys.path.insert(0, str(CORE))
 import delivery_authority as authority
@@ -21,7 +24,7 @@ def require(condition, message):
 def validate(value, kind):
     schema = json.loads(SCHEMA.read_text(encoding='utf-8'))
     schema['$ref'] = '#/$defs/' + kind
-    result = json_schema.validate_value(value, schema, SCHEMA)
+    result = json_schema.validate_value(value, schema, SCHEMA, resources=[SCHEMA.with_name('azure-planning.schema.json')])
     require(result['valid'], f'{kind} does not satisfy the versioned contract: {result.get("errors", [])[:3]}')
 
 
@@ -33,7 +36,19 @@ def validate_profile(profile):
     require(profile['fields'].get('technicalPlan', {}).get('authority') == 'git', 'technical plan belongs to Git')
     for role, people in profile['roles'].items():
         require(bool(people), role + ' requires a role binding')
+    if 'azure' in profile:
+        require(profile['provider'] == 'azure', 'Azure settings cannot configure another provider')
     return profile
+
+
+def admit_refinement(root, entry=None):
+    binding, history = authority.read(root / authority.BINDING), authority.read(root / authority.HISTORY)
+    profile = validate_configuration(root, binding, history)
+    require('azure' in profile, 'Azure activation settings are absent')
+    from azure_transport import AzureTransport
+    from azure_provider import AzureProvider
+    from azure_activation import admit
+    return admit(AzureProvider(AzureTransport(profile['azure']['organization']), profile), root, binding, entry)
 
 
 def validate_configuration(root, binding, history):

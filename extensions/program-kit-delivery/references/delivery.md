@@ -1,4 +1,4 @@
-# Optional team delivery — Phase 1
+# Optional team delivery
 
 The extension is installed with Program Kit but disabled by default. No credentials, provider
 calls or cloud writes occur during installation, upgrade, profile preparation or content checks.
@@ -25,9 +25,10 @@ file deletion; shallow/offline history cannot prove absence of removed provenanc
 coordinate cooperating consumers; they do not protect against rewriting all repository history.
 
 Preparation writes a `prepared` configuration with empty history. Its authority remains local.
-Actual enabled activation requires provider verification and an accepted activation record; Phase 1
-has no activation writer. An enabled binding can be inspected and structurally validated, but all
-new refinement/implementation/delivery admission reports `PKD_ADAPTER_UNAVAILABLE`. A fabricated
+Actual enabled activation requires provider verification and an accepted activation record.
+The Azure command implements reviewed setup, planning and per-repository activation for refinement;
+read [azure-planning.md](azure-planning.md) for its scope and recovery rules. GitHub activation,
+implementation claims, verified delivery and acceptance admission are not available yet. A fabricated
 capability flag, native board column or local Ready/Delivered text cannot enable those operations.
 No machine-local override can select a different delivery binding or bypass the core gate.
 

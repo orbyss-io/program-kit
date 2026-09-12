@@ -50,6 +50,9 @@ def prior_history(root):
         tip = subprocess.run(prefix + ['log', '-1', '--diff-filter=AM', '--format=%H', '--', HISTORY.as_posix()],
             cwd=root, capture_output=True, text=True, timeout=10)
         if tip.returncode:
+            unborn = subprocess.run(prefix + ['show-ref', '--head'], cwd=root, capture_output=True, text=True, timeout=10)
+            if unborn.returncode == 1 and not unborn.stdout.strip() and not unborn.stderr.strip():
+                return None  # A newly initialized repository has no committed provenance yet.
             raise DeliveryError('PKD_PROVENANCE_UNAVAILABLE cannot inspect delivery Git history')
         if not tip.stdout.strip():
             return None
@@ -90,7 +93,7 @@ def inspect(root):
         raise DeliveryError('PKD_CONFIG_MISSING binding and history must be retained together')
     binding, history = read(binding_path), read(history_path)
     try:
-        runtime(root).validate_configuration(root, binding, history)
+        profile = runtime(root).validate_configuration(root, binding, history)
     except ValueError as error:
         raise DeliveryError(str(error)) from error
     if previous:
@@ -102,13 +105,19 @@ def inspect(root):
                             'a hand-written history record cannot restore local authority')
     enabled = binding['state'] == 'enabled'
     return {'state': binding['state'], 'authority': 'platform' if enabled else 'local',
-            'admission': 'adapter-unavailable' if enabled else 'local-governance',
+            'admission': ('provider-check-required' if 'azure' in profile else 'adapter-unavailable') if enabled else 'local-governance',
             'provider': binding.get('provider'), 'space': binding.get('space')}
 
 
-def require_admission(root, activity):
+def require_admission(root, activity, entry=None):
+    root = Path(root).resolve()
     status = inspect(root)
     if status['authority'] == 'platform':
+        if activity == 'refinement' and status['admission'] == 'provider-check-required':
+            try:
+                return runtime(root).admit_refinement(root, entry)
+            except ValueError as error:
+                raise DeliveryError(str(error)) from error
         raise DeliveryError(f'PKD_ADAPTER_UNAVAILABLE {activity} requires current provider admission; '
-                            'Phase 1 supplies configuration and technical validation only')
+                            'execution claims and delivery evidence gates are unavailable in this phase')
     return status

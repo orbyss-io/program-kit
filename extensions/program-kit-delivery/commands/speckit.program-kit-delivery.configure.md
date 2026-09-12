@@ -17,8 +17,9 @@ Do not put a profile's own commit hash inside its payload. No credentials belong
 
 Prepare a reviewable candidate binding and run `{SCRIPT} validate-profile --input <profile>`.
 After the user's configuration choices are settled, run `{SCRIPT} prepare --input <binding>`.
-The command writes only checked-in local preparation records. Report that provider activation
-and connection verification are unavailable in Phase 1. Never invent an activation receipt,
+The command writes only checked-in local preparation records. For Azure capability verification
+and reviewed activation, continue with `speckit.program-kit-delivery.azure` and its reference.
+GitHub activation is not implemented yet. Never invent an activation receipt,
 modify history to disable delivery, or invoke the contributor Phase 0 live probes on a consumer.
 
 Machine-local governance settings cannot override delivery authority. Preserve missing or

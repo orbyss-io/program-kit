@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/delivery/azure-planning.schema.json",
+  "$defs": {
+    "id": {"type":"string","pattern":"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$"},
+    "text": {"type":"string","minLength":1},
+    "hash": {"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "profile": {
+      "type":"object","additionalProperties":false,
+      "required":["organization","projectId","areaRoots","types"],
+      "properties": {
+        "organization":{"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9-]{0,49}$"},
+        "projectId":{"$ref":"#/$defs/id"},
+        "areaRoots":{"type":"array","minItems":1,"uniqueItems":true,"items":{
+          "type":"object","additionalProperties":false,"required":["id","path","includeDescendants"],
+          "properties":{"id":{"$ref":"#/$defs/id"},"path":{"$ref":"#/$defs/text"},"includeDescendants":{"type":"boolean"}}
+        }},
+        "types":{"type":"object","additionalProperties":false,"required":["epic","feature","requirement","task"],
+          "properties":{"epic":{"$ref":"#/$defs/type"},"feature":{"$ref":"#/$defs/type"},"requirement":{"$ref":"#/$defs/type"},"task":{"$ref":"#/$defs/type"}}}
+      }
+    },
+    "type":{"type":"object","additionalProperties":false,"required":["initialState","fields"],
+      "properties":{"initialState":{"$ref":"#/$defs/text"},"fields":{"type":"object","required":["title","outcome","owner"],"additionalProperties":{"$ref":"#/$defs/text"}}}},
+    "milestone":{"type":"object","additionalProperties":false,"required":["id","name","ownerId","conditions","requirementIds","targetDate"],
+      "properties":{"id":{"$ref":"#/$defs/text"},"name":{"$ref":"#/$defs/text"},"ownerId":{"$ref":"#/$defs/id"},
+        "conditions":{"$ref":"#/$defs/text"},"requirementIds":{"type":"array","minItems":1,"uniqueItems":true,"items":{"$ref":"#/$defs/text"}},
+        "targetDate":{"oneOf":[{"type":"null"},{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}$"}]}}},
+    "entry":{"type":"object","additionalProperties":false,
+      "required":["key","kind","nativeId","parent","fields","milestones"],
+      "properties":{"key":{"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$"},
+        "kind":{"enum":["epic","feature","requirement","task"]},
+        "nativeId":{"type":["integer","null"],"minimum":1},"parent":{"type":["string","null"],"minLength":1},
+        "fields":{"type":"object","additionalProperties":{"type":["string","number","boolean"]}},
+        "milestones":{"type":"array","items":{"$ref":"#/$defs/milestone"}}}},
+    "proposal":{"type":"object","additionalProperties":false,
+      "required":["schemaVersion","recordType","id","space","profileDigest","entries","basis","role","createdAt"],
+      "properties":{"schemaVersion":{"const":1},"recordType":{"const":"azure-planning-proposal"},
+        "id":{"$ref":"#/$defs/id"},"space":{"$ref":"#/$defs/text"},"profileDigest":{"$ref":"#/$defs/hash"},
+        "entries":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/entry"}},
+        "basis":{"type":"object","additionalProperties":{"type":"object","additionalProperties":false,"required":["revision","fields","relations"],
+          "properties":{"revision":{"type":"integer","minimum":1},"fields":{"type":"object"},"relations":{"type":"array","items":{"type":"object"}}}}},
+        "role":{"const":"business"},"createdAt":{"$ref":"#/$defs/text"}}}
+  }
+}

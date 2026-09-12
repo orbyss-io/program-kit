@@ -24,6 +24,7 @@ grant execution authority. Resolve material ambiguities with the accountable hum
 existing coherent proposal/review flow.
 
 Before a governed transition, use `{SCRIPT} check-admission --activity <activity>` as well as
-the mandatory core governance checks. Phase 1 enabled admission reports unavailable. Local
+the mandatory core governance checks. Enabled Azure refinement checks current provider authority;
+implementation, delivery and acceptance admission await their later phases. Local
 drafting and technical-only validation remain useful; never call their success provider readiness.
 Material changed business scope requires explicit intake/planning/architecture reconciliation.

@@ -37,6 +37,10 @@ class DeliveryTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding='utf-8')
         return path
 
+    def test_empty_git_repository_has_no_prior_delivery_history(self):
+        subprocess.run(['git', 'init', str(self.root)], check=True, capture_output=True)
+        self.assertIsNone(authority.prior_history(self.root))
+
     def install(self):
         shutil.copytree(EXTENSION, self.root / '.specify/extensions/program-kit-delivery')
 
