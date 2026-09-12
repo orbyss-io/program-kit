@@ -97,8 +97,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 18:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 18")
+    if len(command_names) != 19:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 19")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
     if "speckit.program-kit-governance.grilling" not in command_names:

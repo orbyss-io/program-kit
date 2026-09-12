@@ -52,7 +52,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.10.2/Initialize-ProgramKit-0.10.2.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/Initialize-ProgramKit-0.11.0.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -71,7 +71,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.10.2/Initialize-ProgramKit-0.10.2.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/Initialize-ProgramKit-0.11.0.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -152,8 +152,8 @@ Download and verify the full `program-kit-<version>.zip` release asset, extract 
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.10.2\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.10.2 `
+python C:\path\to\program-kit-0.11.0\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.11.0 `
   --target . `
   --integration codex
 ```
@@ -299,6 +299,19 @@ orchestrating setup itself.
   `speckit.implement`, after `speckit.tasks`, and before and after constitution drafting to prevent
   unauthorized specification, regenerate the current ratification packet, and detect architecture drift.
 
+Before every `speckit.specify`, Program Kit checks governance and automatically runs feature grilling
+for the selected roadmap entry. The interview reuses settled facts, resolves material questions and
+pauses for your confirmation of one concise feature brief before specification setup begins. Small
+features can have a short review; uncertain features receive deeper questioning. Saved interviews
+resume, and changes reopen affected decisions. The spec uses the confirmed brief and retains its
+hash; missing or stale evidence blocks later checks and implementation preflight.
+
+You can prepare a feature ahead of time with `$speckit-program-kit-governance-specification-intake`.
+Bootstrap grilling supplies context but does not replace feature confirmation. After upgrading to
+0.11.0, active specs need this intake before their next gated step: existing requirements can seed
+the draft, but approval is never fabricated during upgrade. See the
+[feature-intake contract](extensions/program-kit-governance/references/specification-intake.md).
+
 The preset deliberately uses the Spec Kit `append` strategy, so it augments rather than replaces
 the core templates. If a consumer needs a durable project-specific template, use the project's
 `.specify/templates/overrides/` layer; it has higher precedence and is not managed by Program Kit
@@ -438,11 +451,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.10.2.md`](docs/releasing-0.10.2.md).
+[`docs/releasing-0.11.0.md`](docs/releasing-0.11.0.md).
 
 ```powershell
-git tag v0.10.2
-git push origin v0.10.2
+git tag v0.11.0
+git push origin v0.11.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -467,8 +480,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.10.2.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.10.2.zip -Algorithm SHA256
+gh attestation verify program-kit-0.11.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.11.0.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

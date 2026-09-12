@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-governance"
   name: "Program Kit Governance"
-  version: "0.10.2"
+  version: "0.11.0"
   description: "Ratifies governance and enforces modular, architecture-aware Spec Kit delivery."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"
@@ -30,6 +30,9 @@ provides:
     - name: "speckit.program-kit-governance.grilling"
       file: "commands/speckit.program-kit-governance.grilling.md"
       description: "Relentlessly stress-test a plan, decision, or idea through a dependency-aware design tree."
+    - name: "speckit.program-kit-governance.specification-intake"
+      file: "commands/speckit.program-kit-governance.specification-intake.md"
+      description: "Grill and confirm the selected feature before specification creation or updates."
     - name: "speckit.program-kit-governance.ui"
       file: "commands/speckit.program-kit-governance.ui.md"
       description: "Adopt or safely generate the versioned UI, branding and discoverability profile."
@@ -93,10 +96,18 @@ hooks:
     optional: false
     description: "Validate the current constitution draft and regenerate its review packet before ratification."
   before_specify:
-    command: "speckit.program-kit-governance.architecture-check"
-    priority: 5
-    optional: false
-    description: "Require a ratified constitution and a Ready specification-roadmap entry before feature specification."
+    - command: "speckit.program-kit-governance.architecture-check"
+      priority: 5
+      enabled: true
+      optional: false
+      condition: null
+      description: "Require a ratified constitution and valid specification roadmap before feature intake."
+    - command: "speckit.program-kit-governance.specification-intake"
+      priority: 10
+      enabled: true
+      optional: false
+      condition: null
+      description: "Pause before specification setup until the selected feature has current, explicitly confirmed grilling evidence."
   after_specify:
     - command: "speckit.clarify"
       priority: 5

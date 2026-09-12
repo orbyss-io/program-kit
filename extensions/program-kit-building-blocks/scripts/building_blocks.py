@@ -1319,7 +1319,7 @@ def find_program_kit_version(script: Path) -> str:
             value = candidate.read_text(encoding="utf-8").strip()
             if value:
                 return value
-    return "0.10.2"
+    return "0.11.0"
 
 
 def default_catalog(script: Path) -> Path:

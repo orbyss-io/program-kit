@@ -51,6 +51,7 @@ def validate_hooks() -> None:
         (ROOT / "extensions/program-kit-governance/extension.yml").read_text(encoding="utf-8")
     )
     expected = {
+        "before_specify": ["speckit.program-kit-governance.architecture-check", "speckit.program-kit-governance.specification-intake"],
         "after_specify": ["speckit.clarify", "speckit.program-kit-governance.architecture-check"],
         "after_tasks": ["speckit.analyze", "speckit.program-kit-governance.architecture-check"],
     }

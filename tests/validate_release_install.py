@@ -197,10 +197,13 @@ def main() -> int:
             "scripts/codex_bootstrap_preflight.py",
             "scripts/bootstrap_context.py",
             "scripts/bootstrap_intake.py",
+            "scripts/specification_intake.py",
             "scripts/architecture_map.py",
             "scripts/c4_view.py",
             "commands/speckit.program-kit-governance.assessment.md",
             "commands/speckit.program-kit-governance.grilling.md",
+            "commands/speckit.program-kit-governance.specification-intake.md",
+            "references/specification-intake.md",
             "commands/speckit.program-kit-governance.view-c4.md",
             "references/bootstrap-intake.schema.json",
             "references/architecture-map.schema.json",
@@ -368,12 +371,17 @@ def main() -> int:
         grilling_skill = project / ".agents/skills/speckit-program-kit-governance-grilling/SKILL.md"
         if not grilling_skill.is_file():
             raise AssertionError("Decision grilling skill was not installed")
+        feature_intake_skill = project / ".agents/skills/speckit-program-kit-governance-specification-intake/SKILL.md"
+        if not feature_intake_skill.is_file():
+            raise AssertionError("Mandatory feature intake skill was not installed")
         grilling_reference = (
             ".specify/extensions/program-kit-governance/commands/"
             "speckit.program-kit-governance.grilling.md"
         )
         if grilling_reference not in bootstrap_skill.read_text(encoding="utf-8"):
             raise AssertionError("Installed intake lost its Program Kit grilling dependency")
+        if grilling_reference not in feature_intake_skill.read_text(encoding="utf-8"):
+            raise AssertionError("Installed feature intake lost its Program Kit grilling dependency")
         shipped_grilling = project / grilling_reference
         expected_grilling = extracted_extension / "commands/speckit.program-kit-governance.grilling.md"
         if shipped_grilling.read_bytes() != expected_grilling.read_bytes():
@@ -503,6 +511,7 @@ def main() -> int:
         if extension_config.get("settings", {}).get("auto_execute_hooks") is not True:
             raise AssertionError("Program Kit requires auto_execute_hooks=true")
         expected_order = {
+            "before_specify": ["speckit.program-kit-governance.architecture-check", "speckit.program-kit-governance.specification-intake"],
             "after_specify": ["speckit.clarify", "speckit.program-kit-governance.architecture-check"],
             "after_tasks": ["speckit.analyze", "speckit.program-kit-governance.architecture-check"],
         }
