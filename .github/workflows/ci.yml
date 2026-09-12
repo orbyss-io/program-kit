@@ -76,6 +76,12 @@ jobs:
       - name: Validate bootstrap readiness and accepted-run recovery
         run: python tests/validate_bootstrap_lifecycle.py
 
+      - name: Validate native workflow resumption and versioned live fixtures without agents
+        run: |
+          python tests/validate_workflow_resumption.py
+          python tests/validate_live_fixture_catalog.py
+          python tests/validate_live_workflow_acceptance.py
+
       - name: Validate conversational bootstrap intake and architecture map
         run: python tests/validate_bootstrap_intake.py
 

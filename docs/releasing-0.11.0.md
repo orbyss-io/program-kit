@@ -1,6 +1,10 @@
 # Releasing Program Kit 0.11.0
 
 This minor version adds mandatory feature grilling before specification creation or updates.
+It also moves bootstrap resumption into the native workflow engine and adds versioned live test
+fixtures with explicit fresh/failure/resume phase authorization. Native engine success and live
+execution evidence remain distinct from historical artifact-only recovery. See
+[live workflow cases](workflow-live-acceptance.md) for the optional paid protocol.
 The selected roadmap entry receives a resumable interview, a confirmed brief and current
 hash-bound evidence; later architecture checks and implementation preflight reject missing or
 stale evidence. See [feature intake](../extensions/program-kit-governance/references/specification-intake.md).

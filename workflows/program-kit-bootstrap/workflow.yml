@@ -318,4 +318,5 @@ steps:
 
   - id: complete-bootstrap
     type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py complete-bootstrap"
+    run: "python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step complete --run-id {{ context.run_id }}"
+    output_format: json

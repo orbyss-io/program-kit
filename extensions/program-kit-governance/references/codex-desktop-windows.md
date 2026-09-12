@@ -1,7 +1,7 @@
 # Program Kit setup boundary for Codex on Windows
 
 Run `specify init`, Program Kit bundle or extension installation and updates, and
-`specify workflow run program-kit-bootstrap ...` yourself from a normal user-owned PowerShell or WSL
+`python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run ...` yourself from a normal user-owned PowerShell or WSL
 terminal. Do not run them from a Codex Desktop task or an interactive Codex CLI agent.
 
 ## Reason
@@ -42,7 +42,7 @@ An interactive `codex` CLI agent is also sandboxed; it is not a substitute for a
 4. Start the outer workflow yourself:
 
    ```text
-   specify workflow run program-kit-bootstrap --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
+   python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
    ```
 
    Generate and confirm that fixed intake path through the installed bootstrap skill first. The

@@ -8,7 +8,18 @@
     "schemaVersion": { "const": "2.0" },
     "authorizationId": { "type": "string", "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" },
     "nonce": { "type": "string", "pattern": "[0-9a-f]{64}" },
-    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer"] },
+    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer", "workflow-fresh", "workflow-failure", "workflow-resume"] },
+    "workflow": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fixture", "version", "parentManifest", "verdictInput", "verdict"],
+      "properties": {
+        "fixture": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "parentManifest": {"type": ["string", "null"]},
+        "verdictInput": {"type": ["string", "null"]},
+        "verdict": {"type": ["string", "null"]}
+      }
+    },
     "scenario": { "$ref": "#/$defs/namedDigest" },
     "candidate": {
       "type": "object",

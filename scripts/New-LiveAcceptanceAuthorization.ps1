@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('bootstrap-checkpoint', 'building-block-consumer')]
+    [ValidateSet('bootstrap-checkpoint', 'building-block-consumer', 'workflow-fresh', 'workflow-failure', 'workflow-resume')]
     [string]$Phase,
     [Parameter(Mandatory)]
     [string]$ReleaseReceipt,
@@ -13,13 +13,16 @@ param(
     [int]$TimeoutSeconds = 7200,
     [int]$ExpiresMinutes = 30,
     [string]$Scenario = '',
+    [string]$Fixture = 'price-calculator-approved-intake',
+    [string]$FixtureVersion = '1',
+    [string]$Verdict = '',
     [string]$Output = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $receiptPath = (Resolve-Path -LiteralPath $ReleaseReceipt).Path
-if ($Phase -eq 'building-block-consumer' -and -not $Checkpoint) {
+if ($Phase -in @('building-block-consumer', 'workflow-resume') -and -not $Checkpoint) {
     throw 'LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED: building-block-consumer authorization must bind a checkpoint.'
 }
 if ($Checkpoint) { $Checkpoint = (Resolve-Path -LiteralPath $Checkpoint).Path }
@@ -47,6 +50,17 @@ Write-Host "  Codex launcher: $launcherVersion"
 Write-Host "  timeout: $TimeoutSeconds seconds"
 Write-Host "  expiry: $ExpiresMinutes minutes"
 Write-Host '  worker network: model transport only; registry restore belongs to the supervisor'
+if ($Phase.StartsWith('workflow-')) {
+    Write-Host "  fixture: $Fixture @ $FixtureVersion"
+    Write-Host '  at most 8 paid command dispatches, stopping at the next human gate or terminal outcome'
+    Write-Host "  reviewed gate verdict: $(if ($Verdict) { $Verdict } else { '<none>' })"
+    Write-Host '  each subsequent paid continuation requires its own one-use authorization bound to the saved checkpoint'
+    if ($Phase -eq 'workflow-failure') { Write-Host '  controlled fault: replace an actually READY report immediately before the native readiness requirement' }
+    if ($Checkpoint) {
+        & python (Join-Path $projectRoot 'tests\live\v2\workflow_acceptance.py') inspect-parent --checkpoint $Checkpoint
+        if ($LASTEXITCODE -ne 0) { throw 'LIVE_WORKFLOW_PARENT_INVALID: no authorization was issued.' }
+    }
+}
 $required = "AUTHORIZE $Phase"
 $confirmation = Read-Host "Type '$required' to issue the one-use authorization"
 if ($confirmation -cne $required) { throw 'LIVE_AUTHORIZATION_NOT_CONFIRMED: no authorization was written.' }
@@ -59,6 +73,11 @@ $arguments = @(
     '--output', $Output, '--confirmed'
 )
 if ($Checkpoint) { $arguments += @('--checkpoint', $Checkpoint) }
-if ($Scenario) { $arguments += @('--scenario', ([System.IO.Path]::GetFullPath($Scenario))) }
+if ($Scenario -and -not $Phase.StartsWith('workflow-')) { $arguments += @('--scenario', ([System.IO.Path]::GetFullPath($Scenario))) }
+if ($Phase.StartsWith('workflow-')) {
+    $arguments[0] = Join-Path $projectRoot 'tests\live\v2\workflow_acceptance.py'
+    $arguments += @('--fixture', $Fixture, '--fixture-version', $FixtureVersion)
+    if ($Verdict) { $arguments += @('--verdict', $Verdict) }
+}
 & python @arguments
 if ($LASTEXITCODE -ne 0) { throw "Live authorization issuance failed with exit code $LASTEXITCODE." }

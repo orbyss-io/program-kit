@@ -74,6 +74,9 @@ $developmentValidators = @(
     'validate_building_blocks.py',
     'validate_architecture_placement.py',
     'validate_bootstrap_lifecycle.py',
+    'validate_workflow_resumption.py',
+    'validate_live_fixture_catalog.py',
+    'validate_live_workflow_acceptance.py',
     'validate_building_block_availability.py',
     'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'

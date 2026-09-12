@@ -11,7 +11,9 @@ from typing import Any
 from .common import LiveContractError, atomic_write_json, canonical_sha256, load_object, utc_now, validate
 
 
-PHASES = {"bootstrap-checkpoint", "building-block-consumer"}
+SESSION_LIMITS = {"bootstrap-checkpoint": 7, "building-block-consumer": 1,
+                  "workflow-fresh": 8, "workflow-failure": 8, "workflow-resume": 8}
+PHASES = set(SESSION_LIMITS)
 
 
 def issue_authorization(
@@ -24,6 +26,7 @@ def issue_authorization(
     agent_profile: dict[str, object],
     checkpoint: dict[str, str] | None,
     expires_minutes: int = 30,
+    workflow: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if phase not in PHASES:
         raise LiveContractError(f"LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}")
@@ -31,6 +34,13 @@ def issue_authorization(
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED")
     if phase == "bootstrap-checkpoint" and checkpoint is not None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_FORBIDDEN")
+    if phase.startswith('workflow-'):
+        if workflow is None:
+            raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_BINDING_REQUIRED')
+        if (phase == 'workflow-resume') != (checkpoint is not None):
+            raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_PARENT_MISMATCH')
+    elif workflow is not None:
+        raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_BINDING_FORBIDDEN')
     now = datetime.now(timezone.utc)
     manifest: dict[str, Any] = {
         "schemaVersion": "2.0",
@@ -42,13 +52,15 @@ def issue_authorization(
         "checkpoint": checkpoint,
         "agentProfile": agent_profile,
         "limits": {
-            "maximumPaidSessions": 7 if phase == "bootstrap-checkpoint" else 1,
+            "maximumPaidSessions": SESSION_LIMITS[phase],
             "workerNetwork": "model-transport-only",
             "restoreNetworkOwner": "supervisor",
         },
         "issuedAt": now.isoformat(),
         "expiresAt": (now + timedelta(minutes=expires_minutes)).isoformat(),
     }
+    if workflow is not None:
+        manifest['workflow'] = workflow
     validate(manifest, schema)
     atomic_write_json(destination, manifest)
     return manifest
@@ -92,7 +104,7 @@ def validate_authorization(
     now = datetime.now(timezone.utc)
     if now < _parse_time(manifest["issuedAt"], "issuedAt") or now >= _parse_time(manifest["expiresAt"], "expiresAt"):
         raise LiveContractError("LIVE_AUTHORIZATION_EXPIRED")
-    expected_sessions = 7 if phase == "bootstrap-checkpoint" else 1
+    expected_sessions = SESSION_LIMITS[phase]
     if manifest["limits"]["maximumPaidSessions"] != expected_sessions:
         raise LiveContractError("LIVE_AUTHORIZATION_SESSION_LIMIT")
     return manifest

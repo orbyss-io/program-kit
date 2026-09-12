@@ -47,10 +47,9 @@ governed amendment procedure.
 
 Run these commands as one terminal batch, stopping on the first failure:
 
-When working from a recovery handoff, use `bootstrap_recovery.py synchronize --run-id <handoff-run>`
-then `bootstrap_recovery.py review --run-id <handoff-run>` instead of the fresh-run batch below.
-These commands allow the exact scoped follow-on Proposed bundle during review while readiness
-and completion continue to require Accepted authority.
+When working inside a workflow continuation, return the corrected artifacts to the engine instead
+of running the fresh-run batch below. Its native synchronization and review steps allow the exact
+scoped follow-on Proposed bundle; readiness and completion still require Accepted authority.
 
 1. `python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-prerequisites`
 2. `python .specify/extensions/program-kit-governance/scripts/governance_state.py synchronize-lifecycle`

@@ -37,7 +37,7 @@ outer Spec Kit lifecycle:
    owner. The visible failure can include `SetNamedSecurityInfoW ... error 5` and
    `setup refresh had errors`.
 2. Spec Kit's Codex integration dispatches workflow command steps by starting `codex exec`. Starting
-   `specify workflow run program-kit-bootstrap` from an existing Desktop or CLI agent therefore asks
+   `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run` from an existing Desktop or CLI agent therefore asks
    a sandboxed agent to start another Codex worker.
 
 Starting an interactive `codex` CLI agent and asking that agent to orchestrate setup is not a normal
@@ -74,7 +74,7 @@ Use a normal terminal owned by the human account:
    Program Kit installation. Program Kit requires Python and uses this resolver consistently. Do
    not bypass or lower `AllSigned`, broadly unblock repository files, or grant unrestricted
    execution.
-4. Run `specify workflow run program-kit-bootstrap ...` there.
+4. Run `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run ...` there.
 5. Let Spec Kit launch its `codex exec` workflow workers. Those workers remain sandboxed.
 6. Run each human-reviewed `specify workflow resume ...` command from the same normal shell.
 7. Use Codex Desktop afterward for ordinary repository work and the installed skills.
@@ -82,7 +82,7 @@ Use a normal terminal owned by the human account:
 Example outer command:
 
 ```text
-specify workflow run program-kit-bootstrap --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
 ```
 
 Generate and confirm the fixed intake contract through the installed bootstrap skill first. The

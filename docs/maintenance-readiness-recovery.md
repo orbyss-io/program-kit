@@ -1,7 +1,8 @@
 # Accepted bootstrap readiness failure: diagnosis and recovery
 
-This is an upstream maintenance patch, not a claim that a new release is published or that
-PriceCalculator has completed recovery. The original `bd6be6ca` consumer run remains untouched.
+Program Kit 0.10.2 was published and PriceCalculator completed artifact recovery. This document
+also describes the separate candidate workflow-engine resumption integration. The original
+`bd6be6ca` native run remains unchanged and historically aborted.
 
 ## Causal diagnosis
 
@@ -45,78 +46,40 @@ prose does not justify silently editing or reratifying its approved bytes.
 The detailed shipped authoring contract is
 [bootstrap-lifecycle.md](../extensions/program-kit-governance/references/bootstrap-lifecycle.md).
 
-## Exact procedure for bd6be6ca
+## Workflow-managed continuation
 
-Run these commands from a normal user-owned PowerShell terminal. Program Kit owns all mechanical
-bookkeeping and uses the already confirmed intake. Preparation can be performed immediately with
-the patched source command; it starts no agent and does not change the original run or approval:
+Program Kit 0.10.2 was published and PriceCalculator subsequently completed artifact recovery.
+Its original `bd6be6ca` native workflow remains historically aborted. Those completed artifact
+checks do not demonstrate native workflow resumption. Preserve both facts and the original evidence.
 
-```powershell
-Set-Location C:\Code\Orbyss\PriceCalculator
-python C:\Code\Orbyss\_ProgramKit\extensions\program-kit-governance\scripts\bootstrap_recovery.py prepare --run-id bd6be6ca
-if ($LASTEXITCODE -ne 0) { throw 'Recovery preparation failed; preserve the diagnostic.' }
-```
-
-Preparation writes `.specify/governance/bootstrap-recovery/bd6be6ca/handoff.md` and the immutable
-evidence manifest. Repeating preparation verifies and reuses that archive.
-
-Before the producer/validation phases, install a coherently validated Program Kit release containing
-this patch through the existing sequential release-owned `upgrade_program_kit.py` procedure.
-The old 0.10.1 installed skills/validators do not contain these contracts. Do not overlay individual
-skills or assume that resuming the saved 0.10.1 workflow picks up a new definition. Publication and
-its Release gate are separate from this maintenance change.
-
-Invoke the installed `$speckit-program-kit-governance-bootstrap-recovery` with
-`.specify/governance/bootstrap-recovery/bd6be6ca/handoff.md`. This executes the architecture-closure
-instructions on the existing artifacts. The agent must:
-
-1. Scope RM-01 to anonymous hosted estimation and a durable result. Determine which actual runtime
-   and persistence choices it requires. Admin form-provider, BFF and identity tests are dependencies
-   only of the slices that use them. Synthetic business fixtures do not prove durable persistence.
-2. Execute and inspect the corresponding compatibility recipe, or retain an owned open blocker
-   with a precise next action. Follow-on Proposed decisions must trace any closure or authorized
-   changed disposition of the original retained conditions. Do not rewrite the assessment register
-   or Accepted ADRs to erase those conditions.
-3. Correct current architecture/quality/traceability narrative claims, preserve dated proposal
-   history, and declare exact acceptance scope. Do not alter the ratified constitution. If a
-   constitutional amendment is necessary, use its separate governed amendment procedure; the
-   bounded recovery deliberately refuses changed ratification authority.
-4. Run the supported synchronization and review commands:
+The workflow integration in this candidate replaces the manual producer/synchronize/review/accept/
+evaluate/complete sequence. Install a coherently released candidate containing that integration
+before using the following entry point from the consumer's normal human-owned terminal:
 
 ```powershell
-python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py synchronize --run-id bd6be6ca
-if ($LASTEXITCODE -ne 0) { throw 'Recovery synchronization failed.' }
-python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py review --run-id bd6be6ca
-if ($LASTEXITCODE -ne 0) { throw 'Recovery validation failed; repair the named producer.' }
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id bd6be6ca
 ```
 
-Review `.specify/governance/bootstrap-recovery/bd6be6ca/review.md`, including every named changed
-artifact, before/after hash, prerequisite disposition/evidence and acceptance scope. This is the
-renewed decision: changed architecture and follow-on decisions require review; intake, assessment,
-ratification and original founding approvals remain preserved. Then the user runs:
+The lifecycle selects a bounded producer restart or an explicitly linked native continuation.
+It preserves successful history, the approved intake, assessment, constitution and Accepted ADRs.
+When changed architecture requires approval, it generates an exact review packet and pauses at a
+real native review gate. After the human approves that packet, resume the same source run:
 
 ```powershell
-python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py accept --run-id bd6be6ca --verdict approve
-if ($LASTEXITCODE -ne 0) { throw 'Recovery approval failed or its review basis changed.' }
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id bd6be6ca --input recovery_verdict=approve
 ```
 
-Invoke the installed readiness producer with the recovery handoff. It evaluates current evidence
-and writes its own honest report. It does not edit the original workflow context. Its terminal
-batch and final completion commands are:
+The source ID resolves to the existing continuation, including on repeated calls. The engine
+executes readiness, validation, eligibility and completion. A non-ready verdict remains a failure
+with owned blockers. Check both governed artifacts and the bound engine terminal outcome:
 
 ```powershell
-python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py evaluate --run-id bd6be6ca
-if ($LASTEXITCODE -ne 0) { throw 'Readiness artifact validation failed.' }
-python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py complete --run-id bd6be6ca
-if ($LASTEXITCODE -ne 0) { throw 'Recovery is not complete; inspect the structured blockers.' }
-python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-completion
-if ($LASTEXITCODE -ne 0) { throw 'Completion authority is invalid.' }
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py validate-completion
 ```
 
-A non-ready evaluation is retained with `eligible: false`; evaluation exit 0 alone is not success.
-The 3,126-byte report's target warning is independent of that verdict. Completion requires valid
-current authority and READY, and writes both the canonical completion and a recovery completion
-linked to the unchanged historical run. Provider unavailability remains an honest blocker.
+Existing independent recovery records remain historical artifact evidence. Do not rewrite the
+original aborted run, restart intake, force READY, or claim that those records prove native success.
+See the shipped [workflow resumption contract](../extensions/program-kit-governance/references/workflow-resumption.md).
 
 ## Regression evidence
 

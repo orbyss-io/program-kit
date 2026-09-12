@@ -762,6 +762,8 @@ def main() -> int:
             "Roadmap synchronization and consistency validation must precede the final review packet"
         )
     completion = next(step for step in steps if step["id"] == "complete-bootstrap")
+    if 'workflow_lifecycle.py step complete --run-id {{ context.run_id }}' not in completion.get('run', ''):
+        raise AssertionError('Bootstrap completion must bind the native workflow run')
     readiness_gate = next(step for step in steps if step['id'] == 'require-readiness')
     if (completion.get('continue_on_error') or readiness_gate.get('continue_on_error')
             or step_ids.index('require-readiness') >= step_ids.index('complete-bootstrap')
