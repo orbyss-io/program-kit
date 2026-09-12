@@ -1,5 +1,6 @@
 """Development trial receipts never imply Release validation or authorize a paid worker."""
 import copy
+import os
 import tempfile
 import unittest
 import zipfile
@@ -8,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from live.v2 import trial_candidate as trial
+from live.v2 import cli
 from live.v2.candidate import bootstrap_session_limit, validate_candidate_receipt, validate_release_receipt
 from live.v2.authorization import issue_authorization, validate_authorization
 from live.v2.common import LiveContractError, atomic_write_json, load_object
@@ -108,6 +110,41 @@ class TrialTests(unittest.TestCase):
             atomic_write_json(self.path,manifest)
             with self.assertRaisesRegex(LiveContractError,'SESSION_LIMIT'):
                 validate_authorization(self.path,schema,**expected)
+
+    def test_worker_path_removes_missing_and_duplicate_entries_without_reordering(self):
+        first, second = self.root / 'first', self.root / 'second'
+        first.mkdir()
+        second.mkdir()
+        original = os.pathsep.join(map(str,(first,self.root/'missing',second,first)))
+        with patch.object(cli.shutil,'which',return_value=None):
+            self.assertEqual(cli.compact_windows_path(original),os.pathsep.join(map(str,(first,second))))
+
+    def test_worker_path_refuses_tool_selection_changes_or_remaining_overflow(self):
+        with patch.object(Path,'is_dir',return_value=True), patch.object(cli.shutil,'which',side_effect=['before','after']):
+            with self.assertRaisesRegex(LiveContractError,'PATH_SELECTION_CHANGED'):
+                cli.compact_windows_path('test')
+        entries = os.pathsep.join(f'{index}-'+'x'*200 for index in range(50))
+        with patch.object(Path,'is_dir',return_value=True):
+            with self.assertRaisesRegex(LiveContractError,'PATH_TOO_LONG'):
+                cli.compact_windows_path(entries)
+
+    def test_runtime_preflight_failure_precedes_authorization_consumption_and_worker(self):
+        fixture, project, packages = self.root/'fixture', self.root/'project', self.root/'packages'
+        fixture.mkdir()
+        (packages/'workflow').mkdir(parents=True)
+        (packages/'workflow/workflow.yml').write_text('steps:\n  - id: test-step\n    type: command\n',encoding='utf-8')
+        store = SimpleNamespace(runs=self.root/'runs')
+        authorization = {'limits':{'maximumPaidSessions':1},'candidate':{},'agentProfile':{}}
+        inputs = (self.root,self.root,store,{}, {}, {},'a'*64,authorization)
+        with patch.object(cli,'_phase_inputs',return_value=inputs), patch.object(cli,'execution_workspace',return_value=project), \
+             patch.object(cli,'candidate_packages',return_value=packages), patch.object(cli,'copied_fixture',return_value=fixture), \
+             patch.object(cli,'install_candidate_from_receipt',return_value=[]), patch.object(cli,'worker_guidance'), \
+             patch.object(cli,'bootstrap_runtime_preflight',side_effect=LiveContractError('runtime unavailable')), \
+             patch.object(cli,'consume_authorization') as consume, patch.object(cli,'run_supervised') as worker:
+            with self.assertRaisesRegex(LiveContractError,'runtime unavailable'):
+                cli.bootstrap(SimpleNamespace(authorization='unused'))
+            consume.assert_not_called()
+            worker.assert_not_called()
 
 
 if __name__ == '__main__':

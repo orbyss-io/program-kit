@@ -175,12 +175,41 @@ def preflight(root: Path, receipt: dict[str, Any]) -> None:
         raise LiveContractError("LIVE_ACCEPTANCE_SOURCE_NOT_CLEAN")
 
 
+def compact_windows_path(value: str) -> str:
+    """Keep usable search directories in order within the owned live process tree."""
+    directories, seen = [], set()
+    for entry in value.split(os.pathsep):
+        entry = os.path.expandvars(entry.strip('"'))
+        if not entry:
+            continue
+        try:
+            if not Path(entry).is_dir():
+                continue
+        except OSError:
+            # An unreadable directory might still contain an executable the host can launch.
+            pass
+        identity = os.path.normcase(os.path.normpath(entry))
+        if identity not in seen:
+            seen.add(identity)
+            directories.append(entry)
+    compact = os.pathsep.join(directories)
+    if len(compact) >= 8191:
+        raise LiveContractError('LIVE_WORKER_WINDOWS_PATH_TOO_LONG: usable PATH still exceeds cmd.exe capacity')
+    for name in ('python', *LIVE_TOOLCHAINS, 'pwsh', 'rg', 'uv'):
+        before, after = shutil.which(name, path=value), shutil.which(name, path=compact)
+        if before != after:
+            raise LiveContractError(f'LIVE_WORKER_PATH_SELECTION_CHANGED: {name}')
+    return compact
+
+
 def worker_environment(project: Path, profile: dict[str, Any]) -> dict[str, str]:
     allowed = {
         "PATH", "PATHEXT", "SYSTEMROOT", "COMSPEC", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA",
         "CODEX_HOME", "SSL_CERT_FILE", "SSL_CERT_DIR", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY",
     }
     environment = {key: value for key, value in os.environ.items() if key.upper() in allowed}
+    if os.name == 'nt':
+        environment['PATH'] = compact_windows_path(environment.get('PATH', ''))
     for key in SECRET_KEYS:
         environment.pop(key, None)
     environment.update(
@@ -272,6 +301,18 @@ def operation(command: list[str], project: Path, evidence: Path, name: str, envi
         "startedAt": result.startedAt, "finishedAt": result.finishedAt, "process": process_evidence,
     }
     return result, receipt
+
+
+def bootstrap_runtime_preflight(project: Path, profile: dict, evidence: Path) -> dict:
+    # Exercise the installed resolver and Git/runtime boundary through the same shell before
+    # consuming paid authorization. This command does not invoke a coding agent.
+    command = ['python', '.specify/extensions/program-kit-governance/scripts/codex_bootstrap_preflight.py', '--integration', 'codex']
+    if os.name == 'nt':
+        command = [os.environ.get('COMSPEC', r'C:\Windows\System32\cmd.exe'), '/d', '/c', ' '.join(command)]
+    result, receipt = operation(command, project, evidence, 'runtime-preflight', worker_environment(project, profile), timeout=60)
+    if result.exitCode != 0 or not result.cleanupComplete or not result.logsDrained:
+        raise LiveContractError(f'LIVE_BOOTSTRAP_RUNTIME_PREFLIGHT_FAILED: inspect {evidence / "runtime-preflight"}; authorization not consumed')
+    return receipt
 
 
 def store_logs(store: EvidenceStore, process: ProcessResult, directory: Path) -> list[dict[str, object]]:
@@ -394,6 +435,7 @@ def bootstrap(args: argparse.Namespace) -> int:
             f"LIVE_AUTHORIZATION_SESSION_LIMIT_EXCEEDED: workflow has {paid_steps} paid steps; "
             f"authorization permits {authorization['limits']['maximumPaidSessions']}"
         )
+    setup_receipts.append(bootstrap_runtime_preflight(project, authorization['agentProfile'], run_root / 'setup'))
     consumption = consume_authorization(Path(args.authorization).resolve(), authorization, store.authorizations / "consumed")
     command = [
         shutil.which("specify") or "specify", "workflow", "run", "program-kit-bootstrap",
