@@ -34,6 +34,8 @@ BOOTSTRAP_APPROVAL = Path(".specify/governance/bootstrap-approval.json")
 BOOTSTRAP_COMPLETION = Path(".specify/governance/bootstrap-completion.json")
 PROGRAM_KIT_UPGRADES = Path(".specify/governance/program-kit-upgrades.json")
 READINESS_REPORT = Path("docs/architecture/readiness-report.md")
+PREREQUISITES = Path("docs/architecture/bootstrap-prerequisites.json")
+ACCEPTANCE_SCOPE = Path("docs/architecture/bootstrap-acceptance-scope.json")
 CONFIGURATION = Path(
     ".specify/extensions/program-kit-governance/program-kit-governance-config.yml"
 )
@@ -76,6 +78,7 @@ DECISION_SOURCES = {
 WEB_THREAT_MODEL = "program-kit-web-threat-model-v1"
 WEB_SECURITY_EVIDENCE = "program-kit-web-security-evidence-v1"
 APPROVAL_MODES = {"interactive", "automatic"}
+PENDING_RECOVERY_REVIEW = False
 ASSESSMENT_BASIS = (
     BOOTSTRAP_INTAKE,
     PROJECT_INTENT,
@@ -124,6 +127,10 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
             )
         )
     optional_selection = (BUILDING_BLOCK_SELECTION,) if project_path(BUILDING_BLOCK_SELECTION).is_file() else ()
+    lifecycle_artifacts = tuple(p for p in (PREREQUISITES, ACCEPTANCE_SCOPE) if project_path(p).is_file())
+    if project_path(PREREQUISITES).is_file():
+        ledger = read_json(project_path(PREREQUISITES))
+        lifecycle_artifacts += tuple(sorted({Path(e['path']) for item in ledger.get('prerequisites', []) for e in item.get('evidence', [])}))
     return (
         Path("docs/architecture/README.md"),
         ARCHITECTURE,
@@ -140,6 +147,7 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
         DECISIONS / "bootstrap-baseline.md",
         *decision_files,
         *optional_selection,
+        *lifecycle_artifacts,
         BOOTSTRAP_DECISIONS,
         BOOTSTRAP_REVIEW,
     )
@@ -622,20 +630,48 @@ def _load_architecture_module():
     return module
 
 
-def accept_founding_adrs(records: list[dict[str, str]]) -> list[dict[str, str]]:
+def lifecycle_module():
+    path = Path(__file__).with_name("bootstrap_lifecycle.py")
+    spec = importlib.util.spec_from_file_location("program_kit_bootstrap_lifecycle", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def lifecycle_call(name: str, *args, **kwargs):
+    module = lifecycle_module()
+    try:
+        if name == 'validate_prerequisites':
+            kwargs['allow_proposed_authority'] = PENDING_RECOVERY_REVIEW or not project_path(BOOTSTRAP_APPROVAL).is_file()
+        return getattr(module, name)(Path.cwd().resolve(), *args, **kwargs)
+    except (module.LifecycleError, OSError, KeyError, TypeError) as exc:
+        raise GovernanceStateError(str(exc)) from exc
+
+
+def reviewed_adr_records() -> list[dict[str, str]]:
+    records = founding_adr_records("Proposed")
+    if project_path(ACCEPTANCE_SCOPE).is_file():
+        model = read_json(project_path(ARCHITECTURE_MAP))
+        scope = lifecycle_call("acceptance_scope", model)
+        existing = {r['candidate_id'] for r in records}
+        records += [{"candidate_id": d['id'], "path": d['path'], "sha256": sha256(project_path(Path(d['path'])))}
+                    for d in model['decisions'] if d['id'] in scope and d['id'] not in existing and d['status'] in {'Proposed', 'Accepted'}]
+    return records
+
+
+def accept_founding_adrs(records: list[dict[str, str]], *, existing_accepted: bool = False) -> list[dict[str, str]]:
     architecture = _load_architecture_module()
     map_path = project_path(ARCHITECTURE_MAP)
     model = architecture.load_object(map_path)
     architecture.validate_model(model, Path.cwd().resolve())
     decisions = {item["id"]: item for item in model["decisions"]}
-    candidates = {
-        item["id"]: item for item in model["strategic_model"]["founding_decisions"]
-    }
+    scope = lifecycle_call("acceptance_scope", model)
     accepted: list[dict[str, str]] = []
     for record in records:
         candidate_id = record["candidate_id"]
         decision = decisions.get(candidate_id)
-        if decision is None or decision.get("path") != record["path"] or decision.get("status") != "Proposed":
+        allowed = {"Proposed", "Accepted"} if existing_accepted else {"Proposed"}
+        if decision is None or decision.get("path") != record["path"] or decision.get("status") not in allowed:
             raise GovernanceStateError(
                 f"Architecture decision catalog does not bind Proposed founding ADR {candidate_id}"
             )
@@ -645,13 +681,15 @@ def accept_founding_adrs(records: list[dict[str, str]]) -> list[dict[str, str]]:
             r"^([-*]\s+)?(?:\*\*)?Status(?:\*\*)?:?(?:\*\*)?\s*:\s*Proposed\s*$",
             re.MULTILINE | re.IGNORECASE,
         )
-        if len(pattern.findall(text)) != 1:
+        if decision['status'] == 'Proposed' and len(pattern.findall(text)) != 1:
             raise GovernanceStateError(f"Founding ADR {record['path']} has no unique Proposed status")
-        updated = pattern.sub("- **Status**: Accepted", text, count=1)
-        write_text(path, updated)
+        if decision['status'] == 'Proposed':
+            updated = pattern.sub("- **Status**: Accepted", text, count=1)
+            write_text(path, updated)
         decision["status"] = "Accepted"
         decision["sha256"] = sha256(path)
-        candidate = candidates[candidate_id]
+        candidate = {"affected_elements": scope[candidate_id]["elements"],
+                     "affected_relationships": scope[candidate_id]["relationships"]}
         for element in model["elements"]:
             if element["id"] in candidate["affected_elements"]:
                 element["status"] = "accepted"
@@ -670,6 +708,8 @@ def accept_founding_adrs(records: list[dict[str, str]]) -> list[dict[str, str]]:
                 item["status"] = "accepted"
                 item["decision_refs"] = list(dict.fromkeys([*item["decision_refs"], candidate_id]))
         accepted.append({"candidate_id": candidate_id, "path": record["path"], "sha256": decision["sha256"]})
+    if project_path(ACCEPTANCE_SCOPE).is_file():
+        lifecycle_call("project_lifecycle", model)
     architecture.validate_model(model, Path.cwd().resolve())
     write_json(map_path, model)
     projection = architecture.StructurizrDslExporter().export(model)
@@ -1215,7 +1255,7 @@ def write_review(stage: str) -> None:
         return
     if stage == "bootstrap":
         validate_bootstrap(False, False)
-        founding_adrs = founding_adr_records("Proposed")
+        founding_adrs = reviewed_adr_records()
         artifacts = bootstrap_artifacts()
         rows = []
         for relative in artifacts[:-1]:
@@ -1241,7 +1281,7 @@ def write_review(stage: str) -> None:
             "",
             "## Decision requested",
             "",
-            "Approve the generated architecture baseline, its adoption of explicit intake choices and Program Kit defaults, the exact founding ADR bundle listed below, and any complete Draft building-block selection listed in this packet. Approval deterministically promotes only those founding ADRs, then binds the reviewed selection to them as Accepted and refreshes canonical map bindings. It does not materialize or restore dependencies. Unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision.",
+            "Approve the generated architecture baseline, its adoption of explicit intake choices and Program Kit defaults, the exact founding and scoped follow-on ADR bundle below, the prerequisite dispositions/evidence, the explicit map acceptance scope, and any complete Draft building-block selection. Approval promotes only listed Proposed decisions and scoped map semantics, refreshes deterministic lifecycle views and DSL, and binds the selection as Accepted. Existing Accepted decision text remains unchanged. It does not materialize or restore dependencies. Unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision.",
             "",
             "When the workflow's explicit auto-approval option is enabled, this packet is still retained for post-run review and the approval evidence is marked automatic.",
             "",
@@ -1255,7 +1295,7 @@ def write_review(stage: str) -> None:
             f"- Proposed ADRs requiring separate later decisions: {proposed}",
             f"- Roadmap statuses: {', '.join(roadmap_statuses) if roadmap_statuses else 'none'}",
             "",
-            "## Founding ADRs accepted by this approval",
+            "## Founding and scoped follow-on ADRs covered by this approval",
             "",
             *[
                 f"- `{item['candidate_id']}`: `{item['path']}` (`{item['sha256']}`)"
@@ -1345,6 +1385,8 @@ def validate_constitution_draft() -> None:
     constitution = project_path(CONSTITUTION)
     constitution_metadata(constitution, allow_pending=True)
     text = constitution.read_text(encoding="utf-8")
+    if re.search(r'(?i)(?:this initial Draft awaits ratification|this constitution (?:is|remains) (?:a )?Draft)', text):
+        raise GovernanceStateError('Remove transient drafting prose before ratification; status belongs in canonical metadata')
     if not re.search(r"^\*\*Status\*\*: Draft$", text, re.MULTILINE):
         raise GovernanceStateError("Constitution review requires an explicit Draft status")
 
@@ -1595,6 +1637,9 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
         recorded_approval_mode(record, "Architecture bootstrap approval")
         _require_files(artifacts, "Bootstrap review")
         _verify_artifact_hashes(record, artifacts, "Architecture bootstrap")
+    if project_path(ACCEPTANCE_SCOPE).is_file():
+        lifecycle_call("acceptance_scope", model)
+        lifecycle_call("project_lifecycle", model, check=True)
 
 
 def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
@@ -1610,7 +1655,7 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
         "Bootstrap",
     )
     reviewed_basis = _review_basis(artifacts[:-1])
-    founding_adrs = founding_adr_records("Proposed")
+    founding_adrs = reviewed_adr_records()
     selection = project_path(BUILDING_BLOCK_SELECTION)
     resolver: Path | None = None
     if selection.is_file():
@@ -1632,12 +1677,15 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
                 "Building-block Draft must resolve before bootstrap approval: "
                 + (draft_validation.stderr.strip() or draft_validation.stdout.strip())
             )
-    mutable_paths = [project_path(ARCHITECTURE_MAP), *(project_path(Path(item["path"])) for item in founding_adrs)]
+    mutable_paths = [project_path(ARCHITECTURE_MAP), project_path(WORKSPACE_DSL),
+                     *(project_path(Path(item["path"])) for item in founding_adrs)]
+    if project_path(ACCEPTANCE_SCOPE).is_file():
+        mutable_paths += [project_path(Path('docs/architecture') / name) for name in lifecycle_module().NARRATIVES]
     if selection.is_file():
         mutable_paths.append(selection)
     originals = {path: path.read_bytes() for path in mutable_paths}
     try:
-        accepted_founding_adrs = accept_founding_adrs(founding_adrs)
+        accepted_founding_adrs = accept_founding_adrs(founding_adrs, existing_accepted=True)
         if selection.is_file():
             assert resolver is not None
             result = subprocess.run(
@@ -1658,6 +1706,14 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
                     "Building-block selection acceptance failed after founding ADR promotion: "
                     + (result.stderr.strip() or result.stdout.strip())
                 )
+        # Selection acceptance also updates canonical documentation bindings.
+        if project_path(ACCEPTANCE_SCOPE).is_file():
+            synchronize_lifecycle()
+        else:
+            architecture = _load_architecture_module()
+            model = architecture.load_object(project_path(ARCHITECTURE_MAP))
+            write_text(project_path(WORKSPACE_DSL), architecture.StructurizrDslExporter().export(model))
+        validate_bootstrap(False, False)
     except Exception:
         for path, content in originals.items():
             path.write_bytes(content)
@@ -1683,8 +1739,7 @@ def complete_bootstrap() -> None:
     report = project_path(READINESS_REPORT)
     if not report.is_file():
         raise GovernanceStateError(f"Readiness report is missing: {report}")
-    text = report.read_text(encoding="utf-8")
-    if not text.startswith("**Status**: READY\n"):
+    if not lifecycle_call("verdict")["eligible"]:
         raise GovernanceStateError("Readiness report must begin with '**Status**: READY'")
     write_json(
         project_path(BOOTSTRAP_COMPLETION),
@@ -1706,9 +1761,7 @@ def validate_completion() -> None:
     """Validate the completion record against the current approved artifacts."""
     validate_bootstrap(True, True)
     report = project_path(READINESS_REPORT)
-    if not report.is_file() or not report.read_text(encoding="utf-8").startswith(
-        "**Status**: READY\n"
-    ):
+    if not lifecycle_call("verdict")["eligible"]:
         raise GovernanceStateError("Readiness report must begin with '**Status**: READY'")
     record = read_json(project_path(BOOTSTRAP_COMPLETION))
     expected = {
@@ -1759,6 +1812,11 @@ def roadmap_required_adr_ids(value: str, record_id: str) -> list[str]:
 
 
 def pending_founding_adr_ids() -> set[str]:
+    if PENDING_RECOVERY_REVIEW:
+        model = read_json(project_path(ARCHITECTURE_MAP))
+        scope = lifecycle_call("acceptance_scope", model)
+        return {identity for d in model['decisions'] if d['id'] in scope and d['status'] == 'Proposed'
+                for identity in (d['id'].lower(), Path(d['path']).stem.lower())}
     if (
         project_path(BOOTSTRAP_APPROVAL).is_file()
         or not project_path(BOOTSTRAP_INTAKE).is_file()
@@ -1812,6 +1870,12 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
 
 def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
     records = roadmap_records(project_path(ROADMAP))
+    lifecycle_call("validate_prerequisites", records)
+    # Defense in depth for legacy prose. The structured source inventory and slice
+    # dispositions above are authoritative; moving a gate outside a record cannot hide it.
+    full_text = project_path(ROADMAP).read_text(encoding="utf-8")
+    if re.search(r'(?i)Ready\s*=\s*specification-ready|(?:unresolved|pending)\s+provider\s+decision.{0,160}before\s+(?:implementation|code)', full_text):
+        raise GovernanceStateError('Roadmap hides an unresolved implementation decision or redefines Ready; reconcile the prerequisite ledger and remove the contradictory gate')
     pending_founding: set[str] | None = None
     for record in records:
         identifiers = roadmap_required_adr_ids(
@@ -1830,15 +1894,7 @@ def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
                 f"{record['Status']} roadmap record {record['id']} references unresolved ADRs: "
                 + ", ".join(unresolved)
             )
-        lifecycle_text = "\n".join(
-            record[field]
-            for field in (
-                "Scope",
-                "Dependencies",
-                "Verification responsibility",
-                "Recommended sequence",
-            )
-        )
+        lifecycle_text = "\n".join(record.values())
         hidden_decision_gate = (
             re.search(
                 r"\b(?:proposed|unresolved|pending)\b.{0,180}\b(?:ADR|decision|design task)\b",
@@ -2002,6 +2058,48 @@ def validate_bootstrap_consistency() -> None:
     print("Architecture, roadmap, and traceability roadmap views are consistent")
 
 
+def synchronize_lifecycle() -> None:
+    if not project_path(ACCEPTANCE_SCOPE).is_file():
+        raise GovernanceStateError('Lifecycle synchronization requires an explicit bootstrap-acceptance-scope.json for review')
+    architecture = _load_architecture_module()
+    model = architecture.load_object(project_path(ARCHITECTURE_MAP))
+    lifecycle_call("acceptance_scope", model)
+    lifecycle_call("project_lifecycle", model)
+    architecture.validate_model(model, Path.cwd().resolve())
+    write_json(project_path(ARCHITECTURE_MAP), model)
+    write_text(project_path(WORKSPACE_DSL), architecture.StructurizrDslExporter().export(model))
+
+
+def evaluate_readiness() -> dict:
+    try:
+        result = lifecycle_call("verdict")
+    except GovernanceStateError as exc:
+        lifecycle_module().write(project_path(lifecycle_module().RESULT),
+                                 {'assessment_valid': False, 'eligible': False, 'error': str(exc)})
+        raise
+    # A valid non-ready assessment is useful evidence even when authority is broken.
+    # The result always distinguishes evaluation validity from completion eligibility.
+    import contextlib
+    import io
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            validate_bootstrap(True, True)
+    except GovernanceStateError as exc:
+        result["eligible"] = False
+        result["authority_valid"] = False
+        result["blockers"].append({"id": "governance-authority", "owner": "architecture maintainer", "task": str(exc)})
+        if result["status"] == "READY":
+            result['assessment_valid'] = False
+            lifecycle_module().write(project_path(lifecycle_module().RESULT), result)
+            raise GovernanceStateError(f"READY contradicts governance authority: {exc}") from exc
+    else:
+        result["authority_valid"] = True
+    result["assessment_valid"] = True
+    result["recovery"] = "Preserve this run and approvals. Run bootstrap_recovery.py prepare --run-id <this-run-id>, then invoke the installed bootstrap-recovery command with its handoff."
+    lifecycle_module().write(project_path(lifecycle_module().RESULT), result)
+    return result
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
@@ -2032,6 +2130,10 @@ def main() -> int:
     roadmap_parser.add_argument("--require-ready", action="store_true")
     subparsers.add_parser("synchronize-roadmap")
     subparsers.add_parser("validate-bootstrap-consistency")
+    subparsers.add_parser("evaluate-readiness")
+    subparsers.add_parser("require-readiness")
+    subparsers.add_parser("synchronize-lifecycle")
+    subparsers.add_parser("validate-prerequisites")
     review_parser = subparsers.add_parser("write-review")
     review_parser.add_argument(
         "--stage", required=True, choices=("assessment", "constitution", "bootstrap")
@@ -2079,6 +2181,16 @@ def main() -> int:
             elif args.command == "validate-roadmap":
                 validate_roadmap(args.require_ready)
                 print("Specification roadmap is valid")
+            elif args.command in {"evaluate-readiness", "require-readiness"}:
+                result = evaluate_readiness()
+                print(json.dumps(result))
+                if args.command == "require-readiness" and not result["eligible"]:
+                    return 2
+            elif args.command == "validate-prerequisites":
+                blockers = lifecycle_call("validate_prerequisites", roadmap_records(project_path(ROADMAP)), required=True)
+                print(json.dumps({"blockers": blockers}))
+            elif args.command == "synchronize-lifecycle":
+                synchronize_lifecycle()
             elif args.command == "synchronize-roadmap":
                 synchronize_roadmap_views()
             elif args.command == "validate-bootstrap-consistency":

@@ -1,5 +1,10 @@
 # Recovering a hash-approved bootstrap after roadmap drift
 
+For the accepted bootstrap that reached NOT READY and the abort-only completion gate (`bd6be6ca`),
+use [accepted-bootstrap readiness recovery](maintenance-readiness-recovery.md). That procedure
+preserves the existing run and approvals; the historical replacement-run procedure below does not
+apply to this failure.
+
 Program Kit 0.6.10 supports recovery without cleaning or reinitializing the consumer repository.
 The failed run itself must not be resumed: Spec Kit persists the workflow definition with each run,
 so resuming a 0.6.8 run would retry its old final step without the new synchronization and

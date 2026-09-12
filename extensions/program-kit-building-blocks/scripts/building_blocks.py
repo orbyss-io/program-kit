@@ -1319,7 +1319,7 @@ def find_program_kit_version(script: Path) -> str:
             value = candidate.read_text(encoding="utf-8").strip()
             if value:
                 return value
-    return "0.10.1"
+    return "0.10.2"
 
 
 def default_catalog(script: Path) -> Path:
@@ -1467,13 +1467,13 @@ def main() -> int:
     recover_parser = subparsers.add_parser("recover", help="Roll back an unfinished building-block transaction.")
     recover_parser.add_argument("--target", default=".")
     recover_parser.add_argument("--catalog")
-    for name in ("validate-draft", "plan", "check", "apply"):
+    for name in ("validate-draft", "validate-accepted", "plan", "check", "apply"):
         command = subparsers.add_parser(name)
         command.add_argument("--target", default=".")
         command.add_argument("--selection", default="docs/architecture/building-block-selection.json")
         command.add_argument("--catalog")
         command.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
-        if name == "validate-draft":
+        if name in {"validate-draft", "validate-accepted"}:
             command.add_argument("--require-placement-provenance", action="store_true")
         if name == "apply":
             command.add_argument("--plan-digest", required=True)
@@ -1532,6 +1532,10 @@ def main() -> int:
         if args.command == "validate-draft":
             validate_placements(repository, load_json(selection_path), args.require_placement_provenance)
             print(f"Draft building-block selection is complete and resolves provisionally: {lock['planDigest']}")
+            return 0
+        if args.command == "validate-accepted":
+            validate_placements(repository, load_json(selection_path), args.require_placement_provenance)
+            print(f"Accepted building-block selection resolves with current authority: {lock['planDigest']}")
             return 0
         if args.command == "plan":
             print(pretty_json(lock), end="")
