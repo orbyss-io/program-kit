@@ -1,0 +1,1580 @@
+{
+  "project": {
+    "name": "Price Calculator",
+    "summary": "A generic, organization-branded estimator with configurable item catalogs and branching forms, administrator-reviewed supplier Excel data, multilingual indicative ranges and immutable results. Prove renovation in a hosted app first, then website embedding within launch scope."
+  },
+  "evidence": [
+    {
+      "id": "e1",
+      "source": "project_intent",
+      "locator": "E1",
+      "summary": "Initial product idea: branching selections, item codes, supplier-backed price range, classifications and branding."
+    },
+    {
+      "id": "e2",
+      "source": "project_intent",
+      "locator": "E2",
+      "summary": "Estimator-only correction: intermediary assists consumer, imports supplier sheets, no supplier discovery or selection."
+    },
+    {
+      "id": "e3",
+      "source": "project_intent",
+      "locator": "E3",
+      "summary": "Internal code mapping, item hierarchy, organization administration and generic industry scope."
+    },
+    {
+      "id": "e4",
+      "source": "project_intent",
+      "locator": "E4",
+      "summary": "Renovation is the first proving journey while the product remains generic."
+    },
+    {
+      "id": "e5",
+      "source": "project_intent",
+      "locator": "E5",
+      "summary": "Accepted supplier endpoint arithmetic, organization privacy, configurable quantity rules, public/assisted access and admin imports first."
+    },
+    {
+      "id": "e6",
+      "source": "project_intent",
+      "locator": "E6",
+      "summary": "Hosted app first and embedding next at launch, with flexible separate admin/calculator hosting."
+    },
+    {
+      "id": "e7",
+      "source": "project_intent",
+      "locator": "E7",
+      "summary": "Four named launch languages and acceptance of remaining item, band, publication, snapshot/PDF and multiple-calculator recommendations."
+    },
+    {
+      "id": "e8",
+      "source": "project_intent",
+      "locator": "E8",
+      "summary": "Proceeding acceptance while draft was still being prepared; no unseen synthesis confirmation."
+    },
+    {
+      "id": "d1",
+      "source": "project_intent",
+      "locator": "Applied defaults and proposals / D1",
+      "summary": "Installed UI profile defaults: responsive accessible browser UI, no analytics, editable organization branding."
+    },
+    {
+      "id": "d2",
+      "source": "project_intent",
+      "locator": "Applied defaults and proposals / D2",
+      "summary": "Installed secure-browser default: admin BFF session, provider selection assigned, public calculator needs no admin session."
+    },
+    {
+      "id": "d3",
+      "source": "project_intent",
+      "locator": "Applied defaults and proposals / D3",
+      "summary": "Installed modularity and vertical-slice defaults: consumer-owned boundaries, bridges and outcome-based delivery."
+    },
+    {
+      "id": "p1",
+      "source": "project_intent",
+      "locator": "Applied defaults and proposals / P1",
+      "summary": "Proposed Forms/Localization adapters retain consumer domain meaning; exact package/provider selections belong to architecture."
+    },
+    {
+      "id": "p2",
+      "source": "project_intent",
+      "locator": "Strategic analysis — proposed, not accepted architecture",
+      "summary": "Three proposed contexts, revision-pinning consistency and separation of business models from delivery channels."
+    },
+    {
+      "id": "a1",
+      "source": "project_intent",
+      "locator": "Assigned and deferred items",
+      "summary": "Named architecture, feature and deployment owners/triggers close remaining technical details without inventing production policy."
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact-item-map",
+      "statement": "Suppliers are private organization entities; their product codes map to organization-owned internal item codes through administrator-managed mappings.",
+      "evidence": [
+        "e3",
+        "e5"
+      ]
+    },
+    {
+      "id": "fact-range",
+      "statement": "Sum per-item quantity times lowest/highest eligible comparable supplier unit prices into total endpoints; optional average sums quantity times per-item mean. Totals may mix suppliers.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "fact-bands",
+      "statement": "Admins label percentage boundaries within the total min/max range; quality remains item categorization, separate from price bands.",
+      "evidence": [
+        "e3",
+        "e7"
+      ]
+    },
+    {
+      "id": "fact-languages",
+      "statement": "Launch languages are Dutch, English, French and German.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "fact-estimator",
+      "statement": "Budget feasibility is the consumer outcome; real supplier selection is later business activity outside this app's v1 scope.",
+      "evidence": [
+        "e2"
+      ]
+    }
+  ],
+  "scope": {
+    "included": [
+      {
+        "id": "scope-config",
+        "statement": "Multiple named, branded calculators per organization with private authenticated central administration and separately hostable public delivery.",
+        "evidence": [
+          "e3",
+          "e5",
+          "e6",
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-catalog",
+        "statement": "Core item fields, three-level category hierarchy with optional third level, category-specific typed attributes, configurable units and mapped supplier offers.",
+        "evidence": [
+          "e3",
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-import",
+        "statement": "Administrator Excel import, mapping, validation preview and acceptance of comparable unit/currency/tax-normalized supplier data; one currency per calculator.",
+        "evidence": [
+          "e3",
+          "e5",
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-form",
+        "statement": "Conditional branches and configurable quantity rules, item overview, price ranges, optional means and total-range classifications.",
+        "evidence": [
+          "e1",
+          "e5",
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-publish",
+        "statement": "Draft/validate/preview/publish, coherent calculation versions and visible incomplete results for missing eligible prices.",
+        "evidence": [
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-results",
+        "statement": "Save submission snapshots for organization admins; provide consumer PDF without account/email requirement and without supplier identities.",
+        "evidence": [
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-channels",
+        "statement": "Assisted and independent no-account estimation through hosted and embedded calculators; hosted full app first, embedded website next, both at launch.",
+        "evidence": [
+          "e5",
+          "e6",
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-locales",
+        "statement": "Four-language admin and calculator UI, form/item/classification content, historical estimate views and PDFs.",
+        "evidence": [
+          "e7"
+        ]
+      },
+      {
+        "id": "scope-generic",
+        "statement": "Industry-independent product configuration from launch; initial end-to-end proving journey uses renovation.",
+        "evidence": [
+          "e3",
+          "e4"
+        ]
+      }
+    ],
+    "excluded": [
+      {
+        "id": "exclude-marketplace",
+        "statement": "Consumer supplier discovery, contact, matching and selection are excluded.",
+        "evidence": [
+          "e2"
+        ]
+      },
+      {
+        "id": "exclude-sales",
+        "statement": "Binding quotation acceptance, payments, ordering and procurement are outside the estimator boundary.",
+        "evidence": [
+          "e2"
+        ]
+      },
+      {
+        "id": "exclude-public-supply",
+        "statement": "Public supplier records and cross-organization sharing of commercial data are excluded.",
+        "evidence": [
+          "e5"
+        ]
+      }
+    ],
+    "deferred": [
+      {
+        "id": "defer-supplier-upload",
+        "statement": "Supplier self-upload follows proven administrator import/template workflows in a later release; intermediary review is required before uploaded prices influence estimates.",
+        "evidence": [
+          "e3",
+          "e5"
+        ]
+      },
+      {
+        "id": "defer-custom-domains",
+        "statement": "Custom domains are deferred; hosted calculator links and existing-website embedding remain launch requirements.",
+        "evidence": [
+          "e6",
+          "e7"
+        ]
+      }
+    ]
+  },
+  "actors": [
+    {
+      "id": "actor-admin",
+      "statement": "Organization administrator manages private items, suppliers, mappings, calculators, languages, publication and saved estimates.",
+      "evidence": [
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "actor-intermediary",
+      "statement": "Intermediary guides the consumer through an assessment and may also be an organization administrator.",
+      "evidence": [
+        "e2",
+        "e5"
+      ]
+    },
+    {
+      "id": "actor-consumer",
+      "statement": "Consumer views an assisted estimate or independently fills a public calculator and downloads a result without account/email prerequisites.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "actor-supplier",
+      "statement": "Supplier delivers an Excel sheet offline to the administrator in v1; there is no supplier self-service or consumer interaction.",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5"
+      ]
+    },
+    {
+      "id": "actor-website",
+      "statement": "Website publisher installs the organization's calculator in an existing website after the hosted app proves its first journey.",
+      "evidence": [
+        "e6"
+      ]
+    }
+  ],
+  "quality_requirements": [
+    {
+      "id": "quality-isolation",
+      "statement": "Enforce organization/resource authorization across admin reads/writes, imports, published release resolution and historical access; supplier data never reaches consumer views/PDFs.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "quality-reproducible",
+      "statement": "Preserve answers, items, quantities, resolved language, monetary results and calculation/revision references; later edits cannot rewrite earlier estimates.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "quality-comparable",
+      "statement": "Compare compatible units/currency/tax bases, reject unresolved supplier mapping and visibly indicate missing-price incompleteness.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "quality-generic",
+      "statement": "Keep industry semantics configurable; acceptance must distinguish renovation example content from fixed code assumptions.",
+      "evidence": [
+        "e3",
+        "e4"
+      ]
+    },
+    {
+      "id": "quality-ui",
+      "statement": "Apply responsive phone/tablet/desktop and keyboard/touch accessibility, WCAG 2.2 AA target, reduced motion and no implicit analytics.",
+      "evidence": [
+        "d1"
+      ]
+    },
+    {
+      "id": "quality-embed",
+      "statement": "Hosted and embedded results use shared domain calculations and publication references; admin authentication must not be required for public estimation.",
+      "evidence": [
+        "e5",
+        "e6",
+        "d2"
+      ]
+    }
+  ],
+  "integrations": [
+    {
+      "id": "integration-excel",
+      "statement": "Suppliers deliver Excel files to administrator import; exact schema, parser, limits and replacement policy are assigned to architecture/import specification.",
+      "evidence": [
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "integration-website",
+      "statement": "Existing customer websites embed a published calculator; site technology, allowed origins and exact mechanism are assigned before the embed implementation.",
+      "evidence": [
+        "e6"
+      ]
+    },
+    {
+      "id": "integration-pdf",
+      "statement": "Consumer download renders saved estimate information into PDF; renderer/access mechanism is assigned to the result specification.",
+      "evidence": [
+        "e7"
+      ]
+    }
+  ],
+  "choices": [
+    {
+      "id": "choice-product",
+      "decision": "Generic industry estimator with renovation as the initial proving journey.",
+      "source": "explicit-intake",
+      "rationale": "User knows renovation and explicitly requires generic configuration at launch.",
+      "evidence": [
+        "e3",
+        "e4"
+      ]
+    },
+    {
+      "id": "choice-range",
+      "decision": "Use eligible per-item minimum/maximum unit prices times quantity and additive total endpoints; optional average is the sum of quantity times item mean.",
+      "source": "explicit-intake",
+      "rationale": "Accepted indicative-budget semantics; no promise of a single supplier fulfilling the total.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "choice-bands",
+      "decision": "Admins configure labels and percentage boundaries for the total range initially.",
+      "source": "explicit-intake",
+      "rationale": "Accepted distinction between price classifications and quality categorization.",
+      "evidence": [
+        "e3",
+        "e7"
+      ]
+    },
+    {
+      "id": "choice-tenancy",
+      "decision": "Private organization data with authenticated central admins and multiple published calculators.",
+      "source": "explicit-intake",
+      "rationale": "Each organization controls its own supplier commercial data and calculator configuration.",
+      "evidence": [
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "choice-import",
+      "decision": "Administrator imports in v1; supplier self-upload later with intermediary review.",
+      "source": "explicit-intake",
+      "rationale": "Prove mapping/template quality before external upload access.",
+      "evidence": [
+        "e5"
+      ]
+    },
+    {
+      "id": "choice-delivery",
+      "decision": "Hosted full web app first, embedding next within launch scope; allow separate admin/calculator hosting.",
+      "source": "explicit-intake",
+      "rationale": "First and next customers need different delivery modes without duplicate pricing behavior.",
+      "evidence": [
+        "e6"
+      ]
+    },
+    {
+      "id": "choice-result",
+      "decision": "Save historical estimate snapshots and offer consumer PDF without account/email or supplier details.",
+      "source": "explicit-intake",
+      "rationale": "Accepted need for admin review and usable historical consumer results.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "choice-locales",
+      "decision": "Support Dutch, English, French and German throughout launch experiences and content.",
+      "source": "explicit-intake",
+      "rationale": "Explicit language list, not inferred from development language or regional defaults.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "choice-publication",
+      "decision": "Use draft/validate/preview/publish and review imports; visibly mark unpriced items/incomplete estimates.",
+      "source": "explicit-intake",
+      "rationale": "Protect live calculators and avoid false complete totals.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "choice-ui",
+      "decision": "Adopt ui-experience-v1, no analytics, accessible responsive UI, native CSS tokens and default Lucide icons.",
+      "source": "program-kit-default",
+      "rationale": "Installed browser profile applies; organization branding remains configurable and defaults can be revised at review.",
+      "evidence": [
+        "d1"
+      ]
+    },
+    {
+      "id": "choice-layout",
+      "decision": "Use a focused journey for public estimation and product-shell layout for central administration.",
+      "source": "derived-default",
+      "rationale": "Different tasks need different presentation while sharing product semantics.",
+      "evidence": [
+        "d1",
+        "e6"
+      ]
+    },
+    {
+      "id": "choice-admin-session",
+      "decision": "Apply bff-cookie-v1 and inherited threat/security evidence profiles to authenticated admin.",
+      "source": "program-kit-default",
+      "rationale": "Secure-browser profile applies; public estimates/embeds do not use admin sessions.",
+      "evidence": [
+        "d2",
+        "e5"
+      ]
+    },
+    {
+      "id": "choice-slicing",
+      "decision": "Use outcome-based slices with domain-owned contracts and bridges.",
+      "source": "program-kit-default",
+      "rationale": "Installed vertical-slicing/modularity guidance fits the evidenced lifecycle boundaries.",
+      "evidence": [
+        "d3"
+      ]
+    }
+  ],
+  "capability_assessments": [
+    {
+      "id": "cap-items",
+      "need": "Item definitions and hierarchy",
+      "mechanism_coverage": "not-declared",
+      "program_kit_capabilities": [],
+      "semantic_owner": "catalog",
+      "semantic_profile": "Own item code/name/unit, three category levels, typed attributes and language meaning; no generic form schema becomes the catalog model.",
+      "integration_owner": "catalog",
+      "provider_selection": "Project-owned catalog model; persistence provider selected in architecture.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e3",
+        "e7"
+      ]
+    },
+    {
+      "id": "cap-import",
+      "need": "Supplier Excel import and code mapping",
+      "mechanism_coverage": "not-declared",
+      "program_kit_capabilities": [],
+      "semantic_owner": "catalog",
+      "semantic_profile": "Own supplier identity, product-code mapping, reviewed normalized offers, duplicate/update decisions and immutable accepted revisions.",
+      "integration_owner": "catalog",
+      "provider_selection": "Excel parser and storage selection assigned to architecture/import specification.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "cap-form",
+      "need": "Conditional form editor and runtime mechanisms",
+      "mechanism_coverage": "managed",
+      "program_kit_capabilities": [
+        "forms"
+      ],
+      "semantic_owner": "calculator-design",
+      "semantic_profile": "Forms mechanisms may render, validate and edit schemas; Calculator Design owns branches, selected item references, quantities, band rules and publication semantics.",
+      "integration_owner": "calculator-design",
+      "provider_selection": "Orbyss Forms candidate; renderer/backend and exact package closure require architecture selection.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e1",
+        "e5",
+        "p1"
+      ]
+    },
+    {
+      "id": "cap-catalog-locales",
+      "need": "Translated catalog labels and imports",
+      "mechanism_coverage": "managed",
+      "program_kit_capabilities": [
+        "localization"
+      ],
+      "semantic_owner": "catalog",
+      "semantic_profile": "Catalog owns Dutch/English/French/German item meaning, write/import validation and immutable label revisions; adapter uses reusable catalog mechanisms.",
+      "integration_owner": "catalog",
+      "provider_selection": "Orbyss Localization candidate; durable storage and version compatibility assigned to architecture.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e7",
+        "p1"
+      ]
+    },
+    {
+      "id": "cap-design-locales",
+      "need": "Translated calculator text authoring and runtime",
+      "mechanism_coverage": "managed",
+      "program_kit_capabilities": [
+        "localization",
+        "forms"
+      ],
+      "semantic_owner": "calculator-design",
+      "semantic_profile": "Own form/brand/classification language content; writes and publication pin immutable revisions. Estimation preserves resolved historical text through the recipe bridge.",
+      "integration_owner": "calculator-design",
+      "provider_selection": "Orbyss Localization and Forms bridge candidates; regional/fallback details assigned to feature specification.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e7",
+        "p1"
+      ]
+    },
+    {
+      "id": "cap-ui",
+      "need": "Branding, accessible browser layouts and distribution",
+      "mechanism_coverage": "managed",
+      "program_kit_capabilities": [
+        "ui-experience"
+      ],
+      "semantic_owner": "calculator-design",
+      "semantic_profile": "Organization owns brand and published identities; UI profile supplies tokens/accessibility guidance. Public journey and admin shell share meaning across hosted/embedded delivery.",
+      "integration_owner": "calculator-design",
+      "provider_selection": "ui-experience-v1; native CSS tokens and Lucide default; consumer-owned embed adapter.",
+      "decision_state": "program-kit-default",
+      "evidence": [
+        "e6",
+        "e7",
+        "d1"
+      ]
+    },
+    {
+      "id": "cap-admin-auth",
+      "need": "Authenticated organization administration",
+      "mechanism_coverage": "managed",
+      "program_kit_capabilities": [
+        "authenticated-browser-bff"
+      ],
+      "semantic_owner": "calculator-design",
+      "semantic_profile": "Managed session and HTTP authorization mechanisms; organization settings own publishing/admin grants, and every context enforces its organization/resource permissions.",
+      "integration_owner": "calculator-design",
+      "provider_selection": "bff-cookie-v1 default; identity provider and deployment claim mappings assigned to architecture.",
+      "decision_state": "program-kit-default",
+      "evidence": [
+        "e5",
+        "d2"
+      ]
+    },
+    {
+      "id": "cap-calculation",
+      "need": "Generic quantities and range calculations",
+      "mechanism_coverage": "not-declared",
+      "program_kit_capabilities": [],
+      "semantic_owner": "estimation",
+      "semantic_profile": "Own quantity execution, comparable-price eligibility, min/max/mean aggregation, total-range percentage bands and missing-price completeness.",
+      "integration_owner": "estimation",
+      "provider_selection": "Project-owned deterministic estimator; bounded rule mechanism defined in feature specification.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "cap-history",
+      "need": "Saved estimates and organization history",
+      "mechanism_coverage": "not-declared",
+      "program_kit_capabilities": [],
+      "semantic_owner": "estimation",
+      "semantic_profile": "Own immutable answers, selected items, quantities, historical labels, totals and revision references; admin retrieval cannot silently recalculate.",
+      "integration_owner": "estimation",
+      "provider_selection": "Durable consumer-owned persistence; architecture selects provider and owner-local atomicity.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "cap-pdf",
+      "need": "Consumer PDF output",
+      "mechanism_coverage": "not-declared",
+      "program_kit_capabilities": [],
+      "semantic_owner": "estimation",
+      "semantic_profile": "Own historical consumer-safe output and access policy; account/email are not prerequisites and supplier details are excluded.",
+      "integration_owner": "estimation",
+      "provider_selection": "PDF renderer and download mechanism assigned to architecture/result feature.",
+      "decision_state": "project-owned-design",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "cap-bridges",
+      "need": "Versioned semantic context bridges",
+      "mechanism_coverage": "guided",
+      "program_kit_capabilities": [
+        "modularity-contracts",
+        "vertical-slicing"
+      ],
+      "semantic_owner": "estimation",
+      "semantic_profile": "Downstream-owned queries translate exact recipe and catalog revisions; upstream retains data ownership and Estimation owns submission consistency/failure handling.",
+      "integration_owner": "estimation",
+      "provider_selection": "Consumer bridges; no cross-context store access or atomic writes.",
+      "decision_state": "derived-default",
+      "evidence": [
+        "e7",
+        "d3"
+      ]
+    }
+  ],
+  "domain_analysis": {
+    "boundary_challenges": [
+      {
+        "id": "challenge-catalog-supplier",
+        "boundary": "catalog",
+        "concern": "Supplier is a noun and possible future portal, not automatically a separate bounded context.",
+        "finding": "Keep suppliers and item-code mapping together while the intermediary owns comparability and acceptance; split only on an independent supplier lifecycle.",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "d3"
+        ]
+      },
+      {
+        "id": "challenge-admin-context",
+        "boundary": "calculator-design",
+        "concern": "A central admin screen and independently hosted admin app are not a distinct business model.",
+        "finding": "Admin workflows enter the owning Catalog, Calculator Design or Estimation context; organization publishing settings remain a module. Every context owns its resource rules.",
+        "evidence": [
+          "e3",
+          "e6",
+          "d3"
+        ]
+      },
+      {
+        "id": "challenge-history-context",
+        "boundary": "estimation",
+        "concern": "History, PDF and access controls could become unnecessary separate contexts.",
+        "finding": "Keep snapshots, admin review and consumer export within the same estimate lifecycle. Split only if an independently owned reporting or quotation model emerges.",
+        "evidence": [
+          "e7",
+          "d3"
+        ]
+      },
+      {
+        "id": "challenge-localization-context",
+        "boundary": "calculator-design",
+        "concern": "Generic Forms and Localization mechanisms could absorb item, pricing or release semantics.",
+        "finding": "Catalog owns item language; Calculator Design owns form/brand/band text and publication; Estimation owns historical resolved text. Mechanism adapters support explicit writes and reads without new business contexts.",
+        "evidence": [
+          "e7",
+          "p1",
+          "d3"
+        ]
+      }
+    ],
+    "subdomains": [
+      {
+        "id": "catalog-model",
+        "name": "Item Catalog",
+        "classification": "supporting",
+        "vision": "Define comparable products and services across industries.",
+        "ownership": "Canonical item identity, category hierarchy, typed properties and units.",
+        "non_ownership": "Does not own supplier product codes or estimate arithmetic.",
+        "language_terms": [
+          "item code",
+          "category",
+          "property",
+          "unit"
+        ],
+        "data_ownership": [
+          "item definitions"
+        ],
+        "invariants": [
+          "Item meaning is organization-owned and industry-configurable."
+        ],
+        "lifecycle": "Draft -> validated -> revisioned",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ]
+      },
+      {
+        "id": "supplier-data",
+        "name": "Supplier Data Acquisition",
+        "classification": "supporting",
+        "vision": "Turn supplier spreadsheets into traceable comparable offers.",
+        "ownership": "Supplier entities, code mappings, review and eligible prices.",
+        "non_ownership": "Does not select suppliers for consumers.",
+        "language_terms": [
+          "supplier",
+          "offer",
+          "import",
+          "mapping"
+        ],
+        "data_ownership": [
+          "supplier records",
+          "reviewed offers"
+        ],
+        "invariants": [
+          "Unresolved mappings cannot silently influence estimates."
+        ],
+        "lifecycle": "Received -> staged -> reviewed -> accepted -> superseded",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ]
+      },
+      {
+        "id": "calculator-model",
+        "name": "Guided Calculator Modeling",
+        "classification": "core",
+        "vision": "Express an industry's estimation journey through reusable configuration.",
+        "ownership": "Branches, item selections, quantity rules, classification labels and release meaning.",
+        "non_ownership": "Does not own generic form-renderer source.",
+        "language_terms": [
+          "branch",
+          "selection",
+          "quantity rule",
+          "band"
+        ],
+        "data_ownership": [
+          "calculator recipes",
+          "band configuration"
+        ],
+        "invariants": [
+          "Renovation is configuration, not a hard-coded product limit."
+        ],
+        "lifecycle": "Draft -> validate -> preview -> publish",
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e4",
+          "e5",
+          "e7"
+        ]
+      },
+      {
+        "id": "organization-publishing",
+        "name": "Organization Publishing",
+        "classification": "supporting",
+        "vision": "Publish private organization configuration as branded public calculators.",
+        "ownership": "Branding, calculator identity, language content and publication/distribution settings.",
+        "non_ownership": "Does not create a supplier marketplace.",
+        "language_terms": [
+          "organization",
+          "brand",
+          "publication"
+        ],
+        "data_ownership": [
+          "organization settings",
+          "published identities"
+        ],
+        "invariants": [
+          "Public publication exposes only approved consumer-facing data."
+        ],
+        "lifecycle": "Configure -> preview -> activate -> retire",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e5",
+          "e6",
+          "e7"
+        ]
+      },
+      {
+        "id": "presentation-mechanisms",
+        "name": "Authentication, Forms and Localization Mechanisms",
+        "classification": "generic",
+        "vision": "Use reusable authentication, rendering, editing and language delivery machinery.",
+        "ownership": "Technical mechanisms mediated by domain-owned adapters.",
+        "non_ownership": "Does not own customer permissions, pricing, item language or publication semantics.",
+        "language_terms": [
+          "session",
+          "schema",
+          "locale",
+          "renderer"
+        ],
+        "data_ownership": [
+          "adapter configuration",
+          "mechanism-specific content references"
+        ],
+        "invariants": [
+          "Mechanism adoption never transfers consumer business ownership."
+        ],
+        "lifecycle": "Configure adapters -> version -> validate -> update",
+        "status": "proposed",
+        "evidence": [
+          "d1",
+          "d2",
+          "p1"
+        ]
+      },
+      {
+        "id": "estimate-model",
+        "name": "Budget Estimation",
+        "classification": "core",
+        "vision": "Convert selected items and quantities into useful indicative budget ranges.",
+        "ownership": "Aggregation, completeness, total-range classification and immutable result meaning.",
+        "non_ownership": "Does not promise a binding quote or a jointly available supplier bundle.",
+        "language_terms": [
+          "minimum",
+          "maximum",
+          "mean",
+          "incomplete estimate"
+        ],
+        "data_ownership": [
+          "calculated line items",
+          "estimate snapshots"
+        ],
+        "invariants": [
+          "Total endpoints sum eligible line endpoints; unknown prices remain explicit."
+        ],
+        "lifecycle": "Evaluate -> persist -> present",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7"
+        ]
+      },
+      {
+        "id": "result-delivery",
+        "name": "Result Review and Export",
+        "classification": "supporting",
+        "vision": "Make an estimate usable after submission without exposing suppliers.",
+        "ownership": "Admin history, consumer projections and PDF rendering from saved results.",
+        "non_ownership": "Does not silently recalculate old results.",
+        "language_terms": [
+          "snapshot",
+          "history",
+          "PDF"
+        ],
+        "data_ownership": [
+          "result projections",
+          "download artifacts"
+        ],
+        "invariants": [
+          "Consumer exports contain no supplier identities."
+        ],
+        "lifecycle": "Saved -> retrieved -> rendered/downloaded",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ]
+      }
+    ],
+    "candidate_contexts": [
+      {
+        "id": "catalog",
+        "name": "Catalog",
+        "boundary_kind": "domain-model",
+        "vision": "Provide a private, comparable, revisioned catalog of items and supplier offers.",
+        "responsibilities": [
+          "Own internal item codes, typed category properties, units and translated item meaning.",
+          "Own suppliers, code mappings, Excel review and eligible offer revisions."
+        ],
+        "non_responsibilities": [
+          "Calculator branching and band policies.",
+          "Consumer supplier discovery or selection."
+        ],
+        "language_terms": [
+          "item",
+          "category",
+          "supplier offer",
+          "mapping",
+          "catalog revision"
+        ],
+        "subdomains": [
+          "catalog-model",
+          "supplier-data"
+        ],
+        "data_ownership": [
+          "item definitions and labels",
+          "supplier identities and offers",
+          "import reviews and mappings",
+          "immutable catalog revisions"
+        ],
+        "invariants": [
+          "Every mapped offer belongs to the same organization as its internal item.",
+          "Only compatible, reviewed offers become eligible; supplier codes are not internal item identity."
+        ],
+        "lifecycle": "Draft/imported -> mapped and validated -> accepted revision -> superseded.",
+        "separation_rationale": "Catalog meaning and import eligibility share one administrator but change independently of published recipes and completed results.",
+        "split_triggers": [
+          "Independent supplier onboarding, commercial negotiation or catalog governance becomes a separate business lifecycle."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ]
+      },
+      {
+        "id": "calculator-design",
+        "name": "Calculator Design",
+        "boundary_kind": "domain-model",
+        "vision": "Let organization admins publish reusable, branded estimation journeys across industries.",
+        "responsibilities": [
+          "Own conditional form meaning, quantity rules, bands, calculator identity and release policy.",
+          "Own customer settings, four-language calculator text, release pinning and distribution configuration."
+        ],
+        "non_responsibilities": [
+          "Supplier offer editing or canonical item ownership.",
+          "Persisted consumer estimate identity or recalculation history."
+        ],
+        "language_terms": [
+          "calculator",
+          "branch",
+          "quantity rule",
+          "price band",
+          "translation",
+          "publication"
+        ],
+        "subdomains": [
+          "calculator-model",
+          "organization-publishing",
+          "presentation-mechanisms"
+        ],
+        "data_ownership": [
+          "calculator drafts and immutable releases",
+          "brand and language content",
+          "organization publishing settings"
+        ],
+        "invariants": [
+          "A release references validated same-organization catalog and content revisions.",
+          "No public access to admin credentials, draft definitions or private supplier data."
+        ],
+        "lifecycle": "Draft -> validate -> preview -> published release -> retired.",
+        "separation_rationale": "Authoring and publication have a separate model and lifecycle from supplier imports and immutable estimate results.",
+        "split_triggers": [
+          "Organization management develops independent billing/provisioning semantics.",
+          "Generic translation lifecycle needs an independently owned service."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e3",
+          "e5",
+          "e6",
+          "e7"
+        ]
+      },
+      {
+        "id": "estimation",
+        "name": "Estimation",
+        "boundary_kind": "domain-model",
+        "vision": "Produce understandable, historically stable budget estimates from published calculator recipes.",
+        "responsibilities": [
+          "Own evaluation, min/max/mean aggregation, completeness and total-range classifications.",
+          "Own estimate snapshots, admin history and consumer PDF/read projections."
+        ],
+        "non_responsibilities": [
+          "Mutable form/catalog authoring.",
+          "Supplier selection, quotation acceptance, ordering or payments."
+        ],
+        "language_terms": [
+          "estimate",
+          "selected item",
+          "quantity",
+          "eligible price",
+          "incomplete",
+          "snapshot"
+        ],
+        "subdomains": [
+          "estimate-model",
+          "result-delivery"
+        ],
+        "data_ownership": [
+          "submitted answers",
+          "calculated line and total snapshots",
+          "historical labels and calculation references",
+          "consumer-safe result projections"
+        ],
+        "invariants": [
+          "Every result uses one coherent published recipe and exact catalog revision.",
+          "Missing prices never silently mean zero; consumer results omit supplier identities.",
+          "A stored estimate is not rewritten by later content or price publication."
+        ],
+        "lifecycle": "Published form opened -> answers submitted -> evaluated -> snapshot saved -> viewed/exported.",
+        "separation_rationale": "Execution and historical result identity differ from both authoring state and mutable upstream offers.",
+        "split_triggers": [
+          "Independent quotation, procurement or lead lifecycle is explicitly added.",
+          "History becomes a separately owned reporting product."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7"
+        ]
+      }
+    ],
+    "founding_decision_candidates": [
+      {
+        "id": "founding-boundaries",
+        "title": "Separate Catalog, Calculator Design and Estimation",
+        "question": "Where do item meaning, published calculator configuration and historical results belong?",
+        "recommended_option": "Use three explicit domain boundaries in an initially modular application, with modules inside each context.",
+        "alternatives": [
+          "Keep all behavior in one cohesive context until independent ownership emerges.",
+          "Deploy separate business services for catalog, authoring and estimates."
+        ],
+        "rationale": "Imported mutable supply data, published recipes and immutable estimate results have different language and lifecycle; hosting differences alone do not create business contexts.",
+        "consequences": [
+          "Requires three versioned consumer-owned read bridges.",
+          "Avoid independent service operations until workload or ownership proves the need.",
+          "Split supplier management only when its lifecycle becomes independent."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation"
+        ],
+        "affected_relationships": [
+          "design-reads-catalog",
+          "estimation-reads-design",
+          "estimation-reads-catalog"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e6",
+          "e7",
+          "d3"
+        ]
+      },
+      {
+        "id": "founding-revisions",
+        "title": "Pin published revisions and preserve estimate meaning",
+        "question": "How can imports, translations, publication and estimate history remain coherent without cross-context atomic writes?",
+        "recommended_option": "Catalog creates immutable reviewed revisions; Calculator Design atomically activates a recipe that pins catalog/content revisions; Estimation reads those exact revisions and locally saves the result.",
+        "alternatives": [
+          "Resolve latest accepted catalog revision once at submission and pin it only in the result.",
+          "Copy catalog data into each calculator release through a coordinated publication process."
+        ],
+        "rationale": "Explicit publication and immutable saved results need stable interpretation even when prices or translations later change.",
+        "consequences": [
+          "Accepted price changes require a new calculator activation before public use under this proposal.",
+          "Cross-context dependencies are read-only; only the owning context writes its data.",
+          "Missing revisions fail visibly; retention must preserve references until dependent results can stand alone."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation",
+          "calculator-publication",
+          "estimate-records"
+        ],
+        "affected_relationships": [
+          "admin-publishes-calculator",
+          "estimation-reads-design",
+          "estimation-reads-catalog",
+          "calculation-saves-snapshot"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ]
+      },
+      {
+        "id": "founding-channels",
+        "title": "Share calculator behavior across hosted and embedded delivery",
+        "question": "How should one calculator support a full web app, embedding and independent admin hosting?",
+        "recommended_option": "Keep public calculator execution and domain contracts shared; separate admin/public web composition, with one hosted app delivered first and an isolated embed adapter delivered next within launch scope.",
+        "alternatives": [
+          "Build separate standalone and embedded calculator implementations.",
+          "Distribute a host-page widget that shares the customer's page styling and runtime."
+        ],
+        "rationale": "E6 requires both modes at launch in sequence and allows separate admin hosting; shared execution avoids divergence in quantities, prices and localized results.",
+        "consequences": [
+          "Embedding transport, origins, resizing/accessibility and browser behavior require an architecture compatibility spike.",
+          "Public use cannot require the admin session; admin retains the managed BFF profile.",
+          "Custom domains remain later scope."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "price-calculator",
+          "calculator-design",
+          "estimation",
+          "organization-settings"
+        ],
+        "affected_relationships": [
+          "website-embeds-app",
+          "publisher-uses-app",
+          "consumer-submits-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e6",
+          "e7",
+          "d2"
+        ]
+      },
+      {
+        "id": "founding-mechanisms",
+        "title": "Use managed mechanisms without transferring business ownership",
+        "question": "Which responsibilities belong to reusable Forms/Localization mechanisms versus this product?",
+        "recommended_option": "Adapt Orbyss Forms and Localization through owned Catalog/Calculator Design modules; keep item, quantity, price, language meaning, publication and snapshot rules in consumer contexts.",
+        "alternatives": [
+          "Implement custom form editing/rendering and localization mechanisms.",
+          "Adopt a third-party hosted form service and translate its contracts into the same domain model."
+        ],
+        "rationale": "The installed capability catalog declares these mechanisms, while the product's generic industry semantics and price ownership remain explicit.",
+        "consequences": [
+          "Architecture must verify renderer/backend/storage and package compatibility before selection.",
+          "Authentication uses the applicable managed BFF default for admin, independent of anonymous embedding.",
+          "If .NET is selected, the managed external Foundation.Host default applies; no user stack preference is invented."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation",
+          "form-mechanism",
+          "catalog-localization",
+          "design-localization"
+        ],
+        "affected_relationships": [
+          "admin-maintains-items",
+          "admin-configures-calculator",
+          "estimation-reads-design"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7",
+          "p1",
+          "d2"
+        ]
+      },
+      {
+        "id": "founding-private-data",
+        "title": "Preserve organization and consumer visibility boundaries",
+        "question": "How should central administration coexist with public no-account estimates?",
+        "recommended_option": "All authoring and supplier records remain scoped to an organization; Estimation exposes a separate consumer-safe projection while admins access authorized saved snapshots.",
+        "alternatives": [
+          "Dedicated application/database deployments for every organization.",
+          "Shared public supplier/catalog records with customer-specific filters."
+        ],
+        "rationale": "Users explicitly selected private organization data, public basic estimation and no supplier-consumer interaction.",
+        "consequences": [
+          "Organization/resource authorization applies in every context, import and historical lookup.",
+          "Download access without an account needs an explicit bounded access design.",
+          "Physical data isolation and provisioning are architecture/deployment choices, not inferred shared-data permission."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation",
+          "consumer-output"
+        ],
+        "affected_relationships": [
+          "admin-imports-offers",
+          "consumer-downloads-pdf",
+          "admin-reviews-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7"
+        ]
+      }
+    ]
+  },
+  "open_items": [
+    {
+      "id": "architecture-components",
+      "question": "Which backend/frontend, identity, durable storage and managed renderer/package combination realizes the proposed model?",
+      "classification": "research",
+      "disposition": "Architecture phase compares compatible options and records Proposed ADRs plus package/provider selection; no user technology preference is assumed.",
+      "blocks": "Dependent feature plans and implementation.",
+      "trigger": "Architecture phase before first code.",
+      "evidence": [
+        "p1",
+        "a1"
+      ]
+    },
+    {
+      "id": "architecture-embedding",
+      "question": "Which embed mechanism supports customer sites and independently hosted admin with shared execution?",
+      "classification": "research",
+      "disposition": "Architecture phase compares isolated frame-style embedding with a host-page widget and verifies browser/accessibility/origin behavior.",
+      "blocks": "Embedded delivery implementation.",
+      "trigger": "Architecture phase; delivery follows hosted proving journey but remains launch scope.",
+      "evidence": [
+        "e6",
+        "a1"
+      ]
+    },
+    {
+      "id": "catalog-import-rules",
+      "question": "What exact template, typed attribute constraints, validity, unit/tax normalization, duplicate/update and mapping diagnostics are required?",
+      "classification": "project-owned-design",
+      "disposition": "Catalog/import feature specification defines examples and invariants with the product owner; no incompatible row silently becomes eligible.",
+      "blocks": "Catalog/import feature implementation.",
+      "trigger": "First Catalog and supplier import feature specifications.",
+      "evidence": [
+        "e3",
+        "e7",
+        "a1"
+      ]
+    },
+    {
+      "id": "calculator-rule-details",
+      "question": "What rule vocabulary, branching/backtracking, rounding, repeated selections and zero-width range behavior implement the accepted calculations?",
+      "classification": "project-owned-design",
+      "disposition": "Calculator/Estimation specifications define bounded rules and examples without industry-specific hard coding or changing accepted arithmetic.",
+      "blocks": "Calculator/range feature implementation.",
+      "trigger": "First calculator/estimation feature specifications.",
+      "evidence": [
+        "e5",
+        "e7",
+        "a1"
+      ]
+    },
+    {
+      "id": "publication-protocol",
+      "question": "How are pinned releases, in-flight sessions, idempotent submissions and owner-local failure/retry semantics realized?",
+      "classification": "project-owned-design",
+      "disposition": "Architecture must challenge revision-pinning candidate and record consistency ADR; publication/estimation specs implement the exact protocol.",
+      "blocks": "Publication and estimate persistence implementation.",
+      "trigger": "Architecture and first publication/estimation specifications.",
+      "evidence": [
+        "e7",
+        "p2",
+        "a1"
+      ]
+    },
+    {
+      "id": "language-workflow",
+      "question": "Which regional formatting, fallback and translation editing/import validation rules apply to the four named languages?",
+      "classification": "project-owned-design",
+      "disposition": "Localization/content specifications define these with organization content owners; all four named languages remain launch requirements.",
+      "blocks": "Localized content publication acceptance.",
+      "trigger": "First localization/content specification; approved content before customer onboarding.",
+      "evidence": [
+        "e7",
+        "a1"
+      ]
+    },
+    {
+      "id": "snapshot-access",
+      "question": "What bounded download access and admin-history permissions preserve private data without consumer accounts?",
+      "classification": "project-owned-design",
+      "disposition": "Estimation/result specification defines download access, expiration and projection tests; no unrestricted public historical listing is inferred.",
+      "blocks": "PDF/history feature implementation.",
+      "trigger": "First result/history specification.",
+      "evidence": [
+        "e5",
+        "e7",
+        "a1"
+      ]
+    },
+    {
+      "id": "deployment-policy",
+      "question": "What hosting location, workload limits, retention/deletion and backup/recovery policies apply?",
+      "classification": "deferred",
+      "disposition": "Business owner and delivery team set production policy before onboarding or storing production data; use synthetic data for initial proving work.",
+      "blocks": "Production readiness, not intake or synthetic proving slice.",
+      "trigger": "Before production deployment and data onboarding.",
+      "evidence": [
+        "e1",
+        "e7",
+        "a1"
+      ]
+    },
+    {
+      "id": "organization-onboarding",
+      "question": "How are organizations/admins provisioned and brand assets, translations and embed origins supplied?",
+      "classification": "project-owned-design",
+      "disposition": "Delivery team and business owner define the onboarding workflow in the first administration specification; identity provider selected by architecture.",
+      "blocks": "Production customer onboarding.",
+      "trigger": "Administration feature specification and before production onboarding.",
+      "evidence": [
+        "e3",
+        "e6",
+        "e7",
+        "a1"
+      ]
+    },
+    {
+      "id": "supplier-self-upload",
+      "question": "When should suppliers upload their own Excel sheets?",
+      "classification": "deferred",
+      "disposition": "Product owner commissions a later release after administrator imports/template are proven; intermediary review precedes price activation.",
+      "blocks": "Later supplier-upload feature only.",
+      "trigger": "After the admin import workflow is proven and the release is explicitly commissioned.",
+      "evidence": [
+        "e3",
+        "e5"
+      ]
+    },
+    {
+      "id": "custom-domains",
+      "question": "When are custom calculator domains or more band presentation modes needed?",
+      "classification": "deferred",
+      "disposition": "Product owner can commission custom domains, item-level bands or absolute boundaries later; hosted links and embedding remain included now.",
+      "blocks": "Optional later extensions only.",
+      "trigger": "Explicit customer requirement beyond accepted initial delivery.",
+      "evidence": [
+        "e6",
+        "e7"
+      ]
+    }
+  ],
+  "routing": {
+    "languages": [],
+    "frameworks": [],
+    "interfaces": [
+      "browser-admin",
+      "browser-public",
+      "website-embed",
+      "excel-import",
+      "pdf-download"
+    ],
+    "included_surfaces": [
+      "organization-admin",
+      "hosted-calculator",
+      "embedded-calculator",
+      "estimate-history",
+      "multilingual-authoring"
+    ],
+    "excluded_surfaces": [
+      "supplier-portal-v1",
+      "supplier-discovery",
+      "procurement",
+      "payments"
+    ],
+    "capabilities": [
+      "forms",
+      "localization",
+      "ui-experience",
+      "authenticated-browser-bff",
+      "architecture-governance",
+      "modularity-contracts",
+      "vertical-slicing"
+    ]
+  },
+  "schema_version": "1.1",
+  "status": "confirmed",
+  "journeys": [
+    {
+      "id": "journey-catalog",
+      "statement": "Organization admin defines items for its industry. Outcome: Private categorized items, units, typed properties and four-language labels are saved or visibly rejected.",
+      "evidence": [
+        "e3",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-import",
+      "statement": "Supplier provides a sheet and the organization admin imports it. Outcome: Mapped comparable supplier offers form an accepted catalog revision, or the admin sees validation issues without corrupting the prior revision.",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-publish",
+      "statement": "Organization admin prepares a named branded calculator. Outcome: A validated four-language calculator release is available through its hosted link, with coherent item, price and content revision references.",
+      "evidence": [
+        "e1",
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-assisted",
+      "statement": "Intermediary walks through a renovation with the consumer. Outcome: Consumer receives a saved indicative renovation estimate and sees whether the selected work fits the budget.",
+      "evidence": [
+        "e2",
+        "e4",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-independent",
+      "statement": "Consumer opens a branded hosted calculator without an account. Outcome: Consumer independently receives a saved localized itemized estimate with min/max, optional mean, bands and any incomplete-price indication.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-embed",
+      "statement": "Website publisher embeds a calculator; a consumer uses it on the existing website. Outcome: Consumer completes the same branded estimation journey inside the customer website; admin hosting can remain separate.",
+      "evidence": [
+        "e6",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-history",
+      "statement": "Authenticated organization admin selects a saved estimate. Outcome: Admin sees the original answers, items, quantities, language and prices within its own organization despite later catalog or form changes.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "journey-download",
+      "statement": "Consumer chooses PDF download after a submission. Outcome: Consumer receives a PDF of the saved estimate without an account/email requirement or supplier identities.",
+      "evidence": [
+        "e7"
+      ]
+    }
+  ],
+  "candidate_slice_signals": [
+    {
+      "id": "prove-renovation",
+      "statement": "Intermediary walks through a renovation with the consumer. Outcome: Consumer receives a saved indicative renovation estimate and sees whether the selected work fits the budget.",
+      "evidence": [
+        "e2",
+        "e4",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "catalog-for-industry",
+      "statement": "Organization admin defines items for its industry. Outcome: Private categorized items, units, typed properties and four-language labels are saved or visibly rejected.",
+      "evidence": [
+        "e3",
+        "e7"
+      ]
+    },
+    {
+      "id": "review-import",
+      "statement": "Supplier provides a sheet and the organization admin imports it. Outcome: Mapped comparable supplier offers form an accepted catalog revision, or the admin sees validation issues without corrupting the prior revision.",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "publish-localized",
+      "statement": "Organization admin prepares a named branded calculator. Outcome: A validated four-language calculator release is available through its hosted link, with coherent item, price and content revision references.",
+      "evidence": [
+        "e1",
+        "e3",
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "public-estimate",
+      "statement": "Consumer opens a branded hosted calculator without an account. Outcome: Consumer independently receives a saved localized itemized estimate with min/max, optional mean, bands and any incomplete-price indication.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "history-review",
+      "statement": "Authenticated organization admin selects a saved estimate. Outcome: Admin sees the original answers, items, quantities, language and prices within its own organization despite later catalog or form changes.",
+      "evidence": [
+        "e5",
+        "e7"
+      ]
+    },
+    {
+      "id": "pdf-result",
+      "statement": "Consumer chooses PDF download after a submission. Outcome: Consumer receives a PDF of the saved estimate without an account/email requirement or supplier identities.",
+      "evidence": [
+        "e7"
+      ]
+    },
+    {
+      "id": "embed-next-customer",
+      "statement": "Website publisher embeds a calculator; a consumer uses it on the existing website. Outcome: Consumer completes the same branded estimation journey inside the customer website; admin hosting can remain separate.",
+      "evidence": [
+        "e6",
+        "e7"
+      ]
+    }
+  ],
+  "artifacts": {
+    "project_intent": {
+      "path": "docs/architecture/project-intent.md",
+      "sha256": "2314b416eff027e8875357e49fbe9fdc560bcf7559baac03e327e1a6f1c8510a",
+      "bytes": 25367
+    },
+    "architecture_map": {
+      "path": "docs/architecture/architecture-map.json",
+      "sha256": "5daaada63285ab4401803c977fb4be7ef4545c6be75346608985875430e649dd",
+      "bytes": 104643
+    },
+    "c4_projection": {
+      "path": "docs/architecture/workspace.dsl",
+      "sha256": "b9af830e71c86554cf2ffecf27eb60ecda14e7183e0ea5d2058b86c490da9d22",
+      "bytes": 19271
+    }
+  }
+}

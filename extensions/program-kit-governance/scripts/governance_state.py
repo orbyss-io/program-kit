@@ -1734,6 +1734,13 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
     print(f"Architecture bootstrap is approved: {project_path(BOOTSTRAP_APPROVAL)}")
 
 
+def require_legacy_completion_cli() -> None:
+    version = manifest_version(project_path(EXTENSION_MANIFEST), 'Program Kit Governance extension')
+    components = re.match(r'^(\d+)\.(\d+)\.', version)
+    if components is None or tuple(map(int, components.groups())) >= (0, 11):
+        raise GovernanceStateError('Completion is owned by the native workflow; use workflow_lifecycle.py resume for the existing run')
+
+
 def complete_bootstrap() -> None:
     validate_bootstrap(True, True)
     report = project_path(READINESS_REPORT)
@@ -1774,10 +1781,18 @@ def validate_completion() -> None:
             "sha256": sha256(report),
         },
     }
-    if record != expected:
+    workflow_binding = record.get('workflow')
+    artifact_record = {key: value for key, value in record.items() if key != 'workflow'}
+    if artifact_record != expected:
         raise GovernanceStateError(
             "Bootstrap completion record does not match the current constitution, approval, and readiness report"
         )
+    if workflow_binding is not None:
+        import workflow_lifecycle
+        try:
+            workflow_lifecycle.validate_engine_completion(Path.cwd().resolve())
+        except (workflow_lifecycle.WorkflowLifecycleError, ValueError, OSError) as error:
+            raise GovernanceStateError(str(error)) from error
 
 
 def accepted_adr(adr_id: str) -> bool:
@@ -2203,6 +2218,7 @@ def main() -> int:
             elif args.command == "accept-bootstrap":
                 accept_bootstrap(args.verdict, args.approval_mode)
             elif args.command == "complete-bootstrap":
+                require_legacy_completion_cli()
                 complete_bootstrap()
             elif args.command == "validate-completion":
                 validate_completion()

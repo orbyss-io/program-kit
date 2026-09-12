@@ -32,7 +32,7 @@ Prerequisites:
 - Trust in this repository's catalog and release contents. Inspect them before marking the extension catalog install-allowed.
 
 > **Codex execution boundary:** Run every command in this installation section, every Program Kit
-> update, and the outer `specify workflow run program-kit-bootstrap ...` command yourself from a
+> update, and the outer `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run ...` command yourself from a
 > normal user-owned PowerShell or WSL terminal. Do not ask a Codex Desktop task or an interactive
 > `codex` CLI agent to run them. Agent-run setup can create `.agents` and `.specify` under a sandbox
 > identity on Windows, and the outer workflow would also cause nested `codex exec` execution.
@@ -202,7 +202,7 @@ single physical command line, which can be pasted into PowerShell, Command Promp
 normal user-owned terminal from the repository root:
 
 ```text
-specify workflow run program-kit-bootstrap --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
 ```
 
 To inspect the generated diagrams before confirming intake or approving a review gate, ask
@@ -226,7 +226,7 @@ For an uninterrupted development bootstrap, explicitly opt in to automatic appro
 ratification:
 
 ```text
-specify workflow run program-kit-bootstrap --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto" --input "auto_approve_and_ratify=true"
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto" --input "auto_approve_and_ratify=true"
 ```
 
 This option applies to all three review decisions. The workflow still generates and validates each
@@ -234,11 +234,12 @@ hash-bound review packet, then records `approval_mode: automatic` in the assessm
 and final bootstrap evidence. Review those packets and their listed artifacts after completion. The
 default remains `false`; omit the option when you want the workflow to pause at every gate.
 
-If a Program Kit 0.6.8 run reached final approval but failed completion because architecture,
-roadmap, and traceability disagree, do not edit approved files or resume that run's persisted old
-workflow. Follow the fresh hash-bound recovery procedure in
-[`docs/bootstrap-recovery.md`](docs/bootstrap-recovery.md); it updates Program Kit and starts a new
-workflow run over the existing repository, so cleaning or reinitializing is unnecessary.
+For supported bootstrap failures, use the installed `workflow_lifecycle.py resume --run-id <run-id>`
+entry point described in the [workflow resumption contract](extensions/program-kit-governance/references/workflow-resumption.md).
+It preserves successful stages, selects the affected producer and executes review, validation and
+completion through the native engine. Accepted readiness failures use an explicitly linked continuation;
+the original terminal run remains unchanged. The [older roadmap drift procedure](docs/bootstrap-recovery.md)
+is historical guidance for versions outside the supported migration contract.
 
 Program Kit prevents concurrent bootstrap runs from mutating the same governance artifacts. If a
 hard-terminated process left an older run incorrectly recorded as `running`, the new run stops before
@@ -275,9 +276,9 @@ three times for human review. Continue a paused run after reviewing its generate
 
 ```powershell
 specify workflow status
-specify workflow resume <run-id> --input assessment_verdict=approve
-specify workflow resume <run-id> --input constitution_verdict=ratify
-specify workflow resume <run-id> --input bootstrap_verdict=approve
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <run-id> --input assessment_verdict=approve
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <run-id> --input constitution_verdict=ratify
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id <run-id> --input bootstrap_verdict=approve
 ```
 
 After normal-shell installation, Codex Desktop can use the installed skills for ordinary repository

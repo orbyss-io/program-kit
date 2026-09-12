@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "runId", "phase", "status", "native", "review", "candidate", "scenario", "authorization", "agentProfile", "parent", "executionKind", "fault", "faultPending", "workspace", "projectInventory", "dispatches", "process", "setup", "finishedAt", "usage"],
+  "properties": {
+    "schemaVersion": {"const": "2.1"},
+    "kind": {"const": "workflow-lifecycle"},
+    "runId": {"type": "string", "pattern": "workflow-[0-9a-f]{8}"},
+    "phase": {"enum": ["workflow-fresh", "workflow-failure", "workflow-resume"]},
+    "status": {"enum": ["completed", "paused", "failed"]},
+    "native": {
+      "type": "object", "required": ["run_id", "status", "current_step"],
+      "properties": {
+        "run_id": {"type": "string", "pattern": "[A-Za-z0-9][A-Za-z0-9_-]{0,63}"},
+        "status": {"enum": ["pending", "running", "paused", "completed", "failed", "aborted", "inconclusive"]},
+        "current_step": {"type": ["string", "null"]}
+      }
+    },
+    "candidate": {"type": "string", "pattern": "[0-9a-f]{64}"},
+    "scenario": {"type": "object", "required": ["id", "version", "digest"]},
+    "review": {"type": ["object", "null"]},
+    "parent": {"type": ["object", "null"]},
+    "authorization": {"type": "object", "required": ["authorizationId", "authorizationSha256", "consumedAt"]},
+    "agentProfile": {"type": "object", "required": ["sandbox", "model", "launcherVersion"], "properties": {"sandbox": {"const": "workspace-write"}}},
+    "executionKind": {"enum": ["fresh", "controlled-failure"]},
+    "fault": {"type": ["object", "null"]},
+    "faultPending": {"type": "boolean"},
+    "workspace": {"type": "string", "pattern": "artifacts/live-v2-w/[0-9a-f]{8}"},
+    "projectInventory": {"type": "array", "minItems": 1},
+    "dispatches": {"type": "array"},
+    "process": {"type": "object", "required": ["cleanupComplete", "logsDrained", "stdout", "stderr", "exitCode"]},
+    "setup": {"type": "array"},
+    "finishedAt": {"type": "string", "minLength": 1},
+    "usage": {"type": "object", "required": ["tokens", "cost", "reportedTurns", "note"]}
+  }
+}

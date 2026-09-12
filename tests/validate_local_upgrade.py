@@ -128,6 +128,69 @@ def lifecycle_sha256(path: Path) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def seed_confirmed_feature_intake(project: Path, spec: Path) -> None:
+    """Provide the real intake prerequisite for this disposable upgrade fixture."""
+    import validate_governance_state as governance_fixture
+
+    scripts = project / ".specify/extensions/program-kit-governance/scripts"
+    missing = run(
+        sys.executable, str(scripts / "implementation_preflight.py"),
+        "--repository", str(project), "--feature-dir", str(spec.parent), cwd=project,
+    )
+    if missing.returncode == 0 or "PKS001" not in missing.stderr:
+        raise AssertionError(f"Missing feature intake was not rejected:\n{missing.stdout}{missing.stderr}")
+
+    original_directory = Path.cwd()
+    sys.path.insert(0, str(scripts))
+    try:
+        import specification_intake as intake
+
+        os.chdir(project)
+        governance = intake.governance
+        governance.configure_paths()
+        constitution = project / governance.CONSTITUTION
+        constitution.parent.mkdir(parents=True, exist_ok=True)
+        constitution.write_text(
+            governance_fixture.constitution(pending=False).replace("**Status**: Draft", "**Status**: Ratified"),
+            encoding="utf-8",
+        )
+        version, ratified, amended = governance.constitution_metadata(constitution)
+        intake.atomic_write(project / governance.RATIFICATION, {
+            "status": "Ratified", "gate_verdict": "ratify", "approval_mode": "interactive",
+            "constitution": {"path": governance.CONSTITUTION.as_posix(), "version": version,
+                             "sha256": sha256(constitution), "ratified": ratified, "last_amended": amended},
+        })
+        (project / governance.ARCHITECTURE).write_text(
+            "# Accepted upgrade fixture architecture\nCatalog.Api owns the OpenAPI contract.\n", encoding="utf-8",
+        )
+        roadmap = project / governance.ROADMAP
+        roadmap.parent.mkdir(parents=True, exist_ok=True)
+        roadmap.write_text(governance_fixture.roadmap().replace("SPEC-001", "SPC-001"), encoding="utf-8")
+        brief_path = intake.begin(project, "SPC-001", "Upgrade the Catalog.Api OpenAPI producer pin")
+        brief = intake.read(brief_path)
+        brief.update({field: "Catalog.Api upgrade fixture: " + field for field in intake.FIELDS})
+        brief["decisions"] = [{
+            "id": "Q1", "question": "Which contract is in scope?", "answer": "Catalog.Api OpenAPI",
+            "provenance": "Deterministic upgrade fixture", "rationale": "Exercise producer-pin renewal",
+            "dependsOn": [], "disposition": "answered", "blocking": True,
+        }]
+        intake.atomic_write(brief_path, brief)
+        reviewed = intake.review(project, "SPC-001")
+        intake.confirm(project, "SPC-001", reviewed["reviewHash"],
+                       "Deterministic fixture confirmation", "The fixture confirms this exact review")
+        confirmed = intake.check(project, "SPC-001")
+        spec.write_text(
+            spec.read_text(encoding="utf-8")
+            + f"- **Confirmed intake brief**: {confirmed['brief']}\n"
+            + f"- **Confirmed intake SHA256**: {confirmed['briefHash']}\n",
+            encoding="utf-8",
+        )
+        intake.check_spec(project, spec)
+    finally:
+        os.chdir(original_directory)
+        sys.path.remove(str(scripts))
+
+
 def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
     feature = project / "specs/001-openapi-upgrade"
     feature.mkdir(parents=True)
@@ -142,6 +205,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         "- **Owned contracts and data**: Catalog.Api OpenAPI\n",
         encoding="utf-8",
     )
+    seed_confirmed_feature_intake(project, spec)
     plan.write_text(
         "# plan\n## Architecture Realization\n"
         "- **Roadmap entry and status transition**: SPC-001\n"
@@ -675,7 +739,10 @@ def main() -> int:
             cwd=project,
         )
         if stale.returncode != 11 or "PKL011" not in stale.stderr:
-            raise AssertionError("implementation preflight did not block invalidated lifecycle readiness")
+            raise AssertionError(
+                "implementation preflight did not block invalidated lifecycle readiness:\n"
+                f"{stale.stdout}{stale.stderr}"
+            )
         lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
         require_success(
             run(

@@ -181,7 +181,7 @@ def main() -> int:
         / "extensions/program-kit-governance/commands/speckit.program-kit-governance.bootstrap.md"
     ).read_text(encoding="utf-8")
     command = (
-        'specify workflow run program-kit-bootstrap --input '
+        'python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input '
         '"bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"'
     )
     if command not in skill or "`\n" in command or "\\\n" in command:

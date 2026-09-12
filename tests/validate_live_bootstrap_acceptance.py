@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import http.client
 import io
 import json
 import os
@@ -9,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
+import urllib.parse
 import zipfile
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -211,11 +213,22 @@ def main() -> int:
             ROOT, catalog_artifacts, catalog_packages, catalog_evidence, "0.10.0"
         )
         try:
-            with urllib.request.urlopen(
-                f"{catalog_url}/program-kit-governance-0.10.0.zip", timeout=10
-            ) as response:
+            # This server is explicitly loopback HTTP. urllib's default opener
+            # initializes an unrelated TLS context, which aborts in the local
+            # Windows Python/OpenSSL build before the HTTP test can execute.
+            endpoint = urllib.parse.urlsplit(catalog_url)
+            if endpoint.scheme != 'http' or endpoint.hostname not in {'127.0.0.1', 'localhost'}:
+                raise AssertionError('Candidate catalog test escaped loopback HTTP')
+            connection = http.client.HTTPConnection(endpoint.hostname, endpoint.port, timeout=10)
+            try:
+                connection.request('GET', endpoint.path.rstrip('/') + '/program-kit-governance-0.10.0.zip')
+                response = connection.getresponse()
+                if response.status != 200:
+                    raise AssertionError(f'Local candidate catalog returned HTTP {response.status}')
                 if response.read() != catalog_payload:
                     raise AssertionError("Local candidate catalog corrupted an archive transfer")
+            finally:
+                connection.close()
             if os.name == "nt" and catalog_server.mode != "process":
                 raise AssertionError("Windows candidate catalogs are not process-isolated")
         finally:

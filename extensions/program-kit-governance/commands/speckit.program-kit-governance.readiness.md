@@ -22,9 +22,11 @@ final byte count; do not omit decisive evidence merely to reach a target.
 An over-target warning below the hard budget is not a failed check. Do not add ad hoc size
 assertions or repeatedly truncate the report.
 
-For an accepted-bootstrap recovery handoff, use its explicit source paths and terminal batch
-instead of generating a new workflow context or changing the original run. Read the current
-prerequisite ledger and its source/evidence bindings as well as the preserved authority.
+For an accepted-bootstrap continuation, use its current source paths rather than new intake
+or stale historical context. Read the current prerequisite ledger, evidence bindings and
+preserved authority. The workflow owns evaluation, eligibility and completion. Produce the
+report, then stop; never invoke independent recovery acceptance/completion or claim that a
+standalone completion file proves workflow success.
 
 ## Constitutional and portfolio prerequisites
 

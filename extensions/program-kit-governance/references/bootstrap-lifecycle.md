@@ -75,11 +75,10 @@ non-ready assessment. A purported READY assessment with invalid authority fails 
 wrapper exits 2 for its invalid-output contract). `complete-bootstrap` retains independent authority
 and exact READY checks. The workflow fails resumably before completion, never at an abort-only gate.
 
-For an already-aborted technical completion failure, use `bootstrap_recovery.py prepare --run-id
-<existing-id>`. It validates the abort-only signature and existing approval hashes, freezes the
-original run/artifacts, and writes a handoff without editing state.json or launching any agent.
-The same command supports fresh failed readiness steps after approval. Semantic rejection and
-running or completed workflows are refused. `review`, `accept`, `evaluate`, `complete` implement
-the bounded recovery sequence. Only a reviewed replacement architecture bundle receives renewed
-approval; intake, assessment and ratification remain unchanged. Original failure evidence is never
-reclassified as a human semantic rejection. Recovery completion links to the unchanged original run.
+Use the supported `workflow_lifecycle.py resume --run-id <existing-id>` workflow entrypoint;
+see [workflow-resumption.md](workflow-resumption.md). The engine owns producers, review gates,
+eligibility and successful terminal state. Accepted readiness failures use a linked native
+continuation that preserves the historical source. Failed earlier stages rerun the affected
+producer with invalidated downstream step results. Technical abort-only history is not semantic
+rejection. Internal artifact helpers preserve evidence, but their success or an independent
+completion file does not establish workflow success. Completion must bind a completed engine run.
