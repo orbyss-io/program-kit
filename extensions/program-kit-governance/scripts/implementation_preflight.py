@@ -36,6 +36,13 @@ def main() -> int:
         print("PKI001 feature directory must stay inside the repository.", file=sys.stderr)
         return 2
     scripts = Path(__file__).resolve().parent
+    intake = run(
+        [sys.executable, str(scripts / "specification_intake.py"),
+         "--repository", str(repository), "check-spec", "--spec", str(feature_dir / "spec.md")],
+        repository,
+    )
+    if intake != 0:
+        return intake
     lifecycle = run(
         [
             sys.executable,

@@ -16,7 +16,7 @@ unchanged bootstrap artifact, search other artifact directories, or enumerate in
 Use `governance.paths` and the exact writes and validation command in `output_contract`. The roadmap
 field contract is stated below. Do not search `.specify` or inspect `governance_state.py` to
 rediscover either contract; run the supplied validator and respond only to a specific diagnostic.
-Use `output_contract.artifact_target_bytes` as the generation ceiling and
+Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after every write, including edits to
 existing files.
 
@@ -104,6 +104,15 @@ After writing the roadmap, run the single command in `output_contract.validation
 batches the output-budget and roadmap-governance checks. Repair only a named diagnostic and rerun
 that same batch once. After it passes, stop immediately: do not inspect a diff, remeasure files,
 read another source, or run another command.
+
+Before that terminal batch, inventory `docs/architecture/bootstrap-prerequisites.json` using
+the installed `references/bootstrap-lifecycle.md` contract. It binds all unresolved/deferred
+assessment items and retained ADR conditions to exact affected entries, owners, triggers and
+closure evidence. Program Kit owns IDs and paths. Read the full roadmap including its preamble;
+never redefine Ready as specification-ready or place a global before-code gate outside records.
+Keep open architecture dependencies Blocked. The subsequent bootstrap-closure command executes
+bounded compatibility tasks and reconciles eligibility before final review. An all-Blocked draft
+is a valid portfolio assessment and does not authorize implementation or bootstrap completion.
 
 Do not promote a record merely to make bootstrap pass. Keep a record `Candidate` or `Blocked` when
 an architecture-significant prerequisite outside the feature slice is unresolved. Do not block it

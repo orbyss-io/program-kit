@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.10.1"
+  version: "0.11.0"
   author: "Orbyss"
   description: "Consumes a confirmed conversational intake and orchestrates Program Kit assessment, ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -242,6 +242,21 @@ steps:
     run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-stage --stage roadmap --run-id {{ context.run_id }} --json"
     output_format: json
 
+  - id: architecture-prerequisite-closure
+    type: command
+    command: "speckit.program-kit-governance.bootstrap-closure"
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "Use the existing approved assessment and generated architecture/roadmap. Inventory and disposition prerequisite sources, run bounded isolated compatibility recipes for architecture dependencies of the intended first slice, then regenerate the roadmap eligibility and lifecycle projections. Do not alter approved intake or assessment. Unresolved architecture dependencies keep their affected entries Blocked."
+
+  - id: validate-prerequisite-closure
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-prerequisites"
+
+  - id: synchronize-lifecycle
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py synchronize-lifecycle"
+
   - id: synchronize-roadmap
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py synchronize-roadmap"
@@ -269,7 +284,7 @@ steps:
     default:
       - id: review-bootstrap
         type: gate
-        message: "Gate 3/3 — Final bootstrap approval. Review the concise packet, every listed artifact, and the exact hash-bound founding ADR bundle. To open the diagrams, ask 'View the C4 projection' or invoke $speckit-program-kit-governance-view-c4; Program Kit validates freshness and uses a temporary localhost viewer without changing the canonical map. Approval deterministically promotes only the listed founding ADRs and refreshes their canonical map projection; unrelated Proposed ADRs remain Proposed. Reject keeps the run paused for revision and packet regeneration."
+        message: "Gate 3/3 — Final bootstrap approval. Review the packet, every listed artifact, the founding and scoped follow-on ADR bundle, prerequisite evidence/dispositions, and exact map acceptance scope. To open the diagrams, ask 'View the C4 projection' or invoke $speckit-program-kit-governance-view-c4. Approval promotes only listed Proposed decisions and scoped map semantics, refreshes deterministic lifecycle views and DSL, and accepts the reviewed selection. Unrelated proposals stay Proposed. Acceptance does not substitute for compatibility proof. Reject keeps the run paused for revision and packet regeneration."
         show_file: "docs/architecture/reviews/bootstrap-review.md"
         options: [approve, reject]
         on_reject: retry
@@ -292,22 +307,15 @@ steps:
 
   - id: validate-readiness-output
     type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage readiness --json"
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-stage --stage readiness --run-id {{ context.run_id }} --json"
     output_format: json
+
+  # A non-ready assessment is preserved and stops at a recoverable shell failure.
+  # No gate translates technical remediation into a human rejection.
+  - id: require-readiness
+    type: shell
+    run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py require-readiness"
 
   - id: complete-bootstrap
     type: shell
     run: "python .specify/extensions/program-kit-governance/scripts/governance_state.py complete-bootstrap"
-    continue_on_error: true
-
-  - id: report-completion-result
-    type: switch
-    expression: "{{ steps.complete-bootstrap.output.exit_code }}"
-    cases:
-      "0": []
-    default:
-      - id: confirm-completion-failure
-        type: gate
-        message: "Bootstrap completion failed. complete-bootstrap stderr: {{ steps.complete-bootstrap.output.stderr }}"
-        options: [abort]
-        on_reject: abort

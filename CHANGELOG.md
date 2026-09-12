@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.11.0 - 2026-09-12
+
+- Require feature grilling through a mandatory pre-specification intake hook before creating or
+  updating specs. Reuse the shipped interview method, preserve interrupted interviews and require
+  one explicit review of the feature's outcome, scope, journeys, failures and acceptance criteria.
+- Bind confirmation to the exact feature brief and governance context. Reject incomplete, blocking,
+  stale or mismatched evidence; carry the confirmed brief into spec traceability and implementation
+  preflight. Existing active specs need feature intake at their next gated step after upgrade.
+- Add bounded offline evidence, hook-ordering and setup-boundary regressions to Development and CI.
+  Advance Program Kit components together; Orbyss runtime component pins remain unchanged.
+
 ## 0.10.1 - 2026-09-12
 
 - Allow architecture to declare exact planned building-block targets before consumer manifests

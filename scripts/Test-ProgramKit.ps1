@@ -66,6 +66,7 @@ function Invoke-ProgramKitNative {
 $developmentValidators = @(
     'validate_components.py',
     'validate_test_suites.py',
+    'validate_specification_intake.py',
     'validate_intake_session.py',
     'validate_intake_authoring.py',
     'validate_json_schema.py',
@@ -73,6 +74,7 @@ $developmentValidators = @(
     'validate_orbyss_building_blocks.py',
     'validate_building_blocks.py',
     'validate_architecture_placement.py',
+    'validate_bootstrap_lifecycle.py',
     'validate_building_block_availability.py',
     'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'

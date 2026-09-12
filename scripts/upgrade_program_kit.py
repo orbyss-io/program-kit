@@ -576,15 +576,19 @@ def building_block_versions(release: Path) -> dict[str, str]:
     return versions
 
 
-def building_block_selection_is_compatible(target: Path, release: Path) -> bool:
+def building_block_upgrade_state(target: Path, release: Path) -> str | None:
+    """Validate authority and distinguish an accepted plan from applied dependencies.
+
+    A missing lock alone is never evidence of an unmaterialized selection. That
+    state also requires complete planned placement, absent targets and outputs,
+    and no pending transaction or unmanaged building-block dependency.
+    """
     selection_path = target / "docs/architecture/building-block-selection.json"
-    if not selection_path.is_file():
-        return False
     lock_path = target / ".program-kit/building-blocks.lock.json"
-    if not lock_path.is_file():
-        raise UpgradeError(
-            "PKU116 an Accepted building-block selection exists without its generated lock; repair selection state before upgrading"
-        )
+    if not selection_path.is_file():
+        if lock_path.exists():
+            raise UpgradeError("PKU116 building-block lock exists without its selection; repair selection state before upgrading")
+        return None
     catalog_path = release / "extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
     resolver_path = release / "extensions/program-kit-building-blocks/scripts/building_blocks.py"
     spec = importlib.util.spec_from_file_location("program_kit_upgrade_building_blocks", resolver_path)
@@ -605,7 +609,33 @@ def building_block_selection_is_compatible(target: Path, release: Path) -> bool:
             "No Program Kit component mutation started. Use the release building-block resolver to prepare a Draft transition, "
             "review changed packages/placements/activations/configuration, and renew architecture acceptance before retrying."
         )
-    return True
+    try:
+        desired = module.resolve(target, selection_path, catalog_path, (release / "VERSION").read_text().strip())
+        transactions = module.transaction_root(target)
+        if transactions.exists() and (not transactions.is_dir() or any(transactions.iterdir())):
+            raise UpgradeError("PKU116 unfinished building-block transaction; run supported building-block recovery before upgrading")
+        if lock_path.exists():
+            # Verify the old applied state before installation can replace any of
+            # its inputs. Only generator/catalog provenance may change afterward.
+            installed_catalog = target / ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
+            previous = module.resolve(target, selection_path, installed_catalog, current_version(target))
+            actual = module.load_json(lock_path)
+            if actual != previous:
+                raise UpgradeError("PKU116 generated building-block lock is stale or corrupt; repair materialized state before upgrading")
+            module.check_materialization(target, actual)
+            module.audit_unmanaged_dependencies(target, catalog, actual)
+            return "materialized"
+        module.validate_placements(target, selection, require_all=True)
+        if any(item["placement"]["state"] != "planned" for item in selection["targets"]):
+            raise UpgradeError("PKU116 missing building-block lock for observed placement; repair materialized state before upgrading")
+        paths = {item["path"] for item in selection["targets"] + desired["managedOutputs"]}
+        existing = sorted(path for path in paths if module.repository_path(target, path).exists())
+        if existing:
+            raise UpgradeError("PKU116 missing building-block lock with existing targets or managed outputs: " + ", ".join(existing))
+        module.audit_unmanaged_dependencies(target, catalog, None)
+        return "planned"
+    except module.ResolverError as error:
+        raise UpgradeError(f"PKU116 building-block upgrade preflight failed: {error}") from error
 
 
 def resynchronize_building_block_provenance(target: Path) -> None:
@@ -784,7 +814,7 @@ def main() -> int:
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
         previous_version = current_version(target)
-        has_building_block_selection = building_block_selection_is_compatible(target, release)
+        building_block_state = building_block_upgrade_state(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
         reconciliation = discover_openapi_reconciliation(target, release)
@@ -835,7 +865,7 @@ def main() -> int:
         total = (
             len(steps)
             + (2 if profile else 0)
-            + (1 if has_building_block_selection else 0)
+            + (1 if building_block_state else 0)
             + 1
             + (1 if has_bootstrap_decisions else 0)
             + (1 if reconciliation else 0)
@@ -859,9 +889,14 @@ def main() -> int:
             run_step(write, target, "Resynchronize managed .NET baseline", next_step, total)
             run_step(check, target, "Verify managed .NET baseline convergence", next_step + 1, total)
             next_step += 2
-        if has_building_block_selection:
-            print(f"[{next_step}/{total}] Refresh compatible building-block lock provenance")
-            resynchronize_building_block_provenance(target)
+        if building_block_state:
+            if building_block_state == "materialized":
+                print(f"[{next_step}/{total}] Refresh compatible building-block lock provenance")
+                resynchronize_building_block_provenance(target)
+            else:
+                print(f"[{next_step}/{total}] Verify accepted planned placement without materializing dependencies")
+                if building_block_upgrade_state(target, release) != "planned":
+                    raise UpgradeError("PKU116 planned building-block state changed during upgrade")
             next_step += 1
         validator = target / ".specify/extensions/program-kit-governance/scripts/governance_state.py"
         run_step(

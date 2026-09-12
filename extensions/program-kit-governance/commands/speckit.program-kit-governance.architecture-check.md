@@ -14,13 +14,18 @@ Always validate the ratified constitution and roadmap:
 
 This prerequisite check runs before `speckit.specify` as well as after later lifecycle steps. It
 blocks every lifecycle step when the constitution is not ratified and hash-current. When invoked by
-`before_specify`, add `--require-ready`; specification creation is blocked when no roadmap entry is
-Ready. Before specification creation, return the prerequisite result without requiring a current
-specification. Later checks accept the selected entry after its honest transition to Active and do
+`before_specify`, return the prerequisite result without requiring a current specification. The next
+mandatory `specification-intake` hook validates the exact selected Ready entry (or an Active entry
+when updating its existing spec), grills the feature and requires current explicit confirmation
+before specification creation. Later checks accept the selected entry after its honest transition to Active and do
 not require an unrelated entry to remain Ready.
 
 For later lifecycle checks, locate the current specification, plan, tasks, or implementation from
-the active Spec Kit context. Read the constitution, approved bootstrap decision register and
+the active Spec Kit context. Run `scripts/specification_intake.py check-spec --spec <spec.md>`;
+missing or stale feature confirmation blocks the step. Read the referenced confirmed intake brief
+and compare the spec's outcome, scope, exclusions, journeys and acceptance criteria with it. Material
+drift requires reopening affected intake decisions and confirmation, not silently replacing the hash.
+Read the constitution, approved bootstrap decision register and
 approval evidence, specification roadmap, architecture baseline, decision backlog, technology
 radar, traceability model, and all relevant ADRs. If required artifacts are missing, fail with an
 actionable bootstrap instruction.

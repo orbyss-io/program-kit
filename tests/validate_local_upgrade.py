@@ -351,6 +351,8 @@ def main() -> int:
         (project / ".specify/bundle-records.json").write_text(
             json.dumps(bundle_records), encoding="utf-8"
         )
+        from upgrade_selection_cases import validate_selection_upgrades
+        validate_selection_upgrades(project, sys.modules[__name__])
         managed = project / ".program-kit/managed.json"
         managed.parent.mkdir(parents=True, exist_ok=True)
         managed.write_text(

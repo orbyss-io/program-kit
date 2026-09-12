@@ -33,6 +33,7 @@ jobs:
         run: |
           python tests/validate_components.py
           python tests/validate_test_suites.py
+          python tests/validate_specification_intake.py
           python tests/validate_intake_session.py
           python tests/validate_intake_authoring.py
           python tests/validate_json_schema.py
@@ -73,6 +74,8 @@ jobs:
 
       - name: Validate architecture placement and recovery
         run: python tests/validate_architecture_placement.py
+      - name: Validate bootstrap readiness and accepted-run recovery
+        run: python tests/validate_bootstrap_lifecycle.py
 
       - name: Validate conversational bootstrap intake and architecture map
         run: python tests/validate_bootstrap_intake.py

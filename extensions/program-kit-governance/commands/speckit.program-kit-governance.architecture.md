@@ -6,6 +6,15 @@ scripts:
 
 ## Input
 
+Create `docs/architecture/bootstrap-acceptance-scope.json` using the installed
+`references/bootstrap-lifecycle.md` contract. Enumerate the exact map semantics this review accepts,
+including newly designed runtime elements when justified. Leave unfinished providers and unrelated
+proposals outside the scope. Keep current lifecycle status in canonical metadata and deterministic
+marked views, not duplicated prose. Preserve conditions retained in ADRs; Proposed-to-Accepted
+promotion is not evidence those conditions have executed. The later bootstrap-closure command owns
+isolated compatibility work before dependent slices become Ready. Architecture drafting still does
+not scaffold or restore consumer projects.
+
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
 Read the compact bootstrap stage brief first. It contains the confirmed intake, canonical
@@ -21,7 +30,7 @@ search `.specify`, unrelated extensions, catalogs, or validator implementation t
 Before the first write, read each file listed by `output_contract.contract_references` exactly once
 and shape both JSON outputs from those schemas. Do not use repeated validator failures to discover
 required fields, allowed values, or nested record shapes.
-Use `output_contract.artifact_target_bytes` as the generation ceiling and
+Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required architecture evidence merely to reach a target.
 When `stage_plan.building_blocks` is present, use its exact draft command, composition slot/options

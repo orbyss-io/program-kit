@@ -41,6 +41,9 @@ EXPECTED_STEPS = [
     "prepare-roadmap-context",
     "specification-roadmap",
     "validate-roadmap-output",
+    "architecture-prerequisite-closure",
+    "validate-prerequisite-closure",
+    "synchronize-lifecycle",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
     "validate-bootstrap",
@@ -49,8 +52,8 @@ EXPECTED_STEPS = [
     "prepare-readiness-context",
     "readiness",
     "validate-readiness-output",
+    "require-readiness",
     "complete-bootstrap",
-    "report-completion-result",
 ]
 EXPECTED_HOOKS = {
     "before_constitution",
@@ -94,8 +97,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 16:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 16")
+    if len(command_names) != 19:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 19")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
     if "speckit.program-kit-governance.grilling" not in command_names:
@@ -224,7 +227,7 @@ def main() -> int:
     for stage in context_stages:
         validation_step = next(step for step in steps if step["id"] == f"validate-{stage}-output")
         validation_command = validation_step.get("run", "")
-        expected_validator = "validate-stage" if stage in {"architecture", "roadmap"} else "validate-output"
+        expected_validator = "validate-stage" if stage in {"architecture", "roadmap", "readiness"} else "validate-output"
         if (
             validation_step.get("type") != "shell"
             or validation_step.get("output_format") != "json"
@@ -232,8 +235,8 @@ def main() -> int:
             or f"--stage {stage}" not in validation_command
         ):
             raise AssertionError(f"{stage} output budgets are not deterministically validated")
-        if stage in {"architecture", "roadmap"} and "--run-id {{ context.run_id }}" not in validation_command:
-            raise AssertionError("Roadmap validation must enforce the Ready-entry terminal contract")
+        if stage in {"architecture", "roadmap", "readiness"} and "--run-id {{ context.run_id }}" not in validation_command:
+            raise AssertionError("Stage validation must bind its workflow run")
     pin_validation = next(step for step in steps if step["id"] == "validate-profile-pins")
     if (
         pin_validation.get("type") != "shell"
@@ -759,15 +762,13 @@ def main() -> int:
             "Roadmap synchronization and consistency validation must precede the final review packet"
         )
     completion = next(step for step in steps if step["id"] == "complete-bootstrap")
-    completion_result = next(
-        step for step in steps if step["id"] == "report-completion-result"
-    )
-    failure_gate = completion_result.get("default", [{}])[0]
-    if (
-        completion.get("continue_on_error") is not True
-        or "steps.complete-bootstrap.output.stderr" not in failure_gate.get("message", "")
-    ):
-        raise AssertionError("Completion failure routing must display complete-bootstrap stderr")
+    readiness_gate = next(step for step in steps if step['id'] == 'require-readiness')
+    if (completion.get('continue_on_error') or readiness_gate.get('continue_on_error')
+            or step_ids.index('require-readiness') >= step_ids.index('complete-bootstrap')
+            or 'confirm-completion-failure' in str(steps)):
+        raise AssertionError('Non-ready must stop resumably before completion without an abort-only rejection gate')
+    if not (step_ids.index('architecture-prerequisite-closure') < step_ids.index('validate-prerequisite-closure') < final_review):
+        raise AssertionError('Executable prerequisite closure and validation must precede final approval')
     require_text(
         preset_path.parent / "templates/spec-governance.md",
         "User-visible vertical outcome",

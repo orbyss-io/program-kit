@@ -13,6 +13,7 @@ require some other entry to remain Ready after the selected specification become
 Run `scripts/implementation_preflight.py --repository <repository> --feature-dir <feature-dir>` for
 the active feature. This mandatory deterministic preflight runs both lifecycle verification and the
 complete artifact-ownership validator, including registered OpenAPI producer pins. It must prove that
+the feature references its current explicitly confirmed intake brief, and that
 the canonical after_tasks analysis report is unchanged, contains no HIGH/CRITICAL readiness block,
 and was computed from the current hashes of `spec.md`, `plan.md`, and a canonical `tasks.md`. Checkbox
 state is implementation progress and is excluded from the task design hash; task IDs, descriptions,
