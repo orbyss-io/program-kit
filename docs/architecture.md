@@ -4,6 +4,11 @@
 
 This project owns the reusable method for turning a user's initial description and adaptive intake answers into a governed Spec Kit repository. It does not own any consuming application's architecture.
 
+Future functionality proposals and deferred design work are recorded in the
+[architecture backlog](architecture-backlog.md). Consult the relevant entry and its source proposal
+when beginning an official intake; deferred entries do not describe current product behavior or
+authorize implementation.
+
 ## Components
 
 | Component | Responsibility |

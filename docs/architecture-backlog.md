@@ -1,5 +1,10 @@
 # Program Kit architecture backlog
 
+This backlog also holds future functionality proposals as input to an official intake. Deferred
+entries are unscheduled and do not authorize intake or implementation. When a proposal is selected
+for intake, read its linked material, revisit it against the current product, and confirm scope and
+decisions through that intake before treating recommendations as approved design.
+
 ## PK-ARCH-001: Durable Integration Events and transactional outbox
 
 - Status: Required before first durable event consumer
@@ -23,3 +28,27 @@ runtime integration, and provider-specific outbox packages only after resolving:
 Architecture and implementation checks must reject use of `Orbyss.Foundation.DomainEvents` as durable
 delivery. This item becomes blocking as soon as a trigger is present; it is not a license to defer a
 required reliability decision during feature implementation.
+
+## PK-ARCH-002: Adopt Program Kit in an existing repository
+
+- Status: Deferred — awaiting official intake; unscheduled
+- Trigger: the user explicitly chooses to begin the official intake for existing-repository adoption
+- Input: [Existing-repository adoption proposal](existing-repository-adoption-proposal.md)
+- Decision: No implementation design accepted; retain the proposal as initial intake material
+
+Explore a workflow for introducing Program Kit into an existing codebase with implemented
+specifications, architecture history, tests, and scattered AI instructions. The initial proposal
+recommends a dedicated adoption entry point that reconciles inherited evidence and joins the shared
+governed delivery lifecycle while retaining established technology choices where appropriate.
+
+Carry this explicit requirement into the official intake: adoption must produce a coherent
+repository without unexplained, orphaned legacy artifacts in the adopted scope. It should move,
+merge, remove, update, or reconcile files as needed, repair their references, and connect retained
+active artifacts to the skills, workflows, or other consumers that actually use them. Merely adding
+new Program Kit files alongside unused legacy material is not sufficient. Historical and out-of-scope
+files may remain when their purpose and disposition are explicit.
+
+When this item is selected, use the proposal's analysis, alternatives, implementation seams, and
+acceptance scenarios as discussion inputs. Revalidate its source/version assumptions, resolve the
+actual scope and tradeoffs, and produce the official intake artifacts. The suggested implementation
+increments are provisional; no work on them is scheduled or started by this backlog entry.
