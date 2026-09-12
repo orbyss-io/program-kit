@@ -67,6 +67,7 @@ def prepare(source: Path, validation_python: Path) -> Path:
     )
     steps, logs = [], []
     environment = cli.supervisor_environment()
+    environment['UV_CACHE_DIR'] = str(source / '.program-kit/cache/uv')
     # Desktop's injected TLS key-log hook can crash this installed Windows Python build.
     environment.pop('SSLKEYLOGFILE', None)
     for name, command in zip(STEPS, commands):
