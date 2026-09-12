@@ -110,6 +110,7 @@ def admit(provider, root, binding, local_entry=None):
     require(hashlib.sha256(content.encode()).hexdigest() == evidence['sha256'], 'activation evidence hash mismatch')
     require(json.loads(content)['activations'].get(binding['repositoryId']) == record, 'activation evidence and current registration disagree')
     bindings = binding['workBindings']
+    revision_pending = {}
     if local_entry:
         require(local_entry in bindings, 'selected roadmap entry has no provider Requirement binding')
         bindings = {local_entry: bindings[local_entry]}
@@ -122,9 +123,14 @@ def admit(provider, root, binding, local_entry=None):
         mapping = provider.settings['types']['requirement']['fields']
         require('acceptance' in mapping and all(item['fields'].get(mapping[key]) for key in ('title', 'outcome', 'owner', 'acceptance')),
                 'Requirement needs reviewed outcome, owner and observable acceptance before refinement')
-        proposal = state['proposals'][work['proposalId']]['proposal']
-        check_basis(provider, proposal, state)
+        from azure_reconcile import check_scoped
+        pending = check_scoped(provider, state, link['requirementId'])
+        if pending:
+            revision_pending[entry] = pending
+        else:
+            from azure_revision import check_artifact_freshness
+            check_artifact_freshness(state, link['requirementId'], {binding['repositoryId']: str(root)})
         require(not any(op['state'] != 'applied' and op['proposalId'] == work['proposalId'] for op in state['operations'].values()),
                 'planning operations remain unresolved')
     return {'state': 'enabled', 'authority': 'platform', 'admission': 'refinement-only',
-            'implementationAdmission': False, 'checkedAt': utc()}
+            'implementationAdmission': False, 'technicalRevisionPending': revision_pending, 'checkedAt': utc()}

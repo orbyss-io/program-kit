@@ -125,6 +125,8 @@ Bootstrap and later onboarding use this same handoff. Activation is per reposito
 checks verify current registration, immutable evidence, profile source, branch protection, mapped
 Requirement content and accepted planning basis. Missing bindings, unknown operations and material
 changes block admission. Existing architecture/intake gates remain mandatory. Implementation,
-verified delivery, business acceptance, profile-change/disconnect workflows, complete comment/history
-reconciliation and execution claims remain their later phases. No CI credentials or agent sessions
+verified delivery, business acceptance and execution claims remain their later phases. Use
+[azure-reconciliation.md](azure-reconciliation.md) for history/comment review, technical revision,
+reviewed recovery and explicit profile/disconnect transitions. Existing enabled consumers require
+an initial history baseline review for further refinement. No CI credentials or agent sessions
 are provisioned by these commands.

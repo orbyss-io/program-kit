@@ -101,8 +101,10 @@ def inspect(root):
         if history['records'][:len(old)] != old:
             raise DeliveryError('PKD_HISTORY_CHANGED preserve committed activation history')
     if history['records'] and history['records'][-1]['action'] == 'disconnect':
-        raise DeliveryError('PKD_DISCONNECT_UNAVAILABLE Phase 1 cannot verify provider disconnect evidence; '
-                            'a hand-written history record cannot restore local authority')
+        try:
+            return runtime(root).verify_disconnect(root, binding, history)
+        except ValueError as error:
+            raise DeliveryError('PKD_DISCONNECT_UNAVAILABLE ' + str(error)) from error
     enabled = binding['state'] == 'enabled'
     return {'state': binding['state'], 'authority': 'platform' if enabled else 'local',
             'admission': ('provider-check-required' if 'azure' in profile else 'adapter-unavailable') if enabled else 'local-governance',

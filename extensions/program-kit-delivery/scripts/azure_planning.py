@@ -36,6 +36,8 @@ def empty_state(profile):
 def state_for(provider):
     head, state = provider.read()
     require(state.get('profileDigest') == authority.digest(provider.profile), 'operational profile changed; reconcile')
+    require(not any(t['state'] == 'applying' and t['proposal']['action'] == 'profile-change'
+                    for t in state.get('transitions', {}).values()), 'profile cutover is incomplete; resume its handoffs')
     for key in ('proposals', 'operations', 'works', 'activations', 'observations'):
         require(isinstance(state.get(key), dict), 'operational state is incomplete')
     return head, state
@@ -55,6 +57,15 @@ def check_basis(provider, proposal, state):
         revision = applied['revision'] if applied else expected['revision']
         item = provider.item(int(identity))
         require(provider.in_scope(item), 'planning basis moved outside scope')
+        historical = applied.get('historySnapshot') if applied else proposal.get('historyBasis', {}).get(identity)
+        if historical:
+            import azure_history
+            children = [op['nativeId'] for op in state['operations'].values() if op.get('proposalId') == proposal['id']
+                and op.get('state') == 'applied' and op['entry']['parent'] in state['works']
+                and state['works'][op['entry']['parent']]['nativeId'] == int(identity)]
+            require(azure_history.compatible(historical, provider.evidence(int(identity)),
+                    [('System.LinkTypes.Hierarchy-Forward', str(child)) for child in children]),
+                    'history/comments changed outside approved operations; reconcile')
         if (item['rev'] != revision
                 or business_fields(item['fields']) != business_fields(expected['fields'])
                 or set(relation_keys(item.get('relations', []))) != set(relation_keys(expected['relations']))
@@ -168,6 +179,11 @@ def prepare(provider, entries):
     proposal = {'schemaVersion': 1, 'recordType': 'azure-planning-proposal', 'id': str(uuid.uuid4()),
                 'space': provider.profile['space'], 'profileDigest': authority.digest(provider.profile),
                 'entries': entries, 'basis': basis, 'role': 'business', 'createdAt': utc()}
+    import azure_history
+    proposal['historyBasis'] = {identity: provider.evidence(int(identity)) for identity in basis}
+    require(all(azure_history.complete(s) for s in proposal['historyBasis'].values()), 'planning history coverage incomplete')
+    require(all(observation(s['item']) == basis[identity] for identity, s in proposal['historyBasis'].items()),
+            'planning basis changed during history observation')
     validate(proposal, 'proposal')
     return proposal
 
@@ -199,6 +215,7 @@ def approve(provider, proposal, digest, source):
     # Rebuild all semantic checks from current provider data, then compare its basis.
     checked = prepare(provider, proposal['entries'])
     require(checked['basis'] == proposal['basis'], 'provider changed after proposal preparation')
+    require(checked.get('historyBasis') == proposal.get('historyBasis'), 'history changed after proposal preparation; prepare a new proposal')
     head, state = state_for(provider)
     check_basis(provider, proposal, state)
     previous = state['proposals'].get(proposal['id'])
@@ -252,7 +269,19 @@ def record_applied(provider, operation_id, item):
         require(operation['nativeId'] == item['id'], 'operation resolved to conflicting identities')
         return
     entry = operation['entry']
+    import azure_history
+    observed = provider.evidence(item['id'])
+    require(azure_history.complete(observed) and observation(observed['item']) == observation(item),
+            'post-write observation differs; retain unresolved operation for reviewed recovery')
+    original = state['proposals'][operation['proposalId']]['proposal'].get('historyBasis', {}).get(str(item['id']))
+    if original:
+        require(azure_history.compatible(original, observed, relation_keys(operation['relations']), operation['fields']),
+                'intervening history requires reviewed recovery')
+    else:
+        require(item['rev'] == 1 and len(observed['updates']) == 1 and not observed['comments'],
+                'new-item history changed; review recovery')
     operation.update({'state': 'applied', 'nativeId': item['id'], 'revision': item['rev'], 'observation': observation(item)})
+    operation['historySnapshot'] = observed
     state['works'][entry['key']] = {'nativeId': item['id'], 'kind': entry['kind'], 'parent': entry['parent'],
         'revision': item['rev'], 'acceptedFieldsDigest': authority.digest(item['fields']), 'proposalId': operation['proposalId'],
         'milestones': entry['milestones']}
@@ -265,6 +294,7 @@ def apply(provider, proposal_id):
     _, state = state_for(provider)
     require(proposal_id in state['proposals'], 'proposal lacks recorded approval')
     approved = state['proposals'][proposal_id]
+    require(not approved.get('supersededByRecovery'), 'recovery retained changed human input; prepare a new proposal for remaining work')
     proposal = approved['proposal']
     require(authority.digest(proposal) == approved['digest'], 'approved payload changed')
     for entry in proposal['entries']:
@@ -276,6 +306,7 @@ def apply(provider, proposal_id):
             if operation['state'] == 'applied':
                 continue
             raise AzureError('operation outcome unknown: ' + operation_id + '; recover without redispatch')
+        require('historyBasis' in proposal, 'legacy proposal has no reviewed history basis; prepare a fresh proposal before dispatch')
         if entry['key'] in state['works']:
             require(state['works'][entry['key']]['nativeId'] == entry['nativeId'], 'logical identity adopted concurrently')
         if entry['nativeId'] is not None:

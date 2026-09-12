@@ -73,6 +73,7 @@ $developmentValidators = @(
     'validate_delivery_phase0.py',
     'validate_delivery.py',
     'validate_delivery_azure.py',
+    'validate_delivery_reconciliation.py',
     'validate_orbyss_building_blocks.py',
     'validate_building_blocks.py',
     'validate_architecture_placement.py',

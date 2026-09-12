@@ -20,6 +20,9 @@ provides:
     - name: "speckit.program-kit-delivery.azure"
       file: "commands/speckit.program-kit-delivery.azure.md"
       description: "Connect an Azure planning space and apply reviewed backlog proposals."
+    - name: "speckit.program-kit-delivery.reconcile"
+      file: "commands/speckit.program-kit-delivery.reconcile.md"
+      description: "Review Azure changes, technical revisions and explicit authority handoffs."
   scripts:
     - name: "delivery"
       file: "scripts/delivery.py"
@@ -30,5 +33,8 @@ provides:
     - name: "azure-setup"
       file: "scripts/azure_setup.py"
       description: "Reviewed minimum Azure project setup."
+    - name: "azure-reconciliation"
+      file: "scripts/azure_reconciliation.py"
+      description: "Complete Azure history observations and reviewed reconciliation operations."
 hooks: {}
 tags: [delivery, backlog, governance]

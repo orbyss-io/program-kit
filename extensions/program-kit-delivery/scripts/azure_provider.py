@@ -110,6 +110,10 @@ class AzureProvider:
         require(result['fields']['System.TeamProject'] == self.project_name(), 'work item belongs to another project')
         return result
 
+    def evidence(self, identity):
+        from azure_history import read
+        return read(self, identity)
+
     def project_name(self):
         if not hasattr(self, '_project_name'):
             self._project_name = self.api.call('GET', '/_apis/projects/' + self.project)['name']

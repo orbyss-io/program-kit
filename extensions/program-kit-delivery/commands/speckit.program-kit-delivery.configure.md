@@ -23,5 +23,5 @@ GitHub activation is not implemented yet. Never invent an activation receipt,
 modify history to disable delivery, or invoke the contributor Phase 0 live probes on a consumer.
 
 Machine-local governance settings cannot override delivery authority. Preserve missing or
-inconsistent connected records for recovery. Changing a profile after activation and deliberate
-disconnection require their later reviewed operations; installation or an upgrade is neither.
+inconsistent connected records for recovery. Use `speckit.program-kit-delivery.reconcile` for
+reviewed profile changes or deliberate disconnection; installation or an upgrade is neither.

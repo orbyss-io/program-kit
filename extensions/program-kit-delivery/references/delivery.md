@@ -32,6 +32,11 @@ implementation claims, verified delivery and acceptance admission are not availa
 capability flag, native board column or local Ready/Delivered text cannot enable those operations.
 No machine-local override can select a different delivery binding or bypass the core gate.
 
+Phase 3 adds [history reconciliation and governed revision](azure-reconciliation.md), with separate
+observation, human acknowledgement and accepted business/technical bases. Shared policy migration
+and repository disconnection require explicit provider-backed handoffs. Historical decisions remain
+preserved; unknown evidence or deleted local files cannot change authority.
+
 Draft epics need only title, outcome and business owner; empty optional fields/arrays/nulls in the
 normalized envelope are bookkeeping, not extra intake questions. Refinement adds scope, exclusions,
 architecture prerequisites and observable acceptance. Implementation also requires an accountable

@@ -51,6 +51,15 @@ def admit_refinement(root, entry=None):
     return admit(AzureProvider(AzureTransport(profile['azure']['organization']), profile), root, binding, entry)
 
 
+def verify_disconnect(root, binding, history):
+    profile = validate_configuration(root, binding, history)
+    require('azure' in profile, 'disconnect provider verification unavailable')
+    from azure_transport import AzureTransport
+    from azure_provider import AzureProvider
+    from azure_transitions import verify_disconnected
+    return verify_disconnected(AzureProvider(AzureTransport(profile['azure']['organization']), profile), root, binding, history)
+
+
 def validate_configuration(root, binding, history):
     validate(binding, 'binding')
     validate(history, 'history')

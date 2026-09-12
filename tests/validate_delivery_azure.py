@@ -47,6 +47,7 @@ class FakeProvider:
         self.state = planning.empty_state(self.profile)
         self.generation = 0
         self.items, self.files = {}, {}
+        self.updates, self.comments = {}, {}
         self.created, self.validated = 0, 0
         self.fail_create = self.fail_record = False
         self.authorized = self.protected = True
@@ -74,23 +75,28 @@ class FakeProvider:
                 'identities': {OWNER: {}}}
 
     def read(self):
-        return str(self.generation), deepcopy(self.state)
+        return f'{self.generation:040x}', deepcopy(self.state)
 
     def commit(self, expected, state, **kwargs):
-        if expected != str(self.generation):
+        if expected != f'{self.generation:040x}':
             raise AzureError('stale head', 409)
         if self.fail_record and any(op['state'] == 'applied' for op in state['operations'].values()):
             self.fail_record = False
             raise AzureError('lost recording commit')
         self.generation += 1
         self.state = deepcopy(state)
-        self.files[(str(self.generation), self.state_path)] = json.dumps(state)
-        return str(self.generation)
+        self.files[(f'{self.generation:040x}', self.state_path)] = json.dumps(state)
+        return f'{self.generation:040x}'
 
     def item(self, identity):
         if identity not in self.items:
             raise AzureError('inaccessible', 404)
         return deepcopy(self.items[identity])
+
+    def evidence(self, identity):
+        return {'id': identity, 'available': True, 'coverage': {'item': True, 'updates': True, 'comments': True},
+                'status': 'observed', 'inScope': self.in_scope(self.items[identity]), 'item': self.item(identity),
+                'updates': deepcopy(self.updates[identity]), 'comments': deepcopy(self.comments[identity])}
 
     def in_scope(self, item):
         return item['fields'].get('System.AreaPath', 'Example').startswith('Example')
@@ -106,10 +112,14 @@ class FakeProvider:
         if 'System.AssignedTo' in value['fields']:
             value['fields']['System.AssignedTo'] = {'id': value['fields']['System.AssignedTo']}
         self.items[identity] = value
+        self.updates[identity] = [{'id': 1, 'rev': 1, 'fields': {k: {'newValue': v} for k, v in value['fields'].items()}}]
+        self.comments[identity] = []
         for relation in relations:
             parent = self.items[int(relation['url'].rsplit('/', 1)[-1])]
             parent['relations'].append({'rel': 'System.LinkTypes.Hierarchy-Forward', 'url': 'https://example/items/' + str(identity)})
             parent['rev'] += 1
+            self.updates[parent['id']].append({'id': len(self.updates[parent['id']]) + 1, 'rev': parent['rev'],
+                'relations': {'added': [deepcopy(parent['relations'][-1])]}})
         if self.fail_create:
             self.fail_create = False
             raise AzureError('lost create response')
@@ -122,6 +132,8 @@ class FakeProvider:
         item['fields'].update(fields)
         item['relations'].extend(relations)
         item['rev'] += 1
+        self.updates[identity].append({'id': len(self.updates[identity]) + 1, 'rev': item['rev'],
+            'fields': {k: {'newValue': deepcopy(v)} for k, v in fields.items()}, 'relations': {'added': deepcopy(relations)}})
         return deepcopy(item)
 
     def find_operation(self, operation_id):
@@ -443,6 +455,15 @@ class AzurePlanningTests(unittest.TestCase):
             'workBindings': {'SPC-001': {'requirementId': 'R1', 'executionMode': 'direct', 'taskId': None}}}
         (root / authority.BINDING).write_text(json.dumps(binding))
         (root / authority.HISTORY).write_text(json.dumps({'schemaVersion': 1, 'recordType': 'history', 'records': []}))
+        import azure_reconcile as reconcile
+        report = reconcile.sync(self.provider, ['R1'])
+        decisions = [{'nativeId': finding['nativeId'], 'classification': 'baseline', 'reason': 'Accepted deterministic fixture basis',
+                      'affectedKeys': finding['provisionalImpact'], 'technicalRevisionRequired': False} for finding in report['findings']]
+        if decisions:
+            review = reconcile.propose_review(self.provider, report['id'], decisions)
+            for role in ('business', 'technical'):
+                reconcile.approve_review(self.provider, review, authority.digest(review), 'accepted fixture', role)
+            reconcile.apply_review(self.provider, review['id'])
         return root, binding
 
     def test_activation_and_repeat_are_verified_and_planning_only(self):
@@ -498,7 +519,7 @@ class AzurePlanningTests(unittest.TestCase):
         activation.apply(self.provider, root, decision, authority.digest(decision), 'accepted')
         self.provider.items[3]['rev'] += 1
         self.provider.items[3]['fields']['System.Description'] = 'Changed by business owner'
-        with self.assertRaisesRegex(AzureError, 'planning basis changed'):
+        with self.assertRaisesRegex(AzureError, 'unreviewed or unavailable history'):
             activation.admit(self.provider, root, authority.read(root / authority.BINDING), 'SPC-001')
 
 

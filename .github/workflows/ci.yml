@@ -40,6 +40,7 @@ jobs:
           python tests/validate_delivery_phase0.py
           python tests/validate_delivery.py
           python tests/validate_delivery_azure.py
+          python tests/validate_delivery_reconciliation.py
 
       - name: Set up pinned UI acceptance Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6

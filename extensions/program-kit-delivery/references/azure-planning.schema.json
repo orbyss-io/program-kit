@@ -39,6 +39,7 @@
         "entries":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/entry"}},
         "basis":{"type":"object","additionalProperties":{"type":"object","additionalProperties":false,"required":["revision","fields","relations"],
           "properties":{"revision":{"type":"integer","minimum":1},"fields":{"type":"object"},"relations":{"type":"array","items":{"type":"object"}}}}},
+        "historyBasis":{"type":"object","additionalProperties":{"type":"object"}},
         "role":{"const":"business"},"createdAt":{"$ref":"#/$defs/text"}}}
   }
 }
