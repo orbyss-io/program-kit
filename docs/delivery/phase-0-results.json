@@ -1,0 +1,873 @@
+{
+  "schemaVersion": 1,
+  "phase": 0,
+  "date": "2026-09-12",
+  "classification": "contributor capability proof; not a consumer release",
+  "selectedRuns": [
+    {
+      "evidencePath": "artifacts/delivery-phase0/runs/41c3f590-0536-40b5-a4b9-eb9f74c35e3e/evidence.json",
+      "sha256": "dcbe61d38827fc52773e67d6dd0df395b61988a2cab95968af092f16ab504b51",
+      "evidence": {
+        "runId": "41c3f590-0536-40b5-a4b9-eb9f74c35e3e",
+        "provider": "azure",
+        "startedAt": "2026-09-12T15:22:25.501101+00:00",
+        "cases": [
+          {
+            "case": "conditional-claim-race-0",
+            "result": "observed",
+            "expectedHead": "b424f64a161cc7674268df8bbb124325b74b6fdd",
+            "attempts": [
+              {
+                "outcome": "committed",
+                "head": "c7619ff399c3f34a02537659806e1c26fb7a3a48",
+                "execution": "A"
+              },
+              {
+                "outcome": "rejected",
+                "status": 409,
+                "codes": [
+                  "GitReferenceStaleException"
+                ],
+                "classifiedStale": true,
+                "execution": "B"
+              }
+            ]
+          },
+          {
+            "case": "obsolete-generation-0",
+            "result": "passed"
+          },
+          {
+            "case": "conditional-claim-race-1",
+            "result": "observed",
+            "expectedHead": "51b3fef9b931777d56e0f011d69c2e21055414f6",
+            "attempts": [
+              {
+                "outcome": "committed",
+                "head": "4376c790d354965290a3af5d115d8a43014964e6",
+                "execution": "A"
+              },
+              {
+                "outcome": "rejected",
+                "status": 409,
+                "codes": [
+                  "GitReferenceStaleException"
+                ],
+                "classifiedStale": true,
+                "execution": "B"
+              }
+            ]
+          },
+          {
+            "case": "obsolete-generation-1",
+            "result": "passed"
+          },
+          {
+            "case": "conditional-claim-race-2",
+            "result": "observed",
+            "expectedHead": "9273a44b10adbd77f50630bef96b74e62c69cc7c",
+            "attempts": [
+              {
+                "outcome": "rejected",
+                "status": 409,
+                "codes": [
+                  "GitReferenceStaleException"
+                ],
+                "classifiedStale": true,
+                "execution": "A"
+              },
+              {
+                "outcome": "committed",
+                "head": "440a7870feb86b4ba5c581f9dce047455a860945",
+                "execution": "B"
+              }
+            ]
+          },
+          {
+            "case": "obsolete-generation-2",
+            "result": "passed"
+          },
+          {
+            "case": "response-loss-injection",
+            "result": "injected",
+            "operationId": "41c3f590-0536-40b5-a4b9-eb9f74c35e3e:uncertain-create",
+            "note": "Provider succeeded; client deliberately omits identity persistence, then rereads remote items."
+          },
+          {
+            "case": "recover-created-item-without-recreate",
+            "result": "passed",
+            "nativeId": "65",
+            "matches": 1,
+            "complete": true,
+            "observations": 1
+          },
+          {
+            "case": "human-edit-revision-conflict",
+            "result": "observed",
+            "status": 412,
+            "codes": [
+              "TestPatchOperationFailedException"
+            ]
+          },
+          {
+            "case": "native-dependency-and-tags",
+            "result": "passed"
+          },
+          {
+            "case": "comment-created",
+            "result": "passed"
+          },
+          {
+            "case": "bounded-history-page",
+            "result": "passed",
+            "note": "One-page response is not treated as complete history."
+          },
+          {
+            "case": "native-hierarchy",
+            "result": "passed"
+          },
+          {
+            "case": "deleted-item-read",
+            "result": "passed",
+            "status": 404,
+            "note": "Known deletion provenance; arbitrary 404 alone cannot distinguish deletion/access loss."
+          }
+        ],
+        "createdItems": [
+          64,
+          65,
+          66,
+          67
+        ],
+        "complete": true,
+        "pythonVersion": "3.12.2",
+        "sourceFiles": {
+          "scripts/delivery_phase0/__init__.py": "9bc3094ec8bcba2da1f702e704ac1f3b7a8ea522798d5c2ffbd16a0066b72a38",
+          "scripts/delivery_phase0/contract.py": "27bc3666c8b1bd399cfdc7ded078aebb9cb2f009d8178c5ae67d00a8fe522354",
+          "scripts/delivery_phase0/examples.py": "3ce2f548e9f115877672c94f07326b526cb457a962362455b66490ade2e308be",
+          "scripts/delivery_phase0/probe.py": "bd88d7f57b62d82a8463f5598319f5bc702b15a1bf3545b8506709a54e414ea6",
+          "scripts/delivery_phase0/project_probe.py": "d3ce28deffa24837c0d78ae7c88a2593b4711b67c716120f752f06234e9f8340",
+          "scripts/delivery_phase0/providers.py": "f2adee7df739a97b8dc013faeefc9b02678707f4eedb00a6df95a73827341fe5",
+          "scripts/delivery_phase0/race_worker.py": "8e2bea868fb16057dd1045298b8e1b4785ac7f438814cae7944a75756aea9082",
+          "scripts/delivery_phase0/schema.py": "2a727eab77cc6424d85f02cfaa14e07d9471884be5798578d41649c27f54854f",
+          "scripts/delivery_phase0/setup.py": "953200d185bd267e8d137da6003d51fe336620f2e53d1fb61199cfb1afa960bc",
+          "scripts/delivery_phase0/transport.py": "41f9f35f0be5444cb98222ff08d7c471110d8f1b21d3421d79e5da6d8d5a584f"
+        },
+        "requestedSections": [
+          "coordination",
+          "work"
+        ],
+        "finishedAt": "2026-09-12T15:23:00.709674+00:00"
+      }
+    },
+    {
+      "evidencePath": "artifacts/delivery-phase0/runs/0e7aa1cf-8cf1-465d-bdcc-974dca9d163b/evidence.json",
+      "sha256": "71a23f1f2a8b1c89a89cf25b3926d2809d41562a8d11a80714b8726e21ad73cd",
+      "evidence": {
+        "runId": "0e7aa1cf-8cf1-465d-bdcc-974dca9d163b",
+        "provider": "github",
+        "startedAt": "2026-09-12T15:22:23.668365+00:00",
+        "cases": [
+          {
+            "case": "conditional-claim-race-0",
+            "result": "observed",
+            "expectedHead": "a20693d5b5220627766a9ca7996647fcb4b72877",
+            "attempts": [
+              {
+                "outcome": "committed",
+                "head": "70e1dd3e2a3599998111982675aa743e7082832c",
+                "execution": "A"
+              },
+              {
+                "outcome": "rejected",
+                "status": 200,
+                "codes": [
+                  "FORBIDDEN"
+                ],
+                "classifiedStale": false,
+                "execution": "B"
+              }
+            ]
+          },
+          {
+            "case": "obsolete-generation-0",
+            "result": "passed"
+          },
+          {
+            "case": "conditional-claim-race-1",
+            "result": "observed",
+            "expectedHead": "b2a8791a3e47f8d64d8350a38a45d53e5a8144db",
+            "attempts": [
+              {
+                "outcome": "rejected",
+                "status": 200,
+                "codes": [
+                  "FORBIDDEN"
+                ],
+                "classifiedStale": false,
+                "execution": "A"
+              },
+              {
+                "outcome": "committed",
+                "head": "41b8ce7446f5661b31cb6268878d5fa988e17db2",
+                "execution": "B"
+              }
+            ]
+          },
+          {
+            "case": "obsolete-generation-1",
+            "result": "passed"
+          },
+          {
+            "case": "conditional-claim-race-2",
+            "result": "observed",
+            "expectedHead": "0c640773dec68ca329164fbb970f79f89deb7c9f",
+            "attempts": [
+              {
+                "outcome": "rejected",
+                "status": 200,
+                "codes": [
+                  "FORBIDDEN"
+                ],
+                "classifiedStale": false,
+                "execution": "A"
+              },
+              {
+                "outcome": "committed",
+                "head": "693aaa9934e58f680d0a54f34276df4c01959fe0",
+                "execution": "B"
+              }
+            ]
+          },
+          {
+            "case": "obsolete-generation-2",
+            "result": "passed"
+          },
+          {
+            "case": "response-loss-injection",
+            "result": "injected",
+            "operationId": "0e7aa1cf-8cf1-465d-bdcc-974dca9d163b:uncertain-create",
+            "note": "Provider succeeded; client deliberately omits identity persistence, then rereads remote items."
+          },
+          {
+            "case": "paginated-item-discovery",
+            "result": "passed",
+            "pages": 6
+          },
+          {
+            "case": "uncertain-create-observation",
+            "result": "outcome_unknown",
+            "matches": 0,
+            "complete": true
+          },
+          {
+            "case": "paginated-item-discovery",
+            "result": "passed",
+            "pages": 7
+          },
+          {
+            "case": "recover-created-item-without-recreate",
+            "result": "passed",
+            "nativeId": "13",
+            "matches": 1,
+            "complete": true,
+            "observations": 2
+          },
+          {
+            "case": "human-text-preserved-proposal-comment",
+            "result": "passed",
+            "note": "Guarded adapter behavior; no claim of native issue CAS."
+          },
+          {
+            "case": "native-label",
+            "result": "passed"
+          },
+          {
+            "case": "native-hierarchy",
+            "result": "passed"
+          },
+          {
+            "case": "native-dependency",
+            "result": "passed"
+          }
+        ],
+        "createdItems": [
+          12,
+          13,
+          14
+        ],
+        "complete": true,
+        "pythonVersion": "3.12.2",
+        "sourceFiles": {
+          "scripts/delivery_phase0/__init__.py": "9bc3094ec8bcba2da1f702e704ac1f3b7a8ea522798d5c2ffbd16a0066b72a38",
+          "scripts/delivery_phase0/contract.py": "27bc3666c8b1bd399cfdc7ded078aebb9cb2f009d8178c5ae67d00a8fe522354",
+          "scripts/delivery_phase0/examples.py": "3ce2f548e9f115877672c94f07326b526cb457a962362455b66490ade2e308be",
+          "scripts/delivery_phase0/probe.py": "bd88d7f57b62d82a8463f5598319f5bc702b15a1bf3545b8506709a54e414ea6",
+          "scripts/delivery_phase0/project_probe.py": "d3ce28deffa24837c0d78ae7c88a2593b4711b67c716120f752f06234e9f8340",
+          "scripts/delivery_phase0/providers.py": "f2adee7df739a97b8dc013faeefc9b02678707f4eedb00a6df95a73827341fe5",
+          "scripts/delivery_phase0/race_worker.py": "8e2bea868fb16057dd1045298b8e1b4785ac7f438814cae7944a75756aea9082",
+          "scripts/delivery_phase0/schema.py": "2a727eab77cc6424d85f02cfaa14e07d9471884be5798578d41649c27f54854f",
+          "scripts/delivery_phase0/setup.py": "953200d185bd267e8d137da6003d51fe336620f2e53d1fb61199cfb1afa960bc",
+          "scripts/delivery_phase0/transport.py": "41f9f35f0be5444cb98222ff08d7c471110d8f1b21d3421d79e5da6d8d5a584f"
+        },
+        "requestedSections": [
+          "coordination",
+          "work"
+        ],
+        "finishedAt": "2026-09-12T15:23:18.986112+00:00"
+      }
+    },
+    {
+      "evidencePath": "artifacts/delivery-phase0/runs/a928e719-4034-453d-83ca-7e50f43b5108/evidence.json",
+      "sha256": "423165bd2d313d3d7485b3c9ee4b0298c805ea1108db8368940d32b0f8d88a46",
+      "evidence": {
+        "runId": "a928e719-4034-453d-83ca-7e50f43b5108",
+        "provider": "github",
+        "startedAt": "2026-09-12T15:20:08.133331+00:00",
+        "cases": [
+          {
+            "case": "project-capability-discovery",
+            "result": "passed",
+            "fields": [
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG8s",
+                "name": "Title",
+                "dataType": "TITLE"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG8w",
+                "name": "Assignees",
+                "dataType": "ASSIGNEES"
+              },
+              {
+                "id": "PVTSSF_lADODV2toc4BjSMnzhiHG80",
+                "name": "Status",
+                "dataType": "SINGLE_SELECT"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG84",
+                "name": "Labels",
+                "dataType": "LABELS"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG88",
+                "name": "Linked pull requests",
+                "dataType": "LINKED_PULL_REQUESTS"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9A",
+                "name": "Milestone",
+                "dataType": "MILESTONE"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9E",
+                "name": "Repository",
+                "dataType": "REPOSITORY"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9M",
+                "name": "Reviewers",
+                "dataType": "REVIEWERS"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9Q",
+                "name": "Parent issue",
+                "dataType": "PARENT_ISSUE"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9U",
+                "name": "Sub-issues progress",
+                "dataType": "SUB_ISSUES_PROGRESS"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9Y",
+                "name": "Created",
+                "dataType": "CREATED"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9c",
+                "name": "Updated",
+                "dataType": "UPDATED"
+              },
+              {
+                "id": "PVTF_lADODV2toc4BjSMnzhiHG9g",
+                "name": "Closed",
+                "dataType": "CLOSED"
+              }
+            ]
+          },
+          {
+            "case": "project-field-write-and-read",
+            "result": "passed",
+            "projectId": "PVT_kwDODV2toc4BjSMn",
+            "itemId": "PVTI_lADODV2toc4BjSMnzg6pf28",
+            "issueId": "I_kwDOUYDVz88AAAABQ-cbtA",
+            "fieldId": "PVTF_lADODV2toc4BjSMnzhiHHa0",
+            "note": "Distinct Project/item/issue identities verified; this API is not a CAS."
+          },
+          {
+            "case": "deleted-item-read",
+            "result": "passed",
+            "status": 410
+          }
+        ],
+        "createdItems": [
+          10,
+          11
+        ],
+        "complete": true,
+        "requestedSections": [
+          "project-fields",
+          "deletion"
+        ]
+      }
+    },
+    {
+      "evidencePath": "artifacts/delivery-phase0/runs/adc1f924-06d6-4beb-a5be-905860d449c4/evidence.json",
+      "sha256": "5b2b978323f56dd84afe9ed787aba59a84e7c225df46b3fa4342454e0e6d9683",
+      "evidence": {
+        "runId": "adc1f924-06d6-4beb-a5be-905860d449c4",
+        "provider": "github",
+        "startedAt": "2026-09-12T15:23:53.837591+00:00",
+        "cases": [
+          {
+            "case": "issue-edit-history-read",
+            "result": "passed",
+            "observation": {
+              "repository": {
+                "issue": {
+                  "userContentEdits": {
+                    "totalCount": 2,
+                    "nodes": [
+                      {
+                        "editedAt": "2026-09-12T15:12:53Z",
+                        "deletedAt": null
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": true,
+                      "endCursor": "Y3Vyc29yOnYyOpHO7MVP-w=="
+                    }
+                  },
+                  "comments": {
+                    "totalCount": 1,
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "createdItems": [],
+        "complete": true,
+        "pythonVersion": "3.12.2",
+        "sourceFiles": {
+          "scripts/delivery_phase0/__init__.py": "9bc3094ec8bcba2da1f702e704ac1f3b7a8ea522798d5c2ffbd16a0066b72a38",
+          "scripts/delivery_phase0/contract.py": "27bc3666c8b1bd399cfdc7ded078aebb9cb2f009d8178c5ae67d00a8fe522354",
+          "scripts/delivery_phase0/examples.py": "3ce2f548e9f115877672c94f07326b526cb457a962362455b66490ade2e308be",
+          "scripts/delivery_phase0/probe.py": "bd88d7f57b62d82a8463f5598319f5bc702b15a1bf3545b8506709a54e414ea6",
+          "scripts/delivery_phase0/project_probe.py": "d3ce28deffa24837c0d78ae7c88a2593b4711b67c716120f752f06234e9f8340",
+          "scripts/delivery_phase0/providers.py": "f2adee7df739a97b8dc013faeefc9b02678707f4eedb00a6df95a73827341fe5",
+          "scripts/delivery_phase0/race_worker.py": "8e2bea868fb16057dd1045298b8e1b4785ac7f438814cae7944a75756aea9082",
+          "scripts/delivery_phase0/schema.py": "2a727eab77cc6424d85f02cfaa14e07d9471884be5798578d41649c27f54854f",
+          "scripts/delivery_phase0/setup.py": "953200d185bd267e8d137da6003d51fe336620f2e53d1fb61199cfb1afa960bc",
+          "scripts/delivery_phase0/transport.py": "41f9f35f0be5444cb98222ff08d7c471110d8f1b21d3421d79e5da6d8d5a584f"
+        },
+        "requestedSections": [
+          "history-read"
+        ]
+      }
+    },
+    {
+      "evidencePath": "artifacts/delivery-phase0/runs/0c48a9b2-2bbd-4e27-be62-27dfcb6aa210/evidence.json",
+      "sha256": "2e45eefa3a7d68ed1bda9f8d08b0d33a6fbecd292b24ff654e0d6c4d7701ba05",
+      "evidence": {
+        "runId": "0c48a9b2-2bbd-4e27-be62-27dfcb6aa210",
+        "provider": "azure",
+        "startedAt": "2026-09-12T15:24:20.150094+00:00",
+        "cases": [
+          {
+            "case": "agile-requirement-fields",
+            "result": "passed",
+            "workItemType": "User Story",
+            "fields": [
+              {
+                "referenceName": "System.Title",
+                "alwaysRequired": true
+              },
+              {
+                "referenceName": "System.AssignedTo",
+                "alwaysRequired": false
+              },
+              {
+                "referenceName": "System.Description",
+                "alwaysRequired": false
+              },
+              {
+                "referenceName": "System.Tags",
+                "alwaysRequired": false
+              },
+              {
+                "referenceName": "Microsoft.VSTS.Common.AcceptanceCriteria",
+                "alwaysRequired": false
+              }
+            ],
+            "states": [
+              "New",
+              "Active",
+              "Resolved",
+              "Closed",
+              "Removed"
+            ]
+          }
+        ],
+        "createdItems": [],
+        "complete": true,
+        "pythonVersion": "3.12.2",
+        "sourceFiles": {
+          "scripts/delivery_phase0/__init__.py": "9bc3094ec8bcba2da1f702e704ac1f3b7a8ea522798d5c2ffbd16a0066b72a38",
+          "scripts/delivery_phase0/contract.py": "27bc3666c8b1bd399cfdc7ded078aebb9cb2f009d8178c5ae67d00a8fe522354",
+          "scripts/delivery_phase0/examples.py": "3ce2f548e9f115877672c94f07326b526cb457a962362455b66490ade2e308be",
+          "scripts/delivery_phase0/probe.py": "bd88d7f57b62d82a8463f5598319f5bc702b15a1bf3545b8506709a54e414ea6",
+          "scripts/delivery_phase0/project_probe.py": "d3ce28deffa24837c0d78ae7c88a2593b4711b67c716120f752f06234e9f8340",
+          "scripts/delivery_phase0/providers.py": "f2adee7df739a97b8dc013faeefc9b02678707f4eedb00a6df95a73827341fe5",
+          "scripts/delivery_phase0/race_worker.py": "8e2bea868fb16057dd1045298b8e1b4785ac7f438814cae7944a75756aea9082",
+          "scripts/delivery_phase0/schema.py": "2a727eab77cc6424d85f02cfaa14e07d9471884be5798578d41649c27f54854f",
+          "scripts/delivery_phase0/setup.py": "953200d185bd267e8d137da6003d51fe336620f2e53d1fb61199cfb1afa960bc",
+          "scripts/delivery_phase0/transport.py": "41f9f35f0be5444cb98222ff08d7c471110d8f1b21d3421d79e5da6d8d5a584f"
+        },
+        "requestedSections": [
+          "field-discovery"
+        ]
+      }
+    },
+    {
+      "evidencePath": "artifacts/delivery-phase0/runs/bdc6900e-b2a9-4c95-afe1-300509c12f64/evidence.json",
+      "sha256": "4e60ab5f9cfdda9d0b979f02dd0fc0ed80c7d6d784b904602f2997c74d4b9809",
+      "evidence": {
+        "runId": "bdc6900e-b2a9-4c95-afe1-300509c12f64",
+        "provider": "github",
+        "startedAt": "2026-09-12T15:26:18.325565+00:00",
+        "cases": [
+          {
+            "case": "known-stale-head-rejected",
+            "result": "passed",
+            "status": 200,
+            "codes": [
+              "STALE_DATA"
+            ]
+          }
+        ],
+        "createdItems": [],
+        "complete": true,
+        "pythonVersion": "3.12.2",
+        "sourceFiles": {
+          "scripts/delivery_phase0/__init__.py": "9bc3094ec8bcba2da1f702e704ac1f3b7a8ea522798d5c2ffbd16a0066b72a38",
+          "scripts/delivery_phase0/contract.py": "27bc3666c8b1bd399cfdc7ded078aebb9cb2f009d8178c5ae67d00a8fe522354",
+          "scripts/delivery_phase0/examples.py": "3ce2f548e9f115877672c94f07326b526cb457a962362455b66490ade2e308be",
+          "scripts/delivery_phase0/probe.py": "bd88d7f57b62d82a8463f5598319f5bc702b15a1bf3545b8506709a54e414ea6",
+          "scripts/delivery_phase0/project_probe.py": "d3ce28deffa24837c0d78ae7c88a2593b4711b67c716120f752f06234e9f8340",
+          "scripts/delivery_phase0/providers.py": "f2adee7df739a97b8dc013faeefc9b02678707f4eedb00a6df95a73827341fe5",
+          "scripts/delivery_phase0/race_worker.py": "8e2bea868fb16057dd1045298b8e1b4785ac7f438814cae7944a75756aea9082",
+          "scripts/delivery_phase0/schema.py": "2a727eab77cc6424d85f02cfaa14e07d9471884be5798578d41649c27f54854f",
+          "scripts/delivery_phase0/setup.py": "953200d185bd267e8d137da6003d51fe336620f2e53d1fb61199cfb1afa960bc",
+          "scripts/delivery_phase0/transport.py": "41f9f35f0be5444cb98222ff08d7c471110d8f1b21d3421d79e5da6d8d5a584f"
+        },
+        "requestedSections": [
+          "stale-head"
+        ]
+      }
+    }
+  ],
+  "preservedExperiments": [
+    {
+      "runId": "3068ff71-ccf4-4a1b-9669-a38cbd69b600",
+      "provider": "github",
+      "complete": true,
+      "cases": [
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        },
+        {
+          "case": "recover-created-item-without-recreate",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/3068ff71-ccf4-4a1b-9669-a38cbd69b600/evidence.json",
+      "sha256": "2ec653040b9bf678a72cca19c5488b10f81ac2047a1fd5f1dbfb8ba0cf07a0d5"
+    },
+    {
+      "runId": "38be2667-0455-4806-9e0e-be9a3ce2f589",
+      "provider": "azure",
+      "complete": false,
+      "cases": [
+        {
+          "case": "conditional-claim-race-0",
+          "result": "observed"
+        },
+        {
+          "case": "obsolete-generation-0",
+          "result": "passed"
+        },
+        {
+          "case": "conditional-claim-race-1",
+          "result": "observed"
+        },
+        {
+          "case": "obsolete-generation-1",
+          "result": "passed"
+        },
+        {
+          "case": "conditional-claim-race-2",
+          "result": "observed"
+        },
+        {
+          "case": "obsolete-generation-2",
+          "result": "passed"
+        },
+        {
+          "case": "response-loss-injection",
+          "result": "injected"
+        },
+        {
+          "case": "recover-created-item-without-recreate",
+          "result": "passed"
+        },
+        {
+          "case": "human-edit-revision-conflict",
+          "result": "observed"
+        },
+        {
+          "case": "native-dependency-and-tags",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/38be2667-0455-4806-9e0e-be9a3ce2f589/evidence.json",
+      "sha256": "e5b06024f38b665692a95455bd663207c905c3c08a53dcf5ae3593ac4095602d"
+    },
+    {
+      "runId": "3e5f1126-a7fb-4306-806d-1a7e99baa06c",
+      "provider": "azure",
+      "complete": true,
+      "cases": [
+        {
+          "case": "response-loss-injection",
+          "result": "injected"
+        },
+        {
+          "case": "recover-created-item-without-recreate",
+          "result": "passed"
+        },
+        {
+          "case": "human-edit-revision-conflict",
+          "result": "observed"
+        },
+        {
+          "case": "native-dependency-and-tags",
+          "result": "passed"
+        },
+        {
+          "case": "comment-created",
+          "result": "passed"
+        },
+        {
+          "case": "bounded-history-page",
+          "result": "passed"
+        },
+        {
+          "case": "native-hierarchy",
+          "result": "passed"
+        },
+        {
+          "case": "deleted-item-read",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/3e5f1126-a7fb-4306-806d-1a7e99baa06c/evidence.json",
+      "sha256": "50d405fda3f45114e48e1e4f43d08043703e51d398c11a080a442d6ed0a9a991"
+    },
+    {
+      "runId": "790819d3-88b4-4a55-ba53-c9e36d04d167",
+      "provider": "github",
+      "complete": true,
+      "cases": [
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        },
+        {
+          "case": "recover-created-item-without-recreate",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/790819d3-88b4-4a55-ba53-c9e36d04d167/evidence.json",
+      "sha256": "57648f2b6dd93c3617a34fb5987417f110a62dcb22190ff014921e5ab02a508e"
+    },
+    {
+      "runId": "8296d0ac-bc4a-447d-b980-5880c33048f9",
+      "provider": "github",
+      "complete": true,
+      "cases": [
+        {
+          "case": "response-loss-injection",
+          "result": "injected"
+        },
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        },
+        {
+          "case": "uncertain-create-observation",
+          "result": "outcome_unknown"
+        },
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        },
+        {
+          "case": "recover-created-item-without-recreate",
+          "result": "passed"
+        },
+        {
+          "case": "human-text-preserved-proposal-comment",
+          "result": "passed"
+        },
+        {
+          "case": "native-label",
+          "result": "passed"
+        },
+        {
+          "case": "native-hierarchy",
+          "result": "passed"
+        },
+        {
+          "case": "native-dependency",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/8296d0ac-bc4a-447d-b980-5880c33048f9/evidence.json",
+      "sha256": "fa1e057942da2cee3c7cba0b55d03f9d1e94106522b85ca4c11cdeb312803d71"
+    },
+    {
+      "runId": "83061ea5-6769-4115-a007-2648b6e1b18b",
+      "provider": "github",
+      "complete": false,
+      "cases": [],
+      "evidencePath": "artifacts/delivery-phase0/runs/83061ea5-6769-4115-a007-2648b6e1b18b/evidence.json",
+      "sha256": "8ccf4ebf849c9ef2f59b991d5d9cc60c3b6686ae4b50c528aaa38c10b4ee443e"
+    },
+    {
+      "runId": "9b835296-59e6-44c3-90c1-4e0d58135f83",
+      "provider": "github",
+      "complete": false,
+      "cases": [
+        {
+          "case": "response-loss-injection",
+          "result": "injected"
+        },
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        },
+        {
+          "case": "uncertain-create-observation",
+          "result": "outcome_unknown"
+        },
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        },
+        {
+          "case": "recover-created-item-without-recreate",
+          "result": "passed"
+        },
+        {
+          "case": "human-text-preserved-proposal-comment",
+          "result": "passed"
+        },
+        {
+          "case": "native-label",
+          "result": "passed"
+        },
+        {
+          "case": "native-hierarchy",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/9b835296-59e6-44c3-90c1-4e0d58135f83/evidence.json",
+      "sha256": "eece80a549c3ce3710c854c75ae06e5c55efce32782b30a44c50880a54059823"
+    },
+    {
+      "runId": "ca365d24-0542-4c86-a6e0-a98022ee8950",
+      "provider": "github",
+      "complete": false,
+      "cases": [
+        {
+          "case": "conditional-claim-race-0",
+          "result": "observed"
+        },
+        {
+          "case": "obsolete-generation-0",
+          "result": "passed"
+        },
+        {
+          "case": "conditional-claim-race-1",
+          "result": "observed"
+        },
+        {
+          "case": "obsolete-generation-1",
+          "result": "passed"
+        },
+        {
+          "case": "conditional-claim-race-2",
+          "result": "observed"
+        },
+        {
+          "case": "obsolete-generation-2",
+          "result": "passed"
+        },
+        {
+          "case": "response-loss-injection",
+          "result": "injected"
+        },
+        {
+          "case": "paginated-item-discovery",
+          "result": "passed"
+        }
+      ],
+      "evidencePath": "artifacts/delivery-phase0/runs/ca365d24-0542-4c86-a6e0-a98022ee8950/evidence.json",
+      "sha256": "ccff635171150dd96d847b6c4aaf802907fc68266f5377986065bf141072219c"
+    },
+    {
+      "runId": "f0c74c30-769b-467d-8d71-314cac1d6bde",
+      "provider": "azure",
+      "complete": false,
+      "cases": [],
+      "evidencePath": "artifacts/delivery-phase0/runs/f0c74c30-769b-467d-8d71-314cac1d6bde/evidence.json",
+      "sha256": "ed3ef1fdbd734c3e09a2134a5efe65b4674adc4d27236d977b05e3c17d46bb27"
+    }
+  ],
+  "validation": {
+    "offlineTests": 21,
+    "development": "passed",
+    "developmentLog": "artifacts/delivery-phase0/development.log",
+    "developmentLogSha256": "ab3bfc950b7c70e52f7365a9f03ad2abbcd5c68ee07858a51ba9d983920944f8",
+    "supplementary": [
+      "21 offline tests passed after final scope refinement",
+      "test-tier validation passed after workflow wiring"
+    ],
+    "finalLedgerAudit": {
+      "azure": {
+        "activeClaims": 0,
+        "unresolvedOperations": 0
+      },
+      "github": {
+        "activeClaims": 0,
+        "unresolvedOperations": 0
+      }
+    }
+  }
+}

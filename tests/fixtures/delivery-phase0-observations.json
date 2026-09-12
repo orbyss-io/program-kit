@@ -1,0 +1,9 @@
+[
+  {"name":"access-revoked","httpStatus":403,"complete":false,"expected":"inaccessible"},
+  {"name":"ambiguous-not-found","httpStatus":404,"complete":true,"expected":"unknown"},
+  {"name":"known-deletion","httpStatus":404,"complete":true,"deletionConfirmed":true,"expected":"deleted"},
+  {"name":"rate-limited","httpStatus":429,"complete":false,"expected":"unknown"},
+  {"name":"provider-outage","httpStatus":503,"complete":false,"expected":"unknown"},
+  {"name":"missing-history-page","httpStatus":200,"complete":false,"expected":"unknown"},
+  {"name":"complete-observation","httpStatus":200,"complete":true,"expected":"present"}
+]

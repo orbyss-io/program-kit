@@ -1,6 +1,6 @@
 # Program Kit team delivery: development plan
 
-Date: 2026-09-12. Status: accepted phased development approach; implementation has not started. This document proposes implementation; it does not claim that provider integrations, concurrency guarantees, or acceptance results already exist.
+Date: 2026-09-12. Status: Phase 0 complete; Phase 1 interview is next. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the contract and provider capability proof. Consumer delivery integrations and later-phase acceptance are not yet implemented.
 
 The supporting [template research](backlog-delivery-template-research.md) contains the source evidence, field mappings, four work-item templates, and a worked requirement. Product choices below were accepted during the interview. Technical mechanisms remain subject to the explicit verification gates in this plan.
 
@@ -36,6 +36,7 @@ The initial capability is complete only when this journey works with both Azure 
 | Planning | Continuous prioritization and explicit milestones; iterations and estimates are optional. Estimates include assumptions and never silently become commitments. |
 | Changes | One coherent proposal per planning/revision session, then apply its approved changes without per-item approval. Mechanical synchronization follows configured rules. Business and architecture decisions remain attributable human decisions. |
 | Dependencies | Model what activity/transition is blocked and what evidence satisfies it. Contracts and independent tests enable parallel work. Separate integration tasks represent real coordination obligations. |
+| Code overlap | Versioned planned/observed change footprints identify paths, contracts, and resources; tags/labels expose concise categories. Broad overlap is advisory; confirmed incompatibility requires scoped coordination. Refresh on material scope or source changes. |
 | Completion | Distinguish implementation completion, verified delivery, and business acceptance. Closed children do not prove an epic's business outcome. |
 | Synchronization | Session/checkpoint-driven. Recheck at session start, claim, before implementation, between substantial phases, before PR/equivalent publication, and before delivery completion. Continuous monitoring is deferred. |
 | Outages | Cloud authority persists. Permit visibly stale local analysis, proposals, and bounded continuation of claimed work. Defer new shared claims, commitments, and governed completion until reconciliation. |
@@ -55,6 +56,7 @@ The common contract should cover:
 - Stable logical work identity plus provider IDs/locators, hierarchy, scope, acceptance IDs, assignments, dependencies, and milestones.
 - Observed provider state, accepted business/design basis, readiness verdict, and evidence provenance. These are distinct records rather than overloaded status values.
 - Change proposals, revision-specific decisions, resumable operations, conflict results, and execution claims.
+- Change footprints with repository/base/plan identity, planned versus observed write scope, affected contracts/resources, assessment basis/freshness, and mapped display categories. Distinguish missing information, possible overlap, and confirmed incompatibility.
 - Versioned adapters for capability discovery, reads, history/delta observation, proposals, writes, claims, relationship maintenance, and evidence lookup.
 
 The shared profile defines semantics and mappings. Repository bindings select a compatible revision and identify repository/team/artifact locations. Authentication references use supported credential facilities; credentials do not belong in shared profile content or generated evidence.
@@ -67,6 +69,8 @@ A generated execution brief gives the working session the accepted business revi
 
 ### Phase 0 — Contracts and provider capability proof
 
+The [Phase 0 decision record](backlog-delivery-phase-0-decisions.md) contains accepted technical choices. The [completed capability proof](delivery/phase-0-evidence.md) records schema examples, source-hashed live probes, deterministic fixtures, provider differences and limitations.
+
 Write the common schema and adapter conformance contract, then test the difficult provider behaviors in explicitly selected disposable platform scopes. Define profile versioning and authority per field before implementing synchronization.
 
 Investigate both providers here, even though the Azure journey is implemented first:
@@ -76,6 +80,7 @@ Investigate both providers here, even though the Azure journey is implemented fi
 - Changes to descriptions, comments, fields and relationships; deletion, access loss, missing history, pagination, and rate-limit handling.
 - Actual process/field capabilities, cloud/server edition differences, supported credentials, and isolation of test configuration.
 - Durable reconciliation/claim storage and profile compatibility detection across machines.
+- Representative footprint cases: same-category independent work, overlapping writes, incompatible cross-repository contracts, generated-artifact sources, incomplete/stale scope, and actual scope expansion.
 
 **Exit:** recorded capability matrix; chosen storage and adapter transports; precise supported guarantees; schema examples; deterministic conflict/recovery fixtures. A read-then-write check or machine-local lock is not accepted as cross-machine claim exclusion. Unsupported atomicity must lead to a demonstrated serialization mechanism or an explicit blocked operation, never an invented guarantee.
 
@@ -109,7 +114,7 @@ Implement resumable application, conflict detection, visible stale/unknown state
 
 ### Phase 4 — Azure parallel delivery and evidence
 
-Implement ready-work recommendations, ownership/claim operations, execution records, checkpoint refresh, dependency evaluation, and evidence-backed progression. Include declared shared-contract/resource conflicts and team eligibility when explaining parallel work.
+Implement ready-work recommendations, ownership/claim operations, execution records, checkpoint refresh, dependency evaluation, and evidence-backed progression. Compare planned and observed change footprints, map concise area/contract/coordination tags or labels, and include declared shared-contract/resource conflicts and team eligibility when explaining parallel work. Keep broad overlaps advisory and scope confirmed conflict gates to the activity that actually needs coordination; do not serialize whole modules merely because their labels match.
 
 Use native predecessor/successor links between properly bounded activities. Add readable satisfaction conditions and evidence where native relations are insufficient. An external dependency records the internal receiving obligation; an upstream issue closing alone does not clear it.
 
@@ -184,4 +189,4 @@ Use chromium/webkit where local browser checks apply; Firefox acceptance remains
 
 The product direction is settled. Exact adapter transports, durable coordination storage, capability fallbacks, schemas, and packaging are technical decisions to resolve with the user in the relevant phase's grilling interview, informed by repository research and the phase-0 proof. If a required guarantee cannot be met within the accepted boundary, report the concrete limitation and return the affected scope decision for review rather than silently weakening behavior.
 
-The first implementation step is the common contract and provider capability proof. Implementation and any platform writes have not been performed by this planning task.
+Phase 0 produced the common contract and provider capability proof, including explicitly approved disposable platform writes. The next step is the Phase 1 interview before implementing the optional module and core authority seam.

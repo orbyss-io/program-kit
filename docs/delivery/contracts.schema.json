@@ -1,0 +1,1396 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/delivery/phase0/v1",
+  "title": "Program Kit delivery Phase 0 contract (experimental)",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/disabled"
+    },
+    {
+      "$ref": "#/$defs/profile"
+    },
+    {
+      "$ref": "#/$defs/binding"
+    },
+    {
+      "$ref": "#/$defs/work"
+    },
+    {
+      "$ref": "#/$defs/observation"
+    },
+    {
+      "$ref": "#/$defs/proposal"
+    },
+    {
+      "$ref": "#/$defs/operation"
+    },
+    {
+      "$ref": "#/$defs/claim"
+    },
+    {
+      "$ref": "#/$defs/dependency"
+    },
+    {
+      "$ref": "#/$defs/evidence"
+    },
+    {
+      "$ref": "#/$defs/footprint"
+    }
+  ],
+  "$defs": {
+    "disabled": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "profile"
+        },
+        "enabled": {
+          "const": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "profile"
+        },
+        "enabled": {
+          "const": true
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "enum": [
+            "azure",
+            "github"
+          ]
+        },
+        "edition": {
+          "enum": [
+            "azure-devops-services",
+            "github.com"
+          ]
+        },
+        "profileRevision": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "coordinator": {
+          "type": "object",
+          "properties": {
+            "repositoryId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "branch": {
+              "type": "string",
+              "minLength": 1
+            },
+            "statePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            }
+          },
+          "required": [
+            "repositoryId",
+            "branch",
+            "statePath"
+          ],
+          "additionalProperties": false
+        },
+        "workTypes": {
+          "type": "object",
+          "properties": {
+            "epic": {
+              "type": "string",
+              "minLength": 1
+            },
+            "feature": {
+              "type": "string",
+              "minLength": 1
+            },
+            "requirement": {
+              "type": "string",
+              "minLength": 1
+            },
+            "task": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "epic",
+            "feature",
+            "requirement",
+            "task"
+          ],
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "providerField": {
+                "type": "string",
+                "minLength": 1
+              },
+              "authority": {
+                "enum": [
+                  "platform",
+                  "git",
+                  "operational"
+                ]
+              },
+              "requiredAt": {
+                "enum": [
+                  "intake",
+                  "ready",
+                  "optional"
+                ]
+              },
+              "writePolicy": {
+                "enum": [
+                  "conditional",
+                  "proposal",
+                  "owned"
+                ]
+              }
+            },
+            "required": [
+              "providerField",
+              "authority",
+              "requiredAt",
+              "writePolicy"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "roles": {
+          "type": "object",
+          "properties": {
+            "business": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "technical": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "acceptance": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "coordinator": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "business",
+            "technical",
+            "acceptance",
+            "coordinator"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "verified",
+              "unsupported",
+              "unverified"
+            ]
+          }
+        },
+        "tagNamespace": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "enabled",
+        "space",
+        "provider",
+        "edition",
+        "profileRevision",
+        "coordinator",
+        "workTypes",
+        "fields",
+        "roles",
+        "capabilities",
+        "tagNamespace"
+      ],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "binding"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repositoryId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profileRepositoryId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profileRevision": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "profilePath": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "teamId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "technicalArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              },
+              "commit": {
+                "type": "string",
+                "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "repository",
+              "commit",
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "repositoryId",
+        "profileRepositoryId",
+        "profileRevision",
+        "profilePath",
+        "teamId",
+        "technicalArtifacts"
+      ],
+      "additionalProperties": false
+    },
+    "work": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "work"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "logicalId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "native": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "enum": [
+                "azure",
+                "github"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "provider",
+            "id",
+            "url"
+          ],
+          "additionalProperties": false
+        },
+        "kind": {
+          "enum": [
+            "epic",
+            "feature",
+            "requirement",
+            "task"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "businessOwnerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acceptance": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "criterion": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "criterion"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "repositories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "technicalArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              },
+              "commit": {
+                "type": "string",
+                "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "repository",
+              "commit",
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "milestoneId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deliveryState": {
+          "enum": [
+            "draft",
+            "ready",
+            "active",
+            "implemented",
+            "verified",
+            "accepted",
+            "superseded"
+          ]
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "logicalId",
+        "native",
+        "kind",
+        "title",
+        "outcome",
+        "businessOwnerId",
+        "acceptance",
+        "repositories",
+        "technicalArtifacts",
+        "deliveryState"
+      ],
+      "additionalProperties": false
+    },
+    "observation": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "observation"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "providerRevision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "businessFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "availability": {
+          "enum": [
+            "present",
+            "deleted",
+            "inaccessible",
+            "unknown"
+          ]
+        },
+        "coverage": {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "enum": [
+                "complete",
+                "incomplete",
+                "unknown"
+              ]
+            },
+            "comments": {
+              "enum": [
+                "complete",
+                "incomplete",
+                "unknown"
+              ]
+            },
+            "relations": {
+              "enum": [
+                "complete",
+                "incomplete",
+                "unknown"
+              ]
+            },
+            "history": {
+              "enum": [
+                "complete",
+                "incomplete",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "fields",
+            "comments",
+            "relations",
+            "history"
+          ],
+          "additionalProperties": false
+        },
+        "acceptedBasis": {
+          "type": "object",
+          "properties": {
+            "businessRevision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "profileRevision": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "commit": {
+                  "type": "string",
+                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "repository",
+                "commit",
+                "path",
+                "sha256"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "businessRevision",
+            "profileRevision",
+            "plan"
+          ],
+          "additionalProperties": false
+        },
+        "readiness": {
+          "enum": [
+            "ready",
+            "blocked",
+            "stale",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "workId",
+        "observedAt",
+        "providerRevision",
+        "businessFingerprint",
+        "availability",
+        "coverage",
+        "readiness"
+      ],
+      "additionalProperties": false
+    },
+    "proposal": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "proposal"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payloadFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "type": "object",
+          "properties": {
+            "businessRevision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "profileRevision": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "commit": {
+                  "type": "string",
+                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "repository",
+                "commit",
+                "path",
+                "sha256"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "businessRevision",
+            "profileRevision",
+            "plan"
+          ],
+          "additionalProperties": false
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "decision": {
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "approval": {
+          "type": "object",
+          "properties": {
+            "actor": {
+              "type": "object",
+              "properties": {
+                "providerId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "accountableHumanId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "executionId": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "providerId",
+                "accountableHumanId",
+                "executionId"
+              ],
+              "additionalProperties": false
+            },
+            "role": {
+              "enum": [
+                "business",
+                "technical",
+                "acceptance"
+              ]
+            },
+            "payloadFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "inputFingerprint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decidedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "actor",
+            "role",
+            "payloadFingerprint",
+            "inputFingerprint",
+            "decidedAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "id",
+        "inputFingerprint",
+        "payloadFingerprint",
+        "basis",
+        "operations",
+        "decision"
+      ],
+      "additionalProperties": false
+    },
+    "operation": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "operation"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposalId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payloadFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "enum": [
+            "create",
+            "update",
+            "link",
+            "comment"
+          ]
+        },
+        "state": {
+          "enum": [
+            "prepared",
+            "dispatched",
+            "outcome_unknown",
+            "applied",
+            "not_applied",
+            "conflict"
+          ]
+        },
+        "actor": {
+          "type": "object",
+          "properties": {
+            "providerId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "accountableHumanId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "executionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "providerId",
+            "accountableHumanId",
+            "executionId"
+          ],
+          "additionalProperties": false
+        },
+        "providerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedProviderRevision": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "id",
+        "proposalId",
+        "destination",
+        "payloadFingerprint",
+        "inputFingerprint",
+        "action",
+        "state",
+        "actor"
+      ],
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "claim"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "actor": {
+          "type": "object",
+          "properties": {
+            "providerId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "accountableHumanId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "executionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "providerId",
+            "accountableHumanId",
+            "executionId"
+          ],
+          "additionalProperties": false
+        },
+        "state": {
+          "enum": [
+            "active",
+            "released"
+          ]
+        },
+        "basis": {
+          "type": "object",
+          "properties": {
+            "businessRevision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "profileRevision": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "plan": {
+              "type": "object",
+              "properties": {
+                "repository": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "commit": {
+                  "type": "string",
+                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "repository",
+                "commit",
+                "path",
+                "sha256"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "businessRevision",
+            "profileRevision",
+            "plan"
+          ],
+          "additionalProperties": false
+        },
+        "lastCheckpointAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "exclusiveResources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "workId",
+        "generation",
+        "actor",
+        "state",
+        "basis",
+        "lastCheckpointAt",
+        "exclusiveResources"
+      ],
+      "additionalProperties": false
+    },
+    "dependency": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "dependency"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "predecessor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "successor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "blockedActivity": {
+          "enum": [
+            "implementation",
+            "integration",
+            "delivery",
+            "acceptance"
+          ]
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiredEvidenceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "receivingOwnerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "externalReference": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "enum": [
+                "azure",
+                "github"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "provider",
+            "id",
+            "url"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "id",
+        "predecessor",
+        "successor",
+        "blockedActivity",
+        "condition",
+        "requiredEvidenceIds",
+        "receivingOwnerId"
+      ],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "evidence"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "commit": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "repository",
+            "commit",
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "sourceCommit": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "contractRevision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acceptanceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "result": {
+          "enum": [
+            "passed",
+            "failed",
+            "unknown"
+          ]
+        },
+        "producer": {
+          "type": "object",
+          "properties": {
+            "providerId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "accountableHumanId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "executionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "providerId",
+            "accountableHumanId",
+            "executionId"
+          ],
+          "additionalProperties": false
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "id",
+        "workId",
+        "artifact",
+        "sourceCommit",
+        "contractRevision",
+        "acceptanceIds",
+        "result",
+        "producer",
+        "observedAt"
+      ],
+      "additionalProperties": false
+    },
+    "footprint": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "footprint"
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repositoryId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseCommit": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "headCommit": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "plan": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "commit": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "repository",
+            "commit",
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "basis": {
+          "enum": [
+            "planned",
+            "observed"
+          ]
+        },
+        "coverage": {
+          "enum": [
+            "complete",
+            "incomplete",
+            "unknown"
+          ]
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "writePaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "uniqueItems": true
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mode": {
+                "enum": [
+                  "read",
+                  "change",
+                  "exclusive"
+                ]
+              },
+              "contractRevision": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "mode",
+              "contractRevision"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "generatedSources": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          }
+        },
+        "protectedAssumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "space",
+        "workId",
+        "repositoryId",
+        "baseCommit",
+        "headCommit",
+        "plan",
+        "basis",
+        "coverage",
+        "observedAt",
+        "writePaths",
+        "categories",
+        "resources",
+        "generatedSources",
+        "protectedAssumptions"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
