@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Resolve activated built-in runtime package pins through the supported central-package import
+  graph, including consumer-owned declarations. Reject ambiguous or unsupported pins and dependency
+  conflicts instead of silently changing exact feature versions. Preserve failed-stage evidence.
+
 ## 0.11.0 - 2026-09-12
 
 - Execute bootstrap recovery through the native workflow engine: preserve successful stages and
