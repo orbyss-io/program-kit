@@ -102,9 +102,13 @@ def normalize_path(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or "\\" in value:
         fail("PKB300", f"{label} must be a non-empty forward-slash repository-relative path")
     path = PurePosixPath(value)
-    if path.is_absolute() or ".." in path.parts or path.parts in ((), (".",)):
+    if path.is_absolute() or ":" in value or ".." in path.parts or path.parts in ((), (".",)):
         fail("PKB300", f"{label} must stay inside the repository: {value!r}")
     normalized = path.as_posix()
+    if any(part.endswith((".", " ")) or any(char in part for char in '<>"|?*')
+           or re.fullmatch(r"(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?", part)
+           for part in path.parts):
+        fail("PKB300", f"{label} contains an unsafe cross-platform path segment")
     if normalized.startswith("./"):
         normalized = normalized[2:]
     return normalized
@@ -422,9 +426,87 @@ def index_selection(selection: dict) -> tuple[dict[str, dict], dict[str, dict]]:
         identity = target["path"].casefold()
         if identity in path_identities and path_identities[identity] != target_id:
             fail("PKB301", f"selection targets {path_identities[identity]!r} and {target_id!r} have colliding paths")
+        if any(identity.startswith(previous + "/") or previous.startswith(identity + "/")
+               for previous in path_identities):
+            fail("PKB301", f"selection target {target_id!r} collides with another target's parent path")
         path_identities[identity] = target_id
         targets[target_id] = target
     return scopes, targets
+
+
+def validate_placements(repository: Path, selection: dict, require_all: bool = False) -> None:
+    """Validate architecture declarations without creating their consumer-owned files.
+
+    Legacy accepted selections remain readable. New bootstrap Drafts require provenance on
+    every target; a declaration stays 'planned' after scaffolding as its decision-time origin.
+    The map's source hashes provide freshness without duplicating ADR hashes across approval.
+    """
+    _, targets = index_selection(selection)
+    declared = [target for target in targets.values() if "placement" in target]
+    if require_all and (not targets or len(declared) != len(targets)):
+        fail("PKB306", "architecture must declare placement provenance for every target")
+    if require_all and not selection.get("instances"):
+        fail("PKB306", "architecture must declare composition instances and their bindings")
+    if not declared:
+        return
+    architecture = load_json(repository_path(repository, normalize_path(
+        selection["authority"]["architectureMap"], "architecture map")))
+    owners = {item["id"]: item for item in architecture.get("elements", [])}
+    decisions = {item["id"]: item for item in architecture.get("decisions", [])}
+    for target in declared:
+        label = f"placement for {target['id']}"
+        placement = require_object(target["placement"], label)
+        if placement.get("state") not in {"observed", "planned"}:
+            fail("PKB306", f"{label} must distinguish observed from planned")
+        if not isinstance(placement.get("rationale"), str) or not placement["rationale"].strip():
+            fail("PKB306", f"{label} needs architecture placement rationale")
+        owner = owners.get(require_id(placement.get("owner"), f"{label} owner"))
+        if not owner or not owner.get("ownership"):
+            fail("PKB306", f"{label} needs a canonical semantic owner with ownership")
+        refs = require_list(placement.get("decisionIds"), f"{label} decisionIds")
+        if not refs or any(not isinstance(ref, str) for ref in refs) or len(set(refs)) != len(refs):
+            fail("PKB306", f"{label} needs unique decision provenance")
+        for ref in refs:
+            decision = decisions.get(ref)
+            if (ref not in selection["authority"]["decisionIds"]
+                    or ref not in owner.get("decision_refs", []) or not decision
+                    or decision.get("status") not in {"Proposed", "Accepted"}):
+                fail("PKB306", f"{label} cites absent or inactive owner decision {ref!r}")
+            source = repository_path(repository, normalize_path(decision.get("path"), label))
+            if not source.is_file() or raw_sha256(source) != decision.get("sha256"):
+                fail("PKB306", f"{label} has stale decision provenance {ref!r}")
+        path = repository_path(repository, target["path"])
+        current = repository.resolve()
+        for segment in PurePosixPath(target["path"]).parts:
+            if current.is_dir():
+                matches = [entry.name for entry in current.iterdir() if entry.name.casefold() == segment.casefold()]
+                if matches and matches != [segment]:
+                    fail("PKB301", f"{label} changes an observed path's case identity")
+            elif current.exists():
+                fail("PKB300", f"{label} has a file as a parent directory")
+            current = current / segment
+        if any(part.casefold() in {".specify", ".program-kit", ".git", "node_modules"}
+               for part in PurePosixPath(target["path"]).parts):
+            fail("PKB300", f"{label} must name consumer content, not installed/internal files")
+        if path.exists() and not path.is_file():
+            fail("PKB300", f"{label} must name a file")
+        if placement["state"] == "observed" and not path.is_file():
+            fail("PKB306", f"{label} claims an observed file that is absent")
+        if require_all and placement["state"] == "planned" and path.is_file():
+            fail("PKB306", f"{label} must preserve the already observed file's identity and ownership")
+        name = path.name.casefold()
+        valid_kind = {
+            "repository": name == "directory.build.props",
+            "dotnet-project": name.endswith(".csproj"),
+            "npm-package": name == "package.json",
+            "cshell-shell": name == "shells.json",
+            "dotnet-tool-manifest": name == "dotnet-tools.json",
+            "host-image": name == "dockerfile" or name.startswith("dockerfile."),
+        }.get(target.get("kind"), False)
+        if not valid_kind:
+            fail("PKB303", f"{label} path does not match its target kind")
+        if target["kind"] == "cshell-shell":
+            require_id(target.get("shell"), f"{label} shell")
 
 
 def binding_targets(instance: dict, slot: str, targets: dict[str, dict]) -> list[dict]:
@@ -470,6 +552,7 @@ def resolve(
         architecture_path = normalize_path(selection["authority"]["architectureMap"], "selection.authority.architectureMap")
         authority_hash = canonical_sha256(selection["authority"])
     scopes, targets = index_selection(selection)
+    validate_placements(repository, selection)
     compositions = catalog["compositions"]
     packages = catalog["packages"]
     instances: dict[str, dict] = {}
@@ -502,6 +585,8 @@ def resolve(
                 slot = slots[slot_id]
                 if target.get("kind") != slot["kind"] or target.get("role") not in slot["allowedRoles"]:
                     fail("PKB303", f"selection target {target_id!r} does not satisfy slot {composition_id}/{slot_id}")
+                if "placement" in target and scope_matches_kind(target["scope"], required_scope, scopes) != scope_matches_kind(instance["scope"], required_scope, scopes):
+                    fail("PKB303", f"selection target {target_id!r} crosses the instance's {required_scope} scope")
         instances[instance_id] = instance
     for first in instances.values():
         composition = compositions[first["composition"]]
@@ -1234,7 +1319,7 @@ def find_program_kit_version(script: Path) -> str:
             value = candidate.read_text(encoding="utf-8").strip()
             if value:
                 return value
-    return "0.10.0"
+    return "0.10.1"
 
 
 def default_catalog(script: Path) -> Path:
@@ -1388,6 +1473,8 @@ def main() -> int:
         command.add_argument("--selection", default="docs/architecture/building-block-selection.json")
         command.add_argument("--catalog")
         command.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
+        if name == "validate-draft":
+            command.add_argument("--require-placement-provenance", action="store_true")
         if name == "apply":
             command.add_argument("--plan-digest", required=True)
     args = parser.parse_args()
@@ -1443,6 +1530,7 @@ def main() -> int:
             require_accepted=args.command != "validate-draft",
         )
         if args.command == "validate-draft":
+            validate_placements(repository, load_json(selection_path), args.require_placement_provenance)
             print(f"Draft building-block selection is complete and resolves provisionally: {lock['planDigest']}")
             return 0
         if args.command == "plan":

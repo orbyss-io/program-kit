@@ -177,3 +177,12 @@ state directly.
 After a workflow pause, report the run ID, review packet and named artifacts, and one fully
 substituted, single-line resume command. A rejection keeps the run paused for revision and packet
 regeneration; never describe rejection as approval failure or encourage approval of stale content.
+
+For a failed run at `validate-architecture-output`, resume alone cannot recreate missing architecture.
+After installing a coherent correction, use the installed `bootstrap_context.py`
+`prepare-architecture-recovery --run-id` command with that actual run ID. It preserves failed-run
+evidence and emits the architecture skill input, full validation command and later resume command.
+Have the user invoke that architecture skill in the consumer session, validate its outputs, and
+then resume the existing run. Do not start another bootstrap, rewrite workflow state or auto-approve
+new decisions. `architecture-dispatch` completion records only process success; the full output
+gate establishes architecture completion. Report a recorded BLOCKED reason before missing files.

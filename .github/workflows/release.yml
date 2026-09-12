@@ -60,6 +60,7 @@ jobs:
           python tests/validate_governance_state.py
           python tests/validate_local_upgrade.py
           python tests/validate_bootstrap_context.py
+          python tests/validate_architecture_placement.py
           python tests/validate_bootstrap_intake.py
           python tests/validate_bootstrap_semantics.py
           python tests/validate_c4_view.py

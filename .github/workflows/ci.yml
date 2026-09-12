@@ -70,6 +70,9 @@ jobs:
       - name: Validate bootstrap context generation
         run: python tests/validate_bootstrap_context.py
 
+      - name: Validate architecture placement and recovery
+        run: python tests/validate_architecture_placement.py
+
       - name: Validate conversational bootstrap intake and architecture map
         run: python tests/validate_bootstrap_intake.py
 

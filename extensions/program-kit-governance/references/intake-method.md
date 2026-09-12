@@ -15,6 +15,13 @@ through repeated failing exports. Broad implementation discovery is still unnece
 
 ## Question policy
 
+Architecture owns physical placement planning, including exact project/package/shell paths and
+target IDs. Do not ask product users for those filenames or move that bookkeeping into intake.
+Preserve repository and stack preferences when supplied; otherwise assign layout to architecture
+using semantic ownership, repository conventions and applicable defaults. A missing greenfield
+manifest is not a missing product requirement. Ask only about consequential constraints or
+trade-offs that cannot be resolved from context.
+
 Begin with the user's natural description. Reflect the understood intent before asking questions.
 Establish the problem, intended value, actors, and observable success before dependent lifecycle
 or solution-design recommendations. Reuse explicit answers already supplied; this is a dependency

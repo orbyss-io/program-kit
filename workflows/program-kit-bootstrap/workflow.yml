@@ -3,7 +3,7 @@ schema_version: "1.0"
 workflow:
   id: "program-kit-bootstrap"
   name: "Architecture-Governed Repository Bootstrap"
-  version: "0.10.0"
+  version: "0.10.1"
   author: "Orbyss"
   description: "Consumes a confirmed conversational intake and orchestrates Program Kit assessment, ratification, architecture, quality, and the candidate specification portfolio."
 
@@ -190,7 +190,8 @@ steps:
     run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py build --stage architecture --run-id {{ context.run_id }} --json"
     output_format: json
 
-  - id: architecture
+  # This step records process dispatch only. The following deterministic gate owns completion.
+  - id: architecture-dispatch
     type: command
     command: "speckit.program-kit-governance.architecture"
     integration: "{{ inputs.integration }}"
@@ -199,7 +200,7 @@ steps:
 
   - id: validate-architecture-output
     type: shell
-    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-output --stage architecture --json"
+    run: "python .specify/extensions/program-kit-governance/scripts/bootstrap_context.py validate-stage --stage architecture --run-id {{ context.run_id }} --json"
     output_format: json
 
   - id: validate-architecture-alignment

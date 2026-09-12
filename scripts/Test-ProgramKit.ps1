@@ -71,6 +71,7 @@ $developmentValidators = @(
     'validate_json_schema.py',
     'validate_orbyss_building_blocks.py',
     'validate_building_blocks.py',
+    'validate_architecture_placement.py',
     'validate_building_block_availability.py',
     'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'
