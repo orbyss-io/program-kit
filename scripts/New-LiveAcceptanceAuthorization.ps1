@@ -47,6 +47,15 @@ if ($codexExitCode -ne 0 -or -not $launcherVersion) {
     throw 'LIVE_ACCEPTANCE_TOOL_UNUSABLE: codex --version failed.'
 }
 
+$previewArguments = @((Join-Path $projectRoot 'tests/live/v2/cli.py'), 'session-limit',
+    '--phase', $Phase, '--release-receipt', $receiptPath, '--receipt-kind', $receiptKind)
+if ($ReleaseRoot) { $previewArguments += @('--release-root', (Resolve-Path -LiteralPath $ReleaseRoot).Path) }
+$previewOutput = @(& python @previewArguments)
+if ($LASTEXITCODE -ne 0 -or $previewOutput.Count -ne 1 -or $previewOutput[0] -notmatch '^\d+$') {
+    throw 'Could not verify the paid-session limit from the candidate receipt and packaged workflow.'
+}
+$maximumPaidSessions = [int]$previewOutput[0]
+
 Write-Host 'Paid live-acceptance authorization contract:'
 Write-Host "  phase: $Phase"
 Write-Host "  case: $Case"
@@ -60,7 +69,7 @@ Write-Host "  checkpoint: $(if ($Checkpoint) { $Checkpoint } else { '<none>' })"
 Write-Host "  profile: codex / $Model / $ReasoningEffort / workspace-write"
 Write-Host "  Codex launcher: $launcherVersion"
 Write-Host "  timeout: $TimeoutSeconds seconds"
-Write-Host "  maximum paid sessions: $(if ($Phase -eq 'bootstrap-checkpoint') { 7 } else { 1 })"
+Write-Host "  maximum paid sessions: $maximumPaidSessions (verified against the candidate package)"
 Write-Host "  expiry: $ExpiresMinutes minutes"
 Write-Host '  worker network: model transport only; registry restore belongs to the supervisor'
 $required = "AUTHORIZE $Phase"
@@ -70,6 +79,7 @@ if ($confirmation -cne $required) { throw 'LIVE_AUTHORIZATION_NOT_CONFIRMED: no 
 $arguments = @(
     (Join-Path $projectRoot 'tests\live\v2\cli.py'), 'authorize', '--phase', $Phase,
     '--release-receipt', $receiptPath, '--receipt-kind', $receiptKind, '--model', $Model, '--reasoning-effort', $ReasoningEffort,
+    '--displayed-session-limit', $maximumPaidSessions.ToString(),
     '--launcher-version', $launcherVersion,
     '--timeout-seconds', $TimeoutSeconds.ToString(), '--expires-minutes', $ExpiresMinutes.ToString(),
     '--output', $Output, '--confirmed'

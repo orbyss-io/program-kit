@@ -86,6 +86,8 @@ def issue(args: argparse.Namespace) -> int:
     from . import cli
     if not args.confirmed:
         raise LiveContractError('LIVE_AUTHORIZATION_INTERACTIVE_CONFIRMATION_REQUIRED')
+    if args.displayed_session_limit != 1:
+        raise LiveContractError('LIVE_AUTHORIZATION_DISPLAYED_SESSION_LIMIT_CHANGED')
     root = cli.repository_root()
     source = Path(args.release_root).resolve() if args.release_root else root
     schema = cli.schemas(root)

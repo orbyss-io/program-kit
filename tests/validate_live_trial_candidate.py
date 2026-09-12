@@ -2,12 +2,14 @@
 import copy
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from live.v2 import trial_candidate as trial
-from live.v2.candidate import validate_candidate_receipt, validate_release_receipt
+from live.v2.candidate import bootstrap_session_limit, validate_candidate_receipt, validate_release_receipt
+from live.v2.authorization import issue_authorization, validate_authorization
 from live.v2.common import LiveContractError, atomic_write_json, load_object
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,6 +80,34 @@ class TrialTests(unittest.TestCase):
         atomic_write_json(self.path,self.value)
         with self.assertRaises(LiveContractError):
             trial.validate_trial_receipt(self.root,self.path,SCHEMAS)
+
+    def test_bootstrap_limit_tracks_verified_seven_eight_and_nine_step_packages(self):
+        path = self.root / 'artifacts/program-kit-bootstrap-0.12.0.zip'
+        for count in (7,8,9):
+            with zipfile.ZipFile(path,'w') as package:
+                package.writestr('workflow.yml', 'steps:\n' + ''.join(f'  - id: step-{number}\n    type: command\n' for number in range(count)))
+            receipt = {'version':'0.12.0','artifacts':[trial.file_record(self.root,path)]}
+            self.assertEqual(bootstrap_session_limit(self.root,receipt),count)
+        path.write_bytes(b'changed archive')
+        with self.assertRaisesRegex(LiveContractError,'WORKFLOW_HASH_MISMATCH'):
+            bootstrap_session_limit(self.root,receipt)
+
+    def test_bootstrap_authorization_requires_verified_count_and_rejects_limit_change(self):
+        arguments = {'phase':'bootstrap-checkpoint','scenario':{'id':'test','version':'1','digest':'a'*64},
+                     'candidate':{'releaseReceipt':'test','releaseReceiptSha256':'b'*64}, 'checkpoint':None,
+                     'agent_profile':{'integration':'codex','launcherVersion':'test','model':'test','reasoningEffort':'high','sandbox':'workspace-write','timeoutSeconds':60}}
+        schema = load_object(SCHEMAS / 'authorization.schema.json')
+        with self.assertRaisesRegex(LiveContractError,'VERIFIED_WORKFLOW_LIMIT_REQUIRED'):
+            issue_authorization(self.path,schema,**arguments)
+        manifest = issue_authorization(self.path,schema,bootstrap_sessions=8,**arguments)
+        self.assertEqual(manifest['limits']['maximumPaidSessions'],8)
+        expected = {'phase':'bootstrap-checkpoint','scenario_digest':'a'*64,'candidate_receipt_digest':'b'*64,'checkpoint_digest':None,'bootstrap_sessions':8}
+        validate_authorization(self.path,schema,**expected)
+        for wrong in (7,9):
+            manifest['limits']['maximumPaidSessions'] = wrong
+            atomic_write_json(self.path,manifest)
+            with self.assertRaisesRegex(LiveContractError,'SESSION_LIMIT'):
+                validate_authorization(self.path,schema,**expected)
 
 
 if __name__ == '__main__':

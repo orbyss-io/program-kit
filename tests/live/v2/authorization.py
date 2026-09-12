@@ -15,6 +15,14 @@ PHASES = {"bootstrap-checkpoint", "building-block-consumer"}
 PHASES.update({'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer'})
 
 
+def session_limit(phase: str, bootstrap_sessions: int | None = None) -> int:
+    if phase != 'bootstrap-checkpoint':
+        return 1
+    if type(bootstrap_sessions) is not int or bootstrap_sessions < 1:
+        raise LiveContractError('LIVE_AUTHORIZATION_VERIFIED_WORKFLOW_LIMIT_REQUIRED')
+    return bootstrap_sessions
+
+
 def issue_authorization(
     destination: Path,
     schema: dict[str, Any],
@@ -25,6 +33,7 @@ def issue_authorization(
     agent_profile: dict[str, object],
     checkpoint: dict[str, str] | None,
     expires_minutes: int = 30,
+    bootstrap_sessions: int | None = None,
 ) -> dict[str, Any]:
     if phase not in PHASES:
         raise LiveContractError(f"LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}")
@@ -43,7 +52,7 @@ def issue_authorization(
         "checkpoint": checkpoint,
         "agentProfile": agent_profile,
         "limits": {
-            "maximumPaidSessions": 7 if phase == "bootstrap-checkpoint" else 1,
+            "maximumPaidSessions": session_limit(phase, bootstrap_sessions),
             "workerNetwork": "model-transport-only",
             "restoreNetworkOwner": "supervisor",
         },
@@ -75,6 +84,7 @@ def validate_authorization(
     scenario_digest: str,
     candidate_receipt_digest: str,
     checkpoint_digest: str | None,
+    bootstrap_sessions: int | None = None,
 ) -> dict[str, Any]:
     manifest = load_object(path)
     validate(manifest, schema)
@@ -93,7 +103,7 @@ def validate_authorization(
     now = datetime.now(timezone.utc)
     if now < _parse_time(manifest["issuedAt"], "issuedAt") or now >= _parse_time(manifest["expiresAt"], "expiresAt"):
         raise LiveContractError("LIVE_AUTHORIZATION_EXPIRED")
-    expected_sessions = 7 if phase == "bootstrap-checkpoint" else 1
+    expected_sessions = session_limit(phase, bootstrap_sessions)
     if manifest["limits"]["maximumPaidSessions"] != expected_sessions:
         raise LiveContractError("LIVE_AUTHORIZATION_SESSION_LIMIT")
     return manifest

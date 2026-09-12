@@ -19,7 +19,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
-from live.v2.candidate import install_candidate_from_receipt, validate_candidate_receipt
+from live.v2.candidate import bootstrap_session_limit, install_candidate_from_receipt, validate_candidate_receipt
 from live.v2.checkpoint import checkpoint_digest, materialize_checkpoint, seal_checkpoint
 from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object, sha256_file, utc_now, validate
 from live.v2.evidence import EvidenceStore
@@ -294,6 +294,9 @@ def issue(args: argparse.Namespace) -> int:
     kind = args.receipt_kind
     receipt, receipt_digest = validate_candidate_receipt(source, receipt_path, schema_root, kind)
     preflight(source, receipt)
+    limit = bootstrap_session_limit(source, receipt) if args.phase == 'bootstrap-checkpoint' else 1
+    if args.displayed_session_limit != limit:
+        raise LiveContractError('LIVE_AUTHORIZATION_DISPLAYED_SESSION_LIMIT_CHANGED')
     if git(root, 'status', '--porcelain=v1'):
         raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
     from live.v2.sync_stages import harness_digest
@@ -321,6 +324,7 @@ def issue(args: argparse.Namespace) -> int:
         candidate={"releaseReceipt": str(receipt_path), "releaseReceiptSha256": receipt_digest,
                    "receiptKind":kind, "releaseRoot":str(source), "harnessSha256":harness_digest()},
         checkpoint=checkpoint, agent_profile=profile, expires_minutes=args.expires_minutes,
+        bootstrap_sessions=limit if args.phase == 'bootstrap-checkpoint' else None,
     )
     print(f"Live authorization {manifest['authorizationId']}: {destination}")
     return 0
@@ -366,6 +370,7 @@ def _phase_inputs(args: argparse.Namespace, phase: str) -> tuple[Path, Path, Evi
     authorization = validate_authorization(
         authorization_path, load_object(schema_root / "authorization.schema.json"), phase=phase,
         scenario_digest=authority["digest"], candidate_receipt_digest=receipt_digest, checkpoint_digest=checkpoint_sha,
+        bootstrap_sessions=bootstrap_session_limit(source, receipt) if phase == 'bootstrap-checkpoint' else None,
     )
     validate_agent_launcher(authorization["agentProfile"])
     return root, scenario_root, store, scenario, expectation, receipt, receipt_digest, authorization
@@ -601,6 +606,7 @@ def parser() -> argparse.ArgumentParser:
     authorize.add_argument("--baseline-report")
     authorize.add_argument("--release-receipt", required=True)
     authorize.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
+    authorize.add_argument('--displayed-session-limit', type=int, required=True)
     authorize.add_argument("--scenario")
     authorize.add_argument("--checkpoint")
     authorize.add_argument("--model", required=True)
@@ -610,6 +616,11 @@ def parser() -> argparse.ArgumentParser:
     authorize.add_argument("--expires-minutes", type=int, default=30)
     authorize.add_argument("--output", required=True)
     authorize.add_argument("--confirmed", action="store_true")
+    preview = commands.add_parser('session-limit')
+    preview.add_argument('--phase', required=True, choices=('bootstrap-checkpoint','building-block-consumer',*PHASES))
+    preview.add_argument('--release-root')
+    preview.add_argument('--release-receipt', required=True)
+    preview.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
     bootstrap_parser = commands.add_parser("bootstrap")
     bootstrap_parser.add_argument("--authorization", required=True)
     bootstrap_parser.add_argument("--scenario")
@@ -634,6 +645,13 @@ def main() -> int:
     args = parser().parse_args()
     try:
         from live.v2 import sync_stages
+        if args.command == 'session-limit':
+            root = repository_root()
+            source = Path(args.release_root).resolve() if args.release_root else root
+            receipt, _ = validate_candidate_receipt(source, Path(args.release_receipt).resolve(), schemas(root), args.receipt_kind)
+            preflight(source, receipt)
+            print(bootstrap_session_limit(source, receipt) if args.phase == 'bootstrap-checkpoint' else 1)
+            return 0
         if args.command == "authorize":
             if args.phase in sync_stages.PHASES:
                 return sync_stages.issue(args)
