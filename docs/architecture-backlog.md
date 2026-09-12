@@ -52,3 +52,23 @@ When this item is selected, use the proposal's analysis, alternatives, implement
 acceptance scenarios as discussion inputs. Revalidate its source/version assumptions, resolve the
 actual scope and tradeoffs, and produce the official intake artifacts. The suggested implementation
 increments are provisional; no work on them is scheduled or started by this backlog entry.
+
+## PK-ARCH-003: Cumulative release migration guidance for agents
+
+- Status: Deferred — awaiting official intake; unscheduled
+- Trigger: the user explicitly chooses to begin the official intake for release migration guidance
+- Input: [Release migration guidance proposal](release-migration-guidance-proposal.md)
+- Decision: No implementation design accepted; retain the proposal as initial intake material
+
+Provide migration guidance with every release so an agent upgrading an older installation can
+understand all relevant changes across its version gap and determine the work needed to complete
+the upgrade. The initial proposal recommends cumulative, shipped migration guidance, an applicable
+upgrade plan, and evidence that distinguishes component installation from consumer readiness.
+
+Account for every intervening release, but require intermediate installations only when a supported
+migration needs them. Revisit historical compatibility claims against actual release artifacts,
+consumer states, and test evidence before promising an upgrade from any previous version.
+
+When selected for intake, revalidate the proposal's 0.10.1 findings, resolve its open questions, and
+agree scope and acceptance criteria through the official intake. The proposed increments and
+release-note corrections are deferred discussion inputs, not authorization to implement or publish.
