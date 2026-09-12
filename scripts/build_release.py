@@ -28,6 +28,7 @@ BUNDLE_SOURCE_PREFIXES = (
     "extensions/program-kit-governance/",
     "extensions/program-kit-building-blocks/",
     "extensions/program-kit-dotnet/",
+    "extensions/program-kit-delivery/",
     "presets/program-kit-governance-preset/",
     "workflows/program-kit-bootstrap/",
 )
@@ -177,6 +178,8 @@ def validate_metadata(root: Path, version: str) -> None:
     governance_extension = load_yaml(root / "extensions/program-kit-governance/extension.yml")
     building_blocks_extension = load_yaml(root / "extensions/program-kit-building-blocks/extension.yml")
     dotnet_extension = load_yaml(root / "extensions/program-kit-dotnet/extension.yml")
+    delivery_extension = load_yaml(root / "extensions/program-kit-delivery/extension.yml")
+    require_equal("delivery extension version", delivery_extension["extension"]["version"], version)
     governance_preset = load_yaml(root / "presets/program-kit-governance-preset/preset.yml")
     workflow = load_yaml(root / "workflows/program-kit-bootstrap/workflow.yml")
     extensions_catalog = load_json(root / "catalogs/extensions.json")
@@ -213,6 +216,9 @@ def validate_metadata(root: Path, version: str) -> None:
     governance_extension_entry = extensions_catalog["extensions"]["program-kit-governance"]
     building_blocks_extension_entry = extensions_catalog["extensions"]["program-kit-building-blocks"]
     dotnet_extension_entry = extensions_catalog["extensions"]["program-kit-dotnet"]
+    delivery_entry = extensions_catalog["extensions"]["program-kit-delivery"]
+    require_equal("delivery catalog version", delivery_entry["version"], version)
+    require_equal("delivery release URL", delivery_entry["download_url"], f"{REPOSITORY}/releases/download/v{version}/program-kit-delivery-{version}.zip")
     preset_entry = presets_catalog["presets"]["program-kit-governance-preset"]
     workflow_entry = workflows_catalog["workflows"]["program-kit-bootstrap"]
     bundle_entry = bundles_catalog["bundles"]["program-kit"]
@@ -289,6 +295,7 @@ def main() -> int:
         output / f"program-kit-{version}.zip",
         output / f"Initialize-ProgramKit-{version}.cmd",
         output / f"Initialize-ProgramKit-{version}.sh",
+        output / f"program-kit-delivery-{version}.zip",
         output / "SHA256SUMS",
     ]
     for path in expected:
@@ -301,6 +308,7 @@ def main() -> int:
     deterministic_zip(root / "presets/program-kit-governance-preset", expected[3])
     deterministic_zip(root / "workflows/program-kit-bootstrap", expected[4])
 
+    deterministic_zip(root / "extensions/program-kit-delivery", expected[8])
     build_bundle_from_source(root, output)
     if not expected[5].is_file():
         raise FileNotFoundError(f"Spec Kit did not create {expected[5]}")
@@ -314,8 +322,8 @@ def main() -> int:
     shutil.copyfile(root / "Initialize-ProgramKit.cmd", expected[6])
     shutil.copyfile(root / "Initialize-ProgramKit.sh", expected[7])
 
-    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:8]]
-    expected[8].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
+    checksum_lines = [f"{sha256(path)}  {path.name}" for path in expected[:-1]]
+    expected[-1].write_text("\n".join(checksum_lines) + "\n", encoding="utf-8", newline="\n")
     for path in expected:
         print(f"built {path.relative_to(root)}")
     return 0

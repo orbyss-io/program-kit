@@ -8,8 +8,12 @@ specifications. Program Kit is maintained independently from the application rep
 consume it.
 
 The executable behavior lives in Spec Kit extensions and a workflow. `program-kit` is only the
-versioned distribution layer: it installs the governance extension, the .NET extension, the
-governance template preset, and the bootstrap workflow as separate components.
+versioned distribution layer: it installs the governance, building-block, .NET and delivery
+extensions, the governance template preset, and the bootstrap workflow as separate components.
+
+The [team delivery foundation](docs/team-delivery.md) is disabled by default. This branch adds
+profiles, work-item templates and authority checks; cloud activation and team execution arrive
+in later development phases.
 
 Program Kit is the AI extension, not an application platform or a component runtime. The reusable
 technical building blocks it understands are independently developed and released from

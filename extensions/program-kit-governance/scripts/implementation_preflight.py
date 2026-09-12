@@ -35,6 +35,12 @@ def main() -> int:
     except ValueError:
         print("PKI001 feature directory must stay inside the repository.", file=sys.stderr)
         return 2
+    import delivery_authority
+    try:
+        delivery_authority.require_admission(repository, "implementation")
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
     scripts = Path(__file__).resolve().parent
     intake = run(
         [sys.executable, str(scripts / "specification_intake.py"),

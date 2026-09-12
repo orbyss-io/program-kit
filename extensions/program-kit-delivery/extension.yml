@@ -1,0 +1,25 @@
+schema_version: "1.0"
+extension:
+  id: "program-kit-delivery"
+  name: "Program Kit Delivery"
+  version: "0.11.0"
+  description: "Disabled-by-default team delivery profiles, work-item templates and authority checks."
+  author: "Orbyss"
+  repository: "https://github.com/orbyss-io/program-kit"
+  license: "MIT"
+requires:
+  speckit_version: ">=1.0.1,<2.0.0"
+provides:
+  commands:
+    - name: "speckit.program-kit-delivery.configure"
+      file: "commands/speckit.program-kit-delivery.configure.md"
+      description: "Prepare and validate delivery configuration without changing authority."
+    - name: "speckit.program-kit-delivery.refine"
+      file: "commands/speckit.program-kit-delivery.refine.md"
+      description: "Draft or refine epics, features, requirements and meaningful tasks."
+  scripts:
+    - name: "delivery"
+      file: "scripts/delivery.py"
+      description: "Offline profile/work validation and delivery-authority inspection."
+hooks: {}
+tags: [delivery, backlog, governance]

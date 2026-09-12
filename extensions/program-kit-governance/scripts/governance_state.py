@@ -415,6 +415,13 @@ def validate_installation() -> dict[str, str]:
             )
         versions["managed .NET baseline"] = managed_version
 
+    delivery_manifest = project_path(Path(".specify/extensions/program-kit-delivery/extension.yml"))
+    if delivery_manifest.is_file():
+        delivery_version = manifest_version(delivery_manifest, "extension")
+        versions["delivery extension"] = delivery_version
+        delivery_record = next((c for c in components or [] if isinstance(c, dict) and c.get("id") == "program-kit-delivery"), None)
+        if delivery_record:
+            versions["bundle delivery extension record"] = delivery_record.get("version")
     if len(set(versions.values())) != 1:
         details = ", ".join(f"{name}={version}" for name, version in versions.items())
         raise GovernanceStateError(
@@ -424,6 +431,19 @@ def validate_installation() -> dict[str, str]:
             f"{repair_commands()}"
         )
     return versions
+
+
+def delivery_status(admit=None):
+    path = Path(__file__).with_name("delivery_authority.py")
+    spec = importlib.util.spec_from_file_location("program_kit_delivery_authority", path)
+    delivery_authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(delivery_authority)
+    try:
+        if admit:
+            return delivery_authority.require_admission(Path.cwd(), admit)
+        return delivery_authority.inspect(Path.cwd())
+    except ValueError as error:
+        raise GovernanceStateError(str(error)) from error
 
 
 def project_path(relative: Path) -> Path:
@@ -1869,6 +1889,7 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
 
 
 def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
+    delivery_status(admit="refinement" if require_ready else None)
     records = roadmap_records(project_path(ROADMAP))
     lifecycle_call("validate_prerequisites", records)
     # Defense in depth for legacy prose. The structured source inventory and slice
@@ -1925,13 +1946,15 @@ def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
 
 
 def _roadmap_view(records: list[dict[str, str]]) -> str:
+    connected = delivery_status()["authority"] == "platform"
     lines = [
         ROADMAP_VIEW_START,
         "## Specification roadmap view",
         "",
         (
-            "> Derived navigation view only. "
-            f"`{ROADMAP.as_posix()}` is the authoritative source for roadmap-entry status."
+            "> Derived navigation view only. " +
+            ("Platform owns delivery status; local roadmap values are unverified technical projections." if connected else
+             f"`{ROADMAP.as_posix()}` is the authoritative source for roadmap-entry status.")
         ),
         "",
         "| Roadmap entry | Title | Authoritative status |",
@@ -1939,7 +1962,8 @@ def _roadmap_view(records: list[dict[str, str]]) -> str:
     ]
     for record in records:
         title = record["title"].replace("|", "\\|").replace("`", "'")
-        lines.append(f"| `{record['id']}` | {title} | `{record['Status']}` |")
+        status = "Provider assessment required" if connected else record["Status"]
+        lines.append(f"| `{record['id']}` | {title} | `{status}` |")
     lines.extend([ROADMAP_VIEW_END, ""])
     return "\n".join(lines)
 
@@ -2071,6 +2095,7 @@ def synchronize_lifecycle() -> None:
 
 
 def evaluate_readiness() -> dict:
+    delivery_status(admit="refinement")
     try:
         result = lifecycle_call("verdict")
     except GovernanceStateError as exc:

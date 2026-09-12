@@ -24,6 +24,7 @@ COMPONENTS = (
     ("governance extension", Path("extensions/program-kit-governance/extension.yml")),
     ("building-block extension", Path("extensions/program-kit-building-blocks/extension.yml")),
     (".NET extension", Path("extensions/program-kit-dotnet/extension.yml")),
+    ("delivery extension", Path("extensions/program-kit-delivery/extension.yml")),
     ("governance preset", Path("presets/program-kit-governance-preset/preset.yml")),
     ("bootstrap workflow", Path("workflows/program-kit-bootstrap/workflow.yml")),
 )
@@ -31,6 +32,19 @@ COMPONENTS = (
 
 class UpgradeError(ValueError):
     pass
+
+
+def delivery_snapshot(target):
+    import hashlib
+    directory = target / ".program-kit/delivery"
+    values = {}
+    if directory.exists():
+        for path in directory.rglob("*"):
+            if path.is_file():
+                if not path.resolve().is_relative_to(target.resolve()):
+                    raise UpgradeError("PKU117 delivery records must stay inside the consumer repository")
+                values[path.relative_to(target).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return values
 
 
 def configure_utf8() -> None:
@@ -813,6 +827,7 @@ def main() -> int:
         if not (target / ".specify").is_dir():
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
+        delivery_before = delivery_snapshot(target)
         previous_version = current_version(target)
         building_block_state = building_block_upgrade_state(target, release)
         profile = load_managed_profile(target)
@@ -854,6 +869,8 @@ def main() -> int:
             raise UpgradeError('SCHEMA_RUNTIME_MISSING: prepare the target runtime before this offline upgrade: '
                                f'python "{runtime_source}" setup --project-root "{target}"')
         steps = [
+            # Offline composition resolution requires newly introduced primitives to exist first.
+            (specify + ["extension", "add", str(release / "extensions/program-kit-delivery"), "--dev", "--force"], "Install delivery extension"),
             (specify + ["bundle", "install", str(release / "bundle.yml"), "--offline", "--integration", integration], "Resolve bundle composition record"),
             (specify + ["workflow", "add", str(release / "workflows/program-kit-bootstrap"), "--dev"], "Install bootstrap workflow"),
             (specify + ["extension", "add", str(release / "extensions/program-kit-governance"), "--dev", "--force"], "Install governance extension"),
@@ -872,6 +889,8 @@ def main() -> int:
         )
         for number, (command, label) in enumerate(steps, 1):
             run_step(command, target, label, number, total)
+        if delivery_snapshot(target) != delivery_before:
+            raise UpgradeError("PKU117 delivery configuration/history changed during component upgrade; restore preserved consumer records before continuing")
         runtime.record_copy(target)
         next_step = len(steps) + 1
         if profile:
@@ -944,6 +963,8 @@ def main() -> int:
             renewal_required = True
         else:
             satisfy_lock_renewal(target, component_versions)
+        if delivery_snapshot(target) != delivery_before:
+            raise UpgradeError("PKU117 delivery records changed during upgrade reconciliation")
         if renewal_required:
             return 3
         print(

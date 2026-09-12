@@ -1,4 +1,6 @@
 schema_version: "1.0"
+# Delivery authority is resolved only from .program-kit/delivery/binding.json and history.json.
+# Neither this file nor machine-local overrides may select or disable delivery authority.
 # These paths are read by governance_state.py. Keep them project-relative.
 # Copy this file to program-kit-governance-config.local.yml for machine- or
 # repository-local overrides that must not be shared with other consumers.

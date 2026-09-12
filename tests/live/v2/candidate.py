@@ -104,6 +104,7 @@ def install_candidate_from_receipt(
         "governance": f"program-kit-governance-{version}.zip",
         "building-blocks": f"program-kit-building-blocks-{version}.zip",
         "dotnet": f"program-kit-dotnet-{version}.zip",
+        "delivery": f"program-kit-delivery-{version}.zip",
         "preset": f"program-kit-governance-preset-{version}.zip",
         "workflow": f"program-kit-bootstrap-{version}.zip",
         "bundle": f"program-kit-{version}.zip",

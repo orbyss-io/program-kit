@@ -229,6 +229,7 @@ def main() -> int:
         artifacts = temp / "artifacts"
         artifacts.mkdir()
         candidate_names = {
+            "program-kit-delivery-9.9.9.zip",
             "program-kit-governance-9.9.9.zip", "program-kit-building-blocks-9.9.9.zip",
             "program-kit-dotnet-9.9.9.zip", "program-kit-governance-preset-9.9.9.zip",
             "program-kit-bootstrap-9.9.9.zip", "program-kit-9.9.9.zip",

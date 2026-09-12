@@ -340,6 +340,12 @@ def complete_analysis(repository: Path, feature_dir: Path, report: Path) -> int:
 
 
 def verify_before_implement(repository: Path, feature_dir: Path) -> int:
+    import delivery_authority
+    try:
+        delivery_authority.require_admission(repository, "implementation")
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
     path = state_path(repository, feature_dir)
     state = load_state(path)
     if state.get("active"):

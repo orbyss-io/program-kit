@@ -21,10 +21,18 @@
         "speckit_version": ">=1.0.1,<2.0.0"
       },
       "provides": {
-      "commands": 19,
+        "commands": 19,
         "hooks": 8
       },
-      "tags": ["architecture", "adr", "governance", "quality", "bootstrap", "vertical-slicing", "modularity"],
+      "tags": [
+        "architecture",
+        "adr",
+        "governance",
+        "quality",
+        "bootstrap",
+        "vertical-slicing",
+        "modularity"
+      ],
       "verified": false
     },
     "program-kit-building-blocks": {
@@ -48,7 +56,14 @@
         "commands": 1,
         "hooks": 0
       },
-      "tags": ["architecture", "dependencies", "dotnet", "npm", "governance", "scaffolding"],
+      "tags": [
+        "architecture",
+        "dependencies",
+        "dotnet",
+        "npm",
+        "governance",
+        "scaffolding"
+      ],
       "verified": false
     },
     "program-kit-dotnet": {
@@ -72,7 +87,41 @@
         "commands": 1,
         "hooks": 0
       },
-      "tags": ["dotnet", "architecture", "runtime", "quality", "scaffolding"],
+      "tags": [
+        "dotnet",
+        "architecture",
+        "runtime",
+        "quality",
+        "scaffolding"
+      ],
+      "verified": false
+    },
+    "program-kit-delivery": {
+      "name": "Program Kit Delivery",
+      "id": "program-kit-delivery",
+      "description": "Disabled-by-default delivery profiles, work-item templates and authority checks.",
+      "author": "Orbyss",
+      "version": "0.11.0",
+      "download_url": "https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/program-kit-delivery-0.11.0.zip",
+      "repository": "https://github.com/orbyss-io/program-kit",
+      "homepage": "https://github.com/orbyss-io/program-kit",
+      "documentation": "https://github.com/orbyss-io/program-kit/blob/main/docs/team-delivery.md",
+      "changelog": "https://github.com/orbyss-io/program-kit/blob/main/CHANGELOG.md",
+      "license": "MIT",
+      "category": "process",
+      "effect": "read-write",
+      "requires": {
+        "speckit_version": ">=1.0.1,<2.0.0"
+      },
+      "provides": {
+        "commands": 2,
+        "hooks": 0
+      },
+      "tags": [
+        "delivery",
+        "backlog",
+        "governance"
+      ],
       "verified": false
     }
   }

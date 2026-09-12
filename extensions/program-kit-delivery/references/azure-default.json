@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "recordType": "profile",
+  "id": "azure-default-v1",
+  "space": "configure-delivery-space",
+  "provider": "azure",
+  "edition": "azure-devops-services",
+  "workTypes": {
+    "epic": "Epic",
+    "feature": "Feature",
+    "requirement": "User Story",
+    "task": "Task"
+  },
+  "fields": {
+    "outcome": {
+      "providerField": "System.Description",
+      "authority": "platform",
+      "requiredAt": "draft",
+      "writePolicy": "conditional"
+    },
+    "acceptance": {
+      "providerField": "Microsoft.VSTS.Common.AcceptanceCriteria",
+      "authority": "platform",
+      "requiredAt": "refinement",
+      "writePolicy": "conditional"
+    },
+    "priority": {
+      "providerField": "Microsoft.VSTS.Common.Priority",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "conditional"
+    },
+    "assignment": {
+      "providerField": "System.AssignedTo",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "conditional"
+    },
+    "dependencies": {
+      "providerField": "System.LinkTypes.Dependency",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "conditional"
+    },
+    "milestone": {
+      "providerField": "configured-milestone",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "conditional"
+    },
+    "deliveryState": {
+      "providerField": "System.State",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "conditional"
+    },
+    "technicalPlan": {
+      "providerField": "artifact-link",
+      "authority": "git",
+      "requiredAt": "implementation",
+      "writePolicy": "owned"
+    }
+  },
+  "states": {
+    "draft": "New",
+    "active": "Active",
+    "implemented": "Resolved"
+  },
+  "roles": {
+    "business": [
+      "configure-business-identity"
+    ],
+    "technical": [
+      "configure-technical-identity"
+    ],
+    "acceptance": [
+      "configure-acceptance-identity"
+    ],
+    "coordinator": [
+      "configure-coordinator-identity"
+    ]
+  },
+  "coordination": {
+    "repositoryId": "configure-coordination-repository",
+    "branch": "coordination",
+    "statePath": "state.json",
+    "takeover": "explicit",
+    "broadOverlap": "advisory",
+    "incompatibleResource": "coordinate"
+  },
+  "tagNamespace": "pk"
+}

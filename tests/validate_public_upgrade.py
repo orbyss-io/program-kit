@@ -87,6 +87,7 @@ def candidate_catalogs(root: Path, artifacts: Path | None) -> Iterator[str]:
         f"program-kit-governance-{version}.zip": artifacts / f"program-kit-governance-{version}.zip",
         f"program-kit-building-blocks-{version}.zip": artifacts / f"program-kit-building-blocks-{version}.zip",
         f"program-kit-dotnet-{version}.zip": artifacts / f"program-kit-dotnet-{version}.zip",
+        f"program-kit-delivery-{version}.zip": artifacts / f"program-kit-delivery-{version}.zip",
         f"program-kit-governance-preset-{version}.zip": artifacts / f"program-kit-governance-preset-{version}.zip",
         f"program-kit-{version}.zip": artifacts / f"program-kit-{version}.zip",
         f"program-kit-bootstrap-{version}.yml": root / "workflows/program-kit-bootstrap/workflow.yml",

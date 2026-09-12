@@ -92,6 +92,7 @@ def main() -> int:
     ExtensionManifest(extension_path)
     ExtensionManifest(building_blocks_extension_path)
     ExtensionManifest(dotnet_extension_path)
+    ExtensionManifest(root / "extensions/program-kit-delivery/extension.yml")
     PresetManifest(preset_path)
     extension = yaml.safe_load(extension_path.read_text(encoding="utf-8"))
     command_names = {
@@ -158,8 +159,8 @@ def main() -> int:
         raise AssertionError("Governance template augmentation must compose through append")
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
     provided_extensions = {entry["id"] for entry in bundle["provides"]["extensions"]}
-    if provided_extensions != {"program-kit-governance", "program-kit-building-blocks", "program-kit-dotnet"}:
-        raise AssertionError("Program Kit must bundle governance, building-block, and .NET concerns as separate extensions")
+    if provided_extensions != {"program-kit-governance", "program-kit-building-blocks", "program-kit-dotnet", "program-kit-delivery"}:
+        raise AssertionError("Program Kit must bundle governance, building-block, .NET and disabled delivery concerns as separate extensions")
     provided_presets = bundle["provides"]["presets"]
     if provided_presets != [{
         "id": "program-kit-governance-preset",

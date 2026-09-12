@@ -1,0 +1,709 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/delivery/v1",
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "profile"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "enum": [
+            "azure",
+            "github"
+          ]
+        },
+        "edition": {
+          "enum": [
+            "azure-devops-services",
+            "github.com"
+          ]
+        },
+        "workTypes": {
+          "type": "object",
+          "properties": {
+            "epic": {
+              "type": "string",
+              "minLength": 1
+            },
+            "feature": {
+              "type": "string",
+              "minLength": 1
+            },
+            "requirement": {
+              "type": "string",
+              "minLength": 1
+            },
+            "task": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "epic",
+            "feature",
+            "requirement",
+            "task"
+          ],
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "providerField": {
+                "type": "string",
+                "minLength": 1
+              },
+              "authority": {
+                "enum": [
+                  "platform",
+                  "git",
+                  "operational"
+                ]
+              },
+              "requiredAt": {
+                "enum": [
+                  "draft",
+                  "refinement",
+                  "implementation",
+                  "optional"
+                ]
+              },
+              "writePolicy": {
+                "enum": [
+                  "conditional",
+                  "proposal",
+                  "owned"
+                ]
+              }
+            },
+            "required": [
+              "providerField",
+              "authority",
+              "requiredAt",
+              "writePolicy"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "roles": {
+          "type": "object",
+          "properties": {
+            "business": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "technical": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "acceptance": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "coordinator": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "business",
+            "technical",
+            "acceptance",
+            "coordinator"
+          ],
+          "additionalProperties": false
+        },
+        "coordination": {
+          "type": "object",
+          "properties": {
+            "repositoryId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "branch": {
+              "type": "string",
+              "minLength": 1
+            },
+            "statePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "takeover": {
+              "const": "explicit"
+            },
+            "broadOverlap": {
+              "const": "advisory"
+            },
+            "incompatibleResource": {
+              "const": "coordinate"
+            }
+          },
+          "required": [
+            "repositoryId",
+            "branch",
+            "statePath",
+            "takeover",
+            "broadOverlap",
+            "incompatibleResource"
+          ],
+          "additionalProperties": false
+        },
+        "tagNamespace": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "id",
+        "space",
+        "provider",
+        "edition",
+        "workTypes",
+        "fields",
+        "states",
+        "roles",
+        "coordination",
+        "tagNamespace"
+      ],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "binding"
+        },
+        "state": {
+          "enum": [
+            "prepared",
+            "enabled",
+            "disabled"
+          ]
+        },
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repositoryId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "teamId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "enum": [
+            "azure",
+            "github"
+          ]
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "repositoryId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "commit": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "snapshot": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            }
+          },
+          "required": [
+            "repositoryId",
+            "commit",
+            "path",
+            "sha256",
+            "snapshot"
+          ],
+          "additionalProperties": false
+        },
+        "activationId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "artifactPaths": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          }
+        },
+        "teamDefaults": {
+          "type": "object",
+          "properties": {
+            "area": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "iteration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            }
+          },
+          "required": [
+            "area",
+            "iteration"
+          ],
+          "additionalProperties": false
+        },
+        "workBindings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "requirementId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "executionMode": {
+                "enum": [
+                  "direct",
+                  "delegated"
+                ]
+              },
+              "taskId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              }
+            },
+            "required": [
+              "requirementId",
+              "executionMode",
+              "taskId"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "state",
+        "space",
+        "repositoryId",
+        "teamId",
+        "provider",
+        "profile",
+        "activationId",
+        "artifactPaths",
+        "teamDefaults",
+        "workBindings"
+      ],
+      "additionalProperties": false
+    },
+    "history": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "history"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "action": {
+                "enum": [
+                  "activate",
+                  "profile-change",
+                  "disconnect"
+                ]
+              },
+              "actorId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "decisionRef": {
+                "type": "string",
+                "minLength": 1
+              },
+              "previousDigest": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bindingDigest": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "profileDigest": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "providerEvidence": {
+                "type": "object",
+                "properties": {
+                  "repositoryId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "commit": {
+                    "type": "string",
+                    "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+                  },
+                  "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "repositoryId",
+                  "commit",
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "action",
+              "actorId",
+              "decisionRef",
+              "previousDigest",
+              "bindingDigest",
+              "profileDigest",
+              "providerEvidence"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "records"
+      ],
+      "additionalProperties": false
+    },
+    "work": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "recordType": {
+          "const": "work"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "epic",
+            "feature",
+            "requirement",
+            "task"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "businessOwnerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string"
+        },
+        "nonGoals": {
+          "type": "string"
+        },
+        "architecturePrerequisites": {
+          "type": "string"
+        },
+        "acceptanceCriteria": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "criterion": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "criterion"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "accountableExecutorId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "verificationPlan": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "dependencyAssessment": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "coordinationAssessment": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "technicalArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "repositoryId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "commit": {
+                "type": "string",
+                "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?!.*:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "repositoryId",
+              "commit",
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "acceptedBasis": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "businessDigest": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "artifactDigest": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "actorId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "decisionRef": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "businessDigest",
+                "artifactDigest",
+                "actorId",
+                "decisionRef"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "openDecisions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "parentRequirementId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "contribution": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "executionMode": {
+          "enum": [
+            "direct",
+            "delegated"
+          ]
+        },
+        "taskIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "recordType",
+        "id",
+        "kind",
+        "title",
+        "outcome",
+        "businessOwnerId",
+        "scope",
+        "nonGoals",
+        "architecturePrerequisites",
+        "acceptanceCriteria",
+        "accountableExecutorId",
+        "verificationPlan",
+        "dependencyAssessment",
+        "coordinationAssessment",
+        "technicalArtifacts",
+        "acceptedBasis",
+        "openDecisions",
+        "parentRequirementId",
+        "contribution",
+        "executionMode",
+        "taskIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/profile"
+    },
+    {
+      "$ref": "#/$defs/binding"
+    },
+    {
+      "$ref": "#/$defs/history"
+    },
+    {
+      "$ref": "#/$defs/work"
+    }
+  ]
+}

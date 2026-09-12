@@ -2,7 +2,7 @@
 
 For each vertical outcome, include the task sequence that delivers and verifies the complete path before broad horizontal expansion. Include tasks for applicable contract, architecture-boundary, integration, and acceptance evidence.
 
-- **Roadmap transition**: move the matching entry to Active only when implementation starts; record Delivered only after its verification evidence exists.
+- **Roadmap transition**: when delivery is disabled, move the matching entry to Active only when implementation starts; record Delivered only after its verification evidence exists. When delivery is enabled, retain the primary Requirement and optional Task binding, require provider admission, and update only explicit local projections. Local status edits cannot establish cloud delivery or business acceptance.
 - **Architecture evidence**: update the dependency test, contract test, or ADR evidence required by the plan.
 - **Non-goal protection**: do not add tasks for unapproved technology adoption, cross-feature implementation references, or unrelated platform work.
 - **Path and ownership protection**: every task path must be declared by the plan's

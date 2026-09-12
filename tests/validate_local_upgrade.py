@@ -318,6 +318,26 @@ def main() -> int:
         shutil.copytree(runtime.runtime_path(), destination)
         runtime.record_copy(project)
         old = "0.0.0"
+        # Consumer records are outside the installed extension and survive every upgrade step.
+        delivery_root = project / ".program-kit/delivery"
+        delivery_root.mkdir(parents=True, exist_ok=True)
+        profile_bytes = (ROOT / "extensions/program-kit-delivery/references/azure-default.json").read_bytes()
+        import hashlib
+        delivery_records = {
+            "profile.json": profile_bytes,
+            "history.json": json.dumps({"schemaVersion": 1, "recordType": "history", "records": []}).encode(),
+            "binding.json": json.dumps({
+                "schemaVersion": 1, "recordType": "binding", "state": "prepared",
+                "space": json.loads(profile_bytes)["space"], "provider": "azure",
+                "repositoryId": "consumer", "teamId": "team", "activationId": None,
+                "profile": {"repositoryId": "policy", "commit": "a" * 40, "path": "profile.json",
+                    "sha256": hashlib.sha256(profile_bytes).hexdigest(), "snapshot": ".program-kit/delivery/profile.json"},
+                "artifactPaths": {"roadmap": "docs/architecture/specification-roadmap.md"},
+                "teamDefaults": {"area": None, "iteration": None}, "workBindings": {},
+            }).encode(),
+        }
+        for name, content in delivery_records.items():
+            (delivery_root / name).write_bytes(content)
         manifests = (
             project / ".specify/extensions/program-kit-governance/extension.yml",
             project / ".specify/extensions/program-kit-building-blocks/extension.yml",
@@ -498,6 +518,7 @@ def main() -> int:
         installed = run(*command, cwd=project)
         require_success(installed, "local release upgrade")
         order = (
+            "Install delivery extension",
             "Resolve bundle composition record",
             "Install bootstrap workflow",
             "Install governance extension",
@@ -516,6 +537,10 @@ def main() -> int:
 
         if {version(path) for path in manifests} != {expected}:
             raise AssertionError("Local release installation left mixed component manifests")
+        if version(project / ".specify/extensions/program-kit-delivery/extension.yml") != expected:
+            raise AssertionError("Upgrade from an older consumer did not add delivery")
+        if any((delivery_root / name).read_bytes() != content for name, content in delivery_records.items()):
+            raise AssertionError("Upgrade changed consumer delivery binding, history or profile")
         state = json.loads(managed.read_text(encoding="utf-8"))
         if state.get("programKitVersion") != expected:
             raise AssertionError(f"Managed baseline did not advance to {expected}: {state}")
@@ -674,9 +699,15 @@ def main() -> int:
             str(feature),
             cwd=project,
         )
-        if stale.returncode != 11 or "PKL011" not in stale.stderr:
-            raise AssertionError("implementation preflight did not block invalidated lifecycle readiness")
+        # This legacy upgrade fixture has no confirmed feature intake. The newly mandatory
+        # intake gate must stop the full preflight before lifecycle checks can run.
+        if stale.returncode == 0 or "PKS001" not in stale.stderr:
+            raise AssertionError(f"implementation preflight did not require feature intake:\n{stale.stdout}{stale.stderr}")
         lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
+        stale_lifecycle = run(sys.executable, str(lifecycle_script), "--repository", str(project),
+                              "--feature-dir", str(feature), "verify-before-implement", cwd=project)
+        if stale_lifecycle.returncode != 11 or "PKL011" not in stale_lifecycle.stderr:
+            raise AssertionError(f"lifecycle did not block invalidated readiness:\n{stale_lifecycle.stdout}{stale_lifecycle.stderr}")
         require_success(
             run(
                 sys.executable,
@@ -709,14 +740,15 @@ def main() -> int:
         require_success(
             run(
                 sys.executable,
-                str(preflight),
+                str(lifecycle_script),
                 "--repository",
                 str(project),
                 "--feature-dir",
                 str(feature),
+                "verify-before-implement",
                 cwd=project,
             ),
-            "full mandatory implementation preflight after renewal",
+            "lifecycle implementation readiness after renewal (feature intake remains required)",
         )
 
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))

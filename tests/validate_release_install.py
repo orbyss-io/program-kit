@@ -98,6 +98,7 @@ def main() -> int:
     extension_zip = root / "artifacts" / f"program-kit-governance-{version}.zip"
     building_blocks_zip = root / "artifacts" / f"program-kit-building-blocks-{version}.zip"
     dotnet_zip = root / "artifacts" / f"program-kit-dotnet-{version}.zip"
+    delivery_zip = root / "artifacts" / f"program-kit-delivery-{version}.zip"
     preset_zip = root / "artifacts" / f"program-kit-governance-preset-{version}.zip"
     workflow_zip = root / "artifacts" / f"program-kit-bootstrap-{version}.zip"
     bundle_zip = root / "artifacts" / f"program-kit-{version}.zip"
@@ -111,6 +112,7 @@ def main() -> int:
             extension_zip,
             building_blocks_zip,
             dotnet_zip,
+            delivery_zip,
             preset_zip,
             workflow_zip,
             bundle_zip,
@@ -124,7 +126,7 @@ def main() -> int:
                 f"Versioned {suffix} consumer initializer differs from the root template"
             )
 
-    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, preset_zip, workflow_zip, bundle_zip):
+    for release_zip in (extension_zip, building_blocks_zip, dotnet_zip, delivery_zip, preset_zip, workflow_zip, bundle_zip):
         with zipfile.ZipFile(release_zip, "r") as archive:
             forbidden_entries = []
             for name in archive.namelist():
@@ -277,6 +279,9 @@ def main() -> int:
                 raise AssertionError(f"Governance preset release ZIP is missing {path}")
 
         print(f"Initializing packaged-release disposable consumer: {project}")
+        extracted_delivery = project / "release-delivery-extension"
+        with zipfile.ZipFile(delivery_zip) as archive:
+            archive.extractall(extracted_delivery)
         run(
             "specify",
             "init",
@@ -327,6 +332,7 @@ def main() -> int:
         if ".specify/scripts/python/resolve_template.py" not in constitution_skill_text:
             raise AssertionError("Constitution skill does not reference the Python resolver")
         preexisting_config_path = project / ".specify/extensions.yml"
+        run("specify", "extension", "add", str(extracted_delivery), "--dev", cwd=project)
         preexisting_config = yaml.safe_load(preexisting_config_path.read_text(encoding="utf-8"))
         preexisting_config.setdefault("hooks", {}).setdefault("after_specify", []).append(
             {
@@ -537,6 +543,12 @@ def main() -> int:
             raise AssertionError("repeated Program Kit installation lost or duplicated unrelated hooks")
         if "program-kit-dotnet" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit .NET extension was not registered")
+        if "program-kit-delivery" not in extension_config.get("installed", []):
+            raise AssertionError("Program Kit delivery extension was not registered")
+        if (project / ".program-kit/delivery/binding.json").exists():
+            raise AssertionError("Installation must leave delivery disabled and unconfigured")
+        if not (project / ".agents/skills/speckit-program-kit-delivery-configure/SKILL.md").is_file():
+            raise AssertionError("Delivery configure command was not installed")
         if "program-kit-building-blocks" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit building-block extension was not registered")
         if not (
@@ -580,6 +592,7 @@ def main() -> int:
             ("extensions", "program-kit-governance"),
             ("extensions", "program-kit-building-blocks"),
             ("extensions", "program-kit-dotnet"),
+            ("extensions", "program-kit-delivery"),
             ("presets", "program-kit-governance-preset"),
             ("workflows", "program-kit-bootstrap"),
         }:

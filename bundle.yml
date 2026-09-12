@@ -20,6 +20,8 @@ provides:
       version: "0.11.0"
     - id: "program-kit-dotnet"
       version: "0.11.0"
+    - id: "program-kit-delivery"
+      version: "0.11.0"
   presets:
     - id: "program-kit-governance-preset"
       version: "0.11.0"

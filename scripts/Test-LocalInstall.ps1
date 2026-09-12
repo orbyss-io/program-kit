@@ -108,6 +108,10 @@ try {
     ) 'Local .NET extension installation failed.'
 
     Invoke-ProgramKitNative $specifyExecutable @(
+        'extension', 'add', (Join-Path $sourceRoot 'extensions\program-kit-delivery'), '--dev'
+    ) 'Local delivery extension installation failed.'
+
+    Invoke-ProgramKitNative $specifyExecutable @(
         'extension', 'add', (Join-Path $sourceRoot 'extensions\program-kit-building-blocks'), '--dev'
     ) 'Local building-block extension installation failed.'
 

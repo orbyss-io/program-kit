@@ -54,6 +54,7 @@ jobs:
           python tests/validate_intake_authoring.py
           python tests/validate_json_schema.py
           python tests/validate_delivery_phase0.py
+          python tests/validate_delivery.py
           python tests/validate_ui_experience.py
           python tests/validate_orbyss_building_blocks.py
           python tests/validate_building_blocks.py

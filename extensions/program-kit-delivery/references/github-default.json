@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "recordType": "profile",
+  "id": "github-default-v1",
+  "space": "configure-delivery-space",
+  "provider": "github",
+  "edition": "github.com",
+  "workTypes": {
+    "epic": "label:pk-kind:epic",
+    "feature": "Feature",
+    "requirement": "label:pk-kind:requirement",
+    "task": "Task"
+  },
+  "fields": {
+    "outcome": {
+      "providerField": "body:Outcome",
+      "authority": "platform",
+      "requiredAt": "draft",
+      "writePolicy": "proposal"
+    },
+    "acceptance": {
+      "providerField": "body:Acceptance criteria",
+      "authority": "platform",
+      "requiredAt": "refinement",
+      "writePolicy": "proposal"
+    },
+    "priority": {
+      "providerField": "issueField:Priority",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "proposal"
+    },
+    "assignment": {
+      "providerField": "assignees",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "proposal"
+    },
+    "dependencies": {
+      "providerField": "blocked_by",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "proposal"
+    },
+    "milestone": {
+      "providerField": "milestone",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "proposal"
+    },
+    "deliveryState": {
+      "providerField": "project:Status",
+      "authority": "platform",
+      "requiredAt": "optional",
+      "writePolicy": "proposal"
+    },
+    "technicalPlan": {
+      "providerField": "artifact-link",
+      "authority": "git",
+      "requiredAt": "implementation",
+      "writePolicy": "owned"
+    }
+  },
+  "states": {
+    "draft": "Todo",
+    "active": "In Progress",
+    "implemented": "Done"
+  },
+  "roles": {
+    "business": [
+      "configure-business-identity"
+    ],
+    "technical": [
+      "configure-technical-identity"
+    ],
+    "acceptance": [
+      "configure-acceptance-identity"
+    ],
+    "coordinator": [
+      "configure-coordinator-identity"
+    ]
+  },
+  "coordination": {
+    "repositoryId": "configure-coordination-repository",
+    "branch": "coordination",
+    "statePath": "state.json",
+    "takeover": "explicit",
+    "broadOverlap": "advisory",
+    "incompatibleResource": "coordinate"
+  },
+  "tagNamespace": "pk"
+}

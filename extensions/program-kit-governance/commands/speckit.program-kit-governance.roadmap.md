@@ -47,7 +47,11 @@ For a single confirmed journey, keep the first complete roadmap draft at most 55
 below 4,500 UTF-8 bytes. Do not repeatedly measure or trim toward the target; run the supplied
 terminal validation batch after the write and repair only a named diagnostic.
 
-This file is the sole authoritative source for roadmap-entry lifecycle status. After writing it,
+When delivery is disabled or only prepared, this file is the sole authoritative source for roadmap-entry lifecycle status.
+When delivery is enabled, the platform owns business/delivery state; this file retains technical
+traceability and explicit projections only. Run the core delivery authority check before declaring
+readiness. Do not infer cloud readiness from local status or write Active/Delivered to change cloud
+state. Phase 1 cannot admit enabled work until the provider adapter is available. After writing it,
 update `docs/architecture/architecture.md` and `docs/architecture/traceability.md` so they contain no
 copied status fields or tables for roadmap entries and no stale claims that a roadmap record does not
 yet exist. Preserve their design, decision, ownership, and verification traceability. Do not write or

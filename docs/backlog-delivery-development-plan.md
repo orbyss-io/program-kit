@@ -1,6 +1,6 @@
 # Program Kit team delivery: development plan
 
-Date: 2026-09-12. Status: Phase 0 complete; Phase 1 interview is next. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the contract and provider capability proof. Consumer delivery integrations and later-phase acceptance are not yet implemented.
+Date: 2026-09-12. Status: Phases 0 and 1 complete; Phase 2 interview is next. The [Phase 0 evidence](delivery/phase-0-evidence.md) records the contract and provider capability proof; [Phase 1 evidence](delivery/phase-1-evidence.md) records the installed foundation. Consumer cloud activation and later-phase acceptance are not yet implemented.
 
 The supporting [template research](backlog-delivery-template-research.md) contains the source evidence, field mappings, four work-item templates, and a worked requirement. Product choices below were accepted during the interview. Technical mechanisms remain subject to the explicit verification gates in this plan.
 
@@ -87,6 +87,8 @@ Investigate both providers here, even though the Azure journey is implemented fi
 Cloud-hosted defaults are the initial proof target; do not advertise on-premises or enterprise-customized compatibility until tested. Any resulting product-scope change returns to review.
 
 ### Phase 1 — Optional module, profiles, and work-item contract
+
+Completed on the integration branch. See the [accepted decisions](backlog-delivery-phase-1-decisions.md) and [validation evidence](delivery/phase-1-evidence.md). Production provider admission explicitly remains unavailable until its later phase.
 
 Add the typed activation setting, shared profile/repository binding, capability validation, role mapping, templates, and common required-at-intake versus required-at-readiness rules. Add the same semantic validator to platform-form input and agent-created items.
 
@@ -189,4 +191,4 @@ Use chromium/webkit where local browser checks apply; Firefox acceptance remains
 
 The product direction is settled. Exact adapter transports, durable coordination storage, capability fallbacks, schemas, and packaging are technical decisions to resolve with the user in the relevant phase's grilling interview, informed by repository research and the phase-0 proof. If a required guarantee cannot be met within the accepted boundary, report the concrete limitation and return the affected scope decision for review rather than silently weakening behavior.
 
-Phase 0 produced the common contract and provider capability proof, including explicitly approved disposable platform writes. The next step is the Phase 1 interview before implementing the optional module and core authority seam.
+Phases 0 and 1 produced the provider proof and installed optional-module foundation. The next step is the Phase 2 interview for Azure activation, capability discovery and the approved epic-to-requirement journey in Unfussiness. Resolve those decisions with the user before implementing or activating the provider adapter.
