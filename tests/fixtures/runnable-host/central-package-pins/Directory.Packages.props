@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <Import Project=".program-kit/eng/ProgramKit.Packages.props" />
+  <Import Project=".program-kit/eng/ProgramKit.BuildingBlocks.props"
+          Condition="Exists('.program-kit/eng/ProgramKit.BuildingBlocks.props')" />
+  <!-- Consumer-owned pins reproduce the RM-01 central-package layout. -->
+  <ItemGroup>
+    <PackageVersion Include="Orbyss.Foundation.WebDefaults" Version="0.1.0" />
+    <PackageVersion Include="Orbyss.Foundation.Web.ProblemDetails" Version="0.1.0" />
+    <PackageVersion Include="Orbyss.Foundation.Web.OpenApi" Version="0.1.0" />
+  </ItemGroup>
+</Project>

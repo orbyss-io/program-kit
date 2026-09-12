@@ -32,6 +32,21 @@ Tasks cover the project, solution inclusion, explicit identity, `shells.json` ac
 inclusion, and missing/duplicate/dependency/route/dormancy tests. `.program-kit/eng/runnable_host.py stage`
 enforces those constraints while assembling image inputs. The host does not know or repeat this policy.
 
+Activated built-in features obtain their exact package versions from the repository-root
+`Directory.Packages.props` and its imported props files. This includes both managed imports and
+consumer-owned central pins. A managed file that is not imported is not package authority.
+The staging reader supports unconditional literal `PackageVersion Include` items with a literal
+`Version` attribute or child, repository-contained literal imports relative to their containing
+file, and the root-level `Exists` condition matching the imported path (including the optional
+`ProgramKit.BuildingBlocks.props` import). Package identity comparison is case-insensitive.
+
+`PKR019` stops staging for missing or duplicate/conflicting pins, ranges/floating versions,
+property expressions, conditional package items/groups, `Update`/`Remove`, and other unsupported
+MSBuild evaluation. Do not copy pins into managed files to bypass the central import graph.
+Packed packages, restored runtime dependencies and the final closure must agree with every
+activated built-in pin; a higher transitive dependency cannot silently change it. A failed stage
+leaves runtime-closure evidence unsatisfied and retains any previous output until validation passes.
+
 ## Runnable-host release
 
 One application release produces one runnable image. Its Dockerfile derives from the approved digest-pinned

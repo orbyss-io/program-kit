@@ -4,6 +4,10 @@
 
 ## 0.11.0 - 2026-09-12
 
+- Resolve activated built-in runtime package pins through the supported central-package import
+  graph, including consumer-owned declarations. Reject ambiguous or unsupported pins and dependency
+  conflicts instead of silently changing exact feature versions. Preserve failed-stage evidence.
+
 - Execute bootstrap recovery through the native workflow engine: preserve successful stages and
   original terminal history, retry the affected producer, review changed authority, and bind
   completion to the exact successful native run. Preserve interrupted and invalidated evidence.

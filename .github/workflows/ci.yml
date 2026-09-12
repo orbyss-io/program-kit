@@ -98,7 +98,9 @@ jobs:
         run: python tests/validate_dotnet_scaffold.py
 
       - name: Validate managed .NET restore and build contract
-        run: python tests/validate_dotnet_build_contract.py
+        run: |
+          python tests/validate_dotnet_build_contract.py
+          python tests/validate_runnable_host_pins.py
 
       - name: Validate solution test-project discovery
         run: python tests/validate_dotnet_test_discovery.py

@@ -77,6 +77,7 @@ jobs:
           python tests/validate_dotnet_test_discovery.py
           python tests/validate_repository_verification_hook.py
           python tests/validate_generated_contract_schemas.py
+          python tests/validate_runnable_host_pins.py
           python tests/validate_codex_bootstrap.py
 
       - name: Validate UI accessibility, keyboard, and analytics

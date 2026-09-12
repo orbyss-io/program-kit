@@ -35,6 +35,7 @@ def main() -> int:
             "standalone Windows PowerShell console",
             "$Suite -eq 'Release' -and -not $Approved",
             "validate_test_suites.py",
+            "validate_runnable_host_pins.py",
             "validate_ui_browser.py",
             "build_release.py",
             "validate_public_upgrade.py",
@@ -104,6 +105,8 @@ def main() -> int:
     for workflow, label in ((ci, "CI"), (release, "Release workflow")):
         if "python tests/validate_test_suites.py" not in workflow:
             raise AssertionError(f"{label} does not enforce the test-tier contract.")
+        if "python tests/validate_runnable_host_pins.py" not in workflow:
+            raise AssertionError(f"{label} does not enforce runnable-host central-pin regressions.")
 
     require(
         "release evidence reuse",

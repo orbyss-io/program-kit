@@ -429,6 +429,10 @@ def validate_release_feature_closure() -> None:
         )
         managed = clean_repository / ".program-kit/eng"
         managed.mkdir(parents=True)
+        (clean_repository / "Directory.Packages.props").write_text(
+            '<Project><Import Project=".program-kit/eng/ProgramKit.Packages.props" /></Project>\n',
+            encoding="utf-8",
+        )
         (managed / "ProgramKit.Packages.props").write_text(
             '<Project><ItemGroup>'
             '<PackageVersion Include="Orbyss.Foundation.Tasks" Version="1.0.0" />'
