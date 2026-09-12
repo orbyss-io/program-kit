@@ -51,9 +51,13 @@ Stage checkpoints are not full-flow acceptance. Actual functional/browser checks
 worker/supervisor evidence must substantiate every assertion and metric before comparison. Unknown
 measurements remain null. A failed run is preserved; a rerun requires new authorization.
 
-Before the first paid session, the human-owned Release gate must produce valid receipts for the exact
-clean candidates, equivalent bootstrap checkpoints must be available, and model/effort must be fixed.
-Then confirm each exact manifest through `New-LiveAcceptanceAuthorization.ps1`. Publication remains
+Paid learning trials can precede release preparation. Prepare explicit development-trial receipts
+with `tests/live/v2/trial_candidate.py`; these run component checks, schema setup, archive build and
+disposable packaged installation and bind their actual logs to clean source/artifacts. They do not
+claim Release acceptance. Both comparison arms use this same preparation scope. Release-backed live
+acceptance remains available using the unchanged Release receipt contract.
+Equivalent bootstrap checkpoints must be established and model/effort fixed. Then confirm each exact
+manifest through `New-LiveAcceptanceAuthorization.ps1 -TrialReceipt <path>`. Publication remains
 a separate decision and the other release session retains its publication responsibility.
 
 The prepared model assumption is the user's saved `gpt-6-astra` / `high` profile for both comparison

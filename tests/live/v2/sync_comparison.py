@@ -58,6 +58,10 @@ def validated_report(path: Path, cases: dict) -> dict:
         raise ValueError('Live worker execution did not complete cleanly')
     authorization = load_object(path.parent / report['authorization']['path'])
     validate(authorization, load_object(schemas / 'authorization.schema.json'))
+    kind = authorization['candidate'].get('receiptKind', 'release')
+    if run['candidate'].get('receiptKind', 'release') != kind:
+        raise ValueError('Comparison receipt scope differs from the authorized live run')
+    report['receiptKind'] = kind
     if (authorization['phase'] != phase or run['authorization']['authorizationId'] != authorization['authorizationId']
             or run['authorization']['authorizationSha256'] != canonical_sha256(authorization)
             or run['candidate']['releaseReceiptSha256'] != bindings['releaseReceiptSha256']
@@ -98,6 +102,8 @@ def compare(baseline: Path, candidate: Path, cases: dict) -> dict:
     if before["caseId"] != "fresh-baseline" or after["caseId"] != "fresh-candidate":
         raise ValueError("Compare fresh-baseline with fresh-candidate; upgrade is a separate acceptance case")
     mismatches = [key for key in MATCHED_INPUTS if before["bindings"][key] != after["bindings"][key]]
+    if before['receiptKind'] != after['receiptKind']:
+        mismatches.append('receiptKind')
     if mismatches:
         raise ValueError(f"Runs are not equivalent: {', '.join(mismatches)}")
     if before["bindings"]["releaseReceiptSha256"] == after["bindings"]["releaseReceiptSha256"]:
@@ -114,7 +120,7 @@ def compare(baseline: Path, candidate: Path, cases: dict) -> dict:
     increased = [key for key, value in measurements.items() if value["delta"] is not None and value["delta"] > 0]
     decreased = [key for key, value in measurements.items() if value["delta"] is not None and value["delta"] < 0]
     return {
-        "schemaVersion": "1.0", "measurements": measurements, "measurementsComplete": complete,
+        "schemaVersion": "1.0", "receiptKind":after['receiptKind'], "measurements": measurements, "measurementsComplete": complete,
         "candidateEfficiencyGatePassed": meets_efficiency_gate,
         "observedImprovement": meets_efficiency_gate and bool(decreased) and not increased,
         "increasesRequiringReview": increased,

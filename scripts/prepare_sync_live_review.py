@@ -37,7 +37,7 @@ def prepare(scenario: Path = SCENARIO) -> dict:
     return {
         "schemaVersion": "1.0", "status": "prepared-not-authorized", "fixtureDigest": digest,
         "inventories": inventories, "cases": cases["cases"], "metrics": cases["metrics"],
-        "unboundRequirements": ["baselineReleaseReceipt", "candidateReleaseReceipt", "sealedCheckpoints",
+        "unboundRequirements": ["baselineCandidateReceipt", "candidateCandidateReceipt", "sealedCheckpoints",
                                 "modelAndReasoningEffort", "humanFeatureConfirmation", "functionalAcceptanceEvidence"],
         "stageRunner": "scripts/Test-LiveRepositorySync.ps1",
         "paidSessionsStarted": 0, "authorizationIssued": False,

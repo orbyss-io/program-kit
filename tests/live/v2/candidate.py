@@ -17,6 +17,15 @@ from .supervisor import ProcessResult, run_supervised
 CONTROL_ARCHIVE_KEYS = ("workflow", "bundle")
 
 
+def validate_candidate_receipt(root: Path, receipt_path: Path, schema_root: Path, kind: str = 'release') -> tuple[dict, str]:
+    if kind == 'development-trial':
+        from live.v2.trial_candidate import validate_trial_receipt
+        return validate_trial_receipt(root, receipt_path, schema_root)
+    if kind != 'release':
+        raise LiveContractError('LIVE_CANDIDATE_RECEIPT_KIND_INVALID')
+    return validate_release_receipt(root, receipt_path, load_object(schema_root / 'release-receipt.schema.json'))
+
+
 def validate_release_receipt(root: Path, receipt_path: Path, schema: dict[str, Any]) -> tuple[dict[str, Any], str]:
     receipt = load_object(receipt_path)
     validate(receipt, schema)

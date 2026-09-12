@@ -19,7 +19,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from live.v2.authorization import consume_authorization, issue_authorization, validate_authorization
-from live.v2.candidate import install_candidate_from_receipt, validate_release_receipt
+from live.v2.candidate import install_candidate_from_receipt, validate_candidate_receipt
 from live.v2.checkpoint import checkpoint_digest, materialize_checkpoint, seal_checkpoint
 from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, load_object, sha256_file, utc_now, validate
 from live.v2.evidence import EvidenceStore
@@ -290,8 +290,13 @@ def issue(args: argparse.Namespace) -> int:
     scenario_root = Path(args.scenario).resolve() if args.scenario else default_scenario(root)
     authority = scenario_authority(scenario_root, schema_root)
     receipt_path = Path(args.release_receipt).resolve()
-    receipt, receipt_digest = validate_release_receipt(root, receipt_path, load_object(schema_root / "release-receipt.schema.json"))
-    preflight(root, receipt)
+    source = Path(args.release_root).resolve() if args.release_root else root
+    kind = args.receipt_kind
+    receipt, receipt_digest = validate_candidate_receipt(source, receipt_path, schema_root, kind)
+    preflight(source, receipt)
+    if git(root, 'status', '--porcelain=v1'):
+        raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
+    from live.v2.sync_stages import harness_digest
     checkpoint = None
     if args.checkpoint:
         checkpoint_path = Path(args.checkpoint).resolve()
@@ -313,7 +318,8 @@ def issue(args: argparse.Namespace) -> int:
     manifest = issue_authorization(
         destination, load_object(schema_root / "authorization.schema.json"), phase=args.phase,
         scenario={key: authority[key] for key in ("id", "version", "digest")},
-        candidate={"releaseReceipt": str(receipt_path), "releaseReceiptSha256": receipt_digest},
+        candidate={"releaseReceipt": str(receipt_path), "releaseReceiptSha256": receipt_digest,
+                   "receiptKind":kind, "releaseRoot":str(source), "harnessSha256":harness_digest()},
         checkpoint=checkpoint, agent_profile=profile, expires_minutes=args.expires_minutes,
     )
     print(f"Live authorization {manifest['authorizationId']}: {destination}")
@@ -341,8 +347,15 @@ def _phase_inputs(args: argparse.Namespace, phase: str) -> tuple[Path, Path, Evi
     authorization_path = Path(args.authorization).resolve()
     authorization_raw = load_object(authorization_path)
     receipt_path = Path(authorization_raw["candidate"]["releaseReceipt"]).resolve()
-    receipt, receipt_digest = validate_release_receipt(root, receipt_path, load_object(schema_root / "release-receipt.schema.json"))
-    preflight(root, receipt)
+    candidate = authorization_raw['candidate']
+    source = Path(candidate.get('releaseRoot', root)).resolve()
+    receipt, receipt_digest = validate_candidate_receipt(source, receipt_path, schema_root, candidate.get('receiptKind', 'release'))
+    preflight(source, receipt)
+    from live.v2.sync_stages import harness_digest
+    if candidate.get('harnessSha256') and candidate['harnessSha256'] != harness_digest():
+        raise LiveContractError('LIVE_SYNC_AUTHORIZED_HARNESS_CHANGED')
+    if git(root, 'status', '--porcelain=v1'):
+        raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
     store = EvidenceStore(root / "artifacts/live-acceptance/v2")
     store.initialize()
     checkpoint_sha = checkpoint_digest(Path(args.checkpoint).resolve()) if getattr(args, "checkpoint", None) else None
@@ -366,7 +379,8 @@ def bootstrap(args: argparse.Namespace) -> int:
     project = execution_workspace(root, run_token)
     packages = candidate_packages(root, run_token)
     shutil.copytree(copied_fixture(scenario_root, scenario), project)
-    setup_receipts = install_candidate_from_receipt(root, project, packages, receipt, run_root / "setup")
+    source = Path(authorization['candidate'].get('releaseRoot', root)).resolve()
+    setup_receipts = install_candidate_from_receipt(source, project, packages, receipt, run_root / "setup")
     worker_guidance(project)
     workflow_definition = packages / "workflow/workflow.yml"
     paid_steps = sum(1 for line in workflow_definition.read_text(encoding="utf-8").splitlines() if line.strip() == "type: command")
@@ -423,7 +437,7 @@ def bootstrap(args: argparse.Namespace) -> int:
     logs = store_logs(store, result, run_root / "worker")
     manifest = {
         "schemaVersion": "2.0", "runId": run_id, "phase": "bootstrap-checkpoint", "status": status, "causes": causes,
-        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest},
+        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest, "receiptKind":authorization['candidate'].get('receiptKind','release')},
         "scenario": scenario_authority(scenario_root, schemas(root)), "agentProfile": authorization["agentProfile"],
         "process": result.as_dict(), "logs": logs, "receipts": setup_receipts,
         "workspace": project.relative_to(root).as_posix(),
@@ -563,7 +577,7 @@ def building_blocks(args: argparse.Namespace) -> int:
     logs = store_logs(store, result, run_root / "worker")
     manifest = {
         "schemaVersion": "2.0", "runId": run_id, "phase": "building-block-consumer", "status": status, "causes": causes,
-        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest},
+        "authorization": consumption, "candidate": {"releaseReceiptSha256": receipt_digest, "receiptKind":authorization['candidate'].get('receiptKind','release')},
         "scenario": scenario_authority(scenario_root, schemas(root)), "agentProfile": profile, "process": result.as_dict(),
         "logs": logs, "receipts": receipts, "oracle": validation_result if status == "passed" else {},
         "workspace": project.relative_to(root).as_posix(),
@@ -586,6 +600,7 @@ def parser() -> argparse.ArgumentParser:
     authorize.add_argument("--release-root")
     authorize.add_argument("--baseline-report")
     authorize.add_argument("--release-receipt", required=True)
+    authorize.add_argument('--receipt-kind', choices=('release','development-trial'), default='release')
     authorize.add_argument("--scenario")
     authorize.add_argument("--checkpoint")
     authorize.add_argument("--model", required=True)

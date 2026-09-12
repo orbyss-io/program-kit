@@ -6,7 +6,7 @@ feature-flow or upgrade acceptance, and their authorizations must not be reused 
 
 ## What the human reviews before any paid stage
 
-- The exact baseline and candidate release receipts, source revisions and artifact hashes.
+- The exact baseline and candidate receipts, source revisions, preparation scope and artifact hashes.
 - The sealed starting checkpoint and this fixture's inventory hash.
 - The stage's prompt, model, reasoning effort, timeout and maximum paid sessions (one).
 - The exact feature brief and its hash when crossing the grilling confirmation boundary.
@@ -17,6 +17,13 @@ toolchain, model, effort and stage limits. Their installed Program Kit versions 
 equivalent accepted checkpoints under each candidate; never rewrite a receipt or transplant
 ratification hashes to make an older checkpoint appear current. Record environmental differences
 and cold/warm package cache state. Do not compare runs when required bindings differ.
+
+For paid learning before the Release gate, prepare both sources with `tests/live/v2/trial_candidate.py`
+and select `-TrialReceipt` when confirming each phase. The explicit `development-trial-only` receipt
+requires actual local archive/build/install evidence and cannot validate against the Release schema.
+It does not assert public package availability, browser acceptance or publication readiness. The
+v2 wire fields `releaseReceipt` and `releaseReceiptSha256` retain their historical names; the new
+`receiptKind` discriminator and receipt status identify development trials unambiguously.
 
 Use this directory's `bootstrap-seed` as `-Scenario` for both bootstrap authorizations and runs.
 It is a fixed variant of Internal Forms Workspace v1 with the stock Foundation Dockerfile shared

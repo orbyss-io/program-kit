@@ -70,6 +70,14 @@ Paid live acceptance is entirely user-invoked. Do not ask whether to run it duri
 do not report it as skipped when it was not requested. Deterministic local and CI-compatible Release
 tests remain mandatory.
 
+When the user requests paid learning trials before release preparation, use an explicitly selected
+development-trial receipt from `tests/live/v2/trial_candidate.py`. It binds clean source, platform,
+toolchains, locally built and installation-tested archives, and the actual preparation logs. It
+does not require the complete Release suite or claim public-package/browser/Release acceptance.
+Select it with `New-LiveAcceptanceAuthorization.ps1 -TrialReceipt`; the exact one-use phase,
+checkpoint, model, worker sandbox and human confirmation rules below still apply. Development-trial
+evidence can inform fixes but never satisfies or substitutes for the publication Release gate.
+
 - A user request authorizes only issuance of the exact phase-specific manifest they confirm through
   `New-LiveAcceptanceAuthorization.ps1`; it is not a reusable preference or authorization for a
   different phase.

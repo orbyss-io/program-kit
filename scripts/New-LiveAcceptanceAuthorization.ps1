@@ -3,8 +3,8 @@ param(
     [Parameter(Mandatory)]
     [ValidateSet('bootstrap-checkpoint', 'building-block-consumer', 'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer')]
     [string]$Phase,
-    [Parameter(Mandatory)]
-    [string]$ReleaseReceipt,
+    [string]$ReleaseReceipt = '',
+    [string]$TrialReceipt = '',
     [string]$Checkpoint = '',
     [ValidateSet('', 'fresh-baseline', 'fresh-candidate', 'upgrade-candidate')]
     [string]$Case = '',
@@ -22,7 +22,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$receiptPath = (Resolve-Path -LiteralPath $ReleaseReceipt).Path
+if ([bool]$ReleaseReceipt -eq [bool]$TrialReceipt) { throw 'Select exactly one -ReleaseReceipt or -TrialReceipt.' }
+$receiptKind = if ($TrialReceipt) { 'development-trial' } else { 'release' }
+$receiptPath = (Resolve-Path -LiteralPath $(if ($TrialReceipt) { $TrialReceipt } else { $ReleaseReceipt })).Path
+$receiptDetails = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json
 if ($Phase -notin @('bootstrap-checkpoint', 'building-block-consumer') -and -not $Case) { throw 'LIVE_SYNC_CASE_REQUIRED: select the exact baseline, candidate or upgrade case.' }
 if ($Phase -eq 'upgrade-consumer' -and -not $BaselineReport) { throw 'LIVE_SYNC_UPGRADE_BASELINE_ACCEPTANCE_REQUIRED: first complete independent functional acceptance of the baseline case.' }
 if ($Phase -ne 'bootstrap-checkpoint' -and -not $Checkpoint) {
@@ -49,7 +52,10 @@ Write-Host "  phase: $Phase"
 Write-Host "  case: $Case"
 Write-Host "  release source: $ReleaseRoot"
 Write-Host "  baseline acceptance report: $BaselineReport"
-Write-Host "  release receipt: $receiptPath"
+Write-Host "  receipt kind: $receiptKind"
+Write-Host "  candidate receipt: $receiptPath"
+Write-Host "  candidate commit: $($receiptDetails.source.commit)"
+Write-Host "  receipt status: $($receiptDetails.status)"
 Write-Host "  checkpoint: $(if ($Checkpoint) { $Checkpoint } else { '<none>' })"
 Write-Host "  profile: codex / $Model / $ReasoningEffort / workspace-write"
 Write-Host "  Codex launcher: $launcherVersion"
@@ -63,7 +69,7 @@ if ($confirmation -cne $required) { throw 'LIVE_AUTHORIZATION_NOT_CONFIRMED: no 
 
 $arguments = @(
     (Join-Path $projectRoot 'tests\live\v2\cli.py'), 'authorize', '--phase', $Phase,
-    '--release-receipt', $receiptPath, '--model', $Model, '--reasoning-effort', $ReasoningEffort,
+    '--release-receipt', $receiptPath, '--receipt-kind', $receiptKind, '--model', $Model, '--reasoning-effort', $ReasoningEffort,
     '--launcher-version', $launcherVersion,
     '--timeout-seconds', $TimeoutSeconds.ToString(), '--expires-minutes', $ExpiresMinutes.ToString(),
     '--output', $Output, '--confirmed'

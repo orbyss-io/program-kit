@@ -47,6 +47,7 @@ jobs:
           python tests/validate_retired_sync.py
           python tests/validate_sync_live_fixtures.py
           python tests/validate_sync_stages.py
+          python tests/validate_live_trial_candidate.py
 
       - name: Set up pinned UI acceptance Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6

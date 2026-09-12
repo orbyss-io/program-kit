@@ -11,7 +11,7 @@ import uuid
 from pathlib import Path
 
 from .authorization import consume_authorization, issue_authorization, validate_authorization
-from .candidate import validate_release_receipt
+from .candidate import validate_candidate_receipt
 from .checkpoint import checkpoint_digest, materialize_checkpoint, seal_checkpoint
 from .common import LiveContractError, atomic_write_json, canonical_sha256, file_inventory, load_object, safe_relative, sha256_file, utc_now, validate
 from .evidence import EvidenceStore
@@ -90,7 +90,7 @@ def issue(args: argparse.Namespace) -> int:
     source = Path(args.release_root).resolve() if args.release_root else root
     schema = cli.schemas(root)
     path = Path(args.release_receipt).resolve()
-    receipt, receipt_sha = validate_release_receipt(source, path, load_object(schema / 'release-receipt.schema.json'))
+    receipt, receipt_sha = validate_candidate_receipt(source, path, schema, args.receipt_kind)
     cli.preflight(source, receipt)
     if cli.git(root, 'status', '--porcelain=v1'):
         raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
@@ -103,7 +103,7 @@ def issue(args: argparse.Namespace) -> int:
                'reasoningEffort':args.reasoning_effort, 'sandbox':'workspace-write', 'timeoutSeconds':args.timeout_seconds}
     cli.validate_agent_launcher(profile)
     candidate = {'releaseReceipt':str(path), 'releaseReceiptSha256':receipt_sha,
-                 'releaseRoot':str(source), 'harnessSha256':harness_digest()}
+                 'releaseRoot':str(source), 'harnessSha256':harness_digest(), 'receiptKind':args.receipt_kind}
     if args.phase == 'upgrade-consumer':
         if not args.baseline_report:
             raise LiveContractError('LIVE_SYNC_UPGRADE_BASELINE_ACCEPTANCE_REQUIRED')
@@ -169,7 +169,7 @@ def run(args: argparse.Namespace) -> int:
     if raw['candidate'].get('harnessSha256') != harness_digest():
         raise LiveContractError('LIVE_SYNC_AUTHORIZED_HARNESS_CHANGED')
     source = Path(raw['candidate'].get('releaseRoot', root)).resolve()
-    receipt, receipt_sha = validate_release_receipt(source, Path(raw['candidate']['releaseReceipt']), load_object(schema / 'release-receipt.schema.json'))
+    receipt, receipt_sha = validate_candidate_receipt(source, Path(raw['candidate']['releaseReceipt']), schema, raw['candidate'].get('receiptKind','release'))
     cli.preflight(source, receipt)
     if cli.git(root, 'status', '--porcelain=v1'):
         raise LiveContractError('LIVE_ACCEPTANCE_HARNESS_NOT_CLEAN')
@@ -277,7 +277,7 @@ def run(args: argparse.Namespace) -> int:
         (run_root / 'failure.txt').write_text(str(error) + '\n', encoding='utf-8')
     logs = cli.store_logs(store, result, run_root / 'worker')
     manifest = {'schemaVersion':'2.0', 'runId':run_id, 'phase':phase, 'status':status, 'causes':causes,
-                'authorization':consumption, 'candidate':{'releaseReceiptSha256':receipt_sha}, 'scenario':binding,
+                'authorization':consumption, 'candidate':{'releaseReceiptSha256':receipt_sha, 'receiptKind':raw['candidate'].get('receiptKind','release')}, 'scenario':binding,
                 'agentProfile':profile, 'process':result.as_dict(), 'logs':logs, 'receipts':receipts, 'oracle':oracle,
                 'workspace':project.relative_to(root).as_posix(), 'checkpoint':str(checkpoint) if checkpoint else None,
                 'startedAt':result.startedAt, 'finishedAt':utc_now()}

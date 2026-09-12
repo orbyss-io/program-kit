@@ -72,6 +72,7 @@ $developmentValidators = @(
     'validate_repository_sync.py',
     'validate_sync_readiness.py',
     'validate_sync_stages.py',
+    'validate_live_trial_candidate.py',
     'validate_retired_sync.py',
     'validate_scoped_materialization.py',
     'validate_intake_session.py',
