@@ -784,6 +784,54 @@ def output_record(kind: str, path: str, entries: list[dict], target_ids: list[st
     return record
 
 
+def materialized_plan(repository: Path, lock: dict) -> dict:
+    """Project accepted choices onto complete, existing composition targets without scaffolding.
+
+    Authority still comes from resolve(). A later composition cannot acquire package assignments
+    or shared-shell activations merely because one of its other targets already exists.
+    """
+    selection = load_json(repository_path(repository, lock["inputs"]["selection"]["path"]))
+    targets = {target["id"]: target for target in selection["targets"]}
+    eligible: set[str] = set()
+    deferred: list[str] = []
+    for instance in selection["instances"]:
+        bound = {target_id for binding in instance["targetBindings"].values()
+                 for target_id in (binding if isinstance(binding, list) else [binding])}
+        missing = [target_id for target_id in bound
+                   if targets[target_id]["kind"] in {"dotnet-project", "npm-package", "dotnet-tool-manifest"}
+                   and not repository_path(repository, targets[target_id]["path"]).is_file()]
+        if missing:
+            deferred.append(instance["id"])
+        else:
+            eligible.add(instance["id"])
+    result = copy.deepcopy(lock)
+    result.pop("planDigest", None)
+    result["materializationScope"] = "existing-compositions"
+    result["deferredInstances"] = sorted(deferred)
+    result["instances"] = [instance for instance in result["instances"] if instance["id"] in eligible]
+    selected_targets = []
+    for target in result["targets"]:
+        retained = []
+        for package in target["packages"]:
+            package["origins"] = [origin for origin in package["origins"] if origin.split("/", 1)[0] in eligible]
+            if package["origins"]:
+                retained.append(package)
+        if retained:
+            target["packages"] = retained
+            selected_targets.append(target)
+    result["targets"] = selected_targets
+    target_packages = {target["id"]: {package["packageKey"] for package in target["packages"]} for target in selected_targets}
+    source_ids = {package["source"] for target in selected_targets for package in target["packages"]}
+    result["activations"] = [activation for activation in result["activations"] if activation["origin"].split("/", 1)[0] in eligible]
+    result["configurationRequirements"] = [requirement for requirement in result["configurationRequirements"]
+                                           if (requirement.get("origin") in target_packages.get(requirement.get("targetId"), set()) if "targetId" in requirement
+                                               else requirement.get("origin") in eligible)]
+    result["registryRequirements"] = [source for source in result["registryRequirements"] if source["sourceId"] in source_ids]
+    result["managedOutputs"] = managed_output_records(result)
+    result["planDigest"] = canonical_sha256(result)
+    return result
+
+
 def managed_output_records(lock: dict) -> list[dict]:
     outputs: list[dict] = []
     central: dict[str, dict] = {}
@@ -1319,7 +1367,7 @@ def find_program_kit_version(script: Path) -> str:
             value = candidate.read_text(encoding="utf-8").strip()
             if value:
                 return value
-    return "0.11.0"
+    return "0.12.0"
 
 
 def default_catalog(script: Path) -> Path:
@@ -1473,6 +1521,9 @@ def main() -> int:
         command.add_argument("--selection", default="docs/architecture/building-block-selection.json")
         command.add_argument("--catalog")
         command.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
+        if name in {"plan", "check", "apply"}:
+            command.add_argument("--materialized-only", action="store_true",
+                                 help="Reconcile only complete existing composition targets; keep future targets deferred.")
         if name in {"validate-draft", "validate-accepted"}:
             command.add_argument("--require-placement-provenance", action="store_true")
         if name == "apply":
@@ -1529,6 +1580,11 @@ def main() -> int:
             find_program_kit_version(script),
             require_accepted=args.command != "validate-draft",
         )
+        scoped = getattr(args, "materialized_only", False)
+        if args.command in {"plan", "check", "apply"} and lock_path.is_file():
+            scoped = scoped or load_json(lock_path).get("materializationScope") == "existing-compositions"
+        if scoped:
+            lock = materialized_plan(repository, lock)
         if args.command == "validate-draft":
             validate_placements(repository, load_json(selection_path), args.require_placement_provenance)
             print(f"Draft building-block selection is complete and resolves provisionally: {lock['planDigest']}")

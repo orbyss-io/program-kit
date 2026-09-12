@@ -265,10 +265,12 @@ profile as a package-version pin. Primary sources accessed 2026-08-25:
 
 When .NET is selected, `../dotnet-engineering.md` is the mandatory language/runtime profile and
 `../dotnet-runtime-and-application-bundles.md` is the mandatory CShells hosting and deployment profile.
-Installing Program Kit does not select .NET and does not scaffold these files. The optional sync is not a
-prerequisite for technology-neutral governance or proposed quality gates. Run
-`speckit.program-kit-dotnet.sync` in write mode only after an Accepted .NET technology decision, an Accepted
-ADR selecting the Orbyss Foundation host and building blocks, and explicit human approval for the independently
-pinned packages and NuGet sources. The command installs or updates the hash-tracked repository baseline. The standard
+Installing Program Kit does not select .NET and does not scaffold these files. The public
+`speckit.program-kit-governance.sync` coordinator selects adapters from accepted repository decisions.
+Its .NET adapter applies only after an Accepted .NET technology decision, an Accepted ADR selecting
+the Orbyss Foundation host and building blocks, and explicit human approval for the independently
+pinned packages and NuGet sources. Review the coordinator's phase-specific plan before applying it.
+The .NET adapter installs or updates the hash-tracked repository baseline; JavaScript repositories
+use the shared package context without requiring that baseline. The standard
 runtime is `Orbyss.Foundation.Host`; consuming repositories generate
 feature packages and a digest-identified runnable application image, not a custom host project.

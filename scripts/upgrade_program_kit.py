@@ -10,6 +10,7 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path
+import retired_sync_integration
 
 from openapi_upgrade_reconciliation import (
     ReconciliationError,
@@ -342,6 +343,7 @@ def managed_mutation_destinations(
         (".specify/extensions", "extension installation"),
         (".specify/workflows", "workflow installation"),
         (".specify/presets", "preset installation"),
+        (".program-kit/sync", "shared repository setup context and receipts"),
     ):
         add_root(target / relative, reason)
 
@@ -620,6 +622,8 @@ def building_block_upgrade_state(target: Path, release: Path) -> str | None:
             installed_catalog = target / ".specify/extensions/program-kit-building-blocks/references/orbyss-building-blocks.json"
             previous = module.resolve(target, selection_path, installed_catalog, current_version(target))
             actual = module.load_json(lock_path)
+            if actual.get("materializationScope") == "existing-compositions":
+                previous = module.materialized_plan(target, previous)
             if actual != previous:
                 raise UpgradeError("PKU116 generated building-block lock is stale or corrupt; repair materialized state before upgrading")
             module.check_materialization(target, actual)
@@ -814,6 +818,7 @@ def main() -> int:
             raise UpgradeError(f"PKU107 target is not an initialized Spec Kit project: {target}")
         require_existing_bundle(target)
         previous_version = current_version(target)
+        retired_sync_integration.preflight(target)
         building_block_state = building_block_upgrade_state(target, release)
         profile = load_managed_profile(target)
         has_bootstrap_decisions = (target / "docs/architecture/bootstrap-decisions.json").is_file()
@@ -864,8 +869,7 @@ def main() -> int:
         ]
         total = (
             len(steps)
-            + (2 if profile else 0)
-            + (1 if building_block_state else 0)
+            + 2
             + 1
             + (1 if has_bootstrap_decisions else 0)
             + (1 if reconciliation else 0)
@@ -873,31 +877,27 @@ def main() -> int:
         for number, (command, label) in enumerate(steps, 1):
             run_step(command, target, label, number, total)
         runtime.record_copy(target)
+        retired_sync_integration.verify_removed(target)
         next_step = len(steps) + 1
-        if profile:
-            web, persistence = profile
-            sync = target / ".specify/extensions/program-kit-dotnet/scripts/dotnet_sync.py"
-            write = [
-                sys.executable, str(sync), "--target", str(target), "--profile-selected",
-                "--foundation-host-accepted", "--building-block-sources-approved",
-                "--persistence-profile", persistence, "--web-profile", web,
-            ]
-            check = [
-                sys.executable, str(sync), "--target", str(target), "--profile-selected",
-                "--persistence-profile", persistence, "--web-profile", web, "--check",
-            ]
-            run_step(write, target, "Resynchronize managed .NET baseline", next_step, total)
-            run_step(check, target, "Verify managed .NET baseline convergence", next_step + 1, total)
-            next_step += 2
-        if building_block_state:
-            if building_block_state == "materialized":
-                print(f"[{next_step}/{total}] Refresh compatible building-block lock provenance")
-                resynchronize_building_block_provenance(target)
-            else:
-                print(f"[{next_step}/{total}] Verify accepted planned placement without materializing dependencies")
-                if building_block_upgrade_state(target, release) != "planned":
-                    raise UpgradeError("PKU116 planned building-block state changed during upgrade")
-            next_step += 1
+        print(f"[{next_step}/{total}] Synchronize existing repository setup")
+        sync_source = target / ".specify/extensions/program-kit-governance/scripts/repository_sync.py"
+        sys.path.insert(0, str(sync_source.parent))
+        try:
+            sync_spec = importlib.util.spec_from_file_location("program_kit_upgrade_sync", sync_source)
+            sync_module = importlib.util.module_from_spec(sync_spec)
+            sys.modules[sync_spec.name] = sync_module
+            sync_spec.loader.exec_module(sync_module)
+            receipt = sync_module.upgrade(target)
+            print(f"[{next_step + 1}/{total}] Verify offline repository convergence")
+            report = sync_module.readiness(target, "upgrade")
+            if not report["ready"]:
+                raise UpgradeError("PKU116 repository setup did not converge: " + json.dumps(report))
+            print(json.dumps(report, indent=2))
+        finally:
+            sys.path.remove(str(sync_source.parent))
+        if building_block_state == "planned" and building_block_upgrade_state(target, release) != "planned":
+            raise UpgradeError("PKU116 planned building-block state changed during upgrade")
+        next_step += 2
         validator = target / ".specify/extensions/program-kit-governance/scripts/governance_state.py"
         run_step(
             [sys.executable, str(validator), "validate-installation"],

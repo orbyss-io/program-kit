@@ -12,6 +12,7 @@ from .common import LiveContractError, atomic_write_json, canonical_sha256, load
 
 
 PHASES = {"bootstrap-checkpoint", "building-block-consumer"}
+PHASES.update({'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer'})
 
 
 def issue_authorization(
@@ -27,7 +28,7 @@ def issue_authorization(
 ) -> dict[str, Any]:
     if phase not in PHASES:
         raise LiveContractError(f"LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}")
-    if phase == "building-block-consumer" and checkpoint is None:
+    if phase != "bootstrap-checkpoint" and checkpoint is None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED")
     if phase == "bootstrap-checkpoint" and checkpoint is not None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_FORBIDDEN")

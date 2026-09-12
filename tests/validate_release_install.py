@@ -19,6 +19,7 @@ EXPECTED_HOOKS = {
     "before_specify",
     "after_specify",
     "after_plan",
+    "before_plan",
     "after_tasks",
     "before_implement",
     "after_implement",
@@ -160,6 +161,7 @@ def main() -> int:
             "bundle.yml",
             "VERSION",
             "scripts/upgrade_program_kit.py",
+            "scripts/retired_sync_integration.py",
             "scripts/invoke_specify.py",
             "scripts/openapi_upgrade_reconciliation.py",
         }
@@ -540,9 +542,9 @@ def main() -> int:
         if "program-kit-building-blocks" not in extension_config.get("installed", []):
             raise AssertionError("Program Kit building-block extension was not registered")
         if not (
-            project / ".agents/skills/speckit-program-kit-dotnet-sync/SKILL.md"
+            project / ".agents/skills/speckit-program-kit-governance-sync/SKILL.md"
         ).is_file():
-            raise AssertionError(".NET sync command was not installed as a namespaced skill")
+            raise AssertionError("Governance sync command was not installed as a namespaced skill")
         if not (
             project / ".agents/skills/speckit-program-kit-building-blocks-sync/SKILL.md"
         ).is_file():

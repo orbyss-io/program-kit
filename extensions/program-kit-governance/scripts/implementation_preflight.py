@@ -75,6 +75,10 @@ def main() -> int:
     )
     if ownership != 0:
         return ownership
+    setup = run([sys.executable, str(scripts / "repository_sync.py"), "check", "--phase", "after-plan",
+                 "--repository", str(repository), "--feature-dir", str(feature_dir)], repository)
+    if setup != 0:
+        return setup
     print("implementation preflight lifecycle and artifact ownership are coherent")
     return 0
 

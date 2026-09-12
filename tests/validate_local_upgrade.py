@@ -505,8 +505,8 @@ def main() -> int:
             "Install .NET extension",
             "Remove prior governance preset",
             "Install governance preset",
-            "Resynchronize managed .NET baseline",
-            "Verify managed .NET baseline convergence",
+            "Synchronize existing repository setup",
+            "Verify offline repository convergence",
             "Validate cross-component version coherence",
             "Record accepted governed upgrade",
         )
@@ -527,7 +527,7 @@ def main() -> int:
         }
         if final_versions != {expected}:
             raise AssertionError(f"Bundle record did not converge: {final_records}")
-        if "Resynchronize managed .NET baseline" not in installed.stdout:
+        if "Synchronize existing repository setup" not in installed.stdout:
             raise AssertionError("Updater did not report managed baseline synchronization")
         if bootstrap_decisions.read_bytes() != immutable_decisions:
             raise AssertionError("Updater rewrote immutable bootstrap decisions")
@@ -665,17 +665,19 @@ def main() -> int:
             "post-reconciliation artifact ownership",
         )
         preflight = project / ".specify/extensions/program-kit-governance/scripts/implementation_preflight.py"
+        lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
         stale = run(
             sys.executable,
-            str(preflight),
+            str(lifecycle_script),
             "--repository",
             str(project),
             "--feature-dir",
             str(feature),
+            "verify-before-implement",
             cwd=project,
         )
         if stale.returncode != 11 or "PKL011" not in stale.stderr:
-            raise AssertionError("implementation preflight did not block invalidated lifecycle readiness")
+            raise AssertionError(f"lifecycle gate did not block invalidated readiness: {stale.stdout}{stale.stderr}")
         lifecycle_script = project / ".specify/extensions/program-kit-governance/scripts/lifecycle_state.py"
         require_success(
             run(
@@ -709,15 +711,22 @@ def main() -> int:
         require_success(
             run(
                 sys.executable,
-                str(preflight),
+                str(lifecycle_script),
                 "--repository",
                 str(project),
                 "--feature-dir",
                 str(feature),
+                "verify-before-implement",
                 cwd=project,
             ),
-            "full mandatory implementation preflight after renewal",
+            "lifecycle readiness after renewal",
         )
+        # This legacy upgrade fixture deliberately has no confirmed intake. Renewing analysis
+        # must not bypass the newer independent intake gate in the full implementation preflight.
+        unconfirmed = run(sys.executable, str(preflight), "--repository", str(project),
+                          "--feature-dir", str(feature), cwd=project)
+        if unconfirmed.returncode == 0 or "Specification intake blocked" not in unconfirmed.stderr:
+            raise AssertionError("renewed legacy fixture bypassed mandatory intake confirmation")
 
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))
         dependency = lock_value["dependencies"]["net10.0"]["Orbyss.Foundation.Authentication"]

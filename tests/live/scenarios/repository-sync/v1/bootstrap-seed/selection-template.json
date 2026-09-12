@@ -1,0 +1,64 @@
+{
+  "$schema": ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
+  "schemaVersion": "1.0",
+  "selectionId": "internal-forms-workspace",
+  "revision": 1,
+  "status": "Accepted",
+  "catalog": {
+    "id": "orbyss-building-blocks",
+    "schemaVersion": "1.0",
+    "resolutionRevision": 1,
+    "resolutionSha256": "8017cec0be489e5a76c0a6a75a383f5785cdcfabaf358a322d18d20e3116539d",
+    "familyReleases": {
+      "forms": "0.1.1",
+      "foundation": "0.1.0",
+      "localization": "0.1.1"
+    }
+  },
+  "authority": {
+    "architectureMap": "docs/architecture/architecture-map.json",
+    "decisionIds": [
+      "decision-internal-forms-topology",
+      "decision-server-managed-browser-session",
+      "decision-schema-driven-forms"
+    ],
+    "rationale": "Adopt the reviewed Internal Forms Workspace API, server-managed browser boundary, schema-driven Forms React runtime, shared CShell overlay, and exact Foundation host without transferring architecture authority to the worker."
+  },
+  "scopes": [
+    {"id": "repository", "kind": "repository", "environment": "production"},
+    {"id": "application", "kind": "application", "parent": "repository", "environment": "production"},
+    {"id": "browser-boundary", "kind": "browser-boundary", "parent": "application", "environment": "production"}
+  ],
+  "targets": [
+    {"id": "repository-policy", "kind": "repository", "path": "Directory.Build.props", "role": "repository", "scope": "repository"},
+    {"id": "api", "kind": "dotnet-project", "path": "src/InternalForms.Api/InternalForms.Api.csproj", "role": "api", "scope": "application", "lockRoot": "InternalForms.slnx"},
+    {"id": "bff", "kind": "dotnet-project", "path": "src/InternalForms.Bff/InternalForms.Bff.csproj", "role": "bridge", "scope": "browser-boundary", "lockRoot": "InternalForms.slnx"},
+    {"id": "forms", "kind": "dotnet-project", "path": "src/InternalForms.Forms/InternalForms.Forms.csproj", "role": "implementation", "scope": "application", "lockRoot": "InternalForms.slnx"},
+    {"id": "frontend", "kind": "npm-package", "path": "web/package.json", "role": "frontend-runtime", "scope": "application"},
+    {"id": "shell", "kind": "cshell-shell", "path": "shells.json", "role": "composition", "scope": "application", "shell": "default"},
+    {"id": "foundation-host", "kind": "host-image", "path": "Dockerfile", "role": "runtime-host", "scope": "application"}
+  ],
+  "instances": [
+    {
+      "id": "api-baseline",
+      "composition": "api_baseline",
+      "scope": "application",
+      "targetBindings": {"repository": "repository-policy", "dotnet": "api", "shell": "shell", "host": "foundation-host"},
+      "options": {"host": ["foundation-host"]}
+    },
+    {
+      "id": "browser-bff",
+      "composition": "browser_bff",
+      "scope": "browser-boundary",
+      "targetBindings": {"dotnet": "bff", "shell": "shell"},
+      "options": {"extensions": []}
+    },
+    {
+      "id": "forms-runtime",
+      "composition": "forms_runtime",
+      "scope": "application",
+      "targetBindings": {"dotnet": "forms", "frontend": "frontend", "shell": "shell"},
+      "options": {"renderer": ["react"], "extensions": []}
+    }
+  ]
+}

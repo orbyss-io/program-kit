@@ -38,6 +38,16 @@ jobs:
           python tests/validate_intake_authoring.py
           python tests/validate_json_schema.py
 
+      - name: Validate repository sync and guarded live-stage contracts without running agents
+        run: |
+          python tests/validate_package_execution.py
+          python tests/validate_repository_sync.py
+          python tests/validate_sync_readiness.py
+          python tests/validate_scoped_materialization.py
+          python tests/validate_retired_sync.py
+          python tests/validate_sync_live_fixtures.py
+          python tests/validate_sync_stages.py
+
       - name: Set up pinned UI acceptance Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:

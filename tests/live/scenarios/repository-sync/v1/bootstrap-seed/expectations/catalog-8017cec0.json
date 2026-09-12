@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "2.0",
+  "expectationId": "catalog-8017cec0",
+  "scenario": "internal-forms-workspace@1",
+  "catalogSha256": "8017cec0be489e5a76c0a6a75a383f5785cdcfabaf358a322d18d20e3116539d",
+  "compositions": ["api_baseline", "browser_bff", "forms_runtime"],
+  "packages": [
+    "npm:@orbyss-io/forms-contracts@0.1.1",
+    "npm:@orbyss-io/forms-jsonforms-runtime@0.1.1",
+    "npm:@orbyss-io/forms-react@0.1.1",
+    "npm:@orbyss-io/forms-renderer-registry@0.1.1",
+    "nuget:Orbyss.Forms.Abstractions@0.1.1",
+    "nuget:Orbyss.Forms.JsonForms@0.1.1",
+    "nuget:Orbyss.Forms.Localization@0.1.1",
+    "nuget:Orbyss.Forms.Web.Runtime@0.1.1",
+    "nuget:Orbyss.Foundation.Analyzers@0.1.0",
+    "nuget:Orbyss.Foundation.Authentication@0.1.0",
+    "nuget:Orbyss.Foundation.Authentication.BffCookie@0.1.0",
+    "nuget:Orbyss.Foundation.Web.OpenApi@0.1.0",
+    "nuget:Orbyss.Foundation.Web.ProblemDetails@0.1.0",
+    "nuget:Orbyss.Foundation.WebDefaults@0.1.0",
+    "nuget:Orbyss.Localization.Abstractions@0.1.1",
+    "nuget:Orbyss.Localization.Runtime@0.1.1",
+    "nuget:Orbyss.Localization.Web.Runtime@0.1.1",
+    "oci:ghcr.io/orbyss-io/foundation-host@0.1.0"
+  ],
+  "preservedDependencies": [
+    "nuget:Microsoft.OpenApi@2.7.5",
+    "npm:@jsonforms/core@3.8.0",
+    "npm:@jsonforms/react@3.8.0",
+    "npm:@types/react-dom@19.2.7",
+    "npm:@types/react@19.2.18",
+    "npm:react-dom@19.2.8",
+    "npm:react@19.2.8",
+    "npm:typescript@7.0.2"
+  ],
+  "targets": [
+    "Directory.Build.props",
+    "Dockerfile",
+    "shells.json",
+    "src/InternalForms.Api/InternalForms.Api.csproj",
+    "src/InternalForms.Bff/InternalForms.Bff.csproj",
+    "src/InternalForms.Forms/InternalForms.Forms.csproj",
+    "web/package.json"
+  ],
+  "minimumActivations": 10,
+  "configurationKnowledge": [
+    "Foundation:Web:Audience",
+    "Foundation:Web:Authority",
+    "Foundation:Web:ClientId",
+    "Foundation:Web:ClientSecret",
+    "Foundation:Web:DiscoveryTimeoutSeconds",
+    "Foundation:Web:RemoteAuthenticationTimeoutSeconds"
+  ]
+}

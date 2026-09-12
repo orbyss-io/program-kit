@@ -60,6 +60,7 @@ EXPECTED_HOOKS = {
     "after_constitution",
     "before_specify",
     "after_specify",
+    "before_plan",
     "after_plan",
     "after_tasks",
     "before_implement",
@@ -97,8 +98,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 19:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 19")
+    if len(command_names) != 20:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 20")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
     if "speckit.program-kit-governance.grilling" not in command_names:
@@ -144,8 +145,8 @@ def main() -> int:
         raise AssertionError("The .NET extension retained a second building-block catalog authority")
     dotnet_extension = yaml.safe_load(dotnet_extension_path.read_text(encoding="utf-8"))
     dotnet_commands = dotnet_extension["provides"]["commands"]
-    if [command["name"] for command in dotnet_commands] != ["speckit.program-kit-dotnet.sync"]:
-        raise AssertionError("The .NET extension must expose only its namespaced sync command")
+    if dotnet_commands:
+        raise AssertionError("The .NET extension must not expose a retired public sync command")
     preset = yaml.safe_load(preset_path.read_text(encoding="utf-8"))
     preset_templates = preset["provides"]["templates"]
     if {template["name"] for template in preset_templates} != {
@@ -444,7 +445,7 @@ def main() -> int:
         "runnable-host.json",
     )
     require_text(
-        dotnet_root / "commands/speckit.program-kit-dotnet.sync.md",
+        dotnet_root / "references/engineering-adapter.md",
         "--profile-selected",
         "--foundation-host-accepted",
         "--building-block-sources-approved",
@@ -583,7 +584,7 @@ def main() -> int:
         "Install .NET extension",
         "Remove prior governance preset",
         "Install governance preset",
-        "Resynchronize managed .NET baseline",
+        "Synchronize existing repository setup",
         "Validate cross-component version coherence",
         "program-kit-upgrade.lock",
         "--accept-openapi-producer-pin-reconciliation",

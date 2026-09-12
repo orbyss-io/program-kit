@@ -786,6 +786,7 @@ def main() -> int:
             readiness.write_text("**Status**: READY\n\n# Readiness\n", encoding="utf-8")
             module.complete_bootstrap()
             module.validate_completion()
+            module.validate_setup_authority()
             completion = json.loads((project / module.BOOTSTRAP_COMPLETION).read_text(encoding="utf-8"))
             if completion.get("status") != "Completed":
                 raise AssertionError("Bootstrap completion evidence was not written")
@@ -798,6 +799,7 @@ def main() -> int:
                 "changed after human approval",
             )
             module.validate_roadmap(False)
+            module.validate_setup_authority()
             expect_error(module, lambda: module.validate_roadmap(True), "no Ready entry")
 
             constitution_path.write_text(finalized + "\nAmended after gate.\n", encoding="utf-8")

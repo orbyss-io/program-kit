@@ -8,7 +8,7 @@
     "schemaVersion": { "const": "2.0" },
     "status": { "const": "checkpoint-created" },
     "checkpointId": { "type": "string", "minLength": 1 },
-    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer"] },
+    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer", "feature-intake", "feature-planning", "feature-plan-tasks", "feature-setup", "feature-delivery", "upgrade-consumer", "feature-confirmed"] },
     "parent": { "type": ["null", "string"] },
     "candidate": { "type": "string", "pattern": "[0-9a-f]{64}" },
     "scenario": { "type": "string", "pattern": "[0-9a-f]{64}" },

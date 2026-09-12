@@ -8,6 +8,9 @@ import subprocess
 import sys
 from pathlib import Path, PurePosixPath
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "program-kit-governance/scripts"))
+import package_execution
+
 
 class RestoreError(RuntimeError):
     pass
@@ -116,6 +119,70 @@ def native_lock_records(repository: Path) -> list[dict]:
     return sorted(records, key=lambda item: item["path"].casefold())
 
 
+def input_basis(repository: Path, lock: dict) -> dict:
+    """Bind dependency evidence to build inputs, independent of producer-only lock provenance."""
+    ignored = {".git", ".specify", "artifacts", "node_modules", "bin", "obj", "cache", "dist", "__pycache__"}
+    names = {"global.json", ".nvmrc", ".npm-version", "NuGet.config", ".npmrc"}
+    paths = set()
+    for path in repository.rglob("*"):
+        relative = path.relative_to(repository)
+        if any(part in ignored for part in relative.parts) or not path.is_file():
+            continue
+        if path.name in names or path.suffix in {".csproj", ".props", ".targets", ".sln", ".slnx"}:
+            paths.add(relative.as_posix())
+    for target in lock.get("targets", []):
+        paths.add(target["path"])
+    # Exact runtime evidence and managed dependency assignments are inputs; native locks are
+    # outputs and verified separately so renew followed by locked can converge.
+    paths.add(".program-kit/evidence/toolchain.json")
+    records = {relative: hashlib.sha256(safe_path(repository, relative).read_bytes()).hexdigest()
+               if safe_path(repository, relative).is_file() else None for relative in sorted(paths)}
+    toolchain_path = repository / '.program-kit/evidence/toolchain.json'
+    if toolchain_path.is_file():
+        records['.program-kit/evidence/toolchain.json'] = package_execution.toolchain_digest(toolchain_path)
+    npm_packages = set()
+    for target in lock.get('targets', []):
+        path = safe_path(repository, target['path'])
+        if path.name == 'package.json' and path.is_file():
+            manifest = load_json(path)
+            npm_packages.update(name for section in ('dependencies','devDependencies','optionalDependencies') for name in manifest.get(section, {}))
+    package_context = package_execution.context_proof(repository, toolchain_path, sorted(npm_packages)) if npm_packages and toolchain_path.is_file() else None
+    return {"files": records, "targets": lock.get("targets", []), "registryRequirements": lock.get("registryRequirements", []), "npmContext": package_context}
+
+
+def verify_evidence(repository: Path, lock: dict, evidence: dict) -> None:
+    if evidence.get("mode") != "locked" or evidence.get("satisfied") is not True:
+        raise RestoreError("PKB624 current locked dependency verification is required")
+    if evidence.get("inputDigest") != package_execution.canonical_hash(input_basis(repository, lock)):
+        raise RestoreError("PKB624 restore evidence is stale for current package/build/toolchain inputs")
+    commands = restore_commands(repository, lock, 'locked')
+    expected = {(item['ecosystem'], item['subject']) for item in commands}
+    observed = {(item.get('ecosystem'), item.get('subject')) for item in evidence.get('subjects', [])}
+    if not expected or observed != expected:
+        raise RestoreError('PKB624 restore proof does not cover the current dependency subjects')
+    needs_native = any(item['ecosystem'] in {'nuget','npm'} for item in commands)
+    if (needs_native and not evidence.get("nativeLocks")) or evidence.get("nativeLocks") != native_lock_records(repository):
+        raise RestoreError("PKB624 native lock files are missing or changed since verification")
+
+
+def subject_outputs(repository: Path, lock: dict, command: dict, mode: str) -> dict:
+    paths = set()
+    if command['ecosystem'] == 'npm':
+        paths.add(Path(command['cwd']) / 'package-lock.json')
+        if mode == 'locked':
+            paths.add(Path(command['cwd']) / 'node_modules/.package-lock.json')
+    elif command['ecosystem'] == 'nuget':
+        for target in lock.get('targets', []):
+            if (target.get('lockRoot') or target['path']) != command['subject']:
+                continue
+            directory = safe_path(repository, target['path']).parent
+            paths.add(directory / 'packages.lock.json')
+            if mode == 'locked':
+                paths.add(directory / 'obj/project.assets.json')
+    return {path.relative_to(repository).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+            for path in sorted(paths)}
+
+
 def write_json_atomic(path: Path, value: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".tmp")
@@ -143,6 +210,7 @@ def restore_request(repository: Path, lock_path: Path, lock: dict, mode: str) ->
         "lockSha256": hashlib.sha256(lock_path.read_bytes()).hexdigest(),
         "planDigest": lock.get("planDigest"),
         "commands": commands,
+        "inputDigest": package_execution.canonical_hash(input_basis(repository, lock)),
     }
 
 
@@ -153,6 +221,7 @@ def main() -> int:
     parser.add_argument("--lock", default=".program-kit/building-blocks.lock.json")
     parser.add_argument("--evidence")
     parser.add_argument("--approved", action="store_true")
+    parser.add_argument("--request", help="Reviewed request file; its complete current inputs must match before network access.")
     args = parser.parse_args()
     request_mode = args.mode.startswith("request-")
     mode = args.mode.removeprefix("request-")
@@ -175,27 +244,63 @@ def main() -> int:
             write_json_atomic(evidence_path, restore_request(repository, lock_path, lock, mode))
             print(f"Building-block {mode} restore request written without network access: {evidence_path}")
             return 0
+        if args.request:
+            reviewed = load_json(safe_path(repository, args.request))
+            if reviewed != restore_request(repository, lock_path, lock, mode):
+                raise RestoreError("PKB625 reviewed restore request is stale or differs from this operation; generate and review a new request")
         commands = restore_commands(repository, lock, mode)
+        if not commands:
+            raise RestoreError("PKB624 no materialized dependency subjects are available for restore")
         environment = isolated_environment(repository)
+        basis = package_execution.canonical_hash(input_basis(repository, lock))
+        progress_path = repository / f'.program-kit/sync/restore-progress-{mode}.json'
+        previous = load_json(progress_path) if progress_path.is_file() else {}
+        progress = {'mode':mode, 'inputDigest':basis, 'subjects':[]}
+        reusable = previous.get('subjects', []) if previous.get('inputDigest') == basis else []
         completed: list[dict] = []
         for command in commands:
-            result = subprocess.run(command["args"], cwd=command["cwd"], env=environment, check=False)
+            outputs = subject_outputs(repository, lock, command, mode)
+            old = next((item for item in reusable if item.get('ecosystem') == command['ecosystem'] and item.get('subject') == command['subject']), {})
+            if outputs and all(outputs.values()) and old.get('outputs') == outputs:
+                completed.append({key: old[key] for key in ('ecosystem','subject','executionContext')})
+                progress['subjects'].append(old)
+                write_json_atomic(progress_path, progress)
+                continue
+            context = {}
+            if command["ecosystem"] == "npm":
+                manifest = load_json(Path(command["cwd"]) / "package.json")
+                packages = sorted({name for section in ("dependencies", "devDependencies", "optionalDependencies") for name in manifest.get(section, {})})
+                result, context = package_execution.execute(repository, repository / ".program-kit/evidence/toolchain.json", packages,
+                                                            command["args"][1:], Path(command["cwd"]), 600)
+            else:
+                toolchain = load_json(repository / ".program-kit/evidence/toolchain.json")
+                dotnet = toolchain.get("commands", {}).get("dotnet")
+                required = toolchain.get("required", {}).get("dotnet")
+                if not dotnet or not required or toolchain.get("resolved", {}).get("dotnet") != required:
+                    raise RestoreError("PKB624 exact .NET runtime evidence is missing; run governance sync planning")
+                if package_execution.javascript_runtime().version(dotnet, repository, environment) != required:
+                    raise RestoreError("PKB624 recorded .NET command no longer resolves the required SDK; rerun governance sync planning")
+                result = subprocess.run([*dotnet, *command["args"][1:]], cwd=command["cwd"], env=environment, check=False)
             if result.returncode != 0:
                 raise RestoreError(
                     f"PKB623 {command['ecosystem']} {mode} failed for {command['subject']} with exit code {result.returncode}"
                 )
-            completed.append({key: command[key] for key in ("ecosystem", "subject")})
+            completed.append({**{key: command[key] for key in ("ecosystem", "subject")}, "executionContext": context})
+            progress['subjects'].append({**completed[-1], 'outputs':subject_outputs(repository, lock, command, mode)})
+            write_json_atomic(progress_path, progress)
         evidence = {
             "schemaVersion": "1.0",
             "mode": mode,
             "planDigest": lock.get("planDigest"),
             "subjects": completed,
             "nativeLocks": native_lock_records(repository),
+            "inputDigest": package_execution.canonical_hash(input_basis(repository, lock)),
+            "satisfied": True,
         }
         write_json_atomic(evidence_path, evidence)
         print(f"Building-block {mode} restore evidence written: {evidence_path}")
         return 0
-    except (OSError, RestoreError) as error:
+    except (OSError, ValueError, RestoreError, subprocess.TimeoutExpired) as error:
         print(str(error), file=sys.stderr)
         return 2
 

@@ -577,10 +577,14 @@ def building_blocks(args: argparse.Namespace) -> int:
 
 
 def parser() -> argparse.ArgumentParser:
+    from live.v2.sync_stages import PHASES, CASES
     value = argparse.ArgumentParser(description="Governed Program Kit live-acceptance v2 phases.")
     commands = value.add_subparsers(dest="command", required=True)
     authorize = commands.add_parser("authorize")
-    authorize.add_argument("--phase", required=True, choices=("bootstrap-checkpoint", "building-block-consumer"))
+    authorize.add_argument("--phase", required=True, choices=("bootstrap-checkpoint", "building-block-consumer", *PHASES))
+    authorize.add_argument("--case", choices=CASES)
+    authorize.add_argument("--release-root")
+    authorize.add_argument("--baseline-report")
     authorize.add_argument("--release-receipt", required=True)
     authorize.add_argument("--scenario")
     authorize.add_argument("--checkpoint")
@@ -598,14 +602,31 @@ def parser() -> argparse.ArgumentParser:
     blocks.add_argument("--authorization", required=True)
     blocks.add_argument("--checkpoint", required=True)
     blocks.add_argument("--scenario")
+    stage = commands.add_parser('sync-stage')
+    stage.add_argument('--phase', required=True, choices=PHASES)
+    stage.add_argument('--case', required=True, choices=CASES)
+    stage.add_argument('--authorization', required=True)
+    stage.add_argument('--checkpoint', required=True)
+    confirm = commands.add_parser('confirm-sync-intake')
+    confirm.add_argument('--run-manifest', required=True)
+    confirm.add_argument('--review-sha256', required=True)
+    confirm.add_argument('--confirmation-text', required=True)
+    confirm.add_argument('--confirmation-source', required=True)
     return value
 
 
 def main() -> int:
     args = parser().parse_args()
     try:
+        from live.v2 import sync_stages
         if args.command == "authorize":
+            if args.phase in sync_stages.PHASES:
+                return sync_stages.issue(args)
             return issue(args)
+        if args.command == 'sync-stage':
+            return sync_stages.run(args)
+        if args.command == 'confirm-sync-intake':
+            return sync_stages.confirm_intake(args)
         if args.command == "bootstrap":
             return bootstrap(args)
         return building_blocks(args)

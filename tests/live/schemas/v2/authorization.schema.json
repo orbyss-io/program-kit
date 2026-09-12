@@ -8,13 +8,16 @@
     "schemaVersion": { "const": "2.0" },
     "authorizationId": { "type": "string", "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" },
     "nonce": { "type": "string", "pattern": "[0-9a-f]{64}" },
-    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer"] },
+    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer", "feature-intake", "feature-planning", "feature-plan-tasks", "feature-setup", "feature-delivery", "upgrade-consumer"] },
     "scenario": { "$ref": "#/$defs/namedDigest" },
     "candidate": {
       "type": "object",
       "additionalProperties": false,
       "required": ["releaseReceipt", "releaseReceiptSha256"],
       "properties": {
+        "baselineReport": { "type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": { "path": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } },
+        "harnessSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "releaseRoot": { "type": "string", "minLength": 1 },
         "releaseReceipt": { "type": "string", "minLength": 1 },
         "releaseReceiptSha256": { "$ref": "#/$defs/sha256" }
       }

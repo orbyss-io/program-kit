@@ -1,3 +1,5 @@
+Internal engineering adapter reference. Public orchestration is `speckit.program-kit-governance.sync`.
+
 ---
 description: Install or safely update the Program Kit managed .NET repository baseline.
 scripts:

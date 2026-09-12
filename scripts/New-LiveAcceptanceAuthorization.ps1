@@ -1,11 +1,15 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('bootstrap-checkpoint', 'building-block-consumer')]
+    [ValidateSet('bootstrap-checkpoint', 'building-block-consumer', 'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer')]
     [string]$Phase,
     [Parameter(Mandatory)]
     [string]$ReleaseReceipt,
     [string]$Checkpoint = '',
+    [ValidateSet('', 'fresh-baseline', 'fresh-candidate', 'upgrade-candidate')]
+    [string]$Case = '',
+    [string]$ReleaseRoot = '',
+    [string]$BaselineReport = '',
     [Parameter(Mandatory)]
     [string]$Model,
     [Parameter(Mandatory)]
@@ -19,7 +23,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $receiptPath = (Resolve-Path -LiteralPath $ReleaseReceipt).Path
-if ($Phase -eq 'building-block-consumer' -and -not $Checkpoint) {
+if ($Phase -notin @('bootstrap-checkpoint', 'building-block-consumer') -and -not $Case) { throw 'LIVE_SYNC_CASE_REQUIRED: select the exact baseline, candidate or upgrade case.' }
+if ($Phase -eq 'upgrade-consumer' -and -not $BaselineReport) { throw 'LIVE_SYNC_UPGRADE_BASELINE_ACCEPTANCE_REQUIRED: first complete independent functional acceptance of the baseline case.' }
+if ($Phase -ne 'bootstrap-checkpoint' -and -not $Checkpoint) {
     throw 'LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED: building-block-consumer authorization must bind a checkpoint.'
 }
 if ($Checkpoint) { $Checkpoint = (Resolve-Path -LiteralPath $Checkpoint).Path }
@@ -40,11 +46,15 @@ if ($codexExitCode -ne 0 -or -not $launcherVersion) {
 
 Write-Host 'Paid live-acceptance authorization contract:'
 Write-Host "  phase: $Phase"
+Write-Host "  case: $Case"
+Write-Host "  release source: $ReleaseRoot"
+Write-Host "  baseline acceptance report: $BaselineReport"
 Write-Host "  release receipt: $receiptPath"
 Write-Host "  checkpoint: $(if ($Checkpoint) { $Checkpoint } else { '<none>' })"
 Write-Host "  profile: codex / $Model / $ReasoningEffort / workspace-write"
 Write-Host "  Codex launcher: $launcherVersion"
 Write-Host "  timeout: $TimeoutSeconds seconds"
+Write-Host "  maximum paid sessions: $(if ($Phase -eq 'bootstrap-checkpoint') { 7 } else { 1 })"
 Write-Host "  expiry: $ExpiresMinutes minutes"
 Write-Host '  worker network: model transport only; registry restore belongs to the supervisor'
 $required = "AUTHORIZE $Phase"
@@ -59,6 +69,9 @@ $arguments = @(
     '--output', $Output, '--confirmed'
 )
 if ($Checkpoint) { $arguments += @('--checkpoint', $Checkpoint) }
+if ($Case) { $arguments += @('--case', $Case) }
+if ($ReleaseRoot) { $arguments += @('--release-root', (Resolve-Path -LiteralPath $ReleaseRoot).Path) }
+if ($BaselineReport) { $arguments += @('--baseline-report', (Resolve-Path -LiteralPath $BaselineReport).Path) }
 if ($Scenario) { $arguments += @('--scenario', ([System.IO.Path]::GetFullPath($Scenario))) }
 & python @arguments
 if ($LASTEXITCODE -ne 0) { throw "Live authorization issuance failed with exit code $LASTEXITCODE." }

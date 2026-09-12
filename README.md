@@ -52,7 +52,7 @@ Run these steps from the repository root.
 
    ```powershell
    Invoke-WebRequest `
-     https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/Initialize-ProgramKit-0.11.0.cmd `
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.0/Initialize-ProgramKit-0.12.0.cmd `
      -OutFile Initialize-ProgramKit.cmd
    ```
 
@@ -71,7 +71,7 @@ not a PowerShell script.
 
    ```bash
    curl -fL \
-     https://github.com/orbyss-io/program-kit/releases/download/v0.11.0/Initialize-ProgramKit-0.11.0.sh \
+     https://github.com/orbyss-io/program-kit/releases/download/v0.12.0/Initialize-ProgramKit-0.12.0.sh \
      -o Initialize-ProgramKit.sh
    ```
 
@@ -152,8 +152,8 @@ Download and verify the full `program-kit-<version>.zip` release asset, extract 
 release-owned updater from the consuming repository in a normal user-owned terminal:
 
 ```powershell
-python C:\path\to\program-kit-0.11.0\scripts\upgrade_program_kit.py `
-  --release-root C:\path\to\program-kit-0.11.0 `
+python C:\path\to\program-kit-0.12.0\scripts\upgrade_program_kit.py `
+  --release-root C:\path\to\program-kit-0.12.0 `
   --target . `
   --integration codex
 ```
@@ -362,13 +362,19 @@ cancellation behavior, OpenAPI compatibility evidence, and traceability to its v
 Project-specific technology choices outside the approved bootstrap baseline remain Proposed until
 their ADR is accepted.
 
-Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default and makes
-`speckit.program-kit-dotnet.sync` available. The sync command scaffolds central build/package management,
-safe managed-file synchronization, runnable-image staging, and release workflows. The generated application
+`speckit.program-kit-governance.sync` coordinates repository setup across ecosystems. It runs before
+planning, checks package graph evidence after planning, and materializes existing approved targets at
+implementation setup. Metadata, graph and restore share exact runtime, registry and CA context.
+Offline upgrade invokes the same coordinator and reports outstanding package verification separately.
+The previous public .NET sync command is retired without an alias.
+
+Selecting the .NET profile adopts `Orbyss.Foundation.Host` by default. The coordinator's internal
+engineering adapter scaffolds central build/package management, safe managed-file synchronization,
+runnable-image staging, and release workflows. The generated application
 image layers packages and configuration onto a digest-pinned application-neutral host; the host never parses release
 metadata. A write requires the approved,
 hash-bound bootstrap baseline (or a later Accepted override) and acknowledgement of the independently
-pinned packages and NuGet sources; restore/build execution is separately authorized. This optional sync is not a
+pinned packages and NuGet sources; restore/build execution is separately authorized. This .NET adapter is not a
 prerequisite for technology-neutral governance or proposed quality gates, and installing Program Kit alone
 never creates .NET files. See the [building-block selection guide](extensions/program-kit-building-blocks/references/orbyss-building-blocks.md)
 and its [machine-readable executable catalog](extensions/program-kit-building-blocks/references/orbyss-building-blocks.json).
@@ -451,11 +457,11 @@ uv run --with "specify-cli==1.0.1" python ./scripts/build_release.py
 ```
 
 Pushing a SemVer tag matching `VERSION` creates a GitHub release. Follow
-[`docs/releasing-0.11.0.md`](docs/releasing-0.11.0.md).
+[`docs/releasing-0.12.0.md`](docs/releasing-0.12.0.md).
 
 ```powershell
-git tag v0.11.0
-git push origin v0.11.0
+git tag v0.12.0
+git push origin v0.12.0
 ```
 
 The release workflow validates all manifests and catalog metadata, creates deterministic ZIP files and SHA-256 checksums, generates GitHub build-provenance attestations, and publishes the assets. The CI and release actions are pinned to immutable commits; Dependabot proposes action updates.
@@ -480,8 +486,8 @@ The release workflow validates all manifests and catalog metadata, creates deter
 Verify a downloaded artifact:
 
 ```powershell
-gh attestation verify program-kit-0.11.0.zip --repo orbyss-io/program-kit
-Get-FileHash program-kit-0.11.0.zip -Algorithm SHA256
+gh attestation verify program-kit-0.12.0.zip --repo orbyss-io/program-kit
+Get-FileHash program-kit-0.12.0.zip -Algorithm SHA256
 ```
 
 ## UI experience and public discovery

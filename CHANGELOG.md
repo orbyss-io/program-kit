@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### 0.12.0 candidate
+
+- Coordinate approved repository setup through governance sync at bootstrap handoff, planning,
+  implementation setup and upgrade. Retire the public .NET sync command without a compatibility alias.
+- Share exact Node/npm, catalog registry and CA context across package metadata, isolated strict
+  graphs and restore. Bind evidence to current inputs and resume unchanged completed operations.
+- Materialize only existing accepted composition targets, preserve future feature placements and
+  consumer edits, and distinguish offline convergence from locked package verification.
+- Add deterministic phase, conflict, recovery and upgrade checks plus one-use, checkpoint-bound
+  live feature/upgrade stages. Live functional acceptance and efficiency claims require actual evidence.
+
 ## 0.11.0 - 2026-09-12
 
 - Require feature grilling through a mandatory pre-specification intake hook before creating or
@@ -332,8 +343,8 @@
   listener, starting consumer hosted services, or running shell initializers; materializes the raw
   ASP.NET Core document; normalizes and compatibility-checks it; runs a separately locked client
   generator; and finally compiles the consuming application's TypeScript graph.
-- Replace the incomplete post-build MSBuild hook—which assumed some unspecified actor had already
-  generated OpenAPI—with consumer-owned contract registration and explicit build orchestration.
+- Replace the incomplete post-build MSBuild hookâ€”which assumed some unspecified actor had already
+  generated OpenAPIâ€”with consumer-owned contract registration and explicit build orchestration.
   Empty registries restore no exporter or npm dependencies, while configured contracts preserve
   hash-bound producer, package, document, generator, and application evidence.
 - Reject implementation readiness with `PKA014` when .NET-to-TypeScript OpenAPI plans omit the

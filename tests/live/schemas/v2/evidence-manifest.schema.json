@@ -7,7 +7,7 @@
   "properties": {
     "schemaVersion": { "const": "2.0" },
     "runId": { "type": "string", "minLength": 1 },
-    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer"] },
+    "phase": { "enum": ["bootstrap-checkpoint", "building-block-consumer", "feature-intake", "feature-planning", "feature-plan-tasks", "feature-setup", "feature-delivery", "upgrade-consumer"] },
     "status": { "enum": ["passed", "failed", "inconclusive", "cancelled", "not-started", "checkpoint-created"] },
     "causes": { "type": "array", "items": { "enum": ["preflight", "harness", "environment", "external-service", "model-conformance", "product", "operator", "unclassified"] } },
     "authorization": { "type": "object" },

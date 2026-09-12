@@ -21,6 +21,13 @@ order, paths, and all other content remain hash-protected. Missing, interrupted,
 incoherent evidence blocks implementation. Do not substitute lifecycle verification alone for this
 preflight.
 
+Then run installed `scripts/repository_sync.py check --phase after-plan --repository <repository>
+--feature-dir <feature-dir>`. This verifies the planning package context before implementation starts.
+The first implementation work must create only approved feature-owned project/package skeletons,
+then run governance sync `implementation-setup`, execute reviewed renew/locked restore requests,
+and pass `check --phase implementation` before application source work. Dependency changes require
+renewed verification. Read `speckit.program-kit-governance.sync` for the exact shared mechanism.
+
 Apply `.specify/extensions/program-kit-governance/references/programming-guardrails.md`,
 `software-language.md`, `vertical-slicing.md`, `modularity-and-contracts.md`, and any detected
 technology profiles from their installed technology extensions.

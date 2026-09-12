@@ -1734,6 +1734,23 @@ def accept_bootstrap(verdict: str, approval_mode: str = "interactive") -> None:
     print(f"Architecture bootstrap is approved: {project_path(BOOTSTRAP_APPROVAL)}")
 
 
+def validate_setup_authority() -> None:
+    """Validate durable setup consent without freezing later feature/roadmap evolution."""
+    assessment = validate_assessment_approval()
+    validate_ratification()
+    validate_bootstrap_decisions()
+    baseline = project_path(DECISIONS / "bootstrap-baseline.md").read_text(encoding="utf-8")
+    approved_hash = assessment.get("artifacts", {}).get(BOOTSTRAP_DECISIONS.as_posix())
+    if not _has_decision_status(baseline, "Accepted") or not approved_hash or approved_hash not in baseline:
+        raise GovernanceStateError("Setup requires the Accepted baseline bound to approved assessment choices")
+    record = read_json(project_path(BOOTSTRAP_APPROVAL))
+    if record.get("status") != "Approved" or record.get("gate_verdict") != "approve":
+        raise GovernanceStateError("Setup requires completed bootstrap acceptance")
+    recorded_approval_mode(record, "Bootstrap approval")
+    if record.get("artifacts", {}).get(BOOTSTRAP_DECISIONS.as_posix()) != approved_hash:
+        raise GovernanceStateError("Setup bootstrap approval does not bind the approved decisions")
+
+
 def complete_bootstrap() -> None:
     validate_bootstrap(True, True)
     report = project_path(READINESS_REPORT)
@@ -1754,6 +1771,12 @@ def complete_bootstrap() -> None:
             },
         },
     )
+    sync_script = Path(__file__).with_name("repository_sync.py")
+    result = subprocess.run([sys.executable, str(sync_script), "plan", "--repository", str(project_path(Path("."))),
+                             "--phase", "bootstrap"], capture_output=True, text=True, encoding="utf-8", check=False)
+    if result.returncode:
+        raise GovernanceStateError(f"Bootstrap setup context failed: {result.stderr.strip()}")
+    write_json(project_path(Path(".program-kit/sync/context.json")), json.loads(result.stdout)["context"])
     print(f"Program Kit bootstrap is deterministically complete: {project_path(BOOTSTRAP_COMPLETION)}")
 
 
@@ -2147,6 +2170,7 @@ def main() -> int:
         "--approval-mode", choices=sorted(APPROVAL_MODES), default="interactive"
     )
     subparsers.add_parser("complete-bootstrap")
+    subparsers.add_parser("validate-setup-authority")
     subparsers.add_parser("validate-completion")
     args = parser.parse_args()
     try:
@@ -2204,6 +2228,9 @@ def main() -> int:
                 accept_bootstrap(args.verdict, args.approval_mode)
             elif args.command == "complete-bootstrap":
                 complete_bootstrap()
+            elif args.command == "validate-setup-authority":
+                validate_setup_authority()
+                print("Accepted setup authority is current")
             elif args.command == "validate-completion":
                 validate_completion()
     except GovernanceStateError as exc:
