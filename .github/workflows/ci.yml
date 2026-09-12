@@ -72,6 +72,8 @@ jobs:
 
       - name: Validate architecture placement and recovery
         run: python tests/validate_architecture_placement.py
+      - name: Validate bootstrap readiness and accepted-run recovery
+        run: python tests/validate_bootstrap_lifecycle.py
 
       - name: Validate conversational bootstrap intake and architecture map
         run: python tests/validate_bootstrap_intake.py

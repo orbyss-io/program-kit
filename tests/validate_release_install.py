@@ -53,6 +53,9 @@ EXPECTED_STEPS = [
     "prepare-roadmap-context",
     "specification-roadmap",
     "validate-roadmap-output",
+    "architecture-prerequisite-closure",
+    "validate-prerequisite-closure",
+    "synchronize-lifecycle",
     "synchronize-roadmap",
     "validate-bootstrap-consistency",
     "validate-bootstrap",
@@ -61,8 +64,8 @@ EXPECTED_STEPS = [
     "prepare-readiness-context",
     "readiness",
     "validate-readiness-output",
+    "require-readiness",
     "complete-bootstrap",
-    "report-completion-result",
 ]
 
 

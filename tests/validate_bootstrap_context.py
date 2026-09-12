@@ -30,6 +30,8 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     run = project / ".specify/workflows/runs" / run_id
     source_root = Path(module.__file__).resolve().parents[3]
     contract_references = {
+        ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md":
+            "extensions/program-kit-governance/references/bootstrap-lifecycle.md",
         ".specify/extensions/program-kit-governance/references/bootstrap-decisions.schema.json":
             "extensions/program-kit-governance/references/bootstrap-decisions.schema.json",
         ".specify/extensions/program-kit-governance/references/architecture-map.schema.json":
@@ -193,6 +195,7 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     for relative, text in markdown.items():
         write(project / relative, text)
     json_files = {
+        "docs/architecture/bootstrap-prerequisites.json": {"schema_version": "1.0", "sources": [], "prerequisites": []},
         "docs/architecture/bootstrap-decisions.json": {
             "schema_version": "1.0",
             "choices": [{"id": "greeting", "decision": "Static greeting"}],
@@ -492,10 +495,10 @@ def main() -> int:
         finally:
             module._run_project_validator = original_validator
         if roadmap_batch["checks"] != ["output-contract", "roadmap-governance"] or not any(
-            arguments == ["validate-roadmap", "--require-ready"]
+            arguments == ["validate-roadmap"]
             for _, arguments, _ in validator_calls
         ):
-            raise AssertionError("Roadmap terminal batch does not require a Ready entry")
+            raise AssertionError("Roadmap drafting must validate Blocked entries before compatibility closure")
 
         assessment_path = project / "docs/architecture/bootstrap-assessment.md"
         assessment_text = assessment_path.read_text(encoding="utf-8")
@@ -575,7 +578,7 @@ constitution:
         _, configured = module.build_context(project, run_id, "readiness")
         if configured["governance"]["paths"]["decisions"] != "governance/decisions":
             raise AssertionError("Compact context ignored the configured decisions path")
-        if configured["reading_policy"]["required_full_reads"] != ["governance/constitution.md"]:
+        if configured["reading_policy"]["required_full_reads"] != ["governance/constitution.md", ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md", "docs/architecture/bootstrap-prerequisites.json"]:
             raise AssertionError("Compact context ignored the configured constitution path")
         configured_evidence = json.loads(
             (project / configured["evidence_index"]["path"]).read_text(encoding="utf-8")

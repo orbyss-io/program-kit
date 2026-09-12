@@ -16,9 +16,15 @@ bulk-read every unchanged artifact, grep every status in the repository, or enum
 files.
 Use `governance.paths` and `output_contract` directly. Do not search `.specify`, unrelated
 extensions, catalogs, or validator implementation to rediscover paths or validation rules.
-Use `output_contract.artifact_target_bytes` as the generation ceiling and
+Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after writing the report. Report its
 final byte count; do not omit decisive evidence merely to reach a target.
+An over-target warning below the hard budget is not a failed check. Do not add ad hoc size
+assertions or repeatedly truncate the report.
+
+For an accepted-bootstrap recovery handoff, use its explicit source paths and terminal batch
+instead of generating a new workflow context or changing the original run. Read the current
+prerequisite ledger and its source/evidence bindings as well as the preserved authority.
 
 ## Constitutional and portfolio prerequisites
 
@@ -45,6 +51,10 @@ Write `docs/architecture/readiness-report.md` beginning at byte zero with an exa
 evidence, remaining triggered decisions, and next specification. The deterministic workflow
 completion step accepts only the exact READY status and independently validates ratification,
 bootstrap approval, artifact hashes, and a Ready roadmap entry.
+For every blocking item in a non-ready report, write
+`- Blocker: <id> | Owner: <owner> | Next: <bounded corrective action>`.
+Do not put unresolved blocker lines in a READY report. A valid non-ready assessment is successful
+evaluation, not completion eligibility; its terminal batch returns the explicit structured verdict.
 
 `READY` requires that implementation-blocking architecture decisions are Accepted, significant risks have owners and verification, technology statuses are honest, architecture views are internally consistent, and the first specification can be written without smuggling in an unreviewed architecture choice.
 
@@ -92,6 +102,8 @@ the next specification. For a single Ready entry with no blockers, use the byte 
 `output_contract`. Report the
 path, status, and validation counts only; do not print the complete report or repository-wide diffs.
 Run the single command in `output_contract.validation_commands` before reporting completion. It
-batches the output-budget, roadmap, governance, and exact READY checks. Repair only a named
+batches the output-budget, exact status syntax, roadmap/approval authority evaluation and structured
+completion-eligibility checks. READY alone can complete. CONDITIONALLY READY and NOT READY preserve
+the assessment and route to owned recovery; do not alter the verdict to satisfy a validator. Repair only a named
 diagnostic and rerun that same batch once. After it passes, stop immediately: do not inspect a diff,
 remeasure files, read another source, or run another command.

@@ -160,7 +160,7 @@ analytics defaults to none, training to disallowed, and llms/Markdown to opt-in.
 psychological laws or universal AI/search ranking promises into consumer requirements.
 
 Keep the result proportional to the confirmed intake. Use
-`output_contract.artifact_target_bytes` as the generation ceiling and
+`output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary. Prefer compact tables over repeated prose,
 and do not document excluded capability categories one by one. After writing, report file paths,
 byte sizes, and decision counts only; do not print complete generated artifacts or repository-wide

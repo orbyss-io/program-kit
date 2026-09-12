@@ -3,7 +3,7 @@ schema_version: "1.0"
 extension:
   id: "program-kit-building-blocks"
   name: "Program Kit Building Blocks"
-  version: "0.10.1"
+  version: "0.10.2"
   description: "Resolves accepted architecture selections into deterministic NuGet, npm, registry, tool, host-image, and CShell materialization plans."
   author: "Orbyss"
   repository: "https://github.com/orbyss-io/program-kit"

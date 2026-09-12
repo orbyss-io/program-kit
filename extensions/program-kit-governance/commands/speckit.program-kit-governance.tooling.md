@@ -13,7 +13,7 @@ heading range only when the brief lacks a fact required by a quality-system deci
 bulk-read every unchanged architecture artifact or enumerate installed files.
 Use `governance.paths` and `output_contract` directly; do not search `.specify`, unrelated
 extensions, catalogs, or validator implementation for already supplied metadata.
-Use `output_contract.artifact_target_bytes` as the generation ceiling and
+Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away a required control merely to reach a target.
 

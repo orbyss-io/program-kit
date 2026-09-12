@@ -18,7 +18,7 @@ claim. Do not bulk-read every unchanged bootstrap artifact or enumerate installe
 artifacts remain authoritative when the stage brief identifies missing detail or a hash mismatch.
 Use the brief's `governance.paths` and `output_contract` directly. Do not search `.specify`, dump
 catalogs, or inspect `governance_state.py` to rediscover paths or contracts already supplied there.
-Use `output_contract.artifact_target_bytes` as the generation ceiling and
+Use `output_contract.artifact_target_bytes` as the initial generation target and
 `output_contract.artifact_byte_budgets` as the hard boundary after all writes. Report final byte
 counts; do not trade away required evidence merely to reach a target.
 

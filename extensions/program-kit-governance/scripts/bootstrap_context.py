@@ -220,6 +220,7 @@ OUTPUT_CONTRACTS = {
             "docs/architecture/quality-attributes.md",
             "docs/architecture/technology-radar.md",
             "docs/architecture/traceability.md",
+            "docs/architecture/bootstrap-prerequisites.json",
             "docs/architecture/architecture-map.json",
             "docs/architecture/building-block-selection.json",
             "docs/architecture/workspace.dsl",
@@ -228,6 +229,7 @@ OUTPUT_CONTRACTS = {
         ],
         "contract_references": [
             ".specify/extensions/program-kit-governance/references/architecture-map.schema.json",
+            ".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md",
             ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
         ],
     },
@@ -241,15 +243,16 @@ OUTPUT_CONTRACTS = {
             "docs/architecture/architecture.md",
             "docs/architecture/traceability.md",
         ],
-        "contract_references": [],
+        "contract_references": [".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md"],
     },
     "readiness": {
         "write_paths": ["docs/architecture/readiness-report.md"],
-        "contract_references": [],
+        "contract_references": [".specify/extensions/program-kit-governance/references/bootstrap-lifecycle.md"],
     },
 }
 
 ARTIFACT_BYTE_BUDGETS = {
+    "docs/architecture/bootstrap-prerequisites.json": 32 * 1024,
     "docs/architecture/bootstrap-assessment.md": 16 * 1024,
     "docs/architecture/decision-backlog.md": 10 * 1024,
     "docs/architecture/tooling-evaluation.md": 8 * 1024,
@@ -270,6 +273,7 @@ ARTIFACT_BYTE_BUDGETS = {
 # Generation targets deliberately leave repair headroom below the hard validator budgets.
 # Workers should not discover size constraints by writing to the boundary and rewriting.
 ARTIFACT_TARGET_BYTES = {
+    "docs/architecture/bootstrap-prerequisites.json": 24 * 1024,
     "docs/architecture/bootstrap-assessment.md": 10 * 1024,
     "docs/architecture/decision-backlog.md": 7 * 1024,
     "docs/architecture/tooling-evaluation.md": 11 * 512,
@@ -1285,7 +1289,7 @@ def _run_project_validator(
         raise ContextError(f"{label} failed: {diagnostic[:4000]}")
 
 
-def validate_architecture_structure(project_root: Path, run_id: str) -> dict:
+def validate_architecture_structure(project_root: Path, run_id: str, *, allow_accepted: bool = False) -> dict:
     check_architecture_blocked(project_root, run_id)
     map_script = ".specify/extensions/program-kit-governance/scripts/architecture_map.py"
     selection_script = (
@@ -1303,13 +1307,16 @@ def validate_architecture_structure(project_root: Path, run_id: str) -> dict:
     selection_path = project_root / "docs/architecture/building-block-selection.json"
     intake = load_json(project_root / INTAKE_PATH)
     if building_block_stage_contract(project_root, intake) is not None or selection_path.is_file():
+        selection_command = "validate-draft"
+        if allow_accepted and selection_path.is_file() and load_json(selection_path).get("status") == "Accepted":
+            selection_command = "validate-accepted"
         _run_project_validator(
             project_root,
             selection_script,
-            ["validate-draft", "--target", ".", "--require-placement-provenance"],
+            [selection_command, "--target", ".", "--require-placement-provenance"],
             "building-block draft",
         )
-        checks.append("building-block-draft")
+        checks.append("building-block-accepted" if selection_command == "validate-accepted" else "building-block-draft")
     _run_project_validator(
         project_root,
         map_script,
@@ -1336,6 +1343,7 @@ def validate_architecture_structure(project_root: Path, run_id: str) -> dict:
 
 def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
     checks: list[str] = []
+    verdict: dict = {}
     if stage == "architecture":
         checks.extend(validate_architecture_structure(project_root, run_id)["checks"])
     output = validate_stage_output(project_root, stage, run_id)
@@ -1357,24 +1365,29 @@ def validate_stage_batch(project_root: Path, run_id: str, stage: str) -> dict:
         _run_project_validator(
             project_root,
             governance_script,
-            ["validate-roadmap", "--require-ready"],
+            ["validate-roadmap"],
             "roadmap governance",
         )
         checks.append("roadmap-governance")
     elif stage == "readiness":
-        _run_project_validator(
-            project_root,
-            governance_script,
-            ["validate", "--require-roadmap", "--require-ready"],
-            "readiness governance",
+        result = subprocess.run(
+            [sys.executable, str(project_root / governance_script), "evaluate-readiness"],
+            cwd=project_root, capture_output=True, text=True, encoding="utf-8", timeout=120,
         )
-        checks.append("readiness-governance")
+        if result.returncode:
+            raise ContextError(f"readiness assessment invalid: {(result.stderr or result.stdout).strip()}")
+        try:
+            verdict = json.loads(result.stdout)
+        except ValueError as exc:
+            raise ContextError("readiness validator did not return a structured verdict") from exc
+        checks.extend(["readiness-verdict", "readiness-authority-evaluation"])
     return {
         "stage": stage,
         "checks": checks,
         "check_count": len(checks),
         "artifact_count": len(output["artifacts"]),
         "target_exceeded_count": output["target_exceeded_count"],
+        **({"readiness": verdict, "completion_eligible": verdict["eligible"]} if verdict else {}),
     }
 
 
@@ -1401,6 +1414,11 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
     stage_artifacts = INTAKE_ARTIFACTS + tuple(
         replace_governance_path(path, governance_paths) for path in STAGE_ARTIFACTS[stage]
     ) + routed + contract_references
+    lifecycle_sources = tuple(path for path in (
+        "docs/architecture/bootstrap-prerequisites.json",
+        "docs/architecture/bootstrap-acceptance-scope.json",
+    ) if stage in {"roadmap", "readiness"} and (project_root / path).is_file())
+    stage_artifacts += lifecycle_sources
     artifacts: list[dict] = []
     authorities: dict[str, dict] = {}
     authority_paths = dict(AUTHORITY_JSON)
@@ -1454,7 +1472,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
             "mode": "deny-by-default",
             "required_full_reads": [
                 replace_governance_path(path, governance_paths) for path in STAGE_FULL_READS[stage]
-            ] + list(required_routed) + list(contract_references),
+            ] + list(required_routed) + list(contract_references) + list(lifecycle_sources),
             "allowed_sources": list(stage_artifacts),
             "rules": [
                 "Read this stage brief in full.",
@@ -1464,7 +1482,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
                 "Read every listed contract reference once before the first write; do not inspect validator implementation.",
                 "Excluded intake routing surfaces are out of scope unless contradictory evidence is cited.",
                 "Prefer one targeted source-read batch, one write batch, and one validation batch; expand only for a specific failure.",
-                "Treat artifact_target_bytes as the generation ceiling and artifact_byte_budgets as the hard validation boundary.",
+                "Aim for artifact_target_bytes initially; only artifact_byte_budgets is a hard validation boundary. Retain decisive evidence above target and do not add ad hoc size assertions.",
                 "After writes report only paths, byte counts, status, and targeted diagnostics; never print full files or diffs.",
             ],
             "provenance": "The evidence index binds optional source sections to paths and SHA-256 values.",
