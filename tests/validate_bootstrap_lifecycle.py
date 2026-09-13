@@ -56,7 +56,7 @@ def item(identity='provider', slices=None, disposition='architecture', trigger='
             'rationale': 'The public slice requires a durable result', 'status': 'open', 'evidence': []}
 
 
-def setup(root):
+def setup(root, *, web=None):
     for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'):
         shutil.copytree(ROOT / 'extensions' / name, root / '.specify/extensions' / name)
     from schema_runtime import runtime_path
@@ -65,7 +65,7 @@ def setup(root):
     fixture.write_installation(root, '0.3.1')
     semantic = module('lifecycle_semantic', ROOT / 'tests/validate_bootstrap_semantics.py')
     architecture = governance._load_architecture_module()
-    fixture.write_assessment(governance, root, semantic, architecture)
+    fixture.write_assessment(governance, root, semantic, architecture, web=web)
     governance.begin()
     (root / governance.CONSTITUTION).write_text(fixture.constitution(), encoding='utf-8')
     governance.write_review('constitution')
@@ -140,7 +140,49 @@ def workflow_gate(root):
     assert not (root / governance.BOOTSTRAP_COMPLETION).exists()
 
 
+def browser_baseline_checks():
+    previous = Path.cwd()
+    for profile in ('none-v1', 'bff-cookie-v1', 'spa-pkce-v1'):
+        with tempfile.TemporaryDirectory(prefix='program-kit-browser-baseline-') as directory:
+            root = Path(directory)
+            os.chdir(root)
+            try:
+                web = fixture.decisions()['web']
+                web.update(secure_profile=profile, profile_source='explicit-intake',
+                           override_reason='Explicit test architecture selection.')
+                if profile == 'none-v1':
+                    web.update(threat_model='none-v1', security_evidence='none-v1')
+                with contextlib.redirect_stdout(io.StringIO()):
+                    setup(root, web=web)
+                    # Remove inherited labels from the authored fixture, so an
+                    # anonymous baseline cannot pass by accidentally retaining them.
+                    for relative in (governance.ARCHITECTURE, Path('docs/architecture/technology-radar.md'),
+                                     governance.DECISIONS / 'bootstrap-baseline.md'):
+                        path = root / relative
+                        text = path.read_text(encoding='utf-8').replace('bff-cookie-v1', profile)
+                        text = text.replace(governance.WEB_THREAT_MODEL, 'assurance-omitted')
+                        text = text.replace(governance.WEB_SECURITY_EVIDENCE, 'assurance-omitted')
+                        path.write_text(text, encoding='utf-8')
+                    if profile != 'none-v1':
+                        fails(lambda: governance.validate_bootstrap(False, True), 'security assurance')
+                        path = root / governance.ARCHITECTURE
+                        with path.open('a', encoding='utf-8') as stream:
+                            stream.write(f'\nInherits {web["threat_model"]} and {web["security_evidence"]}.\n')
+                    # Reflect the deliberately authored test documents before the
+                    # complete gate; production never refreshes arbitrary drift.
+                    model = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                    for document in model['documentation']:
+                        document['sha256'] = lifecycle.digest(root / document['path'])
+                    lifecycle.write(root / governance.ARCHITECTURE_MAP, model)
+                    governance.synchronize_lifecycle()
+                    governance.synchronize_roadmap_views()
+                    governance.validate_bootstrap(False, True)
+            finally:
+                os.chdir(previous)
+
+
 def main():
+    browser_baseline_checks()
     previous = Path.cwd()
     with tempfile.TemporaryDirectory(prefix='program-kit-lifecycle-') as directory:
         root = Path(directory)
@@ -148,6 +190,45 @@ def main():
         try:
             with contextlib.redirect_stdout(io.StringIO()):
                 unscoped, newly_scoped = setup(root)
+                # Real consumers may catalog mutable lifecycle inputs as map
+                # documentation. Refresh those bindings only after validation.
+                original_map = (root / governance.ARCHITECTURE_MAP).read_bytes()
+                model = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                unrelated = root / 'docs/architecture/quality-attributes.md'
+                model['documentation'].append({'id': 'quality-attributes',
+                                               'path': unrelated.relative_to(root).as_posix(),
+                                               'sha256': lifecycle.digest(unrelated), 'scope': 'bootstrap'})
+                for relative in (lifecycle.LEDGER, lifecycle.SCOPE):
+                    model['documentation'].append({'id': relative.stem, 'path': relative.as_posix(),
+                                                   'sha256': '0' * 64, 'scope': 'bootstrap'})
+                lifecycle.write(root / governance.ARCHITECTURE_MAP, model)
+                governance.synchronize_lifecycle()
+                refreshed = lifecycle.load(root / governance.ARCHITECTURE_MAP)
+                for document in refreshed['documentation']:
+                    if document['path'] in {lifecycle.LEDGER.as_posix(), lifecycle.SCOPE.as_posix()}:
+                        assert document['sha256'] == lifecycle.digest(root / document['path'])
+                stable_map = (root / governance.ARCHITECTURE_MAP).read_bytes()
+                original_scope = (root / lifecycle.SCOPE).read_bytes()
+                lifecycle.write(root / lifecycle.SCOPE, {'schema_version': '1.0', 'decisions': {}})
+                fails(governance.synchronize_lifecycle, 'all founding decisions')
+                assert (root / governance.ARCHITECTURE_MAP).read_bytes() == stable_map
+                (root / lifecycle.SCOPE).write_bytes(original_scope)
+                original_ledger = (root / lifecycle.LEDGER).read_bytes()
+                ledger(root, [{**item(), 'status': 'closed'}])  # No proof: never bless this checksum.
+                fails(governance.synchronize_lifecycle, 'evidence')
+                assert (root / governance.ARCHITECTURE_MAP).read_bytes() == stable_map
+                (root / lifecycle.LEDGER).write_bytes(original_ledger)
+                unrelated_bytes = unrelated.read_bytes()
+                unrelated.write_bytes(unrelated_bytes + b'\nUnreviewed unrelated edit.\n')
+                try:
+                    governance.synchronize_lifecycle()
+                except Exception as error:
+                    assert 'Architecture documentation is missing or stale' in str(error), str(error)
+                else:
+                    raise AssertionError('Unrelated document drift must still fail')
+                assert (root / governance.ARCHITECTURE_MAP).read_bytes() == stable_map
+                unrelated.write_bytes(unrelated_bytes)
+                (root / governance.ARCHITECTURE_MAP).write_bytes(original_map)
                 # Preamble and unchecked fields cannot bypass prerequisite eligibility.
                 base = fixture.roadmap()
                 for changed in [base.replace('# Specification roadmap', '# Specification roadmap\n\nunresolved provider decision must close before implementation'),

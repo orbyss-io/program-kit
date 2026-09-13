@@ -1619,7 +1619,7 @@ def validate_bootstrap(require_approval: bool, require_ready: bool) -> None:
             )
         missing_assurance = [
             assurance_id
-            for assurance_id in (WEB_THREAT_MODEL, WEB_SECURITY_EVIDENCE)
+            for assurance_id in (web['threat_model'], web['security_evidence'])
             if assurance_id not in architecture_text
         ]
         if missing_assurance:
@@ -2132,6 +2132,18 @@ def synchronize_lifecycle() -> None:
     architecture = _load_architecture_module()
     model = architecture.load_object(project_path(ARCHITECTURE_MAP))
     lifecycle_call("acceptance_scope", model)
+    # These lifecycle inputs can change after architecture authoring (notably
+    # when the proof shell closes prerequisites). Validate their authority before
+    # refreshing only their derived map bindings; other document drift still fails.
+    lifecycle_documents = {ACCEPTANCE_SCOPE.as_posix()}
+    ledger_path = lifecycle_module().LEDGER
+    if any(doc.get('path') == ledger_path.as_posix() for doc in model.get('documentation', [])):
+        lifecycle_call('validate_prerequisites', roadmap_records(project_path(ROADMAP)),
+                       required=True, allow_proposed_authority=True)
+        lifecycle_documents.add(ledger_path.as_posix())
+    for document in model.get('documentation', []):
+        if document.get('path') in lifecycle_documents:
+            document['sha256'] = lifecycle_module().digest(project_path(document['path']))
     lifecycle_call("project_lifecycle", model)
     architecture.validate_model(model, Path.cwd().resolve())
     write_json(project_path(ARCHITECTURE_MAP), model)

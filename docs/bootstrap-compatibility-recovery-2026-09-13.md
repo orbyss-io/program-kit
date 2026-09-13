@@ -85,3 +85,49 @@ python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py 
 This resumes the existing bootstrap toward its final review. Intake and paid
 closure authoring are retained. First vertical-slice delivery remains subsequent
 live work; this repair claims neither its execution nor its acceptance.
+
+## Subsequent synchronization recovery
+
+The user resumed `ef606c1a`: the proof shell reused all four receipts and prerequisite
+validation passed, then `synchronize-lifecycle` rejected a stale documentation hash
+for `bootstrap-prerequisites.json`. Proof closure had changed the ledger after the
+architecture map was authored. Lifecycle projection refreshed narrative hashes but
+omitted its ledger and acceptance-scope inputs.
+
+Synchronization now validates registered prerequisite evidence and acceptance scope
+before refreshing those two document bindings. It continues to reject unrelated
+document drift. No proof tooling changed and the four exact receipts remain valid.
+
+Checking the remaining deterministic steps exposed a second mismatch: final bootstrap
+validation demanded authenticated web assurance IDs even though assessment explicitly
+approved anonymous `none-v1`. The final gate now uses the assurance IDs from the validated,
+approved decision register. Authenticated BFF and SPA profiles still require both
+versioned web assurance IDs; no consumer approval or security decision was rewritten.
+
+Regression coverage includes stale lifecycle bindings, invalid scope, forged closure
+without evidence, unrelated document drift, and complete bootstrap gates for anonymous,
+BFF and SPA profiles. Bounded Development passed, supplemented by the final targeted
+lifecycle and governance tests. Logs: `artifacts/lifecycle-sync-development.log`,
+`artifacts/lifecycle-sync-regression.log`, `artifacts/lifecycle-sync-governance.log`.
+
+Consumer evidence under `artifacts/lifecycle-sync-recovery/` preserves the original
+installed helper, map, failed native state, deterministic step output and verified
+handoff. Using the actual Spec Kit Python 3.13 interpreter, synchronization, roadmap
+projection, consistency, bootstrap validation and final review preparation all pass.
+The native workflow state and eight protected authority artifacts remain unchanged;
+no coding agent or workflow resume was started by this repair.
+
+The earlier schema failure was an interpreter provisioning gap: Python 3.12's local
+schema cache did not provision Spec Kit's Python 3.13 cache. The latter is now set up
+with pinned requirements, using a project-local uv cache because the shared cache
+was inaccessible. Final consumer verification uses the actual Spec Kit interpreter.
+
+The current failed step is `synchronize-lifecycle`, so resume without the flag that
+applies only to a failed proof shell:
+
+```cmd
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id ef606c1a
+```
+
+This retains completed stages and proceeds toward the final human bootstrap review.
+Readiness and first-slice acceptance are still live work, not results of these checks.

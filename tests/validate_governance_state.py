@@ -255,7 +255,7 @@ def decisions() -> dict:
     }
 
 
-def write_assessment(module, project: Path, semantic, architecture_module) -> None:
+def write_assessment(module, project: Path, semantic, architecture_module, *, web=None) -> None:
     intake_path = project / module.BOOTSTRAP_INTAKE
     intake_path.parent.mkdir(parents=True, exist_ok=True)
     intent_path = project / module.PROJECT_INTENT
@@ -311,7 +311,10 @@ def write_assessment(module, project: Path, semantic, architecture_module) -> No
     proposal['invented_top_level'] = []
     decision_path.write_text(json.dumps(proposal), encoding='utf-8')
     expect_error(module, module.validate_assessment, 'invalid top-level fields')
-    decision_path.write_text(json.dumps(decisions()), encoding='utf-8')
+    approved_decisions = decisions()
+    if web is not None:
+        approved_decisions['web'] = web
+    decision_path.write_text(json.dumps(approved_decisions), encoding='utf-8')
     module.write_review("assessment")
     assert_review_packet(project / module.ASSESSMENT_REVIEW, "assessment")
     assessment_path = project / module.ASSESSMENT
