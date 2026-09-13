@@ -123,7 +123,7 @@ def main() -> int:
                 "Bypass",
                 "-File",
                 str(managed / "Build.ps1"),
-                "-SkipRunnableHost",
+                "-SkipReleaseBundle",
             ],
             cwd=repository,
             env=environment,

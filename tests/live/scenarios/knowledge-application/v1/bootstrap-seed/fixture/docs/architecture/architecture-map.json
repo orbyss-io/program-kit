@@ -6,7 +6,7 @@
     {
       "id": "project-intent",
       "path": "docs/architecture/project-intent.md",
-      "sha256": "24e753a16197dbfe6db6515ce2934fadaf0e20f7962f272ceba19356a8d38f94",
+      "sha256": "b1fe0041e3f8960a459ca195e67b544878156ded938500626c7ae17611670716",
       "format": "program-kit-intent-markdown",
       "importer": {
         "id": "program-kit-intake",

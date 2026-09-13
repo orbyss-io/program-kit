@@ -93,7 +93,7 @@
     {
       "id": "foundation-host",
       "kind": "host-image",
-      "path": "Dockerfile",
+      "path": "hostsettings.json",
       "role": "runtime-host",
       "scope": "application"
     }

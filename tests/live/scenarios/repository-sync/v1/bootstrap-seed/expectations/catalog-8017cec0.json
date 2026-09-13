@@ -3,7 +3,11 @@
   "expectationId": "catalog-8017cec0",
   "scenario": "internal-forms-workspace@1",
   "catalogSha256": "8017cec0be489e5a76c0a6a75a383f5785cdcfabaf358a322d18d20e3116539d",
-  "compositions": ["api_baseline", "browser_bff", "forms_runtime"],
+  "compositions": [
+    "api_baseline",
+    "browser_bff",
+    "forms_runtime"
+  ],
   "packages": [
     "npm:@orbyss-io/forms-contracts@0.1.1",
     "npm:@orbyss-io/forms-jsonforms-runtime@0.1.1",
@@ -36,7 +40,7 @@
   ],
   "targets": [
     "Directory.Build.props",
-    "Dockerfile",
+    "hostsettings.json",
     "shells.json",
     "src/InternalForms.Api/InternalForms.Api.csproj",
     "src/InternalForms.Bff/InternalForms.Bff.csproj",

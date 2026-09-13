@@ -15,9 +15,11 @@
   to this plan as `STRUCTURE-DELTA: <path>` before task generation completes.
 
 When the accepted .NET runtime is the external `Orbyss.Foundation.Host`, the plan MUST NOT introduce a
-consumer `.Host` project or application `Program.cs`. It must instead name packable feature
-projects and `FoundationFeatureIdentity`, `shells.json` activation, consumer `hostsettings.json`,
-validated `runnable_host.py stage` package closure, and digest-bound external-host release evidence.
+consumer `.Host` project, application `Program.cs`, host DLL or Dockerfile/image build.
+It must name packable feature projects and `FoundationFeatureIdentity`, `shells.json` activation,
+consumer `hostsettings.json` and `nuplane.settings.json`, validated `release_bundle.py stage`
+package closure, `application-bundle.zip` packaging, and actual execution on the unchanged
+digest-pinned published Foundation image. Keep consumer bundle identity separate from host identity.
 Its `artifact-ownership.json` MUST also contain `runtimeComposition`: accepted architecture
 authority paths, every planned project's role and exact direct `ProjectReference` and
 `PackageReference` sets, selected feature identities, and a binding for every provider or bridge.

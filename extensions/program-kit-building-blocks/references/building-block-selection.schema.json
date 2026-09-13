@@ -180,11 +180,11 @@
           }
         },
         {
-          "description": "Consumer image build definition named Dockerfile or Dockerfile.<suffix>. A compiled host DLL, OCI image reference or C# startup file is a different artifact; record the runnable DLL separately in runtime evidence.",
+          "description": "Consumer host configuration named hostsettings.json. This binds an external published Foundation image to a release bundle; it is not a consumer image build or host DLL.",
           "required": ["kind", "path"],
           "properties": {
             "kind": { "const": "host-image" },
-            "path": { "pattern": "(^|/)[dD][oO][cC][kK][eE][rR][fF][iI][lL][eE](\\.[^/]+)?$", "examples": ["Dockerfile", "runtime/Dockerfile.lending"] }
+            "path": { "pattern": "(^|/)hostsettings\\.json$", "examples": ["hostsettings.json", "runtime/lending/hostsettings.json"] }
           }
         }
       ]

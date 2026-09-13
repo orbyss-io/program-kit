@@ -84,13 +84,23 @@ def apply_structured_migrations(
     document = json.loads(content.decode("utf-8"))
     changed = False
     for migration, transform in matching:
-        removals = transform.get("remove")
+        removals = transform.get("remove", [])
         if not isinstance(removals, list):
             raise ValueError(f"migration {migration['id']} has no JSON removal list")
         for operation in removals:
             if not isinstance(operation, dict):
                 raise ValueError(f"migration {migration['id']} has an invalid JSON removal")
             changed = remove_authenticated_json_value(document, operation, migration["id"]) or changed
+        for operation in transform.get("replaceArrayField", []):
+            if not isinstance(operation, dict) or not all(key in operation for key in ("array", "field", "old", "new")):
+                raise ValueError(f"migration {migration['id']} has an invalid array-field replacement")
+            rows = document.get(operation["array"], [])
+            if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+                raise ValueError(f"migration {migration['id']} requires an array of objects")
+            for row in rows:
+                if row.get(operation["field"]) == operation["old"]:
+                    row[operation["field"]] = operation["new"]
+                    changed = True
     return (json.dumps(document, indent=2) + "\n").encode("utf-8") if changed else content
 
 
@@ -479,6 +489,16 @@ def main() -> int:
         destination = target / relative
         desired = desired_entry["content"]
         desired_hash = desired_entry["hash"]
+        if relative == "nuplane.settings.json" and not destination.exists():
+            # Preserve the runtime feed/loading choices of an existing consumer.
+            # The transaction creates the dedicated authoring file; hostsettings
+            # stays consumer-owned. Packaging rejects conflicting duplicate values.
+            legacy_host = target / "hostsettings.json"
+            if legacy_host.is_file():
+                legacy = load_json(legacy_host, {})
+                if isinstance(legacy.get("Nuplane"), dict):
+                    desired = (json.dumps({"Nuplane": legacy["Nuplane"]}, indent=2) + "\n").encode("utf-8")
+                    desired_hash = sha256_bytes(desired)
         previous = old_files.get(relative)
         previous_contribution = None
         if isinstance(previous, dict):

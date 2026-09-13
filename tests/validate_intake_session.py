@@ -67,6 +67,21 @@ class IntakeSessionTests(unittest.TestCase):
         self.assertEqual(state['transcriptStatus'], 'unavailable')
         self.assertTrue(self.workspace.exists())
 
+    def test_downstream_workflow_status_is_separate_from_intake_hash_validation(self):
+        path = self.workspace / '.specify/workflows/runs/example/state.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'run_id': 'example', 'status': 'failed', 'current_step_id': 'validate-architecture-output'}))
+        intake = self.workspace / 'docs/architecture/bootstrap-intake.json'
+        intake.parent.mkdir(parents=True)
+        intake.write_text('{"status":"confirmed"}')
+        with patch.object(module, 'run', return_value=2):
+            state = module.finish(self.record, 0, keep=True, prepare_only=True)
+        self.assertEqual(state['intakeStatus'], 'invalid')
+        self.assertEqual(state['observedWorkflows'][0]['status'], 'failed')
+        report = (self.record / 'REVIEW.md').read_text(encoding='utf-8')
+        self.assertIn('Standalone skill completion does not resume', report)
+        self.assertNotIn('No workflow was launched.', report)
+
     def test_validation_distinguishes_draft_confirmed_and_invalid(self):
         path = self.workspace / 'docs/architecture/bootstrap-intake.json'
         path.parent.mkdir(parents=True)

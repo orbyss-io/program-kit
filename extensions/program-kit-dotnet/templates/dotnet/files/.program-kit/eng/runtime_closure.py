@@ -11,7 +11,13 @@ from xml.etree import ElementTree
 
 EVIDENCE = Path(".program-kit/evidence/runtime-closure.json")
 SCHEMA = "../runtime-closure.schema.json"
-CONFIGURATION = ("hostsettings.json", "shells.json", ".program-kit/web-profile.shells.json")
+CONFIGURATION = ("hostsettings.json", "nuplane.settings.json", "shells.json", ".program-kit/web-profile.shells.json")
+
+
+def source_configuration(repository: Path) -> list[dict]:
+    return [{"file": name, "sha256": sha256(repository / name)}
+            for name in (*CONFIGURATION, ".program-kit/building-blocks.shells.json")
+            if (repository / name).is_file()]
 
 
 def sha256(path: Path) -> str:
@@ -96,14 +102,12 @@ def write_success(repository: Path, staged: Path, evidence: Path, version: str) 
                 "sha256": sha256(package),
             }
         )
-    if not packages:
-        raise ValueError("PKR021 staged runtime closure contains no packages")
     configuration = []
     for name in CONFIGURATION:
         path = staged / name
         if path.is_file():
             configuration.append({"file": name, "sha256": sha256(path)})
-    if {item["file"] for item in configuration} < {"hostsettings.json", "shells.json"}:
+    if not {"hostsettings.json", "nuplane.settings.json", "shells.json"}.issubset({item["file"] for item in configuration}):
         raise ValueError("PKR021 staged runtime closure is missing required configuration")
     value = {
         "$schema": SCHEMA,
@@ -112,6 +116,7 @@ def write_success(repository: Path, staged: Path, evidence: Path, version: str) 
         "stagedRoot": relative(repository, staged, "staged runtime closure"),
         "packages": packages,
         "configuration": configuration,
+        "sourceConfiguration": source_configuration(repository),
         "closureDigest": canonical_digest(version, packages, configuration),
         "packageHashesAreRunScoped": True,
         "satisfied": True,
@@ -135,7 +140,7 @@ def validate(repository: Path, staged: Path, evidence: Path, version: str) -> di
     ):
         raise ValueError("PKR022 runtime-closure evidence is unsatisfied, stale, or targets another stage")
     expected = write_value(repository, staged, version)
-    for key in ("packages", "configuration", "closureDigest"):
+    for key in ("packages", "configuration", "sourceConfiguration", "closureDigest"):
         if value.get(key) != expected[key]:
             raise ValueError(f"PKR022 runtime-closure evidence does not match staged {key}")
     return value
@@ -161,5 +166,6 @@ def write_value(repository: Path, staged: Path, version: str) -> dict:
     return {
         "packages": packages,
         "configuration": configuration,
+        "sourceConfiguration": source_configuration(repository),
         "closureDigest": canonical_digest(version, packages, configuration),
     }

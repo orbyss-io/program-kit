@@ -34,7 +34,7 @@
     "tools/Lending.Forms.Build/Lending.Forms.Build.csproj",
     "web/package.json",
     "shells.json",
-    "Dockerfile"
+    "hostsettings.json"
   ],
   "minimumActivations": 4,
   "configurationKnowledge": []

@@ -975,7 +975,7 @@ def building_block_target_inventory(project_root: Path) -> dict:
             kind = kinds.get(lowered)
             if lowered.endswith(".csproj"):
                 kind = "dotnet-project"
-            elif lowered == "dockerfile" or lowered.startswith("dockerfile."):
+            elif lowered == "hostsettings.json":
                 kind = "host-image"
             if kind is None:
                 continue
@@ -1129,6 +1129,21 @@ def managed_web_control_projection(project_root: Path, authorities: dict[str, di
             if control_id in controls
         ],
     }
+
+
+def runtime_release_projection(project_root: Path, intake: dict) -> dict | None:
+    if "dotnet-host-runtime" not in intake.get("routing", {}).get("capabilities", []):
+        return None
+    relative = ".specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md"
+    path = project_root / relative
+    if not path.is_file():
+        raise ContextError("Selected Foundation runtime is missing its installed release-bundle reference before dispatch")
+    content = path.read_text(encoding="utf-8")
+    heading = "## Application release bundle"
+    if heading not in content:
+        raise ContextError("Installed runtime reference lacks the application release bundle contract; synchronize installation before dispatch")
+    section = content.split(heading, 1)[1].split("\n## ", 1)[0].strip()
+    return {"source": relative, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "contract": section}
 
 
 def stage_plan(project_root: Path, intake: dict, stage: str, authorities: dict[str, dict], run_id: str) -> dict:
@@ -1501,6 +1516,7 @@ def create_documents(project_root: Path, run_id: str, stage: str) -> tuple[Path,
         "stage": stage,
         "stage_focus": STAGE_FOCUS[stage],
         "stage_plan": stage_plan(project_root, intake, stage, authorities, run_id),
+        "runtime_release": runtime_release_projection(project_root, intake),
         "bootstrap_intake": intake_record(project_root, run_id),
         "intake": intake_projection(intake, stage),
         "architecture_map": architecture_projection(project_root, architecture_map, stage),

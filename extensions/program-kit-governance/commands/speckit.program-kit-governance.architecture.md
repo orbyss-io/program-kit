@@ -17,7 +17,9 @@ not scaffold or restore consumer projects.
 
 `$ARGUMENTS` identifies the confirmed intake and the workflow-generated bootstrap context path.
 
-Read the compact bootstrap stage brief first. It contains the confirmed intake, canonical
+Read the compact bootstrap stage brief first, once, with enough output capacity to avoid truncation.
+If a tool truncates output, retrieve only the missing JSON fields instead of rereading the whole brief.
+It contains the confirmed intake, canonical
 architecture-map identity, compact approved decisions and ratification records, a measured
 `stage_plan`, and a link to a separate hash-bound evidence index. Follow the stage plan in order.
 Read the canonical architecture map and ratified constitution in full exactly once; patch that
@@ -38,8 +40,9 @@ projection, canonical repository convention, observed target inventory, and auth
 `placement_planning` contract. Missing application files are a planning input: architecture owns
 the layout. Apply `placement_planning.target_kind_contracts` before writing each target: it is the
 same executable filename/identity contract used by validation. `cshell-shell` names a `shells.json`
-document with a `shell` runtime identity; `host-image` names a Dockerfile, while the actual host DLL
-belongs in separate runtime evidence. These examples do not dictate consumer directory layout.
+document with a `shell` runtime identity; `host-image` names the consumer `hostsettings.json` binding for the published Foundation image.
+The application release is a bundle of shell, host and Nuplane settings plus optional package feeds;
+never plan a consumer Dockerfile, image build/push or locally produced host DLL. These examples do not dictate consumer directory layout.
 Declare the exact future layout without creating those files. Do not run `--help`, search or dump the
 catalog, or enumerate project files to rediscover those values. When
 `stage_plan.managed_web_contract` is present, use its exact applicable control decisions and
@@ -243,7 +246,7 @@ Resolve the decision backlog through focused design tasks before implementation 
 Architecture documents must clearly distinguish facts confirmed by intake evidence, derived constraints, proposals, accepted decisions, and unresolved questions.
 
 When .NET is selected without the recorded opt-out, the architecture, technology radar, and
-bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and runnable-host release model as
+bootstrap-baseline decision must adopt the application-neutral `Orbyss.Foundation.Host` and application-bundle release model as
 Accepted. Do not scaffold or restore packages during this command.
 
 When any capability routes to the installed `program-kit-building-blocks` catalog, create

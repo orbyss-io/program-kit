@@ -8,6 +8,16 @@ not product implementation supplied to the agent.
 
 ## Candidate and real intake
 
+The earlier `cd738af9` attempt is retained for learning and excluded from acceptance.
+Start a fresh intake workspace with this corrected fixture; do not reuse its accepted
+DLL/image decisions or resume its workflow. Consumer releases are configuration and
+optional package-feed bundles for the unchanged published Foundation image.
+
+Before any model session, start Docker Desktop and verify `docker info` succeeds.
+The external host will run as a container; a missing daemon must be resolved before
+spending tokens on the trial. Image availability is verified against the selected
+released Foundation version/digest; no consumer image is built.
+
 Finish targeted and bounded Development validation, freeze the candidate on the
 separate implementation branch, then prepare an exact development trial receipt:
 
@@ -25,7 +35,7 @@ worktree. Normal interactive model usage applies. Do not run this interactive mo
 from an agent, CI or an unattended hook.
 
 ```powershell
-.\scripts\Start-IntakeSession.ps1 -KeepWorkspace `
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-IntakeSession.ps1 -KeepWorkspace `
   -IdeaFile tests\live\scenarios\knowledge-application\v1\PROJECT_REQUEST.md `
   -AcceptanceContracts tests\live\scenarios\knowledge-application\v1\bootstrap-seed\fixture\acceptance
 ```
@@ -35,6 +45,14 @@ the product request and observable contracts, without prepared architectural
 decisions or confirmation. Review its artifacts and confirm only when satisfied.
 Exit with `/quit` after the intake handoff. The launcher does not start bootstrap.
 Keep the printed evidence directory, archive and conversation for review.
+
+Do not continue bootstrap inside the intake launcher before it captures the intake.
+That launcher validates the original intake hashes on exit; architecture legitimately
+changes the canonical map later. For a human-owned native workflow, launch/resume it
+after intake has been preserved, following the installed handoff. A standalone skill
+completion is only a stage completion: the native run state and remaining human gates
+determine whether bootstrap is complete. Do not substitute a manual run for a sealed
+automated checkpoint; use the separately authorized path below when that evidence is wanted.
 
 `-PrepareOnly` exercises the same installer and evidence capture without starting
 an agent. Its output is setup evidence and cannot be admitted as an actual intake.
@@ -85,7 +103,7 @@ authorized `fresh-candidate` phases through their exact parent checkpoints:
 These phases together test the complete first vertical slice. A setup checkpoint
 or an agent's completion summary is not functional acceptance. After delivery,
 run `tests/verify_lending_consumer.py` against its sealed run manifest, the actual
-host DLL and the independently provisioned browser modules. This executes real
+application release bundle (`--bundle artifacts/application-bundle.zip`) and the independently provisioned browser modules. This executes real
 HTTP/restart, browser/accessibility and current delivery-obligation checks. Local
 browser engines are Chromium and WebKit; Firefox remains a CI authority.
 

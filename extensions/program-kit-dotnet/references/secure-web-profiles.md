@@ -341,7 +341,7 @@ Unit mocks may test feature policy logic, but they do not replace this browser/p
 | Artifact | Ownership and supported change path |
 | --- | --- |
 | `.program-kit/spa-pkce.json` | Scaffold-owned typed SPA security input. Edit it, then rerun sync. |
-| `hostsettings.json` | Scaffold-owned host infrastructure only: eager activation and Nuplane package loading. It contains no auth profile configuration. |
+| `hostsettings.json` | Consumer-owned host infrastructure only, including eager activation. Bundle staging projects the separately owned `nuplane.settings.json` runtime feed/loading settings into this file for the published host. It contains no auth profile configuration. |
 | `deploy/keycloak/program-kit-realm.json` | Managed derived local fixture composed from shared provider state and exactly one selected-profile client. Never edit it; change the selected profile (or SPA input) and sync. |
 | `deploy/compose.application.yml` | Managed API-host composition. SPA-PKCE never receives a client secret. |
 | SPA process composition | Consumer-owned Compose overlay passed to `Dev.ps1 -ComposeOverlay <path>` or an independently managed static-server process. |

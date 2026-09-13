@@ -188,7 +188,7 @@ and dynamic endpoint refresh when those CShells capabilities are used.
 
 For an externally consumed OpenAPI surface, register a consumer-owned contract in
 `.program-kit/openapi-contracts.json` before implementation readiness. The contract names the shell and
-every route-contributing feature, uses `artifacts/runnable-host/packages` as its package closure, and pins
+every route-contributing feature, uses `artifacts/release-bundle/packages` as its package closure, and pins
 the managed `Orbyss.Foundation.OpenApi.Exporter` and oasdiff versions. Start an empty registry with
 `.program-kit/eng/openapi_init.py`; these managed tools are adopted baseline choices, not a new consumer
 ADR. `.program-kit/eng/Build.ps1` then composes those feature packages

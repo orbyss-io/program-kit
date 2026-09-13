@@ -1,5 +1,11 @@
 # Equipment Lending bootstrap failure cd738af9
 
+Historical recovery record, superseded by the release-bundle correction described in
+`knowledge-application-implementation.md`. Its Dockerfile and local host-DLL placement
+advice was based on an incorrect runtime contract. The standalone architecture retry
+passed, but the native workflow remained failed and this trial is excluded from
+acceptance. Preserve its evidence; do not resume it as the replacement trial.
+
 The real human-owned native workflow passed intake validation, assessment review
 and constitution ratification, then stopped at `validate-architecture-output`.
 The architecture producer reported `PKB303` and left Proposed ADRs and a Draft

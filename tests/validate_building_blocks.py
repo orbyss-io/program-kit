@@ -415,7 +415,7 @@ def main() -> int:
         selection["targets"].extend(
             [
                 {"id": "repository-policy", "kind": "repository", "path": "Directory.Build.props", "role": "repository", "scope": "repository"},
-                {"id": "host", "kind": "host-image", "path": "Dockerfile", "role": "runtime-host", "scope": "application"},
+                {"id": "host", "kind": "host-image", "path": "hostsettings.json", "role": "runtime-host", "scope": "application"},
             ]
         )
         selection["instances"][0]["targetBindings"].update({"repository": "repository-policy", "host": "host"})

@@ -1,0 +1,24 @@
+{
+  "Nuplane": {
+    "Setup": {
+      "AutomaticReconciliation": true,
+      "Feeds": [
+        {
+          "Name": "runtime-packages",
+          "DirectoryPath": "packages",
+          "IncludePatterns": [
+            "*"
+          ],
+          "Directory": {
+            "Watch": false
+          }
+        }
+      ]
+    },
+    "Loading": {
+      "Enabled": true,
+      "DefaultLoadMode": "HostIntegrated",
+      "LoadModeSelectionPolicy": "ExplicitOnly"
+    }
+  }
+}

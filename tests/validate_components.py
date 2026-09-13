@@ -444,7 +444,7 @@ def main() -> int:
         dotnet_root / "references/dotnet-runtime-and-application-bundles.md",
         "Orbyss.Foundation.Host",
         "application-neutral plumbing",
-        "runnable-host.json",
+        "application-bundle.json",
     )
     require_text(
         dotnet_root / "references/engineering-adapter.md",

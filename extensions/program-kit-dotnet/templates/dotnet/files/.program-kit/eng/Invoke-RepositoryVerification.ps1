@@ -74,7 +74,7 @@ if (Test-Path -LiteralPath $consumerPath) {
     throw 'Consumer verification must be a regular repository file, not a directory or reparse point.'
 }
 
-& (Join-Path $PSScriptRoot 'Build.ps1') -SkipRunnableHost -LockedMode
+& (Join-Path $PSScriptRoot 'Build.ps1') -SkipReleaseBundle -LockedMode
 if (-not $?) {
     throw "Managed $Mode verification fallback failed."
 }

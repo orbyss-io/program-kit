@@ -150,15 +150,17 @@ def main() -> int:
     template = ROOT / "extensions/program-kit-dotnet/templates/dotnet/files"
     nuget = (template / "NuGet.config").read_text(encoding="utf-8")
     host = json.loads((template / "hostsettings.json").read_text(encoding="utf-8"))
-    dockerfile = (template / "Dockerfile").read_text(encoding="utf-8")
+    runtime_settings = json.loads((template / "nuplane.settings.json").read_text(encoding="utf-8"))
     release = (template / ".github/workflows/application-release.yml").read_text(encoding="utf-8")
     if 'pattern="Orbyss.*"' not in nuget:
         raise AssertionError("NuGet source mapping does not explicitly cover Orbyss building blocks.")
     if "Foundation" not in host or "ProgramKit" in host:
         raise AssertionError("Host configuration must use the Foundation configuration root.")
-    if host["Nuplane"]["Setup"]["Feeds"][0]["IncludePatterns"] != ["Orbyss.*"]:
-        raise AssertionError("Runnable package discovery must be constrained to Orbyss building blocks.")
-    for value in (dockerfile, release):
+    if runtime_settings["Nuplane"]["Setup"]["Feeds"][0]["IncludePatterns"] != ["*"]:
+        raise AssertionError("Runtime discovery must include validated consumer packages, not only Orbyss building blocks.")
+    if (template / "Dockerfile").exists() or "docker build" in release:
+        raise AssertionError("Consumer releases must package configuration and feeds without building images.")
+    for value in (release,):
         if "ORBYSS_FOUNDATION_HOST_IMAGE" not in value or "PROGRAMKIT_HOST_IMAGE" in value:
             raise AssertionError("Runnable releases must consume the independently published Foundation host.")
 

@@ -4,11 +4,58 @@ Candidate: 0.12.0 on `codex/repository-sync-coordinator`. This document records
 implementation and deterministic evidence; it is not live acceptance or a
 publication decision.
 
-Latest live finding: the human-owned Equipment Lending bootstrap stopped during
-architecture after successful intake, assessment approval and ratification. The
+Latest live disposition: **learning only; excluded from acceptance**. Run `cd738af9`
+still records `failed` at `validate-architecture-output`. The standalone architecture
+retry completed (5 structural and 7 final checks), but did not resume the workflow.
+Three founding ADRs remained Proposed and PostgreSQL compatibility/recovery was unproved.
+No full bootstrap or first-slice pass is established. The user closed the session.
+
+The closing intake validator reported an evolved architecture-map hash against the
+original confirmed intake. That is downstream artifact drift, not retrospective
+proof of an invalid interview. The launcher now reports observed workflow state
+separately and no longer says no workflow ran merely because it did not launch one.
+Original evidence is unchanged in `artifacts/intake-sessions/23b4668918894060b003bd0c59002dc0/`;
+`artifacts/bootstrap-trial-cd738af9-review/review.json` binds its hashes and disposition.
+Its `usage.json` retains observed cumulative counters for five sessions: 6,200,468
+input tokens (5,720,960 cached, a subset) and 72,375 output tokens. Unreported tails
+remain unknown. The user-supplied CLI summary is a different accounting view and is
+retained separately, never added to those totals or treated as measured monetary cost.
+
+Lessons: the stage brief was read twice after truncated output; broad schema/map
+reads and repeated structural repairs are reviewable avoidable-work candidates.
+Six final artifacts exceeded advisory generation targets while meeting hard limits.
+That alone is not waste: architectural evidence must be assessed against its purpose.
+The most serious defect was enforcing the wrong release architecture: prior source
+replaced bundle production with consumer image production, and our placement repair
+reinforced it. Passing schema/structure checks did not establish product correctness.
+
+The existing runtime reference now owns the release-bundle contract. Bootstrap context
+projects that exact section with a source hash; placement binds hostsettings.json to
+the published Foundation image, and feature delivery obligations require bundle/runtime
+proof. Packaging includes separate Nuplane settings and projects them into hostsettings
+for the existing published host. Managed consumer image files are retired with conflict
+protection, runtime configuration is preserved on upgrade, and acceptance uses a
+container from the published image rather than a consumer-produced host DLL.
+
+Correction validation: `artifacts/bundle-development-complete.log` records the bounded
+Development pass. The final source-configuration freshness addition is covered by
+`artifacts/bundle-contract.log` (12 bundle tests), `artifacts/bundle-pins-final.log`
+and the generated-schema validator. Additional targeted evidence is
+`artifacts/bundle-placement.log`, `artifacts/bundle-scaffold-final.log`,
+`artifacts/bundle-upgrade-final.log`, `artifacts/bundle-lifecycle-final.log` and
+`artifacts/bundle-handoff.log`. The runtime default now includes validated consumer
+packages instead of restricting Nuplane discovery to Orbyss.*. The maintained tests
+reject the previous image-build requirement. These are deterministic contracts,
+not a claim that a newly generated consumer has passed runtime acceptance.
+
+The Docker daemon was unavailable during preparation; the new trial must pass
+`docker info` before starting any model session. No Foundation runtime source or
+registry image was changed, and no paid session or publication was performed.
+
+The
 [placement and recovery report](lending-bootstrap-placement-recovery.md) records
-the missing producer contract, evolved-map recovery correction, preserved evidence
-and tested recovery procedure. Historical pre-trial statements below describe the
+the earlier diagnosis and recovery procedure. Its Dockerfile/DLL advice is superseded;
+do not resume this discarded trial or apply that architectural guidance. Historical pre-trial statements below describe the
 initial candidate preparation, not the later native workflow outcome.
 
 ## Accepted design and implemented behavior

@@ -124,11 +124,13 @@ contract checks the mandatory governance sections and selected runtime profile; 
   SPA serving security, toolchain, and persistence are configured only from their documented
   consumer-owned MSBuild, Vite, feature-adapter, or deployment extension points.
 - When the selected .NET baseline has not explicitly opted out of `Orbyss.Foundation.Host`, reject every
-  repository-owned host project, `.Host` source directory, application `Program.cs`, or plan/task
+  repository-owned host project, `.Host` source directory, application `Program.cs`, host DLL,
+  consumer Dockerfile/image build/push, or plan/task
   that runs a custom host. Require packable feature projects with `FoundationFeatureIdentity`,
   an exact `[ShellFeature("<FoundationFeatureIdentity>")]` CLR declaration, reviewed `shells.json`
-  activation, consumer `hostsettings.json`, validated package-closure staging
-  through `runnable_host.py stage`, digest-bound external `Orbyss.Foundation.Host` release evidence, and
+  activation, consumer `hostsettings.json` and `nuplane.settings.json`, validated package-closure staging
+  through `release_bundle.py stage`, `application-bundle.zip` packaging and executed evidence using
+  the unchanged digest-bound published `Orbyss.Foundation.Host` image, and
   a `PKA015`-valid runtime composition/project graph contract.
 - An exact npm dependency graph is implementation-ready only with recorded registry-metadata and
   isolated lockfile-resolution evidence. Peer conflicts cannot be waived with `--force` or
@@ -137,7 +139,7 @@ contract checks the mandatory governance sections and selected runtime profile; 
   .program-kit/evidence/npm-graph.json` before approving a plan or task set that adopts such a graph.
 - An externally consumed .NET OpenAPI contract is implementation-ready only when
   `.program-kit/openapi-contracts.json` registers a complete producer-first chain. Require the exact
-  managed `Orbyss.Foundation.OpenApi.Exporter` and `.oasdiff-version` pins, the validated `artifacts/runnable-host/packages`
+  managed `Orbyss.Foundation.OpenApi.Exporter` and `.oasdiff-version` pins, the validated `artifacts/release-bundle/packages`
   feature closure, side-effect-free endpoint composition, raw and normalized/baseline artifacts,
   pinned compatibility checking, an isolated generator package/lockfile, generated types, and the
   consuming application's own TypeScript compile. A plan that merely names a presumed generated

@@ -1,7 +1,7 @@
 # Internal Forms Workspace request
 
 Bootstrap an existing repository named **Internal Forms Workspace**. Preserve the supplied solution,
-three .NET projects, frontend package, shared CShell file, Dockerfile, and every consumer-owned
+three .NET projects, frontend package, shared CShell file, hostsettings.json, and every consumer-owned
 dependency. Do not replace the topology or create another application boundary.
 
 The workspace has an HTTP API, a server-managed BFF browser boundary, a .NET Forms integration, and

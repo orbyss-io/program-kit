@@ -44,7 +44,7 @@
         "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
         "program-kit-dotnet/references/technology-profiles/dotnet.md"
       ],
-      "requirement": "Verify evaluated project and compiled type dependencies, Core purity, feature activation and resolution, and compatibility of owned extension protocols."
+      "requirement": "Verify evaluated project and compiled type dependencies, Core purity, feature activation and resolution, and compatibility of owned extension protocols. Package shell, host and Nuplane settings with optional NuGet feeds as an application release bundle. Verify that bundle on the unchanged digest-pinned published Foundation host, including activation and restart where applicable. Consumer image builds/pushes and consumer host DLL production are forbidden."
     },
     {
       "id": "api-contracts",

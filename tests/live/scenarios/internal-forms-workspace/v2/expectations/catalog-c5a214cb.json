@@ -40,7 +40,7 @@
   ],
   "targets": [
     "Directory.Build.props",
-    "Dockerfile",
+    "hostsettings.json",
     "shells.json",
     "src/InternalForms.Api/InternalForms.Api.csproj",
     "src/InternalForms.Bff/InternalForms.Bff.csproj",

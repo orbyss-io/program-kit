@@ -340,6 +340,15 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
             state['intakeStatus'] = 'validation-error'
             state['validationError'] = str(error)
     state['archiveSha256'] = digest(archive)
+    workflows = []
+    for path in sorted((workspace / '.specify/workflows/runs').glob('*/state.json')):
+        value = json.loads(path.read_text(encoding='utf-8'))
+        workflows.append({'runId': value.get('run_id'), 'status': value.get('status'),
+                          'currentStep': value.get('current_step_id')})
+    state['observedWorkflows'] = workflows
+    workflow_note = ('Workflow state was observed: ' + json.dumps(workflows) +
+                     '. Standalone skill completion does not resume or complete that workflow. '
+                     'Intake validation checks original artifact hashes; downstream architecture edits may require stage-specific review.') if workflows else 'No workflow state was observed.'
     state['status'] = 'setup-only' if prepare_only else 'needs-human-review'
     save(record / 'session.json', state)
     # All copies and diagnostics must complete before the narrowly scoped deletion.
@@ -358,6 +367,7 @@ def finish(record: Path, exit_code: int, keep: bool = False, prepare_only: bool 
 - CLI exit: {exit_code}
 - Workspace: {workspace}
 - Cleanup: {state['cleanup']}
+- Workflow observations: {workflow_note}
 
 Return to the Program Kit development conversation and ask to review this folder:
 {record}
@@ -365,7 +375,7 @@ Return to the Program Kit development conversation and ask to review this folder
 Review conversation.md and the matched rollout JSONL (when captured), docs/architecture,
 validation.log (when an intake exists), setup.log, session.json, and consumer.zip.
 The zip preserves the installed candidate and full consumer for recovery; it is not
-a bootstrap checkpoint or a Release/live-acceptance receipt. No workflow was launched.
+a bootstrap checkpoint or a Release/live-acceptance receipt. The intake launcher itself starts no workflow.
 Missing conversation history is a review limitation, not an interview pass.
 If the workspace was removed, extract consumer.zip into a new empty directory to recover it.
 Evidence may contain private product details and conversation/tool output: do not publish it.

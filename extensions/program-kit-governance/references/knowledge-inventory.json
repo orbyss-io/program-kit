@@ -27,7 +27,7 @@
         "planning",
         "delivery"
       ],
-      "enforcement": "runtime closure + feature bindings"
+      "enforcement": "runtime release section projected before bootstrap dispatch; bundle packaging + published-host delivery evidence + upgrade preservation"
     },
     {
       "path": "program-kit-dotnet/references/engineering-adapter.md",

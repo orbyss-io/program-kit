@@ -64,15 +64,15 @@ class PlacementContractTests(unittest.TestCase):
                     self.assertTrue(self.schema_accepts(target))
                     self.assertFalse((self.root / path).exists(), 'Projection or validation must not scaffold')
         self.assertIn('runtime shell identity', rules['cshell-shell']['description'])
-        self.assertIn('compiled host DLL', rules['host-image']['description'])
+        self.assertIn('host DLL', rules['host-image']['description'])
 
     def test_actual_failed_shell_and_host_forms_fail_before_any_paid_dispatch(self):
         for kind, path in [('cshell-shell', 'shells/lending-local.json'),
                            ('cshell-shell', 'src/ReservationManagement/Composition/LendingShell.cs'),
-                           ('host-image', 'runtime/lending-local/Orbyss.Foundation.Host.dll')]:
+                           ('host-image', 'runtime/lending-local/Orbyss.Foundation.Host.dll'), ('host-image', 'Dockerfile')]:
             target = self.target(kind, path, shell='lending-local')
             with self.subTest(path=path):
-                with self.assertRaisesRegex(self.blocks.ResolverError, 'PKB303.*(shells.json|Dockerfile)'):
+                with self.assertRaisesRegex(self.blocks.ResolverError, 'PKB303.*(shells.json|hostsettings.json)'):
                     self.validate(target)
                 self.assertFalse(self.schema_accepts(target))
         shell = self.target('cshell-shell', 'composition/shells.json')
@@ -82,14 +82,14 @@ class PlacementContractTests(unittest.TestCase):
         shell['shell'] = 'lending-local'
         self.validate(shell)
         self.assertTrue(self.schema_accepts(shell))
-        self.validate(self.target('host-image', 'runtime/lending-local/Dockerfile'))
+        self.validate(self.target('host-image', 'runtime/lending-local/hostsettings.json'))
 
     def test_other_kind_shapes_and_case_preserve_previous_enforcement(self):
         cases = [('repository', 'config/Directory.Build.props', 'Directory.Packages.props'),
                  ('dotnet-project', 'src/Reservations/Reservations.CSPROJ', 'src/Reservations.cs'),
                  ('npm-package', 'web/Package.JSON', 'web/package-lock.json'),
                  ('dotnet-tool-manifest', '.config/DOTNET-TOOLS.JSON', '.config/tool.exe'),
-                 ('host-image', 'runtime/DOCKERFILE.test', 'runtime/image.yaml')]
+                 ('host-image', 'runtime/hostsettings.json', 'runtime/image.yaml')]
         for kind, valid, invalid in cases:
             with self.subTest(kind=kind):
                 self.validate(self.target(kind, valid))
@@ -111,6 +111,31 @@ class PlacementContractTests(unittest.TestCase):
         del target['placement']
         self.validate(target)
         self.assertTrue(self.schema_accepts(target))
+
+    def test_legacy_image_build_requires_review_without_mutating_accepted_selection(self):
+        target = self.target('host-image', 'Dockerfile')
+        del target['placement']
+        before = copy.deepcopy(target)
+        with self.assertRaisesRegex(self.blocks.ResolverError, 'review legacy'):
+            self.validate(target)
+        self.assertEqual(target, before)
+
+    def test_bootstrap_projects_existing_release_section_and_rejects_missing_authority(self):
+        with self.assertRaisesRegex(self.context.ContextError, 'before dispatch'):
+            self.context.runtime_release_projection(self.root, self.intake)
+        relative = '.specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md'
+        source = ROOT / 'extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md'
+        path = self.root / relative
+        path.parent.mkdir(parents=True)
+        shutil.copyfile(source, path)
+        first = self.context.runtime_release_projection(self.root, self.intake)
+        self.assertIn('nuplane.settings.json', first['contract'])
+        self.assertIn('not a consumer Docker image', first['contract'])
+        self.assertEqual(first['sha256'], self.blocks.raw_sha256(path))
+        path.write_text(path.read_text(encoding='utf-8').replace('One application release produces', 'Every application release produces'), encoding='utf-8')
+        second = self.context.runtime_release_projection(self.root, self.intake)
+        self.assertNotEqual(first['sha256'], second['sha256'])
+        self.assertIn('Every application release produces', second['contract'])
 
 
 if __name__ == '__main__':

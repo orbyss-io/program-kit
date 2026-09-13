@@ -2,6 +2,23 @@
   "schemaVersion": 1,
   "migrations": [
     {
+      "id": "0.12.0-application-release-bundle-closure",
+      "throughVersion": "0.12.0",
+      "jsonTransforms": [
+        {
+          "path": ".program-kit/openapi-contracts.json",
+          "replaceArrayField": [
+            {
+              "array": "contracts",
+              "field": "packageClosure",
+              "old": "artifacts/runnable-host/packages",
+              "new": "artifacts/release-bundle/packages"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "0.9.0-retire-lost-spa-profile-residue",
       "throughVersion": "0.8.11",
       "unlessWebProfile": "spa-pkce",

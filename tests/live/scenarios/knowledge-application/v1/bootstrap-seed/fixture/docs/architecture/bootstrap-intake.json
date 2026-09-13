@@ -8,18 +8,18 @@
   "artifacts": {
     "project_intent": {
       "path": "docs/architecture/project-intent.md",
-      "sha256": "24e753a16197dbfe6db6515ce2934fadaf0e20f7962f272ceba19356a8d38f94",
-      "bytes": 3668
+      "sha256": "b1fe0041e3f8960a459ca195e67b544878156ded938500626c7ae17611670716",
+      "bytes": 3620
     },
     "architecture_map": {
       "path": "docs/architecture/architecture-map.json",
-      "sha256": "ac2bab2e421c3abacd7f9f554484f1c497cba0946c3b19d77331ead980380601",
+      "sha256": "046ea01e98a8e8cbb3055a9d0c4bcdf5dc38362c57cba707519f775c72635864",
       "bytes": 15954
     },
     "c4_projection": {
       "path": "docs/architecture/workspace.dsl",
-      "sha256": "3541ddf1929c53a65e67d6e14c67167c2f63001334d4eed7443406caed26916c",
-      "bytes": 4774
+      "sha256": "49439d9bdf5f1a6cfeb3a87a02b8007b3531052e308009702f7aaf3d4a175323",
+      "bytes": 4677
     }
   },
   "evidence": [

@@ -274,7 +274,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
                 "shell": "default",
                 "producer": {"kind": "Orbyss.Foundation.OpenApi.Exporter", "version": old_runtime},
                 "features": ["Catalog.Api"],
-                "packageClosure": "artifacts/runnable-host/packages",
+                "packageClosure": "artifacts/release-bundle/packages",
                 "rawDocument": "artifacts/openapi/catalog.raw.json",
                 "artifact": "contracts/openapi/catalog.json",
                 "baseline": "contracts/openapi/catalog.baseline.json",

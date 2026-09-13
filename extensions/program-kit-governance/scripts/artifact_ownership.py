@@ -72,6 +72,8 @@ EXTERNAL_HOST_REQUIREMENTS = {
     "FoundationFeatureIdentity": "feature identity metadata",
     "shells.json": "shell activation",
     "hostsettings.json": "external-host configuration",
+    "nuplane.settings.json": "runtime package feed/loading configuration",
+    "application-bundle": "consumer release bundle",
     "Orbyss.Foundation.Host": "the external Program Kit host",
 }
 
@@ -275,10 +277,10 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
     if not external_program_kit_host_selected(feature_dir, manifest):
         return
     paths = planned_paths(feature_dir, manifest, include_tasks)
-    custom = sorted({f"{source} -> {path}" for source, path in paths if is_custom_host_path(path)})
+    custom = sorted({f"{source} -> {path}" for source, path in paths if is_custom_host_path(path) or re.fullmatch(r"Dockerfile(?:\..+)?", Path(path).name, re.IGNORECASE) or Path(path).name == "Orbyss.Foundation.Host.dll"})
     if custom:
         raise ValueError(
-            "PKA011 external Orbyss.Foundation.Host profile forbids a repository-owned host project or "
+            "PKA011 external Orbyss.Foundation.Host profile forbids a consumer Dockerfile, host DLL, host project or "
             "Program.cs; create packable feature projects and external-host activation/release inputs instead: "
             + "; ".join(custom)
         )
@@ -296,7 +298,7 @@ def validate_runtime_profile(feature_dir: Path, manifest: dict, include_tasks: b
         missing.append("validated package-closure staging")
     if not any(
         marker in combined
-        for marker in (".program-kit/evidence/host-image.json", "runnable-host.json", "digest-pinned")
+        for marker in (".program-kit/evidence/host-image.json", "application-bundle.json", "digest-pinned")
     ):
         missing.append("digest-bound external-host release evidence")
     if missing:
@@ -796,9 +798,9 @@ def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: 
                 + ", ".join(untraced)
             )
         package_closure = normalize(str(contract.get("packageClosure", "")))
-        if package_closure != "artifacts/runnable-host/packages":
+        if package_closure != "artifacts/release-bundle/packages":
             raise ValueError(
-                "PKA014 OpenAPI production must compose the validated artifacts/runnable-host/packages closure"
+                "PKA014 OpenAPI production must compose the validated artifacts/release-bundle/packages closure"
             )
         for stage_name, output_name in (("generator", "generatedTypes"), ("application", "tsconfig")):
             stage = contract.get(stage_name)

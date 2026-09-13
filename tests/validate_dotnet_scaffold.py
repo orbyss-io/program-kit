@@ -157,8 +157,15 @@ def main() -> int:
         assert not missing_target.exists(), "A read-only drift check changed the repository."
 
         approvals = ("--profile-selected", "--foundation-host-accepted", "--building-block-sources-approved")
+        # Existing runtime feed/loading settings become a dedicated authoring file without data loss.
+        legacy_host = {"Foundation": {"ConsumerOwned": True}, "Nuplane": {"Setup": {"Feeds": [{"Name": "consumer-feed", "DirectoryPath": "packages"}]}}}
+        legacy_bytes = json.dumps(legacy_host).encode("utf-8")
+        (target / "hostsettings.json").write_bytes(legacy_bytes)
         installed = run("--target", str(target), *approvals)
         assert installed.returncode == 0, installed.stderr
+        assert (target / "hostsettings.json").read_bytes() == legacy_bytes
+        assert json.loads((target / "nuplane.settings.json").read_text())["Nuplane"] == legacy_host["Nuplane"]
+        assert not (target / "Dockerfile").exists()
         state = json.loads((target / ".program-kit/managed.json").read_text(encoding="utf-8"))
         assert state["programKitVersion"]
         assert state["dotnetSdk"] == "10.0.202"
@@ -204,7 +211,7 @@ def main() -> int:
         build_script = (target / ".program-kit/eng/Build.ps1").read_text(encoding="utf-8")
         assert "[switch]$LockedMode" in build_script
         assert "Join-Path (Join-Path $artifacts 'packages') $version" in build_script
-        runnable_builder = (target / ".program-kit/eng/runnable_host.py").read_text(encoding="utf-8")
+        runnable_builder = (target / ".program-kit/eng/release_bundle.py").read_text(encoding="utf-8")
         assert "def is_runtime_package" in runnable_builder
         assert '"analyzer", "dotnettool", "template"' in runnable_builder
         application_ci = (target / ".github/workflows/application-ci.yml").read_text(encoding="utf-8")
@@ -212,8 +219,10 @@ def main() -> int:
         assert "Invoke-RepositoryVerification.ps1 -Mode CI" in application_ci
         assert "Invoke-RepositoryVerification.ps1 -Mode Release" in application_release
         assert "Build.ps1 -LockedMode" in application_release
-        assert "runnable-host.json" in application_release
-        assert "containerimage.digest" in application_release
+        assert "application-bundle.json" in application_release
+        assert "containerimage.digest" not in application_release
+        assert "docker build" not in application_release
+        assert "application-bundle.zip" in application_release
         disabled_openapi = subprocess.run(
             [
                 sys.executable,
@@ -243,7 +252,7 @@ def main() -> int:
         assert consumer_verifier.read_bytes() == verifier_bytes
 
         # A managed 0.9.0 schema upgrades atomically with its already-updated descriptor producer.
-        runnable_schema_path = target / ".program-kit/runnable-host.schema.json"
+        runnable_schema_path = target / ".program-kit/application-bundle.schema.json"
         current_runnable_schema = json.loads(runnable_schema_path.read_text(encoding="utf-8"))
         legacy_runnable_schema = json.loads(json.dumps(current_runnable_schema))
         legacy_configuration = legacy_runnable_schema["properties"]["configuration"]
@@ -258,8 +267,8 @@ def main() -> int:
         schema_state = json.loads(schema_state_path.read_text(encoding="utf-8"))
         schema_state["programKitVersion"] = "0.9.0"
         legacy_schema_hash = hashlib.sha256(legacy_schema_bytes).hexdigest()
-        schema_state["files"][".program-kit/runnable-host.schema.json"]["lastWrittenHash"] = legacy_schema_hash
-        schema_state["files"][".program-kit/runnable-host.schema.json"]["installedHash"] = legacy_schema_hash
+        schema_state["files"][".program-kit/application-bundle.schema.json"]["lastWrittenHash"] = legacy_schema_hash
+        schema_state["files"][".program-kit/application-bundle.schema.json"]["installedHash"] = legacy_schema_hash
         schema_state_path.write_text(json.dumps(schema_state, indent=2) + "\n", encoding="utf-8")
         schema_upgraded = run("--target", str(target), *approvals)
         assert schema_upgraded.returncode == 0, schema_upgraded.stderr
@@ -315,8 +324,11 @@ def main() -> int:
         state_path = target / ".program-kit/managed.json"
         state = json.loads(state_path.read_text(encoding="utf-8"))
         for relative in (
-            ".program-kit/application-bundle.schema.json",
+            ".program-kit/runnable-host.schema.json",
+            ".program-kit/eng/runnable_host.py",
             "eng/program-kit/create_application_bundle.py",
+            "Dockerfile",
+            ".dockerignore",
         ):
             path = target / relative
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -329,8 +341,11 @@ def main() -> int:
         state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
         upgraded = run("--target", str(target), *approvals)
         assert upgraded.returncode == 0, upgraded.stderr
-        assert not (target / ".program-kit/application-bundle.schema.json").exists()
+        assert not (target / ".program-kit/runnable-host.schema.json").exists()
+        assert (target / ".program-kit/application-bundle.schema.json").is_file()
         assert not (target / "eng/program-kit/create_application_bundle.py").exists()
+        assert not (target / "Dockerfile").exists()
+        assert not (target / ".dockerignore").exists()
 
         clean = run("--target", str(target), "--profile-selected", "--check")
         assert clean.returncode == 0, clean.stderr

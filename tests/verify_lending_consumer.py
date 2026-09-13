@@ -10,13 +10,13 @@ from pathlib import Path
 
 from live.v2 import cli, sync_stages
 from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, file_inventory, load_object, safe_relative, sha256_file, utc_now, validate
-from live.v2.lending_host import LendingHost, verify
+from live.v2.lending_host import PublishedLendingHost, unpack_release_bundle, verify
 from live.v2.supervisor import run_supervised
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def verify_run(run_path, host_dll, browser_modules, engines):
+def verify_run(run_path, bundle_path, browser_modules, engines):
     run = load_object(run_path)
     unsigned = dict(run)
     if unsigned.pop('manifestSha256', None) != canonical_sha256(unsigned):
@@ -57,13 +57,17 @@ def verify_run(run_path, host_dll, browser_modules, engines):
         dotnet = toolchain['commands']['dotnet']
         operation([*dotnet, 'build', 'Lending.slnx', '--no-restore'], 'dotnet-build')
         operation([sys.executable, str(project / '.program-kit/eng/js_toolchain.py'), '--repository', str(project), 'npm', '--', 'run', 'verify'], 'web-build', project / 'web')
-        host = project / safe_relative(host_dll)
-        if not host.is_file() or host.suffix != '.dll' or not host.resolve().is_relative_to(project):
-            raise LiveContractError('LENDING_ACCEPTANCE_COMPILED_HOST_MISSING')
+        archive = project / safe_relative(bundle_path)
+        manifest = unpack_release_bundle(archive, evidence / 'bundle')
+        image = manifest['hostImage']['reference']
+        result.update(bundleSha256=sha256_file(archive), hostImage=image)
+        operation(['docker', 'pull', image], 'published-host-pull')
+        def host_factory(directory, environment):
+            return PublishedLendingHost(evidence / 'bundle', image, project, directory, environment)
         contract = load_object(ROOT / 'tests/live/scenarios/knowledge-application/v1/http-contract.json')
-        result['http'] = verify([*dotnet, str(host)], project, evidence / 'http', cli.supervisor_environment(), contract)
+        result['http'] = verify(['docker', 'run', image], project, evidence / 'http', cli.supervisor_environment(), contract, host_factory=host_factory)
         environment = {**cli.supervisor_environment(), 'LENDING_FIXTURE_WEB': str(project / 'web/dist')}
-        with LendingHost([*dotnet, str(host)], project, evidence / 'browser/host', environment) as browser_host:
+        with host_factory(evidence / 'browser/host', environment) as browser_host:
             script = ROOT / 'tests/fixtures/knowledge-application/oracle-browser/browser.mjs'
             operation([*toolchain['commands']['node'], str(script), '--url=' + browser_host.url, '--engines=' + engines,
                        '--modules=' + str(browser_modules), '--output=' + str(evidence / 'browser/results.json')], 'browser-process')
@@ -89,8 +93,8 @@ def verify_run(run_path, host_dll, browser_modules, engines):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--run-manifest', type=Path, required=True)
-    parser.add_argument('--host-dll', required=True, help='Repository-relative DLL produced by the Lending solution')
+    parser.add_argument('--bundle', required=True, help='Repository-relative application-bundle.zip for the published Foundation host')
     parser.add_argument('--browser-modules', type=Path, required=True)
     parser.add_argument('--engines', default='chromium,webkit')
     args = parser.parse_args()
-    verify_run(args.run_manifest.resolve(), args.host_dll, args.browser_modules.resolve(), args.engines)
+    verify_run(args.run_manifest.resolve(), args.bundle, args.browser_modules.resolve(), args.engines)

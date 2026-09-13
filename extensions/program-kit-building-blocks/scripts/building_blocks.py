@@ -456,6 +456,9 @@ def validate_placements(repository: Path, selection: dict, require_all: bool = F
     The map's source hashes provide freshness without duplicating ADR hashes across approval.
     """
     _, targets = index_selection(selection)
+    for target in targets.values():
+        if target.get("kind") == "host-image" and Path(target.get("path", "")).name != "hostsettings.json":
+            fail("PKB303", "host-image must bind hostsettings.json to the published Foundation image; review legacy Dockerfile/DLL placement before synchronization. Approved selection is not rewritten automatically.")
     declared = [target for target in targets.values() if "placement" in target]
     if require_all and (not targets or len(declared) != len(targets)):
         fail("PKB306", "architecture must declare placement provenance for every target")

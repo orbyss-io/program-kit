@@ -2,7 +2,7 @@
 param(
     [switch]$SkipTests,
     [Alias('SkipBundle')]
-    [switch]$SkipRunnableHost,
+    [switch]$SkipReleaseBundle,
     [switch]$LockedMode,
     [switch]$InitializeOpenApiBaseline,
     [switch]$UpdateOpenApiArtifact
@@ -158,10 +158,10 @@ if (-not $SkipTests) {
 dotnet pack $solutions[0].FullName -c Release --no-build -p:Version=$version -p:PackageOutputPath=$packages
 if ($LASTEXITCODE -ne 0) { throw 'dotnet pack failed.' }
 
-if (-not $SkipRunnableHost -or $openApiEnabled) {
-    python (Join-Path $PSScriptRoot 'runnable_host.py') stage --repository $root --packages $packages `
-        --output (Join-Path $artifacts 'runnable-host')
-    if ($LASTEXITCODE -ne 0) { throw 'Runnable-host staging failed.' }
+if (-not $SkipReleaseBundle -or $openApiEnabled) {
+    python (Join-Path $PSScriptRoot 'release_bundle.py') stage --repository $root --packages $packages `
+        --output (Join-Path $artifacts 'release-bundle')
+    if ($LASTEXITCODE -ne 0) { throw 'Release-bundle staging failed.' }
 }
 
 if ($openApiEnabled) {

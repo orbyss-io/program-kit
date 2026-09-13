@@ -102,6 +102,7 @@ $developmentValidators = @(
     'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'
     'validate_runnable_host_pins.py'
+    'validate_release_bundle.py'
 )
 $releaseOnlyValidators = @(
     'validate_ui_experience.py',

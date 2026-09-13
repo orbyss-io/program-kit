@@ -15,7 +15,7 @@ Foundation host supplies the external runnable host.
 - `InternalForms.Forms` integrates form and localization contracts.
 - `web/package.json` is the consumer-owned React application.
 - `shells.json` contains the shared `default` composition shell.
-- `Dockerfile` is the host-image target.
+- `hostsettings.json` is the host-image target.
 
 The topology is accepted and must not be replaced. Its decision ID is
 `decision-internal-forms-topology`.

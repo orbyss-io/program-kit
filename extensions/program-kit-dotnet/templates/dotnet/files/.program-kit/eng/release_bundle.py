@@ -100,7 +100,7 @@ def source_commit(repository: Path) -> str:
         detail = (result.stderr or result.stdout).strip().splitlines()
         suffix = f" Detail: {detail[-1]}" if detail else ""
         raise ValueError(
-            "PKR020 runnable-host evidence requires a Git repository with a resolvable HEAD."
+            "PKR020 release-bundle evidence requires a Git repository with a resolvable HEAD."
             + suffix
         )
     return commit.lower()
@@ -467,8 +467,8 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
         for identity, package_id in BUILT_IN_FEATURE_PACKAGES.items()
         if identity not in active
     }
-    with tempfile.TemporaryDirectory(prefix="program-kit-runnable-host-") as temp_value:
-        staging = Path(temp_value) / "runnable-host"
+    with tempfile.TemporaryDirectory(prefix="program-kit-release-bundle-") as temp_value:
+        staging = Path(temp_value) / "release-bundle"
         staged_packages = staging / "packages"
         staged_packages.mkdir(parents=True)
         identities: dict[tuple[str, str], Path] = {}
@@ -541,11 +541,18 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
                 destination = staged_packages / f"{package_id}.{version}.nupkg"
                 download_package(package_id, version, bases, destination)
                 register_package(identities, destination)
-        for name in ("hostsettings.json",):
-            source = repository / name
-            if not source.is_file():
-                raise FileNotFoundError(f"PKR016 required runnable-host configuration is missing: {source}")
-            shutil.copyfile(source, staging / name)
+        hostsettings = json.loads((repository / "hostsettings.json").read_text(encoding="utf-8"))
+        nuplane = json.loads((repository / "nuplane.settings.json").read_text(encoding="utf-8"))
+        if not isinstance(hostsettings, dict) or not isinstance(nuplane, dict) or set(nuplane) != {"Nuplane"} or not isinstance(nuplane["Nuplane"], dict):
+            raise ValueError("PKR016 hostsettings must be an object; nuplane.settings.json must contain one Nuplane object.")
+        if "Nuplane" in hostsettings and hostsettings["Nuplane"] != nuplane["Nuplane"]:
+            raise ValueError("PKR016 conflicting Nuplane configuration; reconcile hostsettings.json with nuplane.settings.json.")
+        # The published host loads hostsettings.json. Compose at packaging time, never
+        # add a bundle parser or rebuild the Foundation image in a consumer.
+        hostsettings["Nuplane"] = nuplane["Nuplane"]
+        reject_embedded_secrets(hostsettings)
+        (staging / "hostsettings.json").write_text(json.dumps(hostsettings, indent=2) + "\n", encoding="utf-8")
+        shutil.copyfile(repository / "nuplane.settings.json", staging / "nuplane.settings.json")
         shell_composition.write(repository, staging / "shells.json")
         profile_shells = repository / ".program-kit/web-profile.shells.json"
         if profile_shells.is_file():
@@ -557,14 +564,12 @@ def stage(repository: Path, package_output: Path, output: Path, evidence: Path |
             if actual != [pinned]:
                 raise ValueError(f"PKR019 staged package '{package_id}' does not match central pin {pinned}.")
         validate_feature_closure(staging / "shells.json", identities)
-        if not identities:
-            raise ValueError("PKR015 no runtime packages were produced for the runnable host image.")
         if output.exists():
             shutil.rmtree(output)
         output.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(staging, output)
     runtime_closure.write_success(repository, output, evidence, PROGRAM_KIT_VERSION)
-    print(f"staged runnable host image inputs in {output}")
+    print(f"staged application release bundle in {output}")
 
 
 def reject_embedded_secrets(value: object, path: str = "$") -> None:
@@ -590,6 +595,8 @@ def describe(
     output: Path,
     closure_evidence: Path | None = None,
 ) -> None:
+    if image != "ghcr.io/orbyss-io/foundation-host":
+        raise ValueError("PKR018 runtime must be the published ghcr.io/orbyss-io/foundation-host image; consumer images are forbidden.")
     if not re.fullmatch(r"sha256:[a-f0-9]{64}", digest):
         raise ValueError("PKR018 image digest must be a lowercase sha256 digest.")
     closure_path = closure_evidence or repository / runtime_closure.EVIDENCE
@@ -604,6 +611,11 @@ def describe(
     hostsettings = json.loads(hostsettings_path.read_text(encoding="utf-8"))
     shells = json.loads(shells_path.read_text(encoding="utf-8"))
     reject_embedded_secrets(hostsettings)
+    reject_embedded_secrets(shells)
+    nuplane_path = staged / "nuplane.settings.json"
+    nuplane = json.loads(nuplane_path.read_text(encoding="utf-8"))
+    if hostsettings.get("Nuplane") != nuplane.get("Nuplane"):
+        raise ValueError("PKR016 staged Nuplane settings differ from the host configuration projection.")
     profile_shells = (
         json.loads(profile_shells_path.read_text(encoding="utf-8"))
         if profile_shells_path.is_file()
@@ -612,6 +624,7 @@ def describe(
     reject_embedded_secrets(profile_shells)
     payload = {
         "schemaVersion": 1,
+        "files": [{"file": item["file"], "sha256": item["sha256"]} for item in closure["configuration"] + closure["packages"]],
         "application": {
             "id": repository.name,
             "version": (repository / "VERSION").read_text(encoding="utf-8").strip(),
@@ -631,6 +644,8 @@ def describe(
             "packageHashesAreRunScoped": True,
         },
         "configuration": {
+            "nuplane": nuplane,
+            "nuplaneSha256": sha256(nuplane_path),
             "hostsettings": hostsettings,
             "hostsettingsSha256": sha256(hostsettings_path),
             "shells": shells,
@@ -641,11 +656,29 @@ def describe(
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
-    print(f"described runnable host in {output}")
+    # Archive only the validated configuration/package inventory. Arbitrary build
+    # outputs (including host binaries and Dockerfiles) never enter the bundle.
+    archive_path = output.with_suffix(".zip")
+    files = [item["file"] for item in closure["configuration"] + closure["packages"]]
+    with tempfile.NamedTemporaryFile(dir=output.parent, suffix=".zip", delete=False) as pending:
+        temporary = Path(pending.name)
+    try:
+        with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
+            for name in sorted(files):
+                info = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                archive.writestr(info, (staged / name).read_bytes())
+            info = zipfile.ZipInfo("application-bundle.json", (1980, 1, 1, 0, 0, 0))
+            archive.writestr(info, output.read_bytes())
+        temporary.replace(archive_path)
+    finally:
+        temporary.unlink(missing_ok=True)
+    archive_path.with_suffix(".zip.sha256").write_text(f"{sha256(archive_path)}  {archive_path.name}\n", encoding="utf-8")
+    print(f"packaged application release bundle in {archive_path}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Stage and describe a Program Kit runnable host release.")
+    parser = argparse.ArgumentParser(description="Stage and package a consumer release for the unchanged published Foundation host.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     stage_parser = subparsers.add_parser("stage")
     stage_parser.add_argument("--repository", default=".")
