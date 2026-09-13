@@ -122,3 +122,39 @@ remain unmeasured for this candidate. The live trial must report cached tokens s
 failed attempts and reject cheaper runs that omit required work. Firefox remains unavailable on
 this Windows host; CI is authoritative for that browser. The deterministic work does not establish
 universal correctness or publication readiness.
+
+## Live finding: assessment gate ef606c1a
+
+The next human-owned trial reached `validate-assessment` and failed with
+`Bootstrap decisions have invalid top-level fields (missing=[], unexpected=['persistence'])`.
+Intake, assessment/research output budgets and managed profile pins had passed. The authoring schema
+already accepted persistence, but governance_state.py retained a separate closed field list. Earlier
+resolver/schema tests and packaged installation did not exercise this new field through the actual
+assessment gate. The fix derives accepted top-level fields from the existing schema and validates
+persistence through its shared definition. Invalid types/profiles and unknown fields still fail;
+proposed provider intent does not require implementation evidence at assessment.
+
+Testing the corrected gate against unchanged saved consumer decisions exposed a second contract
+inconsistency: explicit anonymous browser `none-v1` was represented by the trial and the existing
+profile selection concept, but the gate allowed only authenticated browser profiles. The existing
+profile reference and assessment command now distinguish explicit anonymous browsers from non-browser
+projects. Browser `none-v1` needs explicit intake/override, rationale and the named adopted choice;
+BFF remains the default. `none-v1` assurance fields mean no inherited authenticated-profile assurance,
+not absence of HTTP/JSON/assets protections or applicable security evidence.
+
+The actual assessment CLI passes with the user's saved decisions unchanged (SHA256
+`f00646bccabc261d204d99658e82ad171dc8652e080c4b0ce92d9d610d81b7d5`). This is read-only diagnostic
+validation using corrected maintainer source, not a successful native workflow stage or approval.
+The installed consumer, failed run and approvals remain unchanged. Original state/log are also
+preserved under artifacts/bootstrap-failure-ef606c1a. No paid recovery was launched.
+
+The real governance gate regression now covers proposed persistence plus explicit anonymous browser
+intent, rejects silent anonymous defaults/missing rationale/malformed declarations, and checks that
+validation creates no approval or input mutation. Its importlib caller path was repaired to find the
+shared sibling module. This bounded validator is promoted from Release-only to Development coverage.
+Current governed recovery maps this validator failure back to assessment and research; a normal
+resume therefore repeats paid producer work. A read-only diagnostic pass must not be used to edit
+the saved stage status or imply that a cost-free validator-only recovery already exists.
+
+Corrected Development and installed sequential upgrade validation passed; logs are
+artifacts/assessment-recovery-development.log and artifacts/assessment-recovery-upgrade.log.

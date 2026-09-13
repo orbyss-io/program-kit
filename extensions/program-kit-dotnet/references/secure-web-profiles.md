@@ -40,7 +40,16 @@ boundary and do not reopen inherited protocol decisions.
 | Browser UI, no explicit override | `bff-cookie-v1` | Secure default |
 | Same-origin or proxyable browser UI | `bff-cookie-v1` | Preferred |
 | Independently hosted static SPA that must call APIs directly | `spa-pkce-v1` | Explicit choice and acknowledgement |
-| No browser authentication boundary | `none-v1` | Explicit or derived non-web choice |
+| Explicitly anonymous browser, such as the isolated local trial | `none-v1` | Explicit intake or reviewed override, with rationale and review trigger |
+| No browser UI | `none-v1` | Explicit or derived non-web choice |
+
+For an explicitly anonymous browser, keep `browser_ui: true`, record the `secure-web-profile`
+choice and a nonempty `override_reason` describing the scope and when authentication must be reviewed.
+Set `threat_model` and `security_evidence` to `none-v1` to indicate that the authenticated-profile
+assurance contract is not inherited. This is not a security assurance claim. Anonymous endpoints
+still require explicit declaration and the applicable HTTP, JSON, assets, input-boundary and
+deployment protections and phase evidence. Do not invent an identity provider for an explicitly
+anonymous trial or silently select this exception when intake is merely silent about authentication.
 
 An unqualified request for “SPA authentication” does not select browser-held tokens. A SPA is a UI
 architecture; it can and normally should use the BFF profile.

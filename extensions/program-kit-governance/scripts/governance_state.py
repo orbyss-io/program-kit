@@ -5,11 +5,16 @@ import hashlib
 import importlib.util
 import json
 import re
-from decision_status import has_decision_status as _has_decision_status
 import subprocess
 import sys
 from datetime import date
 from pathlib import Path
+
+# Support the existing importlib-based installed callers as well as direct CLI execution.
+_scripts_path = str(Path(__file__).resolve().parent)
+if _scripts_path not in sys.path:
+    sys.path.insert(0, _scripts_path)
+from decision_status import has_decision_status as _has_decision_status
 
 
 CONSTITUTION = Path(".specify/memory/constitution.md")
@@ -785,11 +790,11 @@ def validate_upgrade_authorization(
 def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
     path = project_path(BOOTSTRAP_DECISIONS)
     value = read_json(path)
-    required_fields = {
-        "schema_version", "default_profile", "selected_profiles", "choices", "overrides",
-        "acknowledgements", "unresolved", "deferred",
-    }
-    allowed_fields = required_fields | {"dotnet", "web", "toolchain"}
+    schema_path = Path(__file__).resolve().parents[1] / 'references/bootstrap-decisions.schema.json'
+    schema = read_json(schema_path)
+    # The authoring schema owns the accepted fields; a second list drifted when persistence was added.
+    required_fields = set(schema['required'])
+    allowed_fields = set(schema['properties'])
     missing_fields = required_fields - set(value)
     extra_fields = set(value) - allowed_fields
     if missing_fields or extra_fields:
@@ -797,6 +802,12 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
             "Bootstrap decisions have invalid top-level fields "
             f"(missing={sorted(missing_fields)}, unexpected={sorted(extra_fields)})"
         )
+    if 'persistence' in value:
+        from json_schema import validate_value
+        persistence_schema = {'$schema': schema['$schema'], **schema['properties']['persistence']}
+        result = validate_value(value['persistence'], persistence_schema, schema_path)
+        if not result['valid']:
+            raise GovernanceStateError(f"Bootstrap persistence violates its schema: {result['errors']}")
     if value.get("schema_version") != "1.0":
         raise GovernanceStateError("Bootstrap decisions must use schema_version 1.0")
     profile = value.get("default_profile")
@@ -1016,9 +1027,9 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
         if web.get("browser_ui") is not True:
             raise GovernanceStateError("A selected browser profile requires web.browser_ui true")
         secure_profile = _require_string(web.get("secure_profile"), "Bootstrap web.secure_profile")
-        if secure_profile not in {"bff-cookie-v1", "spa-pkce-v1"}:
+        if secure_profile not in {"bff-cookie-v1", "spa-pkce-v1", "none-v1"}:
             raise GovernanceStateError(
-                "Bootstrap web.secure_profile must be bff-cookie-v1 or spa-pkce-v1 for a browser UI"
+                "Bootstrap web.secure_profile must be bff-cookie-v1, spa-pkce-v1 or explicit anonymous none-v1 for a browser UI"
             )
         profile_source = _require_string(web.get("profile_source"), "Bootstrap web.profile_source")
         if profile_source not in DECISION_SOURCES:
@@ -1027,17 +1038,23 @@ def validate_bootstrap_decisions(upgrade_state: dict | None = None) -> dict:
                 f"expected one of {sorted(DECISION_SOURCES)}"
             )
         threat_model = _require_string(web.get("threat_model"), "Bootstrap web.threat_model")
-        if threat_model != WEB_THREAT_MODEL:
+        expected_threat_model = 'none-v1' if secure_profile == 'none-v1' else WEB_THREAT_MODEL
+        if threat_model != expected_threat_model:
             raise GovernanceStateError(
-                f"Bootstrap web.threat_model must be {WEB_THREAT_MODEL}"
+                f"Bootstrap web.threat_model must be {expected_threat_model}"
             )
         security_evidence = _require_string(
             web.get("security_evidence"), "Bootstrap web.security_evidence"
         )
-        if security_evidence != WEB_SECURITY_EVIDENCE:
+        expected_security_evidence = 'none-v1' if secure_profile == 'none-v1' else WEB_SECURITY_EVIDENCE
+        if security_evidence != expected_security_evidence:
             raise GovernanceStateError(
-                f"Bootstrap web.security_evidence must be {WEB_SECURITY_EVIDENCE}"
+                f"Bootstrap web.security_evidence must be {expected_security_evidence}"
             )
+        if secure_profile == 'none-v1':
+            if profile_source not in {'explicit-intake', 'override'}:
+                raise GovernanceStateError('Anonymous browser none-v1 requires explicit intake or an override; BFF remains the default')
+            _require_string(web.get('override_reason'), 'Bootstrap anonymous browser override_reason')
         if secure_profile == "spa-pkce-v1":
             if profile_source not in {"explicit-intake", "override"}:
                 raise GovernanceStateError(

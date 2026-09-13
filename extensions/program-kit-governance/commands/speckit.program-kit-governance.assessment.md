@@ -140,7 +140,12 @@ also records `threat_model` as `program-kit-web-threat-model-v1` and `security_e
 `program-kit-web-security-evidence-v1`. Those IDs inherit the versioned attacker model, source-
 classified decision evidence, configurable-default rationale, residual risks, verification levels,
 and review triggers; do not recreate them as unresolved project questions. For a non-browser
-project, set `browser_ui` to false and `secure_profile` to `none-v1`.
+project, set `browser_ui` to false and `secure_profile` to `none-v1`. An explicitly anonymous browser
+is a separate supported exception: keep `browser_ui` true, select `none-v1` with source
+`explicit-intake` or `override`, record its scope/review trigger in `override_reason`, and retain
+the `secure-web-profile` choice. Its `threat_model` and `security_evidence` are `none-v1`, meaning
+no inherited authenticated-profile assurance; ordinary HTTP/JSON/assets protections and applicable
+security evidence remain required. Follow the existing secure-web-profiles.md selection contract.
 
 Do not invent acceptance outside explicit intake, the versioned Program Kit defaults, safe derived
 defaults, or reviewed overrides. Record those sources as provisional baseline choices for the

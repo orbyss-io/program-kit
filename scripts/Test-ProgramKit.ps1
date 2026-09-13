@@ -104,6 +104,7 @@ $developmentValidators = @(
     'validate_building_block_availability.py',
     'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'
+    'validate_governance_state.py'
     'validate_runnable_host_pins.py'
     'validate_release_bundle.py'
 )
@@ -112,7 +113,6 @@ $releaseOnlyValidators = @(
     'validate_dotnet_engineering.py',
     'validate_persistence_runtime.py',
     'validate_ui_experience.py',
-    'validate_governance_state.py',
     'validate_local_upgrade.py',
     'validate_bootstrap_context.py',
     'validate_bootstrap_intake.py',

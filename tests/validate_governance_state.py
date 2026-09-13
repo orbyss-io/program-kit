@@ -276,6 +276,42 @@ def write_assessment(module, project: Path, semantic, architecture_module) -> No
         path.write_text(f"# {path.stem}\n", encoding="utf-8")
     decision_path = project / module.BOOTSTRAP_DECISIONS
     decision_path.write_text(json.dumps(decisions()), encoding="utf-8")
+    # Exercise the actual bootstrap shell gate, not only the persistence resolver/schema.
+    proposal = decisions()
+    proposal['persistence'] = [{'owner': 'reservation-management', 'capability': 'reservation-persistence',
+                              'storage': 'server-relational', 'profile': 'ef-postgresql',
+                              'status': 'proposed', 'testProvisioning': 'supervisor'}]
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    unchanged = decision_path.read_bytes()
+    if run_main(module, 'validate-assessment') != 0:
+        raise AssertionError('The assessment gate rejected schema-valid proposed persistence intent')
+    if decision_path.read_bytes() != unchanged or (project / module.ASSESSMENT_APPROVAL).exists():
+        raise AssertionError('Read-only assessment validation changed intent or fabricated approval')
+    proposal['web'].update(secure_profile='none-v1', profile_source='explicit-intake',
+                           override_reason='Explicit local anonymous fixture; reassess before deployment or authentication.',
+                           threat_model='none-v1', security_evidence='none-v1')
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    if run_main(module, 'validate-assessment') != 0:
+        raise AssertionError('Explicit anonymous browser intent with proposed persistence failed the shell gate')
+    proposal['web']['profile_source'] = 'program-kit-default'
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'requires explicit intake')
+    proposal['web']['profile_source'] = 'explicit-intake'
+    proposal['web']['override_reason'] = ''
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'override_reason')
+    proposal['web'] = decisions()['web']
+    proposal['persistence'][0]['profile'] = 'invented-provider'
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'persistence violates its schema')
+    proposal['persistence'] = 'not-an-owner-list'
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'persistence violates its schema')
+    proposal.pop('persistence')
+    proposal['invented_top_level'] = []
+    decision_path.write_text(json.dumps(proposal), encoding='utf-8')
+    expect_error(module, module.validate_assessment, 'invalid top-level fields')
+    decision_path.write_text(json.dumps(decisions()), encoding='utf-8')
     module.write_review("assessment")
     assert_review_packet(project / module.ASSESSMENT_REVIEW, "assessment")
     assessment_path = project / module.ASSESSMENT

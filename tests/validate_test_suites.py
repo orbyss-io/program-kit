@@ -61,8 +61,9 @@ def main() -> int:
     if development_match is None:
         raise AssertionError("Could not locate the bounded Development validator list.")
     development = development_match.group(1)
+    if 'validate_governance_state.py' not in development:
+        raise AssertionError('Development must exercise the actual assessment gate against current decision fields.')
     for forbidden in (
-        "validate_governance_state.py",
         "validate_local_upgrade.py",
         "validate_lifecycle_profiles.py",
         "validate_ui_browser.py",
