@@ -1,4 +1,8 @@
-"""Recover an accepted bootstrap without resuming or rewriting its terminal workflow run."""
+"""Artifact-preservation helpers for the governed continuation workflow.
+
+Standalone legacy completion describes project artifacts, not engine success.
+workflow_lifecycle owns resumption, gates and engine-bound completion.
+"""
 from __future__ import annotations
 
 import argparse
@@ -68,7 +72,7 @@ def prepare(root: Path, run_id: str) -> dict:
         if (step != 'confirm-completion-failure' or failure.get('exit_code') in {None, 0}
                 or gate.get('options') != ['abort'] or gate.get('choice') != 'abort'):
             raise lifecycle.LifecycleError('This abort is not the technical abort-only completion failure; semantic rejection is not recoverable through this command')
-    elif state.get('status') != 'failed' or step not in {'require-readiness', 'validate-readiness-output', 'complete-bootstrap'}:
+    elif state.get('status') != 'failed' or step not in {'readiness', 'require-readiness', 'validate-readiness-output', 'complete-bootstrap'}:
         raise lifecycle.LifecycleError('Recovery requires a terminal failure after bootstrap approval')
     if (root / governance.BOOTSTRAP_COMPLETION).exists():
         raise lifecycle.LifecycleError('Bootstrap already has completion evidence')
@@ -108,27 +112,27 @@ def prepare(root: Path, run_id: str) -> dict:
 Original failure, intake, assessment, ratification and bootstrap approval are preserved under `original/`.
 Do not edit the original workflow run or restart intake/bootstrap. Mechanical choices belong to the agent.
 
-Invoke `speckit.program-kit-governance.bootstrap-recovery` with this handoff.
+The workflow continuation invokes `speckit.program-kit-governance.bootstrap-recovery` with this handoff.
 The architecture owner runs bootstrap-closure against the existing artifacts and exact first slice;
 dispositions are reviewed, provider proof is executed in isolation, and affected roadmap entries remain
 Blocked until the prerequisite closes. Add follow-on decisions instead of rewriting Accepted ADRs.
 Do not edit the ratified constitution. A necessary constitutional change uses its governed amendment
 procedure separately; this bounded recovery deliberately refuses changed ratification authority.
 
-After closure and narrative correction, run `bootstrap_recovery.py synchronize --run-id {run_id}`
-and `bootstrap_recovery.py review --run-id {run_id}` to validate architecture structure/alignment,
-governance and generated projections without reopening intake.
+After closure and narrative correction, return to the workflow. Its native synchronization and
+review steps validate architecture structure/alignment, governance and generated projections.
 The generated `review.md` names every changed artifact and exact before/after hash requiring renewed
 review. Retain the earlier approval; the new approval supersedes only its mutable architecture bundle.
-The user reviews that packet and runs `bootstrap_recovery.py accept --run-id {run_id} --verdict approve`.
+When the native review gate pauses, the user reviews that packet and resumes the workflow with
+`workflow_lifecycle.py resume --run-id {run_id} --input recovery_verdict=approve`.
 
-Then invoke the readiness producer using this handoff and current constitution, prerequisite ledger,
+The workflow then invokes the readiness producer using this handoff and current constitution, prerequisite ledger,
 canonical map, roadmap, approval and scoped evidence. Its output is `docs/architecture/readiness-report.md`.
 Generation target: 3072 UTF-8 bytes; hard limit: 4096. Keep decisive blockers even above target.
-Terminal batch: `python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py evaluate --run-id {run_id}`.
-Valid non-ready evaluation exits 0 with eligible=false and actionable blockers; malformed output exits 1.
-Completion: `bootstrap_recovery.py complete --run-id {run_id}`. Non-ready exits 2 without completion.
-The original workflow remains terminal historical evidence; a linked recovery completion proves success.
+The native evaluation step records eligible=false and actionable blockers for valid non-ready output.
+The eligibility step stops non-ready execution before completion. Only the final native completion
+step followed by engine status completed proves workflow success. Do not invoke independent repair,
+acceptance or completion commands. The original workflow remains terminal historical evidence.
 ''', encoding='utf-8')
     lifecycle.write(directory / 'manifest.json', value)
     verify_hashes(directory / 'original', {h: h for h in original.values()})
@@ -147,7 +151,7 @@ def synchronize(root: Path, run_id: str) -> dict:
     governance.synchronize_lifecycle()
     governance.synchronize_roadmap_views()
     governance.validate_bootstrap(False, False)
-    return {'status': 'Synchronized', 'next': f'bootstrap_recovery.py review --run-id {run_id}'}
+    return {'status': 'Synchronized', 'next': 'Continue to the native workflow review step.'}
 
 
 @pending_review
@@ -179,7 +183,7 @@ def review(root: Path, run_id: str) -> dict:
     packet += [f"| {p} | {h['before'] or 'new'} | {h['after']} |" for p, h in changed.items()]
     packet += [f'| {p} | {h} | removed |' for p, h in removed.items()]
     packet += ['', f'Acceptance scope: `{lifecycle.SCOPE}`. Promotion updates only its listed decisions/map semantics and deterministic projections.',
-               '', f'After reviewing: `python .specify/extensions/program-kit-governance/scripts/bootstrap_recovery.py accept --run-id {run_id} --verdict approve`', '']
+               '', f'At the paused review gate, after reviewing: `python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py resume --run-id {run_id} --input recovery_verdict=approve`', '']
     (directory / 'review.md').write_text('\n'.join(packet), encoding='utf-8')
     receipt['packet_sha256'] = lifecycle.digest(directory / 'review.md')
     lifecycle.write(directory / 'review.json', receipt)
@@ -224,7 +228,7 @@ def accept(root: Path, run_id: str, verdict: str) -> dict:
         for path, content in originals.items():
             (root / path).write_bytes(content)
         raise
-    return {'status': 'Approved', 'next': 'Invoke readiness producer with the recovery handoff, then evaluate and complete.'}
+    return {'status': 'Approved', 'next': 'Continue to native readiness, eligibility and completion steps.'}
 
 
 def evaluate(root: Path, run_id: str) -> dict:
@@ -262,6 +266,8 @@ def main() -> int:
     root = Path.cwd().resolve()
     try:
         governance.configure_paths()
+        if args.command == 'complete':
+            governance.require_legacy_completion_cli()
         with contextlib.redirect_stdout(io.StringIO()):
             if args.command == 'accept':
                 result = accept(root, args.run_id, args.verdict)

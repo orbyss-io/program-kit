@@ -1,0 +1,128 @@
+{
+  "$schema": ".specify/extensions/program-kit-building-blocks/references/building-block-selection.schema.json",
+  "schemaVersion": "1.0",
+  "selectionId": "equipment-lending",
+  "revision": 1,
+  "status": "Accepted",
+  "catalog": {
+    "id": "orbyss-building-blocks",
+    "schemaVersion": "1.0",
+    "resolutionRevision": 2,
+    "resolutionSha256": "c5a214cb1c3fa0d6b0d1d526671e8fb1cc39c5d4a18b09132e71fa035c3386f5",
+    "familyReleases": {
+      "forms": "0.2.0",
+      "foundation": "0.2.0",
+      "localization": "0.1.1"
+    }
+  },
+  "authority": {
+    "architectureMap": "docs/architecture/architecture-map.json",
+    "decisionIds": [
+      "decision-lending-boundary"
+    ],
+    "rationale": "The fictional lending fixture chooses a modular API, explicit JSON profiles and immutable build-time Forms for one complete reservation slice."
+  },
+  "scopes": [
+    {
+      "id": "repository",
+      "kind": "repository",
+      "environment": "production"
+    },
+    {
+      "id": "application",
+      "kind": "application",
+      "parent": "repository",
+      "environment": "production"
+    }
+  ],
+  "targets": [
+    {
+      "id": "repository-policy",
+      "kind": "repository",
+      "path": "Directory.Build.props",
+      "role": "repository",
+      "scope": "repository"
+    },
+    {
+      "id": "api",
+      "kind": "dotnet-project",
+      "path": "src/Lending.Api/Lending.Api.csproj",
+      "role": "api",
+      "scope": "application",
+      "lockRoot": "Lending.slnx"
+    },
+    {
+      "id": "producer",
+      "kind": "dotnet-project",
+      "path": "tools/Lending.Forms.Build/Lending.Forms.Build.csproj",
+      "role": "helper",
+      "scope": "application",
+      "lockRoot": "Lending.slnx"
+    },
+    {
+      "id": "frontend",
+      "kind": "npm-package",
+      "path": "web/package.json",
+      "role": "frontend-runtime",
+      "scope": "application"
+    },
+    {
+      "id": "shell",
+      "kind": "cshell-shell",
+      "path": "shells.json",
+      "role": "composition",
+      "scope": "application",
+      "shell": "default"
+    },
+    {
+      "id": "foundation-host",
+      "kind": "host-image",
+      "path": "Dockerfile",
+      "role": "runtime-host",
+      "scope": "application"
+    }
+  ],
+  "instances": [
+    {
+      "id": "api-baseline",
+      "composition": "api_baseline",
+      "scope": "application",
+      "targetBindings": {
+        "repository": "repository-policy",
+        "dotnet": "api",
+        "host": "foundation-host",
+        "shell": "shell"
+      },
+      "options": {
+        "host": [
+          "foundation-host"
+        ]
+      }
+    },
+    {
+      "id": "json-profiles",
+      "composition": "json_profiles",
+      "scope": "application",
+      "targetBindings": {
+        "dotnet": "api",
+        "shell": "shell"
+      },
+      "options": {}
+    },
+    {
+      "id": "immutable-forms",
+      "composition": "forms_immutable_release",
+      "scope": "application",
+      "targetBindings": {
+        "producer": "producer",
+        "frontend": "frontend"
+      },
+      "options": {
+        "renderer": [
+          "react"
+        ],
+        "extensions": []
+      }
+    }
+  ]
+}

@@ -75,11 +75,60 @@ non-ready assessment. A purported READY assessment with invalid authority fails 
 wrapper exits 2 for its invalid-output contract). `complete-bootstrap` retains independent authority
 and exact READY checks. The workflow fails resumably before completion, never at an abort-only gate.
 
-For an already-aborted technical completion failure, use `bootstrap_recovery.py prepare --run-id
-<existing-id>`. It validates the abort-only signature and existing approval hashes, freezes the
-original run/artifacts, and writes a handoff without editing state.json or launching any agent.
-The same command supports fresh failed readiness steps after approval. Semantic rejection and
-running or completed workflows are refused. `review`, `accept`, `evaluate`, `complete` implement
-the bounded recovery sequence. Only a reviewed replacement architecture bundle receives renewed
-approval; intake, assessment and ratification remain unchanged. Original failure evidence is never
-reclassified as a human semantic rejection. Recovery completion links to the unchanged original run.
+Use the supported `workflow_lifecycle.py resume --run-id <existing-id>` workflow entrypoint;
+see [workflow-resumption.md](workflow-resumption.md). The engine owns producers, review gates,
+eligibility and successful terminal state. Accepted readiness failures use a linked native
+continuation that preserves the historical source. Failed earlier stages rerun the affected
+producer with invalidated downstream step results. Technical abort-only history is not semantic
+rejection. Internal artifact helpers preserve evidence, but their success or an independent
+completion file does not establish workflow success. Completion must bind a completed engine run.
+
+
+## Executed compatibility cases
+
+Every Python recipe has an adjacent `<recipe-stem>.contract.json` with `schemaVersion: 1`,
+`result` (a scratch-relative JUnit XML path; default `compatibility-results.xml`) and `checks`.
+Each check names `id`, `kind` and distinct `testCases` using exact `classname.name` identities.
+At least one check is `runtime-compatibility`; availability or restore alone is insufficient.
+The recipe must perform the assertions before reporting passing cases. A successful process
+without the required actual cases is recorded as failed proof, retaining its original process
+exit code, streams and diagnostic. Failed/skipped cases block acceptance even if the process
+returned zero. The compatibility receipt retains the result file and binds the contract,
+recipe, selected design and streams. Existing receipts without named cases remain historical
+evidence and need renewed proof before satisfying the new closure requirement.
+
+Example contract for a real selected provider write/read probe:
+
+```json
+{"schemaVersion":1,"result":"compatibility-results.xml","checks":[
+  {"id":"provider-roundtrip","kind":"runtime-compatibility","testCases":["Provider.write_read"]}
+]}
+```
+
+This establishes only the tested compatibility claim. Feature domain behavior and complete
+component adoption still need their own delivery evidence.
+
+
+A contract may declare `fixtures`, mapping scratch-relative filenames to repository-owned source
+files, and `dependencyTargets`, listing the fixture csproj/package.json files to restore. Setup
+copies exact candidate toolchain/source configuration into the fresh scratch workspace, then uses
+repository sync's toolchain resolver and the building-block dependency executor for renew and
+locked verification. Recipe sources and fixture inputs remain hash-bound. Product targets are not
+created by this work. During live acceptance the worker submits a bounded request; the supervisor
+uses a frozen installed tool snapshot and preserves redacted restore streams. Failed provisioning
+stops the phase. Registry credentials never enter the paid worker environment. Reviewed toolchain
+overrides that need a different scratch configuration require the corresponding explicit handoff;
+the helper must not silently select a different version.
+
+
+## Native execution handoff
+
+The closure producer writes `bootstrap-proof-plan.json` with `schemaVersion: 1`, `probes`
+(`id`, repository-relative `recipe`, bounded `timeout`) and `readyWhenProven` (`id`, exact
+complete architecture `prerequisites`, `rationale`). It leaves blockers open. The following
+native shell step runs `bootstrap_proof_plan.py`; no coding agent is dispatched for restore
+or execution. It attaches passing receipts, closes only those dependencies and applies only
+explicitly prepared conditional Ready transitions. A failed probe stops the workflow with its
+receipt preserved. Explicit recovery reuses current successful proofs and renews failed work.
+An empty plan explicitly records that no scratch proof is required. Final approval reviews
+scope, dispositions and evidence after execution; it never substitutes for a failed probe.

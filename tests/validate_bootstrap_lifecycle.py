@@ -57,8 +57,11 @@ def item(identity='provider', slices=None, disposition='architecture', trigger='
 
 
 def setup(root):
-    for name in ('program-kit-governance', 'program-kit-building-blocks'):
+    for name in ('program-kit-governance', 'program-kit-building-blocks', 'program-kit-dotnet'):
         shutil.copytree(ROOT / 'extensions' / name, root / '.specify/extensions' / name)
+    from schema_runtime import runtime_path
+    if not runtime_path(root).exists():
+        shutil.copytree(runtime_path(ROOT), runtime_path(root))
     fixture.write_installation(root, '0.3.1')
     semantic = module('lifecycle_semantic', ROOT / 'tests/validate_bootstrap_semantics.py')
     architecture = governance._load_architecture_module()
@@ -171,10 +174,21 @@ def main():
                 recipe = root / 'docs/architecture/compatibility/port.py'
                 recipe.parent.mkdir(parents=True)
                 recipe.write_text("import sqlite3\nfrom pathlib import Path\nassert not Path('docs').exists()\nc=sqlite3.connect('probe.db')\nc.execute('create table result(value text)')\nc.execute(\"insert into result values ('saved')\")\nc.commit()\nc.close()\nc=sqlite3.connect('probe.db')\nassert c.execute('select value from result').fetchone()==('saved',)\nprint(sqlite3.sqlite_version)\n", encoding='utf-8')
+                with recipe.open('a', encoding='utf-8') as handle:
+                    handle.write("from pathlib import Path\nPath('compatibility-results.xml').write_text('<testsuite><testcase classname=\"Port\" name=\"roundtrip\"/></testsuite>')\n")
+                contract = {'schemaVersion': 1, 'result': 'compatibility-results.xml',
+                            'checks': [{'id': 'port-roundtrip', 'kind': 'runtime-compatibility', 'testCases': ['Port.roundtrip']}]}
+                recipe.with_suffix('.contract.json').write_text(json.dumps(contract), encoding='utf-8')
+                availability = recipe.with_name('availability.py')
+                availability.write_text("print('package exists')", encoding='utf-8')
+                availability.with_suffix('.contract.json').write_text(json.dumps(contract), encoding='utf-8')
+                missing_tests = lifecycle.run_proof(root, 'availability', availability.relative_to(root).as_posix(), 30)
+                assert missing_tests['exit_code'] == 126
                 proof = lifecycle.run_proof(root, 'provider', recipe.relative_to(root).as_posix(), 30)
                 assert proof.pop('exit_code') == 0
                 slow_recipe = recipe.with_name('timeout.py')
                 slow_recipe.write_text("import subprocess, sys, time\nsubprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])\nprint('child started', flush=True)\ntime.sleep(60)\n", encoding='utf-8')
+                slow_recipe.with_suffix('.contract.json').write_text(json.dumps(contract), encoding='utf-8')
                 timed_out = lifecycle.run_proof(root, 'timeout', slow_recipe.relative_to(root).as_posix(), 1)
                 assert timed_out['exit_code'] == 124
                 assert len(lifecycle.load(root / timed_out['path'])['streams']) == 2

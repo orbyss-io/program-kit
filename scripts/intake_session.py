@@ -34,6 +34,8 @@ This is intake only: do not run bootstrap, install/update components, start
 another agent, or implement the product. Stop after the intake review and handoff.
 Keep the skill's compact question/decision record current, including partial
 answers, corrections and pending questions. Do not claim user confirmation early.
+If acceptance/ is present, read its fixed observable trial contracts during intake.
+These describe what the later implementation must demonstrate; do not implement them now.
 """
 
 
@@ -157,7 +159,14 @@ def install_components(specify: str, git: str, workspace: Path, record: Path) ->
                 raise RuntimeError(f'Installation failed at step {index}; see {record / "setup.log"}')
 
 
-def prepare(record: Path) -> None:
+def prepare(record: Path, idea_file: Path | None = None, acceptance_contracts: Path | None = None) -> None:
+    if idea_file is not None and (not idea_file.is_file() or not idea_file.read_text(encoding='utf-8').strip()):
+        raise ValueError('The supplied idea file must contain the initial product request.')
+    if acceptance_contracts is not None:
+        if not acceptance_contracts.is_dir() or not checked_files(acceptance_contracts):
+            raise ValueError('Acceptance contracts must be a nonempty document directory.')
+        if any(p.suffix not in {'.md', '.json'} for p in checked_files(acceptance_contracts)):
+            raise ValueError('Acceptance context is restricted to Markdown and JSON contracts, without implementation files.')
     specify = shutil.which('specify')
     git = shutil.which('git')
     if not specify or not git:
@@ -170,6 +179,12 @@ def prepare(record: Path) -> None:
              'tempParent': str(workspace.parent), 'owner': nonce, 'source': str(ROOT),
              'startedAt': datetime.now(timezone.utc).isoformat(), 'status': 'preparing',
              'codexHome': str(Path(os.environ.get('CODEX_HOME', str(Path.home() / '.codex'))).resolve())}
+    if idea_file is not None:
+        shutil.copyfile(idea_file, workspace / 'product-idea.md')
+        state['initialIdea'] = {'source': str(idea_file.resolve()), 'sha256': digest(workspace / 'product-idea.md')}
+    if acceptance_contracts is not None:
+        shutil.copytree(acceptance_contracts, workspace / 'acceptance')
+        state['acceptanceContracts'] = {p.relative_to(acceptance_contracts).as_posix(): digest(p) for p in checked_files(acceptance_contracts)}
     save(record / 'session.json', state)
     print(f'Isolated consumer: {workspace}\nReview evidence: {record}', flush=True)
     source_git = [git, '-c', f'safe.directory={ROOT.as_posix()}', '-c', 'core.excludesFile=' if os.name == 'nt' else 'core.excludesFile=/dev/null']
@@ -367,10 +382,13 @@ def main() -> int:
     parser.add_argument('--exit-code', type=int, default=1)
     parser.add_argument('--keep-workspace', action='store_true')
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--idea-file', type=Path)
+    parser.add_argument('--acceptance-contracts', type=Path)
     args = parser.parse_args()
     try:
         if args.action == 'prepare':
-            prepare(args.record.resolve())
+            prepare(args.record.resolve(), args.idea_file.resolve() if args.idea_file else None,
+                    args.acceptance_contracts.resolve() if args.acceptance_contracts else None)
         else:
             finish(args.record.resolve(), args.exit_code, args.keep_workspace, args.prepare_only)
         return 0

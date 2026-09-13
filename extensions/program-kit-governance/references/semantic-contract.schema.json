@@ -1,0 +1,26 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://orbyss.io/program-kit/semantic-contract.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","scope","subjects","policies","effects","admissions","outcomes"],
+  "properties":{
+    "$schema":{"type":"string"},"schemaVersion":{"const":1},"scope":{"$ref":"#/$defs/text"},
+    "subjects":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","identity","stateful"],"properties":{
+      "id":{"$ref":"#/$defs/text"},"identity":{"$ref":"#/$defs/text"},"stateful":{"type":"boolean"},"rationale":{"$ref":"#/$defs/text"},
+      "states":{"$ref":"#/$defs/strings"},"initial":{"$ref":"#/$defs/text"},"terminalStates":{"$ref":"#/$defs/strings"},"invariants":{"$ref":"#/$defs/strings"},"illegalTransitionCheckIds":{"$ref":"#/$defs/strings"},
+      "transitions":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["id","from","to","intent","guard","outcome","checkIds"],"properties":{
+        "id":{"$ref":"#/$defs/text"},"from":{"$ref":"#/$defs/text"},"to":{"$ref":"#/$defs/text"},"intent":{"$ref":"#/$defs/text"},"guard":{"$ref":"#/$defs/text"},"outcome":{"$ref":"#/$defs/text"},"checkIds":{"$ref":"#/$defs/strings"}}}}
+    },"if":{"properties":{"stateful":{"const":true}}},"then":{"required":["states","initial","terminalStates","invariants","transitions","illegalTransitionCheckIds"]},"else":{"required":["rationale"]}}},
+    "policies":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","inputs","decisionType","sideEffectFree","beforeEffects","decisions","checkIds"],"properties":{
+      "id":{"$ref":"#/$defs/text"},"inputs":{"$ref":"#/$defs/text"},"decisionType":{"$ref":"#/$defs/text"},"sideEffectFree":{"const":true},"beforeEffects":{"type":"array","items":{"$ref":"#/$defs/text"},"uniqueItems":true},"decisions":{"$ref":"#/$defs/strings"},"checkIds":{"$ref":"#/$defs/strings"}}}},
+    "effects":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","owner","kind","failureOutcome","checkIds"],"properties":{
+      "id":{"$ref":"#/$defs/text"},"owner":{"$ref":"#/$defs/text"},"kind":{"$ref":"#/$defs/text"},"failureOutcome":{"$ref":"#/$defs/text"},"checkIds":{"$ref":"#/$defs/strings"}}}},
+    "admissions":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","requirement","owner","consistency","acknowledgement","idempotency","retry","ordering","timeout","failureOutcome","checkIds"],"properties":{
+      "id":{"$ref":"#/$defs/text"},"requirement":{"enum":["required","optional"]},"owner":{"$ref":"#/$defs/text"},"consistency":{"$ref":"#/$defs/text"},"acknowledgement":{"$ref":"#/$defs/text"},"idempotency":{"$ref":"#/$defs/text"},"retry":{"$ref":"#/$defs/text"},"ordering":{"$ref":"#/$defs/text"},"timeout":{"$ref":"#/$defs/text"},"failureOutcome":{"$ref":"#/$defs/text"},"successAfterAcknowledgement":{"type":"boolean"},"checkIds":{"$ref":"#/$defs/strings"}},
+      "if":{"properties":{"requirement":{"const":"required"}}},"then":{"required":["successAfterAcknowledgement"],"properties":{"successAfterAcknowledgement":{"const":true}}}}},
+    "outcomes":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["id","kind","owner","checkIds"],"properties":{
+      "id":{"$ref":"#/$defs/text"},"kind":{"enum":["success","rejection","failure","cancellation","durable-acceptance"]},"owner":{"$ref":"#/$defs/text"},"checkIds":{"$ref":"#/$defs/strings"},"operationIdentity":{"$ref":"#/$defs/text"},"durableOwner":{"$ref":"#/$defs/text"}},
+      "if":{"properties":{"kind":{"const":"durable-acceptance"}}},"then":{"required":["operationIdentity","durableOwner"]}}}
+  },
+  "$defs":{"text":{"type":"string","minLength":1},"strings":{"type":"array","minItems":1,"uniqueItems":true,"items":{"$ref":"#/$defs/text"}}}
+}

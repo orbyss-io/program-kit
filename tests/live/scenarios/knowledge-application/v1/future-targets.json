@@ -1,0 +1,6 @@
+{
+  "feature": "RM02",
+  "intent": "Reporting remains future during the lending slice and upgrade.",
+  "absentPaths": ["src/Lending.Reporting", "web/reporting", "specs/RM02-reporting/implementation"],
+  "approval": "Fixture expectations are input to the actual architecture/ownership review; this file supplies no approval."
+}

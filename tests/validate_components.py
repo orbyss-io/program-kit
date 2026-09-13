@@ -42,6 +42,7 @@ EXPECTED_STEPS = [
     "specification-roadmap",
     "validate-roadmap-output",
     "architecture-prerequisite-closure",
+    "execute-compatibility-proofs",
     "validate-prerequisite-closure",
     "synchronize-lifecycle",
     "synchronize-roadmap",
@@ -61,6 +62,7 @@ EXPECTED_HOOKS = {
     "before_specify",
     "after_specify",
     "before_plan",
+    "before_tasks",
     "after_plan",
     "after_tasks",
     "before_implement",
@@ -98,8 +100,8 @@ def main() -> int:
     command_names = {
         command["name"] for command in extension["provides"]["commands"]
     }
-    if len(command_names) != 20:
-        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 20")
+    if len(command_names) != 21:
+        raise AssertionError(f"Extension exposes {len(command_names)} commands, expected 21")
     if "speckit.program-kit-governance.view-c4" not in command_names:
         raise AssertionError("Governance extension does not expose the C4 viewing skill")
     if "speckit.program-kit-governance.grilling" not in command_names:
@@ -763,12 +765,14 @@ def main() -> int:
             "Roadmap synchronization and consistency validation must precede the final review packet"
         )
     completion = next(step for step in steps if step["id"] == "complete-bootstrap")
+    if 'workflow_lifecycle.py step complete --run-id {{ context.run_id }}' not in completion.get('run', ''):
+        raise AssertionError('Bootstrap completion must bind the native workflow run')
     readiness_gate = next(step for step in steps if step['id'] == 'require-readiness')
     if (completion.get('continue_on_error') or readiness_gate.get('continue_on_error')
             or step_ids.index('require-readiness') >= step_ids.index('complete-bootstrap')
             or 'confirm-completion-failure' in str(steps)):
         raise AssertionError('Non-ready must stop resumably before completion without an abort-only rejection gate')
-    if not (step_ids.index('architecture-prerequisite-closure') < step_ids.index('validate-prerequisite-closure') < final_review):
+    if not (step_ids.index('architecture-prerequisite-closure') < step_ids.index('execute-compatibility-proofs') < step_ids.index('validate-prerequisite-closure') < final_review):
         raise AssertionError('Executable prerequisite closure and validation must precede final approval')
     require_text(
         preset_path.parent / "templates/spec-governance.md",

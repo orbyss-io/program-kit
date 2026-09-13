@@ -14,9 +14,9 @@
 - **Structure deltas**: A path outside the manifest or an accepted profile convention must be added
   to this plan as `STRUCTURE-DELTA: <path>` before task generation completes.
 
-When the accepted .NET runtime is the external `ProgramKit.Host`, the plan MUST NOT introduce a
+When the accepted .NET runtime is the external `Orbyss.Foundation.Host`, the plan MUST NOT introduce a
 consumer `.Host` project or application `Program.cs`. It must instead name packable feature
-projects and `ProgramKitFeatureIdentity`, `shells.json` activation, consumer `hostsettings.json`,
+projects and `FoundationFeatureIdentity`, `shells.json` activation, consumer `hostsettings.json`,
 validated `runnable_host.py stage` package closure, and digest-bound external-host release evidence.
 Its `artifact-ownership.json` MUST also contain `runtimeComposition`: accepted architecture
 authority paths, every planned project's role and exact direct `ProjectReference` and
@@ -39,3 +39,27 @@ resource/state/effect authorization in consumer code. A bodyless/no-effect probe
 `permission:<identity>` endpoint metadata and must not introduce a second permission service/parser.
 
 If the plan identifies a new architecture decision, contract ownership conflict, or technology choice, stop and create the required design task and ADR rather than treating it as implementation detail.
+
+
+## Applicable knowledge and proof
+
+Read the generated `phase-context.md` before authoring this artifact. Follow the installed
+`program-kit-governance/references/phase-evidence.md` contract for `obligation-design.json`,
+`semantic-contract.json`, `verification-plan.json` and `obligation-review.json` in this feature.
+Where capabilities are selected, also create `capability-adoption.json`. Name actual test cases
+for every applicable requirement and task their implementation; future test paths are valid at
+planning, but only executed, current results satisfy delivery. Review Core/Abstractions ownership,
+policy purity, legal transitions, required acknowledgement, extension resolution and public API
+compatibility in proportion to this slice. Explicitly explain nonapplicability for simple cases.
+Keep all declared design references and test/build inputs in the verification scope; use
+`inputPaths` for consumer adapters or dependencies outside owned project directories.
+
+At completion, run the declared suites through `phase_obligations.py verify`, perform the
+current delivery review, and pass `lifecycle_state.py verify-delivery` before marking the
+roadmap entry Delivered. A green repository aggregate alone does not satisfy this contract.
+
+For applicable .NET boundaries, write `architecture-proof.json` alongside the ownership manifest.
+Bind named graph checks, actual shell registration/resolution tests and extension compatibility
+checks for every capability binding; include executable coverage for accepted Core-reference
+exceptions. Follow the installed phase-evidence contract. Empty bindings are valid for a simple
+feature with no extension point; do not manufacture abstractions merely to fill the artifact.

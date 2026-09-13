@@ -222,6 +222,11 @@ def seed_project(project: Path, module, semantic, run_id: str) -> None:
     write_json(project / "web/package.json", {"name": "price-web", "private": True})
 
 
+def decode_table(table):
+    return [{key: row[i] for i, key in enumerate(table['columns']) if i not in missing}
+            for row, missing in zip(table['rows'], table['missing'], strict=True)]
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     module = load_module(root)
@@ -408,6 +413,8 @@ def main() -> int:
                     raise AssertionError("Architecture brief omitted the approved decision-register hash")
             if stage != "architecture":
                 projected_elements = payload["architecture_map"].get("elements", [])
+                if isinstance(projected_elements, dict):
+                    projected_elements = decode_table(projected_elements)
                 source_map = json.loads(architecture_path.read_text(encoding="utf-8"))
                 source_parents = {
                     item["id"]: item["parent"]
@@ -427,6 +434,15 @@ def main() -> int:
                 }
                 if projected_parents != expected_parents:
                     raise AssertionError(f"{stage} architecture projection changed containment")
+            if stage in {"roadmap", "readiness"}:
+                source_semantics = source_map["strategic_model"]
+                projected_semantics = payload["architecture_map"]["strategic_model"]
+                recovered = {key: decode_table(value) if isinstance(value, dict) and "columns" in value else value
+                             for key, value in projected_semantics.items() if key not in {"projection", "sourcePointer"}}
+                if recovered != source_semantics:
+                    raise AssertionError("Compact projection lost domain semantics")
+                if payload["intake"]["quality_requirements"] != intake["quality_requirements"]:
+                    raise AssertionError("Compact projection lost quality requirements")
             if stage == "research":
                 if payload["managed_profile_pins"] is None:
                     raise AssertionError("Research context omitted managed profile pins")

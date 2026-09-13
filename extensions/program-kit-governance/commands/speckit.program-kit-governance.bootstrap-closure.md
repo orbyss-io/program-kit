@@ -20,20 +20,34 @@ store, renderer, runtime or provider. Routine field rules, feature behavior test
 inside accepted boundaries belong to feature-plan. Production and later-release policy remain at
 their actual triggers. Record the reason and source authority for every such disposition for review.
 
-For each open architecture dependency of the intended first slice, execute one bounded compatibility
+For each open architecture dependency of the intended first slice, prepare one bounded compatibility
 task. Author a Python recipe under `docs/architecture/compatibility/` that uses exact selected pins
 and source identities and proves only required restore/runtime/port compatibility in its scratch
-working directory. The recipe must declare inputs, versions, licenses and observable pass criteria,
+working directory. Add the adjacent `.contract.json` with exact JUnit runtime case names. If
+packages are needed, declare `fixtures` (scratch path to repository source file) and
+`dependencyTargets` (bound csproj/package.json paths). The coordinator copies those inputs,
+uses shared toolchain/source configuration, and executes shared renew plus locked restore before
+running the probe. Under live acceptance, only the supervisor receives registry credentials;
+the native shell executor submits the bounded handoff after this agent stage returns. Do not issue a separate
+network restore or implement another package resolver inside the recipe.
+The recipe must declare inputs, versions, licenses and observable pass criteria,
 fail nonzero on failed checks, terminate its child processes, and keep credentials out of output.
-Run `python .specify/extensions/program-kit-governance/scripts/bootstrap_lifecycle.py proof --id
-<agent-selected-prerequisite-id> --recipe <agent-created-relative-python-path> --timeout 120`.
+Write `docs/architecture/bootstrap-proof-plan.json` with `schemaVersion: 1`, `probes`
+(each has prerequisite `id`, repository-relative `recipe`, `timeout` from 1–600 seconds),
+and `readyWhenProven` (each has roadmap `id`, the exact complete affected architecture
+`prerequisites` list, and rationale that those are its only remaining readiness conditions).
+Use empty arrays when no probe or conditional transition is needed. Keep prerequisite status
+open and roadmap entries Blocked until execution succeeds. In a native workflow, return now;
+the next shell step runs `bootstrap_proof_plan.py`, attaches successful receipts and applies
+only those conditional transitions. Do not spend agent turns polling restores or running probes.
+For a standalone owner-invoked closure, run that same deterministic executor once after preparation.
 This stage authorizes temporary compatibility projects/restores; architecture drafting itself does
 not scaffold or restore the consumer. Do not write application files, launch coding agents, alter
 machine toolchains or use this as a feature implementation task. An unavailable provider or runtime
 produces an open blocker with evidence and a next action, never fabricated compatibility.
 
-The runner retains a unique receipt and both streams for each attempt. Add the successful receipt
-path/hash/kind to the prerequisite evidence and close only the proven dependency. Include design
+The runner retains a unique receipt and both streams for each attempt and attaches successful
+evidence to the exact prerequisite. It stops at the first failure; preserve that open blocker. Include design
 authority evidence as appropriate. A failing attempt remains preserved; diagnose it before another
 bounded attempt. No repeated truncation or ad hoc byte assertions.
 
@@ -47,10 +61,9 @@ governed amendment procedure.
 
 Run these commands as one terminal batch, stopping on the first failure:
 
-When working from a recovery handoff, use `bootstrap_recovery.py synchronize --run-id <handoff-run>`
-then `bootstrap_recovery.py review --run-id <handoff-run>` instead of the fresh-run batch below.
-These commands allow the exact scoped follow-on Proposed bundle during review while readiness
-and completion continue to require Accepted authority.
+When working inside a workflow continuation, return the corrected artifacts to the engine instead
+of running the fresh-run batch below. Its native synchronization and review steps allow the exact
+scoped follow-on Proposed bundle; readiness and completion still require Accepted authority.
 
 1. `python .specify/extensions/program-kit-governance/scripts/governance_state.py validate-prerequisites`
 2. `python .specify/extensions/program-kit-governance/scripts/governance_state.py synchronize-lifecycle`

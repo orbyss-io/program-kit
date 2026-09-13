@@ -93,12 +93,15 @@ def main():
             {"id": "frontend", "kind": "npm-package", "path": "web/pricing/package.json", "role": "frontend-runtime", "scope": "browser"},
             {"id": "shell", "kind": "cshell-shell", "path": "shells.json", "role": "composition", "scope": "browser", "shell": "pricing"},
         ]
+        selection['targets'].append({'id': 'producer', 'kind': 'dotnet-project',
+                                    'path': 'tools/Forms.Release/Forms.Release.csproj',
+                                    'role': 'helper', 'scope': 'app'})
         for target in selection["targets"]:
             target["placement"] = {"state": "planned", "owner": "pricing", "decisionIds": ["placement"],
                                    "rationale": "Pricing capability and browser boundary; synthetic fixture only."}
         selection["instances"] = [
             {"id": key, "composition": key, "scope": "browser", "targetBindings": {slot: slot for slot in value["target_slots"]},
-             "options": {"renderer": ["react"]} if key == "forms_runtime" else {}}
+             "options": {"renderer": ["react"]} if key == "forms_immutable_release" else {}}
             for key, value in contract["composition_contracts"].items()
         ]
         adr = root / "docs/architecture/decisions/placement.md"
@@ -140,7 +143,7 @@ def main():
         invalid(lambda s: s["targets"][2].pop("shell"), "PKB102")
         invalid(lambda s: s["instances"].clear(), "PKB306")
         invalid(lambda s: s["instances"][0]["targetBindings"].pop("dotnet"), "PKB302")
-        invalid(lambda s: next(i for i in s["instances"] if i["composition"] == "forms_runtime")["options"].update(renderer=["blazor"]), "PKB203")
+        invalid(lambda s: next(i for i in s["instances"] if i["composition"] == "forms_immutable_release")["options"].update(renderer=["blazor"]), "PKB203")
         for path in ("../outside.csproj", "C:/outside.csproj", "src/NUL.csproj", "src/bad./bad.csproj", ".specify/fake.csproj"):
             invalid(lambda s, path=path: s["targets"][0].update(path=path), "PKB300")
         invalid(lambda s: s["targets"].append({**copy.deepcopy(s["targets"][0]), "id": "collision", "path": "SRC/PRICING/PRICING.CSPROJ"}), "PKB301")
@@ -191,7 +194,7 @@ def main():
             _, brief = context.build_context(root, run_id, stage)
             assert "<workflow-run-id>" not in json.dumps(brief)
             assert run_id in brief["stage_plan"]["terminal_condition"]["command"]
-            assert brief["stage_plan"]["building_blocks"]["composition_contracts"]["forms_runtime"]["option_groups"][0]["options"] == ["angular", "react", "vue"]
+            assert brief["stage_plan"]["building_blocks"]["composition_contracts"]["forms_immutable_release"]["option_groups"][0]["options"] == ["angular", "react", "vue"]
         original_inputs = (run / "inputs.json").read_bytes()
         workflow_checks(root, context, run_id)
         # The reduced workflow has no inputs; restore this test fixture's confirmed intake
@@ -210,7 +213,7 @@ def main():
         assert not (root / context.ARCHITECTURE_BLOCKED).exists()
         for record in result["preserved"]:
             assert context.sha256_file(root / record["preserved_path"]) == record["sha256"]
-        assert not any(root.rglob("*.csproj"))
+        assert not any(p for p in root.rglob("*.csproj") if not p.is_relative_to(root / ".specify"))
         state["status"] = "completed"
         write_json(run / "state.json", state)
         context_error(context, "failed bootstrap", lambda: context.prepare_architecture_recovery(root, run_id))

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "id": "price-calculator-approved-intake",
+  "version": "1",
+  "intakePath": "docs/architecture/bootstrap-intake.json",
+  "intakeSha256": "18eb3a9c5acfdc94e8affc0e28e7d345508cd585647e832555f04fa0e4c41865",
+  "sourceRun": "bd6be6ca",
+  "capturePolicy": "Exact confirmed intake and hash-bound original context only. No recovered architecture, approval, readiness or completion is seeded into a fresh test.",
+  "artifacts": [
+    {"path": "docs/architecture/project-intent.md", "sha256": "2314b416eff027e8875357e49fbe9fdc560bcf7559baac03e327e1a6f1c8510a"},
+    {"path": "docs/architecture/architecture-map.json", "sha256": "5daaada63285ab4401803c977fb4be7ef4545c6be75346608985875430e649dd"},
+    {"path": "docs/architecture/workspace.dsl", "sha256": "b9af830e71c86554cf2ffecf27eb60ecda14e7183e0ea5d2058b86c490da9d22"}
+  ],
+  "requiredEvidence": ["fresh-engine-completed", "controlled-readiness-failure", "resumed-engine-completed", "actual-human-review-gates", "unchanged-source-consumer"]
+}

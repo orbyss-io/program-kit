@@ -25,16 +25,16 @@ def main() -> int:
 
     required_versions = inventory.get("requiredReplacementVersions")
     if required_versions != {
-        "foundation": "0.1.0",
-        "forms": "0.1.1",
+        "foundation": "0.2.0",
+        "forms": "0.2.0",
         "localization": "0.1.1",
     }:
         raise AssertionError("Replacement publication gate does not pin all three released families.")
     replacements = module.replacement_packages(
         ROOT / inventory["requiredReplacementManifest"], required_versions
     )
-    if len(replacements) != 50 or len({package_id for package_id, _ in replacements}) != 50:
-        raise AssertionError("Replacement publication gate must cover exactly 50 package IDs.")
+    if len(replacements) != 53 or len({package_id for package_id, _ in replacements}) != 53:
+        raise AssertionError("Replacement publication gate must cover exactly 53 package IDs.")
 
     script = script_path.read_text(encoding="utf-8")
     for required in ("--verify-public", "registration5-gz-semver2", "verify_replacements"):

@@ -316,9 +316,35 @@ Amendments require human approval. Version changes follow semantic versioning. C
             project / "docs/architecture/readiness-report.md",
             "**Status**: READY\n\n# Readiness report\n\nSLC-CALCULATE-001 is ready.\n",
         )
-        completed = run_state(project, "complete-bootstrap")
-        if "deterministically complete" not in completed.stdout:
-            raise AssertionError("complete-bootstrap did not report success")
+        retired = subprocess.run([sys.executable, str(project / '.specify/extensions/program-kit-governance/scripts/governance_state.py'),
+                                  'complete-bootstrap'], cwd=project, capture_output=True, text=True)
+        if retired.returncode == 0 or 'owned by the native workflow' not in retired.stderr:
+            raise AssertionError('Standalone completion remained available in the new installation')
+        # Exercise real native final steps using the already validated deterministic
+        # consumer fixture. This is component evidence, not a real-agent bootstrap.
+        native_driver = project / '.specify/test-native-completion.py'
+        native_command = f'"{sys.executable}" .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py step complete --run-id {{{{ context.run_id }}}}'
+        driver_source = '''from pathlib import Path
+import sys
+sys.path.insert(0, str(Path.cwd() / '.specify/extensions/program-kit-governance/scripts'))
+import workflow_lifecycle as workflow
+workflow.governance.configure_paths()
+definition = workflow.WorkflowDefinition(DEFINITION)
+with workflow.execution_lock(Path.cwd()):
+    state = workflow.execute_definition(Path.cwd(), definition, {}, 'consistency-completion')
+assert state.status.value == 'completed', state.error
+workflow.governance.validate_completion()
+workflow.validate_engine_completion(Path.cwd())
+print('Native completion validated')
+'''
+        native_definition = {'schema_version': '1.0', 'workflow': {'id': 'program-kit-bootstrap',
+            'name': 'Deterministic consistency completion', 'version': version}, 'steps': [
+            {'id': 'require-readiness', 'type': 'shell', 'run': f'"{sys.executable}" .specify/extensions/program-kit-governance/scripts/governance_state.py require-readiness'},
+            {'id': 'complete-bootstrap', 'type': 'shell', 'run': native_command}]}
+        write(native_driver, driver_source.replace('DEFINITION', repr(native_definition)))
+        completed = subprocess.run([sys.executable, str(native_driver)], cwd=project, capture_output=True, text=True)
+        if completed.returncode != 0 or 'Native completion validated' not in completed.stdout:
+            raise AssertionError(f'Native completion failed: {completed.stdout}{completed.stderr}')
         completion_path = project / ".specify/governance/bootstrap-completion.json"
         if not completion_path.is_file():
             raise AssertionError("complete-bootstrap did not create bootstrap-completion.json")

@@ -21,10 +21,18 @@
         "speckit_version": ">=1.0.1,<2.0.0"
       },
       "provides": {
-      "commands": 20,
+        "commands": 21,
         "hooks": 9
       },
-      "tags": ["architecture", "adr", "governance", "quality", "bootstrap", "vertical-slicing", "modularity"],
+      "tags": [
+        "architecture",
+        "adr",
+        "governance",
+        "quality",
+        "bootstrap",
+        "vertical-slicing",
+        "modularity"
+      ],
       "verified": false
     },
     "program-kit-building-blocks": {
@@ -48,7 +56,14 @@
         "commands": 1,
         "hooks": 0
       },
-      "tags": ["architecture", "dependencies", "dotnet", "npm", "governance", "scaffolding"],
+      "tags": [
+        "architecture",
+        "dependencies",
+        "dotnet",
+        "npm",
+        "governance",
+        "scaffolding"
+      ],
       "verified": false
     },
     "program-kit-dotnet": {
@@ -72,7 +87,13 @@
         "commands": 0,
         "hooks": 0
       },
-      "tags": ["dotnet", "architecture", "runtime", "quality", "scaffolding"],
+      "tags": [
+        "dotnet",
+        "architecture",
+        "runtime",
+        "quality",
+        "scaffolding"
+      ],
       "verified": false
     }
   }

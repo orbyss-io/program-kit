@@ -82,3 +82,13 @@ Spec Kit 1.0.1 executes these mandatory hooks through agent instructions before 
 Outline. Keep `.specify/extensions.yml` valid, auto-execution enabled, and the intake hook mandatory
 and unconditional. These are workflow gates, not a security boundary against manually editing
 files or disabling hooks. Keep any branch-creation pre-hook after feature intake.
+
+
+The interview may record `architectureScope` as exact canonical element IDs, chosen by the
+agent from the agreed outcome and reviewed with the brief. The context carries each selected
+module's owning context, invariants/lifecycle, children, affected contracts, boundary failure
+ownership and linked decisions directly from the canonical map. Unrelated model changes do
+not invalidate an explicit scope. Without an explicit scope the complete model is the safe
+fallback; narrow it during the interview to avoid unnecessary reading. Never invent IDs or
+omit a dependency to suppress an obligation. Generated roadmap/lifecycle status views do not
+invalidate authored architecture authority; changes to the actual rules still do.

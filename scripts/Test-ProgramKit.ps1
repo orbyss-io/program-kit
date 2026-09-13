@@ -65,6 +65,15 @@ function Invoke-ProgramKitNative {
 
 $developmentValidators = @(
     'validate_components.py',
+    'validate_phase_obligations.py',
+    'validate_knowledge_inventory.py',
+    'validate_feature_knowledge.py',
+    'validate_architecture_recipe.py',
+    'validate_capability_proof.py',
+    'validate_learning_metrics.py',
+    'validate_learning_report.py',
+    'validate_lending_oracle.py',
+    'validate_reference_baseline.py',
     'validate_test_suites.py',
     'validate_specification_intake.py',
     'validate_sync_live_fixtures.py',
@@ -76,15 +85,22 @@ $developmentValidators = @(
     'validate_retired_sync.py',
     'validate_scoped_materialization.py',
     'validate_intake_session.py',
+    'validate_intake_handoff.py',
     'validate_intake_authoring.py',
     'validate_json_schema.py',
     'validate_orbyss_building_blocks.py',
     'validate_building_blocks.py',
     'validate_architecture_placement.py',
     'validate_bootstrap_lifecycle.py',
+    'validate_bootstrap_compatibility.py',
+    'validate_bootstrap_proof_plan.py',
+    'validate_workflow_resumption.py',
+    'validate_live_fixture_catalog.py',
+    'validate_live_workflow_acceptance.py',
     'validate_building_block_availability.py',
     'validate_legacy_programkit_nuget.py',
     'validate_generated_contract_schemas.py'
+    'validate_runnable_host_pins.py'
 )
 $releaseOnlyValidators = @(
     'validate_ui_experience.py',

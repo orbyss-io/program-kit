@@ -68,6 +68,8 @@ def deterministic_zip(source: Path, destination: Path) -> None:
             if path.is_file()
             and not path.is_symlink()
             and "__pycache__" not in path.parts
+            and "bin" not in path.parts
+            and "obj" not in path.parts
             and "node_modules" not in path.parts
             and "playwright-report" not in path.parts
             and "test-results" not in path.parts

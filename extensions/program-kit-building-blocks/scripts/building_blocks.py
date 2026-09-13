@@ -145,6 +145,7 @@ def resolution_projection(catalog: dict) -> dict:
                 "materialization",
                 "requires",
                 "activations",
+                "supportsBuildTime",
                 "configuration",
             )
             if field in package
@@ -156,6 +157,7 @@ def resolution_projection(catalog: dict) -> dict:
             for field in (
                 "scopeKind",
                 "targetSlots",
+                "buildTimeSlots",
                 "requirements",
                 "optionGroups",
                 "conflicts",
@@ -298,7 +300,14 @@ def validate_requirements(catalog: dict, composition_id: str, value: object, slo
             fail("PKB106", f"catalog composition {composition_id} cannot place {requirement['package']} in slot {requirement['targetSlot']}")
         if not set(slot["allowedRoles"]) & set(materialization["allowedRoles"]):
             fail("PKB106", f"catalog composition {composition_id} slot {requirement['targetSlot']} has no valid role for {requirement['package']}")
-        validate_activation_slots(catalog, composition_id, requirement["package"], slots, set())
+        build_slots = catalog['compositions'][composition_id].get('buildTimeSlots', [])
+        if not isinstance(build_slots, list) or any(s not in slots or slots[s]['kind'] != 'dotnet-project' for s in build_slots):
+            fail('PKB106', 'Build-time slots must be declared .NET producer projects')
+        if requirement['targetSlot'] in build_slots:
+            if package.get('supportsBuildTime') is not True:
+                fail('PKB106', f"{requirement['package']} does not declare supported public build-time use")
+        else:
+            validate_activation_slots(catalog, composition_id, requirement["package"], slots, set())
 
 
 def validate_activation_slots(catalog: dict, composition_id: str, package_key: str, slots: dict, seen: set[str]) -> None:
@@ -604,7 +613,7 @@ def resolve(
     resolved_instances: list[dict] = []
     configuration_requirements: list[dict] = []
 
-    def assign(package_key: str, target: dict, origin: str, instance: dict, active: set[tuple[str, str]]) -> None:
+    def assign(package_key: str, target: dict, origin: str, instance: dict, active: set[tuple[str, str, bool]], build_time: bool = False) -> None:
         package = packages[package_key]
         materialization = package["materialization"]
         if target.get("kind") not in materialization["allowedTargetKinds"]:
@@ -613,9 +622,9 @@ def resolve(
             fail("PKB303", f"{origin} cannot place {package_key} in target role {target.get('role')!r}")
         environment = scopes[target["scope"]]["environment"]
         allowed_environments = materialization.get("allowedEnvironments")
-        if allowed_environments and environment not in allowed_environments:
+        if allowed_environments and environment not in allowed_environments and not build_time:
             fail("PKB304", f"{origin} cannot place {package_key} in {environment!r} scope {target['scope']!r}")
-        identity = (package_key, target["id"])
+        identity = (package_key, target["id"], build_time)
         if identity in active:
             assignments[target["id"]][package_key]["origins"].add(origin)
             return
@@ -645,8 +654,12 @@ def resolve(
             else:
                 companions = binding_targets(instance, requirement["targetSlot"], targets)
             for companion_target in companions:
-                assign(requirement["package"], companion_target, f"{origin}/requires/{requirement['package']}", instance, active)
-        for activation in package.get("activations", []):
+                assign(requirement["package"], companion_target, f"{origin}/requires/{requirement['package']}", instance, active,
+                       build_time if requirement['targetSlot'] == 'same-target' else
+                       requirement['targetSlot'] in compositions[instance['composition']].get('buildTimeSlots', []))
+        if build_time and package.get('supportsBuildTime') is not True:
+            fail('PKB106', f'{package_key} is not a supported build-time dependency')
+        for activation in ([] if build_time else package.get("activations", [])):
             for shell_target in binding_targets(instance, activation["targetSlot"], targets):
                 key = (shell_target["id"], activation["featureIdentity"], package_key)
                 activations[key] = {
@@ -685,12 +698,13 @@ def resolve(
                     fail("PKB205", f"selection instance {instance_id!r} option {group_id}/{choice} is not allowed in {environment}")
                 requirements.extend(option["requirements"])
             option_summary[group_id] = sorted(choices)
-        active: set[tuple[str, str]] = set()
+        active: set[tuple[str, str, bool]] = set()
         origin_packages: list[str] = []
         for requirement in requirements:
             origin = f"{instance_id}/{requirement['package']}"
             for target in binding_targets(instance, requirement["targetSlot"], targets):
-                assign(requirement["package"], target, origin, instance, active)
+                assign(requirement["package"], target, origin, instance, active,
+                       requirement['targetSlot'] in composition.get('buildTimeSlots', []))
             origin_packages.append(requirement["package"])
         for config in composition["configuration"]:
             configuration_requirements.append({**copy.deepcopy(config), "origin": instance_id, "scope": instance["scope"]})

@@ -21,6 +21,9 @@ provides:
       file: "scripts/schema_runtime.py"
       description: "Explicit project-local dependency setup and installed-copy checks."
   commands:
+    - name: "speckit.program-kit-governance.phase-context"
+      file: "commands/speckit.program-kit-governance.phase-context.md"
+      description: "Project applicable knowledge before planning and task generation."
     - name: "speckit.program-kit-governance.sync"
       file: "commands/speckit.program-kit-governance.sync.md"
       description: "Coordinate phase-specific repository setup, dependency context and readiness."
@@ -125,10 +128,14 @@ hooks:
       condition: null
       description: "Refuse clarified specifications that conflict with accepted architecture or conceal new decisions."
   before_plan:
-    command: "speckit.program-kit-governance.sync"
-    priority: 5
-    optional: false
-    description: "Establish the approved repository and exact package execution context before planning."
+    - command: "speckit.program-kit-governance.phase-context"
+      priority: 1
+      optional: false
+      description: "Project applicable semantic, architecture and capability obligations before drafting the plan."
+    - command: "speckit.program-kit-governance.sync"
+      priority: 5
+      optional: false
+      description: "Establish the approved repository and exact package execution context before planning."
   after_plan:
     - command: "speckit.program-kit-governance.architecture-check"
       priority: 5
@@ -138,6 +145,11 @@ hooks:
       priority: 10
       optional: false
       description: "Require current strict dependency graph evidence for the planned feature."
+  before_tasks:
+    command: "speckit.program-kit-governance.phase-context"
+    priority: 1
+    optional: false
+    description: "Carry the reviewed obligations and their check identities into task generation."
   after_tasks:
     - command: "speckit.analyze"
       priority: 5

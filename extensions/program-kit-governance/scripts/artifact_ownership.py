@@ -201,6 +201,11 @@ def validate_governance_context(feature_dir: Path, include_tasks: bool) -> None:
             continue
         text = path.read_text(encoding="utf-8")
         missing = [marker for marker in GOVERNANCE_CONTEXT[name] if marker not in text]
+        for marker in GOVERNANCE_CONTEXT[name]:
+            if marker.startswith('**') and marker in text:
+                matches = re.findall(re.escape(marker) + r'([^\r\n]*)', text)
+                if not any(value.strip().strip('`') for value in matches):
+                    missing.append(marker + ' requires a substantive value')
         if missing:
             errors.append(
                 f"PKA010 {path} is missing mandatory governance context: {', '.join(missing)}"
@@ -713,13 +718,14 @@ def validate_npm_graph_evidence(feature_dir: Path, manifest: dict) -> None:
 
 def validate_openapi_pipeline(feature_dir: Path, manifest: dict, include_tasks: bool) -> None:
     profiles = {str(value).lower() for value in manifest.get("profiles", [])}
-    if "dotnet" not in profiles or not profiles & {"typescript-vite", "typescript-web", "browser-web"}:
+    if "dotnet" not in profiles:
         return
     documents = [feature_dir / "spec.md", feature_dir / "plan.md", feature_dir / "quickstart.md"]
     if include_tasks:
         documents.append(feature_dir / "tasks.md")
     combined = "\n".join(path.read_text(encoding="utf-8") for path in documents if path.is_file())
-    if not re.search(r"\bopenapi\b", combined, re.IGNORECASE):
+    declared_api = bool(manifest.get('externalContracts')) or bool(profiles & {"typescript-vite", "typescript-web", "browser-web"})
+    if not declared_api and not re.search(r"\bopenapi\b", combined, re.IGNORECASE):
         return
     root = repository_root(feature_dir)
     tool_manifest_path = root / ".program-kit/eng/.config/dotnet-tools.json"

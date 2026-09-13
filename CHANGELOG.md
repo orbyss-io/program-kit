@@ -15,6 +15,17 @@
 
 ## 0.11.0 - 2026-09-12
 
+- Resolve activated built-in runtime package pins through the supported central-package import
+  graph, including consumer-owned declarations. Reject ambiguous or unsupported pins and dependency
+  conflicts instead of silently changing exact feature versions. Preserve failed-stage evidence.
+
+- Execute bootstrap recovery through the native workflow engine: preserve successful stages and
+  original terminal history, retry the affected producer, review changed authority, and bind
+  completion to the exact successful native run. Preserve interrupted and invalidated evidence.
+- Maintain versioned, selectable live fixtures, including the exact confirmed PriceCalculator
+  intake and original context. Add explicitly authorized fresh, controlled-failure and resumed
+  workflow segments with real human gates and supervisor-owned dispatch limits.
+
 - Require feature grilling through a mandatory pre-specification intake hook before creating or
   updating specs. Reuse the shipped interview method, preserve interrupted interviews and require
   one explicit review of the feature's outcome, scope, journeys, failures and acceptance criteria.

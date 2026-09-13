@@ -98,6 +98,14 @@ def run(*command: str, cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def require_offline_setup(result, label):
+    if result.returncode == 3 and 'PKU113 managed setup is coherent; dependency verification remains pending' in result.stderr:
+        if '"readinessScope": "offline-setup"' not in result.stdout or '"blockers": []' not in result.stdout:
+            raise AssertionError('Upgrade did not establish offline setup: ' + result.stdout)
+        return
+    require_success(result, label)
+
+
 def require_success(result: subprocess.CompletedProcess[str], label: str) -> None:
     if result.returncode != 0:
         raise AssertionError(f"{label} failed:\n{result.stdout}{result.stderr}")
@@ -128,6 +136,69 @@ def lifecycle_sha256(path: Path) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def seed_confirmed_feature_intake(project: Path, spec: Path) -> None:
+    """Provide the real intake prerequisite for this disposable upgrade fixture."""
+    import validate_governance_state as governance_fixture
+
+    scripts = project / ".specify/extensions/program-kit-governance/scripts"
+    missing = run(
+        sys.executable, str(scripts / "implementation_preflight.py"),
+        "--repository", str(project), "--feature-dir", str(spec.parent), cwd=project,
+    )
+    if missing.returncode == 0 or "PKS001" not in missing.stderr:
+        raise AssertionError(f"Missing feature intake was not rejected:\n{missing.stdout}{missing.stderr}")
+
+    original_directory = Path.cwd()
+    sys.path.insert(0, str(scripts))
+    try:
+        import specification_intake as intake
+
+        os.chdir(project)
+        governance = intake.governance
+        governance.configure_paths()
+        constitution = project / governance.CONSTITUTION
+        constitution.parent.mkdir(parents=True, exist_ok=True)
+        constitution.write_text(
+            governance_fixture.constitution(pending=False).replace("**Status**: Draft", "**Status**: Ratified"),
+            encoding="utf-8",
+        )
+        version, ratified, amended = governance.constitution_metadata(constitution)
+        intake.atomic_write(project / governance.RATIFICATION, {
+            "status": "Ratified", "gate_verdict": "ratify", "approval_mode": "interactive",
+            "constitution": {"path": governance.CONSTITUTION.as_posix(), "version": version,
+                             "sha256": sha256(constitution), "ratified": ratified, "last_amended": amended},
+        })
+        (project / governance.ARCHITECTURE).write_text(
+            "# Accepted upgrade fixture architecture\nCatalog.Api owns the OpenAPI contract.\n", encoding="utf-8",
+        )
+        roadmap = project / governance.ROADMAP
+        roadmap.parent.mkdir(parents=True, exist_ok=True)
+        roadmap.write_text(governance_fixture.roadmap().replace("SPEC-001", "SPC-001"), encoding="utf-8")
+        brief_path = intake.begin(project, "SPC-001", "Upgrade the Catalog.Api OpenAPI producer pin")
+        brief = intake.read(brief_path)
+        brief.update({field: "Catalog.Api upgrade fixture: " + field for field in intake.FIELDS})
+        brief["decisions"] = [{
+            "id": "Q1", "question": "Which contract is in scope?", "answer": "Catalog.Api OpenAPI",
+            "provenance": "Deterministic upgrade fixture", "rationale": "Exercise producer-pin renewal",
+            "dependsOn": [], "disposition": "answered", "blocking": True,
+        }]
+        intake.atomic_write(brief_path, brief)
+        reviewed = intake.review(project, "SPC-001")
+        intake.confirm(project, "SPC-001", reviewed["reviewHash"],
+                       "Deterministic fixture confirmation", "The fixture confirms this exact review")
+        confirmed = intake.check(project, "SPC-001")
+        spec.write_text(
+            spec.read_text(encoding="utf-8")
+            + f"- **Confirmed intake brief**: {confirmed['brief']}\n"
+            + f"- **Confirmed intake SHA256**: {confirmed['briefHash']}\n",
+            encoding="utf-8",
+        )
+        intake.check_spec(project, spec)
+    finally:
+        os.chdir(original_directory)
+        sys.path.remove(str(scripts))
+
+
 def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
     feature = project / "specs/001-openapi-upgrade"
     feature.mkdir(parents=True)
@@ -142,6 +213,7 @@ def seed_openapi_lifecycle(project: Path, old_runtime: str) -> Path:
         "- **Owned contracts and data**: Catalog.Api OpenAPI\n",
         encoding="utf-8",
     )
+    seed_confirmed_feature_intake(project, spec)
     plan.write_text(
         "# plan\n## Architecture Realization\n"
         "- **Roadmap entry and status transition**: SPC-001\n"
@@ -496,7 +568,7 @@ def main() -> int:
             raise AssertionError("partial upgrade fixture did not leave the expected mixed component state")
 
         installed = run(*command, cwd=project)
-        require_success(installed, "local release upgrade")
+        require_offline_setup(installed, "local release upgrade")
         order = (
             "Resolve bundle composition record",
             "Install bootstrap workflow",
@@ -621,8 +693,10 @@ def main() -> int:
             (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         expected_commands = [
-            "pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject Program.slnx -ForceEvaluate",
-            "pwsh -NoProfile -File .program-kit/eng/Restore.ps1 -Subject Program.slnx -LockedMode",
+            "python .specify/extensions/program-kit-governance/scripts/repository_sync.py request-renew --phase upgrade",
+            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py renew --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
+            "python .specify/extensions/program-kit-governance/scripts/repository_sync.py request-locked --phase upgrade",
+            "python .specify/extensions/program-kit-building-blocks/scripts/restore_dependencies.py locked --approved --lock .program-kit/sync/dependencies.json --request .program-kit/evidence/building-block-restore-request.json",
         ]
         if (
             lock_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
@@ -721,12 +795,18 @@ def main() -> int:
             ),
             "lifecycle readiness after renewal",
         )
-        # This legacy upgrade fixture deliberately has no confirmed intake. Renewing analysis
-        # must not bypass the newer independent intake gate in the full implementation preflight.
+        # This fixture has confirmed intake but has not authored the new phase evidence.
+        # Renewed analysis cannot bypass the independent knowledge-application gate.
         unconfirmed = run(sys.executable, str(preflight), "--repository", str(project),
                           "--feature-dir", str(feature), cwd=project)
-        if unconfirmed.returncode == 0 or "Specification intake blocked" not in unconfirmed.stderr:
-            raise AssertionError("renewed legacy fixture bypassed mandatory intake confirmation")
+        if unconfirmed.returncode == 0 or "PKS003" not in unconfirmed.stderr:
+            raise AssertionError("renewed fixture bypassed accepted alternative-adapter authority: "
+                                 + unconfirmed.stdout + unconfirmed.stderr)
+
+        phase_gate = run(sys.executable, str(preflight.with_name('phase_obligations.py')), 'check',
+                         '--repository', str(project), '--feature-dir', str(feature), '--phase', 'implementation', cwd=project)
+        if phase_gate.returncode == 0 or 'phase-obligations.json' not in phase_gate.stderr:
+            raise AssertionError('Renewed analysis bypassed independent phase evidence: ' + phase_gate.stdout + phase_gate.stderr)
 
         lock_value = json.loads((project / "packages.lock.json").read_text(encoding="utf-8"))
         dependency = lock_value["dependencies"]["net10.0"]["Orbyss.Foundation.Authentication"]
@@ -736,14 +816,17 @@ def main() -> int:
             json.dumps(lock_value, indent=2) + "\n",
             encoding="utf-8",
         )
-        require_success(run(*command, cwd=project), "upgrade convergence after lock renewal")
+        renewed_metadata = run(*command, cwd=project)
+        if renewed_metadata.returncode != 3 or 'dependency verification remains pending' not in renewed_metadata.stderr:
+            raise AssertionError('Changing package lock metadata falsely satisfied shared dependency verification: '
+                                 + renewed_metadata.stdout + renewed_metadata.stderr)
         satisfied_renewal = json.loads(
             (project / ".program-kit/evidence/dotnet-lock-renewal.json").read_text(encoding="utf-8")
         )
         if (
             satisfied_renewal.get("targetPackageVersions", {}).get("Orbyss.Foundation.Authentication") != target_runtime
-            or satisfied_renewal.get("reason") != "orbyss-building-block-locks-verified"
-            or satisfied_renewal.get("satisfied") is not True
+            or satisfied_renewal.get("reason") != "shared-dependency-verification-pending"
+            or satisfied_renewal.get("satisfied") is not False
         ):
             raise AssertionError(f"NuGet lock renewal did not converge: {satisfied_renewal}")
 

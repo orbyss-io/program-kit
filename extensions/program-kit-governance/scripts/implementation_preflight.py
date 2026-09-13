@@ -79,6 +79,11 @@ def main() -> int:
                  "--repository", str(repository), "--feature-dir", str(feature_dir)], repository)
     if setup != 0:
         return setup
+    knowledge = run([sys.executable, str(scripts / 'phase_obligations.py'), 'check',
+                     '--repository', str(repository), '--feature-dir', feature_dir.relative_to(repository).as_posix(),
+                     '--phase', 'implementation'], repository)
+    if knowledge != 0:
+        return knowledge
     print("implementation preflight lifecycle and artifact ownership are coherent")
     return 0
 

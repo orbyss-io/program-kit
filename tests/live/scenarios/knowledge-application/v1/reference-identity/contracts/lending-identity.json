@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contract": "equipment-lending/v1",
+  "specification": "specs/001-equipment-lending/spec.md",
+  "roadmapEntry": "RM01",
+  "futureEntry": "RM02",
+  "canonicalIds": ["lending-system", "lending-context", "lending-operation", "lending-domain", "decision-lending-boundary"],
+  "wireNames": ["operationId", "equipmentId", "quantity", "reservationId", "state"],
+  "governance": "Proposed target architecture and documented legacy behavior; no historical human approvals."
+}

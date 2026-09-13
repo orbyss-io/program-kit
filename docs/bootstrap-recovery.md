@@ -1,5 +1,10 @@
 # Recovering a hash-approved bootstrap after roadmap drift
 
+The replacement-run instructions below document the historical 0.6.x procedure.
+For current supported failures, use the [native workflow resumption contract](../extensions/program-kit-governance/references/workflow-resumption.md).
+Do not apply the historical intake/restart instructions to an already recovered consumer or infer
+native completion from its independent artifact recovery record.
+
 For the accepted bootstrap that reached NOT READY and the abort-only completion gate (`bd6be6ca`),
 use [accepted-bootstrap readiness recovery](maintenance-readiness-recovery.md). That procedure
 preserves the existing run and approvals; the historical replacement-run procedure below does not

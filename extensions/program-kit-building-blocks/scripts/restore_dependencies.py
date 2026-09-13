@@ -50,13 +50,14 @@ def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
         if "dotnet-tool" in kinds:
             tool_manifests.add(target["path"])
         if kinds & {"npm-dependency", "npm-dev-dependency"}:
-            npm_directories.add(PurePosixPath(target["path"]).parent.as_posix())
+            manifest = safe_path(repository, target["path"])
+            npm_directories.add(manifest.parent.relative_to(repository.resolve()).as_posix())
     nuget_config = repository / "NuGet.config"
     for relative in sorted(nuget_subjects, key=str.casefold):
         subject = safe_path(repository, relative)
         if not subject.is_file():
             raise RestoreError(f"PKB621 NuGet restore subject is missing: {relative}")
-        args = ["dotnet", "restore", str(subject), "--configfile", str(nuget_config)]
+        args = ["dotnet", "restore", str(subject), "--configfile", str(nuget_config), "--use-lock-file"]
         args.append("--force-evaluate" if mode == "renew" else "--locked-mode")
         commands.append({"ecosystem": "nuget", "cwd": str(repository), "args": args, "subject": relative})
     for relative in sorted(tool_manifests, key=str.casefold):
@@ -70,7 +71,9 @@ def restore_commands(repository: Path, lock: dict, mode: str) -> list[dict]:
             }
         )
     for relative in sorted(npm_directories, key=str.casefold):
-        directory = safe_path(repository, relative)
+        # '.' is derived from a validated root package.json, not an arbitrary
+        # caller-supplied restore subject. Keep ordinary file paths strict.
+        directory = repository.resolve() if relative == '.' else safe_path(repository, relative)
         args = ["npm", "install", "--package-lock-only", "--ignore-scripts", "--no-audit", "--no-fund"] if mode == "renew" else [
             "npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"
         ]
@@ -122,13 +125,13 @@ def native_lock_records(repository: Path) -> list[dict]:
 def input_basis(repository: Path, lock: dict) -> dict:
     """Bind dependency evidence to build inputs, independent of producer-only lock provenance."""
     ignored = {".git", ".specify", "artifacts", "node_modules", "bin", "obj", "cache", "dist", "__pycache__"}
-    names = {"global.json", ".nvmrc", ".npm-version", "NuGet.config", ".npmrc"}
+    names = {"global.json", ".nvmrc", ".npm-version", "nuget.config", ".npmrc"}
     paths = set()
     for path in repository.rglob("*"):
         relative = path.relative_to(repository)
         if any(part in ignored for part in relative.parts) or not path.is_file():
             continue
-        if path.name in names or path.suffix in {".csproj", ".props", ".targets", ".sln", ".slnx"}:
+        if path.name.casefold() in names or path.suffix in {".csproj", ".props", ".targets", ".sln", ".slnx"}:
             paths.add(relative.as_posix())
     for target in lock.get("targets", []):
         paths.add(target["path"])
@@ -280,7 +283,14 @@ def main() -> int:
                     raise RestoreError("PKB624 exact .NET runtime evidence is missing; run governance sync planning")
                 if package_execution.javascript_runtime().version(dotnet, repository, environment) != required:
                     raise RestoreError("PKB624 recorded .NET command no longer resolves the required SDK; rerun governance sync planning")
-                result = subprocess.run([*dotnet, *command["args"][1:]], cwd=command["cwd"], env=environment, check=False)
+                dotnet_environment = environment.copy()
+                catalog = load_json(package_execution.extension_root() / 'program-kit-building-blocks/references/orbyss-building-blocks.json')
+                for source in catalog['sources'].values():
+                    if source['ecosystem'] == 'npm':
+                        reference = source.get('authentication', {}).get('credentialEnvironment')
+                        if reference:
+                            dotnet_environment.pop(reference, None)
+                result = subprocess.run([*dotnet, *command["args"][1:]], cwd=command["cwd"], env=dotnet_environment, check=False)
             if result.returncode != 0:
                 raise RestoreError(
                     f"PKB623 {command['ecosystem']} {mode} failed for {command['subject']} with exit code {result.returncode}"

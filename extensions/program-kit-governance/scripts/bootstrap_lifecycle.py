@@ -106,7 +106,7 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
         if not item['affected_slices'] or set(item['affected_slices']) - slices:
             raise LifecycleError(f'{identity} must identify exact affected roadmap slices')
         disposition = item['disposition']
-        triggers = {'architecture': {'before-implementation'}, 'feature': {'feature-plan'}, 'later': {'production', 'later-release'}}
+        triggers = {'architecture': {'before-bootstrap-completion', 'before-implementation'}, 'feature': {'feature-plan'}, 'later': {'production', 'later-release'}}
         if disposition not in triggers or item['trigger'] not in triggers[disposition]:
             raise LifecycleError(f'{identity} has inconsistent disposition/trigger')
         if item['status'] not in {'open', 'closed'}:
@@ -126,12 +126,20 @@ def validate_prerequisites(root: Path, records: list[dict], *, required: bool = 
                 proof = load(path)
                 if proof.get('prerequisite') != identity or proof.get('exit_code') != 0 or not proof.get('command'):
                     raise LifecycleError(f'{identity} compatibility proof did not pass')
-                for bound in proof.get('inputs', []) + proof.get('streams', []):
+                if proof.get('schema_version') != '1.1' or not proof.get('test_result') or not proof.get('checks'):
+                    raise LifecycleError(f'{identity} compatibility evidence needs current executed named tests; availability-only or legacy receipts need renewed proof')
+                if proof.get('tooling_sources') != proof_tooling():
+                    raise LifecycleError(f'{identity} compatibility tooling changed; renew the proof')
+                for bound in proof.get('inputs', []) + proof.get('streams', []) + [proof['test_result']]:
                     bound_path = local(root, bound['path'])
                     if not bound_path.is_file() or digest(bound_path) != bound['sha256']:
                         raise LifecycleError(f'{identity} compatibility proof inputs/streams changed')
                 if not proof.get('inputs') or len(proof.get('streams', [])) != 2:
                     raise LifecycleError(f'{identity} proof must bind inputs and both streams')
+                from phase_obligations import test_results
+                cases = test_results(local(root, proof['test_result']['path']), 'junit')
+                if not all(cases.values()) or not all(cases.get(name) is True for name in proof['checks']):
+                    raise LifecycleError(f'{identity} compatibility evidence lacks passing required test cases')
                 expected_design = {'docs/architecture/bootstrap-decisions.json'}
                 if (root / 'docs/architecture/building-block-selection.json').is_file():
                     expected_design.add('docs/architecture/building-block-selection.json')
@@ -257,35 +265,120 @@ def project_lifecycle(root: Path, model: dict, *, check: bool = False) -> None:
                     doc['sha256'] = digest(path)
 
 
-def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
-    """Execute a reviewed Python compatibility recipe in a fresh isolated scratch directory."""
-    import tempfile
+def proof_tooling():
+    extensions = Path(__file__).resolve().parents[2]
+    paths = [
+        'program-kit-governance/scripts/bootstrap_lifecycle.py',
+        'program-kit-governance/scripts/bootstrap_proof_plan.py',
+        'program-kit-governance/references/bootstrap-proof-plan.schema.json',
+        'program-kit-governance/scripts/bootstrap_compatibility.py',
+        'program-kit-governance/scripts/compatibility_process.py',
+        'program-kit-governance/scripts/repository_sync.py',
+        'program-kit-governance/scripts/package_execution.py',
+        'program-kit-governance/scripts/phase_obligations.py',
+        'program-kit-building-blocks/scripts/restore_dependencies.py',
+        'program-kit-building-blocks/references/orbyss-building-blocks.json',
+        'program-kit-dotnet/templates/dotnet/files/global.json',
+        'program-kit-dotnet/templates/dotnet/files/NuGet.config',
+        'program-kit-dotnet/templates/dotnet/files/.nvmrc',
+        'program-kit-dotnet/templates/dotnet/files/.npm-version',
+    ]
+    return {name: digest(extensions / name) for name in paths}
+
+
+def validate_recipe(root: Path, identity: str, recipe: str):
+    """Validate every declared input before creating scratch space or restoring."""
     recipe_path = local(root, recipe)
     if recipe_path.suffix != '.py' or not recipe_path.is_file():
         raise LifecycleError('Compatibility recipe must be an existing repository-local Python file')
     if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9-]{0,100}', identity):
         raise LifecycleError('Unsafe prerequisite ID')
+    contract_path = recipe_path.with_suffix('.contract.json')
+    contract = load(contract_path)
+    checks = contract.get('checks')
+    if contract.get('schemaVersion') != 1 or not isinstance(checks, list) or not checks:
+        raise LifecycleError('Compatibility recipe needs a versioned contract and named runtime checks')
+    if any(not isinstance(item, dict) or set(item) != {'id', 'kind', 'testCases'} or
+           not isinstance(item['id'], str) or not item['id'].strip() or
+           item['kind'] not in {'availability', 'restore', 'runtime-compatibility'} or
+           not isinstance(item['testCases'], list) or not item['testCases'] for item in checks):
+        raise LifecycleError('Each compatibility check needs id, supported kind and actual testCases')
+    if len({item['id'] for item in checks}) != len(checks):
+        raise LifecycleError('Duplicate compatibility check identity')
+    if not any(item.get('kind') == 'runtime-compatibility' for item in checks):
+        raise LifecycleError('Availability/restore checks alone cannot establish runtime compatibility')
+    names = [name for item in checks for name in item.get('testCases', [])]
+    if not names or len(names) != len(set(names)) or any(not isinstance(name, str) or not name.strip() for name in names):
+        raise LifecycleError('Compatibility contract needs distinct executed test case names')
+    fixtures = contract.get('fixtures', {})
+    targets = contract.get('dependencyTargets', [])
+    if not isinstance(fixtures, dict) or not isinstance(targets, list):
+        raise LifecycleError('Compatibility fixture/target declarations are invalid')
+    for relative, source in fixtures.items():
+        local(root, relative)
+        if any(part.casefold() in {'.git', '.specify', '.program-kit', 'node_modules', 'bin', 'obj'} for part in Path(relative).parts):
+            raise LifecycleError('Compatibility fixture cannot supply managed/cache content')
+        if not local(root, source).is_file():
+            raise LifecycleError('Compatibility fixture source is missing: ' + source)
+    if len(targets) != len(set(targets)) or any(target not in fixtures or
+            (Path(target).suffix != '.csproj' and Path(target).name != 'package.json') for target in targets):
+        raise LifecycleError('Compatibility targets must be distinct bound csproj/package.json fixtures')
+    local(root, contract.get('result', 'compatibility-results.xml'))
+    return recipe_path, contract_path, contract, names
+
+
+def run_proof(root: Path, identity: str, recipe: str, timeout: int) -> dict:
+    """Execute a reviewed Python compatibility recipe in a fresh isolated scratch directory."""
+    import tempfile
+    import subprocess
+    import xml.etree.ElementTree as ET
+    recipe_path, contract_path, contract, names = validate_recipe(root, identity, recipe)
     parent = root / '.specify/governance/compatibility' / identity
     parent.mkdir(parents=True, exist_ok=True)
     attempt = Path(tempfile.mkdtemp(prefix='attempt-', dir=parent))
     command = [sys.executable, str(recipe_path)]
-    inputs = [{'path': recipe, 'sha256': digest(recipe_path)}]
+    inputs = [{'path': recipe, 'sha256': digest(recipe_path)},
+              {'path': contract_path.relative_to(root).as_posix(), 'sha256': digest(contract_path)}]
+    test_record = None
     design_sources = {p: design_digest(root / p) for p in (
         'docs/architecture/bootstrap-decisions.json', 'docs/architecture/building-block-selection.json'
     ) if (root / p).is_file()}
     from compatibility_process import run
-    with tempfile.TemporaryDirectory(prefix='program-kit-compatibility-') as directory:
+    provisioning = None
+    with tempfile.TemporaryDirectory(prefix='scratch-', dir=attempt) as directory:
         with (attempt / 'stdout.txt').open('wb') as stdout, (attempt / 'stderr.txt').open('wb') as stderr:
             try:
+                from bootstrap_compatibility import prepare, restore
+                fixture_inputs, dependency_plan = prepare(root, Path(directory), contract)
+                inputs.extend(fixture_inputs)
+                if dependency_plan:
+                    provisioning = restore(root, Path(directory), timeout=max(timeout, 120))
                 exit_code = run(command, directory, stdout, stderr, timeout)
-            except OSError as exc:
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
                 exit_code = 125
                 stderr.write(str(exc).encode('utf-8'))
+        process_exit_code = exit_code
+        if exit_code == 0:
+            try:
+                from phase_obligations import test_results
+                source = local(Path(directory), contract.get('result', 'compatibility-results.xml'))
+                actual = test_results(source, 'junit')
+                if not all(actual.values()) or not all(actual.get(name) is True for name in names):
+                    raise LifecycleError('Compatibility recipe omitted, failed or skipped required runtime checks')
+                destination = attempt / 'test-results.xml'
+                destination.write_bytes(source.read_bytes())
+                test_record = {'path': destination.relative_to(root).as_posix(), 'sha256': digest(destination)}
+            except (OSError, ValueError, LifecycleError, ET.ParseError) as error:
+                exit_code = 126
+                with (attempt / 'stderr.txt').open('ab') as stderr:
+                    stderr.write(('\n' + str(error)).encode('utf-8'))
     streams = []
     for name in ('stdout.txt', 'stderr.txt'):
         path = attempt / name
         streams.append({'path': path.relative_to(root).as_posix(), 'sha256': digest(path)})
-    value = {'schema_version': '1.0', 'prerequisite': identity, 'exit_code': exit_code,
+    value = {'schema_version': '1.1', 'prerequisite': identity, 'exit_code': exit_code,
+             'process_exit_code': process_exit_code, 'test_result': test_record, 'checks': names,
+             'provisioning': provisioning, 'tooling_sources': proof_tooling(),
              'command': command, 'python': sys.version, 'inputs': inputs, 'streams': streams,
              'design_sources': design_sources}
     receipt = attempt / 'proof.json'

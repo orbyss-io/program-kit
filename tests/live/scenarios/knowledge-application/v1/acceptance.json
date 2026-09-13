@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "equipment-lending-knowledge-application",
+  "version": "1",
+  "status": "fixture-definition-not-live-authorized",
+  "currentEntry": "RM01",
+  "futureEntry": "RM02",
+  "cases": {
+    "bootstrap": ["confirmed-intake-preserved", "no-product-implementation", "runtime-compatibility-not-availability", "owned-prerequisites", "native-ready-completion", "scratch-cleanup"],
+    "feature": ["confirmed-feature-brief", "early-scoped-knowledge", "policies-before-effects", "explicit-confirmation", "illegal-transition-no-effect", "idempotent-admission", "durable-restart", "durable-notification-recovery", "typed-v1-admission", "compiled-boundaries", "shell-resolution", "replacement-compatibility", "public-forms-production", "trusted-artifact-admission", "supported-renderer", "accessible-validation", "executed-delivery-proof", "future-feature-unmaterialized"],
+    "upgrade": ["admitted-released-reference", "consumer-edits-preserved", "canonical-identity-preserved", "v1-wire-and-behavior-preserved", "shared-nuget-and-npm-renewal", "scoped-remediation", "stale-evidence-blocked", "unchanged-second-sync", "future-feature-unmaterialized"],
+    "deterministicVariants": ["javascript-only", "dotnet-only", "mixed-stack", "stateless-no-effect", "anonymous", "protected", "accepted-override", "future-capability", "missing-test", "skipped-test", "stale-review", "orphan-lock", "imported-forbidden-reference", "empty-aggregate-success"]
+  },
+  "primaryMeasurements": ["input_tokens", "cached_input_tokens", "output_tokens", "quality", "avoidable-rework", "unnecessary-reading"],
+  "timeClassification": ["productive", "necessary-investigation", "avoidable-rework", "unnecessary-reading", "external-wait", "unknown"],
+  "referenceBaseline": {
+    "kind": "released-reference-consumer",
+    "historicalLiveCheckpoint": false,
+    "requiredEvidence": ["released-archive-checksums", "installed-version-provenance", "consumer-file-inventory", "independent-before-behavior", "canonical-and-wire-inventory", "native-locks", "toolchain-and-platform"]
+  },
+  "limitations": ["This definition is not an admitted executable reference consumer.", "No paid phase may claim these assertions from an agent summary or package restore alone.", "Historical unrelated products support qualitative findings only."]
+}

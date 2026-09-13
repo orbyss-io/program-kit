@@ -127,7 +127,8 @@ def bootstrap_artifacts() -> tuple[Path, ...]:
             )
         )
     optional_selection = (BUILDING_BLOCK_SELECTION,) if project_path(BUILDING_BLOCK_SELECTION).is_file() else ()
-    lifecycle_artifacts = tuple(p for p in (PREREQUISITES, ACCEPTANCE_SCOPE) if project_path(p).is_file())
+    lifecycle_artifacts = tuple(p for p in (PREREQUISITES, ACCEPTANCE_SCOPE,
+        Path('docs/architecture/bootstrap-proof-plan.json')) if project_path(p).is_file())
     if project_path(PREREQUISITES).is_file():
         ledger = read_json(project_path(PREREQUISITES))
         lifecycle_artifacts += tuple(sorted({Path(e['path']) for item in ledger.get('prerequisites', []) for e in item.get('evidence', [])}))
@@ -1385,7 +1386,7 @@ def validate_constitution_draft() -> None:
     constitution = project_path(CONSTITUTION)
     constitution_metadata(constitution, allow_pending=True)
     text = constitution.read_text(encoding="utf-8")
-    if re.search(r'(?i)(?:this initial Draft awaits ratification|this constitution (?:is|remains) (?:a )?Draft)', text):
+    if re.search(r'(?i)(?:this initial Draft awaits ratification|this (?:constitution|document) (?:is|remains) (?:currently |still )?(?:a )?Draft|this (?:constitution|document) (?:has not been|is not yet) (?:human[- ]?)?ratified)', text):
         raise GovernanceStateError('Remove transient drafting prose before ratification; status belongs in canonical metadata')
     if not re.search(r"^\*\*Status\*\*: Draft$", text, re.MULTILINE):
         raise GovernanceStateError("Constitution review requires an explicit Draft status")
@@ -1751,6 +1752,13 @@ def validate_setup_authority() -> None:
         raise GovernanceStateError("Setup bootstrap approval does not bind the approved decisions")
 
 
+def require_legacy_completion_cli() -> None:
+    version = manifest_version(project_path(EXTENSION_MANIFEST), 'Program Kit Governance extension')
+    components = re.match(r'^(\d+)\.(\d+)\.', version)
+    if components is None or tuple(map(int, components.groups())) >= (0, 11):
+        raise GovernanceStateError('Completion is owned by the native workflow; use workflow_lifecycle.py resume for the existing run')
+
+
 def complete_bootstrap() -> None:
     validate_bootstrap(True, True)
     report = project_path(READINESS_REPORT)
@@ -1797,10 +1805,18 @@ def validate_completion() -> None:
             "sha256": sha256(report),
         },
     }
-    if record != expected:
+    workflow_binding = record.get('workflow')
+    artifact_record = {key: value for key, value in record.items() if key != 'workflow'}
+    if artifact_record != expected:
         raise GovernanceStateError(
             "Bootstrap completion record does not match the current constitution, approval, and readiness report"
         )
+    if workflow_binding is not None:
+        import workflow_lifecycle
+        try:
+            workflow_lifecycle.validate_engine_completion(Path.cwd().resolve())
+        except (workflow_lifecycle.WorkflowLifecycleError, ValueError, OSError) as error:
+            raise GovernanceStateError(str(error)) from error
 
 
 def accepted_adr(adr_id: str) -> bool:
@@ -1891,7 +1907,7 @@ def roadmap_records(path: Path) -> list[dict[str, str]]:
     return records
 
 
-def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
+def validate_roadmap(require_ready: bool, *, verify_delivery: bool = True) -> list[dict[str, str]]:
     records = roadmap_records(project_path(ROADMAP))
     lifecycle_call("validate_prerequisites", records)
     # Defense in depth for legacy prose. The structured source inventory and slice
@@ -1942,6 +1958,24 @@ def validate_roadmap(require_ready: bool) -> list[dict[str, str]]:
                 "implementation decision outside Required Accepted ADRs; list the ADR there "
                 "and keep the record Blocked until it is Accepted"
             )
+    if verify_delivery and any(record['Status'] == 'Delivered' for record in records):
+        from specification_intake import spec_entries
+        from phase_obligations import check as check_phase
+        root = Path.cwd().resolve()
+        features = {}
+        for path in (root / 'specs').glob('*/spec.md'):
+            for identity in spec_entries(path.read_text(encoding='utf-8')):
+                features.setdefault(identity, []).append(path.parent)
+        for record in records:
+            if record['Status'] != 'Delivered':
+                continue
+            matches = features.get(record['id'], [])
+            if len(matches) != 1:
+                raise GovernanceStateError(f"Delivered {record['id']} needs exactly one owned feature and current delivery proof")
+            try:
+                check_phase(root, matches[0], 'delivery')
+            except (ValueError, OSError) as error:
+                raise GovernanceStateError(f"Delivered {record['id']} lacks current required evidence: {error}") from error
     if require_ready and not any(record["Status"] == "Ready" for record in records):
         raise GovernanceStateError("Specification roadmap contains no Ready entry")
     return records
@@ -2227,6 +2261,7 @@ def main() -> int:
             elif args.command == "accept-bootstrap":
                 accept_bootstrap(args.verdict, args.approval_mode)
             elif args.command == "complete-bootstrap":
+                require_legacy_completion_cli()
                 complete_bootstrap()
             elif args.command == "validate-setup-authority":
                 validate_setup_authority()

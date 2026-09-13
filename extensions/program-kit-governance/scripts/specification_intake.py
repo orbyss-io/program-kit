@@ -76,6 +76,8 @@ def validate_brief(brief: dict, entry: str) -> None:
             require(not item["blocking"], f"{item['id']} blocks specification and cannot be deferred")
             require(nonempty(item.get("owner")) and nonempty(item.get("trigger")),
                     f"{item['id']} needs a deferral owner/next action and trigger")
+            require(item.get('duePhase') in {'planning', 'after-plan', 'after-tasks', 'implementation', 'delivery'},
+                    f"{item['id']} needs a structured duePhase; review the intended legacy trigger")
         if status in {"answered", "default"}:
             require(all(by_id[d].get("disposition") in {"answered", "default"} for d in dependencies),
                     f"{item['id']} relies on an unsettled premise")
@@ -100,7 +102,9 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     governance.configure_paths()
     governance.validate_installation()
     governance.validate_ratification()
-    records = governance.validate_roadmap(False)
+    # Intake authority validation is also called from the delivery gate. Avoid
+    # recursively evaluating delivery while validating its own confirmed intent.
+    records = governance.validate_roadmap(False, verify_delivery=False)
     selected = [record for record in records if record["id"] == entry]
     require(len(selected) == 1, "Select exactly one existing roadmap entry")
     record = selected[0]
@@ -113,6 +117,10 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
         spec = inside(repository, feature_directory) / "spec.md"
         require(spec_entries(spec.read_text(encoding="utf-8")) == [entry],
                 "An Active entry may only resume its existing specification; select a Ready entry for a new feature")
+    from feature_knowledge import project as project_knowledge, source_hash
+    brief_path = directory(repository, entry) / 'brief.json'
+    brief = read(brief_path) if brief_path.is_file() else {}
+    knowledge = project_knowledge(repository, brief.get('architectureScope'))
     paths = [governance.CONSTITUTION, governance.ARCHITECTURE]
     for adr in governance.roadmap_required_adr_ids(record["Required Accepted ADRs"], entry):
         matches = [p for p in governance.project_path(governance.DECISIONS).rglob("*.md")
@@ -122,7 +130,8 @@ def context(repository: Path, entry: str, *, later: bool = False) -> dict:
     return {
         # Lifecycle progress and unrelated roadmap entries do not invalidate feature intent.
         "roadmap": {key: value for key, value in record.items() if key != "Status"},
-        "sources": {str(p).replace("\\", "/"): hashlib.sha256(inside(repository, str(p)).read_bytes()).hexdigest()
+        "canonicalKnowledge": knowledge,
+        "sources": {str(p).replace("\\", "/"): source_hash(inside(repository, str(p)))
                     for p in sorted(set(paths))},
     }
 
@@ -138,7 +147,11 @@ def review_text(brief: dict, basis: dict) -> str:
                   f"Provenance: {item['provenance']}", f"Rationale: {item['rationale']}",
                   "Depends on: " + (", ".join(item["dependsOn"]) or "none")]
         if item["disposition"] == "deferred":
-            lines += [f"Owner / next action: {item['owner']}", f"Trigger: {item['trigger']}"]
+            lines += [f"Owner / next action: {item['owner']}", f"Trigger: {item['trigger']}", f"Due phase: {item['duePhase']}"]
+    if basis.get('canonicalKnowledge'):
+        from bootstrap_context import semantic_projection
+        lines += ["", "## Canonical architecture scope", "```json",
+                  json.dumps(semantic_projection(basis['canonicalKnowledge']), ensure_ascii=False, separators=(',', ':')), "```"]
     lines += ["", "## Review basis", f"Brief SHA256: {digest(brief)}", f"Context SHA256: {digest(basis)}", ""]
     return "\n".join(lines)
 

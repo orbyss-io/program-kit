@@ -142,7 +142,7 @@ def provider_inputs() -> dict:
     result = {}
     for name in ('program-kit-governance', 'program-kit-dotnet', 'program-kit-building-blocks'):
         for path in sorted((root / name).rglob('*')):
-            if path.is_file() and not set(path.relative_to(root).parts) & {'__pycache__', '.specify-dev', 'node_modules', '.git'} and path.suffix not in {'.pyc','.pyo'}:
+            if path.is_file() and not set(path.relative_to(root).parts) & {'__pycache__', '.specify-dev', 'node_modules', '.git', 'bin', 'obj'} and path.suffix not in {'.pyc','.pyo'}:
                 result[path.relative_to(root).as_posix()] = digest(path)
     return result
 
@@ -210,27 +210,32 @@ def describe(repository: Path, phase: str, feature: str | None = None) -> dict:
     return plan
 
 
-def audit_javascript(repository: Path, pins: dict) -> None:
+def audit_toolchain(repository: Path, pins: dict) -> None:
+    """Resolve only the toolchains required by this setup or compatibility scope."""
     runtime = package_execution.javascript_runtime()
-    node, node_version = runtime.resolve_node(repository, pins["node"], "node", "auto")
-    npm, npm_version = runtime.resolve_npm(repository, node, pins["npm"], "") if node else (None, None)
-    cache = runtime.cache_directory(repository)
-    _, trust, extra_ca = runtime.trust_environment(repository, cache)
-    proof = {"schemaVersion": 2, "required": pins, "resolved": {"node": node_version, "npm": npm_version},
-             "commands": {"node": [str(node)] if node else [], "npm": npm or []},
-             "environment": {"npmCache": str(cache), "trustMode": trust, "extraCaCertificates": extra_ca, "strictSsl": True},
-             "satisfied": bool(node and npm)}
-    if (repository / "global.json").is_file():
-        sdk = load(repository / "global.json")["sdk"]["version"]
-        executable = shutil.which("dotnet")
+    proof = {'schemaVersion': 2, 'required': dict(pins), 'resolved': {}, 'commands': {}, 'satisfied': True}
+    if 'node' in pins or 'npm' in pins:
+        if not all(key in pins for key in ('node', 'npm')):
+            raise ValueError('PKS004 JavaScript requires both Node and npm pins')
+        node, node_version = runtime.resolve_node(repository, pins['node'], 'node', 'auto')
+        npm, npm_version = runtime.resolve_npm(repository, node, pins['npm'], '') if node else (None, None)
+        cache = runtime.cache_directory(repository)
+        _, trust, extra_ca = runtime.trust_environment(repository, cache)
+        proof.update(resolved={'node': node_version, 'npm': npm_version},
+                     commands={'node': [str(node)] if node else [], 'npm': npm or []},
+                     environment={'npmCache': str(cache), 'trustMode': trust, 'extraCaCertificates': extra_ca, 'strictSsl': True},
+                     satisfied=bool(node and npm))
+    sdk = pins.get('dotnet') or (load(repository / 'global.json')['sdk']['version'] if (repository / 'global.json').is_file() else None)
+    if sdk:
+        executable = shutil.which('dotnet')
         command = [executable] if executable else []
         actual = runtime.version(command, repository) if command else None
-        proof["required"] = {**pins, "dotnet": sdk}
-        proof["resolved"]["dotnet"] = actual
-        proof["commands"]["dotnet"] = command
-        proof["satisfied"] = proof["satisfied"] and sdk == actual
-    write(repository / ".program-kit/evidence/toolchain.json", proof)
-    if not proof["satisfied"]:
+        proof['required']['dotnet'] = sdk
+        proof['resolved']['dotnet'] = actual
+        proof['commands']['dotnet'] = command
+        proof['satisfied'] = proof['satisfied'] and sdk == actual
+    write(repository / '.program-kit/evidence/toolchain.json', proof)
+    if not proof['satisfied']:
         raise ValueError(f"PKS004 exact toolchain unavailable: required={pins}, resolved={proof['resolved']}; install the approved versions, then resume sync")
 
 
@@ -312,7 +317,7 @@ def _apply(repository: Path, plan: dict, *, validate_authority: bool = True) -> 
             elif operation["adapter"] == "javascript":
                 path = repository / ".program-kit/evidence/toolchain.json"
                 if next(item for item in describe(repository, setup["phase"], setup["feature"])["operations"] if item["id"] == "toolchain")["required"]:
-                    audit_javascript(repository, operation["pins"])
+                    audit_toolchain(repository, operation["pins"])
                     record["status"] = "applied"
                 else:
                     package_execution.javascript_runtime().context(repository, path)

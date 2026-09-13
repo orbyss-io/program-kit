@@ -1,0 +1,3260 @@
+{
+  "model_id": "price-calculator",
+  "title": "Price Calculator — provisional architecture",
+  "elements": [
+    {
+      "id": "price-calculator",
+      "type": "software-system",
+      "name": "Price Calculator",
+      "description": "Organization-configurable estimation, administration and published hosted or embedded calculators.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e1",
+        "e6",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "organization-admin",
+      "type": "person",
+      "name": "Organization administrator",
+      "description": "Maintains private catalog, suppliers, forms, brands, translations and saved estimates.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "intermediary",
+      "type": "person",
+      "name": "Intermediary",
+      "description": "Guides a consumer through an estimate; may also hold the organization administrator role.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e2",
+        "e5"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "consumer",
+      "type": "person",
+      "name": "Consumer",
+      "description": "Receives an assisted estimate or independently submits a calculator and downloads the result.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e2",
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "supplier",
+      "type": "person",
+      "name": "Supplier",
+      "description": "Provides Excel data offline to the administrator in v1; has no consumer interaction.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "website-publisher",
+      "type": "person",
+      "name": "Website publisher",
+      "description": "Embeds the organization's published calculator in its existing site.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e6"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "customer-website",
+      "type": "external-system",
+      "name": "Customer website",
+      "description": "Existing website displaying a published calculator; its platform is not yet specified.",
+      "status": "explicit",
+      "ownership": "consumer",
+      "evidence": [
+        "e6"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "catalog",
+      "type": "bounded-context",
+      "name": "Catalog",
+      "description": "Provide a private, comparable, revisioned catalog of items and supplier offers.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "parent": "price-calculator",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "calculator-design",
+      "type": "bounded-context",
+      "name": "Calculator Design",
+      "description": "Let organization admins publish reusable, branded estimation journeys across industries.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e1",
+        "e3",
+        "e5",
+        "e6",
+        "e7"
+      ],
+      "parent": "price-calculator",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "estimation",
+      "type": "bounded-context",
+      "name": "Estimation",
+      "description": "Produce understandable, historically stable budget estimates from published calculator recipes.",
+      "status": "proposed",
+      "ownership": "consumer",
+      "evidence": [
+        "e2",
+        "e5",
+        "e7"
+      ],
+      "parent": "price-calculator",
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "item-definitions",
+      "type": "domain-capability",
+      "name": "Item Definitions",
+      "description": "Canonical item fields, three-level hierarchy, typed properties and comparable units.",
+      "status": "proposed",
+      "ownership": "catalog",
+      "evidence": [
+        "e3",
+        "e7"
+      ],
+      "parent": "catalog",
+      "properties": {
+        "subdomain": "catalog-model",
+        "classification": "supporting"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "supplier-imports",
+      "type": "domain-capability",
+      "name": "Supplier Imports",
+      "description": "Supplier identities, supplier-code mappings, staged Excel validation and accepted offer revisions.",
+      "status": "proposed",
+      "ownership": "catalog",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "parent": "catalog",
+      "properties": {
+        "subdomain": "supplier-data",
+        "classification": "supporting"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "catalog-localization",
+      "type": "domain-capability",
+      "name": "Catalog Localization Adapter",
+      "description": "Write/import and read versioned Dutch, English, French and German item labels under catalog ownership.",
+      "status": "proposed",
+      "ownership": "catalog",
+      "evidence": [
+        "e7",
+        "p1"
+      ],
+      "parent": "catalog",
+      "properties": {
+        "subdomain": "presentation-mechanisms",
+        "classification": "generic"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "calculator-modeling",
+      "type": "domain-capability",
+      "name": "Calculator Modeling",
+      "description": "Conditional selections, typed quantity rules, total-range bands and authored language content.",
+      "status": "proposed",
+      "ownership": "calculator-design",
+      "evidence": [
+        "e1",
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "parent": "calculator-design",
+      "properties": {
+        "subdomain": "calculator-model",
+        "classification": "core"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "calculator-publication",
+      "type": "domain-capability",
+      "name": "Calculator Publication",
+      "description": "Validate, preview and activate immutable coherent calculator releases referencing exact catalog and content revisions.",
+      "status": "proposed",
+      "ownership": "calculator-design",
+      "evidence": [
+        "e7"
+      ],
+      "parent": "calculator-design",
+      "properties": {
+        "subdomain": "organization-publishing",
+        "classification": "supporting"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "organization-settings",
+      "type": "domain-capability",
+      "name": "Organization Publishing Settings",
+      "description": "Private organization calculator identities, branding, admin grants and distribution settings.",
+      "status": "proposed",
+      "ownership": "calculator-design",
+      "evidence": [
+        "e3",
+        "e5",
+        "e6",
+        "e7"
+      ],
+      "parent": "calculator-design",
+      "properties": {
+        "subdomain": "organization-publishing",
+        "classification": "supporting"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "form-mechanism",
+      "type": "domain-capability",
+      "name": "Forms Adapter",
+      "description": "Adapt consumer branches, selections and validation to reusable form editor/runtime mechanisms.",
+      "status": "proposed",
+      "ownership": "calculator-design",
+      "evidence": [
+        "p1",
+        "e1"
+      ],
+      "parent": "calculator-design",
+      "properties": {
+        "subdomain": "presentation-mechanisms",
+        "classification": "generic"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "design-localization",
+      "type": "domain-capability",
+      "name": "Calculator Localization Adapter",
+      "description": "Write/import translated form, brand and band text; publish and read pinned localized content.",
+      "status": "proposed",
+      "ownership": "calculator-design",
+      "evidence": [
+        "e7",
+        "p1"
+      ],
+      "parent": "calculator-design",
+      "properties": {
+        "subdomain": "presentation-mechanisms",
+        "classification": "generic"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "design-catalog",
+      "type": "domain-capability",
+      "name": "Calculator Catalog Bridge",
+      "description": "Translate catalog revision lookups into authoring item references and release validation.",
+      "status": "proposed",
+      "ownership": "calculator-design",
+      "evidence": [
+        "d3",
+        "e7"
+      ],
+      "parent": "calculator-design",
+      "properties": {
+        "subdomain": "calculator-model",
+        "classification": "core"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "estimate-calculation",
+      "type": "domain-capability",
+      "name": "Estimate Calculation",
+      "description": "Execute quantity rules, eligibility, min/max/mean, total bands and explicit completeness.",
+      "status": "proposed",
+      "ownership": "estimation",
+      "evidence": [
+        "e5",
+        "e7"
+      ],
+      "parent": "estimation",
+      "properties": {
+        "subdomain": "estimate-model",
+        "classification": "core"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "estimate-records",
+      "type": "domain-capability",
+      "name": "Estimate Records",
+      "description": "Persist immutable answers, labels, line values, totals and revision references; authorize admin history.",
+      "status": "proposed",
+      "ownership": "estimation",
+      "evidence": [
+        "e7"
+      ],
+      "parent": "estimation",
+      "properties": {
+        "subdomain": "estimate-model",
+        "classification": "core"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "consumer-output",
+      "type": "domain-capability",
+      "name": "Consumer Result Output",
+      "description": "Project and export historical results without supplier identities or private offer records.",
+      "status": "proposed",
+      "ownership": "estimation",
+      "evidence": [
+        "e7"
+      ],
+      "parent": "estimation",
+      "properties": {
+        "subdomain": "result-delivery",
+        "classification": "supporting"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "estimate-design",
+      "type": "domain-capability",
+      "name": "Estimation Recipe Bridge",
+      "description": "Resolve exact published recipe, brand, four-language labels and catalog revision reference.",
+      "status": "proposed",
+      "ownership": "estimation",
+      "evidence": [
+        "e7",
+        "d3"
+      ],
+      "parent": "estimation",
+      "properties": {
+        "subdomain": "estimate-model",
+        "classification": "core"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    },
+    {
+      "id": "estimate-catalog",
+      "type": "domain-capability",
+      "name": "Estimation Catalog Bridge",
+      "description": "Read exact reviewed offer revision for internal evaluation; keep supplier details server-side.",
+      "status": "proposed",
+      "ownership": "estimation",
+      "evidence": [
+        "e2",
+        "e7",
+        "d3"
+      ],
+      "parent": "estimation",
+      "properties": {
+        "subdomain": "estimate-model",
+        "classification": "core"
+      },
+      "decision_refs": [],
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": "",
+      "group": "",
+      "archetype": ""
+    }
+  ],
+  "relationships": [
+    {
+      "id": "admin-uses-app",
+      "source": "organization-admin",
+      "target": "price-calculator",
+      "description": "Administrates private organization data and reviews estimates.",
+      "status": "proposed",
+      "evidence": [
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "assists-in-app",
+      "source": "intermediary",
+      "target": "price-calculator",
+      "description": "Guides a consumer through a published estimate.",
+      "status": "proposed",
+      "evidence": [
+        "e2",
+        "e5"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "consumer-uses-app",
+      "source": "consumer",
+      "target": "price-calculator",
+      "description": "Uses a public calculator and receives or downloads an estimate.",
+      "status": "proposed",
+      "evidence": [
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "publisher-uses-app",
+      "source": "website-publisher",
+      "target": "price-calculator",
+      "description": "Obtains a published calculator's embed configuration.",
+      "status": "proposed",
+      "evidence": [
+        "e6"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "website-embeds-app",
+      "source": "customer-website",
+      "target": "price-calculator",
+      "description": "Displays the same published calculator and its consumer results.",
+      "status": "proposed",
+      "evidence": [
+        "e6"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "supplier-delivers-sheet",
+      "source": "supplier",
+      "target": "organization-admin",
+      "description": "Delivers Excel data offline for mapping and review.",
+      "status": "proposed",
+      "evidence": [
+        "e2",
+        "e3"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-maintains-items",
+      "source": "organization-admin",
+      "target": "catalog",
+      "description": "Maintains item definitions, hierarchy, typed attributes and translated labels.",
+      "status": "proposed",
+      "evidence": [
+        "e3",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-imports-offers",
+      "source": "organization-admin",
+      "target": "catalog",
+      "description": "Stages, maps, validates and accepts supplier Excel offers.",
+      "status": "proposed",
+      "evidence": [
+        "e2",
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-configures-calculator",
+      "source": "organization-admin",
+      "target": "calculator-design",
+      "description": "Configures organization calculators, brands, branches, quantities, bands and translated content.",
+      "status": "proposed",
+      "evidence": [
+        "e3",
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "design-reads-catalog",
+      "source": "calculator-design",
+      "target": "catalog",
+      "description": "Reads exact catalog definitions/revision for item references and release validation.",
+      "status": "proposed",
+      "evidence": [
+        "e3",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-publishes-calculator",
+      "source": "organization-admin",
+      "target": "calculator-design",
+      "description": "Validates, previews and activates a coherent calculator release.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "estimation-reads-design",
+      "source": "estimation",
+      "target": "calculator-design",
+      "description": "Resolves a pinned execution recipe, localized text and catalog revision reference.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "estimation-reads-catalog",
+      "source": "estimation",
+      "target": "catalog",
+      "description": "Reads exact comparable offer revision for private server-side evaluation.",
+      "status": "proposed",
+      "evidence": [
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "consumer-submits-estimate",
+      "source": "consumer",
+      "target": "estimation",
+      "description": "Submits answers using the public published calculator.",
+      "status": "proposed",
+      "evidence": [
+        "e5",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "intermediary-submits-estimate",
+      "source": "intermediary",
+      "target": "estimation",
+      "description": "Submits guided answers alongside the consumer.",
+      "status": "proposed",
+      "evidence": [
+        "e2",
+        "e5"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "calculation-saves-snapshot",
+      "source": "estimate-calculation",
+      "target": "estimate-records",
+      "description": "Saves immutable historical inputs, outputs and revision references within Estimation.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "estimation-shows-result",
+      "source": "estimation",
+      "target": "consumer",
+      "description": "Shows selected items, quantities, min/max, optional average, bands and incomplete status without suppliers.",
+      "status": "proposed",
+      "evidence": [
+        "e2",
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-reviews-estimate",
+      "source": "organization-admin",
+      "target": "estimation",
+      "description": "Retrieves its organization's saved estimates without recalculating them.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "consumer-downloads-pdf",
+      "source": "consumer",
+      "target": "estimation",
+      "description": "Downloads a consumer-safe historical PDF without account or email.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "publisher-configures-website",
+      "source": "website-publisher",
+      "target": "customer-website",
+      "description": "Installs the chosen calculator embed in an existing website.",
+      "status": "proposed",
+      "evidence": [
+        "e6"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-accepts-offers",
+      "source": "organization-admin",
+      "target": "catalog",
+      "description": "Accepts validated staged supplier offers into a new eligible catalog revision.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    },
+    {
+      "id": "admin-translates-calculator",
+      "source": "organization-admin",
+      "target": "calculator-design",
+      "description": "Edits or imports four-language form, brand and classification content into a calculator draft.",
+      "status": "proposed",
+      "evidence": [
+        "e7"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "technology": "",
+      "tags": [],
+      "perspectives": [],
+      "url": ""
+    }
+  ],
+  "views": [
+    {
+      "key": "system-context",
+      "type": "system-context",
+      "title": "System Context",
+      "scope": "price-calculator",
+      "elements": [
+        "price-calculator",
+        "organization-admin",
+        "intermediary",
+        "consumer",
+        "website-publisher",
+        "customer-website"
+      ],
+      "relationships": [
+        "admin-uses-app",
+        "assists-in-app",
+        "consumer-uses-app",
+        "publisher-uses-app",
+        "website-embeds-app"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "domain-landscape",
+      "type": "domain-landscape",
+      "title": "Core, Supporting and Generic Responsibilities",
+      "scope": "price-calculator",
+      "elements": [
+        "catalog",
+        "calculator-design",
+        "estimation",
+        "item-definitions",
+        "supplier-imports",
+        "calculator-modeling",
+        "organization-settings",
+        "form-mechanism",
+        "estimate-calculation",
+        "consumer-output"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "context-map",
+      "type": "context-map",
+      "title": "Context Map — Explicit Read Contracts",
+      "scope": "price-calculator",
+      "elements": [
+        "catalog",
+        "calculator-design",
+        "estimation"
+      ],
+      "relationships": [
+        "design-reads-catalog",
+        "estimation-reads-design",
+        "estimation-reads-catalog"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "configure-catalog-view",
+      "type": "dynamic",
+      "title": "Configure Item Catalog",
+      "scope": "",
+      "elements": [
+        "organization-admin",
+        "catalog"
+      ],
+      "relationships": [
+        "admin-maintains-items"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "admin-maintains-items"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "import-supplier-data-view",
+      "type": "dynamic",
+      "title": "Import and Review Supplier Excel",
+      "scope": "",
+      "elements": [
+        "supplier",
+        "organization-admin",
+        "catalog"
+      ],
+      "relationships": [
+        "supplier-delivers-sheet",
+        "admin-imports-offers",
+        "admin-accepts-offers"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "supplier-delivers-sheet",
+        "admin-imports-offers",
+        "admin-accepts-offers"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "publish-calculator-view",
+      "type": "dynamic",
+      "title": "Configure Translate and Publish Calculator",
+      "scope": "",
+      "elements": [
+        "organization-admin",
+        "calculator-design",
+        "catalog"
+      ],
+      "relationships": [
+        "admin-configures-calculator",
+        "admin-translates-calculator",
+        "design-reads-catalog",
+        "admin-publishes-calculator"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "admin-configures-calculator",
+        "admin-translates-calculator",
+        "design-reads-catalog",
+        "admin-publishes-calculator"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "assisted-renovation-view",
+      "type": "dynamic",
+      "title": "Assisted Renovation Estimate",
+      "scope": "",
+      "elements": [
+        "intermediary",
+        "price-calculator",
+        "estimation",
+        "calculator-design",
+        "catalog",
+        "estimate-calculation",
+        "estimate-records",
+        "consumer"
+      ],
+      "relationships": [
+        "assists-in-app",
+        "intermediary-submits-estimate",
+        "estimation-reads-design",
+        "estimation-reads-catalog",
+        "calculation-saves-snapshot",
+        "estimation-shows-result"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "assists-in-app",
+        "intermediary-submits-estimate",
+        "estimation-reads-design",
+        "estimation-reads-catalog",
+        "calculation-saves-snapshot",
+        "estimation-shows-result"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "independent-estimate-view",
+      "type": "dynamic",
+      "title": "Independent Public Estimate",
+      "scope": "",
+      "elements": [
+        "consumer",
+        "price-calculator",
+        "estimation",
+        "calculator-design",
+        "catalog",
+        "estimate-calculation",
+        "estimate-records"
+      ],
+      "relationships": [
+        "consumer-uses-app",
+        "consumer-submits-estimate",
+        "estimation-reads-design",
+        "estimation-reads-catalog",
+        "calculation-saves-snapshot",
+        "estimation-shows-result"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "consumer-uses-app",
+        "consumer-submits-estimate",
+        "estimation-reads-design",
+        "estimation-reads-catalog",
+        "calculation-saves-snapshot",
+        "estimation-shows-result"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "embedded-estimate-view",
+      "type": "dynamic",
+      "title": "Embed Calculator and Obtain Estimate",
+      "scope": "",
+      "elements": [
+        "website-publisher",
+        "price-calculator",
+        "customer-website",
+        "consumer",
+        "estimation",
+        "calculator-design",
+        "catalog",
+        "estimate-calculation",
+        "estimate-records"
+      ],
+      "relationships": [
+        "publisher-uses-app",
+        "publisher-configures-website",
+        "website-embeds-app",
+        "consumer-submits-estimate",
+        "estimation-reads-design",
+        "estimation-reads-catalog",
+        "calculation-saves-snapshot",
+        "estimation-shows-result"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "publisher-uses-app",
+        "publisher-configures-website",
+        "website-embeds-app",
+        "consumer-submits-estimate",
+        "estimation-reads-design",
+        "estimation-reads-catalog",
+        "calculation-saves-snapshot",
+        "estimation-shows-result"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "review-history-view",
+      "type": "dynamic",
+      "title": "Review Saved Organization Estimates",
+      "scope": "",
+      "elements": [
+        "organization-admin",
+        "estimation"
+      ],
+      "relationships": [
+        "admin-reviews-estimate"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "admin-reviews-estimate"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "download-result-view",
+      "type": "dynamic",
+      "title": "Download Consumer Estimate PDF",
+      "scope": "",
+      "elements": [
+        "consumer",
+        "estimation"
+      ],
+      "relationships": [
+        "consumer-downloads-pdf"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [
+        "consumer-downloads-pdf"
+      ],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "catalog-decomposition",
+      "type": "context-decomposition",
+      "title": "Catalog Modules",
+      "scope": "catalog",
+      "elements": [
+        "catalog",
+        "item-definitions",
+        "supplier-imports",
+        "catalog-localization"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "calculator-design-decomposition",
+      "type": "context-decomposition",
+      "title": "Calculator Design Modules",
+      "scope": "calculator-design",
+      "elements": [
+        "calculator-design",
+        "calculator-modeling",
+        "calculator-publication",
+        "organization-settings",
+        "form-mechanism",
+        "design-localization",
+        "design-catalog"
+      ],
+      "relationships": [],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    },
+    {
+      "key": "estimation-decomposition",
+      "type": "context-decomposition",
+      "title": "Estimation Modules",
+      "scope": "estimation",
+      "elements": [
+        "estimation",
+        "estimate-calculation",
+        "estimate-records",
+        "consumer-output",
+        "estimate-design",
+        "estimate-catalog"
+      ],
+      "relationships": [
+        "calculation-saves-snapshot"
+      ],
+      "decision_refs": [],
+      "properties": {},
+      "description": "",
+      "filters": [],
+      "order": [],
+      "layout": {},
+      "animations": []
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint-tenancy",
+      "statement": "Keep all items, supplier offers, mappings, forms and history private to the owning organization.",
+      "applies_to": [
+        "catalog",
+        "calculator-design",
+        "estimation"
+      ],
+      "evidence": [
+        "e5"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    },
+    {
+      "id": "constraint-estimator",
+      "statement": "No supplier discovery, consumer/supplier interaction, supplier selection, binding quotation, ordering or payment in v1.",
+      "applies_to": [
+        "price-calculator",
+        "estimation"
+      ],
+      "evidence": [
+        "e2",
+        "e5"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    },
+    {
+      "id": "constraint-generic",
+      "statement": "Support any industry from launch; use renovation as the first configuration and proving journey.",
+      "applies_to": [
+        "catalog",
+        "calculator-design",
+        "estimation"
+      ],
+      "evidence": [
+        "e3",
+        "e4"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    },
+    {
+      "id": "constraint-languages",
+      "statement": "Dutch, English, French and German support covers admin, published forms, item labels, classifications and result PDFs.",
+      "applies_to": [
+        "price-calculator",
+        "catalog",
+        "calculator-design",
+        "estimation"
+      ],
+      "evidence": [
+        "e7"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    },
+    {
+      "id": "constraint-channels",
+      "statement": "Deliver a full hosted app first and website embedding next within launch scope; allow separate admin/calculator hosting.",
+      "applies_to": [
+        "price-calculator",
+        "customer-website"
+      ],
+      "evidence": [
+        "e6",
+        "e7"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    },
+    {
+      "id": "constraint-history",
+      "statement": "Published revisions and saved snapshots preserve historical monetary and linguistic meaning; no public supplier leakage.",
+      "applies_to": [
+        "calculator-design",
+        "estimation"
+      ],
+      "evidence": [
+        "e7"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    },
+    {
+      "id": "constraint-incomplete",
+      "statement": "Exclude unresolved/incompatible supplier rows and visibly mark selected items lacking eligible prices; never silently produce a complete zero-priced line.",
+      "applies_to": [
+        "catalog",
+        "estimation"
+      ],
+      "evidence": [
+        "e7"
+      ],
+      "status": "explicit",
+      "decision_refs": []
+    }
+  ],
+  "strategic_model": {
+    "status": "proposed",
+    "founding_decisions": [
+      {
+        "id": "founding-boundaries",
+        "title": "Separate Catalog, Calculator Design and Estimation",
+        "question": "Where do item meaning, published calculator configuration and historical results belong?",
+        "recommended_option": "Use three explicit domain boundaries in an initially modular application, with modules inside each context.",
+        "alternatives": [
+          "Keep all behavior in one cohesive context until independent ownership emerges.",
+          "Deploy separate business services for catalog, authoring and estimates."
+        ],
+        "rationale": "Imported mutable supply data, published recipes and immutable estimate results have different language and lifecycle; hosting differences alone do not create business contexts.",
+        "consequences": [
+          "Requires three versioned consumer-owned read bridges.",
+          "Avoid independent service operations until workload or ownership proves the need.",
+          "Split supplier management only when its lifecycle becomes independent."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation"
+        ],
+        "affected_relationships": [
+          "design-reads-catalog",
+          "estimation-reads-design",
+          "estimation-reads-catalog"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e6",
+          "e7",
+          "d3"
+        ]
+      },
+      {
+        "id": "founding-revisions",
+        "title": "Pin published revisions and preserve estimate meaning",
+        "question": "How can imports, translations, publication and estimate history remain coherent without cross-context atomic writes?",
+        "recommended_option": "Catalog creates immutable reviewed revisions; Calculator Design atomically activates a recipe that pins catalog/content revisions; Estimation reads those exact revisions and locally saves the result.",
+        "alternatives": [
+          "Resolve latest accepted catalog revision once at submission and pin it only in the result.",
+          "Copy catalog data into each calculator release through a coordinated publication process."
+        ],
+        "rationale": "Explicit publication and immutable saved results need stable interpretation even when prices or translations later change.",
+        "consequences": [
+          "Accepted price changes require a new calculator activation before public use under this proposal.",
+          "Cross-context dependencies are read-only; only the owning context writes its data.",
+          "Missing revisions fail visibly; retention must preserve references until dependent results can stand alone."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation",
+          "calculator-publication",
+          "estimate-records"
+        ],
+        "affected_relationships": [
+          "admin-publishes-calculator",
+          "estimation-reads-design",
+          "estimation-reads-catalog",
+          "calculation-saves-snapshot"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ]
+      },
+      {
+        "id": "founding-channels",
+        "title": "Share calculator behavior across hosted and embedded delivery",
+        "question": "How should one calculator support a full web app, embedding and independent admin hosting?",
+        "recommended_option": "Keep public calculator execution and domain contracts shared; separate admin/public web composition, with one hosted app delivered first and an isolated embed adapter delivered next within launch scope.",
+        "alternatives": [
+          "Build separate standalone and embedded calculator implementations.",
+          "Distribute a host-page widget that shares the customer's page styling and runtime."
+        ],
+        "rationale": "E6 requires both modes at launch in sequence and allows separate admin hosting; shared execution avoids divergence in quantities, prices and localized results.",
+        "consequences": [
+          "Embedding transport, origins, resizing/accessibility and browser behavior require an architecture compatibility spike.",
+          "Public use cannot require the admin session; admin retains the managed BFF profile.",
+          "Custom domains remain later scope."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "price-calculator",
+          "calculator-design",
+          "estimation",
+          "organization-settings"
+        ],
+        "affected_relationships": [
+          "website-embeds-app",
+          "publisher-uses-app",
+          "consumer-submits-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e6",
+          "e7",
+          "d2"
+        ]
+      },
+      {
+        "id": "founding-mechanisms",
+        "title": "Use managed mechanisms without transferring business ownership",
+        "question": "Which responsibilities belong to reusable Forms/Localization mechanisms versus this product?",
+        "recommended_option": "Adapt Orbyss Forms and Localization through owned Catalog/Calculator Design modules; keep item, quantity, price, language meaning, publication and snapshot rules in consumer contexts.",
+        "alternatives": [
+          "Implement custom form editing/rendering and localization mechanisms.",
+          "Adopt a third-party hosted form service and translate its contracts into the same domain model."
+        ],
+        "rationale": "The installed capability catalog declares these mechanisms, while the product's generic industry semantics and price ownership remain explicit.",
+        "consequences": [
+          "Architecture must verify renderer/backend/storage and package compatibility before selection.",
+          "Authentication uses the applicable managed BFF default for admin, independent of anonymous embedding.",
+          "If .NET is selected, the managed external Foundation.Host default applies; no user stack preference is invented."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation",
+          "form-mechanism",
+          "catalog-localization",
+          "design-localization"
+        ],
+        "affected_relationships": [
+          "admin-maintains-items",
+          "admin-configures-calculator",
+          "estimation-reads-design"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7",
+          "p1",
+          "d2"
+        ]
+      },
+      {
+        "id": "founding-private-data",
+        "title": "Preserve organization and consumer visibility boundaries",
+        "question": "How should central administration coexist with public no-account estimates?",
+        "recommended_option": "All authoring and supplier records remain scoped to an organization; Estimation exposes a separate consumer-safe projection while admins access authorized saved snapshots.",
+        "alternatives": [
+          "Dedicated application/database deployments for every organization.",
+          "Shared public supplier/catalog records with customer-specific filters."
+        ],
+        "rationale": "Users explicitly selected private organization data, public basic estimation and no supplier-consumer interaction.",
+        "consequences": [
+          "Organization/resource authorization applies in every context, import and historical lookup.",
+          "Download access without an account needs an explicit bounded access design.",
+          "Physical data isolation and provisioning are architecture/deployment choices, not inferred shared-data permission."
+        ],
+        "confidence": "medium",
+        "affected_elements": [
+          "catalog",
+          "calculator-design",
+          "estimation",
+          "consumer-output"
+        ],
+        "affected_relationships": [
+          "admin-imports-offers",
+          "consumer-downloads-pdf",
+          "admin-reviews-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7"
+        ]
+      }
+    ],
+    "subdomains": [
+      {
+        "id": "catalog-model",
+        "name": "Item Catalog",
+        "classification": "supporting",
+        "vision": "Define comparable products and services across industries.",
+        "ownership": "Canonical item identity, category hierarchy, typed properties and units.",
+        "non_ownership": "Does not own supplier product codes or estimate arithmetic.",
+        "language_terms": [
+          "item code",
+          "category",
+          "property",
+          "unit"
+        ],
+        "data_ownership": [
+          "item definitions"
+        ],
+        "invariants": [
+          "Item meaning is organization-owned and industry-configurable."
+        ],
+        "lifecycle": "Draft -> validated -> revisioned",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "supplier-data",
+        "name": "Supplier Data Acquisition",
+        "classification": "supporting",
+        "vision": "Turn supplier spreadsheets into traceable comparable offers.",
+        "ownership": "Supplier entities, code mappings, review and eligible prices.",
+        "non_ownership": "Does not select suppliers for consumers.",
+        "language_terms": [
+          "supplier",
+          "offer",
+          "import",
+          "mapping"
+        ],
+        "data_ownership": [
+          "supplier records",
+          "reviewed offers"
+        ],
+        "invariants": [
+          "Unresolved mappings cannot silently influence estimates."
+        ],
+        "lifecycle": "Received -> staged -> reviewed -> accepted -> superseded",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "calculator-model",
+        "name": "Guided Calculator Modeling",
+        "classification": "core",
+        "vision": "Express an industry's estimation journey through reusable configuration.",
+        "ownership": "Branches, item selections, quantity rules, classification labels and release meaning.",
+        "non_ownership": "Does not own generic form-renderer source.",
+        "language_terms": [
+          "branch",
+          "selection",
+          "quantity rule",
+          "band"
+        ],
+        "data_ownership": [
+          "calculator recipes",
+          "band configuration"
+        ],
+        "invariants": [
+          "Renovation is configuration, not a hard-coded product limit."
+        ],
+        "lifecycle": "Draft -> validate -> preview -> publish",
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e4",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "organization-publishing",
+        "name": "Organization Publishing",
+        "classification": "supporting",
+        "vision": "Publish private organization configuration as branded public calculators.",
+        "ownership": "Branding, calculator identity, language content and publication/distribution settings.",
+        "non_ownership": "Does not create a supplier marketplace.",
+        "language_terms": [
+          "organization",
+          "brand",
+          "publication"
+        ],
+        "data_ownership": [
+          "organization settings",
+          "published identities"
+        ],
+        "invariants": [
+          "Public publication exposes only approved consumer-facing data."
+        ],
+        "lifecycle": "Configure -> preview -> activate -> retire",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e5",
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "presentation-mechanisms",
+        "name": "Authentication, Forms and Localization Mechanisms",
+        "classification": "generic",
+        "vision": "Use reusable authentication, rendering, editing and language delivery machinery.",
+        "ownership": "Technical mechanisms mediated by domain-owned adapters.",
+        "non_ownership": "Does not own customer permissions, pricing, item language or publication semantics.",
+        "language_terms": [
+          "session",
+          "schema",
+          "locale",
+          "renderer"
+        ],
+        "data_ownership": [
+          "adapter configuration",
+          "mechanism-specific content references"
+        ],
+        "invariants": [
+          "Mechanism adoption never transfers consumer business ownership."
+        ],
+        "lifecycle": "Configure adapters -> version -> validate -> update",
+        "status": "proposed",
+        "evidence": [
+          "d1",
+          "d2",
+          "p1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "estimate-model",
+        "name": "Budget Estimation",
+        "classification": "core",
+        "vision": "Convert selected items and quantities into useful indicative budget ranges.",
+        "ownership": "Aggregation, completeness, total-range classification and immutable result meaning.",
+        "non_ownership": "Does not promise a binding quote or a jointly available supplier bundle.",
+        "language_terms": [
+          "minimum",
+          "maximum",
+          "mean",
+          "incomplete estimate"
+        ],
+        "data_ownership": [
+          "calculated line items",
+          "estimate snapshots"
+        ],
+        "invariants": [
+          "Total endpoints sum eligible line endpoints; unknown prices remain explicit."
+        ],
+        "lifecycle": "Evaluate -> persist -> present",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "result-delivery",
+        "name": "Result Review and Export",
+        "classification": "supporting",
+        "vision": "Make an estimate usable after submission without exposing suppliers.",
+        "ownership": "Admin history, consumer projections and PDF rendering from saved results.",
+        "non_ownership": "Does not silently recalculate old results.",
+        "language_terms": [
+          "snapshot",
+          "history",
+          "PDF"
+        ],
+        "data_ownership": [
+          "result projections",
+          "download artifacts"
+        ],
+        "invariants": [
+          "Consumer exports contain no supplier identities."
+        ],
+        "lifecycle": "Saved -> retrieved -> rendered/downloaded",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "bounded_contexts": [
+      {
+        "element": "catalog",
+        "boundary_kind": "domain-model",
+        "vision": "Provide a private, comparable, revisioned catalog of items and supplier offers.",
+        "responsibilities": [
+          "Own internal item codes, typed category properties, units and translated item meaning.",
+          "Own suppliers, code mappings, Excel review and eligible offer revisions."
+        ],
+        "non_responsibilities": [
+          "Calculator branching and band policies.",
+          "Consumer supplier discovery or selection."
+        ],
+        "language_terms": [
+          "item",
+          "category",
+          "supplier offer",
+          "mapping",
+          "catalog revision"
+        ],
+        "subdomains": [
+          "catalog-model",
+          "supplier-data"
+        ],
+        "data_ownership": [
+          "item definitions and labels",
+          "supplier identities and offers",
+          "import reviews and mappings",
+          "immutable catalog revisions"
+        ],
+        "invariants": [
+          "Every mapped offer belongs to the same organization as its internal item.",
+          "Only compatible, reviewed offers become eligible; supplier codes are not internal item identity."
+        ],
+        "lifecycle": "Draft/imported -> mapped and validated -> accepted revision -> superseded.",
+        "separation_rationale": "Catalog meaning and import eligibility share one administrator but change independently of published recipes and completed results.",
+        "split_triggers": [
+          "Independent supplier onboarding, commercial negotiation or catalog governance becomes a separate business lifecycle."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "calculator-design",
+        "boundary_kind": "domain-model",
+        "vision": "Let organization admins publish reusable, branded estimation journeys across industries.",
+        "responsibilities": [
+          "Own conditional form meaning, quantity rules, bands, calculator identity and release policy.",
+          "Own customer settings, four-language calculator text, release pinning and distribution configuration."
+        ],
+        "non_responsibilities": [
+          "Supplier offer editing or canonical item ownership.",
+          "Persisted consumer estimate identity or recalculation history."
+        ],
+        "language_terms": [
+          "calculator",
+          "branch",
+          "quantity rule",
+          "price band",
+          "translation",
+          "publication"
+        ],
+        "subdomains": [
+          "calculator-model",
+          "organization-publishing",
+          "presentation-mechanisms"
+        ],
+        "data_ownership": [
+          "calculator drafts and immutable releases",
+          "brand and language content",
+          "organization publishing settings"
+        ],
+        "invariants": [
+          "A release references validated same-organization catalog and content revisions.",
+          "No public access to admin credentials, draft definitions or private supplier data."
+        ],
+        "lifecycle": "Draft -> validate -> preview -> published release -> retired.",
+        "separation_rationale": "Authoring and publication have a separate model and lifecycle from supplier imports and immutable estimate results.",
+        "split_triggers": [
+          "Organization management develops independent billing/provisioning semantics.",
+          "Generic translation lifecycle needs an independently owned service."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e3",
+          "e5",
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "estimation",
+        "boundary_kind": "domain-model",
+        "vision": "Produce understandable, historically stable budget estimates from published calculator recipes.",
+        "responsibilities": [
+          "Own evaluation, min/max/mean aggregation, completeness and total-range classifications.",
+          "Own estimate snapshots, admin history and consumer PDF/read projections."
+        ],
+        "non_responsibilities": [
+          "Mutable form/catalog authoring.",
+          "Supplier selection, quotation acceptance, ordering or payments."
+        ],
+        "language_terms": [
+          "estimate",
+          "selected item",
+          "quantity",
+          "eligible price",
+          "incomplete",
+          "snapshot"
+        ],
+        "subdomains": [
+          "estimate-model",
+          "result-delivery"
+        ],
+        "data_ownership": [
+          "submitted answers",
+          "calculated line and total snapshots",
+          "historical labels and calculation references",
+          "consumer-safe result projections"
+        ],
+        "invariants": [
+          "Every result uses one coherent published recipe and exact catalog revision.",
+          "Missing prices never silently mean zero; consumer results omit supplier identities.",
+          "A stored estimate is not rewritten by later content or price publication."
+        ],
+        "lifecycle": "Published form opened -> answers submitted -> evaluated -> snapshot saved -> viewed/exported.",
+        "separation_rationale": "Execution and historical result identity differ from both authoring state and mutable upstream offers.",
+        "split_triggers": [
+          "Independent quotation, procurement or lead lifecycle is explicitly added.",
+          "History becomes a separately owned reporting product."
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "modules": [
+      {
+        "element": "item-definitions",
+        "context": "catalog",
+        "kind": "domain-module",
+        "responsibilities": [
+          "Canonical item fields, three-level hierarchy, typed properties and comparable units."
+        ],
+        "non_responsibilities": [
+          "Estimate band rules."
+        ],
+        "contracts": [
+          "maintain-items",
+          "catalog-revision"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "supplier-imports",
+        "context": "catalog",
+        "kind": "application-module",
+        "responsibilities": [
+          "Supplier identities, supplier-code mappings, staged Excel validation and accepted offer revisions."
+        ],
+        "non_responsibilities": [
+          "Supplier self-service in v1 or consumer matching."
+        ],
+        "contracts": [
+          "import-offers",
+          "catalog-revision",
+          "accept-reviewed-offers"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "catalog-localization",
+        "context": "catalog",
+        "kind": "adapter",
+        "responsibilities": [
+          "Write/import and read versioned Dutch, English, French and German item labels under catalog ownership."
+        ],
+        "non_responsibilities": [
+          "Calculator text or estimate snapshot ownership."
+        ],
+        "contracts": [
+          "maintain-items",
+          "catalog-revision"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "p1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "calculator-modeling",
+        "context": "calculator-design",
+        "kind": "domain-module",
+        "responsibilities": [
+          "Conditional selections, typed quantity rules, total-range bands and authored language content."
+        ],
+        "non_responsibilities": [
+          "Supplier prices or snapshot persistence."
+        ],
+        "contracts": [
+          "configure-calculator"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "calculator-publication",
+        "context": "calculator-design",
+        "kind": "application-module",
+        "responsibilities": [
+          "Validate, preview and activate immutable coherent calculator releases referencing exact catalog and content revisions."
+        ],
+        "non_responsibilities": [
+          "Distributed atomic writes to other contexts."
+        ],
+        "contracts": [
+          "publish-calculator",
+          "published-recipe"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "organization-settings",
+        "context": "calculator-design",
+        "kind": "domain-module",
+        "responsibilities": [
+          "Private organization calculator identities, branding, admin grants and distribution settings."
+        ],
+        "non_responsibilities": [
+          "Provider identity internals or another organization's permissions."
+        ],
+        "contracts": [
+          "configure-calculator",
+          "embed-calculator"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e5",
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "form-mechanism",
+        "context": "calculator-design",
+        "kind": "adapter",
+        "responsibilities": [
+          "Adapt consumer branches, selections and validation to reusable form editor/runtime mechanisms."
+        ],
+        "non_responsibilities": [
+          "Assigning item, pricing or publication meaning to the Forms package."
+        ],
+        "contracts": [
+          "configure-calculator",
+          "published-recipe"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "p1",
+          "e1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "design-localization",
+        "context": "calculator-design",
+        "kind": "adapter",
+        "responsibilities": [
+          "Write/import translated form, brand and band text; publish and read pinned localized content."
+        ],
+        "non_responsibilities": [
+          "Automatic rewriting of historical estimate language."
+        ],
+        "contracts": [
+          "configure-calculator",
+          "publish-calculator",
+          "published-recipe",
+          "translate-calculator"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "p1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "design-catalog",
+        "context": "calculator-design",
+        "kind": "bridge",
+        "responsibilities": [
+          "Translate catalog revision lookups into authoring item references and release validation."
+        ],
+        "non_responsibilities": [
+          "Mutating Catalog-owned item/offer data."
+        ],
+        "contracts": [
+          "catalog-for-design"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "d3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "estimate-calculation",
+        "context": "estimation",
+        "kind": "domain-module",
+        "responsibilities": [
+          "Execute quantity rules, eligibility, min/max/mean, total bands and explicit completeness."
+        ],
+        "non_responsibilities": [
+          "Form authoring or supplier selection."
+        ],
+        "contracts": [
+          "submit-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "estimate-records",
+        "context": "estimation",
+        "kind": "domain-module",
+        "responsibilities": [
+          "Persist immutable answers, labels, line values, totals and revision references; authorize admin history."
+        ],
+        "non_responsibilities": [
+          "Live-price recalculation of old results."
+        ],
+        "contracts": [
+          "submit-estimate",
+          "review-estimate",
+          "persist-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "consumer-output",
+        "context": "estimation",
+        "kind": "application-module",
+        "responsibilities": [
+          "Project and export historical results without supplier identities or private offer records."
+        ],
+        "non_responsibilities": [
+          "Email collection or consumer accounts as download prerequisites."
+        ],
+        "contracts": [
+          "view-estimate",
+          "download-estimate"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "estimate-design",
+        "context": "estimation",
+        "kind": "bridge",
+        "responsibilities": [
+          "Resolve exact published recipe, brand, four-language labels and catalog revision reference."
+        ],
+        "non_responsibilities": [
+          "Mutating published design releases."
+        ],
+        "contracts": [
+          "recipe-for-estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      },
+      {
+        "element": "estimate-catalog",
+        "context": "estimation",
+        "kind": "bridge",
+        "responsibilities": [
+          "Read exact reviewed offer revision for internal evaluation; keep supplier details server-side."
+        ],
+        "non_responsibilities": [
+          "Supplier records in public browser responses."
+        ],
+        "contracts": [
+          "offers-for-estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "contracts": [
+      {
+        "id": "maintain-items",
+        "name": "Maintain Items and Translated Labels",
+        "kind": "command",
+        "owner": "catalog",
+        "version": "provisional-v1",
+        "description": "Validate and save organization-owned item definitions, hierarchy, units, typed properties and four-language labels. Catalog owns write atomicity and errors.",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "import-offers",
+        "name": "Review and Accept Supplier Excel",
+        "kind": "command",
+        "owner": "catalog",
+        "version": "provisional-v1",
+        "description": "Stage a supplied workbook, map supplier codes, preview validation, resolve issues and accept a new reviewed catalog revision. Failure leaves the prior eligible revision intact.",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "supplier-sheet",
+        "name": "Supplier Excel Delivery",
+        "kind": "data-contract",
+        "owner": "catalog",
+        "version": "provisional-v1",
+        "description": "An offline supplier sheet carries supplier product codes and item/offer properties for administrator import; it grants no supplier app access in v1.",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "catalog-revision",
+        "name": "Read Catalog Revision",
+        "kind": "query",
+        "owner": "catalog",
+        "version": "provisional-v1",
+        "description": "Read organization-scoped item definitions, normalized reviewed offers and localized labels by exact immutable revision; a missing revision is a visible failure.",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "configure-calculator",
+        "name": "Configure Calculator and Translations",
+        "kind": "command",
+        "owner": "calculator-design",
+        "version": "provisional-v1",
+        "description": "Save private calculator draft identity, brand, branches, item references, quantity rules, total bands and Dutch/English/French/German content. Writes belong to Calculator Design.",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "publish-calculator",
+        "name": "Validate Preview and Publish Calculator",
+        "kind": "command",
+        "owner": "calculator-design",
+        "version": "provisional-v1",
+        "description": "Validate item references against an immutable catalog revision and pin content/recipe versions. Activate a release locally only after validation; failed publication preserves the current release.",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "published-recipe",
+        "name": "Read Published Calculator",
+        "kind": "query",
+        "owner": "calculator-design",
+        "version": "provisional-v1",
+        "description": "Return immutable public recipe, brand and localized labels by calculator/release identity; supplier data and admin information are excluded.",
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "catalog-for-design",
+        "name": "Catalog References for Calculator Design",
+        "kind": "query",
+        "owner": "calculator-design",
+        "version": "provisional-v1",
+        "description": "Consumer-owned query translates same-organization immutable catalog definitions and revision identity for draft lookup and publication validation; performs no Catalog write.",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "recipe-for-estimation",
+        "name": "Published Recipe for Estimation",
+        "kind": "query",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Consumer-owned query resolves one immutable execution recipe with quantity/band rules, localization and the exact catalog revision; missing or foreign releases fail visibly.",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "offers-for-estimation",
+        "name": "Comparable Offers for Estimation",
+        "kind": "query",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Consumer-owned server-side query translates exact same-organization catalog revision offers into evaluation inputs. Supplier identity is private and never included in public output.",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e5",
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "submit-estimate",
+        "name": "Submit and Calculate Estimate",
+        "kind": "command",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Validate answers against the published release, resolve quantities and eligible prices, calculate endpoints/optional mean/bands, mark missing prices and save a snapshot before reporting success.",
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "persist-estimate",
+        "name": "Save Historical Estimate",
+        "kind": "command",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Atomically save owner-local answers, selected items, quantities, labels, calculation/catalog/release references and displayed prices. Persistence failure cannot report a saved estimate.",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "view-estimate",
+        "name": "View Consumer Estimate",
+        "kind": "query",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Return selected items, quantities, localized price range, optional mean, classifications and completeness from the submitted snapshot, excluding suppliers and private offers.",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "review-estimate",
+        "name": "Review Organization Estimate",
+        "kind": "query",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Authenticated organization admins retrieve historical snapshots with organization/resource authorization; later prices and text do not change saved results.",
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "download-estimate",
+        "name": "Download Estimate PDF",
+        "kind": "query",
+        "owner": "estimation",
+        "version": "provisional-v1",
+        "description": "Render a consumer-safe PDF from the authorized submitted snapshot without account/email requirement, supplier identities or live recalculation. Exact download access control is assigned to feature design.",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "embed-calculator",
+        "name": "Get and Install Published Calculator Embed",
+        "kind": "query",
+        "owner": "calculator-design",
+        "version": "provisional-v1",
+        "description": "Return publication configuration for an existing organization's calculator to its website publisher; the same public recipe and estimation service support hosted and embedded use.",
+        "status": "proposed",
+        "evidence": [
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "accept-reviewed-offers",
+        "name": "Accept Reviewed Supplier Offers",
+        "kind": "command",
+        "owner": "catalog",
+        "version": "provisional-v1",
+        "description": "Accept a validated staged import with resolved mappings as a new owner-local immutable offer revision. Failure leaves the prior eligible revision intact.",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "translate-calculator",
+        "name": "Edit or Import Calculator Translations",
+        "kind": "command",
+        "owner": "calculator-design",
+        "version": "provisional-v1",
+        "description": "Validate and save Dutch, English, French and German form, brand and band text in the calculator draft. This is a write operation owned by Calculator Design; publication remains separate.",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "context_relationships": [
+      {
+        "relationship": "design-reads-catalog",
+        "upstream": "catalog",
+        "downstream": "calculator-design",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "catalog-for-design",
+        "contract_owner": "calculator-design",
+        "translation_policy": "acl",
+        "bridge": "design-catalog",
+        "data_owner": "catalog",
+        "consistency_owner": "calculator-design",
+        "failure_owner": "calculator-design",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      },
+      {
+        "relationship": "estimation-reads-design",
+        "upstream": "calculator-design",
+        "downstream": "estimation",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "recipe-for-estimation",
+        "contract_owner": "estimation",
+        "translation_policy": "acl",
+        "bridge": "estimate-design",
+        "data_owner": "calculator-design",
+        "consistency_owner": "estimation",
+        "failure_owner": "estimation",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      },
+      {
+        "relationship": "estimation-reads-catalog",
+        "upstream": "catalog",
+        "downstream": "estimation",
+        "patterns": [
+          "customer-supplier",
+          "acl"
+        ],
+        "interaction": "synchronous-capability",
+        "contract": "offers-for-estimation",
+        "contract_owner": "estimation",
+        "translation_policy": "acl",
+        "bridge": "estimate-catalog",
+        "data_owner": "catalog",
+        "consistency_owner": "estimation",
+        "failure_owner": "estimation",
+        "atomicity": "read-only",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "capability_bindings": [
+      {
+        "assessment": "cap-items",
+        "module": "item-definitions",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "catalog",
+        "semantic_profile": "Own item code/name/unit, three category levels, typed attributes and language meaning; no generic form schema becomes the catalog model.",
+        "integration_owner": "catalog",
+        "provider_selection": "Project-owned catalog model; persistence provider selected in architecture.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-import",
+        "module": "supplier-imports",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "catalog",
+        "semantic_profile": "Own supplier identity, product-code mapping, reviewed normalized offers, duplicate/update decisions and immutable accepted revisions.",
+        "integration_owner": "catalog",
+        "provider_selection": "Excel parser and storage selection assigned to architecture/import specification.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-form",
+        "module": "form-mechanism",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "forms"
+        ],
+        "semantic_owner": "calculator-design",
+        "semantic_profile": "Forms mechanisms may render, validate and edit schemas; Calculator Design owns branches, selected item references, quantities, band rules and publication semantics.",
+        "integration_owner": "calculator-design",
+        "provider_selection": "Orbyss Forms candidate; renderer/backend and exact package closure require architecture selection.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e5",
+          "p1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-catalog-locales",
+        "module": "catalog-localization",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "localization"
+        ],
+        "semantic_owner": "catalog",
+        "semantic_profile": "Catalog owns Dutch/English/French/German item meaning, write/import validation and immutable label revisions; adapter uses reusable catalog mechanisms.",
+        "integration_owner": "catalog",
+        "provider_selection": "Orbyss Localization candidate; durable storage and version compatibility assigned to architecture.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "p1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-design-locales",
+        "module": "design-localization",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "localization",
+          "forms"
+        ],
+        "semantic_owner": "calculator-design",
+        "semantic_profile": "Own form/brand/classification language content; writes and publication pin immutable revisions. Estimation preserves resolved historical text through the recipe bridge.",
+        "integration_owner": "calculator-design",
+        "provider_selection": "Orbyss Localization and Forms bridge candidates; regional/fallback details assigned to feature specification.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "p1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-ui",
+        "module": "organization-settings",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "ui-experience"
+        ],
+        "semantic_owner": "calculator-design",
+        "semantic_profile": "Organization owns brand and published identities; UI profile supplies tokens/accessibility guidance. Public journey and admin shell share meaning across hosted/embedded delivery.",
+        "integration_owner": "calculator-design",
+        "provider_selection": "ui-experience-v1; native CSS tokens and Lucide default; consumer-owned embed adapter.",
+        "decision_state": "program-kit-default",
+        "status": "proposed",
+        "evidence": [
+          "e6",
+          "e7",
+          "d1"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-admin-auth",
+        "module": "organization-settings",
+        "mechanism_coverage": "managed",
+        "program_kit_capabilities": [
+          "authenticated-browser-bff"
+        ],
+        "semantic_owner": "calculator-design",
+        "semantic_profile": "Managed session and HTTP authorization mechanisms; organization settings own publishing/admin grants, and every context enforces its organization/resource permissions.",
+        "integration_owner": "calculator-design",
+        "provider_selection": "bff-cookie-v1 default; identity provider and deployment claim mappings assigned to architecture.",
+        "decision_state": "program-kit-default",
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "d2"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-calculation",
+        "module": "estimate-calculation",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "estimation",
+        "semantic_profile": "Own quantity execution, comparable-price eligibility, min/max/mean aggregation, total-range percentage bands and missing-price completeness.",
+        "integration_owner": "estimation",
+        "provider_selection": "Project-owned deterministic estimator; bounded rule mechanism defined in feature specification.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-history",
+        "module": "estimate-records",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "estimation",
+        "semantic_profile": "Own immutable answers, selected items, quantities, historical labels, totals and revision references; admin retrieval cannot silently recalculate.",
+        "integration_owner": "estimation",
+        "provider_selection": "Durable consumer-owned persistence; architecture selects provider and owner-local atomicity.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-pdf",
+        "module": "consumer-output",
+        "mechanism_coverage": "not-declared",
+        "program_kit_capabilities": [],
+        "semantic_owner": "estimation",
+        "semantic_profile": "Own historical consumer-safe output and access policy; account/email are not prerequisites and supplier details are excluded.",
+        "integration_owner": "estimation",
+        "provider_selection": "PDF renderer and download mechanism assigned to architecture/result feature.",
+        "decision_state": "project-owned-design",
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "assessment": "cap-bridges",
+        "module": "estimate-design",
+        "mechanism_coverage": "guided",
+        "program_kit_capabilities": [
+          "modularity-contracts",
+          "vertical-slicing"
+        ],
+        "semantic_owner": "estimation",
+        "semantic_profile": "Downstream-owned queries translate exact recipe and catalog revisions; upstream retains data ownership and Estimation owns submission consistency/failure handling.",
+        "integration_owner": "estimation",
+        "provider_selection": "Consumer bridges; no cross-context store access or atomic writes.",
+        "decision_state": "derived-default",
+        "status": "proposed",
+        "evidence": [
+          "e7",
+          "d3"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "journeys": [
+      {
+        "id": "configure-catalog",
+        "name": "Configure Item Catalog",
+        "source_journey": "journey-catalog",
+        "actor_or_trigger": "Organization admin defines items for its industry.",
+        "outcome": "Private categorized items, units, typed properties and four-language labels are saved or visibly rejected.",
+        "view": "configure-catalog-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "admin-maintains-items",
+            "description": "Save core item fields, category/subcategory/optional third level, units, typed category attributes and translated item labels.",
+            "contract": "maintain-items"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "import-supplier-data",
+        "name": "Import and Review Supplier Excel",
+        "source_journey": "journey-import",
+        "actor_or_trigger": "Supplier provides a sheet and the organization admin imports it.",
+        "outcome": "Mapped comparable supplier offers form an accepted catalog revision, or the admin sees validation issues without corrupting the prior revision.",
+        "view": "import-supplier-data-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "supplier-delivers-sheet",
+            "description": "Supplier supplies its codes and item/price columns offline; no consumer or supplier app interaction occurs.",
+            "contract": "supplier-sheet"
+          },
+          {
+            "order": 2,
+            "relationship": "admin-imports-offers",
+            "description": "Stage Excel rows, map supplier codes to internal items and preview unit/currency/tax, required-field and translation diagnostics.",
+            "contract": "import-offers"
+          },
+          {
+            "order": 3,
+            "relationship": "admin-accepts-offers",
+            "description": "Admin resolves/rejects incompatible rows and accepts reviewed offers as a new catalog revision; unresolved mappings remain ineligible.",
+            "contract": "accept-reviewed-offers"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "publish-calculator",
+        "name": "Configure Translate and Publish Calculator",
+        "source_journey": "journey-publish",
+        "actor_or_trigger": "Organization admin prepares a named branded calculator.",
+        "outcome": "A validated four-language calculator release is available through its hosted link, with coherent item, price and content revision references.",
+        "view": "publish-calculator-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "admin-configures-calculator",
+            "description": "Save calculator identity and brand, branches, item references, units/quantity rules and total-range band labels/percentages.",
+            "contract": "configure-calculator"
+          },
+          {
+            "order": 2,
+            "relationship": "admin-translates-calculator",
+            "description": "Edit/import Dutch, English, French and German form, brand and classification content into draft versions.",
+            "contract": "translate-calculator"
+          },
+          {
+            "order": 3,
+            "relationship": "design-reads-catalog",
+            "description": "Resolve item references and exact catalog revision for validation and preview through the consumer-owned bridge.",
+            "contract": "catalog-for-design"
+          },
+          {
+            "order": 4,
+            "relationship": "admin-publishes-calculator",
+            "description": "Validate and preview then activate the pinned release locally; preserve the prior release on failure.",
+            "contract": "publish-calculator"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "assisted-renovation",
+        "name": "Assisted Renovation Estimate",
+        "source_journey": "journey-assisted",
+        "actor_or_trigger": "Intermediary walks through a renovation with the consumer.",
+        "outcome": "Consumer receives a saved indicative renovation estimate and sees whether the selected work fits the budget.",
+        "view": "assisted-renovation-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "assists-in-app",
+            "description": "Open the published hosted calculator and follow configured renovation branches with the consumer.",
+            "contract": "published-recipe"
+          },
+          {
+            "order": 2,
+            "relationship": "intermediary-submits-estimate",
+            "description": "Submit chosen flooring/materials and measurements under the configured generic item/quantity rules.",
+            "contract": "submit-estimate"
+          },
+          {
+            "order": 3,
+            "relationship": "estimation-reads-design",
+            "description": "Read exact published recipe and language/brand revisions, including quantity rules, bands and catalog revision reference.",
+            "contract": "recipe-for-estimation"
+          },
+          {
+            "order": 4,
+            "relationship": "estimation-reads-catalog",
+            "description": "Read that exact catalog revision's eligible comparable offers privately; fail visibly on missing revision, flag items with no eligible offers.",
+            "contract": "offers-for-estimation"
+          },
+          {
+            "order": 5,
+            "relationship": "calculation-saves-snapshot",
+            "description": "Evaluate quantities, min/max and optional per-item means, total bands and completeness; atomically save answers, historical labels, results and references.",
+            "contract": "persist-estimate"
+          },
+          {
+            "order": 6,
+            "relationship": "estimation-shows-result",
+            "description": "Return consumer-safe item overview and estimate; indicate incomplete pricing and keep supplier details private.",
+            "contract": "view-estimate"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e4",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "independent-estimate",
+        "name": "Independent Public Estimate",
+        "source_journey": "journey-independent",
+        "actor_or_trigger": "Consumer opens a branded hosted calculator without an account.",
+        "outcome": "Consumer independently receives a saved localized itemized estimate with min/max, optional mean, bands and any incomplete-price indication.",
+        "view": "independent-estimate-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "consumer-uses-app",
+            "description": "Load the named published calculator in Dutch, English, French or German and follow conditional questions.",
+            "contract": "published-recipe"
+          },
+          {
+            "order": 2,
+            "relationship": "consumer-submits-estimate",
+            "description": "Submit selected items and quantity inputs without account or email collection prerequisites.",
+            "contract": "submit-estimate"
+          },
+          {
+            "order": 3,
+            "relationship": "estimation-reads-design",
+            "description": "Read exact published recipe and language/brand revisions, including quantity rules, bands and catalog revision reference.",
+            "contract": "recipe-for-estimation"
+          },
+          {
+            "order": 4,
+            "relationship": "estimation-reads-catalog",
+            "description": "Read that exact catalog revision's eligible comparable offers privately; fail visibly on missing revision, flag items with no eligible offers.",
+            "contract": "offers-for-estimation"
+          },
+          {
+            "order": 5,
+            "relationship": "calculation-saves-snapshot",
+            "description": "Evaluate quantities, min/max and optional per-item means, total bands and completeness; atomically save answers, historical labels, results and references.",
+            "contract": "persist-estimate"
+          },
+          {
+            "order": 6,
+            "relationship": "estimation-shows-result",
+            "description": "Return consumer-safe item overview and estimate; indicate incomplete pricing and keep supplier details private.",
+            "contract": "view-estimate"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "embedded-estimate",
+        "name": "Embed Calculator and Obtain Estimate",
+        "source_journey": "journey-embed",
+        "actor_or_trigger": "Website publisher embeds a calculator; a consumer uses it on the existing website.",
+        "outcome": "Consumer completes the same branded estimation journey inside the customer website; admin hosting can remain separate.",
+        "view": "embedded-estimate-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "publisher-uses-app",
+            "description": "Obtain the organization's published calculator embed configuration after the hosted app proves the first journey.",
+            "contract": "embed-calculator"
+          },
+          {
+            "order": 2,
+            "relationship": "publisher-configures-website",
+            "description": "Install the embed on the existing website using the architecture-selected integration.",
+            "contract": "embed-calculator"
+          },
+          {
+            "order": 3,
+            "relationship": "website-embeds-app",
+            "description": "Load the same published branded multilingual calculator without an admin session.",
+            "contract": "published-recipe"
+          },
+          {
+            "order": 4,
+            "relationship": "consumer-submits-estimate",
+            "description": "Consumer completes branches and submits from the embedded experience.",
+            "contract": "submit-estimate"
+          },
+          {
+            "order": 5,
+            "relationship": "estimation-reads-design",
+            "description": "Read exact published recipe and language/brand revisions, including quantity rules, bands and catalog revision reference.",
+            "contract": "recipe-for-estimation"
+          },
+          {
+            "order": 6,
+            "relationship": "estimation-reads-catalog",
+            "description": "Read that exact catalog revision's eligible comparable offers privately; fail visibly on missing revision, flag items with no eligible offers.",
+            "contract": "offers-for-estimation"
+          },
+          {
+            "order": 7,
+            "relationship": "calculation-saves-snapshot",
+            "description": "Evaluate quantities, min/max and optional per-item means, total bands and completeness; atomically save answers, historical labels, results and references.",
+            "contract": "persist-estimate"
+          },
+          {
+            "order": 8,
+            "relationship": "estimation-shows-result",
+            "description": "Return consumer-safe item overview and estimate; indicate incomplete pricing and keep supplier details private.",
+            "contract": "view-estimate"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "review-history",
+        "name": "Review Saved Organization Estimates",
+        "source_journey": "journey-history",
+        "actor_or_trigger": "Authenticated organization admin selects a saved estimate.",
+        "outcome": "Admin sees the original answers, items, quantities, language and prices within its own organization despite later catalog or form changes.",
+        "view": "review-history-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "admin-reviews-estimate",
+            "description": "Authorize organization/resource access and retrieve the historical snapshot; do not recalculate using current offers or translations.",
+            "contract": "review-estimate"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "download-result",
+        "name": "Download Consumer Estimate PDF",
+        "source_journey": "journey-download",
+        "actor_or_trigger": "Consumer chooses PDF download after a submission.",
+        "outcome": "Consumer receives a PDF of the saved estimate without an account/email requirement or supplier identities.",
+        "view": "download-result-view",
+        "steps": [
+          {
+            "order": 1,
+            "relationship": "consumer-downloads-pdf",
+            "description": "Authorize access to the submitted result and render the selected language, items, quantities, price range, optional mean, bands and incompleteness from its snapshot.",
+            "contract": "download-estimate"
+          }
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "candidate_slices": [
+      {
+        "id": "prove-renovation",
+        "name": "Prove the hosted renovation journey",
+        "journey": "assisted-renovation",
+        "actor_or_trigger": "Intermediary walks through a renovation with the consumer.",
+        "outcome": "Consumer receives a saved indicative renovation estimate and sees whether the selected work fits the budget.",
+        "contexts": [
+          "catalog",
+          "calculator-design",
+          "estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e4",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "catalog-for-industry",
+        "name": "Configure industry items",
+        "journey": "configure-catalog",
+        "actor_or_trigger": "Organization admin defines items for its industry.",
+        "outcome": "Private categorized items, units, typed properties and four-language labels are saved or visibly rejected.",
+        "contexts": [
+          "catalog"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e3",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "review-import",
+        "name": "Review supplier data",
+        "journey": "import-supplier-data",
+        "actor_or_trigger": "Supplier provides a sheet and the organization admin imports it.",
+        "outcome": "Mapped comparable supplier offers form an accepted catalog revision, or the admin sees validation issues without corrupting the prior revision.",
+        "contexts": [
+          "catalog"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e2",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "publish-localized",
+        "name": "Publish branded four-language calculator",
+        "journey": "publish-calculator",
+        "actor_or_trigger": "Organization admin prepares a named branded calculator.",
+        "outcome": "A validated four-language calculator release is available through its hosted link, with coherent item, price and content revision references.",
+        "contexts": [
+          "catalog",
+          "calculator-design"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e1",
+          "e3",
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "public-estimate",
+        "name": "Complete a public estimate",
+        "journey": "independent-estimate",
+        "actor_or_trigger": "Consumer opens a branded hosted calculator without an account.",
+        "outcome": "Consumer independently receives a saved localized itemized estimate with min/max, optional mean, bands and any incomplete-price indication.",
+        "contexts": [
+          "catalog",
+          "calculator-design",
+          "estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "history-review",
+        "name": "Review original estimate",
+        "journey": "review-history",
+        "actor_or_trigger": "Authenticated organization admin selects a saved estimate.",
+        "outcome": "Admin sees the original answers, items, quantities, language and prices within its own organization despite later catalog or form changes.",
+        "contexts": [
+          "estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e5",
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "pdf-result",
+        "name": "Download original estimate",
+        "journey": "download-result",
+        "actor_or_trigger": "Consumer chooses PDF download after a submission.",
+        "outcome": "Consumer receives a PDF of the saved estimate without an account/email requirement or supplier identities.",
+        "contexts": [
+          "estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e7"
+        ],
+        "decision_refs": []
+      },
+      {
+        "id": "embed-next-customer",
+        "name": "Embed for the next launch customer",
+        "journey": "embedded-estimate",
+        "actor_or_trigger": "Website publisher embeds a calculator; a consumer uses it on the existing website.",
+        "outcome": "Consumer completes the same branded estimation journey inside the customer website; admin hosting can remain separate.",
+        "contexts": [
+          "catalog",
+          "calculator-design",
+          "estimation"
+        ],
+        "status": "proposed",
+        "evidence": [
+          "e6",
+          "e7"
+        ],
+        "decision_refs": []
+      }
+    ],
+    "version": "1.0",
+    "decision_refs": []
+  },
+  "schema_version": "1.1",
+  "decisions": [],
+  "documentation": [],
+  "extensions": [],
+  "configuration": {
+    "styles": [],
+    "themes": [],
+    "terminology": {},
+    "branding": {},
+    "properties": {}
+  },
+  "sources": [
+    {
+      "id": "project-intent",
+      "path": "docs/architecture/project-intent.md",
+      "sha256": "2314b416eff027e8875357e49fbe9fdc560bcf7559baac03e327e1a6f1c8510a",
+      "format": "markdown",
+      "importer": {
+        "id": "program-kit-intake",
+        "version": "1.1"
+      }
+    }
+  ]
+}

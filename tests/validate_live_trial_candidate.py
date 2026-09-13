@@ -131,11 +131,15 @@ class TrialTests(unittest.TestCase):
     def test_runtime_preflight_failure_precedes_authorization_consumption_and_worker(self):
         fixture, project, packages = self.root/'fixture', self.root/'project', self.root/'packages'
         fixture.mkdir()
+        (self.root / 'selection-template.json').write_text('{}', encoding='utf-8')
+        (fixture / 'PROJECT_REQUEST.md').write_text('Disposable unit-test request', encoding='utf-8')
+        (fixture / 'docs/architecture').mkdir(parents=True)
+        (fixture / 'docs/architecture/project-intent.md').write_text('Disposable unit-test intent', encoding='utf-8')
         (packages/'workflow').mkdir(parents=True)
         (packages/'workflow/workflow.yml').write_text('steps:\n  - id: test-step\n    type: command\n',encoding='utf-8')
         store = SimpleNamespace(runs=self.root/'runs')
         authorization = {'limits':{'maximumPaidSessions':1},'candidate':{},'agentProfile':{}}
-        inputs = (self.root,self.root,store,{}, {}, {},'a'*64,authorization)
+        inputs = (self.root,self.root,store,{'selectionTemplate':'selection-template.json'}, {}, {},'a'*64,authorization)
         with patch.object(cli,'_phase_inputs',return_value=inputs), patch.object(cli,'execution_workspace',return_value=project), \
              patch.object(cli,'candidate_packages',return_value=packages), patch.object(cli,'copied_fixture',return_value=fixture), \
              patch.object(cli,'install_candidate_from_receipt',return_value=[]), patch.object(cli,'worker_guidance'), \

@@ -44,8 +44,8 @@ def main() -> int:
     module = load_module(SCRIPT)
     catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     all_keys = module.selected_keys(catalog, None)
-    if len(all_keys) != 63:
-        raise AssertionError("Catalog-wide public gate must cover all 63 artifacts")
+    if set(all_keys) != set(catalog["packages"]):
+        raise AssertionError("Catalog-wide public gate must cover every catalog artifact exactly")
     selected_lock = {
         "inputs": {"catalog": {"id": catalog["catalogId"]}},
         "targets": [

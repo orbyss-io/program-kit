@@ -34,7 +34,7 @@ implementation broadly to rediscover them.
 
 The skill may create and validate intake artifacts inside the repository. It must never run
 `specify init`, Program Kit installation or update commands, or the outer
-`specify workflow run program-kit-bootstrap` command. Spec Kit starts separate agent workers for
+`python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run` command. Spec Kit starts separate agent workers for
 workflow command steps; an interactive agent starting the outer workflow would nest execution. On
 Windows, setup from the sandbox identity can also leave generated paths with unsafe ownership.
 
@@ -163,7 +163,7 @@ argument. Include no placeholders, line continuations, environment variables, su
 operators, or shell-specific syntax:
 
 ```text
-specify workflow run program-kit-bootstrap --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
+python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"
 ```
 
 If the user explicitly requested automatic approval and ratification, append

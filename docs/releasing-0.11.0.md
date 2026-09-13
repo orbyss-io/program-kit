@@ -1,6 +1,10 @@
 # Releasing Program Kit 0.11.0
 
 This minor version adds mandatory feature grilling before specification creation or updates.
+It also moves bootstrap resumption into the native workflow engine and adds versioned live test
+fixtures with explicit fresh/failure/resume phase authorization. Native engine success and live
+execution evidence remain distinct from historical artifact-only recovery. See
+[live workflow cases](workflow-live-acceptance.md) for the optional paid protocol.
 The selected roadmap entry receives a resumable interview, a confirmed brief and current
 hash-bound evidence; later architecture checks and implementation preflight reject missing or
 stale evidence. See [feature intake](../extensions/program-kit-governance/references/specification-intake.md).
@@ -11,6 +15,14 @@ Do not synthesize approval receipts during upgrade.
 All Program Kit installable components advance together to `0.11.0`. Orbyss Foundation remains
 pinned at `0.1.0`; Forms and Localization remain at `0.1.1`. This minor version publishes no runtime
 component versions.
+
+This release also repairs built-in runtime staging to resolve exact pins through the
+supported root central-package import graph, including consumer-owned pins. Dependency
+conflicts cannot silently advance activated built-in versions. See the
+[RM-01 maintenance and upgrade procedure](maintenance-runnable-host-central-pins.md).
+Consumer handoff is permitted only after the complete official Release workflow succeeds.
+Require adoption through the verified full 0.11.0 archive and its sequential updater;
+never offer an individual script overlay or local staging override.
 
 Before tagging, establish successful deterministic local Release evidence:
 

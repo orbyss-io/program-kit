@@ -59,7 +59,7 @@ class CoordinatorTests(unittest.TestCase):
 
     def test_failed_operation_preserves_an_incomplete_receipt(self):
         plan = sync.describe(self.root, "planning")
-        with patch.object(sync, "audit_javascript", side_effect=ValueError("test toolchain missing")):
+        with patch.object(sync, "audit_toolchain", side_effect=ValueError("test toolchain missing")):
             with self.assertRaisesRegex(ValueError, "toolchain missing"):
                 sync.apply(self.root, plan, validate_authority=False)
         receipt = sync.load(self.root / ".program-kit/sync/receipt.json")

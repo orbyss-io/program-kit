@@ -11,7 +11,7 @@ restore. Migration to the replacement package families is an explicit consumer s
 The read-only inventory is
 `operations/nuget/legacy-programkit-package-inventory.json`: 49 package IDs and 213 published
 versions, queried from NuGet.org on 2026-09-07. The compatibility gate verifies that inventory and
-also verifies that all 22 Foundation packages at `0.1.0`, all 15 Forms packages at `0.1.1`, and all
+also verifies that all 25 Foundation packages at `0.2.0`, all 15 Forms packages at `0.2.0`, and all
 13 Localization packages at `0.1.1` are public and listed.
 
 Run the read-only public compatibility check with:

@@ -35,7 +35,7 @@ class IntakeTests(unittest.TestCase):
             self.addCleanup(mocked.stop)
         self.records = [{"id": "SPC-001", "title": "Invoice export", "Status": "Ready",
                          "Scope": "Own invoices", "Required Accepted ADRs": "none"}]
-        mocked = patch.object(intake.governance, "validate_roadmap", side_effect=lambda ready: self.records)
+        mocked = patch.object(intake.governance, "validate_roadmap", side_effect=lambda ready, **kwargs: self.records)
         mocked.start()
         self.addCleanup(mocked.stop)
         for path in (intake.governance.CONSTITUTION, intake.governance.ARCHITECTURE):
@@ -130,7 +130,7 @@ class IntakeTests(unittest.TestCase):
                 brief["decisions"][0].update(modification)
                 with self.assertRaises(ValueError):
                     intake.validate_brief(brief, "SPC-001")
-        self.brief["decisions"][0].update(disposition="deferred", blocking=False, owner="Planning owner", trigger="Before plan approval")
+        self.brief["decisions"][0].update(disposition="deferred", blocking=False, owner="Planning owner", trigger="Before plan approval", duePhase="after-plan")
         self.save()
         self.confirm()
         self.brief["decisions"].append({**self.brief["decisions"][0], "id": "Q2", "disposition": "answered", "dependsOn": ["Q1"]})

@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Equipment lending</title>
+<style>body{font:1.1rem system-ui;max-width:42rem;margin:3rem auto;padding:1rem;color:#173329;background:#f9fbf8}button{padding:.75rem 1rem;margin:.5rem .5rem .5rem 0;font:inherit}label{display:block;margin:1rem 0}input{width:1.2rem;height:1.2rem}button:focus-visible,input:focus-visible{outline:3px solid #005fcc;outline-offset:3px}</style></head>
+<body><main><h1>Equipment lending</h1><p>Reserve a camera, then confirm it when you are ready.</p>
+<button id="reserve" type="button">Reserve camera</button>
+<section aria-label="Current reservation"><p id="state" role="status">No reservation</p>
+<label><input id="ack" type="checkbox"> I confirm this reservation</label>
+<button id="confirm" type="button" disabled>Confirm reservation</button><button id="cancel" type="button" disabled>Cancel reservation</button>
+<p id="error" role="alert"></p></section></main><script type="module" src="/app.js"></script></body></html>

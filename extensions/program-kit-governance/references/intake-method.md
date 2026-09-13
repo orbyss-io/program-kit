@@ -178,7 +178,7 @@ fenced block. Use repository-relative forward-slash paths, double-quote each `na
 fully substitute every value, and include no placeholders, backticks, backslashes, environment
 variables, command substitutions, or shell-specific operators:
 
-`specify workflow run program-kit-bootstrap --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"`
+`python .specify/extensions/program-kit-governance/scripts/workflow_lifecycle.py run --input "bootstrap_intake=docs/architecture/bootstrap-intake.json" --input "integration=auto"`
 
 Do not run the outer workflow from an agent. Do not append automatic approval unless the user
 explicitly requests it.

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer')]
+    [ValidateSet('feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer', 'upgrade-continuation')]
     [string]$Phase,
     [Parameter(Mandatory)]
     [ValidateSet('fresh-baseline', 'fresh-candidate', 'upgrade-candidate')]

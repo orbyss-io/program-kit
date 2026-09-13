@@ -8,6 +8,17 @@ $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 $consumerPath = Join-Path $repository 'eng\verify.ps1'
 
+function Assert-ProgramKitRequiredEvidence {
+    $pointer = Join-Path $repository '.specify/feature.json'
+    if (Test-Path -LiteralPath $pointer -PathType Leaf) {
+        $feature = (Get-Content -LiteralPath $pointer -Raw | ConvertFrom-Json).feature_directory
+        if (-not $feature) { throw 'Active feature pointer has no feature_directory.' }
+        $gate = Join-Path $repository '.specify/extensions/program-kit-governance/scripts/lifecycle_state.py'
+        & python $gate --repository $repository --feature-dir $feature verify-delivery
+        if ($LASTEXITCODE -ne 0) { throw 'Required feature verification or semantic review is missing or stale.' }
+    }
+}
+
 function Test-ProgramKitPathWithinRoot {
     param(
         [Parameter(Mandatory)] [string]$RootPath,
@@ -57,6 +68,7 @@ if (Test-Path -LiteralPath $consumerPath) {
         if (-not $?) {
             throw 'Consumer verification failed.'
         }
+        Assert-ProgramKitRequiredEvidence
         return
     }
     throw 'Consumer verification must be a regular repository file, not a directory or reparse point.'
@@ -66,3 +78,4 @@ if (Test-Path -LiteralPath $consumerPath) {
 if (-not $?) {
     throw "Managed $Mode verification fallback failed."
 }
+Assert-ProgramKitRequiredEvidence

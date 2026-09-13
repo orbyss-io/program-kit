@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "requirements": [
+    {
+      "id": "domain-semantics",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/software-language.md",
+        "program-kit-governance/references/vertical-slicing.md"
+      ],
+      "requirement": "Define the slice's subjects, policies, legal transitions, effects, required admissions and outcomes. Test applicable denial, transition, acknowledgement, retry and cancellation behavior; review proportional nonapplicability."
+    },
+    {
+      "id": "implementation-quality",
+      "when": "all",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/programming-guardrails.md",
+        "program-kit-governance/references/vertical-slicing.md"
+      ],
+      "requirement": "Use typed owned boundaries, controlled time and I/O, cohesive operation paths and mirrored tests. Review legitimate dynamic or pure-static exceptions; do not create unused abstractions."
+    },
+    {
+      "id": "architecture-authority",
+      "when": "all",
+      "due": "delivery",
+      "proof": "review",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md"
+      ],
+      "requirement": "Preserve accepted ownership and exact dependency decisions. Link each exception to explicit accepted authority and current verification."
+    },
+    {
+      "id": "dotnet-boundaries",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
+        "program-kit-dotnet/references/technology-profiles/dotnet.md"
+      ],
+      "requirement": "Verify evaluated project and compiled type dependencies, Core purity, feature activation and resolution, and compatibility of owned extension protocols."
+    },
+    {
+      "id": "api-contracts",
+      "when": "api",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/software-language.md",
+        "program-kit-dotnet/references/secure-web-profiles.md"
+      ],
+      "requirement": "Bind explicit wire/JSON admission semantics to DTOs and registered OpenAPI production; preserve versioned behavior with compatibility tests, not structural diff alone."
+    },
+    {
+      "id": "browser-experience",
+      "when": "web",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-governance/references/ui-experience-v1.md",
+        "program-kit-governance/references/ui-evaluation-v1.md"
+      ],
+      "requirement": "Materialize the selected UI profile and exercise the actual browser journey, accessibility and declared security boundary. Generated examples are not product acceptance."
+    },
+    {
+      "id": "capability-adoption",
+      "when": "capabilities",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/tool-selection.md",
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-governance/references/component-adoption.md",
+        "program-kit-building-blocks/references/orbyss-building-blocks.md"
+      ],
+      "requirement": "For each selected capability prove materialization, configured activation and actual supported public mechanism use; distinguish build-time producers from deployed runtime services."
+    }
+  ]
+}

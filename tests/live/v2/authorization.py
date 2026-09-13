@@ -12,10 +12,12 @@ from .common import LiveContractError, atomic_write_json, canonical_sha256, load
 
 
 PHASES = {"bootstrap-checkpoint", "building-block-consumer"}
-PHASES.update({'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer'})
+PHASES.update({'workflow-fresh', 'workflow-failure', 'workflow-resume', 'feature-intake', 'feature-planning', 'feature-plan-tasks', 'feature-setup', 'feature-delivery', 'upgrade-consumer', 'upgrade-continuation'})
 
 
 def session_limit(phase: str, bootstrap_sessions: int | None = None) -> int:
+    if phase.startswith('workflow-'):
+        return 8
     if phase != 'bootstrap-checkpoint':
         return 1
     if type(bootstrap_sessions) is not int or bootstrap_sessions < 1:
@@ -34,13 +36,21 @@ def issue_authorization(
     checkpoint: dict[str, str] | None,
     expires_minutes: int = 30,
     bootstrap_sessions: int | None = None,
+    workflow: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if phase not in PHASES:
         raise LiveContractError(f"LIVE_AUTHORIZATION_UNKNOWN_PHASE: {phase}")
-    if phase != "bootstrap-checkpoint" and checkpoint is None:
+    if phase != "bootstrap-checkpoint" and not phase.startswith("workflow-") and checkpoint is None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_REQUIRED")
     if phase == "bootstrap-checkpoint" and checkpoint is not None:
         raise LiveContractError("LIVE_AUTHORIZATION_CHECKPOINT_FORBIDDEN")
+    if phase.startswith('workflow-'):
+        if workflow is None:
+            raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_BINDING_REQUIRED')
+        if (phase == 'workflow-resume') != (checkpoint is not None):
+            raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_PARENT_MISMATCH')
+    elif workflow is not None:
+        raise LiveContractError('LIVE_AUTHORIZATION_WORKFLOW_BINDING_FORBIDDEN')
     now = datetime.now(timezone.utc)
     manifest: dict[str, Any] = {
         "schemaVersion": "2.0",
@@ -59,6 +69,8 @@ def issue_authorization(
         "issuedAt": now.isoformat(),
         "expiresAt": (now + timedelta(minutes=expires_minutes)).isoformat(),
     }
+    if workflow is not None:
+        manifest['workflow'] = workflow
     validate(manifest, schema)
     atomic_write_json(destination, manifest)
     return manifest

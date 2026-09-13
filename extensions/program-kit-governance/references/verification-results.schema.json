@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://orbyss.io/program-kit/verification-results.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","basis","status","checks","outputs","startedAtUtc","suites"],
+  "properties":{
+    "$schema":{"type":"string"},"schemaVersion":{"const":1},"basis":{"$ref":"#/$defs/hash"},"status":{"enum":["failed","passed"]},
+    "startedAtUtc":{"type":"string","minLength":1},"finishedAtUtc":{"type":"string","minLength":1},
+    "checks":{"type":"object","additionalProperties":{"type":"object","additionalProperties":false,"required":["outcome","tests","result"],"properties":{
+      "outcome":{"const":"passed"},"tests":{"$ref":"#/$defs/strings"},"result":{"type":"string","minLength":1}}}},
+    "outputs":{"type":"object","additionalProperties":{"$ref":"#/$defs/hash"}},
+    "suites":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["command","exitCode","result"],"properties":{
+      "command":{"$ref":"#/$defs/strings"},"exitCode":{"type":"integer"},"result":{"type":"string","minLength":1}}}}
+  },
+  "if":{"properties":{"status":{"const":"passed"}}},"then":{"required":["finishedAtUtc"],"properties":{"suites":{"minItems":1}}},
+  "$defs":{"hash":{"type":"string","pattern":"^[0-9a-f]{64}$"},"strings":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}}
+}

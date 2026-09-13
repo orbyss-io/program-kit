@@ -121,10 +121,10 @@ INTAKE_STAGE_FIELDS = {
         "scope", "quality_requirements", "open_items", "routing",
     ),
     "roadmap": (
-        "scope", "actors", "journeys", "open_items", "candidate_slice_signals",
+        "scope", "actors", "journeys", "open_items", "candidate_slice_signals", "domain_analysis", "quality_requirements",
     ),
     "readiness": (
-        "actors", "journeys", "open_items", "candidate_slice_signals",
+        "actors", "journeys", "open_items", "candidate_slice_signals", "domain_analysis", "quality_requirements",
     ),
 }
 
@@ -135,8 +135,8 @@ MAP_STAGE_FIELDS = {
     # harmful. The seed is a required full read and this projection carries only its identity.
     "architecture": (),
     "tooling": ("decisions", "constraints", "elements", "relationships"),
-    "roadmap": ("decisions", "constraints", "elements", "relationships", "views"),
-    "readiness": ("decisions", "constraints", "elements", "relationships", "views"),
+    "roadmap": ("decisions", "constraints", "elements", "relationships", "views", "strategic_model"),
+    "readiness": ("decisions", "constraints", "elements", "relationships", "views", "strategic_model"),
 }
 
 MAP_RECORD_FIELDS = {
@@ -164,20 +164,20 @@ STAGE_RECORD_FIELDS = {
     "tooling": {
         "decisions": ("id", "title", "status", "scope"),
         "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
+        "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
         "relationships": ("id", "source", "target", "status", "decision_refs"),
     },
     "roadmap": {
         "decisions": ("id", "title", "status", "scope"),
         "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
+        "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
         "relationships": ("id", "source", "target", "status", "decision_refs"),
         "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
     },
     "readiness": {
         "decisions": ("id", "title", "status", "scope"),
         "constraints": ("id", "statement", "status", "applies_to", "decision_refs"),
-        "elements": ("id", "type", "name", "status", "ownership", "parent", "decision_refs"),
+        "elements": ("id", "type", "name", "description", "properties", "status", "ownership", "parent", "decision_refs"),
         "relationships": ("id", "source", "target", "status", "decision_refs"),
         "views": ("key", "type", "title", "scope", "elements", "relationships", "decision_refs"),
     },
@@ -623,7 +623,13 @@ def intake_projection(intake: dict, stage: str) -> dict:
         "schema_version": intake["schema_version"],
         "status": intake["status"],
         "project": intake["project"],
-        **{field: intake[field] for field in fields},
+        **{field: intake[field] for field in fields
+           if field != "domain_analysis" or stage not in {"roadmap", "readiness"}},
+        **({"domain_analysis": {
+            "source": "docs/architecture/bootstrap-intake.json#/domain_analysis",
+            "projection": "architecture_map.strategic_model",
+            "rule": "Use the canonical semantic model below; intake alignment is validated before projection.",
+        }} if stage in {"roadmap", "readiness"} else {}),
     }
 
 
@@ -641,6 +647,24 @@ def _nonempty_projection(value: object) -> object:
             if (projected := _nonempty_projection(item)) not in (None, "", [], {})
         ]
     return value
+
+
+def semantic_projection(model: dict) -> dict:
+    """Lossless tables avoid repeating field labels across large semantic collections.
+
+    Each row follows its table's columns; missing optional keys stay distinguishable
+    from explicit null via a missing-key index. Values and record order are retained.
+    """
+    result = {"projection": "record-tables", "sourcePointer": "/strategic_model"}
+    for key, value in model.items():
+        if isinstance(value, list) and value and all(isinstance(item, dict) for item in value):
+            columns = list(dict.fromkeys(k for item in value for k in item))
+            result[key] = {"columns": columns,
+                           "rows": [[item.get(k) for k in columns] for item in value],
+                           "missing": [[i for i, k in enumerate(columns) if k not in item] for item in value]}
+        else:
+            result[key] = value
+    return result
 
 
 def architecture_projection(project_root: Path, architecture_map: dict, stage: str) -> dict:
@@ -668,11 +692,21 @@ def architecture_projection(project_root: Path, architecture_map: dict, stage: s
                 for item in architecture_map[field]
             ]
             if field in MAP_RECORD_FIELDS
-            else architecture_map[field]
-            for field in fields
+            else semantic_projection(architecture_map[field]) if field == "strategic_model" else architecture_map[field]
+            for field in fields if field in architecture_map
         },
     }
-    return _nonempty_projection(projected)
+    semantic = projected.pop("strategic_model", None)
+    result = _nonempty_projection(projected)
+    if semantic is not None:
+        result["strategic_model"] = semantic
+    if stage in {"roadmap", "readiness"}:
+        # These stages consume semantic rows; repeated structural field labels add no context.
+        for key in ("elements", "relationships", "views"):
+            if result.get(key):
+                result[key] = semantic_projection({key: result[key]})[key]
+        result["table_format"] = "Each table row follows columns in order; missing lists column indexes absent in that row."
+    return result
 
 
 def markdown_index(text: str) -> tuple[list[dict], list[dict]]:
@@ -865,7 +899,7 @@ def routed_references(intake: dict, stage: str) -> tuple[str, ...]:
         result.extend(DOTNET_REFERENCES)
     secure_web = (
         "authenticated-browser-bff" in capabilities
-        or any("bff" in item for item in interfaces | surfaces)
+        or any("bff" in item or "pkce" in item for item in capabilities | interfaces | surfaces)
     )
     if secure_web:
         result.extend(SECURE_WEB_REFERENCES)

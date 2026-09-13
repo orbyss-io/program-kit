@@ -137,13 +137,13 @@ def main() -> int:
     restore_module = load_module(RESTORE)
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     module.validate_catalog(catalog)
-    if catalog["schemaVersion"] != "1.0" or catalog["resolutionRevision"] != 1:
-        raise AssertionError("Executable catalog must begin at schema 1.0 and resolution revision 1")
+    if catalog["schemaVersion"] != "1.0" or catalog["resolutionRevision"] != 2:
+        raise AssertionError("Executable catalog must begin at schema 1.0 and resolution revision 2")
     ecosystems = [package["ecosystem"] for package in catalog["packages"].values()]
-    if ecosystems.count("nuget") != 50 or ecosystems.count("npm") != 12 or ecosystems.count("oci") != 1:
-        raise AssertionError("Catalog must contain 50 NuGet, 12 npm, and one Foundation host artifact")
-    if len(catalog["compositions"]) != 16:
-        raise AssertionError("Catalog must preserve all 16 current compositions")
+    if ecosystems.count("nuget") != 53 or ecosystems.count("npm") != 12 or ecosystems.count("oci") != 1:
+        raise AssertionError("Catalog must contain 53 NuGet, 12 npm, and one Foundation host artifact")
+    if len(catalog["compositions"]) != 19:
+        raise AssertionError("Catalog must preserve the 16 runtime compositions plus the three new adoption compositions")
     if any(not package.get("version") for package in catalog["packages"].values()):
         raise AssertionError("Every artifact must have an explicit exact version")
     configuration = [
@@ -224,6 +224,19 @@ def main() -> int:
         module.apply_materialization(repository, lock_path, first, catalog)
         module.check_materialization(repository, first)
         restore_request = restore_module.restore_request(repository, lock_path, first, "renew")
+        root_npm = {'targets': [{'path': 'package.json', 'packages': [{'materializationKind': 'npm-dev-dependency'}]}]}
+        for mode, verb in (('renew', 'install'), ('locked', 'ci')):
+            commands = restore_module.restore_commands(repository, root_npm, mode)
+            if len(commands) != 1 or commands[0]['cwd'] != str(repository.resolve()) or commands[0]['subject'] != '.' or commands[0]['args'][1] != verb:
+                raise AssertionError('Root npm manifests must use the same renew/locked executor with the repository working directory')
+        unsafe_root = copy.deepcopy(root_npm)
+        unsafe_root['targets'][0]['path'] = '../outside/package.json'
+        try:
+            restore_module.restore_commands(repository, unsafe_root, 'renew')
+        except restore_module.RestoreError:
+            pass
+        else:
+            raise AssertionError('Root npm support must not admit escaping package targets')
         if restore_request["repository"] != "." or restore_request["lock"] != ".program-kit/building-blocks.lock.json":
             raise AssertionError("Credential-free restore request is not repository-portable")
         if any(Path(command["cwd"]).is_absolute() or any(Path(argument).is_absolute() for argument in command["args"]) for command in restore_request["commands"]):
@@ -369,6 +382,31 @@ def main() -> int:
         if accepted_plan != module.resolve(acceptance_repository, selection_path, CATALOG, "0.10.0"):
             raise AssertionError("Accepted lifecycle output did not resolve deterministically")
 
+        immutable_root = repository / 'immutable-consumer'
+        selection_path, architecture_path = accepted_fixture(module, immutable_root, catalog)
+        selection = json.loads(selection_path.read_text(encoding='utf-8'))
+        selection['targets'] = [
+            {'id': 'producer', 'kind': 'dotnet-project', 'path': 'tools/Forms.Release/Forms.Release.csproj', 'role': 'helper', 'scope': 'application'},
+            {'id': 'web', 'kind': 'npm-package', 'path': 'web/package.json', 'role': 'frontend-runtime', 'scope': 'application'}]
+        selection['instances'] = [{'id': 'immutable-forms', 'composition': 'forms_immutable_release', 'scope': 'application',
+                                  'targetBindings': {'producer': 'producer', 'frontend': 'web'}, 'options': {'renderer': ['react']}}]
+        write_json(selection_path, selection)
+        refresh_registration(selection_path, architecture_path)
+        immutable_lock = module.resolve(immutable_root, selection_path, CATALOG, '0.12.0')
+        if immutable_lock.get('activations') or any(item['kind'] == 'shell' for item in immutable_lock['targets']):
+            raise AssertionError('Immutable build-time Forms production acquired deployed management activation')
+        resolved_packages = {package['packageId'] for target in immutable_lock['targets'] for package in target['packages']}
+        if not {'Orbyss.Forms.Management', 'Orbyss.Forms.JsonForms', '@orbyss-io/forms-react'} <= resolved_packages:
+            raise AssertionError('Immutable Forms omitted its public producer or renderer')
+        unsupported = copy.deepcopy(catalog)
+        unsupported['packages']['nuget:Orbyss.Forms.Management']['supportsBuildTime'] = False
+        unsupported_path = immutable_root / 'unsupported-catalog.json'
+        write_json(unsupported_path, unsupported)
+        selection['catalog'] = module.catalog_binding(unsupported)
+        write_json(selection_path, selection)
+        refresh_registration(selection_path, architecture_path)
+        expect_error(module, 'PKB106', lambda: module.resolve(immutable_root, selection_path, unsupported_path, '0.12.0'))
+
         host_repository = repository / "host-consumer"
         selection_path, architecture_path = accepted_fixture(module, host_repository, catalog, "api_baseline")
         selection = json.loads(selection_path.read_text(encoding="utf-8"))
@@ -386,7 +424,7 @@ def main() -> int:
         refresh_registration(selection_path, architecture_path)
         host_lock = module.resolve(host_repository, selection_path, CATALOG, "0.10.0")
         host_output = next(item for item in host_lock["managedOutputs"] if item["kind"] == "host-images")
-        if host_output["entries"][0]["reference"] != "ghcr.io/orbyss-io/foundation-host:v0.1.0":
+        if host_output["entries"][0]["reference"] != f"ghcr.io/orbyss-io/foundation-host:v{catalog['families']['foundation']['releaseVersion']}":
             raise AssertionError("Foundation host selection did not materialize the exact version tag")
 
     print("Executable catalog, authority binding, deterministic lock, and cross-ecosystem materialization passed.")

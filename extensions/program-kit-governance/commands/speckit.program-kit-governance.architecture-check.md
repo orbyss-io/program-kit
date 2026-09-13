@@ -25,10 +25,19 @@ the active Spec Kit context. Run `scripts/specification_intake.py check-spec --s
 missing or stale feature confirmation blocks the step. Read the referenced confirmed intake brief
 and compare the spec's outcome, scope, exclusions, journeys and acceptance criteria with it. Material
 drift requires reopening affected intake decisions and confirmation, not silently replacing the hash.
-Read the constitution, approved bootstrap decision register and
-approval evidence, specification roadmap, architecture baseline, decision backlog, technology
-radar, traceability model, and all relevant ADRs. If required artifacts are missing, fail with an
-actionable bootstrap instruction.
+Use the current phase context and the relevant accepted authority sections. Read additional
+constitution, decision, specification roadmap or architecture material when an obligation or a detected change
+requires it; do not reread every baseline document at every boundary. Missing required authority
+still blocks with an actionable instruction.
+
+At `after_plan` and `after_tasks`, reconcile the current projection using
+`scripts/phase_obligations.py project --feature-dir <feature> --phase after-plan` (or `after-tasks`).
+Assess the applicable design and planned tests, record the attributable design review described in
+`references/phase-evidence.md`, then run `check` for that phase. A due deferred decision blocks.
+At `after_implement`, run `scripts/phase_obligations.py verify --feature-dir <feature>`, review the
+actual implementation and results, then run `check --feature-dir <feature> --phase delivery`.
+Do not claim completion from package presence, filenames, a green incomplete aggregate, or the
+preimplementation analysis. Missing or stale named check results block completion.
 
 For `after_specify`, use `scripts/lifecycle_state.py begin clarify` before clarification. If
 `speckit.clarify` asks questions, leave that operation active while paused and resume it explicitly;
@@ -138,7 +147,8 @@ contract checks the mandatory governance sections and selected runtime profile; 
 
 Return a structured report of errors, warnings, new decisions, and required artifact updates. Errors block the lifecycle step. Never silently edit an Accepted ADR to make a conflict disappear.
 
-When `ui-experience-v1` sources exist, run `scripts/ui_profile.py check --target .` after UI
+When accepted intake or the selected UI profile requires browser experience, require the
+profile sources to be materialized, then run `scripts/ui_profile.py check --target .` after UI
 implementation and before completion. Block generated drift, missing public/private boundaries,
 unlicensed/unsafe SVG imports, duplicated metadata/route owners and unapproved analytics. Require
 real consumer adapter/journey evidence in addition to the generated browser gallery. Public pages
