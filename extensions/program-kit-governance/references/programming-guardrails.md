@@ -28,3 +28,25 @@ These defaults apply unless a narrower rule is justified and documented:
   authorization handler only for a real resource, state, tenancy, or protected-effect decision.
 
 Apply rules proportionally. Pure transformations and trivial adapters should remain small; they do not need ceremony that adds no invariant, policy, or lifecycle value.
+
+## Typed boundaries and design evidence
+
+Known request/response/configuration envelopes use typed contracts after admission. Prove agreement
+between parser, schema and runtime behavior, including valid variants and rejected inputs. Bounded
+dynamic schemas and lexical/canonical JSON processing remain legitimate exceptions when encapsulated
+and tested. A DTO alone does not establish validation, authorization or deep immutability.
+
+Evaluate SOLID against changed responsibilities and actual consumers:
+
+- SRP: separate unrelated reasons to change, especially policy from transport/configuration/I/O.
+- OCP: use existing owned extension points; do not duplicate selected mechanisms or invent unused ones.
+- LSP: preserve promised preconditions, outcomes and invariants across substitutable implementations.
+- ISP: expose cohesive capabilities needed by real clients, without an interface-per-method rule.
+- DIP: depend on owned semantic capabilities and replaceable time/environment/I/O. Keep private seams
+  private; Core owns genuine feature contracts, not every implementation helper.
+
+Implementation-only helpers default internal. Pure deterministic static transformations are valid.
+Use framework constants or cohesive owner-scoped values without changing wire/version meaning.
+An attributed review cites affected source and behavior for each relevant principle; a generic
+"SOLID passed" statement or a file-count threshold is not evidence. Static analysis proves only its
+specified properties; use substitution, boundary and architecture tests where the contract needs them.

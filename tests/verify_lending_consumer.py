@@ -12,6 +12,7 @@ from live.v2 import cli, sync_stages
 from live.v2.common import LiveContractError, atomic_write_json, canonical_sha256, file_inventory, load_object, safe_relative, sha256_file, utc_now, validate
 from live.v2.lending_host import PublishedLendingHost, unpack_release_bundle, verify
 from live.v2.supervisor import run_supervised
+from live.v2.postgresql_service import PostgreSqlService, deploy_postgresql
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,11 +49,23 @@ def verify_run(run_path, bundle_path, browser_modules, engines):
               'runManifestSha256': sha256_file(run_path), 'checkpointSha256': sha256_file(Path(run['checkpoint'])),
               'consumerInventorySha256': canonical_sha256(checkpoint['files']), 'startedAt': utc_now(), 'operations': operations,
               'scope': 'Independent HTTP/restart/browser behavior plus current installed delivery obligations. Semantic/adoption review remains attributable evidence, not a universal proof.'}
-    def operation(command, name, cwd=project):
-        process = run_supervised(command, cwd=cwd, environment=cli.supervisor_environment(), evidence_directory=evidence / name, timeout_seconds=180)
+    def operation(command, name, cwd=project, environment=None, secrets=None):
+        process = run_supervised(command, cwd=cwd, environment=environment or cli.supervisor_environment(),
+                                 evidence_directory=evidence / name, timeout_seconds=180, secrets=secrets)
         operations.append({'command': command, 'process': process.as_dict()})
         if process.exitCode != 0 or not process.cleanupComplete or not process.logsDrained:
             raise LiveContractError('LENDING_ACCEPTANCE_OPERATION_FAILED: ' + name)
+    def deploy_database(database, label):
+        # Execute only against the supervisor's isolated connection. Source and normal host startup stay unchanged.
+        persistence = cli._load_restore_module(project / '.specify/extensions/program-kit-dotnet/scripts/persistence_selection.py')
+        selection = persistence.resolve(project)
+        feature = load_object(project / '.specify/feature.json')['feature_directory']
+        ownership = load_object(project / feature / 'artifact-ownership.json')
+        owners = [owner for owner in selection['owners'] if owner['owner'] in ownership.get('persistenceOwners', [])]
+        if selection['blockers']:
+            raise LiveContractError('LENDING_ACCEPTANCE_ADMITTED_POSTGRES_OWNER_REQUIRED')
+        result[label + 'Deployment'] = deploy_postgresql(project, evidence, database, toolchain['commands']['dotnet'],
+                                                        owners, cli.supervisor_environment(), operation, label)
     try:
         dotnet = toolchain['commands']['dotnet']
         operation([*dotnet, 'build', 'Lending.slnx', '--no-restore'], 'dotnet-build')
@@ -62,15 +75,20 @@ def verify_run(run_path, bundle_path, browser_modules, engines):
         image = manifest['hostImage']['reference']
         result.update(bundleSha256=sha256_file(archive), hostImage=image)
         operation(['docker', 'pull', image], 'published-host-pull')
-        def host_factory(directory, environment):
-            return PublishedLendingHost(evidence / 'bundle', image, project, directory, environment)
         contract = load_object(ROOT / 'tests/live/scenarios/knowledge-application/v1/http-contract.json')
-        result['http'] = verify(['docker', 'run', image], project, evidence / 'http', cli.supervisor_environment(), contract, host_factory=host_factory)
+        services = load_object(ROOT / 'tests/live/scenarios/knowledge-application/v1/bootstrap-seed/fixture/acceptance/services.json')
+        with PostgreSqlService(services, project, evidence / 'http/database', cli.supervisor_environment()) as database:
+            deploy_database(database, 'http')
+            def host_factory(directory, environment):
+                return PublishedLendingHost(evidence / 'bundle', image, project, directory, environment, database=database)
+            result['http'] = verify(['docker', 'run', image], project, evidence / 'http', cli.supervisor_environment(), contract, host_factory=host_factory)
         environment = {**cli.supervisor_environment(), 'LENDING_FIXTURE_WEB': str(project / 'web/dist')}
-        with host_factory(evidence / 'browser/host', environment) as browser_host:
-            script = ROOT / 'tests/fixtures/knowledge-application/oracle-browser/browser.mjs'
-            operation([*toolchain['commands']['node'], str(script), '--url=' + browser_host.url, '--engines=' + engines,
-                       '--modules=' + str(browser_modules), '--output=' + str(evidence / 'browser/results.json')], 'browser-process')
+        with PostgreSqlService(services, project, evidence / 'browser/database', cli.supervisor_environment()) as database:
+            deploy_database(database, 'browser')
+            with PublishedLendingHost(evidence / 'bundle', image, project, evidence / 'browser/host', environment, database=database) as browser_host:
+                script = ROOT / 'tests/fixtures/knowledge-application/oracle-browser/browser.mjs'
+                operation([*toolchain['commands']['node'], str(script), '--url=' + browser_host.url, '--engines=' + engines,
+                           '--modules=' + str(browser_modules), '--output=' + str(evidence / 'browser/results.json')], 'browser-process')
         result['browser'] = load_object(evidence / 'browser/results.json')
         if result['browser']['status'] != 'passed':
             raise LiveContractError('LENDING_ACCEPTANCE_BROWSER_FAILED')

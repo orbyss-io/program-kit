@@ -303,6 +303,7 @@ ASSESSMENT_OPTIONAL_REFERENCES = (
 
 DOTNET_REFERENCES = (
     ".specify/extensions/program-kit-dotnet/references/dotnet-engineering.md",
+    ".specify/extensions/program-kit-dotnet/references/persistence-profiles.md",
     ".specify/extensions/program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",
 )
 
@@ -751,7 +752,7 @@ def compact_authority(name: str, payload: dict) -> dict:
             key: payload[key]
             for key in (
                 "schema_version", "default_profile", "selected_profiles", "dotnet", "web",
-                "toolchain", "unresolved", "deferred",
+                "toolchain", "persistence", "unresolved", "deferred",
             )
             if key in payload
         }

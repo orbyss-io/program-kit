@@ -90,7 +90,7 @@ def validate_graph(root, manifest, evaluated, compiled):
     return {'evaluated-and-compiled-graph', 'compiled-capability-bindings'}
 
 
-def execute(root, manifest, configuration):
+def execute(root, manifest, configuration, feature=None):
     evaluated = {}
     paths = []
     for project in manifest['runtimeComposition']['projects']:
@@ -101,13 +101,24 @@ def execute(root, manifest, configuration):
                         '--nologo', '-v:q'], cwd=root, capture_output=True, text=True,
                        encoding='utf-8', check=True, timeout=180)
         command = ['dotnet', 'msbuild', str(path), '-nologo', f'-p:Configuration={configuration}',
-                   '-getProperty:AssemblyName,TargetPath', '-getItem:ProjectReference,PackageReference']
+                   '-getProperty:AssemblyName,TargetPath,ManagePackageVersionsCentrally', '-getItem:ProjectReference,PackageReference,PackageVersion']
         result = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8', check=True, timeout=120)
         data = json.loads(result.stdout)
         evaluated[project['path']] = data
         assembly = Path(data['Properties']['TargetPath']).resolve()
         require(assembly.is_relative_to(root) and assembly.is_file(), 'Build current assemblies before architecture verification')
         paths.append(str(assembly))
+    data_packages = {p['Identity'] for value in evaluated.values() for p in value['Items'].get('PackageReference', [])
+                     if p['Identity'].startswith(('Microsoft.EntityFrameworkCore', 'Npgsql', 'Microsoft.Data.SqlClient', 'Microsoft.Data.Sqlite'))}
+    require(not data_packages or manifest.get('persistenceOwners'), 'Evaluated persistence packages require scoped data-owner admission')
+    if manifest.get('persistenceOwners'):
+        from repository_sync import provider
+        persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')
+        # CLI callers locate the active feature; its accepted admission remains the authority.
+        selection = persistence.resolve(root, feature)
+        selection['owners'] = [owner for owner in selection['owners'] if owner['owner'] in manifest['persistenceOwners']]
+        template = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files'
+        persistence.validate_evaluated(selection, template, evaluated)
     helper = Path(__file__).parent / 'assembly_graph/AssemblyGraph.csproj'
     result = subprocess.run(['dotnet', 'run', '--project', str(helper), '--configuration', 'Release',
                              '--no-launch-profile', '--', *paths], cwd=root, capture_output=True,
@@ -127,7 +138,8 @@ def main():
     root = Path(args.repository).resolve()
     suite = ET.Element('testsuite', name='ProgramKit.Architecture')
     try:
-        checks = execute(root, read(inside(root, args.manifest)), args.configuration)
+        manifest_path = inside(root, args.manifest)
+        checks = execute(root, read(manifest_path), args.configuration, manifest_path.parent.relative_to(root).as_posix())
         for check in sorted(checks):
             ET.SubElement(suite, 'testcase', classname='ProgramKit.Architecture', name=check)
         status = 0

@@ -100,7 +100,12 @@ defined by intake for every other collection. Keep the human-facing decision set
 implementation details into later specifications and adoption triggers rather than creating a
 separate blocking ADR for every tool.
 
-Evaluate API Evolve when the project introduces a versioned external API, event, RPC, or schema contract. Evaluate Reqnroll BDD when multistep externally observable behavior benefits from executable examples. Evaluate ArchUnitNET when .NET assembly dependency rules are present. These are evaluation triggers, not automatic acceptance.
+For versioned external contracts, apply the evaluated API evolution decision in
+`modularity-and-contracts.md` and the existing contract pipeline. Research an unresolved protocol or
+runtime version-negotiation gap; do not repeatedly evaluate or install the incompatible API Evolve
+v1.0.0 hooks. Evaluate Reqnroll BDD when multistep externally observable behavior benefits from
+executable examples. Evaluate ArchUnitNET when .NET assembly dependency rules are present. These
+are evaluation triggers, not automatic acceptance.
 
 When .NET modularity or multi-tenancy is present, evaluate CShells and CShells.AspNetCore against the
 triggers and risks in the .NET technology profile. When ASP.NET Core HTTP endpoints are present,

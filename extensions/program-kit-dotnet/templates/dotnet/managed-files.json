@@ -44,7 +44,9 @@
     {"path": ".program-kit/eng/runtime_closure.py", "ownership": "managed"},
     {"path": ".github/workflows/application-ci.yml", "ownership": "managed"},
     {"path": ".github/workflows/application-release.yml", "ownership": "managed"},
-    {"path": "nuplane.settings.json", "ownership": "scaffold"}
+    {"path": "nuplane.settings.json", "ownership": "scaffold"},
+    {"path": ".program-kit/eng/central_packages.py", "ownership": "managed"},
+    {"path": ".program-kit/eng/ProgramKit.Persistence.props", "ownership": "managed"}
   ],
   "obsoleteFiles": [
       "eng/program-kit/create_application_bundle.py",

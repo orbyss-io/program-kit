@@ -11,6 +11,7 @@ from xml.etree import ElementTree
 import reconciliation
 import identity_fixture
 import spa_profile
+import persistence_selection
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -342,10 +343,11 @@ def main() -> int:
     )
     parser.add_argument(
         "--persistence-profile",
-        choices=("none", "ef-postgresql", "ef-sqlserver", "ef-sqlite"),
-        default="none",
-        help="Explicit governed persistence profile; none keeps all providers inactive",
+        choices=("auto", "none", "ef-postgresql", "ef-sqlserver", "ef-sqlite"),
+        default="auto",
+        help="Resolve approved data-owner persistence intent; explicit profiles without admission remain proposals",
     )
+    parser.add_argument('--feature-dir', help='Feature admission scope, relative to the consuming repository')
     args = parser.parse_args()
 
     if not args.profile_selected:
@@ -416,6 +418,9 @@ def main() -> int:
 
     state_path = target / ".program-kit/managed.json"
     state = load_json(state_path, {"schemaVersion": 1, "files": {}})
+    persistence = persistence_selection.resolve(target, feature=args.feature_dir, requested=args.persistence_profile)
+    effective_persistence = persistence_selection.effective(persistence)
+    args.persistence_profile = persistence['summary']
     old_files = state.get("files")
     if not isinstance(old_files, dict):
         raise ValueError(f"Invalid managed-file state in {state_path}")
@@ -466,6 +471,16 @@ def main() -> int:
         content = desired_content(
             source, relative, dotnet_sdk, web_profile, spa_configuration, template_root
         )
+        if relative == persistence_selection.AGGREGATE:
+            content = persistence_selection.render(persistence, template_root / 'files')
+            rendered = True
+        if relative == '.program-kit/eng/.config/dotnet-tools.json':
+            tools = json.loads(content)
+            persistence_pins = persistence_selection.pins(effective_persistence, template_root / 'files')
+            if 'Microsoft.EntityFrameworkCore.Design' in persistence_pins:
+                tools['tools']['dotnet-ef'] = {'version': persistence_pins['Microsoft.EntityFrameworkCore.Design'], 'commands': ['dotnet-ef']}
+                content = (json.dumps(tools, indent=2) + '\n').encode('utf-8')
+                rendered = True
         desired_by_path[relative] = {
             **entry,
             "sourceIdentity": source.relative_to(template_root).as_posix(),
@@ -559,6 +574,13 @@ def main() -> int:
                 final_hash = desired_hash
                 final_baseline = desired_hash
                 final_written = desired_hash
+            elif (relative == 'Directory.Packages.props' and isinstance(previous, dict)
+                  and current_hash == last_written_hash and current_hash == baseline_hash
+                  and persistence_selection.pins(persistence, template_root / 'files')):
+                # Upgrade an authenticated untouched scaffold; customized consumer files stay preserved.
+                updated.append(relative)
+                actions.append({'kind': 'update', 'path': relative, 'content': desired})
+                final_hash = final_baseline = final_written = desired_hash
             elif (
                 isinstance(previous, dict)
                 and current_hash == last_written_hash
@@ -672,6 +694,7 @@ def main() -> int:
             "persistenceProfile": state.get("persistenceProfile"),
         },
         "to": {"webProfile": web_profile, "persistenceProfile": args.persistence_profile},
+        "persistence": persistence,
         "actions": [
             {
                 "kind": action["kind"],
@@ -716,7 +739,9 @@ def main() -> int:
         "webProfileContract": f"{web_profile}-v1",
         "webThreatModel": "program-kit-web-threat-model-v1" if web_profile != "none" else "none",
         "webSecurityEvidence": "program-kit-web-security-evidence-v1" if web_profile != "none" else "none",
-        "persistenceProfile": args.persistence_profile,
+        "persistenceProfile": effective_persistence['summary'],
+        "desiredPersistenceProfile": args.persistence_profile,
+        "persistenceOwners": effective_persistence['owners'],
         "desiredManifestDigest": plan_core["desiredManifestDigest"],
         "appliedMigrations": applied_migrations,
         "files": next_files,

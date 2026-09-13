@@ -125,13 +125,14 @@ def context(repository: Path, phase: str, feature: str | None) -> dict:
     if feature:
         inputs.extend(f"{feature}/{name}" for name in ("spec.md", "plan.md", "artifact-ownership.json", "tasks.md"))
     web = managed.get("webProfile", "auto") if phase == "upgrade" else "auto"
-    persistence = managed.get("persistenceProfile", "none")
+    persistence = provider('program-kit-dotnet/scripts/persistence_selection.py').resolve(repository, feature)
     selection = load(repository / "docs/architecture/building-block-selection.json", {})
     targets = [{"id": item["id"], "path": item["path"], "kind": item["kind"],
                 "state": "materialized" if contained(repository, item["path"]).is_file() else "planned"}
                for item in selection.get("targets", [])]
     return {"schemaVersion": 1, "programKitVersion": version(), "phase": phase, "feature": feature,
-            "dotnet": dotnet, "javascript": javascript, "webProfile": web, "persistenceProfile": persistence,
+            "dotnet": dotnet, "javascript": javascript, "webProfile": web, "persistenceProfile": persistence['summary'],
+            "persistence": persistence,
             "toolchainPins": pins, "targets": targets,
             "authorityInputs": {relative: lifecycle_sha256(contained(repository, relative)) if contained(repository, relative).is_file() else None for relative in inputs},
             "providerInputs": provider_inputs()}
@@ -150,7 +151,7 @@ def provider_inputs() -> dict:
 def dotnet_command(repository: Path, setup: dict) -> list[str]:
     return [sys.executable, str(package_execution.extension_root() / "program-kit-dotnet/scripts/dotnet_sync.py"),
             "--target", str(repository), "--profile-selected", "--web-profile", setup["webProfile"],
-            "--persistence-profile", setup["persistenceProfile"]]
+            "--persistence-profile", "auto"] + (["--feature-dir", setup["feature"]] if setup.get("feature") else [])
 
 
 def toolchain_current(repository: Path, pins: dict) -> bool:
@@ -364,6 +365,11 @@ def readiness(repository: Path, phase: str, feature: str | None = None, *, valid
     plan = describe(repository, phase, feature)
     restore = provider("program-kit-building-blocks/scripts/restore_dependencies.py")
     problems = sync_readiness.blockers(repository, plan["context"], plan["operations"], restore)
+    if phase not in {'bootstrap', 'planning'}:
+        persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')
+        template = package_execution.extension_root() / 'program-kit-dotnet/templates/dotnet/files'
+        problems.extend(persistence.coherence(repository, plan['context']['persistence'], template,
+                        materialized=phase in {'implementation-setup', 'implementation', 'upgrade'}))
     if validate_authority and phase not in {'bootstrap', 'upgrade'}:
         try:
             run(repository, [sys.executable, str(Path(__file__).with_name('governance_state.py')), 'validate-setup-authority'])

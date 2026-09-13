@@ -314,8 +314,14 @@ def run(args: argparse.Namespace) -> int:
             'A preserved working application is not candidate delivery approval. Stop at the actual human gate.')
     command = [shutil.which('codex') or 'codex', 'exec', '--sandbox', 'workspace-write', '--cd', str(project),
                '--json', '--model', profile['model'], '-c', f"model_reasoning_effort=\"{profile['reasoningEffort']}\"", worker_prompt]
-    result = cli.run_supervised(command, cwd=project, environment=cli.worker_environment(project, profile),
-                                evidence_directory=run_root / 'worker', timeout_seconds=profile['timeoutSeconds'], secrets=secrets)
+    from .postgresql_service import worker_service
+    service_contract = fixture(root) / 'bootstrap-seed/fixture/acceptance/services.json'
+    # Feature and upgrade production can use the real provider without owning a Docker daemon.
+    if phase not in {'feature-delivery', 'upgrade-continuation'}:
+        service_contract = run_root / 'no-database-service'
+    with worker_service(project, run_root / 'database', cli.supervisor_environment(), service_contract) as (service_environment, service_secrets):
+        result = cli.run_supervised(command, cwd=project, environment={**cli.worker_environment(project, profile), **service_environment},
+                                    evidence_directory=run_root / 'worker', timeout_seconds=profile['timeoutSeconds'], secrets=secrets + service_secrets)
     status, causes = cli.process_failure(result)
     checkpoint = None
     oracle = {'acceptanceScope':'stage-boundary-only', 'functionalAcceptancePending':True, 'metrics':None,

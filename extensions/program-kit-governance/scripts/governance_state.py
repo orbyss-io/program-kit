@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import re
+from decision_status import has_decision_status as _has_decision_status
 import subprocess
 import sys
 from datetime import date
@@ -561,13 +562,6 @@ def _require_string(value: object, label: str) -> str:
     return value.strip()
 
 
-def _has_decision_status(text: str, status: str) -> bool:
-    pattern = (
-        r"^(?:[-*]\s+)?(?:Status:|\*\*Status\*\*:|\*\*Status:\*\*)\s*"
-        + re.escape(status)
-        + r"\s*$"
-    )
-    return re.search(pattern, text, re.MULTILINE | re.IGNORECASE) is not None
 
 
 FOUNDING_DECISION_MARKER = re.compile(

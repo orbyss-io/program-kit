@@ -24,7 +24,8 @@ Evaluate rather than automatically install:
 
 - Architecture Governance for ADR/architecture artifact gates.
 - ADR tooling or a local adapter when the current ADR kit adapter is incompatible.
-- API Evolve when an externally versioned contract appears.
+- API evolution uses the existing OpenAPI/compatibility pipeline and `modularity-and-contracts.md`.
+  API Evolve v1.0.0 was evaluated and is not admitted; do not repeat its baseline/task/release hooks.
 - Reqnroll BDD for valuable multistep executable examples in .NET contexts.
 - ArchUnitNET for compiled .NET dependency and layering rules.
 - Structurizr DSL/C4 and arc42 when architecture-as-code and navigable documentation fit.

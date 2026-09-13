@@ -37,6 +37,14 @@ are explicit intent. Examples, alternatives, future directions, and phrases such
 
 ## Adoption evidence
 
+For .NET persistence, apply `program-kit-dotnet/references/persistence-profiles.md` while resolving
+data-owner intent: no store means none; server-relational storage inherits EF/Npgsql/PostgreSQL unless
+an explicit alternative or existing provider takes precedence. Record the proposal per owner in
+`bootstrap-decisions.json.persistence` immediately. Admission, materialized packages and tested
+compatibility are separate later evidence; do not ask the user to redesign a selected database merely
+because a test harness lacks its service. Research unresolved consumer-owned packages against the
+managed pins and record compatibility or a concrete override.
+
 Write `docs/architecture/bootstrap-decisions.json` using schema version `1.0`. It records the
 versioned default profile, selected profiles, adopted choices and their sources, overrides,
 material acknowledgements, genuinely unresolved decisions, and deferred decisions. Every adopted

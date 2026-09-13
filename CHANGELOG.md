@@ -4,6 +4,15 @@
 
 ### 0.12.0 candidate
 
+- Apply the existing .NET engineering knowledge through scoped phase obligations, attributable
+  source review, compiler diagnostics and executed behavior evidence. Include typed boundaries,
+  SOLID, deferred initialization, concurrency, lifetime, secure I/O and operation-level API proof.
+- Resolve persistence per data owner through the same setup and upgrade coordinator. Default
+  approved .NET server-relational intent to EF/PostgreSQL, require provider admission, preserve
+  accepted bootstrap intent and consumer customizations, and guard evaluated package ownership.
+- Prepare isolated PostgreSQL deployment and restart evidence for the fictional live fixture,
+  using the published Foundation host and consumer release bundle. Paid trials remain separately
+  authorized; deterministic validation alone does not establish live quality or token improvements.
 - Coordinate approved repository setup through governance sync at bootstrap handoff, planning,
   implementation setup and upgrade. Retire the public .NET sync command without a compatibility alias.
 - Share exact Node/npm, catalog registry and CA context across package metadata, isolated strict

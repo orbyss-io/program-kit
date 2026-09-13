@@ -66,6 +66,9 @@ function Invoke-ProgramKitNative {
 $developmentValidators = @(
     'validate_components.py',
     'validate_phase_obligations.py',
+    'validate_api_proof.py',
+    'validate_persistence_selection.py',
+    'validate_postgresql_service.py',
     'validate_knowledge_inventory.py',
     'validate_feature_knowledge.py',
     'validate_architecture_recipe.py',
@@ -105,6 +108,9 @@ $developmentValidators = @(
     'validate_release_bundle.py'
 )
 $releaseOnlyValidators = @(
+    'validate_public_component_use.py',
+    'validate_dotnet_engineering.py',
+    'validate_persistence_runtime.py',
     'validate_ui_experience.py',
     'validate_governance_state.py',
     'validate_local_upgrade.py',

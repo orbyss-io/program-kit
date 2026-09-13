@@ -62,6 +62,26 @@ Planning declarations are not completion proof. A package pin proves selection; 
 artifacts prove materialization; configuration/registration proves activation; actual public
 API use and behavior tests prove exercise of the selected mechanism. Keep these claims separate.
 
+The .NET engineering obligations route to exact sections in the existing engineering reference.
+Disposition applicability against accepted intent and affected source; do not invent use of Lazy,
+pooling, queries or another conditional mechanism just to create evidence. Compiler diagnostics,
+runtime cases and attributed semantic review establish different properties. Report suppressed
+diagnostics with their actual scope/rationale, and review generic design conclusions against code.
+
+For HTTP operations, declare `apiOperations` in ownership and create `api-proof.json` from its
+schema. Reuse the registered OpenAPI contract paths. Bind baseline and generated artifact hashes,
+typed DTO/parser/schema and old-client/snapshot checks, version decisions and per-operation source
+roles. Build/export first, finalize those hashes, then execute the mapped verification plan and
+review the current source. `small-operation` is a supported proportional layout with a rationale;
+the normal operation-folder layout keeps composition outside the operation. Placement checks do
+not prove that a composition method is thin: review the actual responsibility boundary.
+
+For persistence, ownership names `persistenceOwners` from the canonical bootstrap decisions.
+Resolve `persistence.schema.json` admission before tasks, materialize coherent central pins/project
+references before coding, and bind real-provider checks in the persistence-adoption obligation.
+Use existing architecture/runtime proof for actual shell resolution. Do not claim that a props
+import establishes transactions, tenancy, recovery or correct provider activation.
+
 
 `architecture-proof.json` uses `schemaVersion: 1`; `graph` has `method` (`evaluated-compiled`
 or reviewed `equivalent`), `rationale`, and `checkIds` (an equivalent also names a `designRef`).

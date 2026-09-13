@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbyss.io/program-kit/persistence.schema.json",
+  "$defs": {
+    "owners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capability": {
+            "type": "string",
+            "minLength": 1
+          },
+          "storage": {
+            "enum": [
+              "none",
+              "server-relational",
+              "embedded-relational",
+              "relational",
+              "custom"
+            ]
+          },
+          "profile": {
+            "enum": [
+              "auto",
+              "none",
+              "ef-postgresql",
+              "ef-sqlserver",
+              "ef-sqlite",
+              "custom"
+            ]
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "admitted"
+            ]
+          },
+          "providerProject": {
+            "type": "string",
+            "minLength": 1
+          },
+          "testProjects": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "checkIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "transitionAuthority": {
+            "type": "string",
+            "minLength": 1
+          },
+          "packages": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "admission": {
+            "type": "object",
+            "properties": {
+              "ownership": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "atomicity": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "concurrency": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "providerSemantics": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "migrations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "queries": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "authorization": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "dataProtection": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "realProviderTests": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "dbContext": {
+            "type": "string",
+            "minLength": 1
+          },
+          "packageAssignments": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "tests": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "provider",
+              "tests"
+            ],
+            "additionalProperties": false
+          },
+          "testProvisioning": {
+            "enum": [
+              "testcontainers",
+              "supervisor"
+            ]
+          },
+          "providerOverride": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "enum": [
+                  "none",
+                  "ef-postgresql",
+                  "ef-sqlserver",
+                  "ef-sqlite",
+                  "custom"
+                ]
+              },
+              "authority": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "profile",
+              "authority"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "owner",
+          "storage",
+          "profile",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "admission": {
+      "type": "object",
+      "properties": {
+        "capability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "admitted"
+          ]
+        },
+        "providerProject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "testProjects": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "checkIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "transitionAuthority": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "admission": {
+          "type": "object",
+          "properties": {
+            "ownership": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "atomicity": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "concurrency": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "providerSemantics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "migrations": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "queries": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "authorization": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "dataProtection": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "realProviderTests": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "dbContext": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageAssignments": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "tests": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "provider",
+            "tests"
+          ],
+          "additionalProperties": false
+        },
+        "testProvisioning": {
+          "enum": [
+            "testcontainers",
+            "supervisor"
+          ]
+        },
+        "providerOverride": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "enum": [
+                "none",
+                "ef-postgresql",
+                "ef-sqlserver",
+                "ef-sqlite",
+                "custom"
+              ]
+            },
+            "authority": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "profile",
+            "authority"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "capability",
+        "providerProject",
+        "testProjects",
+        "checkIds",
+        "admission"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#/$defs/owners"
+}

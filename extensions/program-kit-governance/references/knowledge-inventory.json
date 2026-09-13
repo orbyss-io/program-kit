@@ -15,10 +15,12 @@
     {
       "path": "program-kit-dotnet/references/dotnet-engineering.md",
       "phases": [
-        "setup",
-        "verification"
+        "planning",
+        "implementation",
+        "delivery",
+        "upgrade"
       ],
-      "enforcement": "managed engineering and required verification evidence"
+      "enforcement": "dotnet-* phase obligations: exact section projection, attributed applicability/source review and current executed proof; upgrade invalidates changed rules"
     },
     {
       "path": "program-kit-dotnet/references/dotnet-runtime-and-application-bundles.md",

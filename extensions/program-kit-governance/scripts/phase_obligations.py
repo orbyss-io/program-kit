@@ -38,7 +38,7 @@ def read(path, default=None):
     value = load_json(path)
     schema = Path(__file__).resolve().parents[1] / 'references' / (path.stem + '.schema.json')
     if path.name in {'architecture-proof.json', 'capability-adoption.json', 'verification-plan.json',
-                     'obligation-design.json', 'obligation-review.json', 'semantic-contract.json', 'verification-results.json'}:
+                     'obligation-design.json', 'obligation-review.json', 'semantic-contract.json', 'verification-results.json', 'api-proof.json'}:
         from json_schema import validate_value
         result = validate_value(value, load_json(schema), schema)
         require(result['valid'], f'{path.name} violates its artifact schema: {result["errors"]}')
@@ -79,6 +79,19 @@ def inventory(root, feature, stage='delivery'):
     require(isinstance(scope.get('inputPaths', []), list), 'inputPaths must be an array')
     explicit = list(scope.get('inputPaths', []))
     explicit += [p for record in scope.get('requirements', []) for p in record.get('designRefs', [])]
+    scoped_owners = set(ownership.get('persistenceOwners', []))
+    owners = [value for owner, value in ownership.get('persistenceAdmissions', {}).items()
+              if owner in scoped_owners]
+    owners += [item for item in read(root / 'docs/architecture/bootstrap-decisions.json', {}).get('persistence', [])
+               if item.get('owner') in scoped_owners]
+    owners += [item for item in read(root / '.program-kit/managed.json', {}).get('persistenceOwners', [])
+               if item.get('owner') in scoped_owners]
+    for owner in owners:
+        explicit += [p for refs in owner.get('admission', {}).values() for p in refs]
+        if owner.get('transitionAuthority'):
+            explicit.append(owner['transitionAuthority'])
+        if owner.get('providerOverride'):
+            explicit.append(owner['providerOverride']['authority'])
     require(isinstance(explicit, list), 'inputPaths must be explicit repository paths')
     for relative in explicit:
         path = inside(root, relative)
@@ -109,6 +122,15 @@ def inventory(root, feature, stage='delivery'):
         path = inside(root, relative)
         result[relative] = source_hash(path) if path.is_file() else None
     # Explicit managed inputs (e.g. custom adapters) must remain bound despite cache pruning.
+    if 'dotnet' in intent(root, feature):
+        engineering = root / '.program-kit/eng'
+        for directory, dirs, files in os.walk(engineering, followlinks=False):
+            dirs[:] = [name for name in dirs if name not in EXCLUDED]
+            for name in files:
+                path = Path(directory) / name
+                if path.suffix in {'.props', '.targets', '.json', '.py', '.ps1'}:
+                    require(path.resolve().is_relative_to(root), 'Engineering verifier escapes repository')
+                    result[path.relative_to(root).as_posix()] = source_hash(path)
     for relative in explicit:
         path = inside(root, relative)
         candidates = [path] if path.is_file() else [p for p in path.rglob('*') if p.is_file() and not any(part in EXCLUDED for part in p.relative_to(path).parts)]
@@ -127,7 +149,40 @@ def catalog():
     for item in value['requirements']:
         for relative in item['sources']:
             require(inside(directory.parents[1], relative).is_file(), f'Missing knowledge source: {relative}')
+        sections = item.get('sections', {})
+        require(set(sections) <= set(item['sources']), 'Section source must be declared')
+        for relative, headings in sections.items():
+            require(isinstance(headings, list) and headings and len(headings) == len(set(headings)),
+                    'Knowledge sections must be unique and nonempty')
+            for heading in headings:
+                knowledge_section(inside(directory.parents[1], relative), heading)
     return value
+
+
+def knowledge_section(path, heading):
+    """Resolve an exact second-level heading; a missing/ambiguous section fails closed."""
+    require(text(heading), 'Knowledge heading must be named')
+    content = path.read_text(encoding='utf-8').replace('\r\n', '\n')
+    matches = list(re.finditer(r'^## ' + re.escape(heading) + r'\s*$', content, re.MULTILINE))
+    require(len(matches) == 1, f'Missing/ambiguous knowledge section: {path.name} / {heading}')
+    start = matches[0].start()
+    end = re.search(r'^## ', content[matches[0].end():], re.MULTILINE)
+    return content[start:matches[0].end() + end.start() if end else len(content)].strip()
+
+
+def knowledge_hashes(requirements, directory):
+    """Hash selected sections or the whole source for existing unscoped obligations."""
+    hashes = {}
+    for item in requirements:
+        for relative in item['sources']:
+            path = inside(directory, relative)
+            sections = item.get('sections', {}).get(relative)
+            if sections:
+                for heading in sections:
+                    hashes[relative + '#' + heading] = digest(knowledge_section(path, heading))
+            else:
+                hashes[relative] = lifecycle_sha256(path)
+    return dict(sorted(hashes.items()))
 
 
 def intent(root, feature):
@@ -136,18 +191,25 @@ def intent(root, feature):
     selection = read(root / 'docs/architecture/building-block-selection.json', {})
     profiles = set(decisions.get('selected_profiles', [])) | set(ownership.get('profiles', []))
     composition = ownership.get('runtimeComposition', {})
-    endpoint = any(item.get('role') == 'api' for item in composition.get('projects', []))
+    endpoint = bool(ownership.get('apiOperations'))
     # Profile/accepted target intent activates checks even before source/exporter generation.
     web = bool(profiles & {'typescript-vite', 'typescript-web', 'browser-web'})
     tags = {'all'}
-    if 'dotnet' in profiles:
+    installed = read(root / '.program-kit/managed.json', {})
+    if 'dotnet' in profiles or installed.get('dotnetSdk') or any(
+            str(item.get('path', '')).endswith('.csproj') for item in composition.get('projects', [])):
         tags.add('dotnet')
     if web:
         tags.add('web')
     if endpoint or ('dotnet' in tags and web) or ownership.get('externalContracts'):
         tags.add('api')
+    if endpoint or ('dotnet' in tags and web):
+        tags.add('http-api')
     if selection.get('instances'):
         tags.add('capabilities')
+    if profiles & {'ef-postgresql', 'ef-sqlserver', 'ef-sqlite'} or ownership.get('persistenceOwners') or any(
+            item.get('storage') != 'none' for item in decisions.get('persistence', [])):
+        tags.add('persistence')
     return tags
 
 
@@ -155,7 +217,6 @@ def model(root, feature):
     value = catalog()
     tags = intent(root, feature)
     requirements = [item for item in value['requirements'] if item['when'] in tags]
-    sources = {source for item in requirements for source in item['sources']}
     directory = Path(__file__).resolve().parents[1] / 'references'
     identities = {item['id'] for item in requirements}
     verifier_files = ['phase_obligations.py', 'feature_knowledge.py', 'json_schema.py', 'schema_runtime.py']
@@ -169,6 +230,9 @@ def model(root, feature):
     if 'capability-adoption' in identities:
         verifier_files.append('capability_adoption.py')
         schema_names.append('capability-adoption')
+    if 'http-operation-contracts' in identities:
+        verifier_files.append('api_proof.py')
+        schema_names.append('api-proof')
     verifier_hashes = {name: lifecycle_sha256(Path(__file__).parent / name) for name in verifier_files}
     verifier_hashes.update({name + '.schema.json': lifecycle_sha256(directory / (name + '.schema.json')) for name in schema_names})
     package_catalog = directory.parents[1] / 'program-kit-building-blocks/references/orbyss-building-blocks.json'
@@ -176,6 +240,12 @@ def model(root, feature):
         for path in sorted((Path(__file__).parent / 'assembly_graph').glob('*')):
             if path.is_file():
                 verifier_hashes['assembly_graph/' + path.name] = lifecycle_sha256(path)
+    if 'persistence-adoption' in identities:
+        for relative in ('program-kit-dotnet/scripts/persistence_selection.py',
+                         'program-kit-dotnet/templates/dotnet/files/.program-kit/eng/central_packages.py',
+                         'program-kit-governance/scripts/decision_status.py',
+                         'program-kit-governance/references/persistence.schema.json'):
+            verifier_hashes[relative] = lifecycle_sha256(directory.parents[1] / relative)
     from feature_knowledge import project as project_knowledge
     brief = {}
     if (feature / 'spec.md').is_file():
@@ -189,7 +259,7 @@ def model(root, feature):
             'catalogHash': digest({'schemaVersion': value['schemaVersion'], 'requirements': requirements}), 'requirements': requirements,
             'verifierHashes': verifier_hashes,
             'packageCatalogHash': lifecycle_sha256(package_catalog) if 'capability-adoption' in identities and package_catalog.is_file() else None,
-            'knowledgeHashes': {p: lifecycle_sha256(directory.parents[1] / p) for p in sorted(sources)}}
+            'knowledgeHashes': knowledge_hashes(requirements, directory.parents[1])}
 
 
 def project(root, feature, phase):
@@ -198,8 +268,10 @@ def project(root, feature, phase):
     lines = ['# Applicable phase obligations', '', f'Phase: {phase}',
              'Use the specific references when resolving an obligation; do not reread unrelated guidance.', '']
     for item in value['requirements']:
+        sources = [('.specify/extensions/' + path + (' / ' + '; '.join(item['sections'][path])
+                    if path in item.get('sections', {}) else '')) for path in item['sources']]
         lines += [f"- {item['id']} (design: after-plan; proof: {item['due']}): {item['requirement']}",
-                  '  Sources: ' + ', '.join('.specify/extensions/' + path for path in item['sources'])]
+                  '  Sources: ' + ', '.join(sources)]
     lines += ['', 'Plan each requirement in obligation-design.json; name owner, applicability, rationale,',
               'designRefs and checkIds. Semantic review records must refer to the current review-basis hash.',
               'Missing output never disables applicability. Resolve due deferred decisions before continuing.', '']
@@ -307,6 +379,21 @@ def check(root, feature, phase):
     if 'capability-adoption' in records and records['capability-adoption']['applicability'] == 'applicable':
         from capability_adoption import validate_adoption
         validate_adoption(root, feature, phase, set(records['capability-adoption']['checkIds']))
+    if 'persistence-adoption' in records and records['persistence-adoption']['applicability'] == 'applicable':
+        from repository_sync import provider
+        persistence = provider('program-kit-dotnet/scripts/persistence_selection.py')
+        selection = persistence.resolve(root, feature.relative_to(root).as_posix())
+        selected_owners = read(feature / 'artifact-ownership.json', {}).get('persistenceOwners', [])
+        require(selected_owners, 'Persistence scope must identify data owners')
+        checks = {check for owner in selection['owners'] if owner['owner'] in selected_owners for check in owner.get('checkIds', [])}
+        require(checks <= set(records['persistence-adoption']['checkIds']), 'Persistence admission checks are missing from obligation design')
+        selection['owners'] = [owner for owner in selection['owners'] if owner['owner'] in selected_owners]
+        template = Path(__file__).resolve().parents[2] / 'program-kit-dotnet/templates/dotnet/files'
+        problems = persistence.coherence(root, selection, template, materialized=phase in {'implementation', 'delivery'})
+        require(not problems, 'Persistence adoption is incomplete: ' + '; '.join(problems))
+    if 'http-operation-contracts' in records and records['http-operation-contracts']['applicability'] == 'applicable':
+        from api_proof import validate as validate_api_proof
+        validate_api_proof(root, feature, phase, set(records['http-operation-contracts']['checkIds']))
     stage = 'delivery' if phase == 'delivery' else 'design'
     basis = review_basis(root, feature, stage)
     require_review(root, feature, basis, stage, records)

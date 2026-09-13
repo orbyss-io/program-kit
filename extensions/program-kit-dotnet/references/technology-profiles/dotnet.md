@@ -156,6 +156,19 @@ HTTP boundary. A web feature maps a feature-owned `RouteGroupBuilder` from
 `IWebShellFeature.MapEndpoints`; each slice contributes a small mapping method and co-located wire
 contracts, policies, handler/orchestration, and tests.
 
+For multiple operations, use `Operations/<Operation>/` inside the owning `.Api` project: place the
+endpoint mapping and the request, response, validation and mapping types that operation actually
+needs together. Mirror operation ownership in tests. `IWebShellFeature` composes registrations and
+route mappings; it does not accumulate DTOs, validators or business orchestration. A small/bodyless
+operation may keep one simple mapping with a reviewed rationale; no mediator, handler class, empty
+request model or new layer is required. Keep domain behavior in its owned semantic capability.
+
+Declare scoped stable `apiOperations` in `artifact-ownership.json` before source generation. Plan
+paths and responsibility boundaries in `api-proof.json` using `api-proof.schema.json`; this supplies
+the existing api-contracts obligation's operation and compatibility checks. Delivery verifies the
+generated operation IDs/routes and source placement, while attributed review checks actual thin
+composition and domain ownership. A folder name alone is not semantic proof.
+
 Require every public operation to define:
 
 - a stable route, HTTP method, endpoint name or operation identity, and owning feature;
@@ -273,4 +286,6 @@ pinned packages and NuGet sources. Review the coordinator's phase-specific plan 
 The .NET adapter installs or updates the hash-tracked repository baseline; JavaScript repositories
 use the shared package context without requiring that baseline. The standard
 runtime is `Orbyss.Foundation.Host`; consuming repositories generate
-feature packages and a digest-identified runnable application image, not a custom host project.
+feature packages and an application release bundle targeting the unchanged digest-pinned published
+Foundation host image. Consumers neither build host images nor produce host DLLs; follow
+`dotnet-runtime-and-application-bundles.md` for shell, host and Nuplane configuration and optional feeds.

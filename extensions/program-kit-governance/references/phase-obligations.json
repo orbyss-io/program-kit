@@ -21,7 +21,7 @@
         "program-kit-governance/references/programming-guardrails.md",
         "program-kit-governance/references/vertical-slicing.md"
       ],
-      "requirement": "Use typed owned boundaries, controlled time and I/O, cohesive operation paths and mirrored tests. Review legitimate dynamic or pure-static exceptions; do not create unused abstractions."
+      "requirement": "Use typed admitted envelopes with parser/schema/runtime parity, cohesive operation paths and mirrored tests. Substantiate relevant SRP/OCP/LSP/ISP/DIP conclusions against source and behavior, including internal helpers and owner-scoped constants. Review bounded dynamic JSON, pure static and small-operation exceptions; do not invent unused abstractions."
     },
     {
       "id": "architecture-authority",
@@ -82,6 +82,151 @@
         "program-kit-building-blocks/references/orbyss-building-blocks.md"
       ],
       "requirement": "For each selected capability prove materialization, configured activation and actual supported public mechanism use; distinguish build-time producers from deployed runtime services."
+    },
+    {
+      "id": "dotnet-async",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Async and shell-owned work"
+        ]
+      },
+      "requirement": "Prove owned async completion, fault observation and cancellation; review Task/ValueTask consumption, direct-return lifetime and bounded CPU/fan-out decisions against affected source. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-concurrency",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Synchronization and collections"
+        ]
+      },
+      "requirement": "For shared state or producers, prove invariant coordination, successful-acquire release, cancellation and bounded completion under controlled scheduling. Review factories, lock ordering and singleton safety. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-lifetime",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Resource and memory ownership"
+        ]
+      },
+      "requirement": "Prove actual shell/DI scope ownership, partial startup and disposal paths. Disposition buffer leases, registrations and retention; require unload proof only when live reload is selected. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-construction",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Type and construction choices",
+          "Deferred initialization"
+        ]
+      },
+      "requirement": "Review typed value/default/equality/immutability and constructor invariants. When deferred initialization is used, prove factory, exception, cancellation and disposable-value ownership; do not defer required startup checks. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-queries",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "LINQ and query boundaries"
+        ]
+      },
+      "requirement": "When queries are used, prove cardinality, ordering, materialization and selected-provider translation; review pagination and N+1. Do not require a data store for a pure slice. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-runtime-io",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Time, configuration and I/O"
+        ]
+      },
+      "requirement": "Prove controlled-time deadlines, actual shell options validation and HTTP/file lifetime/admission where used; test cancellation and unsafe retry boundaries. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-runtime-security",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Secure runtime boundaries and observability"
+        ]
+      },
+      "requirement": "Apply existing WEB/JSON/assets controls; prove applicable malformed/oversized/denied input and redacted fault paths. Review protocol identity, process/path/URL boundaries and scoped advanced-runtime research. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "dotnet-source-quality",
+      "when": "dotnet",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/dotnet-engineering.md"
+      ],
+      "sections": {
+        "program-kit-dotnet/references/dotnet-engineering.md": [
+          "Method bodies and extraction",
+          "Source files and documentation",
+          "Orbyss style overlay",
+          "Enforcement classification"
+        ]
+      },
+      "requirement": "Bind actual compiler/analyzer versions, severities, scoped suppressions and generated-code handling. Review responsibility and documentation meaning; an analyzer pass does not certify SOLID or method cohesion. Absence of the mechanism needs a source-backed reviewed not-applicable disposition, never invented usage."
+    },
+    {
+      "id": "persistence-adoption",
+      "when": "persistence",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-dotnet/references/persistence-profiles.md"
+      ],
+      "requirement": "Bind each scoped data owner to admitted profile, actual provider/project/central pins, activated semantic capability and real-provider tests. Prove transaction rollback/contention, replay/conflicting identity, retry/ambiguous commit and controlled migrations/recovery where required by the admission. No-store and read-only exceptions need reviewed evidence; package presence is not behavior."
+    },
+    {
+      "id": "http-operation-contracts",
+      "when": "http-api",
+      "due": "delivery",
+      "proof": "behavior",
+      "sources": [
+        "program-kit-governance/references/modularity-and-contracts.md",
+        "program-kit-dotnet/references/technology-profiles/dotnet.md"
+      ],
+      "requirement": "Bind scoped HTTP operations to operation-owned sources, thin IWebShellFeature composition, current generated OpenAPI identity and the existing registered baseline. Prove DTO/parser/schema parity, supported old-client/snapshot behavior and explicit version/deprecation decisions through api-proof.json. Review proportional small operations; non-HTTP contracts use their own compatibility mechanism."
     }
   ]
 }

@@ -160,6 +160,31 @@ dead-letter behavior, versioning, retention, replay, security, and observability
 
 ## Runtime and HTTP ownership
 
+### API evolution evidence
+
+The existing OpenAPI registry, exporter, normalized baseline, oasdiff and locked client generator
+remain the contract pipeline. `api-proof.json` binds affected operations to those registered
+contracts, baseline hashes, typed DTO/parser/schema checks, compatibility cases and a version
+decision. Establish or renew this proof before running the existing verification plan; a new API
+may declare an absent baseline during design, but delivery needs the generated initial baseline.
+Never create a second baseline simply because evidence is stale or a compatibility check fails.
+
+Review strict request admission and tolerant response consumption according to the supported wire
+contract. Test old clients, stored snapshots, approved converters/variants, canonical identity and
+denied inputs as applicable; a structural OpenAPI diff cannot prove semantic compatibility. Preserve
+operation IDs, names and schema behavior during folder-only refactors. Breaking changes need the
+accepted version/migration/deprecation policy and removal conditions, not a silent baseline refresh.
+Keep API route/document versions, NuGet versions, persistence schema versions, form schema versions
+and canonical identity versions distinct. Introduce parallel V1/V2 namespaces/routes only for an
+actual supported compatibility boundary. Evaluate runtime version negotiation separately when needed.
+
+API Evolve v1.0.0 was evaluated at upstream commit `ca528b093120d3e10c50c3a5c6179577e8264852`
+on 2026-09-13. Its manifest fails the installed Spec Kit validator (`requires.speckit_version`
+missing); commands/hooks are agent instruction documents, and its baseline/task/release mutations
+overlap this pipeline. Do not install or invoke it as a required gate in this version. Retain the
+useful compatibility questions above; reconsider adoption only with verified compatible hooks,
+one baseline authority, current proof and no feature-triggered release side effects.
+
 The external host and selected Program Kit web runtime own authentication mechanisms, standard
 middleware ordering, common Problem Details/correlation/security-header infrastructure, CORS and
 OpenAPI infrastructure. Deployment configuration supplies provider

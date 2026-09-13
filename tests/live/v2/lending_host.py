@@ -65,6 +65,7 @@ class LendingHost:
         self.timeout = timeout
         self.deadline = time.monotonic() + timeout
         self.records = []
+        self.secrets = []
         self.thread = None
 
     def start(self):
@@ -81,7 +82,8 @@ class LendingHost:
             try:
                 self.result = run_supervised(self.command, cwd=self.project,
                     environment=self.environment, evidence_directory=directory,
-                    timeout_seconds=remaining, on_poll=lambda _: not self.stop_event.is_set(), on_started=started)
+                    timeout_seconds=remaining, on_poll=lambda _: not self.stop_event.is_set(), on_started=started,
+                    secrets=self.secrets)
             except BaseException as error:
                 self.error = error
         self.thread = threading.Thread(target=serve, daemon=True)
@@ -133,12 +135,16 @@ class LendingHost:
 
 class PublishedLendingHost(LendingHost):
     """Fixture owns a container, including explicit cleanup beyond its attached CLI."""
-    def __init__(self, bundle, image, project, evidence, environment, *, timeout=180):
+    def __init__(self, bundle, image, project, evidence, environment, *, timeout=180, database=None):
         if not re.fullmatch(r'ghcr\.io/orbyss-io/foundation-host@sha256:[a-f0-9]{64}', image):
             raise LiveContractError('LENDING_PUBLISHED_FOUNDATION_REQUIRED')
         super().__init__(['docker'], project, evidence, environment, timeout=timeout)
         self.bundle, self.image = bundle, image
         self.container = 'program-kit-lending-' + uuid.uuid4().hex
+        self.database = database
+        if database is not None:
+            self.environment['LENDING_FIXTURE_CONNECTION_STRING'] = database.connection(container=True)
+            self.secrets = [database.password, self.environment['LENDING_FIXTURE_CONNECTION_STRING']]
 
     def start(self):
         data = Path(self.environment['LENDING_FIXTURE_DATA'])
@@ -150,6 +156,9 @@ class PublishedLendingHost(LendingHost):
                         '-e', 'LENDING_FIXTURE_DATA=/fixture-data',
                         '-e', 'LENDING_FIXTURE_PORT=8080',
                         '--mount', f'type=bind,source={data},target=/fixture-data']
+        if self.database is not None:
+            self.command += ['--network', self.database.network, '-e', 'LENDING_FIXTURE_DATABASE_PROVIDER=postgresql',
+                             '-e', 'LENDING_FIXTURE_CONNECTION_STRING']
         for name in ('hostsettings.json', 'shells.json', 'nuplane.settings.json', 'packages'):
             self.command += ['--mount', f'type=bind,source={self.bundle / name},target=/app/{name},readonly']
         if self.environment.get('LENDING_FIXTURE_WEB'):
@@ -164,7 +173,7 @@ class PublishedLendingHost(LendingHost):
         try:
             removal = run_supervised(['docker', 'rm', '-f', self.container], cwd=self.project,
                 environment=self.environment, evidence_directory=self.evidence / f'container-cleanup-{len(self.records)+1}',
-                timeout_seconds=30)
+                timeout_seconds=30, secrets=self.secrets)
             if removal.exitCode != 0 or not removal.cleanupComplete or not removal.logsDrained:
                 raise LiveContractError('LENDING_CONTAINER_CLEANUP_FAILED')
         finally:

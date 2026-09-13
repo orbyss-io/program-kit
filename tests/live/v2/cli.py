@@ -464,11 +464,13 @@ def bootstrap(args: argparse.Namespace) -> int:
     progress = WorkflowProgress(project)
     progress.start()
     try:
-        result = run_supervised(
-            command, cwd=project, environment=environment,
-            evidence_directory=run_root / "worker", timeout_seconds=authorization["agentProfile"]["timeoutSeconds"],
-            secrets=[os.environ.get(key, "") for key in SECRET_KEYS], on_poll=provisioner.poll,
-        )
+        from .postgresql_service import worker_service
+        with worker_service(project, run_root / 'database', supervisor_environment(), project / 'acceptance/services.json') as (service_environment, service_secrets):
+            result = run_supervised(
+                command, cwd=project, environment={**environment, **service_environment},
+                evidence_directory=run_root / "worker", timeout_seconds=authorization["agentProfile"]["timeoutSeconds"],
+                secrets=[os.environ.get(key, "") for key in SECRET_KEYS] + service_secrets, on_poll=provisioner.poll,
+            )
     finally:
         progress.stop()
         setup_receipts.extend(provisioner.receipts)

@@ -15,6 +15,7 @@
     "deferred"
   ],
   "properties": {
+    "persistence": {"$ref": "persistence.schema.json#/$defs/owners"},
     "schema_version": { "const": "1.0" },
     "default_profile": {
       "type": "object",

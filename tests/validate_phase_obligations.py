@@ -16,6 +16,17 @@ from semantic_contract import validate_contract
 
 
 class ObligationTests(unittest.TestCase):
+    def test_future_owner_evidence_does_not_block_scoped_inventory(self):
+        self.write('docs/architecture/bootstrap-decisions.json', {'persistence': [
+            {'owner': 'Future', 'admission': {'atomicity': ['docs/not-yet-written.md']}},
+            {'owner': 'Reservations', 'admission': {'atomicity': ['specs/001-reservation/plan.md']}}]})
+        self.write('specs/001-reservation/artifact-ownership.json', {'persistenceOwners': ['Reservations']})
+        inventory = obligations.inventory(self.root, self.feature)
+        self.assertIn('specs/001-reservation/plan.md', inventory)
+        self.write('specs/001-reservation/artifact-ownership.json', {'persistenceOwners': ['Future']})
+        with self.assertRaisesRegex(ValueError, 'Missing declared verification input'):
+            obligations.inventory(self.root, self.feature)
+
     def setUp(self):
         # Unit scope: intake's native integration is exercised by validate_specification_intake.
         authority = patch.object(obligations, 'require_confirmed_intake')
@@ -80,6 +91,37 @@ raise SystemExit(not result.wasSuccessful())
         obligations.execute(self.root, self.feature)
         self.review('delivery')
         obligations.check(self.root, self.feature, 'delivery')
+
+    def test_dotnet_intent_projects_engineering_before_source_exists(self):
+        self.write('docs/architecture/bootstrap-decisions.json', {'selected_profiles': ['dotnet']})
+        projected = obligations.project(self.root, self.feature, 'planning')
+        ids = {r['id'] for r in projected['requirements']}
+        self.assertTrue({'dotnet-async', 'dotnet-concurrency', 'dotnet-lifetime', 'dotnet-construction',
+                         'dotnet-queries', 'dotnet-runtime-io', 'dotnet-runtime-security',
+                         'dotnet-source-quality'} <= ids)
+        self.assertTrue(any(key.endswith('#Deferred initialization') for key in projected['knowledgeHashes']))
+        self.assertIn('Deferred initialization', (self.feature / 'phase-context.md').read_text())
+        with self.assertRaisesRegex(ValueError, 'every applicable requirement'):
+            obligations.design(self.root, self.feature, projected)
+
+    def test_scoped_knowledge_changes_revoke_only_affected_hashes(self):
+        path = self.root / 'knowledge.md'
+        path.write_text('# Profile\n\n## Async\nObserve work.\n\n## Memory\nOwn buffers.\n')
+        rules = [{'sources': ['knowledge.md'], 'sections': {'knowledge.md': ['Async']}}]
+        original = obligations.knowledge_hashes(rules, self.root)
+        path.write_text(path.read_text().replace('Own buffers.', 'Return buffers.'))
+        self.assertEqual(original, obligations.knowledge_hashes(rules, self.root))
+        path.write_text(path.read_text().replace('Observe work.', 'Observe all work.'))
+        self.assertNotEqual(original, obligations.knowledge_hashes(rules, self.root))
+        path.write_text(path.read_text().replace('## Async', '## Missing'))
+        with self.assertRaisesRegex(ValueError, 'Missing/ambiguous'):
+            obligations.knowledge_hashes(rules, self.root)
+
+    def test_ambiguous_knowledge_section_fails_closed(self):
+        path = self.root / 'knowledge.md'
+        path.write_text('## Async\nOne.\n## Async\nTwo.\n')
+        with self.assertRaisesRegex(ValueError, 'Missing/ambiguous'):
+            obligations.knowledge_section(path, 'Async')
 
     def test_delivered_roadmap_requires_current_executed_proof(self):
         import os

@@ -15,6 +15,10 @@ Accepted reservations survive process restart. A transient notification failure 
 retain durable retry ownership; recovery sends the notification once without reserving
 another camera. Injected test time and effect ports allow deterministic failure cases.
 
+This trial uses server-relational persistence through Program Kit's inherited EF/Npgsql/PostgreSQL
+default. Admit it for the owning capability; the fixed acceptance service contract supplies the
+isolated real database. This fixture choice does not restrict other consumers' supported providers.
+
 Use proportional policies and transition code with typed outcomes, no speculative
 framework. Keep domain contracts and Core logic free of HTTP, serializers, persistence
 and DI. Put the persistence adapter behind an explicit capability; prove real shell
