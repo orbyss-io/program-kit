@@ -84,7 +84,7 @@ verified manifest, useful bounded execution and a single baseline/release author
 | Installed local upgrade | Passed planned-only and materialized sequential upgrades; invalid states rejected before mutation. Log artifacts/refactor-local-upgrade.log. |
 | Lifecycle/profile and bootstrap context | Passed installed integration, activation, ownership, external-host boundaries and context freshness. |
 | Published analyzer and SDK | Real compiler positive/negative controls passed; 16 runtime engineering cases passed. Evidence artifacts/dotnet-engineering/verification.json and runtime.xml. |
-| EF/Npgsql/PostgreSQL | 8 real-provider cases passed, plus actual evaluated CPM positive/conditional negative, exact shared migration deployment, database restart and cleanup. Evidence artifacts/persistence-runtime/verification.json. |
+| EF/Npgsql/PostgreSQL | 8 real-provider cases passed, plus actual evaluated CPM positive/conditional negative, exact shared migration deployment from a provider class library, database restart and cleanup. Evidence artifacts/persistence-runtime/verification.json. |
 | Released public components | Forms/JSON, actual two-shell WebDefaults/JSON and HostedPages HTTP probes passed; artifacts/public-component-use/8dff232e. |
 | Existing release bundle / runnable host pins / knowledge inventory | Targeted checks passed (12 / 11 / 4); no complete Release suite invoked. |
 

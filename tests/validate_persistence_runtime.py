@@ -73,6 +73,13 @@ def main():
         operation([executable, 'migrations', 'add', 'Initial', '--project', 'Probe.csproj', '--no-build'], 'migration-authoring', env)
         shutil.copytree(project / 'Migrations', artifact / 'migrations', dirs_exist_ok=True)
         operation(['dotnet', 'build', 'Probe.csproj', '--no-restore', '--verbosity', 'quiet'], 'migration-build', env)
+        # Consumer providers are libraries; the executable above is only the behavior test runner.
+        provider = project / 'provider'; provider.mkdir()
+        (provider / 'Provider.csproj').write_text(original.replace('<OutputType>Exe</OutputType>', ''))
+        types = (project / 'Program.cs').read_text().split('public sealed class Store : DbContext', 1)[1]
+        (provider / 'Store.cs').write_text('using Microsoft.EntityFrameworkCore;\npublic sealed class Store : DbContext' + types)
+        shutil.copytree(project / 'Migrations', provider / 'Migrations')
+        operation(['dotnet', 'build', 'provider/Provider.csproj', '--verbosity', 'quiet'], 'provider-library-build', env)
         manifest = project / '.program-kit/eng/.config/dotnet-tools.json'
         manifest.parent.mkdir(parents=True)
         manifest.write_text(json.dumps({'version': 1, 'isRoot': True, 'tools': {'dotnet-ef': {
@@ -85,7 +92,7 @@ def main():
                 if result.exitCode != 0 or not result.cleanupComplete or not result.logsDrained:
                     raise AssertionError(f'{name} failed; inspect {artifact / name}')
             deploy_postgresql(project, artifact, database, ['dotnet'], [{'owner': 'Reservations', 'profile': 'ef-postgresql',
-                'admissionComplete': True, 'providerProject': 'Probe.csproj'}], env, deployment_operation, 'shared-deployment')
+                'admissionComplete': True, 'providerProject': 'provider/Provider.csproj'}], env, deployment_operation, 'shared-deployment')
             command = ['dotnet', str(project / 'bin/Debug/net10.0/Probe.dll')]
             operation(command + ['exercise', str(artifact / 'exercise.xml')], 'exercise', environment, [database.password])
             database.restart()
@@ -96,7 +103,7 @@ def main():
             raise AssertionError('Database behavior cases did not pass')
         (artifact / 'verification.json').write_text(json.dumps({'image': contract['image'], 'pins': pins,
             'cases': [c.attrib['name'] for c in cases], 'evaluatedCentralGraph': 'passed-positive-and-conditional-negative',
-            'sharedMigrationDeployment': 'passed', 'cleanupComplete': True}, indent=2) + '\n')
+            'sharedMigrationDeployment': 'passed-from-provider-class-library', 'cleanupComplete': True}, indent=2) + '\n')
         print(f'Real EF/Npgsql/PostgreSQL integration passed: {len(cases)} cases, database restart and cleanup.')
     return 0
 
